@@ -1,0 +1,167 @@
+<!--
+Copyright 2022 SpinalCom - www.spinalcom.com
+
+This file is part of SpinalCore.
+
+Please read all of the following terms and conditions
+of the Free Software license Agreement ("Agreement")
+carefully.
+
+This Agreement is a legally binding contract between
+the Licensee (as defined below) and SpinalCom that
+sets forth the terms and conditions that govern your
+use of the Program. By installing and/or using the
+Program, you agree to abide by all the terms and
+conditions stated or referenced herein.
+
+If you do not agree to abide by these terms and
+conditions, do not demonstrate your acceptance and do
+not install or use the Program.
+You should have received a copy of the license along
+with this file. If not, see
+<http://resources.spinalcom.com/licenses.pdf>.
+-->
+
+<template>
+  <v-data-table fixed-header
+                class="dataTable"
+                dense
+                disable-pagination
+                hide-default-footer
+                :headers="headers"
+                :items="categories"
+                height="100%">
+
+    <template v-slot:body="{ items }">
+      <tr v-for="(item,index) in items"
+          class="categoriesRows"
+          :key="index">
+        <td v-for="(header,index2) in headers"
+            :key="index2">
+          <div class="categoryName"
+               v-if="header.value === 'name'">{{item[header.value]}}
+          </div>
+
+          <div class="card"
+               v-else
+               v-for="(applicationData,index3) in item[header.value]"
+               :key="index3">
+            <ApplicationCard :data="applicationData"
+                             @exploreApp="exploreApp"
+                             @addAppToFavoris="addAppToFavoris" />
+          </div>
+        </td>
+      </tr>
+    </template>
+
+  </v-data-table>
+</template>
+
+<script>
+import ApplicationCard from "./applicationCard.vue";
+
+export default {
+  name: "GridComponent",
+  components: {
+    ApplicationCard,
+  },
+  props: {
+    groups: { default: () => [] },
+    categories: { default: () => [] },
+  },
+  data() {
+    return {
+      headers: [],
+    };
+  },
+  mounted() {
+    this.headers = this.formatHeaders(this.groups);
+  },
+  methods: {
+    formatHeaders(headers) {
+      return [{ text: "", value: "name" }, ...headers].map((el) => ({
+        text: el.text || el.name,
+        value: el.id || el.value || el.name,
+        sortable: false,
+      }));
+    },
+
+    exploreApp(item) {
+      this.$emit("exploreApp", item);
+    },
+
+    addAppToFavoris(item) {
+      this.$emit("addAppToFavoris", item);
+    },
+  },
+  computed: {
+    // firstColumnStyle() {
+    //   return {
+    //     width: "150px",
+    //     background: "yellow",
+    //   };
+    // },
+    // cardStyle() {
+    //   return {
+    //     width: `calc(${100 / this.groups.length}% - 100px)`,
+    //     background: "yellow !important",
+    //   };
+    // },
+  },
+  watch: {
+    groups() {
+      this.headers = this.formatHeaders(this.groups);
+    },
+  },
+};
+</script>
+
+<style scoped>
+.dataTable {
+  width: 100%;
+  height: 95%;
+  background-color: #f0f4f5 !important;
+}
+.dataTable table tr.categoriesRows td {
+  width: 100%;
+  border-top: 1px solid #adc8ce;
+}
+
+.dataTable table tr.categoriesRows td > * {
+  width: 100%;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.dataTable table tr.categoriesRows .categoryName {
+  text-transform: uppercase;
+  font-size: 0.6em;
+  font-weight: bolder;
+  color: #6aa0ad;
+  width: 100px;
+}
+
+.dataTable table tr.categoriesRows td {
+  width: 20vw;
+  height: 100px !important;
+}
+</style>
+
+<style>
+.dataTable table {
+  border-collapse: separate !important;
+  border-spacing: 15px 0 !important;
+}
+
+.dataTable table thead tr th {
+  width: 30px;
+  background: #f0f4f5 !important;
+  text-transform: uppercase;
+  font-size: 0.8em !important;
+  vertical-align: bottom;
+  padding: 0px !important;
+  font-weight: bolder;
+  color: #6aa0ad !important;
+  box-shadow: unset !important;
+}
+</style>
