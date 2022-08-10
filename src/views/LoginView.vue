@@ -1,0 +1,212 @@
+<!--
+Copyright 2022 SpinalCom - www.spinalcom.com
+This file is part of SpinalCore.
+
+Please read all of the following terms and conditions
+of the Free Software license Agreement ("Agreement")
+carefully.
+
+This Agreement is a legally binding contract between
+the Licensee (as defined below) and SpinalCom that
+sets forth the terms and conditions that govern your
+use of the Program. By installing and/or using the
+Program, you agree to abide by all the terms and
+conditions stated or referenced herein.
+
+If you do not agree to abide by these terms and
+conditions, do not demonstrate your acceptance and do
+not install or use the Program.
+You should have received a copy of the license along
+with this file. If not, see
+<http://resources.spinalcom.com/licenses.pdf>.
+-->
+
+<template>
+  <v-container class="appContainer"
+               fluid>
+
+    <form @submit.prevent="login">
+      <v-card class="loginCard">
+
+        <v-card-title class="loginCardTitle">
+          <div class="logoImg">
+            <div class="logo">
+              <v-img class="img"
+                     alt="logo"
+                     :src="logoSvg"></v-img>
+            </div>
+          </div>
+
+          <div class="description">
+            Consultez toutes les données de vos bâtiments connectés.
+          </div>
+        </v-card-title>
+
+        <v-card-text class="loginCardContent">
+          <v-alert v-show="!hide && showError"
+                   dense
+                   outlined
+                   type="error">
+            incorrect login and/or password !
+          </v-alert>
+
+          <v-text-field outlined
+                        height="35"
+                        dense
+                        label="Login"
+                        v-model="credential.userName"
+                        required></v-text-field>
+
+          <v-text-field outlined
+                        v-model="credential.password"
+                        height="35"
+                        dense
+                        label="Password"
+                        required
+                        :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                        :type="showPassword ? 'text' : 'password'"
+                        class="input-group--focused"
+                        @click:append="showPassword = !showPassword">
+          </v-text-field>
+
+          <v-btn x-small
+                 text>
+            mot de passe oublié ?
+          </v-btn>
+
+        </v-card-text>
+
+        <v-card-actions class="loginCardAction">
+          <v-btn dark
+                 type="submit">
+            Connexion
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </form>
+  </v-container>
+</template>
+
+<script>
+import Vue from "vue";
+import { mapActions, mapState } from "vuex";
+import logoSvg from "../assets/logo.svg";
+
+export default Vue.extend({
+  name: "Login",
+  data() {
+    return {
+      logoSvg,
+      showPassword: false,
+      showError: false,
+      hide: true,
+      credential: {
+        userName: "user1",
+        password: "1234567890",
+      },
+    };
+  },
+  created() {},
+  mounted() {},
+  methods: {
+    ...mapActions("logingStore", ["logUser", "storeCookie"]),
+    async login() {
+      this.hide = false;
+      const logged = await this.logUser(this.credential);
+
+      this.showError = !logged;
+      if (logged) {
+        this.storeCookie(this.$cookie);
+        this.$router.push("/home");
+      }
+    },
+  },
+  computed: {
+    ...mapState("logingStore", ["incorrect"]),
+    // showError() {
+    //   return !this.hide && this.incorrect;
+    // },
+  },
+  watch: {
+    credential: {
+      handler() {
+        this.hide = true;
+      },
+      deep: true,
+    },
+  },
+});
+</script>
+
+
+<style scoped>
+.appContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.appContainer .loginCard {
+  width: 400px;
+  padding: 18px;
+}
+
+.appContainer .loginCardTitle,
+.appContainer .loginCardContent,
+.appContainer .loginCardAction {
+  padding: unset !important;
+}
+
+.appContainer .loginCardTitle {
+  margin-bottom: 40px;
+}
+
+.appContainer .loginCardTitle .description {
+  line-height: 25px;
+  word-break: keep-all;
+  text-align: justify;
+  font-size: 0.7em;
+}
+
+.appContainer .loginCardTitle .logoImg {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* .appContainer .loginCardTitle .logo {
+  width: 60%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+} */
+
+.appContainer .loginCardTitle .logo .img {
+  width: 100%;
+  height: 100%;
+}
+
+.appContainer .loginCardContent {
+  /* height: 500px; */
+}
+
+.appContainer .loginCardAction {
+  height: 40px;
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+</style>
+
+<style>
+.appContainer
+  .loginCardContent
+  .v-text-field.v-text-field--enclosed
+  .v-text-field__details {
+  margin-bottom: 0px;
+}
+</style>
