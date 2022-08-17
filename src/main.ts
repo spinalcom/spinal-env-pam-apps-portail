@@ -35,9 +35,11 @@ import './assets/css/basic/main.css';
 import './assets/css/component/navPickerApp.css';
 import "material-design-icons-iconfont";
 
-initAxios(`http://localhost:8065`)
+initAxios(`http://localhost:8065`);
+
 Vue.config.productionTip = false
 Vue.use(VueCookie);
+
 
 new Vue({
   router,
@@ -45,3 +47,5 @@ new Vue({
   store,
   render: h => h(App)
 }).$mount('#app')
+
+

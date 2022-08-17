@@ -42,3 +42,9 @@ export function getUserBos(profileId: string | null) {
         return result.data;
     })
 }
+
+export function getAppById(appId: string | null) {
+    return axios.get(`${SERVER_BASE_URL}/api/v1/pam/get_app_by_id/${appId}`).then((result) => {
+        return result.data;
+    })
+}

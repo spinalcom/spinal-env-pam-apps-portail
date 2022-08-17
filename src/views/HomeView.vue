@@ -130,7 +130,7 @@ export default Vue.extend({
     filterCategories() {
       this.categoriesDisplayed = this.categories.reduce((liste, item) => {
         const categoryName = this.filtersData.category.value;
-        if (categoryName && categoryName !== item.name) return liste;
+        if (categoryName && categoryName !== item.value) return liste;
         const searchData = this.filtersData.search.toLowerCase();
         let appsItem = !searchData ? item : this.filterApps(searchData, item);
 

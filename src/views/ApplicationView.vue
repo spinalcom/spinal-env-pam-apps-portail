@@ -29,13 +29,22 @@ with this file. If not, see
       <NavBar />
     </div>
 
+    <!-- <iframe v-if="appPath" -->
     <iframe class="iframeContainer"
-            src="/micro-apps/first/index.html"></iframe>
+            src="micro-apps/spinal-env-pam-building-manager/index.html"></iframe>
+
+    <!-- <div v-else
+         class="iframeContainer notFoundDiv">
+      <h1 class="code">404</h1>
+      <h1>No app found for {{appSelected.name}}</h1>
+    </div> -->
   </v-container>
 </template>
 
 <script>
 import NavBar from "../components/nav.vue";
+import { getAppById } from "../requests/userData";
+import { default as apps } from "../../micro-apps.json";
 
 export default {
   components: {
@@ -44,14 +53,26 @@ export default {
   data() {
     return {
       appSelected: {},
+      appPath: undefined,
     };
   },
-  mounted() {
-    const { query, params } = this.$route;
-    if (params.id && params.id === query.id) {
-      this.appSelected = params;
-      return;
-    }
+  async mounted() {
+    this.appSelected = await this.getAppInfo();
+    this.appPath = this.getAppPath();
+  },
+
+  methods: {
+    getAppInfo() {
+      const { query, params } = this.$route;
+      const appId = query.id;
+
+      if (params.id && params.id === appId) return Promise.resolve(params);
+      return getAppById(appId);
+    },
+    getAppPath() {
+      const entry = apps[this.appSelected.name];
+      return entry;
+    },
   },
 };
 </script>
@@ -60,13 +81,24 @@ export default {
   width: 100%;
   height: 99%;
   padding: 0px;
-  background: red;
+  /* background: red; */
 }
 
 .appContainer .iframeContainer {
   width: 100%;
   height: 100%;
-  background: yellow;
+  /* background: yellow; */
+}
+
+.appContainer .iframeContainer.notFoundDiv {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.appContainer .iframeContainer.notFoundDiv .code {
+  font-size: 5em;
 }
 
 .appContainer .navbar {
