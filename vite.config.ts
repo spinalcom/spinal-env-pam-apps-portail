@@ -23,14 +23,19 @@
  */
 import { defineConfig } from 'vite';
 const { createVuePlugin } = require('vite-plugin-vue2');
-import { default as apps } from "./micro-apps.json";
+import { default as apps } from "./.config_env/apps.json";
+import { VuetifyResolver } from 'unplugin-vue-components/resolvers';
+import Components from 'unplugin-vue-components/vite';
+
 // import commonjs from '@rollup/plugin-commonjs';
 // import { viteCommonjs, esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   publicDir: 'public',
-  plugins: [createVuePlugin()],
+  plugins: [createVuePlugin(), Components({
+    resolvers: [VuetifyResolver(),
+    ]}),],
   build: {
     emptyOutDir: true,
     rollupOptions: {

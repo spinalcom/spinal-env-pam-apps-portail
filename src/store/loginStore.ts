@@ -58,8 +58,8 @@ export const logingStore = {
 
         storeCookie({ state }: any, vueCookieInstance: any) {
             // vueCookieInstance.set('token', state.data.token, { expires: state.data.expieres });
-
-            const profileId = state.data.profile.userProfileId;
+            console.log(state.data)
+            const profileId = state.data.profile.userProfileBosConfigId;
             const token = state.data.token;
 
             localStorage.setItem("profileId", profileId);

@@ -29,22 +29,22 @@ with this file. If not, see
       <NavBar />
     </div>
 
-    <!-- <iframe v-if="appPath" -->
-    <iframe class="iframeContainer"
-            src="micro-apps/spinal-env-pam-building-manager/index.html"></iframe>
+    <!-- <iframe  -->
+    <iframe v-if="appPath" class="iframeContainer"
+            :src="appPath"></iframe>
 
-    <!-- <div v-else
+    <div v-else
          class="iframeContainer notFoundDiv">
       <h1 class="code">404</h1>
       <h1>No app found for {{appSelected.name}}</h1>
-    </div> -->
+    </div>
   </v-container>
 </template>
 
 <script>
 import NavBar from "../components/nav.vue";
 import { getAppById } from "../requests/userData";
-import { default as apps } from "../../micro-apps.json";
+import { default as apps } from "../../.config_env/apps.json";
 
 export default {
   components: {
