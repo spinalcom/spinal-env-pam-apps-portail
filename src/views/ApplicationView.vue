@@ -23,20 +23,17 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="appContainer"
-               fluid>
+  <v-container class="appContainer" fluid>
     <div class="navbar">
       <NavBar />
     </div>
 
     <!-- <iframe  -->
-    <iframe v-if="appPath" class="iframeContainer"
-            :src="appPath"></iframe>
+    <iframe v-if="appPath" class="iframeContainer" :src="appPath"></iframe>
 
-    <div v-else
-         class="iframeContainer notFoundDiv">
+    <div v-else class="iframeContainer notFoundDiv">
       <h1 class="code">404</h1>
-      <h1>No app found for {{appSelected.name}}</h1>
+      <h1>No app found for {{ appSelected.name }}</h1>
     </div>
   </v-container>
 </template>
@@ -45,6 +42,8 @@ with this file. If not, see
 import NavBar from "../components/nav.vue";
 import { getAppById } from "../requests/userData";
 import { default as apps } from "../../.config_env/apps.json";
+import { SET_SELECTED_APP } from "../store/appDataStore";
+
 
 export default {
   components: {
@@ -59,6 +58,7 @@ export default {
   async mounted() {
     this.appSelected = await this.getAppInfo();
     this.appPath = this.getAppPath();
+    this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, this.appSelected);
   },
 
   methods: {

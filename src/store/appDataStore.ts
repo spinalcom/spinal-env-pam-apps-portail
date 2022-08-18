@@ -28,6 +28,7 @@ export const SET_USER_APPS = "SET_USER_APPS";
 export const SET_USER_BOS = "SET_USER_BOS";
 export const SET_USER_INFO = "SET_USER_INFO";
 export const SET_AND_FORMAT_APPS = "SET_AND_FORMAT_APPS";
+export const SET_SELECTED_APP = "SET_SELECTED_APP";
 
 
 function classifyByCategory(apps: any[]): { name: string, id: string, apps: any[] }[] {
@@ -104,6 +105,10 @@ export const appDataStore = {
         [SET_AND_FORMAT_APPS](state: any, { apps, appsFormatted }: any) {
             state.appsDisplayed = apps;
             state.appsFormatted = appsFormatted;
+        },
+
+        [SET_SELECTED_APP](state: any, playload: any) {
+            state.appSelected = playload;
         }
     },
     actions: {

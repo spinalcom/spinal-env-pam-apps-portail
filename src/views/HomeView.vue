@@ -84,6 +84,7 @@ import Vue from "vue";
 import GridComponent from "../components/gridComponent.vue";
 import * as lodash from "lodash";
 import { mapState } from "vuex";
+import { SET_SELECTED_APP } from "../store/appDataStore";
 
 export default Vue.extend({
   name: "Home",
@@ -111,6 +112,8 @@ export default Vue.extend({
   },
   async mounted() {
     if (this.groups.length === 0) this.formatData(this.appsFormatted);
+        this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, undefined);
+
   },
   methods: {
     // ...mapActions("appDataStore", ["getApps", "getBos"]),
