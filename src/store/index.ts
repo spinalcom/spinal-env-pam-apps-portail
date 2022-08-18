@@ -25,13 +25,13 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import { logingStore } from './loginStore';
-import { userDataStore } from "./userDataStore";
+import { appDataStore } from "./appDataStore";
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
   modules: {
     logingStore,
-    userDataStore
+    appDataStore
   }
 })

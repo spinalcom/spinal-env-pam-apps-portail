@@ -54,7 +54,7 @@ export default {
     await this.init();
   },
   methods: {
-    ...mapActions("userDataStore", [
+    ...mapActions("appDataStore", [
       "getApps",
       "getBos",
       "getUserInfo",
@@ -70,7 +70,7 @@ export default {
     },
   },
   computed: {
-    ...mapState("userDataStore", ["appsDisplayed", "userInfo"]),
+    ...mapState("appDataStore", ["appsDisplayed", "userInfo"]),
   },
 };
 </script>

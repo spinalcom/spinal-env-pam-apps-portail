@@ -28,39 +28,51 @@ with this file. If not, see
     <div class="navPickerApp">
       <div class="navPickerApp-container">
         <div class="navPickerApp-mainMenu">
-          <button class="navPickerApp-mainMenu-button"
-                  :class="{
+          <button
+            class="navPickerApp-mainMenu-button"
+            :class="{
               actived: navBarMainMenuShow,
             }"
-                  @click="clickMainMenu()">
+            @click="clickMainMenu()"
+          >
             <span></span>
             <span></span>
             <span></span>
           </button>
-          <div class="navPickerApp-mainMenu-content"
-               :class="{
+          <div
+            class="navPickerApp-mainMenu-content"
+            :class="{
               actived: navBarMainMenuShow,
-            }">
+            }"
+          >
             <div class="navPickerApp-mainMenu-content-profil">
               <div class="navPickerApp-mainMenu-content-profil-name">
-                {{userInfo && userInfo.name}}
+                {{ userInfo && userInfo.name }}
               </div>
               <div class="navPickerApp-mainMenu-content-profil-role">
-                {{userInfo && userInfo.email}}
+                {{ userInfo && userInfo.email }}
               </div>
             </div>
             <div class="navPickerApp-mainMenu-content-buttonContainer">
-              <button v-for="btn in mainbuttons"
-                      :key="btn.name"
-                      class="navPickerApp-mainMenu-content-buttonContainer-button"
-                      :tabindex="mainMenuTabIndexComputed"
-                      @click="btn.action">
+              <button
+                v-for="btn in mainbuttons"
+                :key="btn.name"
+                class="navPickerApp-mainMenu-content-buttonContainer-button"
+                :tabindex="mainMenuTabIndexComputed"
+                @click="btn.action"
+              >
                 <div
-                     class="navPickerApp-mainMenu-content-buttonContainer-button-icon">
+                  class="
+                    navPickerApp-mainMenu-content-buttonContainer-button-icon
+                  "
+                ></div>
+                <div
+                  class="
+                    navPickerApp-mainMenu-content-buttonContainer-button-title
+                  "
+                >
+                  {{ btn.name }}
                 </div>
-                <div
-                     class="navPickerApp-mainMenu-content-buttonContainer-button-title">
-                  {{ btn.name }}</div>
               </button>
             </div>
           </div>
@@ -70,33 +82,59 @@ with this file. If not, see
           <img :src="logoSvg" />
         </div>
         <div class="navPickerApp-appMenu">
-          <button class="navPickerApp-appMenu-button"
-                  @click="clickAppMenu()"
-                  :class="{
+          <button
+            class="navPickerApp-appMenu-button"
+            @click="clickAppMenu()"
+            :class="{
               actived: navBarAppMenuShow,
-            }">
+            }"
+          >
             <div class="buttonLabel">application</div>
             <div class="navPickerApp-appMenu-iconContainer">
               <span class="material-icons">
-                {{appSelected.icon || 'location_city'}} </span>
+                {{ localAppSelected.icon || "location_city" }}
+              </span>
             </div>
-            <div class="navPickerApp-appMenu-title">{{appSelected.name}}</div>
+            <div class="navPickerApp-appMenu-title">
+              {{ localAppSelected.name }}
+            </div>
           </button>
 
-          <div class="navPickerApp-appMenu-content"
-               :class="{
+          <div
+            class="navPickerApp-appMenu-content"
+            :class="{
               actived: navBarAppMenuShow,
-            }">
-            <button v-for="app in apps"
-                    :key="app.name"
-                    class="navPickerApp-appMenu-content-app"
-                    :tabindex="appMenuTabIndexComputed"
-                    @click="app.action">
+            }"
+          >
+            <button
+              class="navPickerApp-appMenu-content-app"
+              :tabindex="appMenuTabIndexComputed"
+              @click="gotToHome"
+            >
               <div class="navPickerApp-appMenu-content-app-iconContainer">
-                <span class="material-icons"> {{app.icon || 'location_city'}}
+                <span class="material-icons">
+                  {{ homeApp.icon || "location_city" }}
                 </span>
               </div>
-              <div class="navPickerApp-appMenu-content-app-title">{{ app.name }}
+              <div class="navPickerApp-appMenu-content-app-title">
+                {{ homeApp.name }}
+              </div>
+            </button>
+
+            <button
+              v-for="app in appsDisplayed"
+              :key="app.name"
+              class="navPickerApp-appMenu-content-app"
+              :tabindex="appMenuTabIndexComputed"
+              @click="goToApp(app)"
+            >
+              <div class="navPickerApp-appMenu-content-app-iconContainer">
+                <span class="material-icons">
+                  {{ app.icon || "location_city" }}
+                </span>
+              </div>
+              <div class="navPickerApp-appMenu-content-app-title">
+                {{ app.name }}
               </div>
             </button>
           </div>
@@ -116,21 +154,22 @@ export default {
   //   apps: {},
   //   user: {},
   // },
-  mounted() {
-    this.setApps();
+  async mounted() {
+    await Promise.all([this.getApps(), this.getUserInfo()]);
+    this.setLocalAppSelected();
+    // this.setApps();
   },
   data() {
     this.homeApp = {
       path: "Home",
       name: "toutes les applications",
-      action: () => {},
     };
     return {
       logoSvg,
-      appSelected: this.homeApp,
+      localAppSelected: this.homeApp,
       navBarMainMenuShow: false,
       navBarAppMenuShow: false,
-      apps: [this.homeApp],
+      apps: [],
       mainbuttons: [
         { name: "Paramètres", action: () => console.log("click Paramètres") },
         { name: "Déconnexion", action: () => this.logOut() },
@@ -139,6 +178,7 @@ export default {
   },
   methods: {
     ...mapActions("logingStore", ["clearLocalStorage"]),
+    ...mapActions("appDataStore", ["getApps", "getUserInfo"]),
 
     clickMainMenu() {
       this.navBarMainMenuShow = !this.navBarMainMenuShow;
@@ -155,29 +195,40 @@ export default {
       this.$router.push({ name: "Login" });
     },
 
-    setApps() {
-      this.apps = [this.homeApp, ...this.appsDisplayed].map(
-        ({ id, name, path, icon, action }) => {
-          const app = {
-            path: path || name || id,
-            name,
-            id,
-            icon,
-          };
-
-          app.action = action
-            ? action
-            : () => {
-                this.appSelected = app;
-                // this.goTo(app.path);
-              };
-          return app;
-        }
-      );
+    gotToHome() {
+      this.$router.push({ name: "Home" }).catch(() => {});
     },
+
+    goToApp(item) {
+      this.$router.push({ name: "App", query: { id: item.id }, params: item }).catch(() => {});
+    },
+
+    setLocalAppSelected() {
+      this.localAppSelected = this.appSelected || this.homeApp;
+    },
+    // setApps() {
+    //   this.apps = [this.homeApp, ...this.appsDisplayed].map(
+    //     ({ id, name, path, icon, action }) => {
+    //       const app = {
+    //         path: path || name || id,
+    //         name,
+    //         id,
+    //         icon,
+    //       };
+
+    //       app.action = action
+    //         ? action
+    //         : () => {
+    //             this.appSelected = app;
+    //             // this.goTo(app.path);
+    //           };
+    //       return app;
+    //     }
+    //   );
+    // },
   },
   computed: {
-    ...mapState("userDataStore", ["appsDisplayed", "userInfo"]),
+    ...mapState("appDataStore", ["appsDisplayed", "userInfo", "appSelected"]),
     mainMenuTabIndexComputed() {
       return this.navBarMainMenuShow ? "" : "-1";
     },
@@ -186,13 +237,13 @@ export default {
       return this.navBarAppMenuShow ? "" : "-1";
     },
 
-    goTo(path) {
-      this.$router.push({ name: path });
-    },
+    // goTo(path) {
+    //   this.$router.push({ name: path });
+    // },
   },
   watch: {
-    appsDisplayed() {
-      this.setApps();
+    appSelected() {
+      this.setLocalAppSelected();
     },
   },
 };

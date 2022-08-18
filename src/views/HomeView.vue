@@ -22,58 +22,58 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="appContainer"
-               fluid>
+  <v-container class="appContainer" fluid>
     <div class="header">
       <div class="description">
         <p>Consultez toutes les données de vos bâtiments connectés.</p>
-        <p>Vous pouvez garder en favoris une visualisation en cliquant sur
-          <v-btn outlined
-                 small
-                 disabled
-                 class="favorisBtn">
+        <p>
+          Vous pouvez garder en favoris une visualisation en cliquant sur
+          <v-btn outlined small disabled class="favorisBtn">
             <v-icon>mdi-cards-diamond</v-icon>
           </v-btn>
         </p>
       </div>
 
       <v-row class="search">
-        <v-col cols="8"
-               class="searchCol">
-          <v-text-field solo
-                        flat
-                        placeholder="rechercher"
-                        prepend-inner-icon="mdi-magnify"
-                        v-model="filtersData.search">
+        <v-col cols="8" class="searchCol">
+          <v-text-field
+            solo
+            flat
+            placeholder="rechercher"
+            prepend-inner-icon="mdi-magnify"
+            v-model="filtersData.search"
+          >
           </v-text-field>
         </v-col>
         <v-col cols="4">
-          <v-select solo
-                    flat
-                    v-model="filtersData.category"
-                    append-icon=""
-                    prepend-inner-icon="mdi-chevron-down"
-                    :items="selects"
-                    item-text="name"
-                    item-value="value"
-                    label="Select"
-                    persistent-hint
-                    return-object
-                    single-line></v-select>
+          <v-select
+            solo
+            flat
+            v-model="filtersData.category"
+            append-icon=""
+            prepend-inner-icon="mdi-chevron-down"
+            :items="selects"
+            item-text="name"
+            item-value="value"
+            label="Select"
+            persistent-hint
+            return-object
+            single-line
+          ></v-select>
         </v-col>
-
       </v-row>
     </div>
 
     <v-layout class="apps">
       <v-flex style="overflow: auto">
-        <GridComponent :groups="groups"
-                       :categories="categoriesDisplayed"
-                       @goToApp="goToApp"
-                       @exploreApp="exploreApp"
-                       @addAppToFavoris="addAppToFavoris" />
+        <GridComponent
+          :groups="groups"
+          :categories="categoriesDisplayed"
+          @goToApp="goToApp"
+          @exploreApp="exploreApp"
+          @addAppToFavoris="addAppToFavoris"
+        />
       </v-flex>
-
     </v-layout>
   </v-container>
 </template>
@@ -83,7 +83,7 @@ import Vue from "vue";
 // import { groups, categories } from "./data";
 import GridComponent from "../components/gridComponent.vue";
 import * as lodash from "lodash";
-import { mapActions, mapState } from "vuex";
+import { mapState } from "vuex";
 
 export default Vue.extend({
   name: "Home",
@@ -110,23 +110,30 @@ export default Vue.extend({
     this.debounceFilter = lodash.debounce(this.filterCategories, 400);
   },
   async mounted() {
-    // await this.init();
-    // this.filterCategories();
-    // this.selects = [
-    //   this.defaultCategory,
-    //   ...categories.map((el) => {
-    //     el.name = el.name || el.name;
-    //     el.value = el.value || el.name;
-    //     return el;
-    //   }),
-    // ];
+    if (this.groups.length === 0) this.formatData(this.appsFormatted);
   },
   methods: {
-    // ...mapActions("userDataStore", ["getApps", "getBos"]),
+    // ...mapActions("appDataStore", ["getApps", "getBos"]),
 
-    init() {
-      return Promise.all([this.getApps(), this.getBos()]);
+    // init() {
+    //   return Promise.all([this.getApps(), this.getBos()]);
+    // },
+    formatData(info) {
+      if (!info) return;
+      const {groups, data} = info;
+      this.groups = groups;
+      this.categories = data;
+      this.filterCategories();
+      this.selects = [
+        this.defaultCategory,
+        ...data.map((el) => {
+          el.name = el.name || el.name;
+          el.value = el.id || el.name;
+          return el;
+        }),
+      ];
     },
+
     filterCategories() {
       this.categoriesDisplayed = this.categories.reduce((liste, item) => {
         const categoryName = this.filtersData.category.value;
@@ -168,22 +175,13 @@ export default Vue.extend({
     },
   },
   computed: {
-    ...mapState("userDataStore", ["appsFormatted"]),
+    ...mapState("appDataStore", ["appsFormatted"]),
   },
   watch: {
     appsFormatted({ data, groups }) {
-      this.groups = groups;
-      this.categories = data;
-      this.filterCategories();
-      this.selects = [
-        this.defaultCategory,
-        ...data.map((el) => {
-          el.name = el.name || el.name;
-          el.value = el.id || el.name;
-          return el;
-        }),
-      ];
+      this.formatData({ data, groups });
     },
+
     "filtersData.category": function () {
       this.filterCategories();
     },

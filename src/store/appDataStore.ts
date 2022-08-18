@@ -68,9 +68,18 @@ function classifyByCategoryAndGroup(apps: any[]) {
 const appsFormattedMap = new Map();
 const patrimoineSelectValue = "patrimoine";
 
-export const userDataStore = {
+export const appDataStore = {
     namespaced: true,
-    state: { spaceSelected: patrimoineSelectValue, appsDisplayed: [], pamApps: [], bos: [], appsFormatted: {}, userInfo: {} },
+    state: {
+        spaceSelected: patrimoineSelectValue,
+        appSelected: undefined,
+        appsDisplayed: [],
+        pamApps: [],
+        bos: [],
+        appsFormatted: undefined,
+        userInfo: {},
+        _privateData: { userInfoIsSet: false, appsIsSet: false }
+    },
     mutations: {
         [SET_USER_APPS](state: any, playload: any) {
             state.pamApps = Object.assign([], playload);
@@ -79,6 +88,7 @@ export const userDataStore = {
             if (state.spaceSelected === patrimoineSelectValue) {
                 state.appsDisplayed = playload;
                 state.appsFormatted = formatted;
+                state._privateData.appsIsSet = true;
             }
             // state.appsFormatted = classifyByCategoryAndGroup(playload);
         },
@@ -88,6 +98,7 @@ export const userDataStore = {
 
         [SET_USER_INFO](state: any, playload: any) {
             state.userInfo = playload;
+            state._privateData.userInfoIsSet = true;
         },
 
         [SET_AND_FORMAT_APPS](state: any, { apps, appsFormatted }: any) {
@@ -96,9 +107,15 @@ export const userDataStore = {
         }
     },
     actions: {
-        async getApps({ commit }: any) {
+        async getApps({ commit, dispatch, state }: any) {
             try {
-                const profileId = localStorage.getItem("profileId");
+                if (state._privateData.appsIsSet) {
+                    if (!state.appsFormatted) {
+                        commit(SET_USER_APPS, state.appsDisplayed);
+                    }
+                    return state.appsDisplayed;
+                }
+                const profileId = await dispatch("getProfileId");
                 const apps = await getUserApps(profileId);
                 commit(SET_USER_APPS, apps);
             } catch (error) {
@@ -106,9 +123,9 @@ export const userDataStore = {
             }
         },
 
-        async getBos({ commit }: any) {
+        async getBos({ commit, dispatch }: any) {
             try {
-                const profileId = localStorage.getItem("profileId");
+                const profileId = await dispatch("getProfileId");
                 const bos = await getUserBos(profileId);
                 commit(SET_USER_BOS, bos);
             } catch (error) {
@@ -121,7 +138,9 @@ export const userDataStore = {
             // send request
         },
 
-        getUserInfo({ commit }: any) {
+        getUserInfo({ commit, state }: any) {
+            if (state._privateData.userInfoIsSet) return state.userInfo;
+
             let userInfo = {}
             const storage = localStorage.getItem("user");
             if (storage) userInfo = JSON.parse(atob(storage));
@@ -150,6 +169,6 @@ export const userDataStore = {
             }
 
             commit(SET_AND_FORMAT_APPS, { apps, appsFormatted });
-        }
+        },
     }
 }

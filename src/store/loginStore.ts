@@ -42,8 +42,6 @@ export const logingStore = {
     },
     actions: {
         async logUser({ commit }: any, userData: any) {
-            console.log("userData", userData);
-
             try {
                 const data = await loginRequest(userData);
                 commit(SUCCESS_LOGGED, { data, logged: true });
