@@ -24,26 +24,28 @@ with this file. If not, see
 
 <template>
   <div class="headerSelect">
-    <v-select class="selectBar"
-              v-model="selected"
-              prepend-icon="mdi-chevron-down"
-              append-icon=""
-              height="100%"
-              color="#fff"
-              :items="data"
-              label="Espace"
-              dense></v-select>
+    <v-select
+      class="selectBar"
+      v-model="selected"
+      prepend-icon="mdi-chevron-down"
+      append-icon=""
+      height="100%"
+      color="#fff"
+      :items="data"
+      label="Espace"
+      dense
+    ></v-select>
   </div>
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapState } from 'vuex';
 
 export default {
   data() {
     this.default = {
-      name: "Patrimoine",
-      id: "patrimoine",
+      name: 'Patrimoine',
+      id: 'patrimoine',
     };
     return {
       data: [this.default],
@@ -59,11 +61,11 @@ export default {
     },
   },
   computed: {
-    ...mapState("appDataStore", ["bos"]),
+    ...mapState('appDataStore', ['bos']),
   },
   watch: {
     selected() {
-      this.$emit("selected", this.selected);
+      this.$emit('selected', this.selected);
     },
     bos() {
       this.data = [this.default, ...this.bos].map(({ name, id }) => ({
@@ -74,7 +76,6 @@ export default {
   },
 };
 </script>
-
 
 <style scoped>
 .headerSelect {

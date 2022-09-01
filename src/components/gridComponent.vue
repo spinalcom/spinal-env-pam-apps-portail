@@ -61,10 +61,10 @@ with this file. If not, see
 </template>
 
 <script>
-import ApplicationCard from "./applicationCard.vue";
+import ApplicationCard from './applicationCard.vue';
 
 export default {
-  name: "GridComponent",
+  name: 'GridComponent',
   components: {
     ApplicationCard,
   },
@@ -82,7 +82,7 @@ export default {
   },
   methods: {
     formatHeaders(headers) {
-      return [{ text: "", value: "name" }, ...headers].map((el, index) => ({
+      return [{ text: '', value: 'name' }, ...headers].map((el, index) => ({
         // width: index === 0 ? "100px" : "25% !important",
         text: el.text || el.name,
         value: el.id || el.value || el.name,
@@ -91,15 +91,15 @@ export default {
     },
 
     exploreApp(item) {
-      this.$emit("exploreApp", item);
+      this.$emit('exploreApp', item);
     },
 
     addAppToFavoris(item) {
-      this.$emit("addAppToFavoris", item);
+      this.$emit('addAppToFavoris', item);
     },
 
     goToApp(item) {
-      this.$emit("goToApp", item);
+      this.$emit('goToApp', item);
     },
   },
   computed: {
@@ -107,7 +107,7 @@ export default {
       const headerLength = this.groups.length + 1;
 
       return {
-        width: headerLength <= 4 ? 20 * headerLength + "vw" : "100%",
+        width: headerLength <= 4 ? 20 * headerLength + 'vw' : '100%',
       };
     },
     // firstColumnStyle() {

@@ -2,3 +2,5 @@ node_modules/
 micro-apps/
 dist/
 .vscode
+.env.*
+.parcel-cache

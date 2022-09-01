@@ -22,7 +22,6 @@ with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
 
-
 <template>
   <nav>
     <div class="navPickerApp">
@@ -62,14 +61,10 @@ with this file. If not, see
                 @click="btn.action"
               >
                 <div
-                  class="
-                    navPickerApp-mainMenu-content-buttonContainer-button-icon
-                  "
+                  class="navPickerApp-mainMenu-content-buttonContainer-button-icon"
                 ></div>
                 <div
-                  class="
-                    navPickerApp-mainMenu-content-buttonContainer-button-title
-                  "
+                  class="navPickerApp-mainMenu-content-buttonContainer-button-title"
                 >
                   {{ btn.name }}
                 </div>
@@ -92,7 +87,7 @@ with this file. If not, see
             <div class="buttonLabel">application</div>
             <div class="navPickerApp-appMenu-iconContainer">
               <span class="material-icons">
-                {{ localAppSelected.icon || "location_city" }}
+                {{ localAppSelected.icon || 'location_city' }}
               </span>
             </div>
             <div class="navPickerApp-appMenu-title">
@@ -113,7 +108,7 @@ with this file. If not, see
             >
               <div class="navPickerApp-appMenu-content-app-iconContainer">
                 <span class="material-icons">
-                  {{ homeApp.icon || "location_city" }}
+                  {{ homeApp.icon || 'location_city' }}
                 </span>
               </div>
               <div class="navPickerApp-appMenu-content-app-title">
@@ -130,7 +125,7 @@ with this file. If not, see
             >
               <div class="navPickerApp-appMenu-content-app-iconContainer">
                 <span class="material-icons">
-                  {{ app.icon || "location_city" }}
+                  {{ app.icon || 'location_city' }}
                 </span>
               </div>
               <div class="navPickerApp-appMenu-content-app-title">
@@ -144,10 +139,9 @@ with this file. If not, see
   </nav>
 </template>
 
-
 <script>
-import { mapActions, mapState } from "vuex";
-import logoSvg from "../assets/logo.svg";
+import { mapActions, mapState } from 'vuex';
+import logoSvg from '../assets/logo.svg';
 
 export default {
   // props: {
@@ -161,8 +155,8 @@ export default {
   },
   data() {
     this.homeApp = {
-      path: "Home",
-      name: "toutes les applications",
+      path: 'Home',
+      name: 'toutes les applications',
     };
     return {
       logoSvg,
@@ -171,14 +165,14 @@ export default {
       navBarAppMenuShow: false,
       apps: [],
       mainbuttons: [
-        { name: "Paramètres", action: () => console.log("click Paramètres") },
-        { name: "Déconnexion", action: () => this.logOut() },
+        { name: 'Paramètres', action: () => console.log('click Paramètres') },
+        { name: 'Déconnexion', action: () => this.logOut() },
       ],
     };
   },
   methods: {
-    ...mapActions("logingStore", ["clearLocalStorage"]),
-    ...mapActions("appDataStore", ["getApps", "getUserInfo"]),
+    ...mapActions('logingStore', ['clearLocalStorage']),
+    ...mapActions('appDataStore', ['getApps', 'getUserInfo']),
 
     clickMainMenu() {
       this.navBarMainMenuShow = !this.navBarMainMenuShow;
@@ -192,15 +186,17 @@ export default {
 
     logOut() {
       this.clearLocalStorage();
-      this.$router.push({ name: "Login" });
+      this.$router.push({ name: 'Login' });
     },
 
     gotToHome() {
-      this.$router.push({ name: "Home" }).catch(() => {});
+      this.$router.push({ name: 'Home' }).catch(() => {});
     },
 
     goToApp(item) {
-      this.$router.push({ name: "App", query: { id: item.id }, params: item }).catch(() => {});
+      this.$router
+        .push({ name: 'App', query: { id: item.id }, params: item })
+        .catch(() => {});
     },
 
     setLocalAppSelected() {
@@ -228,13 +224,13 @@ export default {
     // },
   },
   computed: {
-    ...mapState("appDataStore", ["appsDisplayed", "userInfo", "appSelected"]),
+    ...mapState('appDataStore', ['appsDisplayed', 'userInfo', 'appSelected']),
     mainMenuTabIndexComputed() {
-      return this.navBarMainMenuShow ? "" : "-1";
+      return this.navBarMainMenuShow ? '' : '-1';
     },
 
     appMenuTabIndexComputed() {
-      return this.navBarAppMenuShow ? "" : "-1";
+      return this.navBarAppMenuShow ? '' : '-1';
     },
 
     // goTo(path) {
@@ -248,4 +244,3 @@ export default {
   },
 };
 </script>
-

@@ -64,7 +64,7 @@ with this file. If not, see
       </v-row>
     </div>
 
-    <v-layout class="apps">
+    <v-layout class="apps-container">
       <v-flex style="overflow: auto">
         <GridComponent
           :groups="groups"
@@ -79,27 +79,27 @@ with this file. If not, see
 </template>
 
 <script>
-import Vue from "vue";
+import Vue from 'vue';
 // import { groups, categories } from "./data";
-import GridComponent from "../components/gridComponent.vue";
-import * as lodash from "lodash";
-import { mapState } from "vuex";
-import { SET_SELECTED_APP } from "../store/appDataStore";
+import GridComponent from '../components/gridComponent.vue';
+import * as lodash from 'lodash';
+import { mapState } from 'vuex';
+import { SET_SELECTED_APP } from '../store/appDataStore';
 
 export default Vue.extend({
-  name: "Home",
+  name: 'Home',
   components: {
     GridComponent,
   },
   data() {
     this.defaultCategory = {
-      name: "Toutes les categories",
-      value: "",
+      name: 'Toutes les categories',
+      value: '',
     };
     return {
       filtersData: {
         category: this.defaultCategory,
-        search: "",
+        search: '',
       },
       groups: [],
       categories: [],
@@ -112,8 +112,7 @@ export default Vue.extend({
   },
   async mounted() {
     if (this.groups.length === 0) this.formatData(this.appsFormatted);
-        this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, undefined);
-
+    this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, undefined);
   },
   methods: {
     // ...mapActions("appDataStore", ["getApps", "getBos"]),
@@ -123,7 +122,7 @@ export default Vue.extend({
     // },
     formatData(info) {
       if (!info) return;
-      const {groups, data} = info;
+      const { groups, data } = info;
       this.groups = groups;
       this.categories = data;
       this.filterCategories();
@@ -156,7 +155,7 @@ export default Vue.extend({
           const value = item[key];
 
           obj[key] =
-            typeof value === "string"
+            typeof value === 'string'
               ? value
               : value.filter((el) =>
                   el.name.toLowerCase().includes(searchText.toLowerCase())
@@ -168,34 +167,33 @@ export default Vue.extend({
     },
 
     goToApp(item) {
-      this.$router.push({ name: "App", query: { id: item.id }, params: item });
+      this.$router.push({ name: 'App', query: { id: item.id }, params: item });
     },
     exploreApp(item) {
-      console.log("exploreApp", item);
+      console.log('exploreApp', item);
     },
     addAppToFavoris(item) {
-      console.log("addAppToFavoris", item);
+      console.log('addAppToFavoris', item);
     },
   },
   computed: {
-    ...mapState("appDataStore", ["appsFormatted"]),
+    ...mapState('appDataStore', ['appsFormatted']),
   },
   watch: {
     appsFormatted({ data, groups }) {
       this.formatData({ data, groups });
     },
 
-    "filtersData.category": function () {
+    'filtersData.category': function () {
       this.filterCategories();
     },
 
-    "filtersData.search": function () {
+    'filtersData.search': function () {
       this.debounceFilter();
     },
   },
 });
 </script>
-
 
 <style scoped>
 .appContainer {
@@ -221,11 +219,6 @@ export default Vue.extend({
   padding-right: 0px;
 }
 
-.appContainer .apps {
-  width: 100%;
-  height: calc(100% - 150px);
-}
-
 .appContainer .favorisBtn {
   min-width: unset !important;
   width: 35px;
@@ -244,6 +237,10 @@ export default Vue.extend({
   > .v-input__slot {
   position: unset;
 } */
+.appContainer .apps-container {
+  width: 100%;
+  height: calc(100% - 150px);
+}
 
 .appContainer .favorisBtn i {
   font-size: 15px;

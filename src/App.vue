@@ -28,19 +28,12 @@ with this file. If not, see
       <router-view />
     </v-main>
   </v-app>
-
 </template>
 
-<script>
-import Vue from "vue";
+<script lang="ts">
+import Vue from 'vue';
 
-export default Vue.extend({
-  name: "App",
-
-  data: () => ({
-    //
-  }),
-});
+export default class app extends Vue {}
 </script>
 
 <style scoped>

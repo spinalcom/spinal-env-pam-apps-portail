@@ -22,18 +22,13 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="appContainer"
-               fluid>
-
+  <v-container class="appContainer" fluid>
     <form @submit.prevent="login">
       <v-card class="loginCard">
-
         <v-card-title class="loginCardTitle">
           <div class="logoImg">
             <div class="logo">
-              <v-img class="img"
-                     alt="logo"
-                     :src="logoSvg"></v-img>
+              <v-img class="img" alt="logo" :src="logoSvg"></v-img>
             </div>
           </div>
 
@@ -43,44 +38,40 @@ with this file. If not, see
         </v-card-title>
 
         <v-card-text class="loginCardContent">
-          <v-alert v-show="!hide && showError"
-                   dense
-                   outlined
-                   type="error">
+          <v-alert v-show="!hide && showError" dense outlined type="error">
             incorrect login and/or password !
           </v-alert>
 
-          <v-text-field outlined
-                        height="35"
-                        dense
-                        label="Login"
-                        v-model="credential.userName"
-                        required></v-text-field>
+          <v-text-field
+            outlined
+            height="35"
+            autocomplete="username"
+            dense
+            label="Login"
+            v-model="credential.userName"
+            required
+          ></v-text-field>
 
-          <v-text-field outlined
-                        v-model="credential.password"
-                        height="35"
-                        dense
-                        label="Password"
-                        required
-                        :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                        :type="showPassword ? 'text' : 'password'"
-                        class="input-group--focused"
-                        @click:append="showPassword = !showPassword">
+          <v-text-field
+            outlined
+            v-model="credential.password"
+            height="35"
+            dense
+            label="Password"
+            autocomplete="current-password"
+            required
+            :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            :type="showPassword ? 'text' : 'password'"
+            class="input-group--focused"
+            @click:append="showPassword = !showPassword"
+          >
           </v-text-field>
 
-          <v-btn x-small
-                 text>
-            mot de passe oublié ?
-          </v-btn>
-
+          <v-btn x-small text> mot de passe oublié ? </v-btn>
         </v-card-text>
 
         <v-card-actions class="loginCardAction">
-          <v-btn dark
-                 type="submit">
-            Connexion
-          </v-btn>
+          <v-btn dark type="submit"> Connexion </v-btn>
         </v-card-actions>
       </v-card>
     </form>
@@ -88,12 +79,12 @@ with this file. If not, see
 </template>
 
 <script>
-import Vue from "vue";
-import { mapActions, mapState } from "vuex";
-import logoSvg from "../assets/logo.svg";
+import Vue from 'vue';
+import { mapActions, mapState } from 'vuex';
+import logoSvg from '../assets/logo.svg';
 
 export default Vue.extend({
-  name: "Login",
+  name: 'Login',
   data() {
     return {
       logoSvg,
@@ -101,15 +92,15 @@ export default Vue.extend({
       showError: false,
       hide: true,
       credential: {
-        userName: "user1",
-        password: "1234567890",
+        userName: '',
+        password: '',
       },
     };
   },
   created() {},
   mounted() {},
   methods: {
-    ...mapActions("logingStore", ["logUser", "storeCookie"]),
+    ...mapActions('logingStore', ['logUser', 'storeCookie']),
     async login() {
       this.hide = false;
       const logged = await this.logUser(this.credential);
@@ -117,12 +108,12 @@ export default Vue.extend({
       this.showError = !logged;
       if (logged) {
         this.storeCookie(this.$cookie);
-        this.$router.push("/home");
+        this.$router.push('/home');
       }
     },
   },
   computed: {
-    ...mapState("logingStore", ["incorrect"]),
+    ...mapState('logingStore', ['incorrect']),
     // showError() {
     //   return !this.hide && this.incorrect;
     // },
@@ -137,7 +128,6 @@ export default Vue.extend({
   },
 });
 </script>
-
 
 <style scoped>
 .appContainer {

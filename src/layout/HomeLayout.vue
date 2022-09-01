@@ -23,8 +23,7 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="homeContainer"
-               fluid>
+  <v-container class="homeContainer" fluid>
     <div class="header">
       <div class="nav">
         <NavBar />
@@ -33,18 +32,15 @@ with this file. If not, see
       <div class="select">
         <select-component @selected="changeApps"></select-component>
       </div>
-
     </div>
 
     <router-view class="content"></router-view>
-
   </v-container>
-
 </template>
 <script>
-import { mapActions, mapState } from "vuex";
-import NavBar from "../components/nav.vue";
-import SelectComponent from "../components/select.vue";
+import { mapActions, mapState } from 'vuex';
+import NavBar from '../components/nav.vue';
+import SelectComponent from '../components/select.vue';
 export default {
   components: {
     NavBar,
@@ -54,11 +50,11 @@ export default {
     await this.init();
   },
   methods: {
-    ...mapActions("appDataStore", [
-      "getApps",
-      "getBos",
-      "getUserInfo",
-      "selectSpace",
+    ...mapActions('appDataStore', [
+      'getApps',
+      'getBos',
+      'getUserInfo',
+      'selectSpace',
     ]),
 
     init() {
@@ -70,10 +66,11 @@ export default {
     },
   },
   computed: {
-    ...mapState("appDataStore", ["appsDisplayed", "userInfo"]),
+    ...mapState('appDataStore', ['appsDisplayed', 'userInfo']),
   },
 };
 </script>
+
 <style scoped>
 .homeContainer {
   width: 100%;

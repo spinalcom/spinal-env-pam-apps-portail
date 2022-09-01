@@ -39,11 +39,10 @@ with this file. If not, see
 </template>
 
 <script>
-import NavBar from "../components/nav.vue";
-import { getAppById } from "../requests/userData";
-import { default as apps } from "../../.config_env/apps.json";
-import { SET_SELECTED_APP } from "../store/appDataStore";
-
+import NavBar from '../components/nav.vue';
+import { getAppById } from '../requests/userData';
+import { default as apps } from '../../.config_env/apps.json';
+import { SET_SELECTED_APP } from '../store/appDataStore';
 
 export default {
   components: {
@@ -76,14 +75,8 @@ export default {
   },
 };
 </script>
-<style scoped>
-.appContainer {
-  width: 100%;
-  height: 99%;
-  padding: 0px;
-  /* background: red; */
-}
 
+<style scoped>
 .appContainer .iframeContainer {
   width: 100%;
   height: 100%;
@@ -107,5 +100,12 @@ export default {
   position: absolute;
   top: 5px;
   left: 0px;
+}
+</style>
+<style>
+.appContainer {
+  width: 100%;
+  height: 99%;
+  padding: 0px;
 }
 </style>

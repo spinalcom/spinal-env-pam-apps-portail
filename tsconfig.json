@@ -1,22 +1,25 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    "target": "ES6",
     // "composite": true,
-    "module": "CommonJS",
+    "module": "esnext",
     "experimentalDecorators": true,
     // "strict": true,
     "skipLibCheck": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["vite.config.ts", "src/**/*.ts", "*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/shims-vue.d.ts"
+  ],
   "vueCompilerOptions": {
-    "experimentalCompatMode": 2,
+    "experimentalCompatMode": 2, // delete after migrating to vue3 (or nuxt3)
     "experimentalTemplateCompilerOptions": {
       "compatConfig": {
         "MODE": 2
-      }
+      } // delete after migrating to vue3 (or nuxt3)
     }
   }
 }

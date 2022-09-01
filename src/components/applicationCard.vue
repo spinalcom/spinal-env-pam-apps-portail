@@ -23,54 +23,52 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card class="cardContainer"
-          @click="goToApplication">
+  <v-card class="cardContainer" @click="goToApplication">
     <div class="content">
       <div class="left">
         <v-card class="iconDiv">
-          <v-icon color="#000000">{{ data.icon}}</v-icon>
+          <v-icon color="#000000">{{ data.icon }}</v-icon>
         </v-card>
       </div>
 
       <div class="right">
-        <div class="name"
-             :title="data.name">
-          {{data.name}}
+        <div class="name" :title="data.name">
+          {{ data.name }}
         </div>
 
-        <div class="description"
-             :title="data.description">
-          {{data.description}}
+        <div class="description" :title="data.description">
+          {{ data.description }}
         </div>
 
-        <div class="tags"
-             :title="getTagsTitle">
-          <v-chip class="chip"
-                  label
-                  color="#6699cc"
-                  v-for="(tag,index) in data.tags"
-                  :key="index"
-                  small>
-            <v-icon left
-                    color="#ffffff">
-              mdi-circle-small
-            </v-icon>{{tag.toUpperCase()}}
+        <div class="tags" :title="getTagsTitle">
+          <v-chip
+            class="chip"
+            label
+            color="#6699cc"
+            v-for="(tag, index) in data.tags"
+            :key="index"
+            small
+          >
+            <v-icon left color="#ffffff"> mdi-circle-small </v-icon
+            >{{ tag.toUpperCase() }}
           </v-chip>
         </div>
 
         <div class="actions">
           <div>
-            <v-btn class="favorisBtn"
-                   title="add to favorite"
-                   outlined
-                   small
-                   color="#bdbdbd"
-                   @click.stop="addAppToFavoris">
+            <v-btn
+              class="favorisBtn"
+              title="add to favorite"
+              outlined
+              small
+              color="#bdbdbd"
+              @click.stop="addAppToFavoris"
+            >
               <v-icon>mdi-cards-diamond</v-icon>
             </v-btn>
-            <v-btn icon
-                   @click.stop="show = !show">
-              <v-icon>{{ show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
+            <v-btn icon @click.stop="show = !show">
+              <v-icon
+                >{{ show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
               </v-icon>
             </v-btn>
           </div>
@@ -91,7 +89,6 @@ with this file. If not, see
           </v-btn>
         </div> -->
       </div>
-
     </div>
     <v-expand-transition>
       <div v-show="show">
@@ -99,8 +96,7 @@ with this file. If not, see
 
         <v-card-text>
           I'm a thing. But, like most politicians, he promised more than he
-          could deliver. You won't have time for sleeping, soldier, not with
-          all
+          could deliver. You won't have time for sleeping, soldier, not with all
           the bed making you'll be doing. Then we'll go with that data file!
           Hey, you add a one and two zeros to that or we walk! You're going to
           do his laundry? I've got to find a way to escape.
@@ -131,13 +127,12 @@ with this file. If not, see
       </div>
 
     </v-card-actions> -->
-
   </v-card>
 </template>
 
 <script>
 export default {
-  name: "applicationCard",
+  name: 'applicationCard',
   props: {
     data: {},
   },
@@ -148,19 +143,19 @@ export default {
   },
   methods: {
     goToApplication() {
-      this.$emit("goToApp", this.data);
+      this.$emit('goToApp', this.data);
     },
 
     exploreApp() {
-      this.$emit("exploreApp", this.data);
+      this.$emit('exploreApp', this.data);
     },
     addAppToFavoris() {
-      this.$emit("addAppToFavoris", this.data);
+      this.$emit('addAppToFavoris', this.data);
     },
   },
   computed: {
     getTagsTitle() {
-      return this.data.tags.join(", ");
+      return this.data.tags.join(', ');
     },
   },
 };
