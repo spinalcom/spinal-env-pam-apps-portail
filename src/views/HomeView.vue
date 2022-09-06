@@ -22,84 +22,83 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="appContainer" fluid>
+  <v-container class="appContainer"
+               fluid>
     <div class="header">
       <div class="description">
         <p>Consultez toutes les données de vos bâtiments connectés.</p>
         <p>
           Vous pouvez garder en favoris une visualisation en cliquant sur
-          <v-btn outlined small disabled class="favorisBtn">
+          <v-btn outlined
+                 small
+                 disabled
+                 class="favorisBtn">
             <v-icon>mdi-cards-diamond</v-icon>
           </v-btn>
         </p>
       </div>
 
       <v-row class="search">
-        <v-col cols="8" class="searchCol">
-          <v-text-field
-            solo
-            flat
-            placeholder="rechercher"
-            prepend-inner-icon="mdi-magnify"
-            v-model="filtersData.search"
-          >
+        <v-col cols="8"
+               class="searchCol">
+          <v-text-field solo
+                        flat
+                        placeholder="rechercher"
+                        prepend-inner-icon="mdi-magnify"
+                        v-model="filtersData.search">
           </v-text-field>
         </v-col>
         <v-col cols="4">
-          <v-select
-            solo
-            flat
-            v-model="filtersData.category"
-            append-icon=""
-            prepend-inner-icon="mdi-chevron-down"
-            :items="selects"
-            item-text="name"
-            item-value="value"
-            label="Select"
-            persistent-hint
-            return-object
-            single-line
-          ></v-select>
+          <v-select solo
+                    flat
+                    v-model="filtersData.category"
+                    append-icon=""
+                    prepend-inner-icon="mdi-chevron-down"
+                    :items="selects"
+                    item-text="name"
+                    item-value="value"
+                    label="Select"
+                    persistent-hint
+                    return-object
+                    single-line></v-select>
         </v-col>
       </v-row>
     </div>
 
     <v-layout class="apps-container">
       <v-flex style="overflow: auto">
-        <GridComponent
-          :groups="groups"
-          :categories="categoriesDisplayed"
-          @goToApp="goToApp"
-          @exploreApp="exploreApp"
-          @addAppToFavoris="addAppToFavoris"
-        />
+        <GridComponent :groups="groups"
+                       :categories="categoriesDisplayed"
+                       @goToApp="goToApp"
+                       @exploreApp="exploreApp"
+                       @addAppToFavoris="addAppToFavoris" />
       </v-flex>
     </v-layout>
   </v-container>
 </template>
 
 <script>
-import Vue from 'vue';
+import Vue from "vue";
 // import { groups, categories } from "./data";
-import GridComponent from '../components/gridComponent.vue';
-import * as lodash from 'lodash';
-import { mapState } from 'vuex';
-import { SET_SELECTED_APP } from '../store/appDataStore';
+import GridComponent from "../components/gridComponent.vue";
+import * as lodash from "lodash";
+import { mapState } from "vuex";
+import { SET_SELECTED_APP } from "../store/appDataStore";
 
 export default Vue.extend({
-  name: 'Home',
+  name: "Home",
   components: {
     GridComponent,
   },
   data() {
     this.defaultCategory = {
-      name: 'Toutes les categories',
-      value: '',
+      name: "Toutes les categories",
+      value: "",
     };
     return {
       filtersData: {
         category: this.defaultCategory,
-        search: '',
+        search: "",
       },
       groups: [],
       categories: [],
@@ -155,7 +154,7 @@ export default Vue.extend({
           const value = item[key];
 
           obj[key] =
-            typeof value === 'string'
+            typeof value === "string"
               ? value
               : value.filter((el) =>
                   el.name.toLowerCase().includes(searchText.toLowerCase())
@@ -167,82 +166,77 @@ export default Vue.extend({
     },
 
     goToApp(item) {
-      this.$router.push({ name: 'App', query: { id: item.id }, params: item });
+      this.$router.push({ name: "App", query: { id: item.id }, params: item });
     },
     exploreApp(item) {
-      console.log('exploreApp', item);
+      console.log("exploreApp", item);
     },
     addAppToFavoris(item) {
-      console.log('addAppToFavoris', item);
+      console.log("addAppToFavoris", item);
     },
   },
   computed: {
-    ...mapState('appDataStore', ['appsFormatted']),
+    ...mapState("appDataStore", ["appsFormatted"]),
   },
   watch: {
     appsFormatted({ data, groups }) {
       this.formatData({ data, groups });
     },
 
-    'filtersData.category': function () {
+    "filtersData.category": function () {
       this.filterCategories();
     },
 
-    'filtersData.search': function () {
+    "filtersData.search": function () {
       this.debounceFilter();
     },
   },
 });
 </script>
 
-<style scoped>
+<style lang="scss">
 .appContainer {
   width: 100%;
   height: 100%;
   padding: 0px;
-}
 
-.appContainer .header {
-  width: 50%;
-  height: 150px;
-}
+  .header {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
 
-.appContainer .header .description {
-  margin-bottom: 20px;
-}
+    width: 50%;
+    height: 150px;
+    .description {
+      margin-bottom: 20px;
 
-.appContainer .header .description p {
-  margin-bottom: 0px;
-}
+      p {
+        margin-bottom: 0px;
+      }
+    }
 
-.appContainer .header .search .searchCol {
-  padding-right: 0px;
-}
+    .search {
+      .searchCol {
+        padding-right: 0px;
+      }
+    }
+  }
 
-.appContainer .favorisBtn {
-  min-width: unset !important;
-  width: 35px;
-  height: 35px !important;
-  border-radius: 10px;
+  .favorisBtn {
+    min-width: unset !important;
+    width: 35px;
+    height: 35px !important;
+    border-radius: 10px;
+
+    i {
+      font-size: 15px;
+    }
+  }
+
+  .apps-container {
+    width: 100%;
+    height: calc(100% - 150px);
+  }
 }
 </style>
 
-<style>
-/* .appContainer
-  .header
-  .v-text-field.v-text-field--enclosed
-  .v-text-field__details,
-.v-text-field.v-text-field--enclosed:not(.v-text-field--rounded)
-  > .v-input__control
-  > .v-input__slot {
-  position: unset;
-} */
-.appContainer .apps-container {
-  width: 100%;
-  height: calc(100% - 150px);
-}
-
-.appContainer .favorisBtn i {
-  font-size: 15px;
-}
-</style>

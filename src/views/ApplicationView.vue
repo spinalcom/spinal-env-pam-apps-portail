@@ -23,15 +23,19 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="appContainer" fluid>
+  <v-container class="appLoadContainer"
+               fluid>
     <div class="navbar">
       <NavBar />
     </div>
 
     <!-- <iframe  -->
-    <iframe v-if="appPath" class="iframeContainer" :src="appPath"></iframe>
+    <iframe v-if="appPath"
+            class="iframeContainer"
+            :src="appPath"></iframe>
 
-    <div v-else class="iframeContainer notFoundDiv">
+    <div v-else
+         class="iframeContainer notFoundDiv">
       <h1 class="code">404</h1>
       <h1>No app found for {{ appSelected.name }}</h1>
     </div>
@@ -39,10 +43,9 @@ with this file. If not, see
 </template>
 
 <script>
-import NavBar from '../components/nav.vue';
-import { getAppById } from '../requests/userData';
-import { default as apps } from '../../.config_env/apps.json';
-import { SET_SELECTED_APP } from '../store/appDataStore';
+import NavBar from "../components/nav.vue";
+import { getAppById } from "../requests/userData";
+import { SET_SELECTED_APP } from "../store/appDataStore";
 
 export default {
   components: {
@@ -69,43 +72,40 @@ export default {
       return getAppById(appId);
     },
     getAppPath() {
-      const entry = apps[this.appSelected.name];
-      return entry;
+      return `/micro-apps/${this.appSelected.name}`;
     },
   },
 };
 </script>
 
-<style scoped>
-.appContainer .iframeContainer {
-  width: 100%;
-  height: 100%;
-  /* background: yellow; */
-}
-
-.appContainer .iframeContainer.notFoundDiv {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-}
-
-.appContainer .iframeContainer.notFoundDiv .code {
-  font-size: 5em;
-}
-
-.appContainer .navbar {
-  width: 450px;
-  height: 60px;
-  position: absolute;
-  top: 5px;
-  left: 0px;
-}
-</style>
-<style>
-.appContainer {
+<style lang="scss">
+.appLoadContainer {
   width: 100%;
   height: 99%;
   padding: 0px;
+
+  .navbar {
+    width: 450px;
+    height: 60px;
+    position: absolute;
+    top: 5px;
+    left: 0px;
+  }
+
+  .iframeContainer {
+    width: 100%;
+    height: 100%;
+  }
+
+  .iframeContainer.notFoundDiv {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    .code {
+      font-size: 5em;
+    }
+  }
 }
 </style>
+

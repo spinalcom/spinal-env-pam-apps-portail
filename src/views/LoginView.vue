@@ -22,13 +22,16 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="appContainer" fluid>
+  <v-container class="loginAppContainer"
+               fluid>
     <form @submit.prevent="login">
       <v-card class="loginCard">
         <v-card-title class="loginCardTitle">
           <div class="logoImg">
             <div class="logo">
-              <v-img class="img" alt="logo" :src="logoSvg"></v-img>
+              <v-img class="img"
+                     alt="logo"
+                     :src="logoSvg"></v-img>
             </div>
           </div>
 
@@ -38,40 +41,41 @@ with this file. If not, see
         </v-card-title>
 
         <v-card-text class="loginCardContent">
-          <v-alert v-show="!hide && showError" dense outlined type="error">
+          <v-alert v-show="!hide && showError"
+                   dense
+                   outlined
+                   type="error">
             incorrect login and/or password !
           </v-alert>
 
-          <v-text-field
-            outlined
-            height="35"
-            autocomplete="username"
-            dense
-            label="Login"
-            v-model="credential.userName"
-            required
-          ></v-text-field>
+          <v-text-field outlined
+                        height="35"
+                        autocomplete="username"
+                        dense
+                        label="Login"
+                        v-model="credential.userName"
+                        required></v-text-field>
 
-          <v-text-field
-            outlined
-            v-model="credential.password"
-            height="35"
-            dense
-            label="Password"
-            autocomplete="current-password"
-            required
-            :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="showPassword ? 'text' : 'password'"
-            class="input-group--focused"
-            @click:append="showPassword = !showPassword"
-          >
+          <v-text-field outlined
+                        v-model="credential.password"
+                        height="35"
+                        dense
+                        label="Password"
+                        autocomplete="current-password"
+                        required
+                        :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                        :type="showPassword ? 'text' : 'password'"
+                        class="input-group--focused"
+                        @click:append="showPassword = !showPassword">
           </v-text-field>
 
-          <v-btn x-small text> mot de passe oublié ? </v-btn>
+          <v-btn x-small
+                 text> mot de passe oublié ? </v-btn>
         </v-card-text>
 
         <v-card-actions class="loginCardAction">
-          <v-btn dark type="submit"> Connexion </v-btn>
+          <v-btn dark
+                 type="submit"> Connexion </v-btn>
         </v-card-actions>
       </v-card>
     </form>
@@ -79,12 +83,12 @@ with this file. If not, see
 </template>
 
 <script>
-import Vue from 'vue';
-import { mapActions, mapState } from 'vuex';
-import logoSvg from '../assets/logo.svg';
+import Vue from "vue";
+import { mapActions, mapState } from "vuex";
+import logoSvg from "../assets/logo.svg";
 
 export default Vue.extend({
-  name: 'Login',
+  name: "Login",
   data() {
     return {
       logoSvg,
@@ -92,15 +96,15 @@ export default Vue.extend({
       showError: false,
       hide: true,
       credential: {
-        userName: '',
-        password: '',
+        userName: "",
+        password: "",
       },
     };
   },
   created() {},
   mounted() {},
   methods: {
-    ...mapActions('logingStore', ['logUser', 'storeCookie']),
+    ...mapActions("logingStore", ["logUser", "storeCookie"]),
     async login() {
       this.hide = false;
       const logged = await this.logUser(this.credential);
@@ -108,12 +112,12 @@ export default Vue.extend({
       this.showError = !logged;
       if (logged) {
         this.storeCookie(this.$cookie);
-        this.$router.push('/home');
+        this.$router.push("/home");
       }
     },
   },
   computed: {
-    ...mapState('logingStore', ['incorrect']),
+    ...mapState("logingStore", ["incorrect"]),
     // showError() {
     //   return !this.hide && this.incorrect;
     // },
@@ -129,71 +133,61 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped>
-.appContainer {
+<style lang="scss">
+.loginAppContainer {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-}
 
-.appContainer .loginCard {
-  width: 400px;
-  padding: 18px;
-}
+  .loginCard {
+    width: 400px;
+    padding: 18px;
+  }
 
-.appContainer .loginCardTitle,
-.appContainer .loginCardContent,
-.appContainer .loginCardAction {
-  padding: unset !important;
-}
+  .loginCardTitle,
+  .loginCardContent,
+  .loginCardAction {
+    padding: unset !important;
+  }
 
-.appContainer .loginCardTitle {
-  margin-bottom: 40px;
-}
+  .loginCardTitle {
+    margin-bottom: 40px;
 
-.appContainer .loginCardTitle .description {
-  line-height: 25px;
-  word-break: keep-all;
-  text-align: justify;
-  font-size: 0.7em;
-}
+    .description {
+      line-height: 25px;
+      word-break: keep-all;
+      text-align: justify;
+      font-size: 0.7em;
+    }
 
-.appContainer .loginCardTitle .logoImg {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+    .logoImg {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-/* .appContainer .loginCardTitle .logo {
-  width: 60%;
-  height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-} */
+    .logo {
+      .img {
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
 
-.appContainer .loginCardTitle .logo .img {
-  width: 100%;
-  height: 100%;
-}
-
-.appContainer .loginCardContent {
-  /* height: 500px; */
-}
-
-.appContainer .loginCardAction {
-  height: 40px;
-  margin-top: 10px;
-  display: flex;
-  justify-content: flex-end;
+  .loginCardAction {
+    height: 40px;
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+  }
 }
 </style>
 
 <style>
-.appContainer
+.loginAppContainer
   .loginCardContent
   .v-text-field.v-text-field--enclosed
   .v-text-field__details {
