@@ -22,35 +22,24 @@ with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
 
-<template>
-  <v-app class="application">
-    <v-main>
-      <router-view />
-    </v-main>
-  </v-app>
-</template>
-
 <script lang="ts">
-import Vue from 'vue';
+import viewerApp from './components/viewer.vue';
+import contextMenu from './components/contextMenu/contextMenu.vue';
 
-export default class app extends Vue {}
+export default {
+  name: 'forgeViewer',
+  components: {
+    viewerApp,
+    contextMenu,
+  },
+};
 </script>
 
-<style scoped>
-.application {
-  width: 100%;
-  height: 100%;
-  background: #f0f4f5 !important;
-  overflow-y: auto;
-}
-</style>
-
-<style>
-html {
-  overflow-y: hidden;
-}
-
-body {
-  overflow-y: hidden;
-}
-</style>
+<template>
+  <v-app>
+    <v-main>
+      <viewerApp></viewerApp>
+    </v-main>
+    <contextMenu></contextMenu>
+  </v-app>
+</template>

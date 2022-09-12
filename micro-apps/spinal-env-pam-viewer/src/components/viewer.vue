@@ -22,35 +22,28 @@ with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
 
-<template>
-  <v-app class="application">
-    <v-main>
-      <router-view />
-    </v-main>
-  </v-app>
-</template>
-
 <script lang="ts">
-import Vue from 'vue';
+import { initViewer } from '../utils/viewerUtils';
+import { startEvents } from '../startEvents';
 
-export default class app extends Vue {}
+export default {
+  name: 'viewer',
+  data() {
+    return {};
+  },
+  async mounted() {
+    const div = <HTMLElement>this.$refs.viewerDiv;
+    const viewer = await initViewer(div);
+    this.inter = startEvents(viewer);
+  },
+  beforeDestroy() {
+    clearInterval(this.inter);
+  },
+};
 </script>
 
-<style scoped>
-.application {
-  width: 100%;
-  height: 100%;
-  background: #f0f4f5 !important;
-  overflow-y: auto;
-}
-</style>
+<template>
+  <div ref="viewerDiv"></div>
+</template>
 
-<style>
-html {
-  overflow-y: hidden;
-}
-
-body {
-  overflow-y: hidden;
-}
-</style>
+<style scoped></style>

@@ -14,8 +14,8 @@
   "devDependencies": {
     "@parcel/packager-raw-url": "^2.3.2",
     "@parcel/packager-xml": "^2.3.2",
-    "@parcel/transformer-less": "^2.7.0",
-    "@parcel/transformer-sass": "^2.7.0",
+    "@parcel/transformer-less": "^2.3.2",
+    "@parcel/transformer-sass": "^2.3.2",
     "@parcel/transformer-typescript-tsc": "^2.3.2",
     "@parcel/transformer-vue": "^2.3.2",
     "@parcel/transformer-webmanifest": "^2.3.2",

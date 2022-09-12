@@ -28,6 +28,12 @@ with this file. If not, see
       <NavBar />
     </div>
 
+    <iframe
+      v-if="showViewer"
+      class="iframeViewerContainer"
+      src="micro-apps/spinal-env-pam-viewer/index.html"
+    ></iframe>
+
     <!-- <iframe  -->
     <iframe v-if="appPath" class="iframeContainer" :src="appPath"></iframe>
 
@@ -38,7 +44,7 @@ with this file. If not, see
   </v-container>
 </template>
 
-<script>
+<script lang="ts">
 import NavBar from '../components/nav.vue';
 import { getAppById } from '../requests/userData';
 import { default as apps } from '../../.config_env/apps.json';
@@ -51,6 +57,7 @@ export default {
   data() {
     return {
       appSelected: {},
+      showViewer: false,
       appPath: undefined,
     };
   },
@@ -70,17 +77,31 @@ export default {
     },
     getAppPath() {
       const entry = apps[this.appSelected.name];
-      return entry;
+      if (typeof entry === 'string') {
+        this.showViewer = false;
+        return entry;
+      }
+      this.showViewer = !!entry.viewer;
+      return entry.path;
     },
   },
 };
 </script>
 
 <style scoped>
+.iframeViewerContainer {
+  width: 50%;
+  height: 100%;
+}
+
 .appContainer .iframeContainer {
   width: 100%;
   height: 100%;
-  /* background: yellow; */
+}
+
+.appContainer .iframeViewerContainer + .iframeContainer {
+  width: 50%;
+  height: 100%;
 }
 
 .appContainer .iframeContainer.notFoundDiv {
@@ -107,5 +128,6 @@ export default {
   width: 100%;
   height: 99%;
   padding: 0px;
+  display: flex;
 }
 </style>
