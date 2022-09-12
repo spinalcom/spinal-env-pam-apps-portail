@@ -77,7 +77,10 @@ export default {
     },
     getAppPath() {
       // this.showViewer = !!this.appSelected.viewer;
-      if (process.env.FORCE_SHOW_VIEWER) this.showViewer = true;
+      if (process.env.FORCE_SHOW_VIEWER) {
+        this.showViewer = true;
+        return `/micro-apps/spinal-env-pam-dataview`;
+      }
       return `/micro-apps/${this.appSelected.name}`;
     },
   },
@@ -89,6 +92,7 @@ export default {
   width: 100%;
   height: 99%;
   padding: 0px;
+  display: flex;
 
   .navbar {
     width: 450px;
