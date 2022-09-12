@@ -23,36 +23,34 @@ with this file. If not, see
 -->
 
 <template>
-  <v-data-table
-    fixed-header
-    class="dataTable"
-    dense
-    disable-pagination
-    hide-default-footer
-    :headers="headers"
-    :items="categories"
-    height="100%"
-    :style="getWidth"
-  >
+  <v-data-table fixed-header
+                class="dataTable"
+                dense
+                disable-pagination
+                hide-default-footer
+                :headers="headers"
+                :items="categories"
+                height="100%"
+                :style="getWidth">
     <template v-slot:body="{ items }">
-      <tr v-for="(item, index) in items" class="categoriesRows" :key="index">
-        <td v-for="(header, index2) in headers" :key="index2">
-          <div class="categoryName" v-if="header.value === 'name'">
+      <tr v-for="(item, index) in items"
+          class="categoriesRows"
+          :key="index">
+        <td v-for="(header, index2) in headers"
+            :key="index2">
+          <div class="categoryName"
+               v-if="header.value === 'name'">
             {{ item[header.value] }}
           </div>
 
-          <div
-            class="card"
-            v-else
-            v-for="(applicationData, index3) in item[header.value]"
-            :key="index3"
-          >
-            <ApplicationCard
-              :data="applicationData"
-              @goToApp="goToApp"
-              @exploreApp="exploreApp"
-              @addAppToFavoris="addAppToFavoris"
-            />
+          <div class="card"
+               v-else
+               v-for="(applicationData, index3) in item[header.value]"
+               :key="index3">
+            <ApplicationCard :data="applicationData"
+                             @goToApp="goToApp"
+                             @exploreApp="exploreApp"
+                             @addAppToFavoris="addAppToFavoris" />
           </div>
         </td>
       </tr>
@@ -61,10 +59,10 @@ with this file. If not, see
 </template>
 
 <script>
-import ApplicationCard from './applicationCard.vue';
+import ApplicationCard from "./applicationCard.vue";
 
 export default {
-  name: 'GridComponent',
+  name: "GridComponent",
   components: {
     ApplicationCard,
   },
@@ -82,7 +80,7 @@ export default {
   },
   methods: {
     formatHeaders(headers) {
-      return [{ text: '', value: 'name' }, ...headers].map((el, index) => ({
+      return [{ text: "", value: "name" }, ...headers].map((el, index) => ({
         // width: index === 0 ? "100px" : "25% !important",
         text: el.text || el.name,
         value: el.id || el.value || el.name,
@@ -91,15 +89,15 @@ export default {
     },
 
     exploreApp(item) {
-      this.$emit('exploreApp', item);
+      this.$emit("exploreApp", item);
     },
 
     addAppToFavoris(item) {
-      this.$emit('addAppToFavoris', item);
+      this.$emit("addAppToFavoris", item);
     },
 
     goToApp(item) {
-      this.$emit('goToApp', item);
+      this.$emit("goToApp", item);
     },
   },
   computed: {
@@ -107,7 +105,7 @@ export default {
       const headerLength = this.groups.length + 1;
 
       return {
-        width: headerLength <= 4 ? 20 * headerLength + 'vw' : '100%',
+        width: headerLength <= 4 ? 20 * headerLength + "vw" : "100%",
       };
     },
     // firstColumnStyle() {
@@ -131,64 +129,55 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="scss">
 .dataTable {
   width: 100%;
   height: 98%;
   background-color: #f0f4f5 !important;
-}
+  table {
+    margin-top: 10px;
+    table-layout: fixed;
+    border-collapse: separate !important;
+    border-spacing: 15px 0 !important;
 
-.dataTable table tr.categoriesRows td {
-  /* width: 20vw;
-  max-width: 20vw; */
-  height: 100px !important;
-  border-top: 1px solid #adc8ce;
-}
+    thead {
+      tr {
+        th {
+          background: #f0f4f5 !important;
+          text-transform: uppercase;
+          font-size: 0.8em !important;
+          vertical-align: bottom;
+          padding: 0px !important;
+          font-weight: bolder;
+          color: #6aa0ad !important;
+          box-shadow: unset !important;
+        }
+      }
+    }
 
-/* .dataTable table tr.categoriesRows td:nth-child(1) {
-  width: 5vw;
-  max-width: 5vw;
-} */
+    tr.categoriesRows {
+      td {
+        height: 100px !important;
+        border-top: 1px solid #adc8ce;
+        > * {
+          width: 100%;
+          display: inline-block;
+          vertical-align: top;
+        }
+      }
 
-.dataTable table tr.categoriesRows td > * {
-  width: 100%;
-  display: inline-block;
-  vertical-align: top;
-}
-
-.dataTable table tr.categoriesRows .categoryName {
-  text-transform: uppercase;
-  font-size: 0.6em;
-  font-weight: bolder;
-  color: #6aa0ad;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  /* width: 100px; */
-}
-</style>
-
-<style>
-.dataTable table {
-  margin-top: 10px;
-  table-layout: fixed;
-  border-collapse: separate !important;
-  border-spacing: 15px 0 !important;
-}
-
-.dataTable table thead tr th:first {
-  /* max-width: 30px !important; */
-}
-
-.dataTable table thead tr th {
-  /* width: 30px; */
-  background: #f0f4f5 !important;
-  text-transform: uppercase;
-  font-size: 0.8em !important;
-  vertical-align: bottom;
-  padding: 0px !important;
-  font-weight: bolder;
-  color: #6aa0ad !important;
-  box-shadow: unset !important;
+      .categoryName {
+        text-transform: uppercase;
+        font-size: 0.6em;
+        font-weight: bolder;
+        color: #6aa0ad;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        /* width: 100px; */
+      }
+    }
+  }
 }
 </style>
+

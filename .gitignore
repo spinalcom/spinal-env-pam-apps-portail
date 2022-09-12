@@ -1,5 +1,6 @@
 node_modules/
 micro-apps/
+!micro-apps/spinal-env-pam-viewer
 dist/
 .vscode
 .env.*

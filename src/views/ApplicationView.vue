@@ -23,11 +23,12 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="appContainer" fluid>
+  <v-container class="appLoadContainer" fluid>
     <div class="navbar">
       <NavBar />
     </div>
 
+    <!-- <iframe viewer  -->
     <iframe
       v-if="showViewer"
       class="iframeViewerContainer"
@@ -47,7 +48,6 @@ with this file. If not, see
 <script lang="ts">
 import NavBar from '../components/nav.vue';
 import { getAppById } from '../requests/userData';
-import { default as apps } from '../../.config_env/apps.json';
 import { SET_SELECTED_APP } from '../store/appDataStore';
 
 export default {
@@ -76,58 +76,48 @@ export default {
       return getAppById(appId);
     },
     getAppPath() {
-      const entry = apps[this.appSelected.name];
-      if (typeof entry === 'string') {
-        this.showViewer = false;
-        return entry;
-      }
-      this.showViewer = !!entry.viewer;
-      return entry.path;
+      // this.showViewer = !!this.appSelected.viewer;
+      if (process.env.FORCE_SHOW_VIEWER) this.showViewer = true;
+      return `/micro-apps/${this.appSelected.name}`;
     },
   },
 };
 </script>
 
-<style scoped>
-.iframeViewerContainer {
-  width: 50%;
-  height: 100%;
-}
-
-.appContainer .iframeContainer {
-  width: 100%;
-  height: 100%;
-}
-
-.appContainer .iframeViewerContainer + .iframeContainer {
-  width: 50%;
-  height: 100%;
-}
-
-.appContainer .iframeContainer.notFoundDiv {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-}
-
-.appContainer .iframeContainer.notFoundDiv .code {
-  font-size: 5em;
-}
-
-.appContainer .navbar {
-  width: 450px;
-  height: 60px;
-  position: absolute;
-  top: 5px;
-  left: 0px;
-}
-</style>
-<style>
-.appContainer {
+<style lang="scss">
+.appLoadContainer {
   width: 100%;
   height: 99%;
   padding: 0px;
-  display: flex;
+
+  .navbar {
+    width: 450px;
+    height: 60px;
+    position: absolute;
+    top: 5px;
+    left: 0px;
+  }
+  .iframeViewerContainer {
+    width: 50%;
+    height: 100%;
+  }
+  .iframeContainer {
+    width: 100%;
+    height: 100%;
+  }
+  .iframeViewerContainer + .iframeContainer {
+    width: 50%;
+    height: 100%;
+  }
+
+  .iframeContainer.notFoundDiv {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    .code {
+      font-size: 5em;
+    }
+  }
 }
 </style>

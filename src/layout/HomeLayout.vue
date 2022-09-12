@@ -23,7 +23,8 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="homeContainer" fluid>
+  <v-container class="homeContainer"
+               fluid>
     <div class="header">
       <div class="nav">
         <NavBar />
@@ -38,9 +39,9 @@ with this file. If not, see
   </v-container>
 </template>
 <script>
-import { mapActions, mapState } from 'vuex';
-import NavBar from '../components/nav.vue';
-import SelectComponent from '../components/select.vue';
+import { mapActions, mapState } from "vuex";
+import NavBar from "../components/nav.vue";
+import SelectComponent from "../components/select.vue";
 export default {
   components: {
     NavBar,
@@ -50,11 +51,11 @@ export default {
     await this.init();
   },
   methods: {
-    ...mapActions('appDataStore', [
-      'getApps',
-      'getBos',
-      'getUserInfo',
-      'selectSpace',
+    ...mapActions("appDataStore", [
+      "getApps",
+      "getBos",
+      "getUserInfo",
+      "selectSpace",
     ]),
 
     init() {
@@ -66,46 +67,46 @@ export default {
     },
   },
   computed: {
-    ...mapState('appDataStore', ['appsDisplayed', 'userInfo']),
+    ...mapState("appDataStore", ["appsDisplayed", "userInfo"]),
   },
 };
 </script>
 
-<style scoped>
+<style lang="scss">
 .homeContainer {
   width: 100%;
   height: 100%;
   padding: 0px;
-}
 
-.homeContainer .header {
-  width: 100%;
-  height: 70px;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-}
+  .header {
+    width: 100%;
+    height: 70px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
 
-.homeContainer .header .nav {
-  width: 40%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-}
+    .nav {
+      width: 40%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
 
-.homeContainer .header .select {
-  width: 500px;
-  height: 100%;
-  display: flex;
-  margin: 5px;
-  justify-content: flex-end;
-  align-items: center;
-}
+    .select {
+      width: 500px;
+      height: 100%;
+      display: flex;
+      margin: 5px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+  }
 
-.homeContainer .content {
-  width: 100%;
-  padding: 0 10px;
-  height: calc(100vh - 80px);
-  max-height: calc(100vh - 80px);
+  .content {
+    width: 100%;
+    padding: 0 10px;
+    height: calc(100vh - 80px);
+    max-height: calc(100vh - 80px);
+  }
 }
 </style>
