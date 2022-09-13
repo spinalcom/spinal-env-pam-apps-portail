@@ -26,11 +26,7 @@ import { getAPINormalisePath } from './getAPINormalisePath';
 import { getGlobalOffset } from './getGlobalOffset';
 import { loadModel } from './loadModel';
 import { load1stThenAll } from './load1stThenAll';
-import {
-  addNewModel,
-  getModelById,
-  getModelList,
-} from '../services/ModelDictionnary';
+import { getModelById, getModelList } from '../services/ModelDictionnary';
 import {
   IDbIdModelAggregate,
   SceneAlignMethod,
@@ -89,15 +85,17 @@ export async function load3DModels(
   return load1stThenAll(
     tasks,
     async (d: IloadModelTask): Promise<void> => {
-      const model = await loadBimFile(
+      // const model =
+      await loadBimFile(
         viewer,
         d.path,
         data.loadingType,
+        d.id,
         d.dbids,
         d.aecPath,
         data.buildingId
       );
-      addNewModel(d.id, model);
+      // addNewModel(d.id, model);
     },
     !viewer.model
   );
@@ -107,6 +105,7 @@ async function loadBimFile(
   viewer: Autodesk.Viewing.Viewer3D,
   urlpath: string,
   sceneAlignMethod: SceneAlignMethod,
+  modelId: string,
   dbids?: number[],
   aecPath?: string,
   buildingId?: string
@@ -133,7 +132,7 @@ async function loadBimFile(
     );
   }
   const path = getAPINormalisePath(urlpath, buildingId);
-  return loadModel(viewer, path, option, is1stModel);
+  return loadModel(modelId, viewer, path, option, is1stModel);
 }
 
 export function clearSelect(viewer: Autodesk.Viewing.Viewer3D): void {
