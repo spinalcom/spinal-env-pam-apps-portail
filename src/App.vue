@@ -31,9 +31,11 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { Component, Vue } from 'vue-property-decorator';
 
-export default class app extends Vue {}
+@Component
+class App extends Vue {}
+export default App;
 </script>
 
 <style scoped>
@@ -47,7 +49,7 @@ export default class app extends Vue {}
 
 <style>
 html {
-  overflow-y: hidden;
+  overflow-y: hidden !important;
 }
 
 body {

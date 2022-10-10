@@ -25,14 +25,16 @@ with this file. If not, see
 <script lang="ts">
 import viewerApp from './components/viewer.vue';
 import contextMenu from './components/contextMenu/contextMenu.vue';
+import { Vue, Component } from 'vue-property-decorator';
 
-export default {
-  name: 'forgeViewer',
+@Component({
   components: {
     viewerApp,
     contextMenu,
   },
-};
+})
+class forgeViewer extends Vue {}
+export default forgeViewer;
 </script>
 
 <template>

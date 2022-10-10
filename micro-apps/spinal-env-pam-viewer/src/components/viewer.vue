@@ -25,25 +25,31 @@ with this file. If not, see
 <script lang="ts">
 import { initViewer } from '../utils/viewerUtils';
 import { startEvents } from '../startEvents';
+import { Vue, Component } from 'vue-property-decorator';
 
-export default {
-  name: 'viewer',
-  data() {
-    return {};
-  },
+@Component
+class viewerApp extends Vue {
+  inter: ReturnType<typeof startEvents>;
+
   async mounted() {
     const div = <HTMLElement>this.$refs.viewerDiv;
     const viewer = await initViewer(div);
     this.inter = startEvents(viewer);
-  },
+  }
   beforeDestroy() {
     clearInterval(this.inter);
-  },
-};
+  }
+}
+
+export default viewerApp;
 </script>
 
 <template>
-  <div ref="viewerDiv"></div>
+  <div ref="viewerDiv" class="viewer-div-container"></div>
 </template>
 
-<style scoped></style>
+<style>
+.viewer-div-container > .adsk-viewing-viewer {
+  background: #fff;
+}
+</style>

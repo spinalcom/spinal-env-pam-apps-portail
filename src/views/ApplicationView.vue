@@ -90,7 +90,7 @@ export default {
 <style lang="scss">
 .appLoadContainer {
   width: 100%;
-  height: 99%;
+  height: 100%;
   padding: 0px;
   display: flex;
 
