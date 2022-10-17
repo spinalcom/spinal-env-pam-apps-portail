@@ -33,53 +33,14 @@ import { Vue, Component } from 'vue-property-decorator';
     contextMenu,
   },
 })
-class forgeViewer extends Vue {
-  inDrag: boolean = false;
-  onMouseUpBinded = this.onMouseUp.bind(this);
-  onMouseUp() {
-    this.inDrag = false;
-  }
-  beforeDestroy() {
-    window.removeEventListener('mouseup', this.onMouseUpBinded, true);
-  }
-
-  mounted() {
-    window.addEventListener('mouseup', this.onMouseUpBinded, true);
-  }
-
-  public get appPath(): string {
-    return this.getQueryParam('app') || '';
-  }
-
-  private getQueryParam(keyParam: string): string | undefined {
-    let uri = window.location.href.split('?');
-    if (uri.length == 2) {
-      let vars = uri[1].split('&');
-      for (const param of vars) {
-        const [key, val] = param.split('=');
-        if (key === keyParam) return decodeURIComponent(val);
-      }
-      return undefined;
-    }
-  }
-}
+class forgeViewer extends Vue {}
 export default forgeViewer;
 </script>
 
 <template>
   <v-app>
-    <v-main class="main-container" @mouseup="onMouseUp">
-      <viewerApp
-        class="viewerContainer"
-        @onMouseDown="inDrag = true"
-        @onMouseUp="onMouseUp"
-      ></viewerApp>
-      <iframe
-        v-if="appPath"
-        class="iframeContainer"
-        :class="{ 'disabled-event': inDrag }"
-        :src="appPath"
-      ></iframe>
+    <v-main class="main-container">
+      <viewerApp class="viewerContainer"></viewerApp>
     </v-main>
     <contextMenu></contextMenu>
   </v-app>
@@ -89,24 +50,12 @@ export default forgeViewer;
 .main-container > div {
   height: 100%;
   width: 100%;
-  display: flex;
 }
 </style>
 <style scoped>
 .viewerContainer {
-  width: 77%;
+  width: 67%;
   height: 100%;
   position: relative;
-}
-
-.iframeContainer {
-  width: 33%;
-  height: 100%;
-  z-index: 1;
-  border: none;
-}
-
-.disabled-event {
-  pointer-events: none;
 }
 </style>

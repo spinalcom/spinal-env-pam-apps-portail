@@ -29,14 +29,20 @@ with this file. If not, see
     </div>
 
     <!-- <iframe viewer  -->
-    <iframe
+    <ViewerIFrame
       v-if="showViewer"
       class="iframeViewerContainer"
-      :src="`micro-apps/spinal-env-pam-viewer/index.html?app=${appPathEncoded}`"
-    ></iframe>
+      :inDrag="inDrag"
+      v-on:update:inDrag="inDrag = $event"
+    ></ViewerIFrame>
 
     <!-- <iframe  -->
-    <iframe v-else-if="appPath" class="iframeContainer" :src="appPath"></iframe>
+    <iframe
+      v-if="appPath"
+      class="iframeContainer"
+      :class="{ 'disabled-event': inDrag }"
+      :src="appPath"
+    ></iframe>
 
     <div v-else class="iframeContainer notFoundDiv">
       <h1 class="code">404</h1>
@@ -49,47 +55,44 @@ with this file. If not, see
 import NavBar from '../components/nav.vue';
 import { getAppById } from '../requests/userData';
 import { SET_SELECTED_APP } from '../store/appDataStore';
-
-export default {
+import { Vue, Component } from 'vue-property-decorator';
+import ViewerIFrame from './ViewerIframe.vue';
+@Component({
   components: {
     NavBar,
+    ViewerIFrame,
   },
-  data() {
-    return {
-      appSelected: {},
-      showViewer: false,
-      appPath: '',
-    };
-  },
+})
+class ApplicationView extends Vue {
+  appSelected = {};
+  showViewer = false;
+  appPath = '';
+  inDrag = false;
+
   async mounted() {
     this.appSelected = await this.getAppInfo();
     this.appPath = this.getAppPath();
     this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, this.appSelected);
-  },
-  computed: {
-    appPathEncoded() {
-      return encodeURIComponent(this.appPath);
-    },
-  },
+  }
 
-  methods: {
-    getAppInfo() {
-      const { query, params } = this.$route;
-      const appId = query.id;
+  getAppInfo() {
+    const { query, params } = this.$route;
+    const appId = query.id;
 
-      if (params.id && params.id === appId) return Promise.resolve(params);
-      return getAppById(appId);
-    },
-    getAppPath() {
-      // this.showViewer = !!this.appSelected.viewer;
-      if (process.env.FORCE_SHOW_VIEWER) {
-        this.showViewer = true;
-        return `/micro-apps/spinal-env-pam-dataview`;
-      }
-      return `/micro-apps/${this.appSelected.name}`;
-    },
-  },
-};
+    if (params.id && params.id === appId) return Promise.resolve(params);
+    return getAppById(Array.isArray(appId) ? appId[0] : appId);
+  }
+  getAppPath() {
+    // this.showViewer = !!this.appSelected.viewer;
+    if (process.env.FORCE_SHOW_VIEWER) {
+      this.showViewer = true;
+      return `/micro-apps/spinal-env-pam-dataview`;
+    }
+    return `/micro-apps/${this.appSelected.name}`;
+  }
+}
+
+export default ApplicationView;
 </script>
 
 <style lang="scss">
@@ -119,6 +122,9 @@ export default {
     right: 0;
     width: 33%;
     height: 100%;
+  }
+  .disabled-event {
+    pointer-events: none;
   }
 
   .iframeContainer.notFoundDiv {

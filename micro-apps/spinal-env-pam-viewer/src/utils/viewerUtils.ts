@@ -46,6 +46,7 @@ export function initViewer(
       if (viewerDiv) {
         const customProfileSettings = Autodesk.Viewing.DefaultSettings;
         customProfileSettings.lightPreset = 7;
+        customProfileSettings.ghosting = false;
         const viewer: Autodesk.Viewing.Viewer3D = new Autodesk.Viewing.Viewer3D(
           viewerDiv,
           customProfileSettings
