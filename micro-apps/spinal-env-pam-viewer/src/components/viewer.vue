@@ -26,18 +26,35 @@ with this file. If not, see
 import { initViewer } from '../utils/viewerUtils';
 import { startEvents } from '../startEvents';
 import { Vue, Component } from 'vue-property-decorator';
+import { throttle } from 'lodash';
 
+let view: Autodesk.Viewing.Viewer3D;
 @Component
 class viewerApp extends Vue {
-  inter: ReturnType<typeof startEvents>;
-
+  stopEventListener: () => void;
+  div: HTMLElement;
   async mounted() {
     const div = <HTMLElement>this.$refs.viewerDiv;
-    const viewer = await initViewer(div);
-    this.inter = startEvents(viewer);
+    view = await initViewer(div);
+    this.div = view.canvas.parentElement!;
+    this.stopEventListener = await startEvents(view);
+    this.div.addEventListener('mousedown', this.onMouseDownBinded);
+    this.div.addEventListener('mouseup', this.onMouseUpBinded);
   }
+
+  onMouseDownBinded = this.onMouseDown.bind(this);
+  onMouseDown() {
+    this.$emit('onMouseDown');
+  }
+  onMouseUpBinded = this.onMouseUp.bind(this);
+  onMouseUp() {
+    this.$emit('onMouseUp');
+  }
+
   beforeDestroy() {
-    clearInterval(this.inter);
+    if (this.stopEventListener) this.stopEventListener();
+    this.div.removeEventListener('mousedown', this.onMouseDownBinded);
+    this.div.removeEventListener('mouseup', this.onMouseUpBinded);
   }
 }
 

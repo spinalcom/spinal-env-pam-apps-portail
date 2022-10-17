@@ -32,11 +32,11 @@ with this file. If not, see
     <iframe
       v-if="showViewer"
       class="iframeViewerContainer"
-      src="micro-apps/spinal-env-pam-viewer/index.html"
+      :src="`micro-apps/spinal-env-pam-viewer/index.html?app=${appPathEncoded}`"
     ></iframe>
 
     <!-- <iframe  -->
-    <iframe v-if="appPath" class="iframeContainer" :src="appPath"></iframe>
+    <iframe v-else-if="appPath" class="iframeContainer" :src="appPath"></iframe>
 
     <div v-else class="iframeContainer notFoundDiv">
       <h1 class="code">404</h1>
@@ -58,13 +58,18 @@ export default {
     return {
       appSelected: {},
       showViewer: false,
-      appPath: undefined,
+      appPath: '',
     };
   },
   async mounted() {
     this.appSelected = await this.getAppInfo();
     this.appPath = this.getAppPath();
     this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, this.appSelected);
+  },
+  computed: {
+    appPathEncoded() {
+      return encodeURIComponent(this.appPath);
+    },
   },
 
   methods: {
@@ -102,7 +107,7 @@ export default {
     left: 0px;
   }
   .iframeViewerContainer {
-    width: 50%;
+    width: 100%;
     height: 100%;
   }
   .iframeContainer {
@@ -110,7 +115,9 @@ export default {
     height: 100%;
   }
   .iframeViewerContainer + .iframeContainer {
-    width: 50%;
+    position: absolute;
+    right: 0;
+    width: 33%;
     height: 100%;
   }
 

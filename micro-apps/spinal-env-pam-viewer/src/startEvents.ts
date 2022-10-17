@@ -47,26 +47,24 @@ emitterHandler.setTarget(window.parent, 'viewer');
 if (process.env.DEBUG_EVENT_VIEWER) {
   emitterHandler.loging = true;
 }
-export function startEvents(viewer: Autodesk.Viewing.Viewer3D) {
-  emitterHandler.on(VIEWER_START_LOAD_MODEL, (data) => {
-    load3DModels(viewer, data);
-  });
+export function startEvents(
+  viewer: Autodesk.Viewing.Viewer3D
+): Promise<() => void> {
+  return new Promise((resolve) => {
+    emitterHandler.on(VIEWER_START_LOAD_MODEL, (data) => {
+      load3DModels(viewer, data);
+    });
+    emitterHandler.on(VIEWER_OBJ_ISOLATE, (data) => {
+      viewerIsolation(viewer, data);
+    });
+    emitterHandler.on(VIEWER_OBJ_SELECT, (data) => {
+      viewerSelect(viewer, data);
+    });
+    emitterHandler.on(VIEWER_OBJ_FIT_TO_VIEW, (data) => {
+      viewerFitToView(viewer, data);
+    });
 
-  emitterHandler.on(VIEWER_OBJ_ISOLATE, (data) => {
-    viewerIsolation(viewer, data);
-  });
-  emitterHandler.on(VIEWER_OBJ_SELECT, (data) => {
-    viewerSelect(viewer, data);
-  });
-  emitterHandler.on(VIEWER_OBJ_FIT_TO_VIEW, (data) => {
-    viewerFitToView(viewer, data);
-  });
-
-  viewer.addEventListener(
-    Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT,
-    (data: any) => {
-      console.log(data);
-
+    function viewerGetSelectionChange(data: any) {
       const eventData: IDbIdModelAggregate[] = [];
       for (const selection of data.selections) {
         eventData.push({
@@ -77,12 +75,28 @@ export function startEvents(viewer: Autodesk.Viewing.Viewer3D) {
       lastSelection = eventData;
       emitterHandler.emit(VIEWER_AGGREGATE_SELECTION_CHANGED, eventData);
     }
-  );
 
-  emitterHandler.emit(VIEWER_INITIALIZED);
-  return setInterval(() => {
+    viewer.addEventListener(
+      Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT,
+      viewerGetSelectionChange
+    );
+
     emitterHandler.emit(VIEWER_INITIALIZED);
-  }, 3000);
+    const inter = setInterval(() => {
+      emitterHandler.emit(VIEWER_INITIALIZED);
+    }, 3000);
+
+    function stopEventFct() {
+      clearInterval(inter);
+      viewer.removeEventListener(
+        Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT,
+        viewerGetSelectionChange
+      );
+    }
+
+    resolve(stopEventFct);
+  });
+  // });
 }
 export function sendContextMenuClick(button: IContextMenuButton) {
   EmitterViewerHandler.getInstance().emit(VIEWER_CONTEXT_MENU_CLICK, {
