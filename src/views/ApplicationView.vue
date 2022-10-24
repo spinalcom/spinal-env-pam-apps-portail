@@ -23,28 +23,26 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="appLoadContainer" fluid>
+  <v-container class="appLoadContainer"
+               fluid>
     <div class="navbar">
       <NavBar />
     </div>
 
     <!-- <iframe viewer  -->
-    <ViewerIFrame
-      v-if="showViewer"
-      class="iframeViewerContainer"
-      :inDrag="inDrag"
-      v-on:update:inDrag="inDrag = $event"
-    ></ViewerIFrame>
+    <ViewerIFrame v-if="showViewer"
+                  class="iframeViewerContainer"
+                  :inDrag="inDrag"
+                  v-on:update:inDrag="inDrag = $event"></ViewerIFrame>
 
     <!-- <iframe  -->
-    <iframe
-      v-if="appPath"
-      class="iframeContainer"
-      :class="{ 'disabled-event': inDrag }"
-      :src="appPath"
-    ></iframe>
+    <iframe v-if="appPath"
+            class="iframeContainer"
+            :class="{ 'disabled-event': inDrag }"
+            :src="appPath"></iframe>
 
-    <div v-else class="iframeContainer notFoundDiv">
+    <div v-else
+         class="iframeContainer notFoundDiv">
       <h1 class="code">404</h1>
       <h1>No app found for {{ appSelected.name }}</h1>
     </div>
@@ -52,11 +50,11 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import NavBar from '../components/nav.vue';
-import { getAppById } from '../requests/userData';
-import { SET_SELECTED_APP } from '../store/appDataStore';
-import { Vue, Component } from 'vue-property-decorator';
-import ViewerIFrame from './ViewerIframe.vue';
+import NavBar from "../components/nav.vue";
+import { getAppById } from "../requests/userData";
+import { SET_SELECTED_APP } from "../store/appDataStore";
+import { Vue, Component } from "vue-property-decorator";
+import ViewerIFrame from "./ViewerIframe.vue";
 @Component({
   components: {
     NavBar,
@@ -66,13 +64,13 @@ import ViewerIFrame from './ViewerIframe.vue';
 class ApplicationView extends Vue {
   appSelected = {};
   showViewer = false;
-  appPath = '';
+  appPath = "";
   inDrag = false;
 
   async mounted() {
-    this.appSelected = await this.getAppInfo();
+    // this.appSelected = await this.getAppInfo();
     this.appPath = this.getAppPath();
-    this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, this.appSelected);
+    // this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, this.appSelected);
   }
 
   getAppInfo() {
@@ -84,11 +82,13 @@ class ApplicationView extends Vue {
   }
   getAppPath() {
     // this.showViewer = !!this.appSelected.viewer;
-    if (process.env.FORCE_SHOW_VIEWER) {
+    // if (process.env.FORCE_SHOW_VIEWER) {
+    if (false) {
       this.showViewer = true;
       return `/micro-apps/spinal-env-pam-dataview`;
     }
-    return `/micro-apps/${this.appSelected.name}`;
+    // return `/micro-apps/${this.appSelected.name}`;
+    return `/micro-apps/spinal-env-pam-building-manager`;
   }
 }
 

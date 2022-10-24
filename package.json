@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "spinal-components": "git+https://github.com/spinalcom/spinal-components.git",
-    "spinal-viewer-event-manager": "git+https://github.com/spinalcom/spinal-viewer-event-manager.git"
+    "spinal-viewer-event-manager": "git+https://github.com/spinalcom/spinal-viewer-event-manager.git",
+    "vue-sweetalert2": "^5.0.5",
+    "vuex-class": "^0.3.2"
   },
   "devDependencies": {
     "@babel/plugin-proposal-decorators": "^7.15.8",
