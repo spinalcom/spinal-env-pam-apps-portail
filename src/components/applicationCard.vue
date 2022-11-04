@@ -25,7 +25,7 @@ with this file. If not, see
 <template>
   <v-card class="appCardContainer"
           @click="goToApplication">
-    <div class="content">
+    <div class="cardContent">
       <div class="left">
         <v-card class="iconDiv">
           <v-icon color="#000000">{{ data.icon }}</v-icon>
@@ -171,7 +171,7 @@ export default {
   border-radius: 7px;
   display: flex;
   flex-direction: column;
-  .content {
+  .cardContent {
     width: 100%;
     height: 100%;
     display: flex;

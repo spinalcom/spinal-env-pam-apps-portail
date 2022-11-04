@@ -31,14 +31,16 @@ with this file. If not, see
       </div>
 
       <div class="select">
-        <select-component @selected="changeApps"></select-component>
+        <select-component @selected="changeApps"
+                          :portofolios="portofolios"></select-component>
       </div>
     </div>
 
     <router-view class="content"></router-view>
   </v-container>
 </template>
-<script>
+
+<script lang="ts">
 import { mapActions, mapState } from "vuex";
 import NavBar from "../components/nav.vue";
 import SelectComponent from "../components/select.vue";
@@ -52,6 +54,7 @@ export default {
   },
   methods: {
     ...mapActions("appDataStore", [
+      "getPortofolios",
       "getApps",
       "getBos",
       "getUserInfo",
@@ -59,15 +62,15 @@ export default {
     ]),
 
     init() {
-      return Promise.all([this.getApps(), this.getBos(), this.getUserInfo()]);
+      return Promise.all([this.getPortofolios(), this.getUserInfo()]);
     },
 
-    changeApps(selectedId) {
-      this.selectSpace(selectedId);
+    changeApps(data) {
+      this.selectSpace(data);
     },
   },
   computed: {
-    ...mapState("appDataStore", ["appsDisplayed", "userInfo"]),
+    ...mapState("appDataStore", ["appsDisplayed", "userInfo", "portofolios"]),
   },
 };
 </script>

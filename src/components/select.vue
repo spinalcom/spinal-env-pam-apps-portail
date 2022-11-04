@@ -23,8 +23,18 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="headerSelect">
-    <v-select class="selectBar"
+  <div class="headerSelect"
+       v-if="portofolios">
+    <space-selector ref="space-selector"
+                    :open.sync="openSpaceSelector"
+                    :maxDepth="1"
+                    :GetChildrenFct="onSpaceSelectOpen"
+                    @input="getSelectedItem"
+                    :value="selectedZone">
+
+    </space-selector>
+
+    <!-- <v-select class="selectBar"
               v-model="selected"
               prepend-icon="mdi-chevron-down"
               append-icon=""
@@ -32,22 +42,38 @@ with this file. If not, see
               color="#fff"
               :items="data"
               label="Espace"
-              dense></v-select>
+              dense></v-select> -->
   </div>
 </template>
 
 <script>
 import { mapState } from "vuex";
+import { SpaceSelector } from "./SpaceSelector";
 
 export default {
+  components: {
+    SpaceSelector,
+  },
+  props: {
+    portofolios: {},
+  },
   data() {
-    this.default = {
-      name: "Patrimoine",
-      id: "patrimoine",
+    // this.default = {
+    //   name: "Patrimoine",
+    //   id: "patrimoine",
+    // };
+    this.TYPES = {
+      portofolio: "portofolio",
+      building: "building",
     };
     return {
-      data: [this.default],
-      selected: this.default.id,
+      // data: [this.default],
+      // selected: this.default.id,
+      openSpaceSelector: false,
+      selected: null,
+      selectedZone: {
+        parents: [],
+      },
     };
   },
   // mounted() {
@@ -57,19 +83,81 @@ export default {
     selectedChanged(val) {
       console.log(val);
     },
+
+    async onSpaceSelectOpen(item) {
+      if (item) {
+        if (item.type === this.TYPES.portofolio) {
+          return item.categories.map((building) => {
+            return {
+              name: building.name,
+              id: building.id,
+              categories: [],
+              staticId: building.id,
+              dynamicId: 0,
+              type: this.TYPES.building,
+            };
+          });
+        }
+        return [];
+        // console.log(item.buildings);
+        // return item.buildings.map((building) => {});
+      }
+
+      return this.portofolios.map((portofolio) => {
+        return {
+          name: portofolio.name,
+          categories: portofolio.buildings,
+          staticId: portofolio.id,
+          dynamicId: 0,
+          type: this.TYPES.portofolio,
+        };
+      });
+    },
+
+    getSelectedItem(item) {
+      this.selectedZone = item;
+      let portofolioId;
+      let buildingId;
+      if (item.type === this.TYPES.portofolio) {
+        portofolioId = item.staticId;
+      } else if (item.type === this.TYPES.building) {
+        portofolioId = item.parents[0];
+        buildingId = item.staticId;
+      }
+
+      this.$emit("selected", { portofolioId, buildingId });
+    },
   },
-  computed: {
-    ...mapState("appDataStore", ["bos"]),
-  },
+  // computed: {
+  //   ...mapState("appDataStore", ["portofolios"]),
+  // },
   watch: {
     selected() {
+      console.log("this.selected", this.selected);
       this.$emit("selected", this.selected);
     },
-    bos() {
-      this.data = [this.default, ...this.bos].map(({ name, id }) => ({
-        text: name,
-        value: id,
-      }));
+    portofolios() {
+      const element = this.portofolios[0];
+      if (Object.keys(this.selectedZone).length === 1 && element) {
+        this.selectedZone = {
+          platformId: "",
+          name: element.name,
+          staticId: element.id,
+          categories: [],
+          color: "#FFFFFF",
+          dynamicId: 0,
+          type: this.TYPES.portofolio,
+          level: 0,
+          isOpen: true,
+          loading: false,
+          patrimoineId: "",
+          parents: [],
+          isLastInGrp: true,
+          drawLink: [],
+          haveChildren: true,
+        };
+        this.getSelectedItem(this.selectedZone);
+      }
     },
   },
 };
@@ -79,17 +167,16 @@ export default {
 .headerSelect {
   width: 100%;
   height: 60px;
-  display: flex;
-  align-items: center;
-  border-radius: 10px;
-  background: #14202c;
-  padding: 10px;
-  .selectBar {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    color: white;
-  }
+  // display: flex;
+  // align-items: center;
+  // border-radius: 10px;
+  // padding: 10px;
+  // .selectBar {
+  //   height: 100%;
+  //   display: flex;
+  //   align-items: center;
+  //   color: white;
+  // }
 }
 </style>
 

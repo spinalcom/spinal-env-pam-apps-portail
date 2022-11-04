@@ -166,7 +166,10 @@ export default Vue.extend({
     },
 
     goToApp(item) {
-      this.$router.push({ name: "App", query: { id: item.id }, params: item });
+      this.$router.push({
+        name: "App",
+        query: { app: btoa(JSON.stringify(item)) },
+      });
     },
     exploreApp(item) {
       console.log("exploreApp", item);
@@ -235,7 +238,7 @@ export default Vue.extend({
 
   .apps-container {
     width: 100%;
-    height: calc(100% - 150px);
+    height: calc(100% - 160px);
   }
 }
 </style>

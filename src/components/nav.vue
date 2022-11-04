@@ -27,23 +27,19 @@ with this file. If not, see
     <div class="navPickerApp">
       <div class="navPickerApp-container">
         <div class="navPickerApp-mainMenu">
-          <button
-            class="navPickerApp-mainMenu-button"
-            :class="{
+          <button class="navPickerApp-mainMenu-button"
+                  :class="{
               actived: navBarMainMenuShow,
             }"
-            @click="clickMainMenu()"
-          >
+                  @click="clickMainMenu()">
             <span></span>
             <span></span>
             <span></span>
           </button>
-          <div
-            class="navPickerApp-mainMenu-content"
-            :class="{
+          <div class="navPickerApp-mainMenu-content"
+               :class="{
               actived: navBarMainMenuShow,
-            }"
-          >
+            }">
             <div class="navPickerApp-mainMenu-content-profil">
               <div class="navPickerApp-mainMenu-content-profil-name">
                 {{ userInfo && userInfo.name }}
@@ -53,19 +49,16 @@ with this file. If not, see
               </div>
             </div>
             <div class="navPickerApp-mainMenu-content-buttonContainer">
-              <button
-                v-for="btn in mainbuttons"
-                :key="btn.name"
-                class="navPickerApp-mainMenu-content-buttonContainer-button"
-                :tabindex="mainMenuTabIndexComputed"
-                @click="btn.action"
-              >
+              <button v-for="btn in mainbuttons"
+                      :key="btn.name"
+                      class="navPickerApp-mainMenu-content-buttonContainer-button"
+                      :tabindex="mainMenuTabIndexComputed"
+                      @click="btn.action">
                 <div
-                  class="navPickerApp-mainMenu-content-buttonContainer-button-icon"
-                ></div>
+                     class="navPickerApp-mainMenu-content-buttonContainer-button-icon">
+                </div>
                 <div
-                  class="navPickerApp-mainMenu-content-buttonContainer-button-title"
-                >
+                     class="navPickerApp-mainMenu-content-buttonContainer-button-title">
                   {{ btn.name }}
                 </div>
               </button>
@@ -77,36 +70,33 @@ with this file. If not, see
           <img :src="logoSvg" />
         </div>
         <div class="navPickerApp-appMenu">
-          <button
-            class="navPickerApp-appMenu-button"
-            @click="clickAppMenu()"
-            :class="{
+          <button class="navPickerApp-appMenu-button"
+                  @click="clickAppMenu()"
+                  :class="{
               actived: navBarAppMenuShow,
-            }"
-          >
+            }">
             <div class="buttonLabel">application</div>
             <div class="navPickerApp-appMenu-iconContainer">
-              <span class="material-icons">
+              <!-- <span class="material-icons">
                 {{ localAppSelected.icon || 'location_city' }}
-              </span>
+              </span> -->
+              <v-icon>{{localAppSelected.icon || 'mdi-domain'}}</v-icon>
+
             </div>
             <div class="navPickerApp-appMenu-title">
               {{ localAppSelected.name }}
             </div>
           </button>
 
-          <div
-            class="navPickerApp-appMenu-content"
-            :class="{
+          <div class="navPickerApp-appMenu-content"
+               :class="{
               actived: navBarAppMenuShow,
-            }"
-          >
-            <button
-              class="navPickerApp-appMenu-content-app"
-              :tabindex="appMenuTabIndexComputed"
-              @click="gotToHome"
-            >
+            }">
+            <button class="navPickerApp-appMenu-content-app"
+                    :tabindex="appMenuTabIndexComputed"
+                    @click="gotToHome">
               <div class="navPickerApp-appMenu-content-app-iconContainer">
+                <!-- <v-icon>{{homeApp.icon || 'mdi-domain'}}</v-icon> -->
                 <span class="material-icons">
                   {{ homeApp.icon || 'location_city' }}
                 </span>
@@ -116,17 +106,16 @@ with this file. If not, see
               </div>
             </button>
 
-            <button
-              v-for="app in appsDisplayed"
-              :key="app.name"
-              class="navPickerApp-appMenu-content-app"
-              :tabindex="appMenuTabIndexComputed"
-              @click="goToApp(app)"
-            >
+            <button v-for="app in appsDisplayed"
+                    :key="app.name"
+                    class="navPickerApp-appMenu-content-app"
+                    :tabindex="appMenuTabIndexComputed"
+                    @click="goToApp(app)">
               <div class="navPickerApp-appMenu-content-app-iconContainer">
-                <span class="material-icons">
+                <v-icon>{{app.icon || 'mdi-domain'}}</v-icon>
+                <!-- <span class="material-icons">
                   {{ app.icon || 'location_city' }}
-                </span>
+                </span> -->
               </div>
               <div class="navPickerApp-appMenu-content-app-title">
                 {{ app.name }}
@@ -140,8 +129,8 @@ with this file. If not, see
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex';
-import logoSvg from '../assets/logo.svg';
+import { mapActions, mapState } from "vuex";
+import logoSvg from "../assets/logo.svg";
 
 export default {
   // props: {
@@ -149,14 +138,14 @@ export default {
   //   user: {},
   // },
   async mounted() {
-    await Promise.all([this.getApps(), this.getUserInfo()]);
+    await Promise.all([this.getPortofolios(), this.getUserInfo()]);
     this.setLocalAppSelected();
     // this.setApps();
   },
   data() {
     this.homeApp = {
-      path: 'Home',
-      name: 'toutes les applications',
+      path: "Home",
+      name: "toutes les applications",
     };
     return {
       logoSvg,
@@ -165,14 +154,14 @@ export default {
       navBarAppMenuShow: false,
       apps: [],
       mainbuttons: [
-        { name: 'Paramètres', action: () => console.log('click Paramètres') },
-        { name: 'Déconnexion', action: () => this.logOut() },
+        { name: "Paramètres", action: () => console.log("click Paramètres") },
+        { name: "Déconnexion", action: () => this.logOut() },
       ],
     };
   },
   methods: {
-    ...mapActions('logingStore', ['clearLocalStorage']),
-    ...mapActions('appDataStore', ['getApps', 'getUserInfo']),
+    ...mapActions("logingStore", ["clearLocalStorage"]),
+    ...mapActions("appDataStore", ["getApps", "getUserInfo", "getPortofolios"]),
 
     clickMainMenu() {
       this.navBarMainMenuShow = !this.navBarMainMenuShow;
@@ -186,17 +175,17 @@ export default {
 
     logOut() {
       this.clearLocalStorage();
-      this.$router.push({ name: 'Login' });
+      this.$router.push({ name: "Login" });
     },
 
     gotToHome() {
-      this.$router.push({ name: 'Home' }).catch(() => {});
+      this.$router.push({ name: "Home" }).catch(() => {});
     },
 
     goToApp(item) {
       this.$router
-        .push({ name: 'App', query: { id: item.id }, params: item })
-        .catch(() => {});
+        .push({ name: "App", query: { app: btoa(JSON.stringify(item)) } })
+        .catch((error) => {});
     },
 
     setLocalAppSelected() {
@@ -224,13 +213,18 @@ export default {
     // },
   },
   computed: {
-    ...mapState('appDataStore', ['appsDisplayed', 'userInfo', 'appSelected']),
+    ...mapState("appDataStore", [
+      "appsDisplayed",
+      "userInfo",
+      "appSelected",
+      "portofolios",
+    ]),
     mainMenuTabIndexComputed() {
-      return this.navBarMainMenuShow ? '' : '-1';
+      return this.navBarMainMenuShow ? "" : "-1";
     },
 
     appMenuTabIndexComputed() {
-      return this.navBarAppMenuShow ? '' : '-1';
+      return this.navBarAppMenuShow ? "" : "-1";
     },
 
     // goTo(path) {

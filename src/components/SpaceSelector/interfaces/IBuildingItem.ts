@@ -22,17 +22,43 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import axios from 'axios';
-
-import { SERVER_BASE_URL } from '.';
-
-const endpoint = "/api/v1/pam";
-const host = (SERVER_BASE_URL || "").replace(`/\/$/`, el => "");
-const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
-
-
-export function loginRequest(userData: any) {
-  return axios.post(`${baseURL}/auth`, userData).then((result) => {
-    return result.data;
-  });
+export interface INodeItem {
+  dynamicId: number;
+  staticId: string;
+  name: string;
+  type: string;
 }
+
+export interface IZoneItem extends INodeItem {
+  color?: string;
+  categories?: ICategoriesItem[];
+}
+
+export interface IBuildingItem extends INodeItem {
+  color?: string;
+  area: number;
+}
+
+export interface ICategoriesItem extends INodeItem {
+  attributs: IAttributsItem[];
+}
+
+export interface IAttributsItem {
+  label: string;
+  value: string | number;
+  date: number;
+  type: string;
+  unit: string;
+}
+
+export interface IEquipmentItem extends Partial<IZoneItem> {
+  bimFileId: string;
+  version: number;
+  externalId: string;
+  dbid: number;
+}
+export interface IRefItem extends INodeItem {
+  infoReferencesObjects: IEquipmentItem[];
+}
+
+export type TGeoItem = IZoneItem | IEquipmentItem;

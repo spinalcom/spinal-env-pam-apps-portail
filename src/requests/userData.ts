@@ -26,11 +26,23 @@
 import axios from "axios";
 import { SERVER_BASE_URL } from ".";
 
+const endpoint = "/api/v1/pam";
+const host = (SERVER_BASE_URL || "").replace(`/\/$/`, el => "");
+const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
+
+
+export function getPortofolios(profileId: string | null) {
+    if (!profileId) throw new Error("no profileId found");
+
+    return axios.get(`${baseURL}/user_profile/get_authorized_portofolio/${profileId}`).then((result) => {
+        return result.data;
+    })
+}
 
 export function getUserApps(profileId: string | null) {
     if (!profileId) throw new Error("no profileId found");
 
-    return axios.get(`${SERVER_BASE_URL}/api/v1/pam/user_profile/get_authorized_apps/${profileId}`).then((result) => {
+    return axios.get(`${baseURL}/user_profile/get_authorized_apps/${profileId}`).then((result) => {
         return result.data;
     })
 }
@@ -38,13 +50,21 @@ export function getUserApps(profileId: string | null) {
 export function getUserBos(profileId: string | null) {
     if (!profileId) throw new Error("no profileId found");
 
-    return axios.get(`${SERVER_BASE_URL}/api/v1/pam/user_profile/get_authorized_bos/${profileId}`).then((result) => {
+    return axios.get(`${baseURL}/user_profile/get_authorized_bos/${profileId}`).then((result) => {
         return result.data;
     })
 }
 
 export function getAppById(appId: string | null) {
-    return axios.get(`${SERVER_BASE_URL}/api/v1/pam/get_app_by_id/${appId}`).then((result) => {
+    return axios.get(`${baseURL}/get_app_by_id/${appId}`).then((result) => {
         return result.data;
     })
+}
+
+export function getTokenData(token: string) {
+    return axios.post(`${baseURL}/getTokenData`, { token }).then((result) => {
+        return result.data;
+    }).catch((err) => {
+        return { code: 401, message: "error" }
+    });
 }

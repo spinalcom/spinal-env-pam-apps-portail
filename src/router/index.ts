@@ -68,9 +68,9 @@ const router = new VueRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
-  const auth = isAuthenticate();
-
+router.beforeEach(async (to, from, next) => {
+  const auth = await isAuthenticate();
+  console.log(auth)
   if (to.name === 'Login' && auth) return next({ name: 'Home' });
   if (!auth && to.name !== 'Login') return next({ name: 'Login' });
   return next();

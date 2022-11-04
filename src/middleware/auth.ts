@@ -22,8 +22,19 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
+import { getTokenData } from "../requests/userData";
+import { clearLocalStorage, saveToLocalStorage } from "../utils";
 
-export function isAuthenticate(): boolean {
-    if (localStorage.getItem("token")) return true;
+
+export async function isAuthenticate(): Promise<boolean> {
+    const token = localStorage.getItem("token");
+    if (token) {
+        const { code, data } = await getTokenData(token);
+        if (code == 200) {
+            saveToLocalStorage(data);
+            return true;
+        }
+    }
+
     return false;
 }

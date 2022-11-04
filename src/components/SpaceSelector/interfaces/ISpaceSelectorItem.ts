@@ -22,17 +22,15 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import axios from 'axios';
-
-import { SERVER_BASE_URL } from '.';
-
-const endpoint = "/api/v1/pam";
-const host = (SERVER_BASE_URL || "").replace(`/\/$/`, el => "");
-const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
-
-
-export function loginRequest(userData: any) {
-  return axios.post(`${baseURL}/auth`, userData).then((result) => {
-    return result.data;
-  });
+import { IZoneItem } from './IBuildingItem';
+export interface ISpaceSelectorItem extends IZoneItem {
+  level: number;
+  isOpen: boolean;
+  loading?: boolean;
+  platformId: string;
+  patrimoineId: string;
+  parents: string[];
+  isLastInGrp: boolean;
+  drawLink: number[];
+  haveChildren: boolean;
 }

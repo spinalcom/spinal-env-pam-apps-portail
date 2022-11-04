@@ -44,7 +44,7 @@ with this file. If not, see
     <div v-else
          class="iframeContainer notFoundDiv">
       <h1 class="code">404</h1>
-      <h1>No app found for {{ appSelected.name }}</h1>
+      <h1>No app found</h1>
     </div>
   </v-container>
 </template>
@@ -53,8 +53,9 @@ with this file. If not, see
 import NavBar from "../components/nav.vue";
 import { getAppById } from "../requests/userData";
 import { SET_SELECTED_APP } from "../store/appDataStore";
-import { Vue, Component } from "vue-property-decorator";
+import { Vue, Component, Watch } from "vue-property-decorator";
 import ViewerIFrame from "./ViewerIframe.vue";
+import { IApp } from "micro-apps/spinal-env-pam-apps-manager/src/types/interfaces";
 @Component({
   components: {
     NavBar,
@@ -62,33 +63,47 @@ import ViewerIFrame from "./ViewerIframe.vue";
   },
 })
 class ApplicationView extends Vue {
-  appSelected = {};
+  appSelected: IApp = null;
   showViewer = false;
-  appPath = "";
+  appPath: any = null;
   inDrag = false;
 
   async mounted() {
-    // this.appSelected = await this.getAppInfo();
+    this.initApp();
+  }
+
+  initApp() {
+    this.appSelected = this.getAppInfo();
     this.appPath = this.getAppPath();
-    // this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, this.appSelected);
+
+    if (!this.appSelected) return;
+    this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, this.appSelected);
   }
 
   getAppInfo() {
-    const { query, params } = this.$route;
-    const appId = query.id;
+    try {
+      const { query } = this.$route;
+      const appId: any = query.app;
+      if (!appId) return;
 
-    if (params.id && params.id === appId) return Promise.resolve(params);
-    return getAppById(Array.isArray(appId) ? appId[0] : appId);
+      const application: any = JSON.parse(atob(appId));
+      return application;
+    } catch (error) {}
   }
+
   getAppPath() {
-    // this.showViewer = !!this.appSelected.viewer;
-    // if (process.env.FORCE_SHOW_VIEWER) {
-    if (false) {
+    if (!this.appSelected) return;
+
+    if (this.appSelected.hasViewer) {
       this.showViewer = true;
       return `/micro-apps/spinal-env-pam-dataview`;
     }
-    // return `/micro-apps/${this.appSelected.name}`;
-    return `/micro-apps/spinal-env-pam-building-manager`;
+    return `/micro-apps/${this.appSelected.packageName}`;
+  }
+
+  @Watch("$route")
+  watchRoute(to, from) {
+    this.initApp();
   }
 }
 

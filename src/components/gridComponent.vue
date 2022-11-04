@@ -46,7 +46,8 @@ with this file. If not, see
           <div class="card"
                v-else
                v-for="(applicationData, index3) in item[header.value]"
-               :key="index3">
+               :key="index3"
+               :style="cardStyle">
             <ApplicationCard :data="applicationData"
                              @goToApp="goToApp"
                              @exploreApp="exploreApp"
@@ -99,13 +100,36 @@ export default {
     goToApp(item) {
       this.$emit("goToApp", item);
     },
+
+    isMobile() {
+      if (
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        )
+      ) {
+        return true;
+      } else {
+        return false;
+      }
+    },
   },
   computed: {
     getWidth() {
       const headerLength = this.groups.length + 1;
 
       return {
-        width: headerLength <= 4 ? 20 * headerLength + "vw" : "100%",
+        width: "100%",
+        // width: headerLength <= 4 ? 20 * headerLength + "vw" : "100%",
+      };
+    },
+
+    cardStyle() {
+      const headerLength = this.groups.length;
+      const width = headerLength < 2 && !this.isMobile() ? 32 : 100;
+
+      return {
+        width: `${width}%`,
+        "margin-right": "10px",
       };
     },
     // firstColumnStyle() {
@@ -152,6 +176,11 @@ export default {
           color: #6aa0ad !important;
           box-shadow: unset !important;
         }
+
+        th:first-child {
+          width: 20vw;
+          max-width: 20vw;
+        }
       }
     }
 
@@ -160,10 +189,14 @@ export default {
         height: 100px !important;
         border-top: 1px solid #adc8ce;
         > * {
-          width: 100%;
+          // width: 100%;
           display: inline-block;
           vertical-align: top;
         }
+      }
+
+      td:first-child {
+        max-width: 20vw !important;
       }
 
       .categoryName {

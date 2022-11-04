@@ -22,6 +22,7 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
+import { clearLocalStorage, saveToLocalStorage } from "../utils";
 import { loginRequest } from "../requests/login";
 
 
@@ -56,20 +57,11 @@ export const logingStore = {
 
         storeCookie({ state }: any, vueCookieInstance: any) {
             // vueCookieInstance.set('token', state.data.token, { expires: state.data.expieres });
-            console.log(state.data)
-            const profileId = state.data.profile.userProfileBosConfigId;
-            const token = state.data.token;
-
-            localStorage.setItem("profileId", profileId);
-            localStorage.setItem("user", btoa(JSON.stringify(state.data.userInfo)));
-            localStorage.setItem("token", token);
-
+            saveToLocalStorage(state.data);
         },
 
         clearLocalStorage() {
-            localStorage.removeItem("profileId");
-            localStorage.removeItem("user");
-            localStorage.removeItem("token");
+            clearLocalStorage()
         }
     },
 
