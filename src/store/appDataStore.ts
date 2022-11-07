@@ -47,7 +47,6 @@ function classifyByCategory(apps: any[]): { name: string, id: string, apps: any[
 
 function classifyByCategoryAndGroup(apps: any[]) {
     let categories = classifyByCategory(apps);
-    console.log("categories", categories)
     const groups: any[] = [];
     const data = categories.map(({ name, id, apps }) => {
         let t: { [key: string]: any } = { name, id };
@@ -171,17 +170,34 @@ export const appDataStore = {
             return userInfo;
         },
 
-        selectSpace({ commit, state }: any, data: { portofolioId: string, buildingId: string }) {
+        async selectSpace({ commit, dispatch, state }: any, data: { portofolioId: string, buildingId: string }) {
+
+            if (!state.portofolios) {
+                await dispatch("getPortofolios")
+            }
+
             let apps = []
             const portofolio = state.portofolios.find(el => el.id === data.portofolioId);
             if (portofolio && !data.buildingId) {
-                apps = portofolio.apps;
+                apps = portofolio.apps.map(el => {
+                    el.parent = {
+                        portofolioId: data.portofolioId,
+                        buildingId: data.buildingId,
+                    };
+                    return el;
+                });
                 state.spaceSelected = data.portofolioId;
             } else if (portofolio && data.buildingId) {
                 const building = portofolio.buildings.find(el => el.id === data.buildingId);
                 if (building) {
                     state.spaceSelected = data.buildingId;
-                    apps = building.apps;
+                    apps = building.apps.map(el => {
+                        el.parent = {
+                            portofolioId: data.portofolioId,
+                            buildingId: data.buildingId,
+                        };
+                        return el;
+                    });
                 }
             }
 

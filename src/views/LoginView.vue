@@ -85,7 +85,8 @@ with this file. If not, see
 <script>
 import Vue from "vue";
 import { mapActions, mapState } from "vuex";
-import logoSvg from "../assets/logo.svg";
+import logoSvg from "../assets/logo.jpg";
+// import logoSvg from "../assets/logo.jpg";
 
 export default Vue.extend({
   name: "Login",
@@ -142,7 +143,7 @@ export default Vue.extend({
   justify-content: center;
 
   .loginCard {
-    width: 400px;
+    width: 450px;
     padding: 18px;
   }
 
@@ -164,9 +165,10 @@ export default Vue.extend({
 
     .logoImg {
       width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      height: 200px;
+      // display: flex;
+      // align-items: center;
+      // justify-content: center;
     }
 
     .logo {

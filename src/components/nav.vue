@@ -130,7 +130,7 @@ with this file. If not, see
 
 <script>
 import { mapActions, mapState } from "vuex";
-import logoSvg from "../assets/logo.svg";
+import logoSvg from "../assets/logo.jpg";
 
 export default {
   // props: {

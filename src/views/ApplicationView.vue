@@ -69,14 +69,21 @@ class ApplicationView extends Vue {
   inDrag = false;
 
   async mounted() {
-    this.initApp();
+    await this.initApp();
+
+    console.log(this.appSelected);
   }
 
-  initApp() {
+  async initApp() {
     this.appSelected = this.getAppInfo();
     this.appPath = this.getAppPath();
 
     if (!this.appSelected) return;
+
+    await this.$store.dispatch(
+      `appDataStore/selectSpace`,
+      (<any>this.appSelected).parent
+    );
     this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, this.appSelected);
   }
 
@@ -102,7 +109,7 @@ class ApplicationView extends Vue {
   }
 
   @Watch("$route")
-  watchRoute(to, from) {
+  watchRoute() {
     this.initApp();
   }
 }
