@@ -165,12 +165,21 @@ export default Vue.extend({
       return obj;
     },
 
-    goToApp(item) {
-      this.$router.push({
-        name: "App",
-        query: { app: btoa(JSON.stringify(item)) },
-      });
+    goToApp({ item, event }) {
+      if (event.ctrlKey) {
+        let routeData = this.$router.resolve({
+          name: "App",
+          query: { app: btoa(JSON.stringify(item)) },
+        });
+        window.open(routeData.href, "_blank");
+      } else {
+        this.$router.push({
+          name: "App",
+          query: { app: btoa(JSON.stringify(item)) },
+        });
+      }
     },
+
     exploreApp(item) {
       console.log("exploreApp", item);
     },

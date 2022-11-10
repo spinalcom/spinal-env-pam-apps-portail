@@ -110,7 +110,7 @@ with this file. If not, see
                     :key="app.name"
                     class="navPickerApp-appMenu-content-app"
                     :tabindex="appMenuTabIndexComputed"
-                    @click="goToApp(app)">
+                    @click="goToApp(app, $event)">
               <div class="navPickerApp-appMenu-content-app-iconContainer">
                 <v-icon>{{app.icon || 'mdi-domain'}}</v-icon>
                 <!-- <span class="material-icons">
@@ -178,14 +178,29 @@ export default {
       this.$router.push({ name: "Login" });
     },
 
-    gotToHome() {
-      this.$router.push({ name: "Home" }).catch(() => {});
+    gotToHome(event) {
+      if (event.ctrlKey) {
+        let routeData = this.$router.resolve({ name: "Home" });
+        window.open(routeData.href, "_blank");
+      } else {
+        this.$router.push({ name: "Home" }).catch(() => {});
+      }
+      this.navBarAppMenuShow = false;
     },
 
-    goToApp(item) {
-      this.$router
-        .push({ name: "App", query: { app: btoa(JSON.stringify(item)) } })
-        .catch((error) => {});
+    goToApp(item, event) {
+      if (event.ctrlKey) {
+        let routeData = this.$router.resolve({
+          name: "App",
+          query: { app: btoa(JSON.stringify(item)) },
+        });
+        window.open(routeData.href, "_blank");
+      } else {
+        this.$router
+          .push({ name: "App", query: { app: btoa(JSON.stringify(item)) } })
+          .catch((error) => {});
+      }
+      this.navBarAppMenuShow = false;
     },
 
     setLocalAppSelected() {

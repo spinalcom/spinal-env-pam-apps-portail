@@ -97,8 +97,8 @@ export default {
       this.$emit("addAppToFavoris", item);
     },
 
-    goToApp(item) {
-      this.$emit("goToApp", item);
+    goToApp(data) {
+      this.$emit("goToApp", data);
     },
 
     isMobile() {

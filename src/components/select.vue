@@ -37,6 +37,7 @@ with this file. If not, see
 </template>
 
 <script>
+import { SELECT_PORTOFOLIO } from "../store/appDataStore";
 import { mapState } from "vuex";
 import { SpaceSelector } from "./SpaceSelector";
 
@@ -105,13 +106,14 @@ export default {
     },
 
     getSelectedItem(item) {
+      this.$store.commit(`appDataStore/${SELECT_PORTOFOLIO}`, item);
       this.selectedZone = item;
       let portofolioId;
       let buildingId;
       if (item.type === this.TYPES.portofolio) {
         portofolioId = item.staticId;
       } else if (item.type === this.TYPES.building) {
-        localStorage.setItem("idBuilding", item.staticId)
+        localStorage.setItem("idBuilding", item.staticId);
         portofolioId = item.parents[0];
         buildingId = item.staticId;
       }
@@ -119,16 +121,15 @@ export default {
       this.$emit("selected", { portofolioId, buildingId });
     },
   },
-  // computed: {
-  //   ...mapState("appDataStore", ["portofolios"]),
-  // },
+  computed: {
+    ...mapState("appDataStore", ["selectedPortofolio"]),
+  },
   watch: {
     selected() {
-      console.log("this.selected", this.selected);
       this.$emit("selected", this.selected);
     },
     portofolios() {
-      const element = this.portofolios[0];
+      const element = this.selectedPortofolio || this.portofolios[0];
       if (Object.keys(this.selectedZone).length === 1 && element) {
         this.selectedZone = {
           platformId: "",

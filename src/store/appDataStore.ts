@@ -30,6 +30,7 @@ export const SET_USER_INFO = "SET_USER_INFO";
 export const SET_AND_FORMAT_APPS = "SET_AND_FORMAT_APPS";
 export const SET_SELECTED_APP = "SET_SELECTED_APP";
 export const SET_PORTOFOLIOS = "SET_PORTOFOLIOS";
+export const SELECT_PORTOFOLIO = "SELECT_PORTOFOLIO";
 
 
 function classifyByCategory(apps: any[]): { name: string, id: string, apps: any[] }[] {
@@ -72,6 +73,7 @@ const appsFormattedMap = new Map();
 export const appDataStore = {
     namespaced: true,
     state: {
+        selectedPortofolio: undefined,
         portofolios: undefined,
         spaceSelected: "",
         appSelected: undefined,
@@ -83,6 +85,9 @@ export const appDataStore = {
         _privateData: { userInfoIsSet: false, appsIsSet: false }
     },
     mutations: {
+        [SELECT_PORTOFOLIO](state: any, playload) {
+            state.selectedPortofolio = playload;
+        },
         [SET_PORTOFOLIOS](state: any, playload) {
             state.portofolios = playload;
         },
