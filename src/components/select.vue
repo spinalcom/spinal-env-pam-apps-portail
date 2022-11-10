@@ -33,16 +33,6 @@ with this file. If not, see
                     :value="selectedZone">
 
     </space-selector>
-
-    <!-- <v-select class="selectBar"
-              v-model="selected"
-              prepend-icon="mdi-chevron-down"
-              append-icon=""
-              height="100%"
-              color="#fff"
-              :items="data"
-              label="Espace"
-              dense></v-select> -->
   </div>
 </template>
 
@@ -121,6 +111,7 @@ export default {
       if (item.type === this.TYPES.portofolio) {
         portofolioId = item.staticId;
       } else if (item.type === this.TYPES.building) {
+        localStorage.setItem("idBuilding", item.staticId)
         portofolioId = item.parents[0];
         buildingId = item.staticId;
       }

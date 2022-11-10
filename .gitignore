@@ -2,6 +2,7 @@ node_modules/
 micro-apps/
 !micro-apps/spinal-env-pam-viewer
 dist/
+.idea
 .vscode
 .env.*
 .parcel-cache
