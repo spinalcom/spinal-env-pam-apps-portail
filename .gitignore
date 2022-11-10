@@ -1,6 +1,7 @@
 node_modules/
 micro-apps/
 !micro-apps/spinal-env-pam-viewer
+!micro-apps/spinal-twin-*
 dist/
 .idea
 .vscode
