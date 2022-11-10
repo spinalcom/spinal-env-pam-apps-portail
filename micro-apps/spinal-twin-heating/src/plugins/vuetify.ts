@@ -22,9 +22,12 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
+import Vue from "vue";
 import Vuetify from 'vuetify';
 import colors from 'vuetify/lib/util/colors';
 import '@mdi/font/css/materialdesignicons.css';
+
+Vue.use(Vuetify);
 
 export default new Vuetify({
     theme: {
