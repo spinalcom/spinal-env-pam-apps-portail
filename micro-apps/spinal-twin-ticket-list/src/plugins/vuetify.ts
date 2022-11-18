@@ -22,24 +22,29 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
+import Vue from "vue";
 import Vuetify from 'vuetify';
-import "vuetify/dist/vuetify.min.css"
+import colors from 'vuetify/lib/util/colors';
+import '@mdi/font/css/materialdesignicons.css';
+
+Vue.use(Vuetify);
 
 export default new Vuetify({
   theme: {
-    options: {
-      customProperties: true,
-    },
     themes: {
       light: {
-        primary: '#007BFF',
-        secondary: '#424242',
-        accent: '#82B1FF',
-        error: '#FF5252',
-        info: '#2196F3',
-        success: '#4CAF50',
-        warning: '#FFC107'
+        primary: colors.red.darken1, // #E53935
+        secondary: colors.red.lighten4, // #FFCDD2
+        accent: colors.blueGrey.darken1, // #3F51B5 blue-grey darken-1
+        good: colors.teal.accent3, // #1DE9B6
+        moderate: colors.yellow.lighten1, // #FFEE58
+        unhealthy: colors.orange.lighten1, // #FFA726
+        hazardous: colors.red.accent3, // #FF1744
+        semiTransparent: colors.red.accent3, // FF1744
       },
     },
+  },
+  icons: {
+    iconfont: 'mdi'
   },
 });
