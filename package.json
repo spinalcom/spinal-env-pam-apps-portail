@@ -18,6 +18,7 @@
     "vuex-class": "^0.3.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.20.2",
     "@babel/plugin-proposal-decorators": "^7.15.8",
     "@parcel/packager-raw-url": "^2.3.2",
     "@parcel/packager-xml": "^2.3.2",
