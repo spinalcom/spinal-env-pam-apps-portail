@@ -1,13 +1,13 @@
 <template>
   <div>
     <div class="stat-element px-4 py-1">
-      <div class="square mr-3 ma-8" :class="squareColor" style="font-family: 'charlevoixpro'"></div>
-      <div class="big-number" style="font-family: 'charlevoixpro'">
+      <div class="square mr-3 ma-8 charlevoix" :class="squareColor"></div>
+      <div class="big-number charlevoix">
         {{ bigNumber }}
       </div>
       <div class="horizontal-split">
-        <div class="big-caption" style="font-family: 'charlevoixpro'">{{ bigCaption }}</div>
-        <div class="small-caption" style="font-family: 'charlevoixpro'">{{ smallCaption }}%</div>
+        <div class="big-caption charlevoix">{{ bigCaption }}</div>
+        <div class="small-caption charlevoix">{{ smallCaption }}%</div>
       </div>
     </div>
   </div>
