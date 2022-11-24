@@ -32,6 +32,8 @@ export interface IApp {
     groupName: string;
     hasViewer?: boolean;
     packageName?: string;
+    isExternalApp?: boolean;
+    link?: string;
 }
 
 

@@ -43,6 +43,7 @@ with this file. If not, see
 
       <v-list rounded>
         <v-list-group prepend-icon="mdi-office-building"
+                      :eager="true"
                       v-for="portofolio in portofolios"
                       :key="portofolio.id">
 

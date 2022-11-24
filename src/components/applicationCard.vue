@@ -176,10 +176,12 @@ export default {
       width: 40px;
       background: #f7f8f8;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
       .iconDiv {
         height: 30px;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         /* background: #ffffff; */

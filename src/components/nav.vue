@@ -189,6 +189,11 @@ export default {
     },
 
     goToApp(item, event) {
+      if (item.isExternalApp) {
+        window.open(item.link, "_blank");
+        return;
+      }
+
       if (event.ctrlKey) {
         let routeData = this.$router.resolve({
           name: "App",

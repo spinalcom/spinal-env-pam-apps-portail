@@ -42,8 +42,18 @@ with this file. If not, see
       <div class="_title">{{title}}</div>
 
       <div class="content">
-        <v-checkbox v-model="appInfo.hasViewer"
-                    label="Cette application utilise de la 3D"></v-checkbox>
+        <div class="appDiv">
+          <div>
+            <v-checkbox v-model="appInfo.hasViewer"
+                        label="Cette application utilise de la 3D"></v-checkbox>
+          </div>
+
+          <div>
+            <v-checkbox v-model="appInfo.isExternalApp"
+                        label="Cette application est une application externe">
+            </v-checkbox>
+          </div>
+        </div>
 
         <v-row>
           <v-col cols="4">
@@ -77,7 +87,13 @@ with this file. If not, see
           </v-col>
         </v-row>
 
+        <v-text-field v-model="appInfo.link"
+                      v-if="appInfo.isExternalApp"
+                      label="Lien vers l'application"
+                      outlined></v-text-field>
+
         <v-text-field v-model="appInfo.packageName"
+                      v-if="!appInfo.isExternalApp"
                       label="Nom du package (dans le package.json)"
                       outlined></v-text-field>
 
@@ -155,6 +171,8 @@ class CreationComponent extends Vue {
     groupName: "",
     hasViewer: false,
     packageName: "",
+    isExternalApp: false,
+    link: "",
   };
 
   mounted() {
@@ -242,6 +260,15 @@ $toolbar-height: 70px;
     }
 
     .content {
+      .appDiv {
+        display: flex;
+        justify-content: space-between;
+        > div {
+          max-width: 49%;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
+      }
       // height: calc(100% - #{$toolbar-height});
       margin: auto;
 

@@ -229,11 +229,11 @@ class PortofolioCreation extends Vue {
 
   get disableBtn() {
     if (!this.portofolio.name || !this.portofolio.name.trim()) return true;
-    if (
-      this.portofolio.appIds.length === 0 &&
-      this.portofolio.apiIds.length === 0
-    )
-      return true;
+    // if (
+    //   this.portofolio.appIds.length === 0 &&
+    //   this.portofolio.apiIds.length === 0
+    // )
+    //   return true;
 
     return false;
   }
