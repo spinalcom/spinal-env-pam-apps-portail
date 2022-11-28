@@ -774,7 +774,7 @@ export default {
     downloadCSVLocally() {
       let t = this.tableData;
       t.map((element) => delete element.id);
-      this.downloadCSV({ tab: t, measure: "Qualité de l'Air" });
+      this.downloadCSV({ tab: t, measure: "Humidite" });
     },
     async fct(a) {
       switch (a.level) {

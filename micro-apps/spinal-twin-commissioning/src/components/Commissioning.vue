@@ -84,7 +84,6 @@ export default {
     resizeHandler() {
       this.dotsHeight = window.innerHeight - 327 - 4 - 79;
       this.dotsWidth = this.$refs.debrief.clientWidth -20;
-      console.log(this.dotsHeight, this.dotsWidth);
 
     }
   },
@@ -105,7 +104,6 @@ export default {
   mounted() {
     this.dotsHeight = window.innerHeight - 327 - 4 - 79;
     this.dotsWidth = this.$refs.debrief.clientWidth -20;
-    console.log(this.dotsWidth, window.innerHeight - 213 - this.$refs.debrief.clientHeight - 4 - 79)
   },
   created() {
     this.throttleListener = _.throttle(this.resizeHandler, 10);

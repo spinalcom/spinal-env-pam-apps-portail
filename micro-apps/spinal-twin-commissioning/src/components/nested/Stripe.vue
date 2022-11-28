@@ -1,6 +1,6 @@
 <template>
   <div class="STRP" v-if="percentage">
-    <div v-for="(i, index) in stripeData.stripeValues" :key="i" class="BLCKS" :style="{'width': percentage[index]+'%'}">
+    <div v-for="(i, index) in stripeData.stripeValues" :key="index" class="BLCKS" :style="{'width': percentage[index]+'%'}">
       <div class="strpnms">{{stripeData.stripeNames[index]}}</div>
       <div class="CLRBLCK" :style="{'background-color': stripeData.stripeColors[index]}"></div>
     </div>
