@@ -1,6 +1,8 @@
 
 # Dernières mises à jour
 Dans micro-apps:
+## spinal-twin-bilan-co2
+Ajout de Dashboard BILAN CO2
 ## spinal-twin-commissioning
 Correction d'une erreur de clé dupliquée dans ```micro-apps/spinal-twin-commissioning/src/components/nested/Stripe.vue```
 ## spinal-twin-air-quality
