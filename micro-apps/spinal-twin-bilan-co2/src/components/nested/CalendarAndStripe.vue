@@ -29,14 +29,27 @@
           <td v-for="j in 12" :key="j">
             <div class="CALMONTH">
               <span v-for="i in monthOffset(j)" :key="'o'+i"><div class="RECT"></div></span>
-              <span v-for="i in monthDays(j)" :key="'d'+i"><div class="RECT unset"></div></span>
+              <span v-for="i in monthDays(j)" :key="'d'+i">
+                <v-tooltip bottom>
+                  <template v-slot:activator="{ on, attrs }">
+                    <span
+                      v-bind="attrs"
+                      v-on="on"
+                    >
+                    <div class="RECT unset" :class="colorCalc(results.d[j-1][i-1])"></div>
+                  </span>
+                  </template>
+                  <span v-if="(results.d[j-1][i-1]!=-1)">{{`${i}/${j}/${results.y} :`}} <b>{{results.d[j-1][i-1]}}</b> Kg/Co2/m²</span>
+                  <span v-else>{{`${i}/${j}/${results.y} :`}} <b>-</b> Kg/Co2/m²</span>
+                </v-tooltip>
+              </span>
             </div>
           </td>
         </tr>
       </table>
-      <p class="CALMAX">Le jour le plus où le batiment a le plus consommé est le <b>mardi vendredi 10 février.</b></p>
+      <p class="CALMAX">Le jour le plus où le batiment a le plus consommé est le <b>dimanche 2 janvier.</b></p>
     </div>
-    <MonthlyStripe/>
+    <MonthlyStripe :values="monthlyValues"/>
   </div>
 </template>
 
@@ -46,17 +59,54 @@ export default {
   components: {
     MonthlyStripe
   },
+  props: ['results'],
   data: () => ({
-    year: 2022
+    d: 0,
   }),
+  computed:{
+    monthlyValues() {
+      let m = [];
+      let missing;
+      let sum;
+      let res = 0;
+      let maxPos = [];
+      for (let i=0; i<12; i++) {
+        missing = 0;
+        sum = 0;
+        sum += this.results.d[i].reduce((a,b) => {
+          if (b!=-1) {
+            return a+b;
+          }
+          else {
+            missing++;
+            return a;
+          }
+        })
+        maxPos.push(sum);
+        res = sum/(this.results.d[0].length-missing);
+        m.push(res);
+      }
+        return [m, maxPos.indexOf(Math.max(...maxPos))];
+  }
+  },
   methods: {
+    colorCalc (val) {
+      if(val == -1) return 'E';
+      else if (val < 40) return 'G3';
+      else if (val < 80) return 'G2';
+      else if (val < 120) return 'G1';
+      else if (val < 160) return 'Y';
+      else if (val < 200) return 'O2';
+      else if (val < 240) return 'O1';
+      else return 'R';
+    },
     monthOffset(month) {
-      return ( 6 + new Date (this.year, month-1, 1).getDay()) % 7;
+      return ( 6 + new Date (this.results.y, month-1, 1).getDay()) % 7;
     },
     monthDays(month) {
-      return new Date (this.year, month, 0).getDate();
+      return new Date (this.results.y, month, 0).getDate();
     }
-  }
+  },
 }
 </script>
 
@@ -112,6 +162,13 @@ export default {
 
 .CALHEAD {
   width: 7.7% !important;
+  font-family: 'charlevoix';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 10px;
+  line-height: 13px;
+
+  color: #214353;
 }
 
 .WEEKDAYS {
@@ -138,7 +195,7 @@ export default {
   border-radius: 5px;
 }
 .unset {
-  background-color: #D9D9D9 !important;
+  background: #D9D9D9;
 }
 
 .CALDAY {

@@ -2,20 +2,33 @@
   <div class="MDS">
     <div class="TSDS">
       <p class="TTDS">DIAGNOSTIC DE PERFORMANCE ÉNERGÉTIQUE</p>
-      <p class="LTDS">Kg/Co2/m2/an</p>
+      <p class="LTDS">Kg/Co2/m²/an</p>
     </div>
     <div class="THINSTRIPECOMPO">
       <div class="THINSTRIPE">
-        <div class="THINBAR" v-for="i in 10" :key="i">
-          <p class="stripeLegend">&#60;8</p>
+        <div class="THINBAR" v-for="i in 7" :key="i" :class="stripeColors[i-1]">
+          <p class="stripeLegend">{{intervalLegends[i-1]}}</p>
         </div>
+        <DiagnosisPin :objectif="objectif" :text="'Cette année'"/>
+        <DiagnosisPin :objectif="current" :text="'L\'année dernière'"/>
       </div>
     </div>
   </div>
 </template>
 <script>
+import DiagnosisPin from './DiagnosisPin.vue';
 export default {
   name: 'DiagnosisComponent',
+  components: {
+    DiagnosisPin
+  },
+  props: ['objectif', 'current'],
+  data: () => ({
+    intervalLegends: ['', '<240', '<200', '<160', '<120', '<80', '<40'],
+    stripeColors: ['R', 'O1', 'O2', 'Y', 'G1', 'G2', 'G3']
+  }),
+  methods: {},
+  mounted() {}
 }
 </script>
 
@@ -85,7 +98,7 @@ export default {
   align-items: flex-start;
   padding: 0px;
   gap: 10px;
-
+  position: relative;
   width: 100%;
   height: 10px;
 }
@@ -111,4 +124,13 @@ export default {
   color: #214353;
 }
 
+.dot {
+  top: 2px;
+  right: 0px;
+  position: absolute;
+  height: 6px;
+  width: 6px;
+  border-radius: 10px;
+  background: #14202C;
+}
 </style>
