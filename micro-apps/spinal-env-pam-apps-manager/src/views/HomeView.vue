@@ -31,9 +31,9 @@ with this file. If not, see
                       @upload="uploadApp"
                       @edit="goToCreationPage"
                       @delete="deleteApp"
-                      v-show="page === pages.list" />
+                      v-if="page === pages.list" />
 
-    <CreationComponent v-show="page === pages.creation"
+    <CreationComponent v-else-if="page === pages.creation"
                        @create="createApp"
                        @edit="editApp"
                        @cancel="cancelCreation"
@@ -41,7 +41,7 @@ with this file. If not, see
                        :title="title"
                        :appSelected="appSelected" />
 
-    <LoadingComponent v-show="page === pages.loading" />
+    <LoadingComponent v-else-if="page === pages.loading" />
   </div>
 </template>
 
@@ -53,7 +53,7 @@ import LoadingComponent from "../components/loading.vue";
 import CreationComponent from "../components/creation.vue";
 import categories from "../store/data";
 import { IApp } from "../types/interfaces";
-
+import { sendEventToParent } from "../event";
 type updateFunc = ({
   id,
   newValue,
@@ -190,6 +190,7 @@ class HomeView extends Vue {
         ? "application ajoutée"
         : "oups, une erreur s'est produite !",
     });
+    sendEventToParent("reload_portofolio");
   }
 
   uploadApp() {
@@ -252,6 +253,8 @@ class HomeView extends Vue {
       icon: isSuccess ? "success" : "error",
       text: isSuccess ? "fichier ajouté" : "oups, une erreur s'est produite !",
     });
+
+    sendEventToParent("reload_portofolio");
   }
 
   async editApp(item: IApp) {
@@ -289,6 +292,8 @@ class HomeView extends Vue {
         ? "application modifiée"
         : "oups, une erreur s'est produite !",
     });
+
+    sendEventToParent("reload_portofolio");
   }
 
   deleteApp(item: IApp) {
@@ -338,6 +343,7 @@ class HomeView extends Vue {
             ? "Application supprimée"
             : "oups, une erreur s'est produite !",
         });
+        sendEventToParent("reload_portofolio");
       }
     });
   }

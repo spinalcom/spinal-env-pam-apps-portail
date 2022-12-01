@@ -72,7 +72,7 @@ export default {
   // },
   methods: {
     selectedChanged(val) {
-      console.log(val);
+      // console.log(val);
     },
 
     async onSpaceSelectOpen(item) {
@@ -120,6 +120,10 @@ export default {
 
       this.$emit("selected", { portofolioId, buildingId });
     },
+
+    close() {
+      this.openSpaceSelector = false;
+    },
   },
   computed: {
     ...mapState("appDataStore", ["selectedPortofolio"]),
@@ -128,13 +132,14 @@ export default {
     selected() {
       this.$emit("selected", this.selected);
     },
+
     portofolios() {
       const element = this.selectedPortofolio || this.portofolios[0];
       if (Object.keys(this.selectedZone).length === 1 && element) {
         this.selectedZone = {
           platformId: "",
           name: element.name,
-          staticId: element.id,
+          staticId: element.id || element.staticId,
           categories: [],
           color: "#FFFFFF",
           dynamicId: 0,

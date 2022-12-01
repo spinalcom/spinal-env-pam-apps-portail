@@ -26,12 +26,12 @@ with this file. If not, see
        :class="{ isopen: open }">
     <div class="backdrop-handler"
          v-show="open"
-         @click="$emit('update:open', !open)"></div>
+         @click.stop="$emit('update:open', !open)"></div>
     <v-card elevation="4"
             color="#14202C"
             :class="{ 'space-selector-open': open }"
             class="space-selector">
-      <div @click="$emit('update:open', !open)"
+      <div @click.stop="$emit('update:open', !open)"
            ref="SpaceSelectorTitleContainer"
            class="space-selector-header">
         <p class="space-selector-header-title">{{ selectedZoneName }}
@@ -137,7 +137,7 @@ class SpaceSelector extends Vue {
   }
 
   select(item?: ISpaceSelectorItem) {
-    this.$emit("update:open", !this.open);
+    // this.$emit("update:open", !this.open);
     this.$emit("input", item);
   }
 

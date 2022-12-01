@@ -70,8 +70,6 @@ class ApplicationView extends Vue {
 
   async mounted() {
     await this.initApp();
-
-    console.log(this.appSelected);
   }
 
   async initApp() {

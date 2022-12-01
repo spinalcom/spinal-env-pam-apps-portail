@@ -216,7 +216,7 @@ class TabsComponent {
 
   tabsObject = Object.freeze({
     Applications: "Apis de Portefolios",
-    Batiments: "Batiments",
+    Batiments: "Apis de Batiments",
   });
 
   tabItems: string[] = Object.values(this.tabsObject);

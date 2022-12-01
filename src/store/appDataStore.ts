@@ -33,10 +33,11 @@ export const SET_PORTOFOLIOS = "SET_PORTOFOLIOS";
 export const SELECT_PORTOFOLIO = "SELECT_PORTOFOLIO";
 
 
+
 function classifyByCategory(apps: any[]): { name: string, id: string, apps: any[] }[] {
     const obj: { [key: string]: any } = {};
     apps.forEach(data => {
-        const categoryId = data.categoryName;
+        const categoryId = data.categoryName.toLowerCase();
         if (!obj[categoryId]) obj[categoryId] = { id: categoryId, name: data.categoryName, apps: [] };
 
         obj[categoryId].apps.push(data)
@@ -45,18 +46,18 @@ function classifyByCategory(apps: any[]): { name: string, id: string, apps: any[
     return Array.from(Object.values(obj));
 }
 
-
 function classifyByCategoryAndGroup(apps: any[]) {
     let categories = classifyByCategory(apps);
-    const groups: any[] = [];
+    const groups: { [ke: string]: { name: string; id: string } } = {};
+
     const data = categories.map(({ name, id, apps }) => {
         let t: { [key: string]: any } = { name, id };
 
         apps.forEach(el => {
-            const groupId = el.groupName
+            const groupId = el.groupName.toLowerCase();
             if (!t[groupId]) {
                 t[groupId] = [];
-                groups.push({ name: el.groupName, id: groupId })
+                groups[groupId] = { name: el.groupName, id: groupId }
             }
 
             t[groupId].push(el);
@@ -65,10 +66,11 @@ function classifyByCategoryAndGroup(apps: any[]) {
         return t
     })
 
-    return { groups, data }
+    return { groups: Array.from(Object.values(groups)), data }
 }
 
 const appsFormattedMap = new Map();
+let inProcess = false;
 
 export const appDataStore = {
     namespaced: true,
@@ -92,20 +94,6 @@ export const appDataStore = {
             state.portofolios = playload;
         },
 
-        // [SET_USER_APPS](state: any, playload: any) {
-        //     state.pamApps = Object.assign([], playload);
-        //     const formatted = classifyByCategoryAndGroup(playload);
-        //     appsFormattedMap.set(patrimoineSelectValue, formatted);
-        //     if (state.spaceSelected === patrimoineSelectValue) {
-        //         state.appsDisplayed = playload;
-        //         state.appsFormatted = formatted;
-        //         state._privateData.appsIsSet = true;
-        //     }
-        //     // state.appsFormatted = classifyByCategoryAndGroup(playload);
-        // },
-        // [SET_USER_BOS](state: any, playload: any) {
-        //     state.bos = playload;
-        // },
 
         [SET_USER_INFO](state: any, playload: any) {
             state.userInfo = playload;
@@ -132,31 +120,6 @@ export const appDataStore = {
             }
         },
 
-        // async getApps({ commit, dispatch, state }: any) {
-        //     try {
-        //         if (state._privateData.appsIsSet) {
-        //             if (!state.appsFormatted) {
-        //                 commit(SET_USER_APPS, state.appsDisplayed);
-        //             }
-        //             return state.appsDisplayed;
-        //         }
-        //         const profileId = await dispatch("getProfileId");
-        //         const apps = await getUserApps(profileId);
-        //         commit(SET_USER_APPS, apps);
-        //     } catch (error) {
-        //         throw error;
-        //     }
-        // },
-
-        // async getBos({ commit, dispatch }: any) {
-        //     try {
-        //         const profileId = await dispatch("getProfileId");
-        //         const bos = await getUserBos(profileId);
-        //         commit(SET_USER_BOS, bos);
-        //     } catch (error) {
-        //         throw error;
-        //     }
-        // },
 
         getProfileId() {
             if (localStorage.getItem("profileId")) return Promise.resolve(localStorage.getItem("profileId"));
@@ -206,34 +169,19 @@ export const appDataStore = {
                 }
             }
 
-            let appsFormatted: any = [];
-            if (appsFormattedMap.get(state.spaceSelected)) appsFormatted = appsFormattedMap.get(state.spaceSelected);
-            else {
-                appsFormatted = classifyByCategoryAndGroup(apps);
-                appsFormattedMap.set(state.spaceSelected, appsFormatted);
-            }
+            let appsFormatted = classifyByCategoryAndGroup(apps);
+            // console.log(appsFormatted)
+
+            // let appsFormatted: any = [];
+            // if (appsFormattedMap.get(state.spaceSelected)) appsFormatted = appsFormattedMap.get(state.spaceSelected);
+            // else {
+            // appsFormatted = classifyByCategoryAndGroup(apps);
+            //     appsFormattedMap.set(state.spaceSelected, appsFormatted);
+            // }
 
             commit(SET_AND_FORMAT_APPS, { apps, appsFormatted });
 
 
-            // if (!spaceId) spaceId = patrimoineSelectValue;
-            // let apps = [];
-            // if (spaceId === patrimoineSelectValue) apps = state.pamApps;
-            // else {
-            //     const found = state.bos.find((el: any) => el.id == spaceId);
-            //     if (found && found.apps) apps = found.apps;
-            // }
-
-            // state.spaceSelected = spaceId;
-
-            // let appsFormatted: any = [];
-            // if (appsFormattedMap.get(spaceId)) appsFormatted = appsFormattedMap.get(spaceId);
-            // else {
-            //     appsFormatted = classifyByCategoryAndGroup(apps);
-            //     appsFormattedMap.set(spaceId, appsFormatted);
-            // }
-
-            // commit(SET_AND_FORMAT_APPS, { apps, appsFormatted });
         },
     }
 }

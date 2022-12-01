@@ -67,8 +67,8 @@ with this file. If not, see
             <tr class="itemRow">
               <td>{{item.name}}</td>
               <td>{{item.authorized | length}}</td>
-              <!-- <td>{{item.authorizedBos | length}}</td>
-              <td>{{item.authorizedRoutes | length}}</td> -->
+              <td>{{item.authorized | bosLength}}</td>
+              <!--  <td>{{item.authorizedRoutes | length}}</td> -->
 
               <td class="actions"
                   style="background: white; text-align: center; vertical-align: middle">
@@ -109,7 +109,17 @@ import { __values } from "tslib";
   filters: {
     length: function (liste: any[]) {
       if (!liste || liste.length === 0) return 0;
-      return liste.length;
+      return liste.filter((el) => el.name.toLowerCase() !== "administration")
+        .length;
+    },
+    bosLength: function (liste: any) {
+      let count = 0;
+      if (!liste || liste.length === 0) return count;
+      for (const item of liste) {
+        count += item.buildings.length;
+      }
+
+      return count;
     },
     concat: function (value: any[]) {
       if (!value || value.length === 0) return "-";
@@ -121,7 +131,7 @@ class ProfileListComponent extends Vue {
   headers: any[] = [
     { text: "Intitulé", value: "name" },
     { text: "Portefolio(s) autorisé(s)", value: "portofolios" },
-    // { text: "Bâtiment(s) autorisé(s)", value: "buildings" },
+    { text: "Bâtiment(s) autorisé(s)", value: "buildings" },
     // { text: "Route(s) autorisée(s)", value: "routes" },
     { text: "Actions", value: "actions" },
   ];
