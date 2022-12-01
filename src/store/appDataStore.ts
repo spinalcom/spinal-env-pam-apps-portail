@@ -169,12 +169,15 @@ export const appDataStore = {
                 }
             }
 
-            let appsFormatted: any = [];
-            if (appsFormattedMap.get(state.spaceSelected)) appsFormatted = appsFormattedMap.get(state.spaceSelected);
-            else {
-                appsFormatted = classifyByCategoryAndGroup(apps);
-                appsFormattedMap.set(state.spaceSelected, appsFormatted);
-            }
+            let appsFormatted = classifyByCategoryAndGroup(apps);
+            // console.log(appsFormatted)
+
+            // let appsFormatted: any = [];
+            // if (appsFormattedMap.get(state.spaceSelected)) appsFormatted = appsFormattedMap.get(state.spaceSelected);
+            // else {
+            // appsFormatted = classifyByCategoryAndGroup(apps);
+            //     appsFormattedMap.set(state.spaceSelected, appsFormatted);
+            // }
 
             commit(SET_AND_FORMAT_APPS, { apps, appsFormatted });
 

@@ -38,9 +38,9 @@ with this file. If not, see
             Retour
           </v-btn>
         </div>
-        <div class="_title">ajouter un profile d'application</div>
+        <div class="_title">ajouter un profil d'application</div>
         <div class="description">
-          <p>Entrez un nom de profile d'application</p>
+          <p>Entrez un nom de profil d'application</p>
           <p>Sélectionnez son périmètre ci-dessous :</p>
         </div>
         <div class="searchDiv">
@@ -62,7 +62,7 @@ with this file. If not, see
             mdi-content-save-outline
           </v-icon>
 
-          Enregister le profile
+          Enregister le profil
         </v-btn>
       </div>
     </div>

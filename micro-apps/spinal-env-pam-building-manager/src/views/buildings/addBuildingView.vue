@@ -51,7 +51,7 @@ with this file. If not, see
           Retour
         </v-btn>
 
-        <h2>Ajouter un Batiment au portefolio</h2>
+        <h2>Ajouter un Bâtiment au portefolio</h2>
 
       </div>
 
@@ -63,7 +63,7 @@ with this file. If not, see
                    min-height="300px">
           <v-stepper-step step="1"
                           editable>
-            Informations du batiment
+            Informations du bâtiment
           </v-stepper-step>
 
           <v-stepper-content step="1">
@@ -122,7 +122,7 @@ with this file. If not, see
 
           <v-stepper-step step="2"
                           editable>
-            Selection des routes disponibles sur ce batiment
+            Selection des routes disponibles sur ce bâtiment
           </v-stepper-step>
 
           <v-stepper-content step="2">
@@ -132,7 +132,7 @@ with this file. If not, see
                      class="right-col">
 
                 <div class="toolbar">
-                  <div class="title">Apis du batiment</div>
+                  <div class="title">Apis du bâtiment</div>
                   <div class="search">
                     <v-text-field dense
                                   v-model="apiSearchText"
@@ -159,7 +159,7 @@ with this file. If not, see
 
           <v-stepper-step step="3"
                           editable>
-            Selection des applications disponibles sur ce batiment
+            Selection des applications disponibles sur ce bâtiment
           </v-stepper-step>
 
           <v-stepper-content step="3">
@@ -168,7 +168,7 @@ with this file. If not, see
                      class="left-col">
 
                 <div class="toolbar">
-                  <div class="title">Applications du batiment</div>
+                  <div class="title">Applications du bâtiment</div>
                   <div class="search">
                     <v-text-field dense
                                   v-model="appSearchText"
@@ -205,7 +205,7 @@ with this file. If not, see
                  class="left-col">
 
             <div class="toolbar">
-              <div class="title">Applications du batiment</div>
+              <div class="title">Applications du bâtiment</div>
               <div class="search">
                 <v-text-field dense
                               v-model="appSearchText"
@@ -232,7 +232,7 @@ with this file. If not, see
                  class="right-col">
 
             <div class="toolbar">
-              <div class="title">Apis du batiment</div>
+              <div class="title">Apis du bâtiment</div>
               <div class="search">
                 <v-text-field dense
                               v-model="apiSearchText"
@@ -303,6 +303,8 @@ class AddBuilding extends Vue {
   }
 
   async init() {
+    this.$refs["places"].placesAutocomplete.on("locate", this.locateOnMap);
+
     this.building = {
       name: "",
       aliasName: "",
@@ -325,8 +327,6 @@ class AddBuilding extends Vue {
 
     this._filterApps();
     this._filterApis();
-
-    this.$refs["places"].placesAutocomplete.on("locate", this.locateOnMap);
   }
 
   save() {

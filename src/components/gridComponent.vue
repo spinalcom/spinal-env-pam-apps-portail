@@ -23,7 +23,8 @@ with this file. If not, see
 -->
 
 <template>
-  <v-data-table fixed-header
+  <v-data-table v-if="(categories && categories.length > 0)"
+                fixed-header
                 class="dataTable"
                 dense
                 disable-pagination
@@ -32,6 +33,7 @@ with this file. If not, see
                 :items="categories"
                 height="100%"
                 :style="getWidth">
+
     <template v-slot:body="{ items }">
       <tr v-for="(item, index) in items"
           class="categoriesRows"
@@ -57,6 +59,23 @@ with this file. If not, see
       </tr>
     </template>
   </v-data-table>
+
+  <div class="emptyApplication"
+       v-else-if="(!categories || categories.length === 0)">
+    <!-- <v-alert outlined
+             type="warning"
+             prominent
+             border="left">
+      Aucune application à afficher
+    </v-alert> -->
+
+    <v-alert border="bottom"
+             colored-border
+             type="warning"
+             elevation="2">
+      Aucune application à afficher
+    </v-alert>
+  </div>
 </template>
 
 <script>
@@ -154,6 +173,13 @@ export default {
 </script>
 
 <style lang="scss">
+.emptyApplication {
+  width: 100%;
+  // height: 50%;
+  display: flex;
+  justify-content: center;
+  // align-items: center;
+}
 .dataTable {
   width: 100%;
   height: 98%;

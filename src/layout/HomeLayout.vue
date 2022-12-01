@@ -24,14 +24,16 @@ with this file. If not, see
 
 <template>
   <v-container class="homeContainer"
-               fluid>
+               fluid
+               @click.stop="closeSelect">
     <div class="header">
       <div class="nav">
         <NavBar />
       </div>
 
       <div class="select">
-        <select-component @selected="changeApps"
+        <select-component ref="select-component"
+                          @selected="changeApps"
                           :portofolios="portofolios"></select-component>
       </div>
     </div>
@@ -63,6 +65,11 @@ export default {
 
     init() {
       return Promise.all([this.getPortofolios(), this.getUserInfo()]);
+    },
+
+    closeSelect() {
+      const ref = this.$refs["select-component"];
+      if (ref) ref.close();
     },
 
     changeApps(data) {

@@ -38,9 +38,9 @@ with this file. If not, see
             Retour
           </v-btn>
         </div>
-        <div class="_title">ajouter un profile d'utilisateur</div>
+        <div class="_title">ajouter un profil d'utilisateur</div>
         <div class="description">
-          <p>Entrez un nom de profile d'utilisateur</p>
+          <p>Entrez un nom de profil d'utilisateur</p>
           <p>Sélectionnez son périmètre ci-dessous :</p>
         </div>
         <div class="searchDiv">
@@ -62,7 +62,7 @@ with this file. If not, see
             mdi-content-save-outline
           </v-icon>
 
-          Enregister le profile
+          Enregister le profil
         </v-btn>
       </div>
     </div>
@@ -99,7 +99,7 @@ class CreationComponent extends Vue {
 
   tabsObject = Object.freeze({
     Applications: "Applications de Portefolios",
-    Batiments: "Batiments",
+    Batiments: "Applications de Batiments",
   });
 
   profileName = "";

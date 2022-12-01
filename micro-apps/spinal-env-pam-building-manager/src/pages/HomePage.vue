@@ -66,6 +66,7 @@ import { IPortofolioCreation } from "../interfaces/IPortofolioCreation";
 import HomeView from "../views/HomeView.vue";
 import PortofolioCreation from "../views/portofolio/PortofolioCreationView.vue";
 import BuildingCreation from "../views/buildings/addBuildingView.vue";
+import { sendEventToParent } from "../event";
 
 // const portofolioModule = namespace("portofolioStore");
 
@@ -134,6 +135,7 @@ class HomePage extends Vue {
       "oups, une erreur s'est produite !",
       async () => {
         await this.$store.dispatch("portofolioStore/createPortofolio", data);
+        sendEventToParent("reload_portofolio");
       }
     );
 
@@ -159,6 +161,7 @@ class HomePage extends Vue {
       "oups, une erreur s'est produite !",
       async () => {
         await this.$store.dispatch("portofolioStore/editPortofolio", data);
+        sendEventToParent("reload_portofolio");
       }
     );
     // let isSuccess;
@@ -207,6 +210,7 @@ class HomePage extends Vue {
         ? "Portefolio supprimé"
         : "oups, une erreur s'est produite !";
       this.toast(text, success);
+      sendEventToParent("reload_portofolio");
     });
   }
 
@@ -220,6 +224,7 @@ class HomePage extends Vue {
           "portofolioStore/addBuildingToPortofolio",
           data
         );
+        sendEventToParent("reload_portofolio");
       }
     );
     // let isSuccess;
@@ -254,6 +259,7 @@ class HomePage extends Vue {
       "oups, une erreur s'est produite !",
       async () => {
         await this.$store.dispatch("portofolioStore/editBuilding", data);
+        sendEventToParent("reload_portofolio");
       }
     );
 
@@ -313,6 +319,7 @@ class HomePage extends Vue {
         ? "batiment supprimé"
         : "oups, une erreur s'est produite !";
       this.toast(text, success);
+      sendEventToParent("reload_portofolio");
     });
   }
 

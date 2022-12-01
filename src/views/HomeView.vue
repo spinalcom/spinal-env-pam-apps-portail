@@ -111,6 +111,7 @@ export default Vue.extend({
   },
   async mounted() {
     if (this.groups.length === 0) this.formatData(this.appsFormatted);
+
     this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, undefined);
   },
   methods: {
@@ -152,12 +153,15 @@ export default Vue.extend({
       for (const key in item) {
         if (Object.hasOwnProperty.call(item, key)) {
           const value = item[key];
-
           obj[key] =
             typeof value === "string"
               ? value
-              : value.filter((el) =>
-                  el.name.toLowerCase().includes(searchText.toLowerCase())
+              : value.filter(
+                  (el) =>
+                    el.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                    el.tags.find((tag) =>
+                      tag.toLowerCase().includes(searchText.toLowerCase())
+                    )
                 );
         }
       }
@@ -188,6 +192,7 @@ export default Vue.extend({
     exploreApp(item) {
       console.log("exploreApp", item);
     },
+
     addAppToFavoris(item) {
       console.log("addAppToFavoris", item);
     },
