@@ -141,7 +141,7 @@ with this file. If not, see
                                class="rectanlge-small"
                                style="margin-right: 10px"></div>
                           <div>{{ item.currentValue.toFixed(0) }} <span
-                                  class="grey-color"> %</span></div>
+                                  class="grey-color"> ppm</span></div>
                         </div>
                       </template>
                       <template v-slot:no-data>

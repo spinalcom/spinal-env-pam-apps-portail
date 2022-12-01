@@ -29,11 +29,8 @@ with this file. If not, see
       <div style="width: 100%"
            class="d-flex justify-end">
         <!-- <div v-if="tableData.length>0" @click="downloadCSVLocally()"><ButtonIcon /></div> -->
-        <!-- <div v-else @click="downloadCSV({ tab: tableData, measure: 'Hygrometrie' })"><ButtonIcon /></div> -->
-
-        <sc-download-button :file-name="'Taux d\'hygrométrie'"
+        <sc-download-button :file-name="'Humidité'"
                             :data="tableData"></sc-download-button>
-
         <div class="ma-1"></div>
         <space-selector :maxDepth="1"
                         :onopen="fct"
@@ -54,22 +51,9 @@ with this file. If not, see
             <v-card class="d-flex justify-md-space-between flex-md-row flex-column stat-card rounded-lg"
                     elevation="4"
                     width="100%">
-              <stat-bar squareColor=good
-                        :bigNumber="greenValue"
-                        bigCaption="Niveau correct"
-                        :smallCaption="percentage[0]" />
-              <stat-bar squareColor=moderate
-                        :bigNumber="yellowValue"
-                        bigCaption=Modéré
-                        :smallCaption="percentage[1]" />
-              <stat-bar squareColor=unhealthy
-                        :bigNumber="orangeValue"
-                        bigCaption="Pas sain"
-                        :smallCaption="percentage[2]" />
-              <stat-bar squareColor=hazardous
-                        :bigNumber="redValue"
-                        bigCaption="Dangereux"
-                        :smallCaption="percentage[3]" />
+              <stat-bar squareColor=moderate  :bigNumber="yellowValue" bigCaption="Air trop sec"           :smallCaption="percentage[1]"/>
+              <stat-bar squareColor=good      :bigNumber="greenValue"  bigCaption="Niveau correct" :smallCaption="percentage[0]"/>
+              <stat-bar squareColor=hazardous :bigNumber="redValue"    bigCaption="Air trop humide"      :smallCaption="percentage[3]"/>
             </v-card>
           </v-col>
         </v-row>
@@ -82,49 +66,6 @@ with this file. If not, see
                       elevation="4"
                       style="height: 100%;">
                 <div ref="test">
-                  <!-- <div class="align-self-end">
-                    <v-speed-dial
-                      style="margin-top: -45px;margin-left: -60px;"
-                      v-model="fab"
-                      :top="trueVariable"
-                      :right="trueVariable"
-                      :direction="leftVariable"
-                      :open-on-hover=trueVariable
-                      transition="scroll-x-reverse-transition"
-                    >
-                      <template v-slot:activator>
-                        <v-btn
-                          v-model="fab"
-                          color="accent"
-                          dark
-                          fab
-                        >
-                          <v-icon v-if="fab">
-                            mdi-close
-                          </v-icon>
-                          <v-icon v-else>
-                            mdi-dots-vertical
-                          </v-icon>
-                        </v-btn>
-                      </template>
-                      <v-btn
-                        fab
-                        dark
-                        small
-                        color="accent"
-                      >
-                        <v-icon>mdi-open-in-new</v-icon>
-                      </v-btn>
-                      <v-btn
-                        fab
-                        dark
-                        small
-                        color="accent"
-                      >
-                        <v-icon>mdi-download</v-icon>
-                      </v-btn>
-                    </v-speed-dial>
-                  </div> -->
                   <div ref="selected">
                     <span class="card-header-text pt-8 pl-3">ÉTAGES
                       SÉLECTIONNÉS</span>
@@ -133,26 +74,27 @@ with this file. If not, see
                        ref="filter">
                     <span class="card-header-text">Filtre</span>
                     <div class="d-flex flex-row">
-                      <v-checkbox color="good"
-                                  class="pr-3"
-                                  dense
-                                  label="Niveau correct"
-                                  v-model="colorF[0]"></v-checkbox>
-                      <v-checkbox color="moderate"
-                                  class="pr-3"
-                                  dense
-                                  label="Modéré"
-                                  v-model="colorF[1]"></v-checkbox>
-                      <v-checkbox color="unhealthy"
-                                  class="pr-3"
-                                  dense
-                                  label="Pas sain"
-                                  v-model="colorF[2]"></v-checkbox>
-                      <v-checkbox color="hazardous"
-                                  class="pr-3"
-                                  dense
-                                  label=Hasardeux
-                                  v-model="colorF[3]"></v-checkbox>
+                      <v-checkbox
+                        color="moderate"
+                        class="pr-3"
+                        dense
+                        label="Air trop sec"
+                        v-model="colorF[0]"
+                        ></v-checkbox>
+                      <v-checkbox
+                        color="good"
+                        class="pr-3"
+                        dense
+                        label="Niveau correct"
+                        v-model="colorF[1]"
+                        ></v-checkbox>
+                      <v-checkbox
+                        color="hazardous"
+                        class="pr-3"
+                        dense
+                        label="Air trop humide"
+                        v-model="colorF[3]"
+                        ></v-checkbox>
                     </div>
                   </div>
                   <div ref="desktopTable">
@@ -189,21 +131,11 @@ with this file. If not, see
                           <div>{{ item.currentValue.toFixed(0) }} <span
                                   class="grey-color"> %</span></div>
                         </div>
-                        <!-- <div :class="[colorCode(item.currentValue)]" class="rectanlge-small" style="right: 80px; float:right"></div><span>{{ item.currentValue.toFixed(2) }}</span> -->
                       </template>
                       <template v-slot:no-data>
                         Pas de données disponibles
                       </template>
                     </v-data-table>
-                    <!-- <div class="d-flex text-center flex-column pt-2 align-end" ref="desktopPagination">
-                      <v-pagination
-                      color="accent"
-                      :total-visible="5"
-                        v-model="page"
-                        :length="pageCount"
-                        :value="1"
-                      ></v-pagination>
-                    </div> -->
                   </div>
                 </div>
               </v-card>
@@ -262,14 +194,36 @@ with this file. If not, see
               <div class="align-self-center flex-grow-1">
                 <v-row class="mx-4 mb-2">
                   <v-col class="mr-0 mr-sm-1">
+                                <v-card class="tile yellow-border d-flex flex-column justify-center align-center rounded-lg"
+                    elevation="2"
+                  >
+                    <div class="portrait-display align-center">
+                      <span class="big-number align-self-center pr-0 mx-1">{{yellowValue}}</span>
+                      <span class="big-caption">Air trop sec</span>
+                      <span class="small-caption align-self-center">{{percentage[1]}}%</span>
+                    </div>
+
+                    <div class="landscape-display stat-element pa-4">
+                      <div class="big-number">
+                        {{yellowValue}}
+                      </div>
+                      <div class="horizontal-split">
+                        <div class="big-caption">Air trop sec</div>
+                        <div class="small-caption">{{percentage[1]}}%</div>
+                      </div>
+                    </div>
+                  </v-card>
+                  </v-col>
+                </v-row>
+                <v-row class="mx-4 mb-2">
+                  <v-col class="mr-0 mr-sm-1">
                     <v-card class="tile green-border d-flex flex-column justify-center align-center rounded-lg"
-                            elevation="2">
+                      elevation="2"
+                    >
                       <div class="portrait-display align-center">
-                        <span
-                              class="big-number align-self-center pr-0 mx-1">{{greenValue}}</span>
+                        <span class="big-number align-self-center pr-0 mx-1">{{greenValue}}</span>
                         <span class="big-caption">Niveau correct</span>
-                        <span
-                              class="small-caption align-self-center">{{percentage[0]}}%</span>
+                        <span class="small-caption align-self-center">{{percentage[0]}}%</span>
                       </div>
 
                       <div class="landscape-display stat-element pa-4">
@@ -283,73 +237,28 @@ with this file. If not, see
                       </div>
                     </v-card>
                   </v-col>
-                  <v-col class="mr-0 mr-sm-1">
-                    <v-card class="tile yellow-border d-flex flex-column justify-center align-center rounded-lg"
-                            elevation="2">
-                      <div class="portrait-display align-center">
-                        <span
-                              class="big-number align-self-center pr-0 mx-1">{{yellowValue}}</span>
-                        <span class="big-caption">Modéré</span>
-                        <span
-                              class="small-caption align-self-center">{{percentage[1]}}%</span>
-                      </div>
-
-                      <div class="landscape-display stat-element pa-4">
-                        <div class="big-number">
-                          {{yellowValue}}
-                        </div>
-                        <div class="horizontal-split">
-                          <div class="big-caption">Modéré</div>
-                          <div class="small-caption">{{percentage[1]}}%</div>
-                        </div>
-                      </div>
-                    </v-card>
-                  </v-col>
                 </v-row>
                 <v-row class="mx-4 mt-2">
                   <v-col class="mr-0 mr-sm-1">
-                    <v-card class="tile orange-border d-flex flex-column justify-center align-center rounded-lg"
-                            elevation="2">
-                      <div class="portrait-display align-center">
-                        <span
-                              class="big-number align-self-center pr-0 mx-1">{{orangeValue}}</span>
-                        <span class="big-caption">Pas sain</span>
-                        <span
-                              class="small-caption align-self-center">{{percentage[2]}}%</span>
-                      </div>
+                  <v-card class="tile red-border d-flex flex-column justify-center align-center rounded-lg"
+                    elevation="2"
+                  >
+                    <div class="portrait-display align-center">
+                      <span class="big-number align-self-center pr-0 mx-1">{{redValue}}</span>
+                      <span class="big-caption">Air trop humide</span>
+                      <span class="small-caption align-self-center">{{percentage[3]}}%</span>
+                    </div>
 
-                      <div class="landscape-display stat-element pa-4">
-                        <div class="big-number">
-                          {{orangeValue}}
-                        </div>
-                        <div class="horizontal-split">
-                          <div class="big-caption">Pas sain</div>
-                          <div class="small-caption">{{percentage[2]}}%</div>
-                        </div>
+                    <div class="landscape-display stat-element pa-4">
+                      <div class="big-number">
+                        {{redValue}}
                       </div>
-                    </v-card>
-                  </v-col>
-                  <v-col class="mr-0 mr-sm-1">
-                    <v-card class="tile red-border d-flex flex-column justify-center align-center rounded-lg"
-                            elevation="2">
-                      <div class="portrait-display align-center">
-                        <span
-                              class="big-number align-self-center pr-0 mx-1">{{redValue}}</span>
-                        <span class="big-caption">Hasardeux</span>
-                        <span
-                              class="small-caption align-self-center">{{percentage[3]}}%</span>
+                      <div class="horizontal-split">
+                        <div class="big-caption">Air trop humide</div>
+                        <div class="small-caption">{{percentage[3]}}%</div>
                       </div>
-
-                      <div class="landscape-display stat-element pa-4">
-                        <div class="big-number">
-                          {{redValue}}
-                        </div>
-                        <div class="horizontal-split">
-                          <div class="big-caption">Hasardeux</div>
-                          <div class="small-caption">{{percentage[3]}}%</div>
-                        </div>
-                      </div>
-                    </v-card>
+                    </div>
+                  </v-card>
                   </v-col>
                 </v-row>
               </div>
@@ -374,28 +283,29 @@ with this file. If not, see
                     <v-card-text>
                       <v-row align="center"
                              justify="center">
-                        <div class="d-flex flex-row">
-                          <v-checkbox color="good"
-                                      class="pr-3"
-                                      dense
-                                      label="Niveau correct"
-                                      v-model="colorF[0]"></v-checkbox>
-                          <v-checkbox color="moderate"
-                                      class="pr-3"
-                                      dense
-                                      label="Modéré"
-                                      v-model="colorF[1]"></v-checkbox>
-                          <v-checkbox color="unhealthy"
-                                      class="pr-3"
-                                      dense
-                                      label="Pas sain"
-                                      v-model="colorF[2]"></v-checkbox>
-                          <v-checkbox color="hazardous"
-                                      class="pr-3"
-                                      dense
-                                      label=Hasardeux
-                                      v-model="colorF[3]"></v-checkbox>
-                        </div>
+                             <div class="d-flex flex-row">
+                            <v-checkbox
+                              color="moderate"
+                              class="pr-3"
+                              dense
+                              label="Air trop sec"
+                              v-model="colorF[0]"
+                              ></v-checkbox>
+                            <v-checkbox
+                              color="good"
+                              class="pr-3"
+                              dense
+                              label="Niveau correct"
+                              v-model="colorF[1]"
+                              ></v-checkbox>
+                            <v-checkbox
+                              color="hazardous"
+                              class="pr-3"
+                              dense
+                              label="Air trop humide"
+                              v-model="colorF[3]"
+                              ></v-checkbox>
+                          </div>
                       </v-row>
                     </v-card-text>
                   </v-card>
@@ -439,22 +349,6 @@ with this file. If not, see
                       </v-icon>
                     </v-btn>
                   </template>
-                  <!-- <v-btn
-                    fab
-                    dark
-                    small
-                    color="accent"
-                  >
-                    <v-icon>mdi-open-in-new</v-icon>
-                  </v-btn>
-                  <v-btn
-                    fab
-                    dark
-                    small
-                    color="accent"
-                  >
-                    <v-icon>mdi-download</v-icon>
-                  </v-btn> -->
                   <v-btn fab
                          dark
                          small
@@ -465,55 +359,6 @@ with this file. If not, see
                 </v-speed-dial>
               </div>
               <div class="align-self-end">
-                <!-- <v-speed-dial
-                  style="margin-top: -40px;"
-                  fab
-                  top="true"
-                  right="true"
-                  direction="bottom"
-                  :open-on-hover="true"
-                  transition="scroll-y-transition"
-                >
-                  <template v-slot:activator>
-                    <v-btn
-                      v-model="fab"
-                      color="blue darken-2"
-                      dark
-                      fab
-                    >
-                      <v-icon v-if="fab">
-                        mdi-close
-                      </v-icon>
-                      <v-icon v-else>
-                        mdi-account-circle
-                      </v-icon>
-                    </v-btn>
-                  </template>
-                  <v-btn
-                    fab
-                    dark
-                    small
-                    color="green"
-                  >
-                    <v-icon>mdi-pencil</v-icon>
-                  </v-btn>
-                  <v-btn
-                    fab
-                    dark
-                    small
-                    color="indigo"
-                  >
-                    <v-icon>mdi-plus</v-icon>
-                  </v-btn>
-                  <v-btn
-                    fab
-                    dark
-                    small
-                    color="red"
-                  >
-                    <v-icon>mdi-delete</v-icon>
-                  </v-btn>
-                </v-speed-dial> -->
               </div>
               <div>
                 <v-data-table style="top:0%"
@@ -701,24 +546,6 @@ export default {
     fill: false,
     type: "trend",
     autoLineWidth: false,
-    chartData: {
-      labels: ["VueJs", "EmberJs", "ReactJs", "AngularJs"],
-      datasets: [
-        {
-          backgroundColor: ["#11eda9", "#ffe600", "#ffa400", "#ff000b"],
-          data: [40, 20, 70, 10],
-        },
-      ],
-    },
-    chartData2: {
-      labels: ["VueJs", "EmberJs", "ReactJs", "AngularJs"],
-      datasets: [
-        {
-          backgroundColor: ["#14202c", "#00c4ff", "#cadee2"],
-          data: [40, 20, 808],
-        },
-      ],
-    },
     chartMobileOptions: {
       responsive: true,
       maintainAspectRatio: false,
@@ -752,1076 +579,10 @@ export default {
       },
       { text: "Étage", sortable: true, value: "floor" },
       {
-        text: "Niveau CO2",
+        text: "Taux d'hygrométrie",
         align: "start",
         sortable: true,
         value: "currentValue",
-      },
-    ],
-    desserts: [
-      {
-        name: "Frozen Yogurt",
-        calories: 159,
-        fat: 6.0,
-        carbs: 24,
-        protein: 4.0,
-        iron: "1%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: "1%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: "7%",
-      },
-      {
-        name: "Cupcake",
-        calories: 305,
-        fat: 3.7,
-        carbs: 67,
-        protein: 4.3,
-        iron: "8%",
-      },
-      {
-        name: "Gingerbread",
-        calories: 356,
-        fat: 16.0,
-        carbs: 49,
-        protein: 3.9,
-        iron: "16%",
-      },
-      {
-        name: "Jelly bean",
-        calories: 375,
-        fat: 0.0,
-        carbs: 94,
-        protein: 0.0,
-        iron: "0%",
-      },
-      {
-        name: "Lollipop",
-        calories: 392,
-        fat: 0.2,
-        carbs: 98,
-        protein: 0,
-        iron: "2%",
-      },
-      {
-        name: "Honeycomb",
-        calories: 408,
-        fat: 3.2,
-        carbs: 87,
-        protein: 6.5,
-        iron: "45%",
-      },
-      {
-        name: "Donut",
-        calories: 452,
-        fat: 25.0,
-        carbs: 51,
-        protein: 4.9,
-        iron: "22%",
-      },
-      {
-        name: "KitKat",
-        calories: 518,
-        fat: 26.0,
-        carbs: 65,
-        protein: 7,
-        iron: "6%",
       },
     ],
     tableHeight: window.innerHeight - (112 + 90 + 30 + 12),
@@ -1830,7 +591,7 @@ export default {
     isDroppedLeft: false,
     isDropped: false,
     colorF: [true, true, true, true],
-    name: "Qualité de l'air",
+    name: "Humidite",
     constTable: [],
     tableData: [],
     searchedData: [],
@@ -1853,7 +614,7 @@ export default {
             boxHeight: 20,
             padding: 5,
             font: {
-              family: "charlevoixpro",
+              family: "charlevoix",
               size: 14,
             },
           },
@@ -1909,25 +670,17 @@ export default {
         ];
       return ["0", "0", "0", "0"];
     },
-    greenValue() {
-      return this.arrangeSpaceTableManually(this.constTable).filter(
-        (x) => x.currentValue < 600
-      ).length;
-    },
     yellowValue() {
-      return this.arrangeSpaceTableManually(this.constTable).filter(
-        (x) => x.currentValue > 600 && x.currentValue < 1200
-      ).length;
+        return this.arrangeSpaceTableManually(this.constTable).filter(x => x.currentValue<30).length;
+      },
+    greenValue() {
+      return this.arrangeSpaceTableManually(this.constTable).filter(x => x.currentValue>30 && x.currentValue<70).length;
     },
     orangeValue() {
-      return this.arrangeSpaceTableManually(this.constTable).filter(
-        (x) => x.currentValue > 1200 && x.currentValue < 5000
-      ).length;
+      return this.arrangeSpaceTableManually(this.constTable).filter(x => x.currentValue>1200 && x.currentValue<70).length;
     },
     redValue() {
-      return this.arrangeSpaceTableManually(this.constTable).filter(
-        (x) => x.currentValue > 5000
-      ).length;
+      return this.arrangeSpaceTableManually(this.constTable).filter(x => x.currentValue>70).length;
     },
     queriedData() {
       let result = this.tableData;
@@ -1952,39 +705,23 @@ export default {
         : this.tableData.length;
     },
     roomStatusData() {
-      if (
-        (this.greenValue &&
-          this.yellowValue &&
-          this.orangeValue &&
-          this.redValue) ||
-        this.greenValue + this.yellowValue + this.orangeValue + this.redValue ==
-          0
-      )
+        if((this.greenValue && this.yellowValue && this.orangeValue && this.redValue) || (this.greenValue + this.yellowValue + this.orangeValue + this.redValue)==0)
         return {
-          labels: ["Pas de données"],
-          datasets: [
-            {
-              data: [1],
-              backgroundColor: ["#e8e9e9"],
-            },
-          ],
-        };
-      else
+          labels: [ 'Pas de données'],
+          datasets: [ { 
+            data: [1],
+            backgroundColor: ["#e8e9e9"],
+          } ]
+        }
+        else
         return {
-          labels: ["Niveau correct", "Modéré", "Pas sain", "Hasardeux"],
-          datasets: [
-            {
-              data: [
-                this.greenValue,
-                this.yellowValue,
-                this.orangeValue,
-                this.redValue,
-              ],
-              backgroundColor: ["#11eda9", "#ffe600", "#ffa400", "#ff000b"],
-            },
-          ],
-        };
-    },
+          labels: [ 'Air trop sec', 'Niveau correct', 'Trop Humide',],
+          datasets: [ { 
+            data: [this.yellowValue, this.greenValue, this.redValue,],
+            backgroundColor: ["#ffe600", "#11eda9", "#ff000b"],
+          } ]
+        }
+      },
     equipedState() {
       if (this.cpList) return this.cpList.equiped;
       return 0;
@@ -2037,7 +774,7 @@ export default {
     downloadCSVLocally() {
       let t = this.tableData;
       t.map((element) => delete element.id);
-      this.downloadCSV({ tab: t, measure: "Qualité de l'Air" });
+      this.downloadCSV({ tab: t, measure: "Humidite" });
     },
     async fct(a) {
       switch (a.level) {
@@ -2056,11 +793,10 @@ export default {
       else this.setSpaceFilter(element.name);
     },
     colorCode(v) {
-      if (v < 600) return "green-color";
-      else if (v < 1200) return "yellow-color";
-      else if (v < 5000) return "orange-color";
-      else if (v > 5000) return "red-color";
-    },
+        if(v<30) return 'yellow-color';
+          else if(v<70) return 'green-color';
+              else if(v>70) return 'red-color';
+      },
     myEventHandler() {
       this.pieHeight = window.innerHeight / 5;
       this.tableHeight = window.innerHeight - (112 + 90 + 30 + 12);
@@ -2087,33 +823,25 @@ export default {
     colorArrange() {
       this.tableData = [];
       let tempTable = this.arrangeSpaceTableManually(this.constTable);
-      if (this.colorF[0]) {
-        tempTable
-          .filter((x) => x.currentValue < 600)
-          .forEach((element) => {
-            this.tableData.push(element);
-          });
+      if(this.colorF[0]){
+        tempTable.filter(x => (x.currentValue<30)).forEach(element => {
+          this.tableData.push(element);
+        });
       }
-      if (this.colorF[1]) {
-        tempTable
-          .filter((x) => x.currentValue >= 600 && x.currentValue < 1200)
-          .forEach((element) => {
-            this.tableData.push(element);
-          });
+      if(this.colorF[1]){
+        tempTable.filter(x => (x.currentValue>=30 && x.currentValue<70)).forEach(element => {
+          this.tableData.push(element);
+        });
       }
-      if (this.colorF[2]) {
-        tempTable
-          .filter((x) => x.currentValue < 5000 && x.currentValue >= 1200)
-          .forEach((element) => {
-            this.tableData.push(element);
-          });
+      if(this.colorF[2]){
+        tempTable.filter(x => (x.currentValue<70 && x.currentValue>=1200)).forEach(element => {
+          this.tableData.push(element);
+        });
       }
-      if (this.colorF[3]) {
-        tempTable
-          .filter((x) => x.currentValue >= 5000)
-          .forEach((element) => {
-            this.tableData.push(element);
-          });
+      if(this.colorF[3]){
+        tempTable.filter(x => (x.currentValue>=70)).forEach(element => {
+          this.tableData.push(element);
+        });
       }
     },
     arrangeSpaceTableManually(v) {
@@ -2145,9 +873,10 @@ export default {
     ...mapActions({
       initControlEndpoints: "initControlEndpoints",
       setSpaceFilter: "setSpaceFilter",
+      downloadCSV: "downloadCSV",
     }),
   },
-  mounted() {
+  async mounted() {
     this.desktopTableHeight =
       window.innerHeight -
       (this.$refs.statcard.clientHeight +

@@ -187,6 +187,7 @@ export async function getControlEndpointsByNameAsync(cp, building) {
               currentValue: v.currentValue,
               floor: building.children[i].name,
             });
+          }
             for (let j = 0; j < building.children[i].children.length; j++) {
               await getSoloCpAsync(
                 building.children[i].children[j].dynamicId,
@@ -204,7 +205,7 @@ export async function getControlEndpointsByNameAsync(cp, building) {
                 } else cpTable.noSensor += 1;
               });
             }
-          }
+          
         }
       );
     }

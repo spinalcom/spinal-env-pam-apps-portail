@@ -16,7 +16,7 @@ export default new Vuex.Store({
       return state.buildingV2;
     },
     cpList: state => {
-      return state.cpList.find(element => element.name === "Qualité de l'air");
+      return state.cpList.find(element => element.name === "Humidite");
     },
     spaceFilter: state => {
       return state.spaceFilter;
