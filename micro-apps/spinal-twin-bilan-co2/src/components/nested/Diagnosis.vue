@@ -9,8 +9,9 @@
         <div class="THINBAR" v-for="i in 7" :key="i" :class="stripeColors[i-1]">
           <p class="stripeLegend">{{intervalLegends[i-1]}}</p>
         </div>
-        <DiagnosisPin :objectif="objectif" :text="'Cette année'"/>
-        <DiagnosisPin :objectif="current" :text="'L\'année dernière'"/>
+        <DiagnosisPin class="BTF" style="z-index: 999;" :value="current" :text="'Cette année'"/>
+        <DiagnosisPin class="BTF" :value="last" :text="'L\'année dernière'"/>
+        <DiagnosisPin class="BTF" :value="objectif" :static="true" :text="'objectif'"/>
       </div>
     </div>
   </div>
@@ -22,7 +23,7 @@ export default {
   components: {
     DiagnosisPin
   },
-  props: ['objectif', 'current'],
+  props: ['objectif', 'current', 'last'],
   data: () => ({
     intervalLegends: ['', '<240', '<200', '<160', '<120', '<80', '<40'],
     stripeColors: ['R', 'O1', 'O2', 'Y', 'G1', 'G2', 'G3']
@@ -132,5 +133,9 @@ export default {
   width: 6px;
   border-radius: 10px;
   background: #14202C;
+}
+
+.BTF:hover {
+  z-index: 1000;
 }
 </style>
