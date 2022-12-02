@@ -1,5 +1,14 @@
 # spinal-apps-portail
 
+## Control points
+
+Edit the file name endpoints.json in the root of the project to configure your control points.
+
+```
+spinal-env-pam-portal
+|_endpoins.json
+```
+
 # setup evn file
 
 copy the .env file to .env.local and edit it

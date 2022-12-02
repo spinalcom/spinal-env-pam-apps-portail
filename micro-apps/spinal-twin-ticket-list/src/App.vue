@@ -24,24 +24,27 @@ with this file. If not, see
 
 <template>
   <v-app id="application">
-    <!-- <sc-space-selector class="ma-1 pa-1" v-model="el" :path.sync="path" :max-depth="3" :onopen="expand"></sc-space-selector> -->
-
-    <div style="width: 100%"
-         class="d-flex justify-end">
-      <sc-download-button class="ma-1 pa-1"
-                          :file-name="'Tickets'"
-                          :data="tickets"></sc-download-button>
-      <sc-space-selector class="ma-1 pa-1"
-                         v-model="el"
-                         :path.sync="path"
-                         :max-depth="3"
-                         :onopen="expand"></sc-space-selector>
+    <div style="width: 100%" class="d-flex justify-end">
+      <sc-download-button
+        class="ma-1 pa-1"
+        :file-name="'Tickets'"
+        :data="tickets"
+      ></sc-download-button>
+      <sc-space-selector
+        class="ma-1 pa-1"
+        v-model="el"
+        :path.sync="path"
+        :max-depth="3"
+        :onopen="expand"
+      ></sc-space-selector>
     </div>
 
     <v-main>
-      <sc-paginated-table :height="tableHeight"
-                          :title="'Liste des tickets'"
-                          :table-data="tickets"></sc-paginated-table>
+      <sc-paginated-table
+        :height="tableHeight"
+        :title="'Liste des tickets'"
+        :table-data="tickets"
+      ></sc-paginated-table>
     </v-main>
   </v-app>
 </template>
@@ -100,7 +103,6 @@ export default {
   },
 
   async mounted() {
-    //await getBuildingAsync().then(b => this.el.title = title: b.name);
     await this.getTickets();
   },
 
