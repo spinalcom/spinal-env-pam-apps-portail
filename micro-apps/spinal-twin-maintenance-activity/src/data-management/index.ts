@@ -54,7 +54,7 @@ export function splitByPeriode(to_split: any[]) {
     let serie = [];
     for (let c of calendar.decade) {
       serie.push(
-        inter.filter((e: any) => new Date(e.last_step_date).getFullYear() === c)
+        inter.filter((e: any) => new Date(e.creation_date).getFullYear() === c)
           .length
       );
     }
@@ -62,11 +62,11 @@ export function splitByPeriode(to_split: any[]) {
 
     serie = [];
     inter = inter.filter((tickets: any) =>
-      sameYear(new Date(tickets.last_step_date), today)
+      sameYear(new Date(tickets.creation_date), today)
     );
     for (let c of calendar.year) {
       serie.push(
-        inter.filter((e: any) => new Date(e.last_step_date).getMonth() === c)
+        inter.filter((e: any) => new Date(e.creation_date).getMonth() === c)
           .length
       );
     }
@@ -74,11 +74,11 @@ export function splitByPeriode(to_split: any[]) {
 
     serie = [];
     inter = inter.filter((tickets: any) =>
-      sameMonth(new Date(tickets.last_step_date), today)
+      sameMonth(new Date(tickets.creation_date), today)
     );
     for (let c of calendar.month) {
       serie.push(
-        inter.filter((e: any) => new Date(e.last_step_date).getDate() === c)
+        inter.filter((e: any) => new Date(e.creation_date).getDate() === c)
           .length
       );
     }
@@ -86,11 +86,11 @@ export function splitByPeriode(to_split: any[]) {
 
     serie = [];
     inter = inter.filter((tickets: any) =>
-      sameWeek(new Date(tickets.last_step_date), today)
+      sameWeek(new Date(tickets.creation_date), today)
     );
     for (let c of calendar.week) {
       serie.push(
-        inter.filter((e: any) => new Date(e.last_step_date).getDay() === c)
+        inter.filter((e: any) => new Date(e.creation_date).getDay() === c)
           .length
       );
     }
@@ -98,11 +98,11 @@ export function splitByPeriode(to_split: any[]) {
 
     serie = [];
     inter = inter.filter((tickets: any) =>
-      sameDay(new Date(tickets.last_step_date), today)
+      sameDay(new Date(tickets.creation_date), today)
     );
     for (let c of calendar.day) {
       serie.push(
-        inter.filter((e: any) => new Date(e.last_step_date).getHours() === c)
+        inter.filter((e: any) => new Date(e.creation_date).getHours() === c)
           .length
       );
     }

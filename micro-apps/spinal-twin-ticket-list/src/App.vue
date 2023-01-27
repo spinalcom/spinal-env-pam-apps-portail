@@ -23,8 +23,8 @@ with this file. If not, see
 -->
 
 <template>
-  <v-app id="application">
-    <div style="width: 100%" class="d-flex justify-end">
+  <v-app class="application">
+    <div style="width: 100%; z-index: 2" class="d-flex justify-end">
       <sc-download-button
         class="ma-1 pa-1"
         :file-name="'Tickets'"
@@ -39,7 +39,7 @@ with this file. If not, see
       ></sc-space-selector>
     </div>
 
-    <v-main>
+    <v-main class="application pt-2 pl-1 pr-1" style="z-index: 1">
       <sc-paginated-table
         :height="tableHeight"
         :title="'Liste des tickets'"
@@ -50,7 +50,7 @@ with this file. If not, see
 </template>
 
 <script>
-import { mapActions, mapState } from "vuex";
+import { mapActions, mapState, mapGetters } from "vuex";
 import { getUserBos } from "../../../src/requests/userData";
 import {
   getBuildingAsync,
@@ -71,9 +71,12 @@ export default {
   }),
 
   computed: {
-    ...mapState({
-      tickets: (state) => state.tickets,
+    ...mapGetters({
+      getTickets: "getTickets",
     }),
+    tickets() {
+      return this.getTickets(this.el.dynamicId) ?? [{}];
+    },
     tableHeight() {
       return window.innerHeight;
     },
@@ -81,8 +84,7 @@ export default {
 
   methods: {
     ...mapActions({
-      getTickets: "getTickets",
-      updateTickets: "updateTickets",
+      loadTickets: "loadTickets",
     }),
     async expand(item) {
       switch (item.level) {
@@ -103,13 +105,7 @@ export default {
   },
 
   async mounted() {
-    await this.getTickets();
-  },
-
-  watch: {
-    async el(v) {
-      await this.updateTickets(v.dynamicId);
-    },
+    await this.loadTickets();
   },
 };
 </script>
@@ -119,14 +115,17 @@ html {
   overflow-y: auto !important;
 }
 
-#application {
+.application {
   background: linear-gradient(121deg, #f8fafa, #d6e2e6);
 }
 
 .v-main {
   position: fixed;
   width: 100%;
-  top: 7%;
+  height: 100%;
+  top: 60px;
   bottom: 0px;
+  left: 0;
+  right: 0;
 }
 </style>

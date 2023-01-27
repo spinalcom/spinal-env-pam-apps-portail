@@ -21,19 +21,23 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-import 'core-js/stable';
-import Vue from 'vue';
-import { vuetifyInit, vuetify } from './plugins/vuetify';
-import { routerInit, router } from './router';
-import store from './store';
-import { initAxios } from './requests';
-import VueCookie from 'vue-cookie';
-import App from './App.vue';
+import "core-js/stable";
+import Vue from "vue";
+import { vuetifyInit, vuetify } from "./plugins/vuetify";
+import { routerInit, router } from "./router";
+import store from "./store";
+import { initAxios } from "./requests";
+import VueCookie from "vue-cookie";
+import App from "./App.vue";
 
-import './assets/css/basic/reset.css';
-import './assets/css/basic/main.less';
-import './assets/css/component/navPickerApp.css';
-import 'material-design-icons-iconfont';
+import "./assets/css/basic/reset.css";
+import "./assets/css/basic/main.less";
+import "./assets/css/component/navPickerApp.css";
+import "material-design-icons-iconfont";
+import SpinalComponent from "spinal-components";
+import "spinal-components/dist/spinal-components.css";
+
+Vue.use(SpinalComponent, {});
 
 vuetifyInit(Vue);
 routerInit(Vue);
@@ -48,4 +52,4 @@ new Vue({
   vuetify,
   store,
   render: (h) => h(App),
-}).$mount('#app');
+}).$mount("#app");

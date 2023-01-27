@@ -73,7 +73,15 @@ export async function getWorkflowTreeAsync(workflowId: number) {
 export async function getProcessListAsync(workflowId: number) {
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
-    `/building/${buildingId}/workflow/${workflowId}/process_list`
+    `/building/${buildingId}/workflow/${workflowId}/processList`
+  );
+  return result.data;
+}
+
+export async function getStepListAsync(workflowId: number, processId: number) {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(
+    `/building/${buildingId}/workflow/${workflowId}/process/${processId}/stepList`
   );
   return result.data;
 }

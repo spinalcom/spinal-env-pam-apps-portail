@@ -28,20 +28,21 @@ with this file. If not, see
       :expand-selector="expandSelector"
     ></sc-spinal-navigator>
     <sc-loader v-if="!isLoaded(current_workflow)"></sc-loader>
-    <v-main class="pa-1" v-else>
+    <v-main class="pt-2 pl-1 pr-1" v-else>
       <sc-bar-card
-        :title="'Activité des tickets'"
+        class="section ma-2 pa-1"
+        :title="'Activité des tickets en cours'"
         :labels="barChartData.labels"
         :datasets="barChartData.datasets"
       ></sc-bar-card>
-      <div class="d-flex flex-row">
+      <div class="section d-flex flex-row ma-2 justify-space-between">
         <sc-pie-card
-          :title="'Tickets par déclarants'"
-          :pie-chart-data="declarants(current_workflow)"
+          :title="'Tickets par domaine'"
+          :pie-chart-data="domainSplittenPie"
         ></sc-pie-card>
         <sc-pie-card
-          :title="'Tickets par domaines'"
-          :pie-chart-data="domainSplittenPie"
+          :title="'Tickets par déclarant'"
+          :pie-chart-data="declarants(current_workflow)"
         ></sc-pie-card>
       </div>
     </v-main>
@@ -49,10 +50,11 @@ with this file. If not, see
 </template>
 
 <script>
-import { mapState, mapActions, mapGetters } from "vuex";
+import { mapActions, mapGetters } from "vuex";
 import { label } from "./date-comparison";
 import { gradiant, HSVtoRGB, RGBtoHexa } from "./colors";
 import {
+  getBuildingAsync,
   getTicketWorkflowAsync,
   getWorkflowListAsync,
   getProcessListAsync,
@@ -63,6 +65,7 @@ export default {
 
   data() {
     return {
+      buildingName: "",
       nav: {
         element: { name: "Liste des workflow", title: "" },
         period: { name: "SEMAINE", value: "week" },
@@ -159,6 +162,7 @@ export default {
     },
   },
   async mounted() {
+    this.buildingName = (await getBuildingAsync()).name;
     const workflow = await getTicketWorkflowAsync();
     this.nav.element.title = workflow.name;
     this.current_workflow = workflow.dynamicId;
@@ -193,7 +197,11 @@ html {
   right: 0;
 }
 
+.section {
+  height: 45%;
+}
+
 .pie-card {
-  width: 49%;
+  width: 49.5%;
 }
 </style>

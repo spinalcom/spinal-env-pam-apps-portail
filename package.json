@@ -12,7 +12,7 @@
     "@mdi/font": "^7.0.96",
     "dateformat": "^5.0.3",
     "moment": "^2.29.4",
-    "spinal-components": "github:spinalcom/spinal-components",
+    "spinal-components": "github:spinalcom/spinal-components#mamady",
     "spinal-viewer-event-manager": "git+https://github.com/spinalcom/spinal-viewer-event-manager.git",
     "vue-sweetalert2": "^5.0.5",
     "vuex-class": "^0.3.2"
@@ -62,7 +62,7 @@
     "vue-places": "^2.2.2",
     "vue-property-decorator": "^9.1.2",
     "vue-router": "^3.6.4",
-    "vue-template-compiler": "^2.6.14",
+    "vue-template-compiler": "^2.7.14",
     "vue-tsc": "^0.3.0",
     "vue2-leaflet": "^2.7.1",
     "vuetify": "^2.6.5",

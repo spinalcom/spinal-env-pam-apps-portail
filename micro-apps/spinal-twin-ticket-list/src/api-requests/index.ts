@@ -30,6 +30,14 @@ export async function getBuildingAsync() {
   return result.data;
 }
 
+export async function getBuildingSpaceTreeAsync() {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(
+    `/building/${buildingId}/geographicContext/space`
+  );
+  return result.data.children[0];
+}
+
 export async function getFloorListAsync() {
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(`building/${buildingId}/floor/list`);
