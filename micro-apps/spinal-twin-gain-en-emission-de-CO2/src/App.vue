@@ -28,7 +28,7 @@ with this file. If not, see
       class="ma-1 pa-1"
       v-model="navigator"
       :path.sync="path"
-      :max-depth="2"
+      :max-depth="1"
       :expand-selector="expand"
     ></sc-spinal-navigator>
     <v-main v-if="loading">
@@ -65,7 +65,7 @@ with this file. If not, see
             :value="+energyConsumption('day') + '%'"
             :unit="' '"
             :title="'DE GAIN EN ÉMISSION DE CO2 AUJOURD\'HUI'"
-            :subtitle="' '"
+            :subtitle="'Aujourd\'hui'"
             :color="'#418FDD'"
           ></sc-stat-card>
         </v-col>

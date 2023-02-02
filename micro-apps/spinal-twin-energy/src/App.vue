@@ -24,12 +24,7 @@ with this file. If not, see
 
 <template>
   <v-app id="application">
-    <sc-spinal-navigator class="ma-1 pa-1"
-                         v-model="navigator"
-                         :path.sync="path"
-                         :max-depth="2"
-                         :expand-selector="expand"
-    ></sc-spinal-navigator>
+    <sc-spinal-navigator class="ma-1 pa-1" v-model="navigator" :path.sync="path" :max-depth="2" :expand-selector="expand"></sc-spinal-navigator>
     <v-main v-if="loading">
       <sc-loader></sc-loader>
     </v-main>

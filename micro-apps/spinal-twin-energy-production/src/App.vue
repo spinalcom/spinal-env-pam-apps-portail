@@ -37,7 +37,7 @@ with this file. If not, see
     <v-main style="position: absolute; margin-top: 3.5%; width: 100%" v-else>
       <sc-bar-card
         id="bar-section"
-        :title="'Taux d\'autoconsommation énergétique'"
+        :title="'Production d\'énergie'"
         :labels="barChartData.labels"
         :datasets="barChartData.datasets"
       ></sc-bar-card>
@@ -45,28 +45,28 @@ with this file. If not, see
       <v-row id="stat-section">
         <v-col>
           <sc-stat-card
-            :value="+energyConsumption('year') + '%'"
-            :unit="''"
-            :title="'D\'AUTOCONSOMMATION ÉNEGÉTIQUE CETTE ANNEÉ'"
+            :value="+energyConsumption('year')"
+            :unit="'KW'"
+            :title="'DE PRODUCTION D\'ÉNERGIE CETTE ANNÉE'"
             :subtitle="' '"
             :color="'#e8d712'"
           ></sc-stat-card>
         </v-col>
         <v-col>
           <sc-stat-card
-            :value="+energyConsumption('month') + '%'"
-            :unit="' '"
-            :title="'D\'AUTOCONSOMMATION ÉNEGÉTIQUE CE MOIS'"
+            :value="+energyConsumption('month')"
+            :unit="'KW'"
+            :title="'DE PRODUCTION D\'ÉNERGIE CE MOIS'"
             :subtitle="' '"
             :color="'#e8d712'"
           ></sc-stat-card>
         </v-col>
         <v-col>
           <sc-stat-card
-            :value="+energyConsumption('day') + '%'"
-            :unit="' '"
-            :title="'D\'AUTOCONSOMMATION ÉNEGÉTIQUE AUJOURD\'HUI'"
-            :subtitle="' '"
+            :value="+energyConsumption('day')"
+            :unit="'KW'"
+            :title="'DE PRODUCTION D\'ÉNERGIE AUJOURD\'HUI'"
+            :subtitle="'Aujourd\'hui'"
             :color="'#e8d712'"
           ></sc-stat-card>
         </v-col>
@@ -111,13 +111,11 @@ export default {
           ).series;
     },
     barChartData() {
-      console.log("this.selectedSeries[this.navigator.period.value][0]", this.selectedSeries[this.navigator.period.value][0]);
-      console.log("this.building_time_series", this.building_time_series);
       return {
         labels: label[this.navigator.period.value],
         datasets: [
           {
-            label: 'TAUX D\'AUTOCONSOMMATION ÉNEGÉTIQUE',
+            label: 'PRODUCTION D\'ÉNERGIE',
             data: this.selectedSeries[this.navigator.period.value][0],
             backgroundColor: ["#e8d712"],
           },
@@ -142,14 +140,16 @@ export default {
     },
 
     lastPeriodCompare() {
+      console.log("In lastPeriodCompare");
       let p = [0, 0];
       for(let i = -8; i>=-14; i--) p[1] += this.selectedSeries['month'][0][31+i];
-      if(p[1]!=0) p[1] = 0 //(((this.lightingConsumption('month')-p[1])/p[1])*100).toFixed(2);
+      if(p[1]!=0) p[1] = (((this.energyConsumption('month')-p[1])/p[1])*100).toFixed(2);
       else p[1] = Infinity;
       let lastYearConsumption = this.building_time_series.decade[0][8];
       let currentYearConsumption = this.building_time_series.decade[0][9];
       if(lastYearConsumption!=0) p[0] = (((currentYearConsumption-lastYearConsumption)/lastYearConsumption)*100).toFixed(2);
       else p[0] = Infinity;
+      console.log("p : ", p);
       return p;
     },
   },
