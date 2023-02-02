@@ -1,8 +1,10 @@
 {
-  "water" : "Eau globale",
-  "sanitary_water" : "Eau sanitaire",
-  "people_number" : "Nombre de personnes",
-  "energy" : "Energie globale",
-  "lighting" : "Eclairage",
-  "heating" : "Chauffage"
+  "water": "Eau globale",
+  "sanitary_water": "Eau sanitaire",
+  "people_number": "Nombre de personnes",
+  "energy": "Energie globale",
+  "lighting": "Eclairage",
+  "heating": "Chauffage",
+  "autoconsommation": "Taux d'autoconsommation énergétique",
+  "gain_co2_emission": "Gain en émission de CO2"
 }
