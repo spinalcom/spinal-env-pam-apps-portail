@@ -45,17 +45,17 @@ with this file. If not, see
       <v-row id="stat-section">
         <v-col>
           <sc-stat-card
-            :value="+energyConsumption('year')"
-            :unit="'KW'"
-            :title="'D\'AUTOCONSOMMATION ÉNEGÉTIQUE EN 2022'"
+            :value="+energyConsumption('year') + '%'"
+            :unit="''"
+            :title="'D\'AUTOCONSOMMATION ÉNEGÉTIQUE CETTE ANNEÉ'"
             :subtitle="' '"
             :color="'#e8d712'"
           ></sc-stat-card>
         </v-col>
         <v-col>
           <sc-stat-card
-            :value="+energyConsumption('month')"
-            :unit="'KW'"
+            :value="+energyConsumption('month') + '%'"
+            :unit="' '"
             :title="'D\'AUTOCONSOMMATION ÉNEGÉTIQUE CE MOIS'"
             :subtitle="' '"
             :color="'#e8d712'"
@@ -63,8 +63,8 @@ with this file. If not, see
         </v-col>
         <v-col>
           <sc-stat-card
-            :value="+energyConsumption('day')"
-            :unit="'KW'"
+            :value="+energyConsumption('day') + '%'"
+            :unit="' '"
             :title="'D\'AUTOCONSOMMATION ÉNEGÉTIQUE AUJOURD\'HUI'"
             :subtitle="' '"
             :color="'#e8d712'"
