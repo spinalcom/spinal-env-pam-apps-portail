@@ -45,17 +45,16 @@ with this file. If not, see
       <v-row id="stat-section">
         <v-col>
           <sc-stat-card
-            :value="+energyConsumption('year')"
-            :unit="'%'"
-            :title="'DE GAIN EN ÉMISSION DE CO2 EN 2022'"
-            :subtitle="' '"
+            :value="+energyConsumption('year') + '%'"
+            :unit="' '"
+            :title="'DE GAIN EN ÉMISSION DE CO2 CETTE ANNÉE'"
             :color="'#418FDD'"
           ></sc-stat-card>
         </v-col>
         <v-col>
           <sc-stat-card
-            :value="+energyConsumption('month')"
-            :unit="'%'"
+            :value="+energyConsumption('month') + '%'"
+            :unit="' '"
             :title="'DE GAIN EN ÉMISSION DE CO2 CE MOIS'"
             :subtitle="' '"
             :color="'#418FDD'"
@@ -63,8 +62,8 @@ with this file. If not, see
         </v-col>
         <v-col>
           <sc-stat-card
-            :value="+energyConsumption('day')"
-            :unit="'%'"
+            :value="+energyConsumption('day') + '%'"
+            :unit="' '"
             :title="'DE GAIN EN ÉMISSION DE CO2 AUJOURD\'HUI'"
             :subtitle="' '"
             :color="'#418FDD'"
