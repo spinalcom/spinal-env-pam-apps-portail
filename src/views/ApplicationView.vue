@@ -128,7 +128,7 @@ export default ApplicationView;
     width: 450px;
     height: 60px;
     position: absolute;
-    top: 5px;
+    top: 10px;
     left: 0px;
   }
   .iframeViewerContainer {

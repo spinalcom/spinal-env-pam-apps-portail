@@ -17,10 +17,10 @@
             <p class="ST">DÉTAILS</p>
           </div>
           <div class="STRPS">
-            <Stripe v-if="stripeData" :stripeData="stripeData"></Stripe>
+            <Stripe :key="dotKeys" v-if="stripeData && stripeData.stripeValues && stripeData.stripeValues != [0, 0, 0, 0]" :stripeData="stripeData"></Stripe>
           </div>
           <div class="MTBL">
-            <SpinalTable/>
+            <SpinalTable v-if="context" :context="context" :floor="floor"/>
           </div>
         </div>
         <div class="DS">
@@ -29,35 +29,35 @@
             <div class="d-flex flex-row mb-n1">
                 <v-icon style="margin-top: -1px; font-size: 20px; margin-right: 10px;">mdi-dots-grid</v-icon>
               <v-switch
-              style="margin-top: -3px;margin-bottom: -10px; padding: 0px;height: 24px;"
-              inset
-              v-model="isPercent"
-              color="blue-grey"
-              dense
-              >
+                style="margin-top: -3px;margin-bottom: -10px; padding: 0px;height: 24px;"
+                inset
+                v-model="isPercent"
+                color="blue-grey"
+                dense
+                >
               </v-switch>
               <v-icon style="margin-top: -1px; font-size: 18px; margin-left: -10px">mdi-percent</v-icon>
               </div>
           </div>
           <div class="GRDFRM">
             <div class="DBRF" ref="debrief">
-              <table style="height: 100%">
+              <table style="height: 100%" v-if="availabilityArray != null">
                 <tr>
-                  <td class="RA BN">1024</td>
-                  <td class="LA LDBRF">connectés <br>74% des automates totaux</td>
+                  <td class="RA BN">{{ availabilityArray[2] }}</td>
+                  <td class="LA LDBRF">connectés <br>{{ connectedPercentage }}% des automates totaux</td>
                 </tr>
                 <tr>
-                  <td class="RA GN">372</td>
-                  <td class="LA LDBRF">données non remontés</td>
+                  <td class="RA GN">{{ availabilityArray[1] }}</td>
+                  <td class="LA LDBRF">données non remontées</td>
                 </tr>
                 <tr>
-                  <td class="RA RN">172</td>
+                  <td class="RA RN">{{ availabilityArray[0] }}</td>
                   <td class="LA LDBRF">données incohérentes</td>
                 </tr>
               </table>
             </div>
             <div class="GRD">
-              <DotGrid v-if="dotsHeight!=-1 && dotsWidth!=-1 && availabilityArray != null" :givenHeight="dotsHeight" :givenWidth="dotsWidth" :isPercent="isPercent" :dotsColor="gtbColors" :dotsList="availabilityArray"/>
+              <DotGrid :key="dotKeys" v-if="dotsHeight!=-1 && dotsWidth!=-1 && availabilityArray != null" :givenHeight="dotsHeight" :givenWidth="dotsWidth" :isPercent="isPercent" :dotsColor="gtbColors" :dotsList="availabilityArray"/>
             </div>
           </div>
         </div>
@@ -68,6 +68,7 @@
 
 <script>
 import _ from 'lodash';
+import { getContextTree } from "../services/index.js";
 import SmallLegend from "./nested/SmallLegend.vue";
 import Stripe from "./nested/Stripe.vue";
 import SpinalTable from "./nested/SpinalTable.vue";
@@ -79,6 +80,16 @@ export default {
     Stripe,
     SpinalTable,
     DotGrid
+  },
+  props: ['floor'],
+  computed: {
+    connectedPercentage() {
+      if (this.availabilityArray) {
+        let sum = this.availabilityArray.reduce((a, b) => a+b, 0);
+        return (this.availabilityArray[2] * 100 / sum).toFixed(0);
+      }
+      else return 0;
+    }
   },
   methods: {
     resizeHandler() {
@@ -93,18 +104,31 @@ export default {
     stripeData: {
       stripeNames: ['OK', 'NOK', 'incorrecte', 'non remontées'],
       stripeColors: ['#14202C', '#9830F2', '#EF8BC5', '#898F95'],
-      stripeValues: [1024, 172, 372, 372]
+      stripeValues: null,
+      originalStripeValues: null,
     },
     dotsHeight: -1,
     dotsWidth: -1,
-    availabilityArray: [172, 372, 1024],
+    availabilityArray: null,
+    originalAvailabilityArray: null,
     gtbColors: ['FF000B', '898F95', '14202C'],
     isPercent: true,
+    context: null,
+    originalContext: null,
+    dotKeys: 0,
   }),
-  mounted() {
+  async mounted() {
     this.dotsHeight = window.innerHeight - 327 - 4 - 79;
     this.dotsWidth = this.$refs.debrief.clientWidth -20;
+    let data = await getContextTree();
+    this.context = data;
+    this.originalContext = data;
+    this.availabilityArray = data['availabilityArray'];
+    this.originalAvailabilityArray = data['availabilityArray'];
+    this.stripeData.stripeValues = data['namingConventionArray'];
+    this.stripeData.originalStripeValues = data['namingConventionArray'];
   },
+
   created() {
     this.throttleListener = _.throttle(this.resizeHandler, 10);
     window.addEventListener("resize", this.throttleListener);
@@ -112,7 +136,32 @@ export default {
   beforeDestroy() {
     window.removeEventListener("resize", this.throttleListener);
   },
+  watch: {
+    floor(value) {
+      this.dotKeys++;
+      if (this.originalContext) {
+        this.context = [];
+        this.availabilityArray = null;
+        this.availabilityArray = [0, 0, 0];
+        this.stripeData.stripeValues = [0, 0, 0, 0];
+        // for (let i = 0; i < this.originalContext.length; i++) {
+        //   if (this.originalContext[i].floor == value) {
+        //     this.context.push(this.originalContext[i]);
+        //   }
+        // }
+        this.originalContext.forEach(l => {if (l.floor == value) this.context.push(l)});
+        this.context.forEach(c => {
+          if (c.monitorability == 'OK') this.stripeData.stripeValues[0]++;
+          else if (c.monitorability == 'NOK') this.stripeData.stripeValues[1]++;
+          else if (c.monitorability == 'CONVENTION DE NOMMAGE INCORRECTE') this.stripeData.stripeValues[2]++;
+          else this.stripeData.stripeValues[3]++;
 
+          if (c.availability < 70) this.availabilityArray[0]++;
+          else this.availabilityArray[2]++;
+        })
+      }
+    }
+  }
 }
 </script>
 
