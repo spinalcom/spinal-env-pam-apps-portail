@@ -159,6 +159,10 @@ class App extends Vue {
         this.selectedTime.next = 'Mois suivant';
         this.selectedTime.prev = 'Mois précédent';
       }
+      else if (item.name == '3 mois') {
+        this.selectedTime.next = '3 mois suivants';
+        this.selectedTime.prev = '3 mois précédents';
+      }
       else if (item.name == 'Année') {
         this.selectedTime.next = 'Année suivante';
         this.selectedTime.prev = 'Année précédente';
@@ -195,7 +199,7 @@ class App extends Vue {
       haveChildren: false,
     });
     timeOptions.push({
-      name: '3 derniers mois',
+      name: '3 mois',
       staticId: '3derniersmois',
       dynamicId: 2,
       level: 0,

@@ -36,7 +36,7 @@ with this file. If not, see
       style="border: 1px solid #f5f5f5; overflow: hidden;"
       :style="[{ 'border-right': edge ? '' : 'none' },
       { 'border-top-right-radius': edge ? '' : '0 !important' },
-      { 'border-bottom-right-radius': edge ? '' : '0 !important' }]"
+      { 'border-bottom-right-radius': (edge || (!edge && open)) ? '' : '0 !important' }]"
     >
       <div
         @click="$emit('update:open', !open)"
@@ -46,7 +46,7 @@ with this file. If not, see
         <p class="space-selector-header-title"
           >{{ selectedZoneName }}
           <v-icon
-            color="#bfbfbf"
+            color="#f5f5f5"
             class="rotate-disabled space-selector-header-title-icon"
             :class="{ 'rotate-enabled': open }"
             >mdi-chevron-down</v-icon

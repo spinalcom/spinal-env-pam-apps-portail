@@ -1,5 +1,5 @@
 <template>
-  <div style="width: 100%; max-height: 347px;">
+  <div style="width: 100%; max-height: 347px; font-size: 14px !important;">
     <v-data-table
     style="height: 100%; background: transparent !important;"
     mobile-breakpoint="0"
@@ -18,7 +18,8 @@
     <div class="font-table">{{item.floor}}</div>
   </template> -->
   <template v-slot:[`item.name`]="{ item }">
-    <div class="font-table">{{item.name}}</div>
+    <SmallLegend :size="14" :color="item.color" :text="item.name"/>
+    <!-- <div class="font-table">{{item.name}}</div> -->
   </template>
   <template v-slot:[`item.surface`]="{ item }">
     <span class="text">{{ item.area.toFixed(2) }} m²</span>
@@ -115,7 +116,7 @@ export default {
 
 <style scoped>
 .font-table {
-  font: normal normal normal 11px/13px Charlevoix !important;
+  font: normal normal normal 16px/13px Charlevoix !important;
   letter-spacing: 1.1px;
   color: #14202C;
   opacity: 1;
@@ -129,13 +130,14 @@ export default {
   flex-direction: column;
 }
 ::v-deep .v-data-table__wrapper {
-  flex-shrink: 1;
+  flex-shrink: 0;
+  flex-grow: 1;
   overflow-y: auto !important;
 }
 
 ::v-deep th {
   height: 48px !important;
-  font-size: 10px !important;
+  font-size: 14px !important;
   color: #214353 !important;
 }
 
@@ -178,12 +180,12 @@ export default {
 }
 
 .text {
-  font-size: 13px;
+  font-size: 14px;
   font-family: Charlevoix;
   letter-spacing: 0.7px;
   color: #214353;
   opacity: 1;
-  font-size: 12px;
+  font-size: 14px;
 }
 .theme--light.v-data-table .v-data-footer {
 	background: #7b5151 !important;

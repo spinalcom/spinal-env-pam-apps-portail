@@ -2,6 +2,7 @@
   <div class="RC" style="min-height: 480px">
     <div class="MC" v-if="loaded">
       <LineCard :title="'CONSOMMATION D\'EAU'" :titleDetails="currentTimestamp.stringTime" :labels="barLabels" :datasets="barChartData" :optional="lineOptions" :next="temporality.next" :prev="temporality.prev" @nav="nav" class="BR"/>
+      <!-- <div class="BR"><div class="flex-grow-1">a</div></div> -->
       <div class="d-flex cards">
         <sc-stat-card :value="stats.totalArea" :unit="'m²'" :title="`Superficie totale (${stats.buildings} Bâtiments)`" class="flex-grow-1 pa-4"/>
         <sc-stat-card :value="stats.totalConsumption" :unit="'L'" :title="'consommé par le patrimoine'" class="flex-grow-1 pa-4"/>
@@ -10,7 +11,7 @@
       <SpinalTable :context="patrimonyTable" :temporality="temporality"/>
     </div>
     <div class="MC" v-else>
-      <LoadingCard class="flex-grow-1 pa-4 br"/>
+      <LoadingCard class="flex-grow-1 pa-4 br" />
       <div class="d-flex cards">
           <LoadingCard class="flex-grow-1 pa-4"  style="height: 106px"/><LoadingCard class="flex-grow-1 pa-4"  style="height: 106px"/><LoadingCard class="flex-grow-1 pa-4"  style="height: 106px"/>
       </div>
@@ -37,6 +38,7 @@ export default {
     LoadingCard
   },
   data: () => ({
+    isFill: true,
     stats: {},
     colors: ['#ff6384', '#36a2eb', '#4bc0c0'],
     patrimonyTable: [],
@@ -49,29 +51,7 @@ export default {
     buildingsInTheList: 0,
     currentTimestamp: {stringTime: '', valueTime: 0},
   }),
-  // async mounted() {
-  //   moment.locale("fr");
-  //     if (this.temporality.name == 'Mois') {
-  //       this.currentTimestamp = {stringTime: 'EN ' + moment().format('MMMM YYYY'), valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
-  //     }
-  //     else if (this.temporality.name == 'Année') {
-  //       this.currentTimestamp = {stringTime: 'EN ' + moment().format('YYYY'), valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
-  //     }
-  //     else this.currentTimestamp = {stringTime: '', valueTime: 0};
 
-  //   this.buildingList = await getAllBuildings();
-
-  //   let res = await getConsumption(this.period, 'Eau globale', this.buildingList);
-  //   this.barLabels = res[0];
-  //   this.barChartData[0].data = [2,34,23,45,24,13,33,83,52,44,92,63,42,44,2,34,23,45,24,13,33,83,52,44,92,63,42,44,45,23];
-
-  //   res = await getConsumption(this.period, 'Eau sanitaire', this.buildingList);
-  //   this.barChartData[1].data = [3,54,14,4,53,45,34,2,34,23,45,24,13,33,3,54,124,4,53,45,34,2,34,23,45,24,13,33,34,43];
-  //   this.barChartData[2].data = [83,52,44,92,63,42,44,3,54,14,4,53,45,34,83,52,44,92,63,42,44,3,54,24,4,53,34,45,34,53];
-
-  //   this.patrimonyTable = res[2];
-  //   this.loaded = true;
-  // },
   async mounted() {
     moment.locale("fr");
       if (this.temporality.name == 'Mois') {
@@ -80,12 +60,19 @@ export default {
       else if (this.temporality.name == 'Année') {
         this.currentTimestamp = {stringTime: 'EN ' + moment().format('YYYY'), valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
       }
+      else if (this.temporality.name == '3 mois') {
+        this.currentTimestamp = {stringTime: `EN 
+          ${moment(this.currentTimestamp.valueTime).add(payload*3, 'months').format('MMMM')}, 
+          ${moment(this.currentTimestamp.valueTime).add(payload*2, 'months').format('MMMM')}, 
+          ${moment(this.currentTimestamp.valueTime).add(payload, 'months').format('MMMM')}`, 
+        valueTime: moment(this.currentTimestamp.valueTime).add(payload*3, 'months').valueOf()};
+      }
       else this.currentTimestamp = {stringTime: '', valueTime: 0};
       const patrimoine = localStorage.getItem("patrimoine");
       let patrimoineObject = JSON.parse(patrimoine);
       this.buildingsInTheList = patrimoineObject.buildings;
       // await this.onRequest(this.currentTimestamp.valueTime, this.temporality.name, this.buildingsInTheList, 'Eau globale');
-      this.loaded = true;
+      this.loaded = true; 
   },
   computed: {
     currentPeriod() {
@@ -96,20 +83,46 @@ export default {
       else if (this.temporality.name == 'Année') {
         this.currentTimestamp = {stringTime: 'EN ' + moment().format('YYYY'), valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
       }
+      else if (this.temporality.name == '3 mois') {
+        this.currentTimestamp = {stringTime: `EN 
+          ${moment(this.currentTimestamp.valueTime).add(payload*3, 'months').format('MMMM')}, 
+          ${moment(this.currentTimestamp.valueTime).add(payload*2, 'months').format('MMMM')}, 
+          ${moment(this.currentTimestamp.valueTime).add(payload, 'months').format('MMMM')}`, 
+        valueTime: moment(this.currentTimestamp.valueTime).add(payload*3, 'months').valueOf()};
+      }
       else return {stringTime: '', valueTime: 0};
       return this.currentTimestamp;
     },
     tableCard() {
-      return 104 + this.buildingsInTheList.length * 48;
+      let fiveCheck = (this.buildingsInTheList && this.buildingsInTheList.length>=5) ? 5 : this.buildingsInTheList;
+      return 104 + fiveCheck * 48;
     }
   },
   methods: {
     nav(payload) {
       if (this.temporality.name == 'Mois') {
+        console.log('moooo')
         this.currentTimestamp = {stringTime: 'EN ' + moment(this.currentTimestamp.valueTime).add(payload, 'months').format('MMMM YYYY'), valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'months').valueOf()};
       }
       if (this.temporality.name == 'Année') {
+        console.log('bou');
         this.currentTimestamp = {stringTime: 'EN ' + moment(this.currentTimestamp.valueTime).add(payload, 'years').format('YYYY'), valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf()};
+      }
+      if (this.temporality.name == '3 mois') {
+        if(payload<0) {
+        this.currentTimestamp = {stringTime: `EN 
+          ${moment(this.currentTimestamp.valueTime).add(-5, 'months').format('MMMM')}, 
+          ${moment(this.currentTimestamp.valueTime).add(-4, 'months').format('MMMM')}, 
+          ${moment(this.currentTimestamp.valueTime).add(-3, 'months').format('MMMM')}`, 
+        valueTime: moment(this.currentTimestamp.valueTime).add(-3, 'months').valueOf()};
+      }
+      else {
+        this.currentTimestamp = {stringTime: `EN 
+          ${moment(this.currentTimestamp.valueTime).add(1, 'months').format('MMMM')}, 
+          ${moment(this.currentTimestamp.valueTime).add(2, 'months').format('MMMM')}, 
+          ${moment(this.currentTimestamp.valueTime).add(3, 'months').format('MMMM')}`, 
+        valueTime: moment(this.currentTimestamp.valueTime).add(3, 'months').valueOf()};
+      }
       }
     },
     async onRequest() {
@@ -124,10 +137,11 @@ export default {
         this.barChartData.push(
           {
             label: res[1][i].name,
-            backgroundColor: this.colors[i],
-            data: res[1][i].timeSeries,
-            // data: this.shuffleArray(res[1][i].timeSeries),
-            fill: true
+            backgroundColor: res[1][i].color,
+            // data: res[1][i].timeSeries,
+            borderColor: res[1][i].color,
+            data: this.shuffleArray(res[1][i].timeSeries),
+            // fill: true
           }
         )
       }
@@ -151,6 +165,13 @@ export default {
       }
       else if (this.temporality.name == 'Année') {
         this.currentTimestamp = {stringTime: 'EN ' + moment().format('YYYY'), valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
+      }
+      if (this.temporality.name == '3 mois') {
+        this.currentTimestamp = {stringTime: `EN 
+          ${moment().add(-2, 'months').format('MMMM')}, 
+          ${moment().add(-1, 'months').format('MMMM')}, 
+          ${moment().add(0, 'months').format('MMMM')}`, 
+        valueTime: moment().valueOf()};
       }
       else this.currentTimestamp = {stringTime: '', valueTime: 0};
     }
@@ -192,7 +213,8 @@ export default {
 }
 
 .BR {
-  height: 100%;
+  /* height: 100%; */
+  flex-grow: 1;
   width: 100%;
   margin: 0 !important;
   padding: 0 !important;
