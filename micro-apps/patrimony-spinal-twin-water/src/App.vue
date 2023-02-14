@@ -171,19 +171,6 @@ class App extends Vue {
     }
     let timeOptions = [];
     timeOptions.push({
-      name: '30 Derniers jours',
-      staticId: '30Derniersjours',
-      dynamicId: 1,
-      level: 1,
-      isOpen: true,
-      loading: false,
-      patrimoineId: '30Derniersjours',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    });
-    timeOptions.push({
       name: 'Mois',
       next: 'Mois suivant',
       prev: 'Mois précédent',

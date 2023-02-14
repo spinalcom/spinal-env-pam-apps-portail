@@ -1,7 +1,7 @@
 <template>
   <div class="RC" style="min-height: 480px">
     <div class="MC" v-if="loaded">
-      <LineCard :title="'CONSOMMATION D\'EAU'" :titleDetails="currentTimestamp.stringTime" :labels="barLabels" :datasets="barChartData" :optional="lineOptions" :next="temporality.next" :prev="temporality.prev" @nav="nav" class="BR"/>
+      <LineCard :title="'CONSOMMATION D\'EAU'" :titleDetails="currentTimestamp.stringTime" :labels="barLabels" :datasets="barChartData" :optional="lineOptions" :next="temporality.next" :prev="temporality.prev" @nav="nav" @stack="stack" :stacked="stackState" class="BR"/>
       <!-- <div class="BR"><div class="flex-grow-1">a</div></div> -->
       <div class="d-flex cards">
         <sc-stat-card :value="stats.totalArea" :unit="'m²'" :title="`Superficie totale (${stats.buildings} Bâtiments)`" class="flex-grow-1 pa-4"/>
@@ -38,7 +38,7 @@ export default {
     LoadingCard
   },
   data: () => ({
-    isFill: true,
+    stackState: true,
     stats: {},
     colors: ['#ff6384', '#36a2eb', '#4bc0c0'],
     patrimonyTable: [],
@@ -58,6 +58,9 @@ export default {
         this.currentTimestamp = {stringTime: 'EN ' + moment().format('MMMM YYYY'), valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
       }
       else if (this.temporality.name == 'Année') {
+        this.currentTimestamp = {stringTime: 'EN ' + moment().format('YYYY'), valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
+      }
+      else if (this.temporality.name == 'Décennie') {
         this.currentTimestamp = {stringTime: 'EN ' + moment().format('YYYY'), valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
       }
       else if (this.temporality.name == '3 mois') {
@@ -83,6 +86,9 @@ export default {
       else if (this.temporality.name == 'Année') {
         this.currentTimestamp = {stringTime: 'EN ' + moment().format('YYYY'), valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
       }
+      else if (this.temporality.name == 'Décennie') {
+        this.currentTimestamp = {stringTime: 'EN ' + moment().format('YYYY'), valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
+      }
       else if (this.temporality.name == '3 mois') {
         this.currentTimestamp = {stringTime: `EN 
           ${moment(this.currentTimestamp.valueTime).add(payload*3, 'months').format('MMMM')}, 
@@ -101,29 +107,30 @@ export default {
   methods: {
     nav(payload) {
       if (this.temporality.name == 'Mois') {
-        console.log('moooo')
         this.currentTimestamp = {stringTime: 'EN ' + moment(this.currentTimestamp.valueTime).add(payload, 'months').format('MMMM YYYY'), valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'months').valueOf()};
       }
       if (this.temporality.name == 'Année') {
-        console.log('bou');
         this.currentTimestamp = {stringTime: 'EN ' + moment(this.currentTimestamp.valueTime).add(payload, 'years').format('YYYY'), valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf()};
       }
       if (this.temporality.name == '3 mois') {
         if(payload<0) {
-        this.currentTimestamp = {stringTime: `EN 
-          ${moment(this.currentTimestamp.valueTime).add(-5, 'months').format('MMMM')}, 
-          ${moment(this.currentTimestamp.valueTime).add(-4, 'months').format('MMMM')}, 
-          ${moment(this.currentTimestamp.valueTime).add(-3, 'months').format('MMMM')}`, 
-        valueTime: moment(this.currentTimestamp.valueTime).add(-3, 'months').valueOf()};
+          this.currentTimestamp = {stringTime: `EN 
+            ${moment(this.currentTimestamp.valueTime).add(-5, 'months').format('MMMM')}, 
+            ${moment(this.currentTimestamp.valueTime).add(-4, 'months').format('MMMM')}, 
+            ${moment(this.currentTimestamp.valueTime).add(-3, 'months').format('MMMM')}`, 
+          valueTime: moment(this.currentTimestamp.valueTime).add(-3, 'months').valueOf()};
+        }
+        else {
+          this.currentTimestamp = {stringTime: `EN 
+            ${moment(this.currentTimestamp.valueTime).add(1, 'months').format('MMMM')}, 
+            ${moment(this.currentTimestamp.valueTime).add(2, 'months').format('MMMM')}, 
+            ${moment(this.currentTimestamp.valueTime).add(3, 'months').format('MMMM')}`, 
+          valueTime: moment(this.currentTimestamp.valueTime).add(3, 'months').valueOf()};
+        }
       }
-      else {
-        this.currentTimestamp = {stringTime: `EN 
-          ${moment(this.currentTimestamp.valueTime).add(1, 'months').format('MMMM')}, 
-          ${moment(this.currentTimestamp.valueTime).add(2, 'months').format('MMMM')}, 
-          ${moment(this.currentTimestamp.valueTime).add(3, 'months').format('MMMM')}`, 
-        valueTime: moment(this.currentTimestamp.valueTime).add(3, 'months').valueOf()};
-      }
-      }
+    },
+    stack(payload) {
+      this.stackState = payload;
     },
     async onRequest() {
       let res;
@@ -166,14 +173,17 @@ export default {
       else if (this.temporality.name == 'Année') {
         this.currentTimestamp = {stringTime: 'EN ' + moment().format('YYYY'), valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
       }
-      if (this.temporality.name == '3 mois') {
+      else if (this.temporality.name == 'Décennie') {
+        this.currentTimestamp = {stringTime: `ENTRE ${moment().add(-9, 'years').format('YYYY')} et ${moment().format('YYYY')}`, valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
+      }
+      else if (this.temporality.name == '3 mois') {
         this.currentTimestamp = {stringTime: `EN 
           ${moment().add(-2, 'months').format('MMMM')}, 
           ${moment().add(-1, 'months').format('MMMM')}, 
           ${moment().add(0, 'months').format('MMMM')}`, 
         valueTime: moment().valueOf()};
       }
-      else this.currentTimestamp = {stringTime: '', valueTime: 0};
+      else this.currentTimestamp = {stringTime: '', valueTime: moment().valueOf()};
     }
   }
 }

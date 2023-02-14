@@ -22,6 +22,13 @@ function getPeriodArray(timestamp, period) {
       monthsInYear.push(currentMonth.format('MMM'));
     }
     return [monthsInYear, moment(timestamp).startOf('year').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss')];
+  } else if (period === 'Décennie') {
+    var yearsInDecade = [];
+    for (var i = -9; i <= 0; i++) {
+      var currentYear = moment(timestamp).add(i, 'years');
+      yearsInDecade.push(currentYear.format('YYYY'));
+    }
+    return [yearsInDecade, moment(timestamp).add(-10, 'years').startOf('year').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss')];
   } else if (period === '3 mois') {
     var startOfMonth = moment(timestamp).add(-2, 'months').startOf('month');
     var endOfMonth = moment(timestamp).endOf('month');
@@ -71,6 +78,13 @@ export async function getData(timestamp, period, buildings, cp) {
       label.forEach(month => {
         processedTimeSeries.push(
           row['timeSeries'].filter(elem => moment(elem.date).format('MMM') === month)
+            .reduce((sum, elem) => sum + elem.value, 0)
+        );
+      });
+    } else if (period === 'Décennie') {
+      label.forEach(year => {
+        processedTimeSeries.push(
+          row['timeSeries'].filter(elem => moment(elem.date).format('YYYY') === year)
             .reduce((sum, elem) => sum + elem.value, 0)
         );
       });
