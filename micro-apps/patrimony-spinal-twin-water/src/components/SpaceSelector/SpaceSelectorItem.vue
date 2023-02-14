@@ -77,9 +77,12 @@ import { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
 
 @Component
 class SpaceSelectorItem extends Vue {
-  @Prop({ type: Object, required: true }) item: ISpaceSelectorItem;
-  @Prop({ type: Number, required: true }) maxDepth: number;
-  @Prop({ type: Object, required: true }) selected: ISpaceSelectorItem;
+  @Prop({ type: Object, required: true })
+item!: ISpaceSelectorItem;
+  @Prop({ type: Number, required: true })
+maxDepth!: number;
+  @Prop({ type: Object, required: true })
+selected!: ISpaceSelectorItem;
 
   public get isSelected(): boolean {
     return (

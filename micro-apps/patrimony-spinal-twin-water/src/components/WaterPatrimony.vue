@@ -147,6 +147,7 @@ export default {
             backgroundColor: res[1][i].color,
             data: res[1][i].timeSeries,
             borderColor: res[1][i].color,
+            pointRadius: 0,
             // data: this.shuffleArray(res[1][i].timeSeries),
             // fill: true
           }

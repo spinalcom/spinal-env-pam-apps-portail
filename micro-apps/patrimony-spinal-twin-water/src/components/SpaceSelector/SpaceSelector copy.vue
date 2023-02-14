@@ -29,17 +29,17 @@ with this file. If not, see
       @click="$emit('update:open', !open)"
     ></div> -->
     <v-card
+      elevation="4"
       color="#14202C"
       :class="{ 'space-selector-open': open }"
       class="space-selector"
       style="border: 1px solid #f5f5f5; border-bottom: none !important; overflow: hidden;"
-      :style="[{height: open ? selectorHeight+'px !important' : '59px'},
-      { 'border-right': edge ? '' : 'none' },
+      :style="[{ 'border-right': edge ? '' : 'none' },
       { 'border-top-right-radius': edge ? '' : '0 !important' },
       { 'border-bottom-right-radius': (edge || (!edge && open)) ? '' : '0 !important' }]"
     >
       <div
-        @click="$emit('update:open', !open);showSign()"
+        @click="$emit('update:open', !open)"
         ref="SpaceSelectorTitleContainer"
         class="space-selector-header"
       >
@@ -91,10 +91,9 @@ import { convertZonesToISpaceSelectorItems } from './convertZonesToISpaceSelecto
   },
 })
 class SpaceSelector extends Vue {
-  @Prop({ type: Function, required: false })
-GetChildrenFct!: (
-item?: ISpaceSelectorItem
-) => Promise<IZoneItem[]>;
+  @Prop({ type: Function, required: false }) GetChildrenFct: (
+    item?: ISpaceSelectorItem
+  ) => Promise<IZoneItem[]>;
 
   @Prop({
     type: Number,
@@ -117,7 +116,6 @@ item?: ISpaceSelectorItem
     default: true
   })
   edge!: boolean;
-  selectorHeight = 0;
 
   get selectedZoneName() {
     return this.selectedZone?.name || 'Sélectionnez une zone';
@@ -246,18 +244,12 @@ item?: ISpaceSelectorItem
     }
   }
 
-  showSign(): void{
-    console.log(this.buildingStructure.length);
-    
-    this.selectorHeight = (this.buildingStructure.length * 56) + 60 + 30;
-  }
-
   // animation methods
-  beforeEnter(el: { style: { opacity: number; height: number; }; }) {
+  beforeEnter(el) {
     el.style.opacity = 0;
     el.style.height = 0;
   }
-  enter(el: { dataset: { index: number; }; }, done: any) {
+  enter(el, done) {
     var delay = el.dataset.index * 5;
     setTimeout(function () {
       Velocity(el, { opacity: 1, height: '50px' }, { complete: done });
@@ -282,10 +274,10 @@ export default SpaceSelector;
 }
 
 .card-list {
-  max-height: calc(100% - 64px);
-  padding-top: 10px;
-  padding-bottom: 10px;
-  overflow: auto;
+  height: calc(100% - 64px);
+  padding-top: 8px;
+  padding-bottom: 8px;
+  overflow: z;
 }
 
 .space-selector {
@@ -300,7 +292,7 @@ export default SpaceSelector;
 }
 .space-selector-container {
   position: absolute;
-  max-height: calc(100vh - 10px);
+  height: calc(100vh - 10px);
   width: 100%;
   right: 0;
   overflow: hidden;
@@ -311,13 +303,12 @@ export default SpaceSelector;
 
 .space-selector-header {
   border-radius: 0px;
-  height: 60px;
+  height: 64px;
   background-color: #14202c;
   cursor: pointer;
 }
 
 .space-selector-header-title {
-  margin: 0;
   font-weight: 300;
   padding: 8px;
   font-size: 26px;
@@ -330,9 +321,9 @@ export default SpaceSelector;
   font-size: 30px;
 }
 .space-selector-open {
-  /* padding-bottom: 10px; */
+  padding-bottom: 12px;
   overflow-y: auto;
-  max-height: calc(100vh - 20px);
+  height: calc(100vh - 20px);
 }
 
 .rotate-enabled {
@@ -363,8 +354,8 @@ export default SpaceSelector;
   background: rgba(169, 169, 169, 0.9);
 }
 .spinal-scrollbar::-webkit-scrollbar-track {
-  /* -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
-  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3); */
+  -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
   -webkit-border-radius: 5px;
   border-radius: 5px;
 }
