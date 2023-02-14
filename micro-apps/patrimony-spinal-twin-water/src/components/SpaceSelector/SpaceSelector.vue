@@ -33,7 +33,7 @@ with this file. If not, see
       color="#14202C"
       :class="{ 'space-selector-open': open }"
       class="space-selector"
-      style="border: 1px solid #f5f5f5; overflow: hidden;"
+      style="border: 1px solid #f5f5f5; border-bottom: none !important; overflow: hidden;"
       :style="[{ 'border-right': edge ? '' : 'none' },
       { 'border-top-right-radius': edge ? '' : '0 !important' },
       { 'border-bottom-right-radius': (edge || (!edge && open)) ? '' : '0 !important' }]"
@@ -284,7 +284,7 @@ export default SpaceSelector;
   z-index: 1000;
   width: calc(100% - 0px);
   /* max-width: 500px; */
-  height: 60px;
+  height: 59px;
   float: right;
   border-radius: 10px !important;
   overflow: hidden;
