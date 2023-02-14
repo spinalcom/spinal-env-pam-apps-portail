@@ -32,13 +32,13 @@ function getPeriodArray(timestamp, period) {
   } else if (period === '3 mois') {
     var startOfMonth = moment(timestamp).add(-2, 'months').startOf('month');
     var endOfMonth = moment(timestamp).endOf('month');
-    var daysInMonth = [];
+    var daysIn3Months = [];
     var currentDay = moment(startOfMonth);
     while (currentDay.isSameOrBefore(endOfMonth)) {
-      daysInMonth.push(currentDay.format('DD MMM'));
+      daysIn3Months.push(currentDay.format('DD MMM'));
       currentDay.add(1, 'day');
     }
-    return [daysInMonth, moment(timestamp).startOf('month').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss')];
+    return [daysIn3Months, moment(timestamp).add(-2, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss')];
   } else {
     return [];
   }
