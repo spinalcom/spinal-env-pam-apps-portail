@@ -145,9 +145,9 @@ export default {
           {
             label: res[1][i].name,
             backgroundColor: res[1][i].color,
-            // data: res[1][i].timeSeries,
+            data: res[1][i].timeSeries,
             borderColor: res[1][i].color,
-            data: this.shuffleArray(res[1][i].timeSeries),
+            // data: this.shuffleArray(res[1][i].timeSeries),
             // fill: true
           }
         )
