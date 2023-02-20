@@ -29,8 +29,8 @@ with this file. If not, see
       <space-selector
         v-if="defaultSelected.name && defaultSelected.name !=''"
         ref="space-selector"
-        :open.sync="openSpaceSelector"
-        :maxDepth="0"
+        :open="false"
+        :maxDepth="-1"
         :GetChildrenFct="onSpaceSelectOpen"
         v-model="defaultSelected"
       />
@@ -97,7 +97,7 @@ class App extends Vue {
   defaultSelected = {
     platformId: '',
     name: 'Patrimoine',
-    staticId: '',
+    staticId: '1',
     color: '',
     dynamicId: 0,
     type: 'geographicBuilding',
@@ -229,8 +229,26 @@ class App extends Vue {
       return timeOptions;
   }
   onSpaceSelectOpen(item?: ISpaceSelectorItem): any {
+    return [];
+    console.log(item?.type);
+    let d = {
+    platformId: '',
+    name: 'Patrimoine',
+    staticId: '',
+    color: '',
+    dynamicId: 0,
+    type: 'geographicBuilding',
+    level: 0,
+    isOpen: true,
+    loading: false,
+    patrimoineId: 'patrimoineId',
+    parents: [],
+    isLastInGrp: true,
+    drawLink: [],
+    haveChildren: true,
+  } as ISpaceSelectorItem;
     switch (item?.type) {
-      case undefined: // 1st call send undifined => send patrimoine // later change with Moussa API edit
+      case undefined:
         const patrimoine = localStorage.getItem("patrimoine");
         let patrimoineObject = JSON.parse(patrimoine!);
         let buildings: any = [];
@@ -251,6 +269,8 @@ class App extends Vue {
             })
         }
         return buildings;
+      // case 'patrimoine':
+      //   return [d,d,d,d,d];
       default:
         return [];
     }
@@ -311,7 +331,7 @@ export default App;
   width: 50%;
   background: #14202c;
   border: 1px solid #f5f5f5;
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 html {

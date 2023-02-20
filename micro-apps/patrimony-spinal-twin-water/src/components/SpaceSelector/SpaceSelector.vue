@@ -32,8 +32,9 @@ with this file. If not, see
       color="#14202C"
       :class="{ 'space-selector-open': open }"
       class="space-selector"
-      style="border: 1px solid #f5f5f5; border-bottom: none !important; overflow: hidden;"
+      style="border: 1px solid #f5f5f5; border-left: 2px solid #f5f5f5; border-bottom: none !important; overflow: hidden;"
       :style="[{height: open ? selectorHeight+'px !important' : '59px'},
+      {'overflow-y': !isFill},
       { 'border-right': edge ? '' : 'none' },
       { 'border-top-right-radius': edge ? '' : '0 !important' },
       { 'border-bottom-right-radius': (edge || (!edge && open)) ? '' : '0 !important' }]"
@@ -46,7 +47,7 @@ with this file. If not, see
         <p class="space-selector-header-title"
           >{{ selectedZoneName }}
           <v-icon
-            color="#f5f5f5"
+            :style="[{color: maxDepth !== -1 ? '#f5f5f5' : '#14202c'}]"
             class="rotate-disabled space-selector-header-title-icon"
             :class="{ 'rotate-enabled': open }"
             >mdi-chevron-down</v-icon
@@ -54,8 +55,10 @@ with this file. If not, see
         </p>
       </div>
       <transition-group
+        id="myDiv"
         name="staggered-fade"
         class="card-list spinal-scrollbar"
+        :style="[{'overflow-y': isFill + ' !important'},]"
         tag="div"
         v-bind:css="false"
         v-on:before-enter="beforeEnter"
@@ -64,7 +67,7 @@ with this file. If not, see
         <SpaceSelectorItem
           class="staggered-fade-item"
           v-for="(item, index) in buildingStructure"
-          :key="`${item.staticId}-${item.platformId}-${item.patrimoineId}`"
+          :key="`${index}-${item.staticId}-${item.platformId}-${item.patrimoineId}`"
           :item="item"
           v-bind:data-index="index"
           :maxDepth="maxDepth"
@@ -84,6 +87,7 @@ import type { IZoneItem } from './interfaces/IBuildingItem';
 import type { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
 import SpaceSelectorItem from './SpaceSelectorItem.vue';
 import { convertZonesToISpaceSelectorItems } from './convertZonesToISpaceSelectorItems';
+import { computed } from 'vue';
 
 @Component({
   components: {
@@ -122,6 +126,8 @@ item?: ISpaceSelectorItem
   get selectedZoneName() {
     return this.selectedZone?.name || 'Sélectionnez une zone';
   }
+  
+  isFill = 'hidden';
 
   buildingStructure: ISpaceSelectorItem[] = [];
 
@@ -159,13 +165,25 @@ item?: ISpaceSelectorItem
         }
       }
     }
+    this.checkingOverflow();
   }
 
   select(item?: ISpaceSelectorItem) {
     this.$emit('update:open', !this.open);
     this.$emit('input', item);
   }
+  private myDiv!: HTMLDivElement;
+  checkingOverflow() {
+    const myDiv = document.getElementById('myDiv');
+    const windowHeight = window.innerHeight;
+    const divHeight = myDiv!.offsetHeight;
 
+    if (divHeight >= windowHeight - 421) {
+      this.isFill = 'auto';
+    } else {
+      this.isFill = 'hidden';
+    }
+  }
   async mounted() {
     const children = await this.GetChildrenFct();
     this.buildingStructure = convertZonesToISpaceSelectorItems(children);
@@ -178,6 +196,7 @@ item?: ISpaceSelectorItem
 
   // on click the righht button open / close
   async expandCollapse(
+    
     item: ISpaceSelectorItem,
     index: number,
     forceOpen = false
@@ -187,7 +206,11 @@ item?: ISpaceSelectorItem
     } else {
       await this.openItem(item, index);
     }
+
+    this.selectorHeight = (this.buildingStructure.length * 56) + 60 + 30;
+    this.checkingOverflow();
   }
+  
   private async openItem(item: ISpaceSelectorItem, index: number) {
     item.isOpen = true;
     item.loading = true;
@@ -202,6 +225,7 @@ item?: ISpaceSelectorItem
       console.error('error fetch childrens.', error);
     }
     item.loading = false;
+    this.checkingOverflow();
   }
 
   private closeItem(item: ISpaceSelectorItem) {
@@ -247,8 +271,6 @@ item?: ISpaceSelectorItem
   }
 
   showSign(): void{
-    console.log(this.buildingStructure.length);
-    
     this.selectorHeight = (this.buildingStructure.length * 56) + 60 + 30;
   }
 
@@ -263,6 +285,7 @@ item?: ISpaceSelectorItem
       Velocity(el, { opacity: 1, height: '50px' }, { complete: done });
     }, delay);
   }
+
 }
 export default SpaceSelector;
 </script>
@@ -297,6 +320,7 @@ export default SpaceSelector;
   border-radius: 10px !important;
   overflow: hidden;
   transition: height 0.3s ease-in;
+  box-shadow: none !important;
 }
 .space-selector-container {
   position: absolute;

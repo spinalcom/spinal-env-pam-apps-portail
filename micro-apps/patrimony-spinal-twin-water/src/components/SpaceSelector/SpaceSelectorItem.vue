@@ -41,7 +41,7 @@ with this file. If not, see
       <div
         class="parent-link"
         v-for="depth in item.level - 1"
-        :key="depth"
+        :key="depth+item.staticId"
         v-show="drawParentLink(depth)"
         :style="{ 'margin-left': '-' + (depth * 20 + 11) + 'px' }"
       ></div>
@@ -94,7 +94,7 @@ selected!: ISpaceSelectorItem;
   }
 
   public get icon(): string {
-    return this.item?.isOpen ? 'mdi-chevron-down' : 'mdi-chevron-up';
+    return this.item?.isOpen ? 'mdi-chevron-up' : 'mdi-chevron-down';
   }
 
   onSelect() {
@@ -126,10 +126,10 @@ export default SpaceSelectorItem;
 
 .space-selector-list-item-angle {
   margin-left: -11px;
-  height: 24px;
+  height: 30px;
   background-color: transparent;
   border: 1px solid #4b6079;
-  margin-top: -23px;
+  margin-top: -30px;
   width: 10px;
   border-right: none;
   border-top: none;
@@ -153,7 +153,7 @@ export default SpaceSelectorItem;
   + .space-selector-list-item-level-7,
 .space-selector-list-item.space-selector-list-item-level-7
   + .space-selector-list-item-level-8 {
-  margin-top: -1px;
+  margin-top: 6px;
 }
 
 .space-selector-list-item-angle-extend {
