@@ -11,11 +11,11 @@
       <SpinalTable :context="patrimonyTable" :temporality="temporality"/>
     </div>
     <div class="MC" v-else>
-      <LoadingCard class="flex-grow-1 pa-4 br" />
+      <LoadingCard class="flex-grow-1 pa-4 br" style="width: 100%;"/>
       <div class="d-flex cards">
           <LoadingCard class="flex-grow-1 pa-4"  style="height: 106px"/><LoadingCard class="flex-grow-1 pa-4"  style="height: 106px"/><LoadingCard class="flex-grow-1 pa-4"  style="height: 106px"/>
       </div>
-      <LoadingCard class="pa-4" :style="{height: tableCard + 'px'}"/>
+      <LoadingCard class="pa-4" :style="{height: tableCard + 'px'}" style="width: 100%;"/>
     </div>
   </div>
 </template>
