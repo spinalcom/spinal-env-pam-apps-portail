@@ -34,10 +34,6 @@ import "./assets/css/basic/reset.css";
 import "./assets/css/basic/main.less";
 import "./assets/css/component/navPickerApp.css";
 import "material-design-icons-iconfont";
-import SpinalComponent from "spinal-components";
-import "spinal-components/dist/spinal-components.css";
-
-Vue.use(SpinalComponent, {});
 
 vuetifyInit(Vue);
 routerInit(Vue);

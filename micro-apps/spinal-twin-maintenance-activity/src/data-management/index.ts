@@ -51,11 +51,14 @@ export function splitByPeriode(to_split: any[]) {
     const val = values.find((v: any) => v.step);
     const step = val ? val.step : "";
     let inter = [...values];
+
     let serie = [];
     for (let c of calendar.decade) {
       serie.push(
-        inter.filter((e: any) => new Date(e.creation_date).getFullYear() === c)
-          .length
+        inter.filter((e: any) => {
+          const date = e.creation_date.split("/");
+          return new Date(date[2], date[1] - 1, date[1]).getFullYear() === c;
+        }).length
       );
     }
     series.decade.push({ label: step, data: serie });
@@ -66,8 +69,10 @@ export function splitByPeriode(to_split: any[]) {
     );
     for (let c of calendar.year) {
       serie.push(
-        inter.filter((e: any) => new Date(e.creation_date).getMonth() === c)
-          .length
+        inter.filter((e: any) => {
+          const date = e.creation_date.split("/");
+          return new Date(date[2], date[1] - 1, date[0]).getMonth() === c;
+        }).length
       );
     }
     series.year.push({ label: step, data: serie });
@@ -78,8 +83,10 @@ export function splitByPeriode(to_split: any[]) {
     );
     for (let c of calendar.month) {
       serie.push(
-        inter.filter((e: any) => new Date(e.creation_date).getDate() === c)
-          .length
+        inter.filter((e: any) => {
+          const date = e.creation_date.split("/");
+          return new Date(date[2], date[1] - 1, date[1]).getDate() === c;
+        }).length
       );
     }
     series.month.push({ label: step, data: serie });
@@ -90,8 +97,10 @@ export function splitByPeriode(to_split: any[]) {
     );
     for (let c of calendar.week) {
       serie.push(
-        inter.filter((e: any) => new Date(e.creation_date).getDay() === c)
-          .length
+        inter.filter((e: any) => {
+          const date = e.creation_date.split("/");
+          return new Date(date[2], date[1] - 1, date[1]).getDay() === c;
+        }).length
       );
     }
     series.week.push({ label: step, data: serie });
@@ -102,8 +111,10 @@ export function splitByPeriode(to_split: any[]) {
     );
     for (let c of calendar.day) {
       serie.push(
-        inter.filter((e: any) => new Date(e.creation_date).getHours() === c)
-          .length
+        inter.filter((e: any) => {
+          const date = e.creation_date.split("/");
+          return new Date(date[2], date[1] - 1, date[1]).getHours() === c;
+        }).length
       );
     }
     series.day.push({ label: step, data: serie });
@@ -121,7 +132,12 @@ export function splitByPeriode(to_split: any[]) {
  * @param {*} tickets
  * @return {*} tickets splitten by domain
  */
-export function splitByDomains(domains: any[], steps: any[], tickets: any[]) {
+export function splitByDomains(
+  domains: any[],
+  steps: any[],
+  tickets: any[],
+  declarants: any[]
+) {
   const domains_inter = [];
   for (let domain of domains) {
     const step_inter = [];
@@ -136,6 +152,7 @@ export function splitByDomains(domains: any[], steps: any[], tickets: any[]) {
     domains_inter.push({
       name: domain.name,
       number: domain_tickets.length,
+      declarants: splitByDeclarants(declarants, domain_tickets),
       tickets: splitByPeriode(step_inter),
     });
   }
@@ -159,7 +176,7 @@ export function splitByDeclarants(declarants: any[], tickets: any[]) {
     });
   }
 
-  return declarants_inter;
+  return declarants_inter.filter((d) => d.value > 0);
 }
 
 /**

@@ -21,14 +21,15 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
+import { findNode, setWorkflow, setWorkflows } from "../ticket-management";
 import Vue from "vue";
 import Vuex from "vuex";
 
 import {
   getWorkflowTreeAsync,
   getTicketDetailsAsync,
-  getTicketWorkflowAsync,
   getWorkflowListAsync,
+  getBuildingSpaceTreeAsync,
 } from "../api-requests";
 import {
   runningTickets,
@@ -39,11 +40,20 @@ import {
 Vue.use(Vuex);
 
 export default new Vuex.Store({
-  state: () => ({ workflows: [] }),
+  state: () => ({
+    building: {},
+    //workflows: [],
+  }),
 
   mutations: {
-    SET_WORKFLOWS(state: any, paylode: any) {
-      state.workflows = paylode;
+    SET_BUILDING(state: any, payload: any) {
+      state.building = payload;
+    },
+    SET_WORKFLOWS(state: any, payload: any) {
+      setWorkflows(state.building, payload);
+    },
+    SET_WORKFLOW_2(state: any, payload: any) {
+      setWorkflow(state.building, payload.workflowId, payload.tickets);
     },
     SET_WORKFLOW(state: any, payload: any) {
       const found = state.workflows.find(
@@ -61,6 +71,8 @@ export default new Vuex.Store({
 
   actions: {
     async initWorkflows({ commit }: any) {
+      const building = await getBuildingSpaceTreeAsync();
+      commit("SET_BUILDING", building);
       const workflows = await getWorkflowListAsync();
       for (const workflow of workflows) workflow.loaded = false;
       commit("SET_WORKFLOWS", workflows);
@@ -68,19 +80,14 @@ export default new Vuex.Store({
         this.dispatch("loadWorkflow", workflows[0].dynamicId);
     },
     async loadWorkflow({ state, commit }: any, workflowId) {
-      const found = state.workflows.find(
+      const found = state.building.workflows.find(
         (w: any) => w.dynamicId === workflowId
       );
       if (found && found.loaded) return;
-      const tickets = <any[]>[];
-      const steps = <any[]>[];
-      const domains = [{ name: "Tous les domaines" }];
-      const declarants = <any[]>[];
       const promises = <any[]>[];
       try {
         const domain = await getWorkflowTreeAsync(workflowId);
         for (let d of domain.children) {
-          if (!domains.includes(d.name)) domains.push({ name: d.name }); // noms des domaines
           for (let s of d.children) {
             // on ne traite que les tickets en cours
             if (
@@ -94,7 +101,6 @@ export default new Vuex.Store({
               ].includes(s.name)
             )
               continue;
-            if (!steps.includes(s.name)) steps.push(s.name); // noms des étapes
             for (let t of s.children) {
               promises.push(
                 getTicketDetailsAsync(t.dynamicId).catch((error: any) => {})
@@ -102,74 +108,63 @@ export default new Vuex.Store({
             }
           }
         }
-        Promise.all(promises)
-          .then((ret) =>
-            ret.forEach((t) => {
-              if (!t) return;
-              const ticket = t;
-              const user = ticket.userName ? ticket.userName : "admin"; // certains ont un declarant vide
-              if (!declarants.includes(user)) declarants.push(user); // noms desdéclarants
-              tickets.push({
-                name: ticket.name,
-                step: ticket.step.name,
-                domain: ticket.process.name,
-                creation_date: new Date(ticket.log_list[0].date).toDateString(),
-                last_step_date: new Date(
-                  ticket.log_list[ticket.log_list.length - 1].date
-                ).toDateString(),
-                declarant: user,
-              });
-            })
-          )
-          .then(() => {
-            const payload = {
-              dynamicId: workflowId,
-              tickets: runningTickets(tickets),
-              domains: splitByDomains(domains, steps, tickets),
-              declarants: splitByDeclarants(declarants, tickets),
-              steps: steps,
-            };
-            commit("SET_WORKFLOW", payload);
-          });
+        Promise.all(promises).then((ret) => {
+          commit("SET_WORKFLOW_2", { workflowId, tickets: ret });
+        });
       } catch {}
     },
   },
 
   getters: {
-    getDomains: (state) => (workflowId: number) => {
-      const found = state.workflows.find(
+    getDomains: (state) => (spaceId: number, workflowId: number) => {
+      const space = findNode(state.building, spaceId);
+      const found = space.workflows.find(
         (w: any) => w.dynamicId === workflowId
       );
       if (found && found.loaded) {
         return found.domains;
       }
     },
-    getTickets: (state) => (workflowId: number) => {
-      const found = state.workflows.find(
+    getDomain:
+      (state, getters) =>
+      (spaceId: number, workflowId: number, domain: string) => {
+        const domains = getters.getDomains(spaceId, workflowId);
+        if (domains)
+          return domains.find((d: any) => d.name && d.name === domain);
+      },
+    getTickets: (state) => (spaceId: number, workflowId: number) => {
+      const space = findNode(state.building, spaceId);
+      const found = space.workflows.find(
         (w: any) => w.dynamicId === workflowId
       );
       if (found && found.loaded) {
         return found.tickets;
       }
     },
-    getSteps: (state) => (workflowId: number) => {
-      const found = state.workflows.find(
+    getSteps: (state) => (spaceId: number, workflowId: number) => {
+      const space = findNode(state.building, spaceId);
+      const found = space.workflows.find(
         (w: any) => w.dynamicId === workflowId
       );
       if (found && found.loaded) {
         return found.steps;
       }
     },
-    getDeclarants: (state) => (workflowId: number) => {
-      const found = state.workflows.find(
+    getDeclarants: (state) => (spaceId: number, workflowId: number) => {
+      const space = findNode(state.building, spaceId);
+      const found = space.workflows.find(
         (w: any) => w.dynamicId === workflowId
       );
       if (found && found.loaded) {
         return found.declarants;
       }
     },
-    isLoaded: (state) => (workflowId: number) => {
-      const found = state.workflows.find(
+    isLoaded: (state) => (spaceId: number, workflowId: number) => {
+      if (Object.keys(state.building).length === 0 || !spaceId) return false;
+      const space = findNode(state.building, spaceId);
+
+      if (!space || !space.workflows) return false;
+      const found = space.workflows.find(
         (w: any) => w.dynamicId === workflowId
       );
       if (found) return found.loaded;

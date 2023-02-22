@@ -23,8 +23,8 @@ with this file. If not, see
 -->
 
 <template>
-  <v-app class="application">
-    <div style="width: 100%; z-index: 2" class="d-flex justify-end">
+  <v-app>
+    <div style="width: 100%" class="d-flex justify-end">
       <sc-download-button
         class="ma-1 pa-1"
         :file-name="'Tickets'"
@@ -50,20 +50,15 @@ with this file. If not, see
 </template>
 
 <script>
-import { mapActions, mapState, mapGetters } from "vuex";
-import { getUserBos } from "../../../src/requests/userData";
+import { mapActions, mapGetters } from "vuex";
 import {
   getBuildingAsync,
   getFloorListAsync,
   getRoomListAsync,
-  getWorkflowListAsync,
 } from "./api-requests";
-import SpaceSelector from "spinal-components/src/components/SpaceSelector.vue";
 
 export default {
   name: "App",
-
-  components: { SpaceSelector },
 
   data: () => ({
     el: { title: "Selection", name: "Bâtiment" },
@@ -105,6 +100,7 @@ export default {
   },
 
   async mounted() {
+    this.el.title = (await getBuildingAsync()).name;
     await this.loadTickets();
   },
 };
@@ -113,10 +109,6 @@ export default {
 <style scoped>
 html {
   overflow-y: auto !important;
-}
-
-.application {
-  background: linear-gradient(121deg, #f8fafa, #d6e2e6);
 }
 
 .v-main {

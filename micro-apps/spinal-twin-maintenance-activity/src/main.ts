@@ -29,6 +29,7 @@ import vuetify from "./plugins/vuetify";
 import "vuetify/dist/vuetify.min.css";
 import SpinalComponents from "spinal-components";
 import "spinal-components/dist/spinal-components.css";
+import "../../../src/assets/scss/style.scss";
 
 Vue.use(SpinalComponents, {});
 

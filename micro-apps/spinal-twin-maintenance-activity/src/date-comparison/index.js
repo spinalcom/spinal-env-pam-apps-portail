@@ -22,7 +22,7 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import moment from 'moment';
+import moment from "moment";
 
 const today = new Date();
 
@@ -32,30 +32,8 @@ const calendar_dates = {
   month: [],
   week: [],
   day: [
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    17,
-    18,
-    19,
-    20,
-    21,
-    22,
-    23,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    21, 22, 23,
   ],
 };
 const calendar_labels = {
@@ -64,49 +42,27 @@ const calendar_labels = {
   month: [],
   week: [],
   day: [
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    17,
-    18,
-    19,
-    20,
-    21,
-    22,
-    23,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    21, 22, 23,
   ],
 };
 
 const labels = {
   year: [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'Mai',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "Mai",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ],
-  week: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
+  week: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
 };
 
 const currentYear = today.getFullYear();
@@ -160,31 +116,38 @@ function compareDates(date1, date2) {
 export function sameDecade(date1, date2) {
   const compared = compareDates(date1, date2);
   return moment(compared.inf).isBetween(
-    moment(compared.sup).subtract(10, 'year'),
+    moment(compared.sup).subtract(10, "year"),
     compared.sup
   );
 }
 export function sameYear(date1, date2) {
   const compared = compareDates(date1, date2);
   return moment(compared.inf).isBetween(
-    moment(compared.sup).subtract(1, 'year'),
+    moment(compared.sup).subtract(1, "year"),
     compared.sup
+  );
+}
+export function previousYear(date1, date2) {
+  const compared = compareDates(date1, date2);
+  return moment(compared.inf).isBetween(
+    moment(compared.sup).subtract(1, "year"),
+    moment(compared.sup).subtract(2, "year")
   );
 }
 export function sameMonth(date1, date2) {
   const compared = compareDates(date1, date2);
   return moment(compared.inf).isBetween(
-    moment(compared.sup).subtract(1, 'month'),
+    moment(compared.sup).subtract(1, "month"),
     compared.sup
   );
 }
 export function sameWeek(date1, date2) {
   const compared = compareDates(date1, date2);
   return moment(compared.inf).isBetween(
-    moment(compared.sup).subtract(1, 'week'),
+    moment(compared.sup).subtract(1, "week"),
     compared.sup
   );
 }
 export function sameDay(date1, date2) {
-  return moment(date1).isSame(date2, 'day');
+  return moment(date1).isSame(date2, "day");
 }
