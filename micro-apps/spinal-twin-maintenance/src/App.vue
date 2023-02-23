@@ -72,7 +72,7 @@ class App extends Vue {
   timedata = { name: 'SEMAINE', value: 'week' };
   defaultSelected = {
     platformId: '',
-    name: 'Patrimoine',
+    name: 'A',
     staticId: '1',
     color: '',
     dynamicId: 0,

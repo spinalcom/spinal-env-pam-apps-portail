@@ -298,7 +298,7 @@ export default SpaceSelector;
   float: right;
   border-radius: 10px !important;
   overflow: hidden;
-  transition: height 0.3s ease-in;
+  transition: height 0.2s ease-in;
   box-shadow: none !important;
 }
 .space-selector-container {
