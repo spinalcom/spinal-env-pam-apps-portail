@@ -1,9 +1,9 @@
 <template>
   <div class="RC" style="min-height: 480px">
     <div class="MC" v-if="load">
-        <BarChart :title="'Activité des tickets en cours'" :labels="['one', 'two', 'three']" :datasets="[808, 909, 707]" stacked class="BR">
+        <BarChart :title="'Activité des tickets en cours'" :labels="['one', 'two', 'three']" :datasets="[808, 909, 707]" @nav="nav" stacked class="BR">
             <template v-slot:extras>
-            <v-select :items="['One', 'Two', 'Three','Four', 'Five', 'Six','Test', 'QWERT', 'KYJU','NHJYU', 'tuyhio', 'qwerbv']" outlined color="#000000DE" item-color="#000000DE" dense style="min-width: 200px; width: 15%; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Domaine">
+            <v-select v-model="domain" append-icon="mdi-chevron-down" :items="domainList" outlined menu-props="{ bottom: true }" color="#E3E7E8" item-color="#E3E7E8" dense style="min-width: 200px; width: 340px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Domaine">
               <template #label="{ attrs }">
                 <label :for="attrs.id" style="font-size: 14px;">Select an item</label>
               </template>
@@ -42,36 +42,91 @@
   </div>
 </template>
 
-<script>
-import BarCard from "spinal-components/src/components/BarCard.vue";
-import StatsCard from "spinal-components/src/components/StatsCard.vue";
+<script lang="ts">
+import Component from 'vue-class-component';
+import { Prop, Vue, Watch } from 'vue-property-decorator';
+import BarChart from "spinal-components/src/components/BarCard.vue";
+import StatCard from "spinal-components/src/components/StatsCard.vue";
 import PieCard from "spinal-components/src/components/PieCard.vue";
 import LoadingCard from "spinal-components/src/components/LoadingCard.vue";
-export default {
-    components: {
-    "BarChart": BarCard,
-    "StatCard": StatsCard,
-    "PieCard": PieCard,
-    "LoadingCard": LoadingCard
+import { getData, curveData } from "../services/index.js";
+import moment from 'moment';
+import { TemporalityModel } from '../models/Temporality.model'
+
+@Component({
+  components: {
+    BarChart,
+    StatCard,
+    PieCard,
+    LoadingCard
   },
-  data: () => ({
-    load: false,
-    pie: [
-      { label: "One", value: 64 },
-      { label: "Two", value: 58 },
-      { label: "Three", value: 60 },
-      { label: "Four", value: 69 },
-      { label: "Five", value: 58 },
-      { label: "Six", value: 60 },
-      { label: "Seven", value: 69 },
-    ]
-  }),
-  mounted() {
-    setTimeout(() => {
-      this.load = true
-    }, 500)
+})
+class App extends Vue {
+  @Prop({ type: Object as () => TemporalityModel, required: true, })
+  temporality: TemporalityModel;
+  
+  load= false;
+  ticketList: {domains: [], ticketList: []};
+  domainList:string[] = ['Tous les domains'];
+  currentTimestamp = {valueTime: 0};
+
+  barData!: {};
+  domain: string = 'Tous les domains';
+  pieData!: {};
+  cardsData!: {};
+  pie= [
+    { label: "One", value: 64 },
+    { label: "Two", value: 58 },
+    { label: "Three", value: 60 },
+    { label: "Four", value: 69 },
+    { label: "Five", value: 58 },
+    { label: "Six", value: 60 },
+    { label: "Seven", value: 69 },
+  ];
+  async mounted() {
+    this.ticketList = await getData();
+    let dom;
+    for(const d of this.ticketList.domains) {
+      dom = d as any;
+      this.domainList.push(dom.name);
+    }
+    this.interval();
+    this.load = true;
+  }
+
+  interval() {
+    this.currentTimestamp = {valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
+    this.spreadData();
+  }
+
+  @Watch('temporality')
+  temporalityChange() {
+    this.interval();
+  }
+
+  nav(payload: number): void {
+    
+    if (this.temporality.name == 'Semaine') {
+      this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'weeks').valueOf()};
+    }
+    if (this.temporality.name == 'Mois') {
+      this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'months').valueOf()};
+    }
+    if (this.temporality.name == 'Année') {
+      this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf()};
+    }
+    this.spreadData();
+  }
+
+  spreadData() {
+    let res = curveData(this.temporality.name, this.currentTimestamp.valueTime, this.domain, this.ticketList.ticketList);
+    this.barData = res[0];
+    this.cardsData = res[1];
+    this.pieData = res[2];
   }
 }
+
+export default App;
 </script>
 
 <style scoped>
@@ -138,5 +193,13 @@ export default {
   font-size: 14px !important;
   letter-spacing: 1.1px !important;
   color: #000000DE !important;
+}
+
+::v-deep  .theme--light.v-text-field--outlined:not(.v-input--is-focused):not(.v-input--has-state) > .v-input__control > .v-input__slot fieldset {
+  color: #E3E7E8 !important;
+}
+
+::v-deep .theme--light.v-icon {
+  color: #E3E7E8 !important;
 }
 </style>

@@ -45,7 +45,7 @@ import type {
   TGeoItem,
 } from './components/SpaceSelector/interfaces/IBuildingItem';
 import MicroApp from './components/MaintenanceActivity.vue';
-import  { getBuilding, getFloors, getRooms } from './services/getBuilding.js';
+import { getBuilding } from './services/index.js';
 interface IItemData {
   platformId: string;
   id: number | number[];
@@ -72,7 +72,7 @@ class App extends Vue {
   timedata = { name: 'SEMAINE', value: 'week' };
   defaultSelected = {
     platformId: '',
-    name: 'A',
+    name: '',
     staticId: '1',
     color: '',
     dynamicId: 0,
@@ -119,9 +119,8 @@ class App extends Vue {
   }
 
   async mounted() {
-    const patrimoine = localStorage.getItem("patrimoine");
-    let patrimoineObject = JSON.parse(patrimoine!);
-    this.defaultSelected.name = patrimoineObject.name;
+    let building = await getBuilding();
+    this.defaultSelected.name = building.name;
     // let res = await getBuilding();
     // this.defaultSelected.dynamicId = res.dynamicId;
     this.selectedZone = this.defaultSelected;

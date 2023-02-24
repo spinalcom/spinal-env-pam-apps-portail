@@ -29,7 +29,7 @@
             mdi-chevron-down
           </v-icon>
             
-            {{ selectedZoneName }}
+            {{ selectedZoneName.toUpperCase() }}
           
         </p>
       </div>
