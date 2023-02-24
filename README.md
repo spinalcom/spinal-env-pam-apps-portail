@@ -1,8 +1,8 @@
 # spinal-apps-portail
 
-## Control points
+## Control points & steps
 
-Edit the file name endpoints.json in the root of the project to configure your control points.
+Edit the file name config.json in the root of the project to configure your control points steps.
 
 ```
 spinal-env-pam-portal

@@ -90,7 +90,7 @@ with this file. If not, see
         <sc-loading-card class="flex-grow-1 ml-1" v-else></sc-loading-card>
       </div>
       <div
-        style="height: 31%"
+        style="height: 33%"
         class="d-flex flex-row ma-2 justify-space-between"
       >
         <sc-pie-card
@@ -130,7 +130,7 @@ export default {
   data() {
     return {
       nav: {
-        element: { name: "Liste des workflow", title: "" },
+        element: { name: "Batiment", title: "" },
         period: { name: "SEMAINE", value: "week" },
       },
       current_workflow: 0,

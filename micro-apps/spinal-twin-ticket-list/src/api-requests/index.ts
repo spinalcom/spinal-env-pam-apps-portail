@@ -44,6 +44,14 @@ export async function getBuildingSpaceTreeAsync() {
   return building;
 }
 
+export async function getPositionAsync(dynamicId: number) {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(
+    `building/${buildingId}/equipement/${dynamicId}/get_postion`
+  );
+  return result.data;
+}
+
 export async function getFloorListAsync() {
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(`building/${buildingId}/floor/list`);
