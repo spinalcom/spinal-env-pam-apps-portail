@@ -596,6 +596,7 @@ export async function ticketsCreatedtoday() {
 }
 
 export async function ticketsCreated(timestamp, period) {
+  selectedTempoTicketsText = '';
   var todaysCounter = 0;
   let nowDate = moment(timestamp).valueOf();
   let currentDate = moment().valueOf();
@@ -613,6 +614,7 @@ export async function ticketsCreated(timestamp, period) {
     ed = moment(nowDate).endOf(unit);
     beginDate = moment(nowDate).startOf(unit).format('DD MM YYYY');
     endDate = moment(currentDate).endOf(unit).format('DD MM YYYY');
+    selectedTempoTicketsText = 'créés entre le ' + moment(nowDate).startOf(unit).format('DD MMM') + ' et ' + moment(nowDate).endOf(unit).format('DD MMM') ;
     // console.log(`Period is ${period}, unit is ${unit}, begin date: ${beginDate}, end date: ${endDate}`)
   }
   else if (period === 'Mois') {
@@ -621,6 +623,8 @@ export async function ticketsCreated(timestamp, period) {
     ed = moment(nowDate).endOf(unit);
     beginDate = moment(nowDate).startOf(unit).format('DD MM YYYY');
     endDate = moment(currentDate).endOf(unit).format('DD MM YYYY');
+    selectedTempoTicketsText = 'créés en ' + bd.format('MMMM YYYY');
+
   }
   else if (period === 'Année') {
     unit = 'year';
@@ -628,6 +632,7 @@ export async function ticketsCreated(timestamp, period) {
     ed = moment(nowDate).endOf(unit);
     beginDate = moment(nowDate).startOf(unit).format('DD MM YYYY');
     endDate = moment(currentDate).endOf(unit).format('DD MM YYYY');
+    selectedTempoTicketsText = 'créés en ' + bd.format('YYYY');
   }
   else if (period === 'Décennie') {
     unit = 'year';
@@ -635,6 +640,7 @@ export async function ticketsCreated(timestamp, period) {
     ed = moment(nowDate).endOf(unit);
     beginDate = moment(nowDate).add(-9, 'years').startOf(unit).format('DD MM YYYY');
     endDate = moment(currentDate).endOf(unit).format('DD MM YYYY');
+    cardsData.selectedTempoTicketsText = 'créés entre ' + bd.format('YYYY') + ' et ' + moment(currentDate).endOf(unit).format('YYYY');
   }
   for (const workflow of listWorkflowResponse.data) {
     const data = {
@@ -663,7 +669,7 @@ export async function ticketsCreated(timestamp, period) {
     const ticketListStream = await Promise.all(ticketPromises);
     const todaysCounter = ticketListStream.reduce((a, cv) => a + cv, 0);
     // console.log(todaysCounter);
-    return todaysCounter;
+    return [todaysCounter, selectedTempoTicketsText];
 
   }
 }

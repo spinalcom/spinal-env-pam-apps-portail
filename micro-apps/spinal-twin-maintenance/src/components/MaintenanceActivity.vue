@@ -12,7 +12,7 @@
         </BarChart>
         <LoadingCard v-else class="flex-grow-1 pa-4 br" style="width: 100%;"/>
         <div class="d-flex cards">
-          <StatCard  v-if="periodTickets !== -1" :value="periodTickets" :unit="'Tickets'" :title="cardsData.selectedTempoTicketsText" class="flex-grow-1 pa-4" style="width: 100% !important"/>
+          <StatCard  v-if="periodTickets !== -1" :value="periodTickets" :unit="'Tickets'" :title="selectedTempoTicketsText" class="flex-grow-1 pa-4" style="width: 100% !important"/>
           <LoadingCard v-else class="flex-grow-1 pa-4"  style="height: 106px; width: 100% !important"/>
           <StatCard v-if="load" :value="cardsData.onGoingTickets" :unit="'Tickets'" :title="'en cours'" class="flex-grow-1 pa-4" style="width: 100% !important"/>
           <LoadingCard v-else class="flex-grow-1 pa-4"  style="height: 106px; width: 100% !important"/>
@@ -89,6 +89,7 @@ class App extends Vue {
   domain: string = 'Tous les domaines';
   pieData!: {};
   cardsData: StatsModel;
+  selectedTempoTicketsText = '';
   domainPie = [
     // { label: "APPAREIL ", value: 64 },
     // { label: "APPAREIL ", value: 58 },
@@ -158,7 +159,9 @@ class App extends Vue {
 
   try {
     // wait for ticketsCreated to complete
-    this.periodTickets = await ticketsCreatedPromise;
+    let ticketsCreatedRes = await ticketsCreatedPromise;
+    this.periodTickets = ticketsCreatedRes[0];
+    this.selectedTempoTicketsText = ticketsCreatedRes[1];
   } catch (e) {
     // handle cancellation
     if (e instanceof Error && e.message === 'Cancellation') {
