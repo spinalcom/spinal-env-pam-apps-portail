@@ -126,7 +126,11 @@ class App extends Vue {
 
   @Watch('domain')
   async domainChange() {
-    this.spreadData();
+    let res = curveData(this.temporality.name, this.currentTimestamp.valueTime, this.domain, this.ticketList.ticketList);
+    this.barData = res[0];
+    this.cardsData = res[1];
+    this.domainPie = res[2];
+    this.declarerPie = res[3];
   }
 
   async nav(payload: number): Promise<void> {
