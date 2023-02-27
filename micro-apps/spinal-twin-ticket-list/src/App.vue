@@ -34,14 +34,15 @@ with this file. If not, see
         class="ma-1 pa-1"
         v-model="el"
         :path.sync="path"
-        :max-depth="2"
+        :max-depth="1"
         :onopen="expand"
+        :first-tile="firstTile"
       ></sc-space-selector>
     </div>
-    <v-main class="d-flex flex-column pb-6 pt-2 pl-1 pr-1" style="z-index: 1">
+    <v-main class="d-flex flex-column pb-6 pt-2 pl-1 pr-1">
       <v-card
-        style="height: 890px"
-        class="ma-2 d-flex flex-column table-card pa-2 rounded-lg flex-grow-1"
+        style="height: 910px"
+        class="ma-2 d-flex flex-column table-card rounded-lg flex-grow-1"
         elevation="5"
         outlined
       >
@@ -49,8 +50,8 @@ with this file. If not, see
           >Liste des tickets</v-card-title
         >
         <div style="height: calc(100% - 56px)" class="d-flex flex-column">
-          <div class="d-flex flex-row ml-2 mr-2">
-            <div style="width: 30%">
+          <div class="d-flex flex-row ml-6 mr-2">
+            <div style="width: 20%">
               <v-select
                 v-model="domain_filter"
                 label="Domaine"
@@ -65,32 +66,27 @@ with this file. If not, see
               >
                 <template v-slot:selection="{ item, index }">
                   <v-chip
+                    @click:close="
+                      domain_filter = domain_filter.filter((d) => d !== item)
+                    "
+                    close
+                    :close-icon="'mdi-close-circle'"
                     style="font-size: 12px; height: 24px"
-                    v-if="index < 2"
+                    v-if="index < 1"
                   >
                     <span>{{ item }}</span>
-                    <!--<div style="height: 18px; width: 18px">
-                      <v-icon
-                        @click="
-                          domain_filter = domain_filter.filter(
-                            (d) => d !== item
-                          )
-                        "
-                        >mdi-close-circle</v-icon
-                      >
-                    </div>-->
                   </v-chip>
 
                   <span
-                    v-if="index === 2"
+                    v-if="index === 1"
                     class="text-grey text-caption align-self-center"
                   >
-                    (+{{ domain_filter.length - 2 }} others)
+                    (+{{ domain_filter.length - 1 }})
                   </span>
                 </template>
               </v-select>
             </div>
-            <div style="width: 30%" class="ml-5">
+            <div style="width: 20%" class="ml-5">
               <v-select
                 v-model="step_filter"
                 label="Étape"
@@ -105,16 +101,21 @@ with this file. If not, see
               >
                 <template v-slot:selection="{ item, index }">
                   <v-chip
+                    @click:close="
+                      step_filter = step_filter.filter((s) => s !== item)
+                    "
+                    close
+                    :close-icon="'mdi-close-circle'"
                     style="font-size: 12px; height: 24px"
-                    v-if="index < 2"
+                    v-if="index < 1"
                   >
                     <span>{{ item }}</span>
                   </v-chip>
                   <span
-                    v-if="index === 2"
+                    v-if="index === 1"
                     class="text-grey text-caption align-self-center"
                   >
-                    (+{{ step_filter.length - 2 }} others)
+                    (+{{ step_filter.length - 1 }})
                   </span>
                 </template>
               </v-select>
@@ -122,7 +123,7 @@ with this file. If not, see
           </div>
           <v-data-table
             item-key="name"
-            class="elevation-1 table-data d-flex flex-column flex-grow-1 justify-space-between"
+            class="elevation-1 table-data d-flex flex-column flex-grow-1 flex-shrink-1 justify-space-between ml-6 mr-6 mb-6"
             loading-text="Chargement des données"
             :loading="!loaded"
             fixed-header
@@ -153,6 +154,7 @@ with this file. If not, see
 </template>
 
 <script>
+import { gradiant, HSVtoRGB, RGBtoHexa } from "spinal-components/src/colors";
 import { mapActions, mapGetters } from "vuex";
 import { getBuildingAsync } from "./api-requests";
 
@@ -160,8 +162,9 @@ export default {
   name: "App",
 
   data: () => ({
-    el: { title: "Selection", name: "Bâtiment" },
+    el: { name: "Bâtiment" },
     path: {},
+    firstTile: {},
     domain_filter: [],
     step_filter: [],
     loaded: false,
@@ -202,7 +205,6 @@ export default {
     stepFilteredTickets() {
       if (this.step_filter.length === 0 || this.tableData.length === 0)
         return this.domainFilteredTickets;
-      console.log(this.step_filter);
       return this.domainFilteredTickets.filter((d) =>
         this.step_filter.includes(d["Étape"])
       );
@@ -218,12 +220,15 @@ export default {
     async expand(item) {
       switch (item.level) {
         case 0:
-          return [await getBuildingAsync()].map((b) => {
-            return { name: b.name, dynamicId: b.dynamicId, color: "#2598df" };
-          });
-        case 1:
-          return (await this.floors()).map((b) => {
-            return { name: b.name, dynamicId: b.dynamicId, color: "#2598df" };
+          const floors = await this.floors();
+          const colors = gradiant(floors.length);
+          return floors.map((f, i) => {
+            const { r, g, b } = HSVtoRGB(colors[i] / 100, 1, 1);
+            return {
+              name: f.name,
+              dynamicId: f.dynamicId,
+              color: RGBtoHexa(r, g, b),
+            };
           });
       }
     },
@@ -251,9 +256,9 @@ export default {
 
   async mounted() {
     const { name, dynamicId } = await getBuildingAsync();
-    this.el.title = name;
+    this.el = { name: name, dynamicId: dynamicId };
+    this.firstTile = { name: name, dynamicId: dynamicId };
     await this.loadTickets();
-    this.el.dynamicId = dynamicId;
     const table = document.querySelector(".v-data-table");
     this.tableHeight = table.clientHeight - 59;
     this.loaded = true;

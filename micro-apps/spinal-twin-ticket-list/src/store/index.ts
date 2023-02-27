@@ -7,6 +7,7 @@ import {
   getRoomListAsync,
   getTicketDetailsAsync,
   getTicketWorkflowAsync,
+  getWorkflowListAsync,
   getWorkflowTreeAsync,
 } from "../api-requests";
 
@@ -20,9 +21,13 @@ function toManageableTicket(ticket: any) {
     Nom: ticket.name,
     Étape: ticket.step.name,
     Domaine: ticket.process.name,
-    "Date de création": new Date(ticket.log_list[0].date).toLocaleDateString(),
+    "Date de création": new Date(
+      ticket.creationDate || ticket.log_list[0]?.date || 0
+    ).toLocaleDateString(),
     "Dernière modification": new Date(
-      ticket.log_list[ticket.log_list.length - 1].date
+      ticket.directModificationDate ||
+        ticket.log_list[ticket.log_list?.length - 1]?.date ||
+        0
     ).toLocaleDateString(),
     Déclarant: ticket.userName || "ADMIN",
   };
@@ -69,22 +74,23 @@ export default new Vuex.Store({
   actions: {
     async loadTickets({ commit }) {
       commit("SET_BUILDING", await getBuildingAsync());
-      let tickets = <any>[];
       const promises = [];
       try {
-        const workflow = await getTicketWorkflowAsync();
-        const domain = await getWorkflowTreeAsync(workflow.dynamicId);
-        for (const d of domain.children) {
-          for (const s of d.children) {
-            // on ne traite que les tickets en cours
+        const workflows = await getWorkflowListAsync();
+        for (const workflow of workflows) {
+          const domain = await getWorkflowTreeAsync(workflow.dynamicId);
+          for (const d of domain.children) {
+            for (const s of d.children) {
+              // on ne traite que les tickets en cours
+              if (closedSteps.includes(s.name)) continue;
 
-            if (closedSteps.includes(s.name)) continue;
-            for (const t of s.children) {
-              promises.push(
-                getTicketDetailsAsync(t.dynamicId).catch((error) =>
-                  console.log(error)
-                )
-              );
+              for (const t of s.children) {
+                promises.push(
+                  getTicketDetailsAsync(t.dynamicId).catch((error) =>
+                    console.log(error)
+                  )
+                );
+              }
             }
           }
         }
@@ -131,9 +137,6 @@ export default new Vuex.Store({
           tickets.push(t);
       }
       state.tickets.filter((t: any) => {});
-      console.log(tickets);
-
-      console.log(tickets.map((t) => t.dynamicId));
       commit("SET_FLOOR_TICKETS", { floorId, tickets });
     },
   },
