@@ -652,8 +652,8 @@ export async function ticketsCreated(timestamp, period) {
     const todaysTickets = await HTTP.post(`building/${buildingId}/find_node_in_context_by_date`, data);
     
     const ticketPromises = todaysTickets.data.map(async t => {
-      try {
-        const readDetailsResponse = await HTTP.get(`building/${buildingId}/ticket/${t.dynamicId}/read_details`);
+        if (t.type === 'SpinalSystemServiceTicketTypeTicket') {
+          const readDetailsResponse = await HTTP.get(`building/${buildingId}/ticket/${t.dynamicId}/read_details`);
         if (readDetailsResponse.data && readDetailsResponse.data.log_list[0] && moment(readDetailsResponse.data.log_list[0].date).isBetween(bd.valueOf(), ed.valueOf())) {
           // console.log('Got one', readDetailsResponse.data.dynamicId, moment(readDetailsResponse.data.log_list[0].date).format('DD MM YYYY'))
           return 1; // increment counter by 1
@@ -661,14 +661,15 @@ export async function ticketsCreated(timestamp, period) {
           // console.log(`Creation date: ${moment(readDetailsResponse.data.log_list[0].date).format('DD MM YYYY')}, begin date: ${bd.format('DD MM YYYY')}, end date: ${ed.format('DD MM YYYY')}`)
           return 0; // don't increment counter
         }
-      } catch (error) {
-        // console.error(t)
+        }
         return 0;
-      }
     });
+
     const ticketListStream = await Promise.all(ticketPromises);
     const todaysCounter = ticketListStream.reduce((a, cv) => a + cv, 0);
+    // console.log(ticketListStream)
     // console.log(todaysCounter);
+    // console.log([todaysCounter, selectedTempoTicketsText]);
     return [todaysCounter, selectedTempoTicketsText];
 
   }
