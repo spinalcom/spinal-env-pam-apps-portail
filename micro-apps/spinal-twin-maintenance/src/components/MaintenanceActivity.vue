@@ -59,10 +59,10 @@
 <script lang="ts">
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
-import BarChart from "spinal-components/src/components/BarCard.vue";
-import StatCard from "spinal-components/src/components/StatsCard.vue";
-import PieCard from "spinal-components/src/components/PieCard.vue";
-import LoadingCard from "spinal-components/src/components/LoadingCard.vue";
+import BarChart from "./BarCard.vue";
+import StatCard from "./StatsCard.vue";
+import PieCard from "./PieCard.vue";
+import LoadingCard from "./LoadingCard.vue";
 import { getData, curveData, ticketsCreatedtoday, ticketsCreated } from "../services/index.js";
 import moment from 'moment';
 import { TemporalityModel } from '../models/Temporality.model';
