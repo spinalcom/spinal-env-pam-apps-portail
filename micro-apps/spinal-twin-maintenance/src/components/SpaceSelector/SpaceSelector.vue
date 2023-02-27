@@ -21,6 +21,7 @@
         ref="SpaceSelectorTitleContainer"
         class="space-selector-header"
       >
+        <span class="legend">{{ label }}</span>
         <p class="space-selector-header-title">
           <v-icon
             :style="[{color: maxDepth !== -1 ? '#f5f5f5' : '#14202c'}, {width: maxDepth !== -1 ? 'auto' : '0 !important'}, {color: maxDepth !== -1 ? '#f5f5f5' : '#14202c'}]"
@@ -101,6 +102,12 @@ item?: ISpaceSelectorItem
   })
   edge!: boolean;
   selectorHeight = 0;
+
+  @Prop({
+    type: String,
+    required: true,
+  })
+  label:string;
 
   get selectedZoneName() {
     return this.selectedZone?.name || 'Sélectionnez une zone';
@@ -391,6 +398,15 @@ export default SpaceSelector;
   backdrop-filter: blur(1px);
   -webkit-backdrop-filter: blur(1px);
 } */
+
+.legend {
+    color: #fff;
+    font-size: 9px;
+    position: absolute;
+    top: 3px;
+    left: 11px;
+    letter-spacing: 1.1px;
+}
 </style>
 
 <style>

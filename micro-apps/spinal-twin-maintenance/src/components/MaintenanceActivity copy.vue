@@ -1,7 +1,7 @@
 <template>
   <div class="RC" style="min-height: 480px">
-    <div class="MC">
-        <BarChart v-if="load" :noNav="periodTickets === -1" :title="'Activité des tickets en cours'" :labels="barData.labels" :datasets="barData.data" :prev_next="true" @nav="nav" stacked class="BR">
+    <div class="MC" v-if="load">
+        <BarChart :title="'Activité des tickets en cours'" :labels="barData.labels" :datasets="barData.data" :prev_next="true" @nav="nav" stacked class="BR">
             <template v-slot:extras>
             <v-select v-model="domain" append-icon="mdi-chevron-down" :items="domainList" outlined menu-props="{ bottom: true }" color="#E3E7E8" item-color="#E3E7E8" dense style="min-width: 200px; width: 340px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Domaine">
               <template #label="{ attrs }">
@@ -10,49 +10,35 @@
             </v-select>
             </template>
         </BarChart>
-        <LoadingCard v-else class="flex-grow-1 pa-4 br" style="width: 100%;"/>
         <div class="d-flex cards">
-          <StatCard  v-if="periodTickets !== -1" :value="periodTickets" :unit="'Tickets'" :title="cardsData.selectedTempoTicketsText" class="flex-grow-1 pa-4" style="width: 100% !important"/>
-          <LoadingCard v-else class="flex-grow-1 pa-4"  style="height: 106px; width: 100% !important"/>
-          <StatCard v-if="load" :value="cardsData.onGoingTickets" :unit="'Tickets'" :title="'en cours'" class="flex-grow-1 pa-4" style="width: 100% !important"/>
-          <LoadingCard v-else class="flex-grow-1 pa-4"  style="height: 106px; width: 100% !important"/>
-          <StatCard v-if="todaysTickets !== -1" :value="todaysTickets" :unit="'Tickets'"  :title="'crées'" :subtitle="'Aujourd\'hui'"  class="flex-grow-1 pa-4" style="width: 100% !important"/>
-          <LoadingCard v-else class="flex-grow-1 pa-4"  style="height: 106px; width: 100% !important"/>
-
+          <StatCard  :value="cardsData.selectedTempoTickets" :unit="'Tickets'" :title="cardsData.selectedTempoTicketsText" class="flex-grow-1 pa-4" style="width: 100% !important"/>
+          <StatCard :value="cardsData.onGoingTickets" :unit="'Tickets'" :title="'en cours'" class="flex-grow-1 pa-4" style="width: 100% !important"/>
+          <StatCard :value="cardsData.todaysTickets" :unit="'Tickets'"  :title="'crées'" :subtitle="'Aujourd\'hui'"  class="flex-grow-1 pa-4" style="width: 100% !important"/>
         </div>
-        <div v-if="load"
-          style="height: 280px; gap: 10px; width: 100%"
+        <div
+          style="height: 330px; gap: 10px; width: 100%"
           class="d-flex flex-row"
         >
           <PieCard
-            style="width: 100%;"
             class="flex-grow-1"
             :title="'Tickets par domaine'"
-            :pie-chart-data="domainPie"
-            :color="['#14202C','#1F3348','#2F4F70','#47719B','#6593C0','#80A9D2','#ACCAE8']"
-            />
+            :pie-chart-data="pie"/>
           <PieCard
-            style="width: 100%;"
             class="flex-grow-1"
             :title="'Tickets par déclarant'"
-            :pie-chart-data="declarerPie"
-            :color="['#300530','#5B145B','#8F3A8F','#BA6DBA','#CA8CCA','#DBA8DB','#E2C8E7']"/>
-        </div>
-        <div v-else style="height: 280px; width: 100%; gap: 10px" class="d-flex">
-          <LoadingCard class="flex-grow-1 pa-4" style="height: 100%;"/>
-          <LoadingCard class="flex-grow-1 pa-4" style="height: 100%;"/>
+            :pie-chart-data="pie"/>
         </div>
     </div>
-    <!-- <div class="MC" v-else>
+    <div class="MC" v-else>
       <LoadingCard class="flex-grow-1 pa-4 br" style="width: 100%;"/>
       <div class="d-flex cards">
           <LoadingCard class="flex-grow-1 pa-4"  style="height: 106px"/><LoadingCard class="flex-grow-1 pa-4"  style="height: 106px"/><LoadingCard class="flex-grow-1 pa-4"  style="height: 106px"/>
       </div>
-      <div style="height: 280px; width: 100%; gap: 10px" class="d-flex">
+      <div style="height: 330px; width: 100%; gap: 10px" class="d-flex">
         <LoadingCard class="flex-grow-1 pa-4" style="height: 100%;"/>
         <LoadingCard class="flex-grow-1 pa-4" style="height: 100%;"/>
       </div>
-    </div> -->
+    </div>
   </div>
 </template>
 
@@ -63,7 +49,7 @@ import BarChart from "spinal-components/src/components/BarCard.vue";
 import StatCard from "spinal-components/src/components/StatsCard.vue";
 import PieCard from "spinal-components/src/components/PieCard.vue";
 import LoadingCard from "spinal-components/src/components/LoadingCard.vue";
-import { getData, curveData, ticketsCreatedtoday, ticketsCreated } from "../services/index.js";
+import { getData, curveData } from "../services/index.js";
 import moment from 'moment';
 import { TemporalityModel } from '../models/Temporality.model';
 import { StatsModel } from '../models/Stats.model';
@@ -85,33 +71,28 @@ class App extends Vue {
   domainList:string[] = ['Tous les domaines'];
   currentTimestamp = {valueTime: 0};
 
-  barData = {labels: [], data: []}
+  barData: {labels: any[], data: any[]} = {labels: [], data: []}
   domain: string = 'Tous les domaines';
   pieData!: {};
-  cardsData: StatsModel;
-  domainPie = [
-    // { label: "APPAREIL ", value: 64 },
-    // { label: "APPAREIL ", value: 58 },
-    // { label: "APPAREIL ELEVATEUR DEPLACEMENT", value: 60 },
-    // { label: "APPAREIL ELEVATEUR DEPLACEMENT", value: 69 },
-    // { label: "DEPLACEMENT", value: 58 },
-    // { label: "ELEVATEUR", value: 60 },
-    // { label: "APPAREIL ", value: 8 },
+  cardsData!: StatsModel;
+  pie= [
+    { label: "One", value: 64 },
+    { label: "Two", value: 58 },
+    { label: "Three", value: 60 },
+    { label: "Four", value: 69 },
+    { label: "Five", value: 58 },
+    { label: "Six", value: 60 },
+    { label: "Seven", value: 69 },
   ];
-  todaysTickets = -1;
-  periodTickets = -1;
-  declarerPie = [];
   async mounted() {
     this.ticketList = await getData();
     let dom;
-    for(let i = 0; i < this.ticketList.domains.length; i++) {
-      dom = this.ticketList.domains[i] as any;
+    for(const d of this.ticketList.domains) {
+      dom = d as any;
       this.domainList.push(dom.name);
     }
     this.interval();
     this.load = true;
-    this.todaysTickets = await ticketsCreatedtoday();
-    // this.periodTickets = await ticketsCreated(this.currentTimestamp.valueTime, this.temporality);
   }
 
   interval() {
@@ -120,16 +101,17 @@ class App extends Vue {
   }
 
   @Watch('temporality')
-  async temporalityChange() {
+  temporalityChange() {
     this.interval();
   }
 
   @Watch('domain')
-  async domainChange() {
+  domainChange() {
     this.spreadData();
   }
 
-  async nav(payload: number): Promise<void> {
+  nav(payload: number): void {
+    this.barData = {labels: [], data: []}
     if (this.temporality.name == 'Semaine') {
       this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'weeks').valueOf()};
     }
@@ -142,30 +124,12 @@ class App extends Vue {
     this.spreadData();
   }
 
-  async spreadData() {
-  // cancel the previous execution of ticketsCreated
-  let ticketsCreatedPromise = ticketsCreated(this.currentTimestamp.valueTime, this.temporality.name);
-  this.periodTickets = -1;
-  let res = curveData(this.temporality.name, this.currentTimestamp.valueTime, this.domain, this.ticketList.ticketList);
-  this.barData = res[0];
-  this.cardsData = res[1];
-  this.domainPie = res[2];
-  this.declarerPie = res[3];
-
-  try {
-    // wait for ticketsCreated to complete
-    this.periodTickets = await ticketsCreatedPromise;
-  } catch (e) {
-    // handle cancellation
-    if (e instanceof Error && e.message === 'Cancellation') {
-      // console.log('ticketsCreated cancelled');
-      this.periodTickets = -1;
-    } else {
-      throw e;
-    }
+  spreadData() {
+    let res = curveData(this.temporality.name, this.currentTimestamp.valueTime, this.domain, this.ticketList.ticketList);
+    this.barData = res[0];
+    this.cardsData = res[1];
+    // this.pieData = res[2];
   }
-}
-
 }
 
 export default App;

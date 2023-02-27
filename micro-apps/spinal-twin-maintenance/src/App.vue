@@ -9,6 +9,7 @@
           :maxDepth="-1"
           :GetChildrenFct="onSpaceSelectOpen"
           v-model="defaultSelected"
+          label="ESPACE"
         />
       </div>
       <div class="Hx2">
@@ -20,6 +21,7 @@
           :maxDepth="0"
           :GetChildrenFct="onTimeSelectOpen"
           v-model="selectedTime"
+          label="TEMPORALITÉ"
         />
       </div>
     </div>
