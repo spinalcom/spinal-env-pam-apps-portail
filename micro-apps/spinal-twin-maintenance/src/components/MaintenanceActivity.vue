@@ -7,11 +7,11 @@
               <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
 
               <template #item="{ item }">
-                <SmallLegend :color="item.color" :text="item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()" :size="14"/>
+                <SmallLegend :color="item.color" :text="item.name" :size="14"/>
               </template>
 
               <template #selection="{ item }">
-                <SmallLegend :color="item.color" :text="item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()" :size="14"/>
+                <SmallLegend :color="item.color" :text="item.name" :size="14"/>
               </template>
             </v-select>
             </template>
@@ -26,8 +26,8 @@
           <LoadingCard v-else class="flex-grow-1 pa-4"  style="height: 106px; width: 100% !important"/>
         </div>
         <div v-if="load" style="height: 280px; gap: 10px; width: 100%" class="d-flex flex-row">
-          <PieCard style="width: 100%;" class="flex-grow-1" :title="'Tickets par domaine'" :pie-chart-data="domainPie" :color="['#E53935','#2EB594','#F5A623','#D07CE5','#6593C0','#8E80E7','#A2C8EC']"/>
-          <PieCard style="width: 100%;" class="flex-grow-1" :title="'Tickets par déclarant'" :pie-chart-data="declarerPie" :color="['#300530','#5B145B','#8F3A8F','#BA6DBA','#CA8CCA','#DBA8DB','#E2C8E7']"/>
+          <PieCard style="width: 100%;" class="flex-grow-1" :title="'Tickets par domaine'" :pie-chart-data="domainPie"/>
+          <PieCard style="width: 100%;" class="flex-grow-1" :title="'Tickets par déclarant'" :pie-chart-data="declarerPie" :color="declarerColors"/>
         </div>
         <div v-else style="height: 280px; width: 100%; gap: 10px" class="d-flex">
           <LoadingCard class="flex-grow-1 pa-4" style="height: 100%;"/>
@@ -69,7 +69,7 @@ class App extends Vue {
   currentTimestamp = {valueTime: 0};
 
   barData = {labels: [], data: []}
-  domain: string = 'Tous les domaines';
+  domain: any = {name: 'Tous les domaines', color: '#fff'};
   pieData!: {};
   cardsData: StatsModel;
   selectedTempoTicketsText = '';
@@ -77,6 +77,7 @@ class App extends Vue {
   todaysTickets = -1;
   periodTickets = -1;
   declarerPie = [];
+  declarerColors = ['#14202C','#1F3348','#2F4F70','#47719B','#6593C0','#80A9D2','#ACCAE8'];
   async mounted() {
     this.ticketList = await getData();
     let dom;
@@ -101,11 +102,12 @@ class App extends Vue {
 
   @Watch('domain')
   async domainChange() {
-    let res = curveData(this.temporality.name, this.currentTimestamp.valueTime, this.domain, this.ticketList.ticketList);
+    let res = curveData(this.temporality.name, this.currentTimestamp.valueTime, this.domain.name, this.ticketList.ticketList, this.domainList);
     this.barData = res[0];
     this.cardsData = res[1];
     this.domainPie = res[2];
     this.declarerPie = res[3];
+    this.declarerColors = this.getColors(this.declarerPie.length);
   }
 
   async nav(payload: number): Promise<void> {
@@ -122,26 +124,39 @@ class App extends Vue {
   }
 
   async spreadData() {
-  let ticketsCreatedPromise = ticketsCreated(this.currentTimestamp.valueTime, this.temporality.name);
-  this.periodTickets = -1;
-  let res = curveData(this.temporality.name, this.currentTimestamp.valueTime, this.domain, this.ticketList.ticketList);
-  this.barData = res[0];
-  this.cardsData = res[1];
-  this.domainPie = res[2];
-  this.declarerPie = res[3];
+    let ticketsCreatedPromise = ticketsCreated(this.currentTimestamp.valueTime, this.temporality.name);
+    this.periodTickets = -1;
+    let res = curveData(this.temporality.name, this.currentTimestamp.valueTime, this.domain.name, this.ticketList.ticketList, this.domainList);
+    this.barData = res[0];
+    this.cardsData = res[1];
+    this.domainPie = res[2];
+    this.declarerPie = res[3];
+    this.declarerColors = this.getColors(this.declarerPie.length);
 
-  try {
-    let ticketsCreatedRes = await ticketsCreatedPromise;
-    this.periodTickets = ticketsCreatedRes[0];
-    this.selectedTempoTicketsText = ticketsCreatedRes[1];
-  } catch (e) {
-    if (e instanceof Error && e.message === 'Cancellation') {
-      this.periodTickets = -1;
-    } else {
-      throw e;
+    try {
+      let ticketsCreatedRes = await ticketsCreatedPromise;
+      this.periodTickets = ticketsCreatedRes[0];
+      this.selectedTempoTicketsText = ticketsCreatedRes[1];
+    } catch (e) {
+      if (e instanceof Error && e.message === 'Cancellation') {
+        this.periodTickets = -1;
+      } else {
+        throw e;
+      }
     }
   }
-}
+
+  getColors(size: number): string[] {
+    switch(size) {
+      case 1: return ['#14202C']; break;
+      case 2: return ['#14202C', '#ACCAE8']
+      case 3: return ['#14202C', '#47719B', '#ACCAE8']; break;
+      case 4: return ['#14202C', '#2F4F70', '#6593C0', '#ACCAE8']; break;
+      case 5: return ['#14202C', '#2F4F70', '#6593C0', '#80A9D2', '#ACCAE8']; break;
+      case 6: return ['#14202C', '#2F4F70', '#47719B', '#6593C0', '#80A9D2', '#ACCAE8']; break;
+      default: return ['#14202C', '#1F3348', '#2F4F70', '#47719B', '#6593C0', '#80A9D2', '#ACCAE8']; break;
+    }
+  }
 }
 export default App;
 </script>
