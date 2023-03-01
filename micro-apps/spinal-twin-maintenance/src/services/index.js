@@ -8,7 +8,7 @@ export async function getBuilding() {
   return result.data;
 }
 
-export function curveData(period, timestamp, domain, list) {
+export function curveData(period, timestamp, domain, list, domainList) {
   let domainPie = [];
   let declarerPie = [];
   let domainExists = false;
@@ -24,9 +24,6 @@ export function curveData(period, timestamp, domain, list) {
     if (list[i].formatDate.week == todaysDate) {
       cardsData.todaysTickets += 1;
     }
-    // if (list[i].step === 'Réalisation partielle' || list[i].step === 'Attente de lect.avant Execution' || list[i].step === 'Attente de réalisation') {
-    //   cardsData.onGoingTickets += 1;
-    // }
   }
   let barChartDataObject = {
     labels: [],
@@ -71,16 +68,6 @@ export function curveData(period, timestamp, domain, list) {
     for (let i = 0; i < list.length; i++) {
       domainExists = false;
       declarerExists = false;
-      // console.log('ticket date:', list[i].date);
-      // let formattedDate = moment(list[i].date).format('DDMMYYYY');
-      // console.log('formatted date:', formattedDate);
-      // index = -1;
-      // for (let k = 0; k < exactDate.length; k++) {
-      //   if (exactDate[k] === list[i].formatDate.week) {
-      //     index = k;
-      //   }
-      // }
-      // let formattedDate = moment(ticketList[i].date).format('DDMMYYYY');
       index = exactDate.findIndex((date) => date === list[i].formatDate.week);
 
       if (index != -1) {
@@ -95,7 +82,7 @@ export function curveData(period, timestamp, domain, list) {
             }
           }
           if (!domainExists) {
-            domainPie.push({ label: list[i].domain, value: 1 });
+            domainPie.push({ label: list[i].domain, value: 1 , color: domainList[domainList.findIndex((d) => d.name === list[i].domain)].color});
           }
           for (let dp = 0; dp < declarerPie.length; dp++) {
             if (declarerPie[dp].label === list[i].name) {
@@ -119,7 +106,7 @@ export function curveData(period, timestamp, domain, list) {
             }
           }
           if (!domainExists) {
-            domainPie.push({ label: list[i].domain, value: 1 });
+            domainPie.push({ label: list[i].domain, value: 1 , color: domainList[domainList.findIndex((d) => d.name === list[i].domain)].color });
           }
           for (let dp = 0; dp < declarerPie.length; dp++) {
             if (declarerPie[dp].label === list[i].name) {
@@ -129,7 +116,7 @@ export function curveData(period, timestamp, domain, list) {
             }
           }
           if (!declarerExists) {
-            declarerPie.push({ label: list[i].name, value: 1 });
+            declarerPie.push({ label: list[i].name, value: 1});
           }
           cardsData.onGoingTickets += 1;
           barChartDataObject.data[1].data[index] += 1;
@@ -143,7 +130,7 @@ export function curveData(period, timestamp, domain, list) {
             }
           }
           if (!domainExists) {
-            domainPie.push({ label: list[i].domain, value: 1 });
+            domainPie.push({ label: list[i].domain, value: 1 , color: domainList[domainList.findIndex((d) => d.name === list[i].domain)].color });
           }
           for (let dp = 0; dp < declarerPie.length; dp++) {
             if (declarerPie[dp].label === list[i].name) {
@@ -193,7 +180,7 @@ export function curveData(period, timestamp, domain, list) {
             }
           }
           if (!domainExists) {
-            domainPie.push({ label: ticketList[i].domain, value: 1 });
+            domainPie.push({ label: ticketList[i].domain, value: 1 , color: domainList[domainList.findIndex((d) => d.name === ticketList[i].domain)].color });
           }
           for (let dp = 0; dp < declarerPie.length; dp++) {
             if (declarerPie[dp].label === ticketList[i].name) {
@@ -217,7 +204,7 @@ export function curveData(period, timestamp, domain, list) {
             }
           }
           if (!domainExists) {
-            domainPie.push({ label: ticketList[i].domain, value: 1 });
+            domainPie.push({ label: ticketList[i].domain, value: 1 , color: domainList[domainList.findIndex((d) => d.name === ticketList[i].domain)].color });
           }
           for (let dp = 0; dp < declarerPie.length; dp++) {
             if (declarerPie[dp].label === ticketList[i].name) {
@@ -241,7 +228,7 @@ export function curveData(period, timestamp, domain, list) {
             }
           }
           if (!domainExists) {
-            domainPie.push({ label: ticketList[i].domain, value: 1 });
+            domainPie.push({ label: ticketList[i].domain, value: 1 , color: domainList[domainList.findIndex((d) => d.name === ticketList[i].domain)].color });
           }
           for (let dp = 0; dp < declarerPie.length; dp++) {
             if (declarerPie[dp].label === ticketList[i].name) {
@@ -286,8 +273,9 @@ export function curveData(period, timestamp, domain, list) {
               break;
             }
           }
+
           if (!domainExists) {
-            domainPie.push({ label: ticketList[i].domain, value: 1 });
+            domainPie.push({ label: ticketList[i].domain, value: 1 , color: domainList[domainList.findIndex((d) => d.name === ticketList[i].domain)].color });
           }
           for (let dp = 0; dp < declarerPie.length; dp++) {
             if (declarerPie[dp].label === ticketList[i].name) {
@@ -311,7 +299,7 @@ export function curveData(period, timestamp, domain, list) {
             }
           }
           if (!domainExists) {
-            domainPie.push({ label: ticketList[i].domain, value: 1 });
+            domainPie.push({ label: ticketList[i].domain, value: 1 , color: domainList[domainList.findIndex((d) => d.name === ticketList[i].domain)].color });
           }
           for (let dp = 0; dp < declarerPie.length; dp++) {
             if (declarerPie[dp].label === ticketList[i].name) {
@@ -335,7 +323,7 @@ export function curveData(period, timestamp, domain, list) {
             }
           }
           if (!domainExists) {
-            domainPie.push({ label: ticketList[i].domain, value: 1 });
+            domainPie.push({ label: ticketList[i].domain, value: 1 , color: domainList[domainList.findIndex((d) => d.name === ticketList[i].domain)].color });
           }
           for (let dp = 0; dp < declarerPie.length; dp++) {
             if (declarerPie[dp].label === ticketList[i].name) {
@@ -381,7 +369,7 @@ export function curveData(period, timestamp, domain, list) {
             }
           }
           if (!domainExists) {
-            domainPie.push({ label: ticketList[i].domain, value: 1 });
+            domainPie.push({ label: ticketList[i].domain, value: 1 , color: domainList[domainList.findIndex((d) => d.name === ticketList[i].domain)].color });
           }
           for (let dp = 0; dp < declarerPie.length; dp++) {
             if (declarerPie[dp].label === ticketList[i].name) {
@@ -405,7 +393,7 @@ export function curveData(period, timestamp, domain, list) {
             }
           }
           if (!domainExists) {
-            domainPie.push({ label: ticketList[i].domain, value: 1 });
+            domainPie.push({ label: ticketList[i].domain, value: 1 , color: domainList[domainList.findIndex((d) => d.name === ticketList[i].domain)].color });
           }
           for (let dp = 0; dp < declarerPie.length; dp++) {
             if (declarerPie[dp].label === ticketList[i].name) {
@@ -429,7 +417,7 @@ export function curveData(period, timestamp, domain, list) {
             }
           }
           if (!domainExists) {
-            domainPie.push({ label: ticketList[i].domain, value: 1 });
+            domainPie.push({ label: ticketList[i].domain, value: 1 , color: domainList[domainList.findIndex((d) => d.name === ticketList[i].domain)].color });
           }
           for (let dp = 0; dp < declarerPie.length; dp++) {
             if (declarerPie[dp].label === ticketList[i].name) {
@@ -496,17 +484,11 @@ export async function getData() {
 
       }
     }
-    // console.log('Domains:');
-    // console.log(domains);
-    // console.log('Number total of tickets:');
-    // console.log(domains.reduce((a, b) => a + b.totalNumberOfTickets, 0));
 
     const ticketPromises = finalTicketList.map(async t => {
       const readDetailsResponse = await HTTP.get(
         `building/${buildingId}/ticket/${t.dynamicId}/read_details`
       );
-      // console.log(readDetailsResponse.data.process.name)
-      // console.log()
       if (readDetailsResponse.data.log_list.length == 0)
       return {
         domain: readDetailsResponse.data.process.name,
@@ -541,22 +523,6 @@ export async function getData() {
       domains: domains,
       ticketList: ticketListStream
     };
-      // for (let i = 0; i < finalTicketList.length; i++) {
-      //   const readDetailsResponse = await HTTP.get(
-      //     `building/${buildingId}/ticket/${finalTicketList[i].dynamicId}/read_details`
-      //   );
-      //   // console.log(readDetailsResponse.data)
-      //   finalTicketList[i] = {
-      //     domain: readDetailsResponse.data.process.name,
-      //     name: readDetailsResponse.data.userName,
-      //     step: readDetailsResponse.data.step.name,
-      //     date: readDetailsResponse.data.log_list[0].date
-      //   }
-      // }
-    // return {
-    //   domains: domains,
-    //   ticketList: finalTicketList
-    // }
   } catch (error) {
     // console.error(error);
     return null;
@@ -593,28 +559,6 @@ export async function ticketsCreatedtoday() {
     });
     const ticketListStream = await Promise.all(ticketPromises);
     const todaysCounter = ticketListStream.reduce((a, cv) => a + cv, 0);
-
-    // const todaysTickets = await HTTP.post(`building/${buildingId}/find_node_in_context_by_date`, data);
-    
-    // const ticketPromises = todaysTickets.data.map(async t => {
-    //     if (t.type === 'SpinalSystemServiceTicketTypeTicket') {
-    //       const readDetailsResponse = await HTTP.get(`building/${buildingId}/ticket/${t.dynamicId}/read_details`);
-    //     if (readDetailsResponse.data && readDetailsResponse.data.log_list[0] && moment(readDetailsResponse.data.log_list[0].date).isBetween(bd.valueOf(), ed.valueOf())) {
-    //       // console.log('Got one', readDetailsResponse.data.dynamicId, moment(readDetailsResponse.data.log_list[0].date).format('DD MM YYYY'))
-    //       return 1; // increment counter by 1
-    //     } else {
-    //       // console.log(`Creation date: ${moment(readDetailsResponse.data.log_list[0].date).format('DD MM YYYY')}, begin date: ${bd.format('DD MM YYYY')}, end date: ${ed.format('DD MM YYYY')}`)
-    //       return 0; // don't increment counter
-    //     }
-    //     }
-    //     return 0;
-    // });
-
-    // const ticketListStream = await Promise.all(ticketPromises);
-    // const todaysCounter = ticketListStream.reduce((a, cv) => a + cv, 0);
-
-
-    // console.log(todaysCounter);
     return todaysCounter;
 
   }
@@ -640,7 +584,6 @@ export async function ticketsCreated(timestamp, period) {
     beginDate = moment(nowDate).startOf(unit).format('DD MM YYYY');
     endDate = moment(currentDate).endOf(unit).format('DD MM YYYY');
     selectedTempoTicketsText = 'créés entre le ' + moment(nowDate).startOf(unit).format('DD MMM') + ' et ' + moment(nowDate).endOf(unit).format('DD MMM') ;
-    // console.log(`Period is ${period}, unit is ${unit}, begin date: ${beginDate}, end date: ${endDate}`)
   }
   else if (period === 'Mois') {
     unit = 'month';
@@ -680,11 +623,9 @@ export async function ticketsCreated(timestamp, period) {
         if (t.type === 'SpinalSystemServiceTicketTypeTicket') {
           const readDetailsResponse = await HTTP.get(`building/${buildingId}/ticket/${t.dynamicId}/read_details`);
         if (readDetailsResponse.data && readDetailsResponse.data.log_list[0] && moment(readDetailsResponse.data.log_list[0].date).isBetween(bd.valueOf(), ed.valueOf())) {
-          // console.log('Got one', readDetailsResponse.data.dynamicId, moment(readDetailsResponse.data.log_list[0].date).format('DD MM YYYY'))
-          return 1; // increment counter by 1
+          return 1;
         } else {
-          // console.log(`Creation date: ${moment(readDetailsResponse.data.log_list[0].date).format('DD MM YYYY')}, begin date: ${bd.format('DD MM YYYY')}, end date: ${ed.format('DD MM YYYY')}`)
-          return 0; // don't increment counter
+          return 0;
         }
         }
         return 0;
@@ -692,9 +633,6 @@ export async function ticketsCreated(timestamp, period) {
 
     const ticketListStream = await Promise.all(ticketPromises);
     const todaysCounter = ticketListStream.reduce((a, cv) => a + cv, 0);
-    // console.log(ticketListStream)
-    // console.log(todaysCounter);
-    // console.log([todaysCounter, selectedTempoTicketsText]);
     return [todaysCounter, selectedTempoTicketsText];
 
   }

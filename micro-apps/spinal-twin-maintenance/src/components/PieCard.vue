@@ -116,11 +116,23 @@ export default {
           value: data.map((e) => e.value).reduce((e1, e2) => e1 + e2, 0),
         });
       } else sorted = data;
+      if (this.color)
       return {
         labels: sorted.map((t) => `${t.value}: ${t.label}`),
         datasets: [
           {
             backgroundColor: this.color,
+            data: sorted.map((t) => t.value),
+            borderRadius: 1,
+          },
+        ],
+      };
+      else
+      return {
+        labels: sorted.map((t) => `${t.value}: ${t.label}`),
+        datasets: [
+          {
+            backgroundColor: sorted.map((t) => t.color),
             data: sorted.map((t) => t.value),
             borderRadius: 1,
           },
