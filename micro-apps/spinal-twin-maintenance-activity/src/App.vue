@@ -22,65 +22,96 @@ with this file. If not, see
   <v-app id="application">
     <sc-spinal-navigator
       class="ma-2 pa-1"
-      style="position: absolute; top: 0; right: 0; width: 100%;"
+      style="position: absolute; top: 0; right: 0; width: 100%"
       v-model="nav"
       :path.sync="path"
-      :max-depth="3"
+      :first-tile="firstTile"
+      :max-depth="2"
       :expand-selector="expandSelector"
     ></sc-spinal-navigator>
     <div class="RC" style="min-height: 480px">
-    <div class="MC" v-if="isLoaded(selectedSpace, current_workflow)">
-      <sc-bar-card
-        style="height: 50%"
-        class="BR"
-        :title="'Activité des tickets en cours'"
-        :labels="barChartData.labels"
-        :datasets="barChartData.datasets"
-        stacked
-      >
-        <template v-slot:extras>
-          <v-select
-            style="width: 15%; flex-grow: 0;"
-            class="ml-8"
-            label="Domaine"
-            v-model="domain_filter"
-            :items="domains(selectedSpace, current_workflow).map((d) => d.name)"
-            variant="solo"
-          ></v-select>
-        </template>
-      </sc-bar-card>
-      <div class="d-flex cards">
-        <sc-stat-card class="flex-grow-1 pa-4" :type="'comparison'" :value="tickets(selectedSpace, current_workflow).year.length" :unit="'Tickets'" :title="'créés en ' + new Date().getFullYear()" :compared="comparedValue" :subtitle="'par rapport à l\'année dernière'"/>
-        <sc-stat-card class="flex-grow-1 pa-4" :type="'comparison'" :value="tickets(selectedSpace, current_workflow).decade.length" :unit="'Tickets'" :title="'en cours'" :compared="''" :subtitle="midValue"/>
-        <sc-stat-card class="flex-grow-1 pa-4" :value="tickets(selectedSpace, current_workflow).day.length" :unit="'Tickets'" :title="'créés'" :subtitle="'Aujourd\'hui'"/>
+      <div class="MC" v-if="isLoaded(selectedSpace, current_workflow)">
+        <sc-bar-card
+          style="height: 50%"
+          class="BR"
+          :title="'Activité des tickets en cours'"
+          :labels="barChartData.labels"
+          :datasets="barChartData.datasets"
+          stacked
+        >
+          <template v-slot:extras>
+            <v-select
+              style="width: 15%; flex-grow: 0"
+              class="ml-8"
+              label="Domaine"
+              v-model="domain_filter"
+              :items="
+                domains(selectedSpace, current_workflow).map((d) => d.name)
+              "
+              variant="solo"
+            ></v-select>
+          </template>
+        </sc-bar-card>
+        <div class="d-flex cards">
+          <sc-stat-card
+            class="flex-grow-1 pa-4"
+            :type="'comparison'"
+            :value="tickets(selectedSpace, current_workflow).year.length"
+            :unit="'Tickets'"
+            :title="'créés en ' + new Date().getFullYear()"
+            :compared="comparedValue"
+            :subtitle="'par rapport à l\'année dernière'"
+          />
+          <sc-stat-card
+            class="flex-grow-1 pa-4"
+            :type="'comparison'"
+            :value="tickets(selectedSpace, current_workflow).decade.length"
+            :unit="'Tickets'"
+            :title="'en cours'"
+            :compared="''"
+            :subtitle="midValue"
+          />
+          <sc-stat-card
+            class="flex-grow-1 pa-4"
+            :value="tickets(selectedSpace, current_workflow).day.length"
+            :unit="'Tickets'"
+            :title="'créés'"
+            :subtitle="'Aujourd\'hui'"
+          />
+        </div>
+        <div
+          style="height: 330px; gap: 10px; width: 100%"
+          class="d-flex flex-row"
+        >
+          <sc-pie-card
+            class="flex-grow-1"
+            :title="'Tickets par domaine'"
+            :pie-chart-data="domainSplittenPie"
+          ></sc-pie-card>
+          <sc-pie-card
+            class="flex-grow-1"
+            :title="'Tickets par déclarant'"
+            :pie-chart-data="declarants"
+            :color="nav.element.color"
+          ></sc-pie-card>
+        </div>
       </div>
-      <div
-        style="height: 330px; gap: 10px; width: 100%"
-        class="d-flex flex-row"
-      >
-        <sc-pie-card
-          class="flex-grow-1"
-          :title="'Tickets par domaine'"
-          :pie-chart-data="domainSplittenPie"
-        ></sc-pie-card>
-        <sc-pie-card
-          class="flex-grow-1"
-          :title="'Tickets par déclarant'"
-          :pie-chart-data="declarants"
-          :color="nav.element.color"
-        ></sc-pie-card>
+      <div class="MC" v-else>
+        <sc-loading-card class="flex-grow-1 pa-4 br" style="width: 100%" />
+        <div class="d-flex cards">
+          <sc-loading-card
+            class="flex-grow-1 pa-4"
+            style="height: 106px"
+          /><sc-loading-card
+            class="flex-grow-1 pa-4"
+            style="height: 106px"
+          /><sc-loading-card class="flex-grow-1 pa-4" style="height: 106px" />
+        </div>
+        <div style="height: 330px; width: 100%; gap: 10px" class="d-flex">
+          <sc-loading-card class="flex-grow-1 pa-4" style="height: 100%" />
+          <sc-loading-card class="flex-grow-1 pa-4" style="height: 100%" />
+        </div>
       </div>
-    </div>
-    <div class="MC" v-else>
-      <sc-loading-card class="flex-grow-1 pa-4 br" style="width: 100%;"/>
-      <div class="d-flex cards">
-          <sc-loading-card class="flex-grow-1 pa-4"  style="height: 106px"/><sc-loading-card class="flex-grow-1 pa-4"  style="height: 106px"/><sc-loading-card class="flex-grow-1 pa-4"  style="height: 106px"/>
-      </div>
-      <div style="height: 330px; width: 100%; gap: 10px" class="d-flex">
-        <sc-loading-card class="flex-grow-1 pa-4" style="height: 100%;"/>
-        <sc-loading-card class="flex-grow-1 pa-4" style="height: 100%;"/>
-      </div>
-    </div>
     </div>
   </v-app>
 </template>
@@ -108,14 +139,15 @@ export default {
     "sc-loading-card": LoadingCard,
     "sc-pie-card": PieCard,
     "sc-spinal-navigator": SpinalNavigator,
-    "sc-stat-card": StatsCard
+    "sc-stat-card": StatsCard,
   },
   data() {
     return {
       nav: {
-        element: { name: "Liste des workflow", title: "" },
+        element: { name: "Bâtiment" },
         period: { name: "SEMAINE", value: "week" },
       },
+      firstTile: { name: "Bâtiment" },
       current_workflow: 0,
       domain_filter: "Tous les domaines",
       path: {},
@@ -195,14 +227,6 @@ export default {
         i = 0;
       switch (item.level) {
         case 0:
-          list = [await getBuildingAsync()];
-          colors = gradiant(list.length);
-          for (const item of list) {
-            col = HSVtoRGB(colors[i++] / 100, 1, 1);
-            item.color = RGBtoHexa(col.r, col.g, col.b);
-          }
-          return list;
-        case 1:
           list = await getFloorListAsync(item.dynamicId);
           colors = gradiant(list.length);
           for (const item of list) {
@@ -210,7 +234,7 @@ export default {
             item.color = RGBtoHexa(col.r, col.g, col.b);
           }
           return list;
-        case 2:
+        case 1:
           list = await getRoomListAsync(item.dynamicId);
           colors = gradiant(list.length);
           for (const item of list) {
@@ -224,12 +248,13 @@ export default {
     },
   },
   async mounted() {
-    const building = await getBuildingAsync();
+    const { name, dynamicId } = await getBuildingAsync();
+    this.nav.element = { name: name, dynamicId: dynamicId };
+    this.firstTile = { name: name, dynamicId: dynamicId };
     const workflow = await getTicketWorkflowAsync();
-    this.nav.element.title = building.name;
-    this.selectedSpace = this.nav.element.dynamicId = building.dynamicId;
     this.current_workflow = workflow.dynamicId;
     await this.initWorkflows();
+    this.selectedSpace = dynamicId;
   },
 };
 </script>
@@ -262,7 +287,7 @@ export default {
   gap: 10px;
   height: 100vh;
   width: 100%;
-  background: linear-gradient(111.34deg, #F8FAFA 0%, #D6E2E6 100%);
+  background: linear-gradient(111.34deg, #f8fafa 0%, #d6e2e6 100%);
 }
 
 .MC {
@@ -297,6 +322,6 @@ export default {
 }
 
 .v-application .elevation-5 {
-  box-shadow: 0px 3px 10px #49545C29 !important;
+  box-shadow: 0px 3px 10px #49545c29 !important;
 }
 </style>

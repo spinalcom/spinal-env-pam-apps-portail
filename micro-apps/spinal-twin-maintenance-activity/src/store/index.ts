@@ -31,18 +31,14 @@ import {
   getWorkflowListAsync,
   getBuildingSpaceTreeAsync,
 } from "../api-requests";
-import {
-  runningTickets,
-  splitByDeclarants,
-  splitByDomains,
-} from "../data-management";
+import config from "../../../../config.json";
+const closedSteps = config.steps.closed;
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: () => ({
     building: {},
-    //workflows: [],
   }),
 
   mutations: {
@@ -52,20 +48,8 @@ export default new Vuex.Store({
     SET_WORKFLOWS(state: any, payload: any) {
       setWorkflows(state.building, payload);
     },
-    SET_WORKFLOW_2(state: any, payload: any) {
-      setWorkflow(state.building, payload.workflowId, payload.tickets);
-    },
     SET_WORKFLOW(state: any, payload: any) {
-      const found = state.workflows.find(
-        (w: any) => w.dynamicId === payload.dynamicId
-      );
-      if (found) {
-        found.tickets = payload.tickets;
-        found.domains = payload.domains;
-        found.steps = payload.steps;
-        found.declarants = payload.declarants;
-        found.loaded = true;
-      }
+      setWorkflow(state.building, payload.workflowId, payload.tickets);
     },
   },
 
@@ -90,17 +74,7 @@ export default new Vuex.Store({
         for (let d of domain.children) {
           for (let s of d.children) {
             // on ne traite que les tickets en cours
-            if (
-              [
-                "Archived",
-                "Clôturée",
-                "Refusée",
-                "Archivé",
-                "Réalisé",
-                "Terminé",
-              ].includes(s.name)
-            )
-              continue;
+            if (closedSteps.includes(s.name)) continue;
             for (let t of s.children) {
               promises.push(
                 getTicketDetailsAsync(t.dynamicId).catch((error: any) => {})
@@ -109,7 +83,10 @@ export default new Vuex.Store({
           }
         }
         Promise.all(promises).then((ret) => {
-          commit("SET_WORKFLOW_2", { workflowId, tickets: ret });
+          commit("SET_WORKFLOW", {
+            workflowId,
+            tickets: ret.filter((t) => !closedSteps.includes(t.step)),
+          });
         });
       } catch {}
     },

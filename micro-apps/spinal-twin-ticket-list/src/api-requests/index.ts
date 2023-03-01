@@ -30,6 +30,28 @@ export async function getBuildingAsync() {
   return result.data;
 }
 
+export async function getBuildingSpaceTreeAsync() {
+  /*const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(
+    `/building/${buildingId}/geographicContext/space`
+  );
+  return result.data.children[0];*/
+  const building = await getBuildingAsync();
+  building.children = [...(await getFloorListAsync())];
+
+  for (const child of building.children)
+    child.children = [...(await getRoomListAsync(child.dynamicId))];
+  return building;
+}
+
+export async function getPositionAsync(dynamicId: number) {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(
+    `building/${buildingId}/equipement/${dynamicId}/get_postion`
+  );
+  return result.data;
+}
+
 export async function getFloorListAsync() {
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(`building/${buildingId}/floor/list`);

@@ -24,54 +24,74 @@ with this file. If not, see
 
 <template>
   <v-app id="application">
-    <v-container fluid
-                 style="padding-bottom: 0px; padding-top: 12px; height: 64px;">
-      <div style="width: 100%"
-           class="d-flex justify-end">
+    <v-container
+      fluid
+      style="padding-bottom: 0px; padding-top: 12px; height: 64px"
+    >
+      <div style="width: 100%" class="d-flex justify-end">
         <!-- <div v-if="tableData.length>0" @click="downloadCSVLocally()"><ButtonIcon /></div> -->
-        <sc-download-button :file-name="'Humidité'"
-                            :data="tableData"></sc-download-button>
+        <sc-download-button
+          :file-name="'Humidité'"
+          :data="tableData"
+        ></sc-download-button>
         <div class="ma-1"></div>
-        <space-selector :maxDepth="1"
-                        :onopen="fct"
-                        @select="selection"
-                        :rootElement="root" />
+        <space-selector
+          :maxDepth="1"
+          :onopen="fct"
+          @select="selection"
+          :rootElement="root"
+        />
       </div>
     </v-container>
-    <v-container fill-height
-                 fluid
-                 class="parent-container pa-0 ma-0">
-      <v-container style="height: 100%; max-width: 2560px;"
-                   fluid
-                   class="main-container desktop-version full-height grow flex-column flex-nowrap justify-space-around justify-lg-start">
-        <v-row class="flex-grow-0 flex-shrink-1"
-               ref="statcard">
-          <v-col cols="12"
-                 class="pb-0">
-            <v-card class="d-flex justify-md-space-between flex-md-row flex-column stat-card rounded-lg"
-                    elevation="4"
-                    width="100%">
-              <stat-bar squareColor=moderate  :bigNumber="yellowValue" bigCaption="Air trop sec"           :smallCaption="percentage[1]"/>
-              <stat-bar squareColor=good      :bigNumber="greenValue"  bigCaption="Niveau correct" :smallCaption="percentage[0]"/>
-              <stat-bar squareColor=hazardous :bigNumber="redValue"    bigCaption="Air trop humide"      :smallCaption="percentage[3]"/>
+    <v-container fill-height fluid class="parent-container pa-0 ma-0">
+      <v-container
+        style="height: 100%; max-width: 2560px"
+        fluid
+        class="main-container desktop-version full-height grow flex-column flex-nowrap justify-space-around justify-lg-start"
+      >
+        <v-row class="flex-grow-0 flex-shrink-1" ref="statcard">
+          <v-col cols="12" class="pb-0">
+            <v-card
+              class="d-flex justify-md-space-between flex-md-row flex-column stat-card rounded-lg"
+              elevation="4"
+              width="100%"
+            >
+              <stat-bar
+                squareColor="moderate"
+                :bigNumber="yellowValue"
+                bigCaption="Air trop sec"
+                :smallCaption="percentage[1]"
+              />
+              <stat-bar
+                squareColor="good"
+                :bigNumber="greenValue"
+                bigCaption="Niveau correct"
+                :smallCaption="percentage[0]"
+              />
+              <stat-bar
+                squareColor="hazardous"
+                :bigNumber="redValue"
+                bigCaption="Air trop humide"
+                :smallCaption="percentage[3]"
+              />
             </v-card>
           </v-col>
         </v-row>
         <v-row class="flex-grow-1 flex-shrink-0 charlevoix">
-          <v-col cols="12"
-                 class="pb-0">
-            <div ref="maintable"
-                 style="height:100% !important;">
-              <v-card class="d-flex flex-column table-card rounded-lg pt-3 pb-0"
-                      elevation="4"
-                      style="height: 100%;">
+          <v-col cols="12" class="pb-0">
+            <div ref="maintable" style="height: 100% !important">
+              <v-card
+                class="d-flex flex-column table-card rounded-lg pt-3 pb-0"
+                elevation="4"
+                style="height: 100%"
+              >
                 <div ref="test">
                   <div ref="selected">
-                    <span class="card-header-text pt-8 pl-3">ÉTAGES
-                      SÉLECTIONNÉS</span>
+                    <span class="card-header-text pt-8 pl-3"
+                      >ÉTAGES SÉLECTIONNÉS</span
+                    >
                   </div>
-                  <div style="margin-left: 40px;"
-                       ref="filter">
+                  <div style="margin-left: 40px" ref="filter">
                     <span class="card-header-text">Filtre</span>
                     <div class="d-flex flex-row">
                       <v-checkbox
@@ -80,56 +100,64 @@ with this file. If not, see
                         dense
                         label="Air trop sec"
                         v-model="colorF[0]"
-                        ></v-checkbox>
+                      ></v-checkbox>
                       <v-checkbox
                         color="good"
                         class="pr-3"
                         dense
                         label="Niveau correct"
                         v-model="colorF[1]"
-                        ></v-checkbox>
+                      ></v-checkbox>
                       <v-checkbox
                         color="hazardous"
                         class="pr-3"
                         dense
                         label="Air trop humide"
                         v-model="colorF[3]"
-                        ></v-checkbox>
+                      ></v-checkbox>
                     </div>
                   </div>
                   <div ref="desktopTable">
-                    <v-data-table style="box-shadow: none !important;"
-                                  :loading="(!cpList)"
-                                  loadingText="Chargement des données"
-                                  :headers="headers"
-                                  :items="tableData"
-                                  :page.sync="page"
-                                  :items-per-page="10"
-                                  class="elevation-1 table-data"
-                                  :height="testVar"
-                                  :footer-props="{
-                    prevIcon: 'mdi-menu-left',
-                    nextIcon: 'mdi-menu-right',
-                    itemsPerPageText: '',
-                    showCurrentPage: true,
-                    itemsPerPageAllText: 'Tout',
-                    itemsPerPageOptions: [5,10,15,-1],
-                    pageText: '',
-                  }"
-                                  @page-count="pageCount = $event">
-                      <v-progress-linear v-show="!cpList"
-                                         slot="progress"
-                                         color="accent"
-                                         indeterminate
-                                         style="margin-left: -16px; width: calc(100% + 32px)">
+                    <v-data-table
+                      style="box-shadow: none !important"
+                      :loading="!cpList"
+                      loadingText="Chargement des données"
+                      :headers="headers"
+                      :items="tableData"
+                      :page.sync="page"
+                      :items-per-page="10"
+                      class="elevation-1 table-data"
+                      :height="testVar"
+                      :footer-props="{
+                        prevIcon: 'mdi-menu-left',
+                        nextIcon: 'mdi-menu-right',
+                        itemsPerPageText: '',
+                        showCurrentPage: true,
+                        itemsPerPageAllText: 'Tout',
+                        itemsPerPageOptions: [5, 10, 15, -1],
+                        pageText: '',
+                      }"
+                      @page-count="pageCount = $event"
+                    >
+                      <v-progress-linear
+                        v-show="!cpList"
+                        slot="progress"
+                        color="accent"
+                        indeterminate
+                        style="margin-left: -16px; width: calc(100% + 32px)"
+                      >
                       </v-progress-linear>
                       <template v-slot:[`item.currentValue`]="{ item }">
-                        <div style="display:flex; flex-direction: row;">
-                          <div :class="[colorCode(item.currentValue)]"
-                               class="rectanlge-small"
-                               style="margin-right: 10px"></div>
-                          <div>{{ item.currentValue.toFixed(0) }} <span
-                                  class="grey-color"> %</span></div>
+                        <div style="display: flex; flex-direction: row">
+                          <div
+                            :class="[colorCode(item.currentValue)]"
+                            class="rectanlge-small"
+                            style="margin-right: 10px"
+                          ></div>
+                          <div>
+                            {{ item.currentValue.toFixed(0) }}
+                            <span class="grey-color"> %</span>
+                          </div>
                         </div>
                       </template>
                       <template v-slot:no-data>
@@ -142,97 +170,117 @@ with this file. If not, see
             </div>
           </v-col>
         </v-row>
-        <v-row class="flex-grow-0 flex-shrink-1 charlevoix"
-               ref="bottomcharts">
+        <v-row class="flex-grow-0 flex-shrink-1 charlevoix" ref="bottomcharts">
           <v-col cols="6">
-            <v-card elevation="4"
-                    class="pa-3 rounded-lg"
-                    style="height: 100%; background-color: #f9f9f9 !important;">
+            <v-card
+              elevation="4"
+              class="pa-3 rounded-lg"
+              style="height: 100%; background-color: #f9f9f9 !important"
+            >
               <span class="card-header-text">ÉTAT DES SALLES</span>
-              <Pie :chart-options="chartOptions"
-                   :chart-data="roomStatusData"
-                   :chart-id="chartId"
-                   :dataset-id-key="datasetIdKey"
-                   :css-classes="cssClasses"
-                   :styles="styles"
-                   :width="width"
-                   :height="pieHeight" />
+              <Pie
+                :chart-options="chartOptions"
+                :chart-data="roomStatusData"
+                :chart-id="chartId"
+                :dataset-id-key="datasetIdKey"
+                :css-classes="cssClasses"
+                :styles="styles"
+                :width="width"
+                :height="pieHeight"
+              />
             </v-card>
           </v-col>
           <v-col cols="6">
-            <v-card elevation="4"
-                    class="pa-3 rounded-lg"
-                    style="height: 100%; background-color: #f9f9f9 !important;">
+            <v-card
+              elevation="4"
+              class="pa-3 rounded-lg"
+              style="height: 100%; background-color: #f9f9f9 !important"
+            >
               <span class="card-header-text">ÉTAT GLOBAL</span>
-              <Doughnut :chart-options="chartOptions"
-                        :chart-data="globalStateData"
-                        :chart-id="chartId"
-                        :dataset-id-key="datasetIdKey"
-                        :css-classes="cssClasses"
-                        :styles="styles"
-                        :width="width"
-                        :height="pieHeight" />
+              <Doughnut
+                :chart-options="chartOptions"
+                :chart-data="globalStateData"
+                :chart-id="chartId"
+                :dataset-id-key="datasetIdKey"
+                :css-classes="cssClasses"
+                :styles="styles"
+                :width="width"
+                :height="pieHeight"
+              />
             </v-card>
           </v-col>
         </v-row>
       </v-container>
 
-      <v-container fill-height
-                   full-height
-                   fluid
-                   class="main-container fill-height mobile-version">
-        <v-row align="center"
-               justify="center"
-               style="height: 100% !important">
-          <v-col style="height: 100% !important"
-                 class=" charlevoix d-flex flex-column align-content-space-between flex-nowrap"
-                 v-if="tabDisplay==0">
+      <v-container
+        fill-height
+        full-height
+        fluid
+        class="main-container fill-height mobile-version"
+      >
+        <v-row align="center" justify="center" style="height: 100% !important">
+          <v-col
+            style="height: 100% !important"
+            class="charlevoix d-flex flex-column align-content-space-between flex-nowrap"
+            v-if="tabDisplay == 0"
+          >
             <span
-                  class="card-header-text align-self-center flex-grow-0 flex-shrink-1 mb-sm-4">Bilan</span>
-            <div class="d-flex mb-4"
-                 style="width:100%; height: 100%">
+              class="card-header-text align-self-center flex-grow-0 flex-shrink-1 mb-sm-4"
+              >Bilan</span
+            >
+            <div class="d-flex mb-4" style="width: 100%; height: 100%">
               <div class="align-self-center flex-grow-1">
                 <v-row class="mx-4 mb-2">
                   <v-col class="mr-0 mr-sm-1">
-                                <v-card class="tile yellow-border d-flex flex-column justify-center align-center rounded-lg"
-                    elevation="2"
-                  >
-                    <div class="portrait-display align-center">
-                      <span class="big-number align-self-center pr-0 mx-1">{{yellowValue}}</span>
-                      <span class="big-caption">Air trop sec</span>
-                      <span class="small-caption align-self-center">{{percentage[1]}}%</span>
-                    </div>
-
-                    <div class="landscape-display stat-element pa-4">
-                      <div class="big-number">
-                        {{yellowValue}}
-                      </div>
-                      <div class="horizontal-split">
-                        <div class="big-caption">Air trop sec</div>
-                        <div class="small-caption">{{percentage[1]}}%</div>
-                      </div>
-                    </div>
-                  </v-card>
-                  </v-col>
-                </v-row>
-                <v-row class="mx-4 mb-2">
-                  <v-col class="mr-0 mr-sm-1">
-                    <v-card class="tile green-border d-flex flex-column justify-center align-center rounded-lg"
+                    <v-card
+                      class="tile yellow-border d-flex flex-column justify-center align-center rounded-lg"
                       elevation="2"
                     >
                       <div class="portrait-display align-center">
-                        <span class="big-number align-self-center pr-0 mx-1">{{greenValue}}</span>
-                        <span class="big-caption">Niveau correct</span>
-                        <span class="small-caption align-self-center">{{percentage[0]}}%</span>
+                        <span class="big-number align-self-center pr-0 mx-1">{{
+                          yellowValue
+                        }}</span>
+                        <span class="big-caption">Air trop sec</span>
+                        <span class="small-caption align-self-center"
+                          >{{ percentage[1] }}%</span
+                        >
                       </div>
 
                       <div class="landscape-display stat-element pa-4">
                         <div class="big-number">
-                          {{greenValue}}
+                          {{ yellowValue }}
+                        </div>
+                        <div class="horizontal-split">
+                          <div class="big-caption">Air trop sec</div>
+                          <div class="small-caption">{{ percentage[1] }}%</div>
+                        </div>
+                      </div>
+                    </v-card>
+                  </v-col>
+                </v-row>
+                <v-row class="mx-4 mb-2">
+                  <v-col class="mr-0 mr-sm-1">
+                    <v-card
+                      class="tile green-border d-flex flex-column justify-center align-center rounded-lg"
+                      elevation="2"
+                    >
+                      <div class="portrait-display align-center">
+                        <span class="big-number align-self-center pr-0 mx-1">{{
+                          greenValue
+                        }}</span>
+                        <span class="big-caption">Niveau correct</span>
+                        <span class="small-caption align-self-center"
+                          >{{ percentage[0] }}%</span
+                        >
+                      </div>
+
+                      <div class="landscape-display stat-element pa-4">
+                        <div class="big-number">
+                          {{ greenValue }}
                         </div>
                         <div class="horizontal-split">
                           <div class="big-caption">Niveau correct</div>
-                          <div class="small-caption">{{percentage[0]}}%</div>
+                          <div class="small-caption">{{ percentage[0] }}%</div>
                         </div>
                       </div>
                     </v-card>
@@ -240,72 +288,81 @@ with this file. If not, see
                 </v-row>
                 <v-row class="mx-4 mt-2">
                   <v-col class="mr-0 mr-sm-1">
-                  <v-card class="tile red-border d-flex flex-column justify-center align-center rounded-lg"
-                    elevation="2"
-                  >
-                    <div class="portrait-display align-center">
-                      <span class="big-number align-self-center pr-0 mx-1">{{redValue}}</span>
-                      <span class="big-caption">Air trop humide</span>
-                      <span class="small-caption align-self-center">{{percentage[3]}}%</span>
-                    </div>
+                    <v-card
+                      class="tile red-border d-flex flex-column justify-center align-center rounded-lg"
+                      elevation="2"
+                    >
+                      <div class="portrait-display align-center">
+                        <span class="big-number align-self-center pr-0 mx-1">{{
+                          redValue
+                        }}</span>
+                        <span class="big-caption">Air trop humide</span>
+                        <span class="small-caption align-self-center"
+                          >{{ percentage[3] }}%</span
+                        >
+                      </div>
 
-                    <div class="landscape-display stat-element pa-4">
-                      <div class="big-number">
-                        {{redValue}}
+                      <div class="landscape-display stat-element pa-4">
+                        <div class="big-number">
+                          {{ redValue }}
+                        </div>
+                        <div class="horizontal-split">
+                          <div class="big-caption">Air trop humide</div>
+                          <div class="small-caption">{{ percentage[3] }}%</div>
+                        </div>
                       </div>
-                      <div class="horizontal-split">
-                        <div class="big-caption">Air trop humide</div>
-                        <div class="small-caption">{{percentage[3]}}%</div>
-                      </div>
-                    </div>
-                  </v-card>
+                    </v-card>
                   </v-col>
                 </v-row>
               </div>
             </div>
           </v-col>
 
-          <v-col style="text-align: center;overflow: auto"
-                 class="charlevoix"
-                 v-if="tabDisplay==1">
-            <v-dialog v-model="dialog"
-                      width="500">
+          <v-col
+            style="text-align: center; overflow: auto"
+            class="charlevoix"
+            v-if="tabDisplay == 1"
+          >
+            <v-dialog v-model="dialog" width="500">
               <v-card class="rounded-lg">
-                <v-card-title justify="center"
-                              class="text-center text-h5 blue-grey darken-1 rounded-lg">
-                  <span class="card-header-text text-center"
-                        style="color: white">Filter</span>
+                <v-card-title
+                  justify="center"
+                  class="text-center text-h5 blue-grey darken-1 rounded-lg"
+                >
+                  <span
+                    class="card-header-text text-center"
+                    style="color: white"
+                    >Filter</span
+                  >
                 </v-card-title>
 
                 <v-card-text>
-                  <v-card flat
-                          class="py-12">
+                  <v-card flat class="py-12">
                     <v-card-text>
-                      <v-row align="center"
-                             justify="center">
-                             <div class="d-flex flex-row">
-                            <v-checkbox
-                              color="moderate"
-                              class="pr-3"
-                              dense
-                              label="Air trop sec"
-                              v-model="colorF[0]"
-                              ></v-checkbox>
-                            <v-checkbox
-                              color="good"
-                              class="pr-3"
-                              dense
-                              label="Niveau correct"
-                              v-model="colorF[1]"
-                              ></v-checkbox>
-                            <v-checkbox
-                              color="hazardous"
-                              class="pr-3"
-                              dense
-                              label="Air trop humide"
-                              v-model="colorF[3]"
-                              ></v-checkbox>
-                          </div>
+                      <v-row align="center" justify="center">
+                        <div class="d-flex flex-row">
+                          <v-checkbox
+                            color="moderate"
+                            class="pr-3"
+                            dense
+                            label="Air trop sec"
+                            v-model="colorF[0]"
+                          ></v-checkbox>
+                          <v-checkbox
+                            color="good"
+                            class="pr-3"
+                            dense
+                            label="Niveau correct"
+                            v-model="colorF[1]"
+                          ></v-checkbox>
+                          <v-checkbox
+                            color="hazardous"
+                            class="pr-3"
+                            dense
+                            label="Air trop humide"
+                            v-model="colorF[3]"
+                          ></v-checkbox>
+                        </div>
                       </v-row>
                     </v-card-text>
                   </v-card>
@@ -315,83 +372,79 @@ with this file. If not, see
 
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn color="primary"
-                         text
-                         @click="dialog = false">
+                  <v-btn color="primary" text @click="dialog = false">
                     Close
                   </v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
             <span
-                  class="card-header-text align-self-center flex-grow-0 flex-shrink-1 mb-sm-8">ÉTAGES
-              SÉLECTIONNÉS</span>
+              class="card-header-text align-self-center flex-grow-0 flex-shrink-1 mb-sm-8"
+              >ÉTAGES SÉLECTIONNÉS</span
+            >
             <v-card class="d-flex flex-column rounded-lg">
               <div class="align-self-end">
-                <v-speed-dial style="margin-top: -36px;margin-left: -60px;"
-                              absolute
-                              v-model="fab"
-                              :top="trueVariable"
-                              :right="trueVariable"
-                              :direction="leftVariable"
-                              :open-on-hover="trueVariable">
+                <v-speed-dial
+                  style="margin-top: -36px; margin-left: -60px"
+                  absolute
+                  v-model="fab"
+                  :top="trueVariable"
+                  :right="trueVariable"
+                  :direction="leftVariable"
+                  :open-on-hover="trueVariable"
+                >
                   <template v-slot:activator>
-                    <v-btn v-model="fab"
-                           color="accent"
-                           dark
-                           fab
-                           small>
-                      <v-icon v-if="fab">
-                        mdi-close
-                      </v-icon>
-                      <v-icon v-else>
-                        mdi-dots-vertical
-                      </v-icon>
+                    <v-btn v-model="fab" color="accent" dark fab small>
+                      <v-icon v-if="fab"> mdi-close </v-icon>
+                      <v-icon v-else> mdi-dots-vertical </v-icon>
                     </v-btn>
                   </template>
-                  <v-btn fab
-                         dark
-                         small
-                         @click="dialog = true"
-                         color="accent">
+                  <v-btn fab dark small @click="dialog = true" color="accent">
                     <v-icon>mdi-filter-variant</v-icon>
                   </v-btn>
                 </v-speed-dial>
               </div>
-              <div class="align-self-end">
-              </div>
+              <div class="align-self-end"></div>
               <div>
-                <v-data-table style="top:0%"
-                              :loading="(!cpList)"
-                              loadingText="Chargement des données"
-                              fixed-header
-                              :height="tableHeight"
-                              :headers="headers"
-                              :items="tableData"
-                              :items-per-page="15"
-                              class="elevation-1"
-                              :mobile-breakpoint="0"
-                              :footer-props="{
+                <v-data-table
+                  style="top: 0%"
+                  :loading="!cpList"
+                  loadingText="Chargement des données"
+                  fixed-header
+                  :height="tableHeight"
+                  :headers="headers"
+                  :items="tableData"
+                  :items-per-page="15"
+                  class="elevation-1"
+                  :mobile-breakpoint="0"
+                  :footer-props="{
                     prevIcon: 'mdi-menu-left',
                     nextIcon: 'mdi-menu-right',
                     itemsPerPageText: '',
                     showCurrentPage: true,
-                    itemsPerPageOptions: [5,10,15,-1],
+                    itemsPerPageOptions: [5, 10, 15, -1],
                     pageText: '',
-                  }">
-                  <v-progress-linear v-show="!cpList"
-                                     slot="progress"
-                                     color="accent"
-                                     indeterminate
-                                     style="margin-left: -16px; width: calc(100% + 32px)">
+                  }"
+                >
+                  <v-progress-linear
+                    v-show="!cpList"
+                    slot="progress"
+                    color="accent"
+                    indeterminate
+                    style="margin-left: -16px; width: calc(100% + 32px)"
+                  >
                   </v-progress-linear>
                   <template v-slot:[`item.currentValue`]="{ item }">
-                    <div style="display:flex; flex-direction: row;">
-                      <div :class="[colorCode(item.currentValue)]"
-                           class="rectanlge-small"
-                           style="margin-right: 10px"></div>
-                      <div>{{ item.currentValue.toFixed(2) }} <span
-                              class="grey-color">ppm</span></div>
+                    <div style="display: flex; flex-direction: row">
+                      <div
+                        :class="[colorCode(item.currentValue)]"
+                        class="rectanlge-small"
+                        style="margin-right: 10px"
+                      ></div>
+                      <div>
+                        {{ item.currentValue.toFixed(2) }}
+                        <span class="grey-color">ppm</span>
+                      </div>
                     </div>
                     <!-- <div :class="[colorCode(item.currentValue)]" class="rectanlge-small" style="right: 80px; float:right"></div><span>{{ item.currentValue.toFixed(2) }}</span> -->
                   </template>
@@ -401,54 +454,55 @@ with this file. If not, see
                 </v-data-table>
               </div>
             </v-card>
-
           </v-col>
 
-          <v-col style="text-align: center; height: 100%"
-                 v-if="tabDisplay==2"
-                 class="d-flex flex-column flex-nowrap charlevoix">
+          <v-col
+            style="text-align: center; height: 100%"
+            v-if="tabDisplay == 2"
+            class="d-flex flex-column flex-nowrap charlevoix"
+          >
             <span
-                  class="card-header-text align-self-center flex-grow-0 flex-shrink-1">ÉTAT
-              DES SALLES</span>
-            <Pie class="align-self-center flex-grow-1 flex-shrink-0"
-                 style="max-width: 400px"
-                 :chart-options="chartMobileOptions"
-                 :chart-data="roomStatusData"
-                 :chart-id="chartId"
-                 :dataset-id-key="datasetIdKey"
-                 :css-classes="cssClasses"
-                 :styles="styles"
-                 :width="width"
-                 :height="height" />
+              class="card-header-text align-self-center flex-grow-0 flex-shrink-1"
+              >ÉTAT DES SALLES</span
+            >
+            <Pie
+              class="align-self-center flex-grow-1 flex-shrink-0"
+              style="max-width: 400px"
+              :chart-options="chartMobileOptions"
+              :chart-data="roomStatusData"
+              :chart-id="chartId"
+              :dataset-id-key="datasetIdKey"
+              :css-classes="cssClasses"
+              :styles="styles"
+              :width="width"
+              :height="height"
+            />
           </v-col>
         </v-row>
       </v-container>
 
-      <v-container fluid
-                   pa-0
-                   class="bottom-nav charlevoix">
-        <v-bottom-navigation style="box-shadow: none;">
-          <v-btn @click="tabDisplay=0"
-                 class="activemobiletab bot-nav-buttons"
-                 style=""
-                 value="recent">
+      <v-container fluid pa-0 class="bottom-nav charlevoix">
+        <v-bottom-navigation style="box-shadow: none">
+          <v-btn
+            @click="tabDisplay = 0"
+            class="activemobiletab bot-nav-buttons"
+            style=""
+            value="recent"
+          >
             <span>Bilan</span>
 
-            <v-icon class="material-icons-rounded"
-                    style="">mdi-view-grid</v-icon>
+            <v-icon class="material-icons-rounded" style=""
+              >mdi-view-grid</v-icon
+            >
           </v-btn>
 
-          <v-btn @click="tabDisplay=1"
-                 class="bot-nav-buttons"
-                 style="">
+          <v-btn @click="tabDisplay = 1" class="bot-nav-buttons" style="">
             <span>Tableau</span>
 
             <v-icon>mdi-table</v-icon>
           </v-btn>
 
-          <v-btn @click="tabDisplay=2"
-                 class="bot-nav-buttons"
-                 style="">
+          <v-btn @click="tabDisplay = 2" class="bot-nav-buttons" style="">
             <span>Diagramme</span>
 
             <v-icon>mdi-chart-pie</v-icon>
@@ -456,8 +510,7 @@ with this file. If not, see
         </v-bottom-navigation>
       </v-container>
     </v-container>
-    <div class="main-loader"
-         v-if="!cpList">
+    <div class="main-loader" v-if="!cpList">
       <sc-loader></sc-loader>
     </div>
   </v-app>
@@ -671,16 +724,24 @@ export default {
       return ["0", "0", "0", "0"];
     },
     yellowValue() {
-        return this.arrangeSpaceTableManually(this.constTable).filter(x => x.currentValue<30).length;
-      },
+      return this.arrangeSpaceTableManually(this.constTable).filter(
+        (x) => x.currentValue < 30
+      ).length;
+    },
     greenValue() {
-      return this.arrangeSpaceTableManually(this.constTable).filter(x => x.currentValue>30 && x.currentValue<70).length;
+      return this.arrangeSpaceTableManually(this.constTable).filter(
+        (x) => x.currentValue > 30 && x.currentValue < 70
+      ).length;
     },
     orangeValue() {
-      return this.arrangeSpaceTableManually(this.constTable).filter(x => x.currentValue>1200 && x.currentValue<70).length;
+      return this.arrangeSpaceTableManually(this.constTable).filter(
+        (x) => x.currentValue > 1200 && x.currentValue < 70
+      ).length;
     },
     redValue() {
-      return this.arrangeSpaceTableManually(this.constTable).filter(x => x.currentValue>70).length;
+      return this.arrangeSpaceTableManually(this.constTable).filter(
+        (x) => x.currentValue > 70
+      ).length;
     },
     queriedData() {
       let result = this.tableData;
@@ -705,23 +766,34 @@ export default {
         : this.tableData.length;
     },
     roomStatusData() {
-        if((this.greenValue && this.yellowValue && this.orangeValue && this.redValue) || (this.greenValue + this.yellowValue + this.orangeValue + this.redValue)==0)
+      if (
+        (this.greenValue &&
+          this.yellowValue &&
+          this.orangeValue &&
+          this.redValue) ||
+        this.greenValue + this.yellowValue + this.orangeValue + this.redValue ==
+          0
+      )
         return {
-          labels: [ 'Pas de données'],
-          datasets: [ { 
-            data: [1],
-            backgroundColor: ["#e8e9e9"],
-          } ]
-        }
-        else
+          labels: ["Pas de données"],
+          datasets: [
+            {
+              data: [1],
+              backgroundColor: ["#e8e9e9"],
+            },
+          ],
+        };
+      else
         return {
-          labels: [ 'Air trop sec', 'Niveau correct', 'Trop Humide',],
-          datasets: [ { 
-            data: [this.yellowValue, this.greenValue, this.redValue,],
-            backgroundColor: ["#ffe600", "#11eda9", "#ff000b"],
-          } ]
-        }
-      },
+          labels: ["Air trop sec", "Niveau correct", "Trop Humide"],
+          datasets: [
+            {
+              data: [this.yellowValue, this.greenValue, this.redValue],
+              backgroundColor: ["#ffe600", "#11eda9", "#ff000b"],
+            },
+          ],
+        };
+    },
     equipedState() {
       if (this.cpList) return this.cpList.equiped;
       return 0;
@@ -793,10 +865,10 @@ export default {
       else this.setSpaceFilter(element.name);
     },
     colorCode(v) {
-        if(v<30) return 'yellow-color';
-          else if(v<70) return 'green-color';
-              else if(v>70) return 'red-color';
-      },
+      if (v < 30) return "yellow-color";
+      else if (v < 70) return "green-color";
+      else if (v > 70) return "red-color";
+    },
     myEventHandler() {
       this.pieHeight = window.innerHeight / 5;
       this.tableHeight = window.innerHeight - (112 + 90 + 30 + 12);
@@ -823,25 +895,33 @@ export default {
     colorArrange() {
       this.tableData = [];
       let tempTable = this.arrangeSpaceTableManually(this.constTable);
-      if(this.colorF[0]){
-        tempTable.filter(x => (x.currentValue<30)).forEach(element => {
-          this.tableData.push(element);
-        });
+      if (this.colorF[0]) {
+        tempTable
+          .filter((x) => x.currentValue < 30)
+          .forEach((element) => {
+            this.tableData.push(element);
+          });
       }
-      if(this.colorF[1]){
-        tempTable.filter(x => (x.currentValue>=30 && x.currentValue<70)).forEach(element => {
-          this.tableData.push(element);
-        });
+      if (this.colorF[1]) {
+        tempTable
+          .filter((x) => x.currentValue >= 30 && x.currentValue < 70)
+          .forEach((element) => {
+            this.tableData.push(element);
+          });
       }
-      if(this.colorF[2]){
-        tempTable.filter(x => (x.currentValue<70 && x.currentValue>=1200)).forEach(element => {
-          this.tableData.push(element);
-        });
+      if (this.colorF[2]) {
+        tempTable
+          .filter((x) => x.currentValue < 70 && x.currentValue >= 1200)
+          .forEach((element) => {
+            this.tableData.push(element);
+          });
       }
-      if(this.colorF[3]){
-        tempTable.filter(x => (x.currentValue>=70)).forEach(element => {
-          this.tableData.push(element);
-        });
+      if (this.colorF[3]) {
+        tempTable
+          .filter((x) => x.currentValue >= 70)
+          .forEach((element) => {
+            this.tableData.push(element);
+          });
       }
     },
     arrangeSpaceTableManually(v) {
