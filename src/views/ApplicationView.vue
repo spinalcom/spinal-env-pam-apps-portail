@@ -23,28 +23,27 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="appLoadContainer" fluid>
-    <div class="navbar">
-      <NavBar />
-    </div>
+  <v-container class="appLoadContainer"
+               fluid>
+    <!-- <div class="navbar"> -->
+    <NavBar class="navbar"
+            :isMobile="isMobile" />
+    <!-- </div> -->
 
     <!-- <iframe viewer  -->
-    <ViewerIFrame
-      v-if="showViewer"
-      class="iframeViewerContainer"
-      :inDrag="inDrag"
-      v-on:update:inDrag="inDrag = $event"
-    ></ViewerIFrame>
+    <ViewerIFrame v-if="showViewer"
+                  class="iframeViewerContainer"
+                  :inDrag="inDrag"
+                  v-on:update:inDrag="inDrag = $event"></ViewerIFrame>
 
     <!-- <iframe  -->
-    <iframe
-      v-if="appPath"
-      class="iframeContainer"
-      :class="{ 'disabled-event': inDrag }"
-      :src="appPath"
-    ></iframe>
+    <iframe v-if="appPath"
+            class="iframeContainer"
+            :class="{ 'disabled-event': inDrag }"
+            :src="appPath"></iframe>
 
-    <div v-else class="iframeContainer notFoundDiv">
+    <div v-else
+         class="iframeContainer notFoundDiv">
       <h1 class="code">404</h1>
       <h1>No app found</h1>
     </div>
@@ -112,25 +111,38 @@ class ApplicationView extends Vue {
   watchRoute() {
     this.initApp();
   }
+
+  get isMobile() {
+    const breakpoint = this.$vuetify.breakpoint.name;
+    if (["xs", "sm"].indexOf(breakpoint) !== -1) return true;
+    return false;
+  }
 }
 
 export default ApplicationView;
 </script>
 
+
 <style lang="scss">
 .appLoadContainer {
   width: 100%;
   height: 100%;
-  padding: 0px;
+  padding: 5px !important;
   display: flex;
 
   .navbar {
-    width: 450px;
-    height: 60px;
+    // width: 450px;
+    // height: 60px;
     position: absolute;
     top: 10px;
     left: 0px;
   }
+
+  // .navbar.active {
+  //   width: 100vw;
+  //   height: 100vh;
+  // }
+
   .iframeViewerContainer {
     width: 100%;
     height: 100%;
@@ -160,3 +172,4 @@ export default ApplicationView;
   }
 }
 </style>
+

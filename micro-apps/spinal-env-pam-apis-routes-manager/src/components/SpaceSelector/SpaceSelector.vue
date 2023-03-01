@@ -26,12 +26,13 @@ with this file. If not, see
        :class="{ isopen: open }">
     <div class="backdrop-handler"
          v-show="open"
-         @click="$emit('update:open', !open)"></div>
+         @click.stop="$emit('update:open', !open)"></div>
     <v-card elevation="4"
             color="#14202C"
-            :class="{ 'space-selector-open': open }"
+            :class="{ 'space-selector-open': open,  'is-mobile': isMobile && !open}"
             class="space-selector">
-      <div @click="$emit('update:open', !open)"
+      <div v-if="!isMobile || open"
+           @click.stop="$emit('update:open', !open)"
            ref="SpaceSelectorTitleContainer"
            class="space-selector-header">
         <p class="space-selector-header-title">{{ selectedZoneName }}
@@ -40,6 +41,16 @@ with this file. If not, see
                   :class="{ 'rotate-enabled': open }">mdi-chevron-down</v-icon>
         </p>
       </div>
+
+      <div v-else
+           class="space-selector-header"
+           :class="{'is-mobile': isMobile && !open}"
+           @click.stop="$emit('update:open', !open)"
+           ref="SpaceSelectorTitleContainer">
+        <v-icon x-large
+                color="white">mdi-menu</v-icon>
+      </div>
+
       <transition-group name="staggered-fade"
                         class="card-list spinal-scrollbar"
                         tag="div"
@@ -75,9 +86,11 @@ import { convertZonesToISpaceSelectorItems } from "./convertZonesToISpaceSelecto
   },
 })
 class SpaceSelector extends Vue {
-  @Prop({ type: Function, required: true }) GetChildrenFct: (
-    item?: ISpaceSelectorItem
-  ) => Promise<IZoneItem[]>;
+  @Prop({ type: Boolean, required: false })
+  isMobile: Boolean;
+
+  @Prop({ type: Function, required: true })
+  GetChildrenFct: (item?: ISpaceSelectorItem) => Promise<IZoneItem[]>;
 
   @Prop({
     type: Number,
@@ -137,7 +150,7 @@ class SpaceSelector extends Vue {
   }
 
   select(item?: ISpaceSelectorItem) {
-    this.$emit("update:open", !this.open);
+    // this.$emit("update:open", !this.open);
     this.$emit("input", item);
   }
 
@@ -260,7 +273,7 @@ export default SpaceSelector;
 .space-selector {
   z-index: 1000;
   width: calc(100% - 16px);
-  margin: 8px;
+  margin: 0 8px;
   /* max-width: 500px; */
   height: 52px;
   float: right;
@@ -268,12 +281,17 @@ export default SpaceSelector;
   overflow: hidden;
   transition: height 0.3s ease-in;
 }
+
+.space-selector.is-mobile {
+  width: 50px;
+}
+
 .space-selector-container {
   position: absolute;
   height: 100vh;
   width: 100%;
   right: 0;
-  top: 5;
+  top: 0;
   max-width: 500px;
 }
 .space-selector-container.isopen {
@@ -285,6 +303,14 @@ export default SpaceSelector;
   height: 64px;
   background-color: #14202c;
   cursor: pointer;
+}
+
+.space-selector-header.is-mobile {
+  width: 50px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .space-selector-header-title {

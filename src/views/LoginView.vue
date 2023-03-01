@@ -25,13 +25,14 @@ with this file. If not, see
   <v-container class="loginAppContainer"
                fluid>
     <form @submit.prevent="login">
-      <v-card class="loginCard">
+      <v-card class="loginCard"
+              elevation="4">
         <v-card-title class="loginCardTitle">
           <div class="logoImg">
             <div class="logo">
-              <v-img class="img"
-                     alt="logo"
-                     :src="logoSvg"></v-img>
+              <img class="img"
+                   alt="logo"
+                   :src="logoSvg" />
             </div>
           </div>
 
@@ -85,7 +86,7 @@ with this file. If not, see
 <script>
 import Vue from "vue";
 import { mapActions, mapState } from "vuex";
-import logoSvg from "../assets/logo.jpg";
+import logoSvg from "../../assets/img/logo.jpg";
 // import logoSvg from "../assets/logo.jpg";
 
 export default Vue.extend({
@@ -135,6 +136,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+$md-screen: 960px;
+
 .loginAppContainer {
   width: 100%;
   height: 100%;
@@ -145,6 +148,10 @@ export default Vue.extend({
   .loginCard {
     width: 450px;
     padding: 18px;
+    @media (max-width: $md-screen) {
+      width: 100%;
+      max-width: 500px;
+    }
   }
 
   .loginCardTitle,
@@ -166,15 +173,16 @@ export default Vue.extend({
     .logoImg {
       width: 100%;
       height: 200px;
-      // display: flex;
-      // align-items: center;
-      // justify-content: center;
-    }
-
-    .logo {
-      .img {
+      @media (max-width: $md-screen) {
+        height: 200px !important;
+      }
+      .logo {
         width: 100%;
         height: 100%;
+        .img {
+          width: 100%;
+          height: 100%;
+        }
       }
     }
   }

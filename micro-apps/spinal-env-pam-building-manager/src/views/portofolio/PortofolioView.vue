@@ -41,9 +41,11 @@ with this file. If not, see
 
     <div class="content">
 
-      <v-list rounded>
+      <v-list rounded
+              :expand="true"
+              v-if="portofolios && portofolios.length > 0">
         <v-list-group prepend-icon="mdi-office-building"
-                      :eager="true"
+                      :value="true"
                       v-for="portofolio in portofolios"
                       :key="portofolio.id">
 
@@ -92,6 +94,11 @@ with this file. If not, see
 
         </v-list-group>
       </v-list>
+
+      <div v-else
+           class="emptyPortofolio">
+        Aucun portefolio à afficher
+      </div>
 
       <!-- <patrimoine-card v-for="building in buildings"
                        :key="building.id"
@@ -214,6 +221,15 @@ export default PortofolioView;
 
     .v-list-item__action--stack {
       flex-direction: row;
+    }
+
+    .emptyPortofolio {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.6em;
     }
   }
 

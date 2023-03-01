@@ -196,7 +196,7 @@ export default Vue.extend({
   width: 60px !important;
   height: 40px;
   border: 1px solid green;
-  color: green;
+  color: green !important;
   border-radius: 5px;
   margin: 5px;
 }
@@ -205,7 +205,7 @@ export default Vue.extend({
   width: 75px !important;
   height: 40px;
   border: 1px solid #ff5252;
-  color: #ff5252;
+  color: #ff5252 !important;
   border-radius: 5px;
   margin: 5px;
 }

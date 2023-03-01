@@ -23,7 +23,7 @@ with this file. If not, see
 -->
 
 <template>
-  <v-app class="application">
+  <v-app class="apps">
     <v-main>
       <router-view />
     </v-main>
@@ -31,7 +31,7 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue } from "vue-property-decorator";
 
 @Component
 class App extends Vue {}
@@ -39,10 +39,10 @@ export default App;
 </script>
 
 <style scoped>
-.application {
-  width: 100%;
-  height: 100%;
-  background: #f0f4f5 !important;
+.apps {
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(121deg, #f8fafa, #d6e2e6) !important;
   overflow-y: auto;
 }
 </style>

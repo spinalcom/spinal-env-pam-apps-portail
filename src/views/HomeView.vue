@@ -24,7 +24,7 @@ with this file. If not, see
 <template>
   <v-container class="appContainer"
                fluid>
-    <div class="header">
+    <div class="my_header">
       <div class="description">
         <p>Consultez toutes les données de vos bâtiments connectés.</p>
         <p>
@@ -33,7 +33,8 @@ with this file. If not, see
                  small
                  disabled
                  class="favorisBtn">
-            <v-icon>mdi-cards-diamond</v-icon>
+            <!-- <v-icon>mdi-cards-diamond</v-icon> -->
+            <v-icon>mdi-star</v-icon>
           </v-btn>
         </p>
       </div>
@@ -69,6 +70,8 @@ with this file. If not, see
       <v-flex style="overflow: auto">
         <GridComponent :groups="groups"
                        :categories="categoriesDisplayed"
+                       :isMobile="isMobile"
+                       :favoriteApps="favoriteApps"
                        @goToApp="goToApp"
                        @exploreApp="exploreApp"
                        @addAppToFavoris="addAppToFavoris" />
@@ -89,6 +92,9 @@ export default Vue.extend({
   name: "Home",
   components: {
     GridComponent,
+  },
+  props: {
+    isMobile: {},
   },
   data() {
     this.defaultCategory = {
@@ -189,18 +195,24 @@ export default Vue.extend({
       }
     },
 
-    exploreApp(item) {
-      console.log("exploreApp", item);
-    },
+    exploreApp(item) {},
 
-    addAppToFavoris(item) {
-      console.log("addAppToFavoris", item);
+    addAppToFavoris({ item, isFavorite }) {
+      const ids = [item.id];
+      if (isFavorite)
+        return this.$store.dispatch(`appDataStore/deleteFavoriteApps`, ids);
+      this.$store.dispatch(`appDataStore/addToFavoriteApps`, ids);
     },
   },
   computed: {
-    ...mapState("appDataStore", ["appsFormatted"]),
+    ...mapState("appDataStore", ["appsFormatted", "favoriteApps"]),
   },
   watch: {
+    // favoriteApps() {
+    //   this.favoriteApps.forEach((el) => {
+    //     this.favoriteAppsObj[el.id] = el;
+    //   });
+    // },
     appsFormatted({ data, groups }) {
       this.formatData({ data, groups });
     },
@@ -217,18 +229,22 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+$md-screen: 960px;
+
 .appContainer {
   width: 100%;
   height: 100%;
   padding: 0px;
 
-  .header {
-    width: 100%;
+  .my_header {
+    @media (max-width: $md-screen) {
+      width: 100%;
+    }
+    width: 50%;
     display: flex;
     flex-direction: column;
-
-    width: 50%;
     height: 150px;
+
     .description {
       margin-bottom: 20px;
 
@@ -257,7 +273,8 @@ export default Vue.extend({
 
   .apps-container {
     width: 100%;
-    height: calc(100% - 160px);
+    height: calc(100% - 210px);
+    background: transparent;
   }
 }
 </style>

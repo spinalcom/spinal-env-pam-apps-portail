@@ -23,7 +23,7 @@ with this file. If not, see
 -->
 
 <template>
-  <v-app style="background-color: #e5edef;">
+  <v-app class="appContainer">
     <v-main>
       <HomeView />
     </v-main>
@@ -46,3 +46,12 @@ export default Vue.extend({
   }),
 });
 </script>
+
+
+<style lang="scss" scoped>
+.appContainer {
+  width: 99vw;
+  height: 100vh;
+  background: linear-gradient(121deg, #f8fafa, #d6e2e6) !important;
+}
+</style>

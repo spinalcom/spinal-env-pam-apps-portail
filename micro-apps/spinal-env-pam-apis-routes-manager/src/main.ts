@@ -36,9 +36,9 @@ Vue.use(VueSweetalert2, {
 });
 
 Vue.config.productionTip = false
-import "./assets/css/basic/reset.css";
-import "./assets/css/basic/main.css";
-import "./assets/css/component/navPickerApp.css";
+import "../../../assets/css/basic/reset.css";
+import "../../../assets/css/basic/main.css";
+import "../../../assets/css/component/navPickerApp.css";
 
 new Vue({
   store,

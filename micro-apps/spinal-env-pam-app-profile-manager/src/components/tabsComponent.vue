@@ -320,17 +320,20 @@ class TabsComponent {
 export default TabsComponent;
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 .tabsContent {
   width: 100%;
   height: 100%;
+  background: transparent !important;
   .portofolioTabs {
     width: 100%;
     height: 100%;
+    background: transparent !important;
 
     .content {
       width: 100%;
       height: 100%;
+
       .empty {
         width: 100%;
         height: 100%;
@@ -343,6 +346,7 @@ export default TabsComponent;
       .tabs {
         width: 100%;
         height: 100%;
+        background: transparent !important;
 
         .tabsHeader {
           width: 100%;
@@ -350,6 +354,8 @@ export default TabsComponent;
         }
 
         .tabsItems {
+          background: transparent !important;
+
           width: 100%;
           //   height: calc(100% - 50px);
           height: 100%;

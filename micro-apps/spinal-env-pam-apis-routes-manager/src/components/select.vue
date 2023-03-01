@@ -29,7 +29,8 @@ with this file. If not, see
                     :maxDepth="0"
                     :GetChildrenFct="onSpaceSelectOpen"
                     @input="getSelectedItem"
-                    :value="selectedZone" />
+                    :value="selectedZone"
+                    :isMobile="isMobile" />
 
     <!-- <v-select class="selectBar"
                 v-model="selected"
@@ -104,6 +105,13 @@ const SelectComponent = {
     getSelectedItem(item: any) {
       this.$emit("selected", categories[item.staticId]);
       this.selectedZone = item;
+    },
+  },
+  computed: {
+    isMobile() {
+      const breakpoint = this.$vuetify.breakpoint.name;
+      if (["xs", "sm"].indexOf(breakpoint) !== -1) return true;
+      return false;
     },
   },
   watch: {

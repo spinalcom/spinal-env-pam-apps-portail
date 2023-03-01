@@ -36,6 +36,7 @@ with this file. If not, see
                       @addBuilding="addBuilding"
                       @editBuilding="editBuilding"
                       @deleteBuilding="deleteBuilding" />
+
     </div>
   </div>
 </template>

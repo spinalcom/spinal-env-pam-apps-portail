@@ -31,10 +31,11 @@ import VueCookie from "vue-cookie";
 import App from "./App.vue";
 
 import "./events/iframeEventBus";
-import "./assets/css/basic/reset.css";
-import "./assets/css/basic/main.less";
-import "./assets/css/component/navPickerApp.css";
-import "material-design-icons-iconfont";
+import '../assets/css/basic/reset.css';
+import '../assets/css/basic/main.less';
+import '../assets/css/component/navPickerApp.css';
+import 'material-design-icons-iconfont';
+
 
 vuetifyInit(Vue);
 routerInit(Vue);
