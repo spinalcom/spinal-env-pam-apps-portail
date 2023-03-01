@@ -1,24 +1,24 @@
 <template>
   <div class="MP" :style="{'left': pinPosition}" ref="pin">
-    <div class="SNACKBAR" :class="colorCalc(objectif)">
-      <div class="LEGEND">{{legendCalc(objectif)}}</div>
-      <div class="PINTEXT">{{text}}</div>
-      <div class="PINTEXT"><b>{{objectif}}</b></div>
+    <div class="SNACKBAR" :class="colorCalc(value)" :style="[this.static ? {'background': '#eee !important'} : {}, this.static ? {'top': '33px !important'} : {}]">
+      <div class="LEGEND" :style="[this.static ? {'color': '#14202C !important'} : {}]">{{legendCalc(value)}}</div>
+      <div class="PINTEXT" :style="[this.static ? {'color': '#14202C !important'} : {}]">{{text}}</div>
+      <div class="PINTEXT" :style="[this.static ? {'color': '#14202C !important'} : {}]"><b>{{value}}</b></div>
     </div>
-    <div class="PINLINE" :class="position>= 50?'PINLINELEFT':'PINLINERIGHT'"></div>
+    <div class="PINLINE" :style="[this.static ? {'height': '21px !important'} : {'height': '41px'}, this.static ? {'top': '48px'} : {'top': '28px'}]" :class="position>= 50?'PINLINELEFT':'PINLINERIGHT'"></div>
     <div class="PINDOT"  :class="position >= 50?'PINDOTLEFT':'PINDOTRIGHT'"></div>
   </div>
 </template>
 
 <script>
 export default {
-  props: ['objectif', 'current', 'text'],
+  props: ['value', 'static', 'text'],
   computed: {
     position() {
-      return ((this.objectif * 100 / 280)<=100 ? this.objectif * 100 / 280 : 100);
+      return ((this.value * 100 / 280)<=100 ? this.value * 100 / 280 : 100);
     },
     pinPosition() {
-      let percentage = (this.objectif * 100 / 280)<=100 ? this.objectif * 100 / 280 : 100;
+      let percentage = (this.value * 100 / 280)<=100 ? this.value * 100 / 280 : 100;
       if (percentage<50) {
         percentage = 100 - percentage;
         return `calc(${percentage}% - 191px)`;
@@ -82,12 +82,12 @@ export default {
   height: 28px;
   color: white;
   border-radius: 5px;
+  position: absolute;
+  z-index: 3;
 }
 
 .PINLINE {
   position: absolute;
-  top: 28px;
-  height: 41px;
 }
 
 .PINLINELEFT {

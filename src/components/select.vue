@@ -111,6 +111,7 @@ export default {
       let portofolioId;
       let buildingId;
       if (item.type === this.TYPES.portofolio) {
+        localStorage.setItem("patrimoine", JSON.stringify({id: item.staticId, name: item.name,buildings: item.categories}));
         portofolioId = item.staticId;
       } else if (item.type === this.TYPES.building) {
         localStorage.setItem("idBuilding", item.staticId);

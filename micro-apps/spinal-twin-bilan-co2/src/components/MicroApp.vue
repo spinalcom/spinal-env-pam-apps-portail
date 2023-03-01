@@ -1,6 +1,6 @@
 <template>
   <div class="MC">
-    <Diagnosis :objectif="72" :current="230"/>
+    <Diagnosis :objectif="o" :current="current" :last="last"/>
     <TwoCardsVue/>
     <CalendarAndStripe :results="results"/>
   </div>
@@ -9,6 +9,7 @@
 import Diagnosis from './nested/Diagnosis.vue';
 import TwoCardsVue from './nested/TwoCards.vue';
 import CalendarAndStripe from './nested/CalendarAndStripe.vue';
+import { log } from 'console';
 export default {
   components: {
     Diagnosis,
@@ -16,6 +17,9 @@ export default {
     CalendarAndStripe
   },
   data: () => ({
+    o: 20,
+    current: 72,
+    last: 272,
     results: {
       y: '2022',
       d: [
@@ -98,7 +102,10 @@ export default {
         ] ,
       ],
     }
-  })
+  }),
+  mounted () {
+
+  }
 }
 </script>
 <style scoped>
