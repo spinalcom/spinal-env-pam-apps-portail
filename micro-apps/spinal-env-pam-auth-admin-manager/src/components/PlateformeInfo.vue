@@ -24,7 +24,8 @@ with this file. If not, see
 
 <template>
   <div class="card-container">
-    <v-card class="card">
+    <v-card class="card"
+            elevation="4">
       <div class="icon">
         <v-icon size="100px"
                 color="success">mdi-checkbox-marked-circle-outline</v-icon>
@@ -90,6 +91,7 @@ export default {
   },
 };
 </script>
+
 <style scoped lang="scss">
 .card-container {
   width: 100%;
@@ -100,8 +102,12 @@ export default {
 }
 
 .card-container .card {
-  width: 50%;
+  width: 100%;
+  max-width: 700px;
   padding: 15px;
+  @media (max-width: 960px) {
+    max-width: 600px;
+  }
   .icon {
     width: 100%;
     height: 150px;
@@ -112,7 +118,12 @@ export default {
     margin-bottom: 10px;
 
     .message {
+      width: 100%;
       font-size: 1em !important;
+      text-align: center;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
       color: #2e7d32;
     }
   }

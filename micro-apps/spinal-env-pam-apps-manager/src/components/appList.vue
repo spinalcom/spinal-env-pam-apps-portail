@@ -32,6 +32,7 @@ with this file. If not, see
                         solo
                         prepend-inner-icon="mdi-magnify"
                         flat
+                        dense
                         label="rechercher"
                         hide-details="auto"
                         v-model.trim="searchQuery"></v-text-field>
@@ -45,8 +46,7 @@ with this file. If not, see
           <v-icon class="btnIcon">
             mdi-file-upload-outline
           </v-icon>
-
-          upload apps file
+          importer un fichier .xls
         </v-btn>
 
         <v-btn class="button"
@@ -72,6 +72,15 @@ with this file. If not, see
                     :items="searchedApps"
                     item-key="name">
 
+        <template slot="no-data">
+          <tr>
+            <td :colspan="4"
+                style="text-align: center;">
+              Aucune Application à afficher
+            </td>
+          </tr>
+        </template>
+
         <template v-slot:header>
           <thead>
             <tr>
@@ -81,14 +90,14 @@ with this file. If not, see
                 </v-card>
               </th>
               <th class="tableHeader">
-                Nom De l'application
+                Nom de l'application
               </th>
               <th class="tableHeader">
                 Tags
               </th>
 
               <th class="tableHeader">
-                Categorie/groupe
+                Categories/groupes
               </th>
 
               <th class="tableHeader">
@@ -103,7 +112,8 @@ with this file. If not, see
             <td class="iconsCell">
               <v-timeline>
                 <v-timeline-item color="#fff"
-                                 fill-dot>
+                                 fill-dot
+                                 small>
                   <template v-slot:icon>
                     <v-icon>{{item.icon | formatIcon}}</v-icon>
                   </template>
@@ -116,14 +126,14 @@ with this file. If not, see
             <td class="actions">
               <v-btn class="actionBtn dark"
                      @click="editApp(item)">
-                <v-icon>mdi-pencil</v-icon>
+                <v-icon small>mdi-pencil</v-icon>
               </v-btn>
 
               <v-btn class="actionBtn"
                      color="error"
                      outlined
                      @click="deleteApp(item)">
-                <v-icon>mdi-close</v-icon>
+                <v-icon small>mdi-close</v-icon>
               </v-btn>
             </td>
           </tr>
@@ -214,7 +224,7 @@ class AppList extends Vue {
   }
 
   get title(): string {
-    if (!this.category || !this.category.name) return "Liste d'application";
+    if (!this.category || !this.category.name) return "Liste d'applications";
     return "Liste d'" + this.category.name.toLowerCase();
   }
 }
@@ -242,9 +252,10 @@ export default AppList;
     justify-content: space-between;
 
     .left_side {
-      width: 49%;
+      width: 40%;
 
       ._title {
+        width: 100%;
         height: 35%;
         display: flex;
         padding-left: 5px;
@@ -254,6 +265,8 @@ export default AppList;
       }
 
       .searchDiv {
+        width: 100%;
+        height: 65%;
         .textInput {
           // border: 1px solid;
         }
@@ -266,10 +279,14 @@ export default AppList;
       display: flex;
       align-items: center;
       justify-content: flex-end;
+      flex-wrap: wrap;
       .button {
         color: #fff;
+        max-width: 290px;
         margin-right: 5px;
+        font-size: 0.8em;
         .btnIcon {
+          width: 30px;
           margin-right: 5px;
         }
       }
@@ -287,11 +304,11 @@ export default AppList;
         }
 
         .actions {
-          height: 70px;
+          // height: 70px;
           .actionBtn {
             min-width: unset;
-            width: 40px !important;
-            height: 40px;
+            width: 30px !important;
+            height: 30px;
             margin-left: 10px;
           }
           .actionBtn.dark {
@@ -307,8 +324,13 @@ export default AppList;
         }
 
         .iconsCell {
+          .v-timeline {
+            padding-top: 15px !important;
+          }
+
           .v-timeline-item {
             display: block;
+            padding-bottom: 15px !important;
           }
 
           .v-timeline::before {

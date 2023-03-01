@@ -368,6 +368,7 @@ export default HomePage;
   display: flex;
 
   .content.loadingContent {
+    width: 100%;
     height: 98vh;
     display: flex;
     align-items: center;

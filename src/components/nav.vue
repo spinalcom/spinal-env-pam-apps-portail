@@ -23,120 +23,140 @@ with this file. If not, see
 -->
 
 <template>
-  <nav>
-    <div class="navPickerApp">
-      <div class="navPickerApp-container">
-        <div class="navPickerApp-mainMenu">
-          <button class="navPickerApp-mainMenu-button"
-                  :class="{
+
+  <div>
+
+    <mobile-nav style="width: 100%; height: 100%;"
+                v-show="isMobile"
+                :logoSvg="logoSvg"
+                :userInfo="userInfo"
+                :apps="appsDisplayed"
+                @logout="logOut"
+                @home="goToHome"
+                @goToApp="({item, event}) => goToApp(item, event)"></mobile-nav>
+
+    <nav v-show="!isMobile">
+      <div class="navPickerApp">
+        <div class="navPickerApp-container">
+          <div class="navPickerApp-mainMenu">
+            <button class="navPickerApp-mainMenu-button"
+                    :class="{
               actived: navBarMainMenuShow,
             }"
-                  @click="clickMainMenu()">
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-          <div class="navPickerApp-mainMenu-content"
-               :class="{
+                    @click="clickMainMenu()">
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+            <div class="navPickerApp-mainMenu-content"
+                 :class="{
               actived: navBarMainMenuShow,
             }">
-            <div class="navPickerApp-mainMenu-content-profil">
-              <div class="navPickerApp-mainMenu-content-profil-name">
-                {{ userInfo && userInfo.name }}
+              <div class="navPickerApp-mainMenu-content-profil">
+                <div class="navPickerApp-mainMenu-content-profil-name">
+                  {{ userInfo && userInfo.name }}
+                </div>
+                <div class="navPickerApp-mainMenu-content-profil-role">
+                  {{ userInfo && userInfo.email }}
+                </div>
               </div>
-              <div class="navPickerApp-mainMenu-content-profil-role">
-                {{ userInfo && userInfo.email }}
+              <div class="navPickerApp-mainMenu-content-buttonContainer">
+                <button v-for="btn in mainbuttons"
+                        :key="btn.name"
+                        class="navPickerApp-mainMenu-content-buttonContainer-button"
+                        :tabindex="mainMenuTabIndexComputed"
+                        @click="btn.action">
+                  <div
+                       class="navPickerApp-mainMenu-content-buttonContainer-button-icon">
+                  </div>
+                  <div
+                       class="navPickerApp-mainMenu-content-buttonContainer-button-title">
+                    {{ btn.name }}
+                  </div>
+                </button>
               </div>
             </div>
-            <div class="navPickerApp-mainMenu-content-buttonContainer">
-              <button v-for="btn in mainbuttons"
-                      :key="btn.name"
-                      class="navPickerApp-mainMenu-content-buttonContainer-button"
-                      :tabindex="mainMenuTabIndexComputed"
-                      @click="btn.action">
-                <div
-                     class="navPickerApp-mainMenu-content-buttonContainer-button-icon">
+          </div>
+
+          <div class="navPickerApp-companyLogo">
+            <img :src="logoSvg" />
+          </div>
+          <div class="navPickerApp-appMenu">
+            <button class="navPickerApp-appMenu-button"
+                    @click="clickAppMenu()"
+                    :class="{
+              actived: navBarAppMenuShow,
+            }">
+              <div class="buttonLabel">application</div>
+              <div class="navPickerApp-appMenu-iconContainer">
+                <!-- <span class="material-icons">
+                {{ localAppSelected.icon || 'location_city' }}
+              </span> -->
+                <v-icon>{{localAppSelected.icon || 'mdi-domain'}}</v-icon>
+
+              </div>
+              <div class="navPickerApp-appMenu-title">
+                {{ localAppSelected.name }}
+              </div>
+            </button>
+
+            <div class="navPickerApp-appMenu-content"
+                 :class="{
+              actived: navBarAppMenuShow,
+            }">
+              <button class="navPickerApp-appMenu-content-app"
+                      :tabindex="appMenuTabIndexComputed"
+                      @click="goToHome">
+                <div class="navPickerApp-appMenu-content-app-iconContainer">
+                  <!-- <v-icon>{{homeApp.icon || 'mdi-domain'}}</v-icon> -->
+                  <span class="material-icons">
+                    {{ homeApp.icon || 'location_city' }}
+                  </span>
                 </div>
-                <div
-                     class="navPickerApp-mainMenu-content-buttonContainer-button-title">
-                  {{ btn.name }}
+                <div class="navPickerApp-appMenu-content-app-title">
+                  {{ homeApp.name }}
+                </div>
+              </button>
+
+              <button v-for="app in appsDisplayed"
+                      :key="app.name"
+                      class="navPickerApp-appMenu-content-app"
+                      :tabindex="appMenuTabIndexComputed"
+                      @click="goToApp(app, $event)">
+                <div class="navPickerApp-appMenu-content-app-iconContainer">
+                  <v-icon>{{app.icon || 'mdi-domain'}}</v-icon>
+                  <!-- <span class="material-icons">
+                  {{ app.icon || 'location_city' }}
+                </span> -->
+                </div>
+                <div class="navPickerApp-appMenu-content-app-title">
+                  {{ app.name }}
                 </div>
               </button>
             </div>
           </div>
         </div>
-
-        <div class="navPickerApp-companyLogo">
-          <img :src="logoSvg" />
-        </div>
-        <div class="navPickerApp-appMenu">
-          <button class="navPickerApp-appMenu-button"
-                  @click="clickAppMenu()"
-                  :class="{
-              actived: navBarAppMenuShow,
-            }">
-            <div class="buttonLabel">application</div>
-            <div class="navPickerApp-appMenu-iconContainer">
-              <!-- <span class="material-icons">
-                {{ localAppSelected.icon || 'location_city' }}
-              </span> -->
-              <v-icon>{{localAppSelected.icon || 'mdi-domain'}}</v-icon>
-
-            </div>
-            <div class="navPickerApp-appMenu-title">
-              {{ localAppSelected.name }}
-            </div>
-          </button>
-
-          <div class="navPickerApp-appMenu-content"
-               :class="{
-              actived: navBarAppMenuShow,
-            }">
-            <button class="navPickerApp-appMenu-content-app"
-                    :tabindex="appMenuTabIndexComputed"
-                    @click="gotToHome">
-              <div class="navPickerApp-appMenu-content-app-iconContainer">
-                <!-- <v-icon>{{homeApp.icon || 'mdi-domain'}}</v-icon> -->
-                <span class="material-icons">
-                  {{ homeApp.icon || 'location_city' }}
-                </span>
-              </div>
-              <div class="navPickerApp-appMenu-content-app-title">
-                {{ homeApp.name }}
-              </div>
-            </button>
-
-            <button v-for="app in appsDisplayed"
-                    :key="app.name"
-                    class="navPickerApp-appMenu-content-app"
-                    :tabindex="appMenuTabIndexComputed"
-                    @click="goToApp(app, $event)">
-              <div class="navPickerApp-appMenu-content-app-iconContainer">
-                <v-icon>{{app.icon || 'mdi-domain'}}</v-icon>
-                <!-- <span class="material-icons">
-                  {{ app.icon || 'location_city' }}
-                </span> -->
-              </div>
-              <div class="navPickerApp-appMenu-content-app-title">
-                {{ app.name }}
-              </div>
-            </button>
-          </div>
-        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
+  </div>
+
 </template>
 
 <script>
 import { mapActions, mapState } from "vuex";
-import logoSvg from "../assets/logo.jpg";
+import logoSvg from "../../assets/img/logo.jpg";
+import NavMobile from "./mobile/nav.vue";
 
 export default {
-  // props: {
-  //   apps: {},
-  //   user: {},
-  // },
+  props: {
+    isMobile: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  components: {
+    "mobile-nav": NavMobile,
+  },
   async mounted() {
     await Promise.all([this.getPortofolios(), this.getUserInfo()]);
     this.setLocalAppSelected();
@@ -154,7 +174,7 @@ export default {
       navBarAppMenuShow: false,
       apps: [],
       mainbuttons: [
-        { name: "Paramètres", action: () => console.log("click Paramètres") },
+        { name: "", action: () => console.log("click Paramètres") },
         { name: "Déconnexion", action: () => this.logOut() },
       ],
     };
@@ -178,7 +198,7 @@ export default {
       this.$router.push({ name: "Login" });
     },
 
-    gotToHome(event) {
+    goToHome(event) {
       if (event.ctrlKey) {
         let routeData = this.$router.resolve({ name: "Home" });
         window.open(routeData.href, "_blank");

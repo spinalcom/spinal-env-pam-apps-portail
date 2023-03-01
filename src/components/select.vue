@@ -30,7 +30,8 @@ with this file. If not, see
                     :maxDepth="1"
                     :GetChildrenFct="onSpaceSelectOpen"
                     @input="getSelectedItem"
-                    :value="selectedZone">
+                    :value="selectedZone"
+                    :isMobile="isMobile">
 
     </space-selector>
   </div>
@@ -47,6 +48,10 @@ export default {
   },
   props: {
     portofolios: {},
+    isMobile: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     // this.default = {
@@ -78,7 +83,7 @@ export default {
     async onSpaceSelectOpen(item) {
       if (item) {
         if (item.type === this.TYPES.portofolio) {
-          return item.categories.map((building) => {
+          return (item.categories || []).map((building) => {
             return {
               name: building.name,
               id: building.id,

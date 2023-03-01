@@ -28,17 +28,19 @@ with this file. If not, see
                @click.stop="closeSelect">
     <div class="header">
       <div class="nav">
-        <NavBar />
+        <NavBar :isMobile="isMobile" />
       </div>
 
       <div class="select">
         <select-component ref="select-component"
+                          :isMobile="isMobile"
                           @selected="changeApps"
                           :portofolios="portofolios"></select-component>
       </div>
     </div>
 
-    <router-view class="content"></router-view>
+    <router-view class="content"
+                 :isMobile="isMobile"></router-view>
   </v-container>
 </template>
 
@@ -61,10 +63,15 @@ export default {
       "getBos",
       "getUserInfo",
       "selectSpace",
+      "getFavoriteApps",
     ]),
 
     init() {
-      return Promise.all([this.getPortofolios(), this.getUserInfo()]);
+      return Promise.all([
+        this.getPortofolios(),
+        this.getUserInfo(),
+        this.getFavoriteApps(),
+      ]);
     },
 
     closeSelect() {
@@ -78,6 +85,11 @@ export default {
   },
   computed: {
     ...mapState("appDataStore", ["appsDisplayed", "userInfo", "portofolios"]),
+    isMobile() {
+      const breakpoint = this.$vuetify.breakpoint.name;
+      if (["xs", "sm"].indexOf(breakpoint) !== -1) return true;
+      return false;
+    },
   },
 };
 </script>

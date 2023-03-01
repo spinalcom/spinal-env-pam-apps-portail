@@ -42,7 +42,6 @@ with this file. If not, see
       <places ref="places"
               class="addressInput"
               v-model="building.address"
-              :rules="[requiredValidation]"
               placeholder="Address">
       </places>
 

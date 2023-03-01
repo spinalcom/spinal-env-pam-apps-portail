@@ -23,7 +23,8 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="mainContent">
+  <v-container class="mainContent"
+               fluid>
     <AppListComponent :categorySelected="categorySelected"
                       :apps="apps"
                       @select="selectCategory"
@@ -42,7 +43,7 @@ with this file. If not, see
                        :appSelected="appSelected" />
 
     <LoadingComponent v-else-if="page === pages.loading" />
-  </div>
+  </v-container>
 </template>
 
 <script lang="ts">
@@ -409,6 +410,7 @@ export default HomeView;
 .mainContent {
   width: 100%;
   height: 100%;
+  padding: 0 !important;
 }
 </style>
 
@@ -417,7 +419,7 @@ export default HomeView;
   width: 60px !important;
   height: 40px;
   border: 1px solid green;
-  color: green;
+  color: green !important;
   border-radius: 5px;
   margin: 5px;
 }
@@ -426,7 +428,7 @@ export default HomeView;
   width: 75px !important;
   height: 40px;
   border: 1px solid #ff5252;
-  color: #ff5252;
+  color: #ff5252 !important;
   border-radius: 5px;
   margin: 5px;
 }

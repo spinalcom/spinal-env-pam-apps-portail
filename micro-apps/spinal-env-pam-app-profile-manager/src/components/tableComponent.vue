@@ -24,7 +24,8 @@ with this file. If not, see
 
 <template>
   <div class="tableContainer"
-       ref="tableContainer">
+       ref="tableContainer"
+       v-if="items">
     <div class="my_title"
          v-if="title">
       {{title}}
@@ -113,7 +114,7 @@ const TableComponentProps = Vue.extend({
     title: {
       default: "",
     },
-    items: {},
+    // items: {},
     childrenKey: {
       default: "children",
     },
@@ -124,6 +125,7 @@ const TableComponentProps = Vue.extend({
 class TableComponent extends TableComponentProps {
   @Prop() edit!: boolean;
   @Prop() itemToSelect!: any[];
+  @Prop() items!: any[];
 
   mounted() {
     if (this.edit) {

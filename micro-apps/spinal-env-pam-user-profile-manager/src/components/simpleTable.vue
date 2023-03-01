@@ -23,7 +23,8 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="tableContainer">
+  <div class="tableContainer"
+       v-if="items">
     <div class="my_title"
          v-if="title">
       {{title}}

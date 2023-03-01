@@ -42,6 +42,7 @@ with this file. If not, see
                           flat
                           label="rechercher"
                           hide-details="auto"
+                          dense
                           v-model.trim="searchQuery"></v-text-field>
           </div>
         </div>
@@ -54,7 +55,7 @@ with this file. If not, see
               mdi-file-upload
             </v-icon>
 
-            Upload Swagger File
+            Importer un fichier Swagger
           </v-btn>
         </div>
 

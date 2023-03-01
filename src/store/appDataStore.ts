@@ -22,7 +22,15 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { getUserApps, getUserBos, getPortofolios } from "../requests/userData";
+import {
+    getUserApps,
+    getUserBos,
+    getPortofolios,
+    addAppToFavorite,
+    addAppToFavorite,
+    removeAppFromFavorite,
+    getFavoriteApps
+} from "../requests/userData";
 
 export const SET_USER_APPS = "SET_USER_APPS";
 export const SET_USER_BOS = "SET_USER_BOS";
@@ -31,6 +39,9 @@ export const SET_AND_FORMAT_APPS = "SET_AND_FORMAT_APPS";
 export const SET_SELECTED_APP = "SET_SELECTED_APP";
 export const SET_PORTOFOLIOS = "SET_PORTOFOLIOS";
 export const SELECT_PORTOFOLIO = "SELECT_PORTOFOLIO";
+export const ADD_FAVORITE_APP = "ADD_FAVORITE_APP";
+export const SET_FAVORITE_APP = "SET_FAVORITE_APP";
+export const DELETE_FAVORITE_APP = "DELETE_FAVORITE_APP";
 
 
 
@@ -84,7 +95,8 @@ export const appDataStore = {
         bos: [],
         appsFormatted: undefined,
         userInfo: {},
-        _privateData: { userInfoIsSet: false, appsIsSet: false }
+        _privateData: { userInfoIsSet: false, appsIsSet: false },
+        favoriteApps: []
     },
     mutations: {
         [SELECT_PORTOFOLIO](state: any, playload) {
@@ -107,7 +119,21 @@ export const appDataStore = {
 
         [SET_SELECTED_APP](state: any, playload: any) {
             state.appSelected = playload;
-        }
+        },
+
+        [ADD_FAVORITE_APP](state: any, playload: any) {
+            state.favoriteApps = [...state.favoriteApps, ...playload];
+        },
+
+        [SET_FAVORITE_APP](state: any, playload: any) {
+            state.favoriteApps = playload;
+        },
+
+        [DELETE_FAVORITE_APP](state: any, playload: any) {
+            const obj = {};
+            playload.forEach(el => obj[el.id] = el);
+
+        },
     },
     actions: {
         async getPortofolios({ commit, dispatch, state }: any) {
@@ -181,7 +207,21 @@ export const appDataStore = {
 
             commit(SET_AND_FORMAT_APPS, { apps, appsFormatted });
 
-
         },
+
+        async addToFavoriteApps({ commit }: any, appIds: string[]) {
+            const apps = await addAppToFavorite(appIds);
+            commit(ADD_FAVORITE_APP, apps);
+        },
+
+        async getFavoriteApps({ commit }) {
+            const apps = await getFavoriteApps();
+            commit(SET_FAVORITE_APP, apps);
+        },
+
+        async deleteFavoriteApps({ commit }, appIds) {
+            const apps = await removeAppFromFavorite(appIds);
+            commit(DELETE_FAVORITE_APP, apps);
+        }
     }
 }

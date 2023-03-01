@@ -63,9 +63,10 @@ with this file. If not, see
                    title="add to favorite"
                    outlined
                    small
-                   color="#bdbdbd"
+                   :class="{'isFavorite' : isFavorite}"
                    @click.stop="addAppToFavoris">
-              <v-icon>mdi-cards-diamond</v-icon>
+              <v-icon>mdi-star</v-icon>
+              <!-- <v-icon>mdi-cards-diamond</v-icon> -->
             </v-btn>
             <v-btn icon
                    @click.stop="show = !show">
@@ -132,6 +133,7 @@ export default {
   name: "applicationCard",
   props: {
     data: {},
+    isFavorite: { type: Boolean, default: () => false },
   },
   data() {
     return {
@@ -147,7 +149,10 @@ export default {
       this.$emit("exploreApp", this.data);
     },
     addAppToFavoris() {
-      this.$emit("addAppToFavoris", this.data);
+      this.$emit("addAppToFavoris", {
+        item: this.data,
+        isFavorite: this.isFavorite,
+      });
     },
   },
   computed: {
@@ -249,9 +254,16 @@ export default {
           width: 25px;
           height: 25px !important;
           border-radius: 5px;
+          color: #bdbdbd;
 
           i {
-            font-size: 10px;
+            font-size: 23px;
+          }
+        }
+
+        .favorisBtn.isFavorite {
+          i {
+            color: #ffd700 !important;
           }
         }
       }

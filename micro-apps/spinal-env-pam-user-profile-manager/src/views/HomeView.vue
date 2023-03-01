@@ -198,16 +198,14 @@ class HomeComponent extends Vue {
 
 export default HomeComponent;
 </script>
-
 <style  lang="scss">
 $header-height: 60px;
-$page-background: #f5f3f3;
 $header-margin-bottom: 10px;
 
 .applicationContainer {
-  width: 100%;
-  height: 100%;
-  background: #e6edef;
+  width: 100vw;
+  height: 100vh;
+  padding-top: 0px !important;
   .loading {
     width: 100%;
     height: 100%;
@@ -250,7 +248,7 @@ $header-margin-bottom: 10px;
   width: 60px !important;
   height: 40px;
   border: 1px solid green;
-  color: green;
+  color: green !important;
   border-radius: 5px;
   margin: 5px;
 }
@@ -259,7 +257,7 @@ $header-margin-bottom: 10px;
   width: 75px !important;
   height: 40px;
   border: 1px solid #ff5252;
-  color: #ff5252;
+  color: #ff5252 !important;
   border-radius: 5px;
   margin: 5px;
 }

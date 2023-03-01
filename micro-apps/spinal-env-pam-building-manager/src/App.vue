@@ -23,7 +23,7 @@ with this file. If not, see
 -->
 
 <template>
-  <v-app class="application">
+  <v-app class="apps">
     <v-main>
       <HomePage />
     </v-main>
@@ -45,8 +45,10 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped>
-.application {
-  background: #d5e1e5 !important;
+<style>
+.apps {
+  width: 99vw;
+  height: 100vh;
+  background: linear-gradient(121deg, #f8fafa, #d6e2e6) !important;
 }
 </style>
