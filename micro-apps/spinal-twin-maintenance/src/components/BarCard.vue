@@ -36,7 +36,6 @@ import {
   LogarithmicScale,
   Chart as ChartJS,
 } from "chart.js";
-import { defaultColor, gradiant, RGBtoHexa, HSVtoRGB } from "../colors";
 
 ChartJS.register(
   Legend,
@@ -132,6 +131,7 @@ export default {
                 letterSpacing: 1.1,
               },
               // color: (item) => {
+              //   console.log(item);
               //   const step =
               //     item.scale.ticks[1].value - item.scale.ticks[0].value;
               //   let mid = Math.floor(item.scale.max / 2);
@@ -198,15 +198,7 @@ export default {
       bottomLeft: radius,
       bottomRight: radius,
     };
-    const colors =
-      this.datasets.length <= 3
-        ? defaultColor(3)
-        : gradiant(this.datasets.length).map((color) => {
-            const col = HSVtoRGB(color / 100, 1, 1);
-            return RGBtoHexa(col.r, col.g, col.b);
-          });
     this.datasets.forEach((set) => {
-      if (!set.backgroundColor) set.backgroundColor = colors.shift();
       set.borderSkipped = false;
       set.borderRadius = borderRadius;
       set.borderWidth = 1;
@@ -228,15 +220,7 @@ export default {
         bottomLeft: radius,
         bottomRight: radius,
       };
-      const colors =
-        this.datasets.length <= 3
-          ? defaultColor(3)
-          : gradiant(this.datasets.length).map((color) => {
-              const col = HSVtoRGB(color / 100, 1, 1);
-              return RGBtoHexa(col.r, col.g, col.b);
-            });
       this.datasets.forEach((set) => {
-        if (!set.backgroundColor) set.backgroundColor = colors.shift();
         set.borderSkipped = false;
         set.borderRadius = borderRadius;
         set.borderWidth = 1;

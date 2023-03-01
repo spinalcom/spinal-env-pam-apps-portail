@@ -4,8 +4,14 @@
         <BarChart v-if="load" :noNav="periodTickets === -1" :title="'Activité des tickets en cours'" :labels="barData.labels" :datasets="barData.data" :prev_next="true" @nav="nav" stacked class="BR">
             <template v-slot:extras>
             <v-select v-model="domain" append-icon="mdi-chevron-down" :items="domainList" outlined menu-props="{ bottom: true }" color="#E3E7E8" item-color="#E3E7E8" dense style="min-width: 200px; width: 340px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Domaine">
-              <template #label="{ attrs }">
-                <label :for="attrs.id" style="font-size: 14px;">Select an item</label>
+              <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
+
+              <template #item="{ item }">
+                <SmallLegend :color="item.color" :text="item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()" :size="14"/>
+              </template>
+
+              <template #selection="{ item }">
+                <SmallLegend :color="item.color" :text="item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()" :size="14"/>
               </template>
             </v-select>
             </template>
@@ -18,41 +24,16 @@
           <LoadingCard v-else class="flex-grow-1 pa-4"  style="height: 106px; width: 100% !important"/>
           <StatCard v-if="todaysTickets !== -1" :value="todaysTickets" :unit="'Tickets'"  :title="'crées'" :subtitle="'Aujourd\'hui'"  class="flex-grow-1 pa-4" style="width: 100% !important"/>
           <LoadingCard v-else class="flex-grow-1 pa-4"  style="height: 106px; width: 100% !important"/>
-
         </div>
-        <div v-if="load"
-          style="height: 280px; gap: 10px; width: 100%"
-          class="d-flex flex-row"
-        >
-          <PieCard
-            style="width: 100%;"
-            class="flex-grow-1"
-            :title="'Tickets par domaine'"
-            :pie-chart-data="domainPie"
-            :color="['#14202C','#1F3348','#2F4F70','#47719B','#6593C0','#80A9D2','#ACCAE8']"
-            />
-          <PieCard
-            style="width: 100%;"
-            class="flex-grow-1"
-            :title="'Tickets par déclarant'"
-            :pie-chart-data="declarerPie"
-            :color="['#300530','#5B145B','#8F3A8F','#BA6DBA','#CA8CCA','#DBA8DB','#E2C8E7']"/>
+        <div v-if="load" style="height: 280px; gap: 10px; width: 100%" class="d-flex flex-row">
+          <PieCard style="width: 100%;" class="flex-grow-1" :title="'Tickets par domaine'" :pie-chart-data="domainPie" :color="['#E53935','#2EB594','#F5A623','#D07CE5','#6593C0','#8E80E7','#A2C8EC']"/>
+          <PieCard style="width: 100%;" class="flex-grow-1" :title="'Tickets par déclarant'" :pie-chart-data="declarerPie" :color="['#300530','#5B145B','#8F3A8F','#BA6DBA','#CA8CCA','#DBA8DB','#E2C8E7']"/>
         </div>
         <div v-else style="height: 280px; width: 100%; gap: 10px" class="d-flex">
           <LoadingCard class="flex-grow-1 pa-4" style="height: 100%;"/>
           <LoadingCard class="flex-grow-1 pa-4" style="height: 100%;"/>
         </div>
     </div>
-    <!-- <div class="MC" v-else>
-      <LoadingCard class="flex-grow-1 pa-4 br" style="width: 100%;"/>
-      <div class="d-flex cards">
-          <LoadingCard class="flex-grow-1 pa-4"  style="height: 106px"/><LoadingCard class="flex-grow-1 pa-4"  style="height: 106px"/><LoadingCard class="flex-grow-1 pa-4"  style="height: 106px"/>
-      </div>
-      <div style="height: 280px; width: 100%; gap: 10px" class="d-flex">
-        <LoadingCard class="flex-grow-1 pa-4" style="height: 100%;"/>
-        <LoadingCard class="flex-grow-1 pa-4" style="height: 100%;"/>
-      </div>
-    </div> -->
   </div>
 </template>
 
@@ -63,6 +44,7 @@ import BarChart from "./BarCard.vue";
 import StatCard from "./StatsCard.vue";
 import PieCard from "./PieCard.vue";
 import LoadingCard from "./LoadingCard.vue";
+import SmallLegend from "./SmallLegend.vue";
 import { getData, curveData, ticketsCreatedtoday, ticketsCreated } from "../services/index.js";
 import moment from 'moment';
 import { TemporalityModel } from '../models/Temporality.model';
@@ -73,7 +55,8 @@ import { StatsModel } from '../models/Stats.model';
     BarChart,
     StatCard,
     PieCard,
-    LoadingCard
+    LoadingCard,
+    SmallLegend
   },
 })
 class App extends Vue {
@@ -82,7 +65,7 @@ class App extends Vue {
   
   load= false;
   ticketList: {domains: [], ticketList: []};
-  domainList:string[] = ['Tous les domaines'];
+  domainList: any[] = [{name: 'Tous les domaines', color: '#fff'}];
   currentTimestamp = {valueTime: 0};
 
   barData = {labels: [], data: []}
@@ -90,15 +73,7 @@ class App extends Vue {
   pieData!: {};
   cardsData: StatsModel;
   selectedTempoTicketsText = '';
-  domainPie = [
-    // { label: "APPAREIL ", value: 64 },
-    // { label: "APPAREIL ", value: 58 },
-    // { label: "APPAREIL ELEVATEUR DEPLACEMENT", value: 60 },
-    // { label: "APPAREIL ELEVATEUR DEPLACEMENT", value: 69 },
-    // { label: "DEPLACEMENT", value: 58 },
-    // { label: "ELEVATEUR", value: 60 },
-    // { label: "APPAREIL ", value: 8 },
-  ];
+  domainPie = [];
   todaysTickets = -1;
   periodTickets = -1;
   declarerPie = [];
@@ -107,12 +82,11 @@ class App extends Vue {
     let dom;
     for(let i = 0; i < this.ticketList.domains.length; i++) {
       dom = this.ticketList.domains[i] as any;
-      this.domainList.push(dom.name);
+      this.domainList.push({name: dom.name, color: dom.color});
     }
     this.interval();
     this.load = true;
     this.todaysTickets = await ticketsCreatedtoday();
-    // this.periodTickets = await ticketsCreated(this.currentTimestamp.valueTime, this.temporality);
   }
 
   interval() {
@@ -148,7 +122,6 @@ class App extends Vue {
   }
 
   async spreadData() {
-  // cancel the previous execution of ticketsCreated
   let ticketsCreatedPromise = ticketsCreated(this.currentTimestamp.valueTime, this.temporality.name);
   this.periodTickets = -1;
   let res = curveData(this.temporality.name, this.currentTimestamp.valueTime, this.domain, this.ticketList.ticketList);
@@ -158,28 +131,22 @@ class App extends Vue {
   this.declarerPie = res[3];
 
   try {
-    // wait for ticketsCreated to complete
     let ticketsCreatedRes = await ticketsCreatedPromise;
     this.periodTickets = ticketsCreatedRes[0];
     this.selectedTempoTicketsText = ticketsCreatedRes[1];
   } catch (e) {
-    // handle cancellation
     if (e instanceof Error && e.message === 'Cancellation') {
-      // console.log('ticketsCreated cancelled');
       this.periodTickets = -1;
     } else {
       throw e;
     }
   }
 }
-
 }
-
 export default App;
 </script>
 
 <style scoped>
-
 .RC {
   font-family: Charlevoix;
   display: flex;
@@ -250,5 +217,13 @@ export default App;
 
 ::v-deep .theme--light.v-icon {
   color: #E3E7E8 !important;
+}
+
+::v-deep .v-menu__content {
+  top: 188px !important;
+}
+
+::v-deep .v-list-item--link:before {
+  background: #fff !important;
 }
 </style>

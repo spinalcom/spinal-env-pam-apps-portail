@@ -451,6 +451,8 @@ export function curveData(period, timestamp, domain, list) {
 }
 
 export async function getData() {
+  const colors = ['#FF4A3B', '#93876E', '#74BDCB', '#EFE7BC', '#FFA384', '#E7F2F8', '#ECF87F', '#B99095', '#93B9B8', '#FDA649', '#050533', '#0D698B', '#29A0B1', '#FFAEBC', '#B4F8C8', '#FBE7C6', '#3D5B59', '#A0E7E5'];
+  let colorIndex = 0;
   const buildingId = localStorage.getItem("idBuilding");
   try {
     const listWorkflowResponse = await HTTP.get(`building/${buildingId}/workflow/list`);
@@ -459,7 +461,6 @@ export async function getData() {
     let ticketList = [];
     let finalTicketList = [];
     for (const workflow of listWorkflowResponse.data) {
-      // console.log(workflow)
       if (workflow.type === "SpinalSystemServiceTicket") {
         const treeWorkflowResponse = await HTTP.get(
           `building/${buildingId}/workflow/${workflow.dynamicId}/tree`
@@ -484,8 +485,10 @@ export async function getData() {
                 name: process.name,
                 type: process.type,
                 totalNumberOfTickets: totalNumberOfTickets,
-                ticketList: ticketList
+                ticketList: ticketList,
+                color: colors[colorIndex]
               });
+              colorIndex ++;
             }
           }
         }
@@ -502,6 +505,8 @@ export async function getData() {
       const readDetailsResponse = await HTTP.get(
         `building/${buildingId}/ticket/${t.dynamicId}/read_details`
       );
+      // console.log(readDetailsResponse.data.process.name)
+      // console.log()
       if (readDetailsResponse.data.log_list.length == 0)
       return {
         domain: readDetailsResponse.data.process.name,
@@ -568,27 +573,47 @@ export async function ticketsCreatedtoday() {
   for (const workflow of listWorkflowResponse.data) {
     const data = {
       beginDate: moment(todaysDate).startOf('day').format('DD MM YYYY'),
-      endDate: moment(todaysDate).endOf('day').format('DD MM YYYY'),
+      endDate: moment(todaysDate).add(1, 'days').startOf('day').format('DD MM YYYY'),
       contextId: workflow.dynamicId
     };
 
     const todaysTickets = await HTTP.post(`building/${buildingId}/find_node_in_context_by_date`, data);
     
     const ticketPromises = todaysTickets.data.map(async t => {
-      try {
+      if (t.type === 'SpinalSystemServiceTicketTypeTicket') {
         const readDetailsResponse = await HTTP.get(`building/${buildingId}/ticket/${t.dynamicId}/read_details`);
+        
         if (moment(readDetailsResponse.data && readDetailsResponse.data.log_list[0] && readDetailsResponse.data.log_list[0].date).isBetween(moment(todaysDate).startOf('day').valueOf(), moment(todaysDate).endOf('day').valueOf())) {
           return 1; // increment counter by 1
         } else {
           return 0; // don't increment counter
         }
-      } catch (error) {
-        // console.error(t)
+        }
         return 0;
-      }
     });
     const ticketListStream = await Promise.all(ticketPromises);
     const todaysCounter = ticketListStream.reduce((a, cv) => a + cv, 0);
+
+    // const todaysTickets = await HTTP.post(`building/${buildingId}/find_node_in_context_by_date`, data);
+    
+    // const ticketPromises = todaysTickets.data.map(async t => {
+    //     if (t.type === 'SpinalSystemServiceTicketTypeTicket') {
+    //       const readDetailsResponse = await HTTP.get(`building/${buildingId}/ticket/${t.dynamicId}/read_details`);
+    //     if (readDetailsResponse.data && readDetailsResponse.data.log_list[0] && moment(readDetailsResponse.data.log_list[0].date).isBetween(bd.valueOf(), ed.valueOf())) {
+    //       // console.log('Got one', readDetailsResponse.data.dynamicId, moment(readDetailsResponse.data.log_list[0].date).format('DD MM YYYY'))
+    //       return 1; // increment counter by 1
+    //     } else {
+    //       // console.log(`Creation date: ${moment(readDetailsResponse.data.log_list[0].date).format('DD MM YYYY')}, begin date: ${bd.format('DD MM YYYY')}, end date: ${ed.format('DD MM YYYY')}`)
+    //       return 0; // don't increment counter
+    //     }
+    //     }
+    //     return 0;
+    // });
+
+    // const ticketListStream = await Promise.all(ticketPromises);
+    // const todaysCounter = ticketListStream.reduce((a, cv) => a + cv, 0);
+
+
     // console.log(todaysCounter);
     return todaysCounter;
 
@@ -640,7 +665,7 @@ export async function ticketsCreated(timestamp, period) {
     ed = moment(nowDate).endOf(unit);
     beginDate = moment(nowDate).add(-9, 'years').startOf(unit).format('DD MM YYYY');
     endDate = moment(currentDate).endOf(unit).format('DD MM YYYY');
-    cardsData.selectedTempoTicketsText = 'créés entre ' + bd.format('YYYY') + ' et ' + moment(currentDate).endOf(unit).format('YYYY');
+    selectedTempoTicketsText = 'créés entre ' + bd.format('YYYY') + ' et ' + moment(currentDate).endOf(unit).format('YYYY');
   }
   for (const workflow of listWorkflowResponse.data) {
     const data = {

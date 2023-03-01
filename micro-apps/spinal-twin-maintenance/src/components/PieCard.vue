@@ -31,7 +31,6 @@ import {
   ArcElement,
   CategoryScale,
 } from "chart.js";
-import { defaultColor, hexaToHSV, singleColorGradiant } from "../colors";
 
 ChartJS.register(
   ArcElement,
@@ -98,7 +97,7 @@ export default {
     pieData() {
       if (this.pieChartData.length == 0) {
         return {
-          labels: ['Pas de données disponibles pour ce graphique'],
+          labels: ['Pas de données disponibles'],
           datasets: [
             {
               backgroundColor: ['#c4c4c4'],
