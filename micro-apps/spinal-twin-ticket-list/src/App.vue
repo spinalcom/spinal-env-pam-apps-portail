@@ -39,117 +39,114 @@ with this file. If not, see
         :first-tile="firstTile"
       ></sc-space-selector>
     </div>
-    <v-main class="d-flex flex-column pb-6 pt-2 pl-1 pr-1">
-      <v-card
-        style="height: 910px"
-        class="ma-2 d-flex flex-column table-card rounded-lg flex-grow-1"
-        elevation="5"
-        outlined
+    <v-card
+      class="ticket-table ma-2 d-flex flex-column table-card rounded-lg flex-grow-1"
+      elevation="5"
+      outlined
+    >
+      <v-card-title style="height: 56px" class="text-uppercase ma-2"
+        >Liste des tickets</v-card-title
       >
-        <v-card-title style="height: 56px" class="text-uppercase ma-2"
-          >Liste des tickets</v-card-title
-        >
-        <div style="height: calc(100% - 56px)" class="d-flex flex-column">
-          <div class="d-flex flex-row ml-6 mr-2">
-            <div style="width: 20%">
-              <v-select
-                v-model="domain_filter"
-                label="Domaine"
-                :items="domains"
-                append-icon="mdi-chevron-down"
-                clearable
-                clear-icon="mdi-close-circle-outline"
-                deletable-chips
-                small-chips
-                multiple
-                outlined
-              >
-                <template v-slot:selection="{ item, index }">
-                  <v-chip
-                    @click:close="
-                      domain_filter = domain_filter.filter((d) => d !== item)
-                    "
-                    close
-                    :close-icon="'mdi-close-circle'"
-                    style="font-size: 12px; height: 24px"
-                    v-if="index < 1"
-                  >
-                    <span>{{ item }}</span>
-                  </v-chip>
+      <div style="height: calc(100% - 56px)" class="d-flex flex-column">
+        <div class="d-flex flex-row ml-6 mr-2">
+          <div style="width: 20%">
+            <v-select
+              v-model="domain_filter"
+              label="Domaine"
+              :items="domains"
+              append-icon="mdi-chevron-down"
+              clearable
+              clear-icon="mdi-close-circle-outline"
+              deletable-chips
+              small-chips
+              multiple
+              outlined
+            >
+              <template v-slot:selection="{ item, index }">
+                <v-chip
+                  @click:close="
+                    domain_filter = domain_filter.filter((d) => d !== item)
+                  "
+                  close
+                  :close-icon="'mdi-close-circle'"
+                  style="font-size: 12px; height: 24px"
+                  v-if="index < 1"
+                >
+                  <span>{{ item }}</span>
+                </v-chip>
 
-                  <span
-                    v-if="index === 1"
-                    class="text-grey text-caption align-self-center"
-                  >
-                    (+{{ domain_filter.length - 1 }})
-                  </span>
-                </template>
-              </v-select>
-            </div>
-            <div style="width: 20%" class="ml-5">
-              <v-select
-                v-model="step_filter"
-                label="Étape"
-                :items="steps"
-                append-icon="mdi-chevron-down"
-                clearable
-                clear-icon="mdi-close-circle-outline"
-                deletable-chips
-                small-chips
-                multiple
-                outlined
-              >
-                <template v-slot:selection="{ item, index }">
-                  <v-chip
-                    @click:close="
-                      step_filter = step_filter.filter((s) => s !== item)
-                    "
-                    close
-                    :close-icon="'mdi-close-circle'"
-                    style="font-size: 12px; height: 24px"
-                    v-if="index < 1"
-                  >
-                    <span>{{ item }}</span>
-                  </v-chip>
-                  <span
-                    v-if="index === 1"
-                    class="text-grey text-caption align-self-center"
-                  >
-                    (+{{ step_filter.length - 1 }})
-                  </span>
-                </template>
-              </v-select>
-            </div>
+                <span
+                  v-if="index === 1"
+                  class="text-grey text-caption align-self-center"
+                >
+                  (+{{ domain_filter.length - 1 }})
+                </span>
+              </template>
+            </v-select>
           </div>
-          <v-data-table
-            item-key="name"
-            class="elevation-1 table-data d-flex flex-column flex-grow-1 flex-shrink-1 justify-space-between ml-6 mr-6 mb-6"
-            loading-text="Chargement des données"
-            :loading="!loaded"
-            fixed-header
-            :headers="headers"
-            :height="tableHeight"
-            :items="stepFilteredTickets"
-            :custom-sort="customSort"
-            :footer-props="{
-              prevIcon: 'mdi-menu-left',
-              nextIcon: 'mdi-menu-right',
-              showCurrentPage: true,
-              itemsPerPageAllText: 'Tout',
-            }"
-          >
-            <v-progress-linear
-              v-show="!loaded"
-              slot="progress"
-              color="accent"
-              class="progress-bar"
-              indeterminate
-            ></v-progress-linear>
-            <template v-slot:no-data> Pas de données disponibles </template>
-          </v-data-table>
+          <div style="width: 20%" class="ml-5">
+            <v-select
+              v-model="step_filter"
+              label="Étape"
+              :items="steps"
+              append-icon="mdi-chevron-down"
+              clearable
+              clear-icon="mdi-close-circle-outline"
+              deletable-chips
+              small-chips
+              multiple
+              outlined
+            >
+              <template v-slot:selection="{ item, index }">
+                <v-chip
+                  @click:close="
+                    step_filter = step_filter.filter((s) => s !== item)
+                  "
+                  close
+                  :close-icon="'mdi-close-circle'"
+                  style="font-size: 12px; height: 24px"
+                  v-if="index < 1"
+                >
+                  <span>{{ item }}</span>
+                </v-chip>
+                <span
+                  v-if="index === 1"
+                  class="text-grey text-caption align-self-center"
+                >
+                  (+{{ step_filter.length - 1 }})
+                </span>
+              </template>
+            </v-select>
+          </div>
         </div>
-      </v-card>
-    </v-main>
+        <v-data-table
+          item-key="name"
+          class="elevation-1 table-data d-flex flex-column flex-grow-1 flex-shrink-1 justify-space-between ml-6 mr-6 mb-6"
+          loading-text="Chargement des données"
+          :loading="!loaded"
+          fixed-header
+          :headers="headers"
+          :height="tableHeight"
+          :items="stepFilteredTickets"
+          :custom-sort="customSort"
+          :footer-props="{
+            prevIcon: 'mdi-menu-left',
+            nextIcon: 'mdi-menu-right',
+            showCurrentPage: true,
+            itemsPerPageAllText: 'Tout',
+          }"
+        >
+          <v-progress-linear
+            v-show="!loaded"
+            slot="progress"
+            color="accent"
+            class="progress-bar"
+            indeterminate
+          ></v-progress-linear>
+          <template v-slot:no-data> Pas de données disponibles </template>
+        </v-data-table>
+      </div>
+    </v-card>
   </v-app>
 </template>
 
@@ -179,12 +176,15 @@ export default {
       return this.loaded ? this.getTickets(this.el.dynamicId) : [];
     },
     headers() {
+      const widths = [20, 20, 20, 13, 13, 13];
       return [
         "Nom",
+        "Domaine",
+        "Étape",
         "Date de création",
         "Dernière modification",
         "Déclarant",
-      ].map((e) => ({ text: e, value: e, width: "25%" }));
+      ].map((e, i) => ({ text: e, value: e, width: widths[i] + "%" }));
     },
     tableHeight() {
       return window.innerHeight;
@@ -286,12 +286,12 @@ html {
   height: 100%;
 }
 
-.v-main {
+.ticket-table {
   position: fixed;
-  width: 100%;
-  height: calc(100% - 60px);
-  top: 60px;
-  bottom: 0px;
+  width: clac(100% - 8px);
+  height: calc(100% - 84px);
+  top: 68px;
+  bottom: 8px;
   left: 0;
   right: 0;
 }

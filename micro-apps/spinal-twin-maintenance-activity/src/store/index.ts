@@ -83,7 +83,10 @@ export default new Vuex.Store({
           }
         }
         Promise.all(promises).then((ret) => {
-          commit("SET_WORKFLOW", { workflowId, tickets: ret });
+          commit("SET_WORKFLOW", {
+            workflowId,
+            tickets: ret.filter((t) => !closedSteps.includes(t.step)),
+          });
         });
       } catch {}
     },
