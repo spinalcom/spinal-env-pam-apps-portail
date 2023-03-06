@@ -127,14 +127,14 @@ export default ApplicationView;
 .appLoadContainer {
   width: 100%;
   height: 100%;
-  padding: 5px !important;
+  // padding: 5px !important;
   display: flex;
 
   .navbar {
     // width: 450px;
     // height: 60px;
     position: absolute;
-    top: 5px;
+    top: 10px;
     left: 0px;
   }
 
