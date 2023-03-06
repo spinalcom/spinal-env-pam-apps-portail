@@ -1,12 +1,20 @@
 <template>
-  <v-card class="stat-card rounded-lg" elevation="5" outlined style="background: #f9f9f9">
+  <v-card class="stat-card rounded-lg" elevation="5" outlined style="background: #f9f9f9;">
     <v-flex class="d-flex flex-row fill-height">
       <v-flex
+        v-if="value !== -1"
         class="d-flex flex-column justify-center text-center stat-value"
         :style="{ color: color }"
       >
         {{ shortNumberCall(value) }}
       </v-flex>
+      <div class="d-flex align-center " style="padding: 0 20px" v-else>
+        <v-progress-circular
+          :size="40"
+          color="#14202c"
+          indeterminate
+        />
+      </div>
       <v-flex class="d-flex flex-column justify-center justify-start stat-text">
         <div>
           <span v-if="unit" :style="{ color: color }">{{ unit + "  " }}</span>
@@ -32,6 +40,10 @@
 export default {
   name: "StatsCard",
   props: {
+    loading: {
+      type: Boolean,
+      default: false,
+    },
     type: {
       type: String,
       default: "date",

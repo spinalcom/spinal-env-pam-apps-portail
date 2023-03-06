@@ -18,7 +18,7 @@
         </BarChart>
         <LoadingCard v-else class="flex-grow-1 pa-4 br" style="width: 100%;"/>
         <div class="d-flex cards">
-          <StatCard  v-if="periodTickets !== -1" :value="periodTickets" :unit="'Tickets'" :title="selectedTempoTicketsText" class="flex-grow-1 pa-4" style="width: 100% !important"/>
+          <StatCard  v-if="load" :value="periodTickets" :unit="'Tickets'" :title="selectedTempoTicketsText" class="flex-grow-1 pa-4" style="width: 100% !important"/>
           <LoadingCard v-else class="flex-grow-1 pa-4"  style="height: 106px; width: 100% !important"/>
           <StatCard v-if="load" :value="cardsData.onGoingTickets" :unit="'Tickets'" :title="'en cours'" class="flex-grow-1 pa-4" style="width: 100% !important"/>
           <LoadingCard v-else class="flex-grow-1 pa-4"  style="height: 106px; width: 100% !important"/>
@@ -132,11 +132,12 @@ class App extends Vue {
     this.domainPie = res[2];
     this.declarerPie = res[3];
     this.declarerColors = this.getColors(this.declarerPie.length);
+    this.selectedTempoTicketsText = res[1].selectedTempoTicketsText;
+    
 
     try {
       let ticketsCreatedRes = await ticketsCreatedPromise;
       this.periodTickets = ticketsCreatedRes[0];
-      this.selectedTempoTicketsText = ticketsCreatedRes[1];
     } catch (e) {
       if (e instanceof Error && e.message === 'Cancellation') {
         this.periodTickets = -1;
@@ -148,14 +149,15 @@ class App extends Vue {
 
   getColors(size: number): string[] {
     switch(size) {
-      case 1: return ['#14202C']; break;
-      case 2: return ['#14202C', '#ACCAE8']
-      case 3: return ['#14202C', '#47719B', '#ACCAE8']; break;
-      case 4: return ['#14202C', '#2F4F70', '#6593C0', '#ACCAE8']; break;
-      case 5: return ['#14202C', '#2F4F70', '#6593C0', '#80A9D2', '#ACCAE8']; break;
-      case 6: return ['#14202C', '#2F4F70', '#47719B', '#6593C0', '#80A9D2', '#ACCAE8']; break;
-      default: return ['#14202C', '#1F3348', '#2F4F70', '#47719B', '#6593C0', '#80A9D2', '#ACCAE8']; break;
-    }
+  case 1: return ['#8B0000']; break;
+  case 2: return ['#8B0000', '#FF69B4']
+  case 3: return ['#8B0000', '#C71585', '#FF69B4']; break;
+  case 4: return ['#8B0000', '#B22222', '#FF7F7F', '#FF69B4']; break;
+  case 5: return ['#8B0000', '#B22222', '#FF7F7F', '#FFB6C1', '#FF69B4']; break;
+  case 6: return ['#8B0000', '#B22222', '#C71585', '#FF7F7F', '#FFB6C1', '#FF69B4']; break;
+  default: return ['#8B0000', '#A52A2A', '#B22222', '#C71585', '#FF7F7F', '#FFB6C1', '#FF69B4']; break;
+}
+
   }
 }
 export default App;
