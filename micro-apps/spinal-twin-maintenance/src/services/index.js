@@ -438,57 +438,62 @@ export function curveData(period, timestamp, domain, list, domainList) {
   }
 }
 
-function generateGradientColors(hexColor, numOfGradients) {
-  // Convert hex color to RGB values
-  const r = parseInt(hexColor.slice(1, 3), 16);
-  const g = parseInt(hexColor.slice(3, 5), 16);
-  const b = parseInt(hexColor.slice(5, 7), 16);
+// function generateGradientColors(hexColor, numOfGradients) {
+//   // Convert hex color to RGB values
+//   const r = parseInt(hexColor.slice(1, 3), 16);
+//   const g = parseInt(hexColor.slice(3, 5), 16);
+//   const b = parseInt(hexColor.slice(5, 7), 16);
   
-  // Initialize arrays for storing gradient colors
-  const blackToColorGradients = [];
-  const colorToWhiteGradients = [];
+//   // Initialize arrays for storing gradient colors
+//   const blackToColorGradients = [];
+//   const colorToWhiteGradients = [];
   
-  // Calculate gradient step sizes for each color channel
-  const rStep = r / (numOfGradients/2);
-  const gStep = g / (numOfGradients/2);
-  const bStep = b / (numOfGradients/2);
+//   // Calculate gradient step sizes for each color channel
+//   const rStep = r / (numOfGradients/2);
+//   const gStep = g / (numOfGradients/2);
+//   const bStep = b / (numOfGradients/2);
   
-  // Generate gradient colors from black to input color
-  for (let i = 0; i < numOfGradients/2; i++) {
-    const rValue = Math.round(i * rStep);
-    const gValue = Math.round(i * gStep);
-    const bValue = Math.round(i * bStep);
-    const gradientColor = `#${rgbToHex(rValue, gValue, bValue)}`;
-    blackToColorGradients.push(gradientColor);
-  }
+//   // Generate gradient colors from black to input color
+//   for (let i = 0; i < numOfGradients/2; i++) {
+//     const rValue = Math.round(i * rStep);
+//     const gValue = Math.round(i * gStep);
+//     const bValue = Math.round(i * bStep);
+//     const gradientColor = `#${rgbToHex(rValue, gValue, bValue)}`;
+//     blackToColorGradients.push(gradientColor);
+//   }
   
-  // Generate gradient colors from input color to white
-  for (let i = 0; i < numOfGradients/2; i++) {
-    const rValue = Math.round(r + i * (255 - r) / (numOfGradients/2));
-    const gValue = Math.round(g + i * (255 - g) / (numOfGradients/2));
-    const bValue = Math.round(b + i * (255 - b) / (numOfGradients/2));
-    const gradientColor = `#${rgbToHex(rValue, gValue, bValue)}`;
-    colorToWhiteGradients.push(gradientColor);
-  }
+//   // Generate gradient colors from input color to white
+//   for (let i = 0; i < numOfGradients/2; i++) {
+//     const rValue = Math.round(r + i * (255 - r) / (numOfGradients/2));
+//     const gValue = Math.round(g + i * (255 - g) / (numOfGradients/2));
+//     const bValue = Math.round(b + i * (255 - b) / (numOfGradients/2));
+//     const gradientColor = `#${rgbToHex(rValue, gValue, bValue)}`;
+//     colorToWhiteGradients.push(gradientColor);
+//   }
   
-  // Combine gradient colors from black to input color and from input color to white
-  const gradientColors = [...blackToColorGradients, ...colorToWhiteGradients];
+//   // Combine gradient colors from black to input color and from input color to white
+//   const gradientColors = [...blackToColorGradients, ...colorToWhiteGradients];
   
-  return gradientColors;
-}
+//   return gradientColors;
+// }
 
-function rgbToHex(r, g, b) {
-  // Convert RGB values to hex format
-  const rHex = r.toString(16).padStart(2, '0');
-  const gHex = g.toString(16).padStart(2, '0');
-  const bHex = b.toString(16).padStart(2, '0');
-  const hexColor = `${rHex}${gHex}${bHex}`;
-  return hexColor;
-}
+// function rgbToHex(r, g, b) {
+//   // Convert RGB values to hex format
+//   const rHex = r.toString(16).padStart(2, '0');
+//   const gHex = g.toString(16).padStart(2, '0');
+//   const bHex = b.toString(16).padStart(2, '0');
+//   const hexColor = `${rHex}${gHex}${bHex}`;
+//   return hexColor;
+// }
 
 
 export async function getData() {
-  const colors = ['#FF4A3B', '#93876E', '#74BDCB', '#EFE7BC', '#FFA384', '#E7F2F8', '#ECF87F', '#B99095', '#93B9B8', '#FDA649', '#050533', '#0D698B', '#29A0B1', '#FFAEBC', '#B4F8C8', '#FBE7C6', '#3D5B59', '#A0E7E5'];
+  const colors = ['#FF4A3B', '#93876E', '#74BDCB', '#EFE7BC', '#FFA384', '#E7F2F8',
+                  '#ECF87F', '#B99095', '#93B9B8', '#FDA649', '#5050C8', '#0D698B',
+                  '#29A0B1', '#FFAEBC', '#B4F8C8', '#FBE7C6', '#3D5B59', '#A0E7E5',
+                  '#25C1AF', '#C37BCF', '#CC4D92', '#8A78FB', '#9DD6FF', '#D67D7D',
+                  '#FFD056', '#584A4A', '#C1CC80', '#AA2424', '#9DAABD', '#802877'
+                ];
   let colorIndex = 0;
   const buildingId = localStorage.getItem("idBuilding");
   try {
@@ -523,25 +528,26 @@ export async function getData() {
                 type: process.type,
                 totalNumberOfTickets: totalNumberOfTickets,
                 ticketList: ticketList,
-                color: ''
+                color: colors[colorIndex]
               });
               colorIndex ++;
+              if (colorIndex == 30) colorIndex = 0
             }
           }
         }
       }
     }
-    const gradientColors = generateGradientColors('#80A9D2', domains.length);
-    colorIndex = 0;
-    domains.sort((a, b) => b.totalNumberOfTickets - a.totalNumberOfTickets);
-    for(let domain = 0; domain < domains.length; domain++) {
-      if (domain == 0 || domains[domain].totalNumberOfTickets == domains[domain-1].totalNumberOfTickets) {
-        domains[domain].color = gradientColors[colorIndex];
-      }
-      else {
-        domains[domain].color = gradientColors[++colorIndex];
-      }
-    }
+    // const gradientColors = generateGradientColors('#80A9D2', domains.length);
+    // colorIndex = 0;
+    // domains.sort((a, b) => b.totalNumberOfTickets - a.totalNumberOfTickets);
+    // for(let domain = 0; domain < domains.length; domain++) {
+    //   if (domain == 0 || domains[domain].totalNumberOfTickets == domains[domain-1].totalNumberOfTickets) {
+    //     domains[domain].color = gradientColors[colorIndex];
+    //   }
+    //   else {
+    //     domains[domain].color = gradientColors[++colorIndex];
+    //   }
+    // }
 
     const ticketPromises = finalTicketList.map(async t => {
       const readDetailsResponse = await HTTP.get(
