@@ -17,24 +17,34 @@ export async function getFloors() {
 export async function getData(space, tempo, currentTimestamp, controlEndpoints) {
   const buildingId = localStorage.getItem("idBuilding");
   // console.log('space:', space.dynamicId);
-  console.log('tempo:', tempo);
-  console.log('date:', moment(currentTimestamp).format('DD/MM/YYYY'), currentTimestamp);
+  // console.log('tempo:', tempo);
+  // console.log('date:', moment(currentTimestamp).format('DD/MM/YYYY'), currentTimestamp);
   // console.log('space:', controlEndpoints[0]);
-
+  let avg = [], total = [];
   let periodArray = getPeriodArray(currentTimestamp, tempo);
   let label = periodArray[0];
   let data = [];
-  let cpList, cpID, timeSeries;
+  let cpList, cpID, timeSeries, prevTimeSeries, prevSumSeries, sumSeries;
+  try {
   for (const controlEndpoint of controlEndpoints) {
     cpList = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/control_endpoint_list`);
+    console.log(cpList);
+
     cpList = cpList.data[0].endpoints;
     for (let i = 0; i < cpList.length; i++) {
       if (cpList[i].name === controlEndpoint.name) {
         cpID = cpList[i].dynamicId;
       }
     }
+    if (cpID) {
+      console.log('Found');
     timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`);
     timeSeries = timeSeries.data;
+
+    prevTimeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/${periodArray[3]}/${periodArray[4]}`);
+    prevTimeSeries = prevTimeSeries.data;
+
+
     let processedTimeSeries = [];
     if (tempo === 'Semaine') {
       label.forEach(day => {
@@ -43,6 +53,7 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
             .reduce((sum, elem) => sum + elem.value, 0)
         );
       });
+
     } else if (tempo === 'Mois') {
       label.forEach(day => {
         processedTimeSeries.push(
@@ -74,18 +85,63 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
     } else {
       processedTimeSeries = timeSeries;
     }
+
+    sumSeries = timeSeries.reduce((accumulator, current) => accumulator + current.value, 0);
+
+
+
+    prevSumSeries = prevTimeSeries.reduce((accumulator, current) => accumulator + current.value, 0);
+    let a = (prevSumSeries * 100 / sumSeries).toFixed(0);
+
+      total.push({
+        color: controlEndpoint.color,
+        value: sumSeries,
+        unit: controlEndpoint.unit,
+        title: controlEndpoint.totalTitle,
+        subValue: a + '%',
+        subtitle: controlEndpoint.totalSubtitle,
+        root: controlEndpoint.root,
+        cpID: cpID,
+        startDate: periodArray[3],
+        endDate: periodArray[4],
+        label: label.length,
+      })
+
+      sumSeries = sumSeries / label.length;
+
+      let b = prevSumSeries / label.length;
+      b = (b * 100 / sumSeries).toFixed(0);
+      avg.push({
+        color: controlEndpoint.color,
+        value: sumSeries,
+        unit: controlEndpoint.unit,
+        title: controlEndpoint.averageTitle,
+        subValue: b + '%',
+        subtitle: controlEndpoint.averageSubtitle,
+        root: controlEndpoint.root,
+        cpID: cpID,
+        startDate: periodArray[3],
+        endDate: periodArray[4],
+        label: label.length,
+      })
+
     data.push({
       label: controlEndpoint.label,
       backgroundColor: controlEndpoint.color,
-      data: processedTimeSeries
+      data: processedTimeSeries,
+      stack: controlEndpoint.stackGroup
     })
+      
+  }
     
   }
-
-  return [label, data];
 }
-
-
+catch {
+  return [null, null, null, null]
+}
+  
+  return [label, data, avg, total];
+}
 
 function getPeriodArray(timestamp, period) {
   if (period === 'Semaine') {
@@ -97,7 +153,12 @@ function getPeriodArray(timestamp, period) {
       daysInMonth.push(currentDay.format('DD MMM'));
       currentDay.add(1, 'day');
     }
-    return [daysInMonth, moment(timestamp).startOf('week').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('week').format('DD-MM-yyyy HH:mm:ss')];
+    return [daysInMonth,
+      moment(timestamp).startOf('week').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).endOf('week').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).add(-1, 'weeks').startOf('week').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).add(-1, 'weeks').endOf('week').format('DD-MM-yyyy HH:mm:ss')
+    ];
   } else if (period === 'Mois') {
     var startOfMonth = moment(timestamp).startOf('month');
     var endOfMonth = moment(timestamp).endOf('month');
@@ -107,14 +168,22 @@ function getPeriodArray(timestamp, period) {
       daysInMonth.push(currentDay.format('DD MMM'));
       currentDay.add(1, 'day');
     }
-    return [daysInMonth, moment(timestamp).startOf('month').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss')];
+    return [daysInMonth,
+      moment(timestamp).startOf('month').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).add(-1, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).add(-1, 'months').endOf('month').format('DD-MM-yyyy HH:mm:ss')];
   } else if (period === 'Année') {
     var monthsInYear = [];
     for (var i = 0; i < 12; i++) {
       var currentMonth = moment(timestamp).month(i);
       monthsInYear.push(currentMonth.format('MMM'));
     }
-    return [monthsInYear, moment(timestamp).startOf('year').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss')];
+    return [monthsInYear,
+      moment(timestamp).startOf('year').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).add(-1, 'years').startOf('year').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).add(-1, 'years').endOf('year').format('DD-MM-yyyy HH:mm:ss'),];
   } else if (period === 'Décennie') {
     var yearsInDecade = [];
     for (var i = -9; i <= 0; i++) {
@@ -137,71 +206,80 @@ function getPeriodArray(timestamp, period) {
   }
 }
 
-
-export async function getDatum(timestamp, period, buildings, cp) {
-  const colors = ['#ff6384', '#36a2eb', '#4bc0c0', '#ff7b00', '#97BCC7', '#006884'];
-  let colorIndex = 0;
-  let periodArray = getPeriodArray(timestamp, period);
-  let label = periodArray[0];
-  let data = [];
-  let stats = {totalArea: 0, buildings: 0, totalConsumption: 0, totalConsumptionSquareMeter: 0};
-  let row = {};
-  let cpList, cpDynamicId, timeSeries;
-  for (let i = 0; i < buildings.length; i++) {
-    row = {};
-    let building = await HTTP.get(`/building/${buildings[i].id}/building/read`);
-    row['name'] = building.data.name;
-    row['area'] = building.data.area;
-    row['dynamicId'] = building.data.dynamicId;
-    row['staticId'] = buildings[i].id;
-    cpList = await HTTP.get(`/building/${row['staticId']}/node/${row['dynamicId']}/control_endpoint_list`);
-    cpDynamicId = cpList.data[0].endpoints.find(e => e.name == cp).dynamicId;
-    timeSeries = await HTTP.get(`/building/${row['staticId']}/endpoint/${cpDynamicId}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`);
-    row['timeSeries'] = timeSeries.data;
-
-    let processedTimeSeries = [];
-    if (period === 'Mois') {
-      label.forEach(day => {
-        processedTimeSeries.push(
-          row['timeSeries'].filter(elem => moment(elem.date).format('DD MMM') === day)
-            .reduce((sum, elem) => sum + elem.value, 0)
-        );
-      });
-    } else if (period === 'Année') {
-      label.forEach(month => {
-        processedTimeSeries.push(
-          row['timeSeries'].filter(elem => moment(elem.date).format('MMM') === month)
-            .reduce((sum, elem) => sum + elem.value, 0)
-        );
-      });
-    } else if (period === 'Décennie') {
-      label.forEach(year => {
-        processedTimeSeries.push(
-          row['timeSeries'].filter(elem => moment(elem.date).format('YYYY') === year)
-            .reduce((sum, elem) => sum + elem.value, 0)
-        );
-      });
-    } else if (period === '3 mois') {
-      label.forEach(day => {
-        processedTimeSeries.push(
-          row['timeSeries'].filter(elem => moment(elem.date).format('DD MMM') === day)
-            .reduce((sum, elem) => sum + elem.value, 0)
-        );
-      });
-    } else {
-      processedTimeSeries = row['timeSeries'];
+export async function getTodaysData(space, controlEndpoints) {
+  console.log(space)
+  // var data = [
+  //   {
+  //     label: 'Energie globale',
+  //     name: 'Energie globale',
+  //     color: '#14202c',
+  //     unit: 'Kw',
+  //     title: 'title',
+  //     subtitle: 'sub',
+  //     root: true,
+  //   }
+  // ]
+  const data = [];
+  const buildingId = localStorage.getItem("idBuilding");
+  var startOfDay = moment().startOf('day').format('DD-MM-yyyy HH:mm:ss');
+  var endOfDay = moment().endOf('day').format('DD-MM-yyyy HH:mm:ss');
+  let cpList, cpID, timeSeries, sumSeries, sub;
+  for (const controlEndpoint of controlEndpoints) {
+    cpList = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/control_endpoint_list`);
+    cpList = cpList.data[0].endpoints;
+    for (let i = 0; i < cpList.length; i++) {
+      if (cpList[i].name === controlEndpoint.name) {
+        cpID = cpList[i].dynamicId;
+      }
     }
-    row['timeSeries'] = processedTimeSeries;
-    row['sum'] = processedTimeSeries.reduce((a,b) => a+b,0);
-    row['squareMeter'] = (row['sum']/row['area']);
-    row['color'] = colors[colorIndex++];
-    stats.totalArea += row['area'];
-    stats.buildings++;
-    stats.totalConsumption += row['sum'];
-    stats.totalConsumptionSquareMeter += row['squareMeter'];
-    data.push(row);
+    if (cpID) {
+    timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/${startOfDay}/${endOfDay}`);
+    // timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/07-02-2023 00:00:00/07-02-2023 23:59:59`);
+    timeSeries = timeSeries.data;
+    sumSeries = timeSeries.reduce((accumulator, current) => accumulator + current.value, 0);
+    console.log(controlEndpoint.subtitle)
+    data.push({
+      color: controlEndpoint.color,
+      value: sumSeries,
+      unit: controlEndpoint.unit,
+      title: controlEndpoint.title,
+      subValue: '+0%',
+      subtitle: controlEndpoint.subtitle,
+      root: controlEndpoint.root
+    })
   }
+  }
+  let sum = data[0].value;
+  for (let i = 1; i < data.length; i++) {
+    if (data[i].unit !== data[i-1].unit) {
+      sum = data[i].value;
+      data[i].subtitle = null;
+      data[i].subValue = null
 
-  return [label, data, stats];
+    }
+    else {
+      data[i].subValue = (data[i].value * 100 / sum).toFixed(1) + '%';
+    }
+  }
+  console.log(data)
+  return data;
 }
+
+// export async function getAverageAndTotalData(avg, total) {
+//   const buildingId = localStorage.getItem("idBuilding");
+//   let timeSeries, sumSeries;
+//   console.log(avg);
+//   for (let i = 0; i < total.lenght; i++) {
+//     timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${total[i].cpID}/timeSeries/read/${total[i].startDate}/${total[i].endDate}`);
+//     timeSeries = timeSeries.data;
+//     sumSeries = timeSeries.reduce((accumulator, current) => accumulator + current.value, 0);
+//     total[i].subValue = sumSeries;
+//     total[i].subtitle = 'sumSeries';
+//     sumSeries = sumSeries / total[i].label;
+//     avg[i].subValue = sumSeries;
+//     avg[i].subtitle = 'sumSeries';
+//     console.log(avg[i])
+//   }
+//   return [avg, total];
+// }
 

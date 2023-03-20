@@ -7,35 +7,38 @@ module.exports = {
             label: 'Energie globale',
             name: 'Energie globale',
             color: '#14202c',
-            unit: 'Kw',
+            unit: 'kWh',
+            stackGroup: '0',
+            title: 'd\'énergie consommés',
+            todayTitle: 'today',
+            averageTitle: 'Consommation moyenne',
+            totalTitle: 'Consommation totale',
+            subtitle: 'today',
+            todaySubtitle: 'today',
+            averageSubtitle: '',
+            totalSubtitle: 'TOTAL SUBTITLE',
+            root: true,
         },
         {
             label: 'Eclairage',
             name: 'Eclairage',
             color: '#E8D712',
-            unit: 'Kw',
+            unit: 'kWh',
+            stackGroup: '01',
+            title: 'd\'éclairage consommée',
+            todayTitle: 'today',
+            averageTitle: 'AVERAGE TEXT',
+            totalTitle: 'TOTAL TEXT',
+            subtitle: 'par rapport a l\'énergie globale',
+            todaySubtitle: 'today',
+            averageSubtitle: '',
+            totalSubtitle: 'TOTAL SUBTITLE',
+            root: false,
         },
-        {
-            label: 'Chauffage',
-            name: 'Chauffage',
-            color: '#5444ae',
-            unit: 'Kw',
-        }
+        
     ],
-    cards: [
-        {
-            type: 'total',
-            compare: true
-        },
-        {
-            type: 'average',
-            compare: true
-        },
-        {
-            type: 'today',
-            compare: false
-        }
-    ]
+    
+    cards: ['total', 'average', 'today'], // ['total', 'average', 'today']
 };
 
 // "water": "Eau globale",

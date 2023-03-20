@@ -2,20 +2,45 @@
   <div class="RC" style="min-height: 480px">
     <div class="MC">
       <BarChart
-        v-if="label && data"
+        v-if="chart.label && chart.data"
         :title="title" 
-        :labels="label" 
-        :datasets="data" 
+        :labels="chart.label" 
+        :datasets="chart.data" 
         :prev_next="true"
         @nav="nav"
+        :stacked="true"
         style="max-height: 450px;"
         class="BR"
         />
         <div class="d-flex cards">
-          <StatCard v-for="(card, index) in cards" :key="index" :value="index" :unit="unit" :title="'selectedTempoTicketsText'" class="flex-grow-1 pa-4" style="width: 100% !important"/>
-          <!-- <StatCard :value="808" :unit="unit" :title="'selectedTempoTicketsText'" class="flex-grow-1 pa-4" style="width: 100% !important"/>
-          <StatCard :value="808" :unit="unit" :title="'en cours'" class="flex-grow-1 pa-4" style="width: 100% !important"/>
-          <StatCard :value="8" :unit="unit"  :title="'consommés'" :subtitle="'Aujourd\'hui'"  class="flex-grow-1 pa-4" style="width: 100% !important"/> -->
+          <!-- <StatCard v-for="(card, index) in controlEndpoints" :key="index" 
+            :value="index" 
+            :unit="unit" 
+            :title="'selectedTempoTicketsText'" 
+            class="flex-grow-1 pa-4" 
+            style="width: 100% !important"
+            /> -->
+            <StackCard
+            v-if="totalCard.length !== 0 && cards.includes('total')"
+            :data="totalCard"
+            class="flex-grow-1 pa-4" 
+            style="width: 100% !important; height: fit-content;"
+            />
+            <LoadingCard class="flex-grow-1 pa-4" style="width: 100% !important; min-height: 105px;" v-else-if="cards.includes('total')"/>
+            <StackCard
+            v-if="averageCard.length !== 0 && cards.includes('average')"
+            :data="averageCard"
+            class="flex-grow-1 pa-4" 
+            style="width: 100% !important; height: fit-content;"
+            />
+            <LoadingCard class="flex-grow-1 pa-4" style="width: 100% !important; min-height: 105px;" v-else-if="cards.includes('average')"/>
+            <StackCard
+            v-if="todaysCard.length !== 0 && cards.includes('today')"
+            :data="todaysCard"
+            class="flex-grow-1 pa-4" 
+            style="width: 100% !important; height: fit-content;"
+            />
+            <LoadingCard class="flex-grow-1 pa-4" style="width: 100% !important; min-height: 105px !important;" v-else-if="cards.includes('today')"/>
         </div>
     </div>
   </div>
@@ -27,15 +52,20 @@ import { Prop, Vue, Watch } from 'vue-property-decorator';
 import env from '../../config';
 import BarChart from './BarCard.vue';
 import StatCard from './StatsCard.vue';
+import StackCard from './StackCard.vue';
+import LoadingCard from './LoadingCard.vue';
 import { ISpaceSelectorItem } from './SpaceSelector/index';
 import { TemporalityModel } from '../models/Temporality.model';
-import { getData } from '../services/index.js';
+import { getData, getTodaysData } from '../services/index.js';
 import moment from 'moment';
+import { computed } from 'vue';
 
 @Component({
   components: {
     BarChart,
-    StatCard
+    StatCard,
+    StackCard,
+    LoadingCard
   },
 })
 class App extends Vue {
@@ -44,16 +74,70 @@ class App extends Vue {
   unit = env.unit;
   controlEndpoints = env.controlEndpoints;
   cards = env.cards;
-
-  label = [];
-  data = [];
+  chart = {
+    label: [],
+    data: []
+  }
   currentTimestamp = {valueTime: 0};
+  todaysCard = [];
+  averageCard = [];
+  totalCard = [];
 
   @Prop({type: Object as () => ISpaceSelectorItem, required: true})
   space: ISpaceSelectorItem;
 
   @Prop({type: Object as () => TemporalityModel, required: true})
   temporality: TemporalityModel;
+
+
+
+  interval() {
+    this.currentTimestamp = {valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
+    this.spreadData();
+  }
+
+  async spreadData() {
+    this.averageCard = [];
+    this.totalCard = [];
+    let res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.controlEndpoints);
+    this.chart.label = res[0];
+    this.chart.data = res[1];
+    // let cardRes = await getAverageAndTotalData(this.space, this.controlEndpoints, this.temporality.name, this.currentTimestamp.valueTime);
+    this.averageCard = res[2];
+    this.totalCard = res[3];
+    // let nextBatchCard = await getAverageAndTotalData(res[2], res[3]);
+    // this.averageCard = nextBatchCard[0];
+    // this.totalCard = nextBatchCard[1];
+  }
+
+  async mounted() {
+    this.interval();
+    this.todaysCard = await getTodaysData(this.space, this.controlEndpoints);
+  }
+
+  
+  get stack() {
+    let u = this.controlEndpoints[0].stackGroup;
+    let stack = false;
+    for (let i = 1; i < this.controlEndpoints.length; i++) {
+      if (u !== this.controlEndpoints[i].stackGroup) {
+        stack = true;
+      }
+    }
+    return stack;
+  }
+
+  @Watch('space')
+  async spaceChange() {
+    this.todaysCard = [];
+    this.spreadData();
+    this.todaysCard = await getTodaysData(this.space, this.controlEndpoints);
+  }
+
+  @Watch('temporality')
+  async temporalityChange() {
+    this.interval();
+  }
 
   async nav(payload: number): Promise<void> {
     if (this.temporality.name == 'Semaine') {
@@ -65,34 +149,7 @@ class App extends Vue {
     if (this.temporality.name == 'Année') {
       this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf()};
     }
-    console.log(moment(this.currentTimestamp.valueTime).format('DD/MM/YYYY'));
     this.spreadData();
-  }
-
-  interval() {
-    this.currentTimestamp = {valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
-    this.spreadData();
-  }
-
-  async spreadData() {
-    console.log(moment(this.currentTimestamp.valueTime).format('DD/MM/YYYY'));
-    let res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.controlEndpoints);
-    this.label = res[0];
-    this.data = res[1];
-  }
-
-  mounted() {
-    this.interval();
-  }
-
-  @Watch('space')
-  spaceChange() {
-    this.spreadData();
-  }
-
-  @Watch('temporality')
-  temporalityChange() {
-    this.interval();
   }
 }
 export default App;
