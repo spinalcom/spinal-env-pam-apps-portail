@@ -28,7 +28,6 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
   try {
   for (const controlEndpoint of controlEndpoints) {
     cpList = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/control_endpoint_list`);
-    console.log(cpList);
 
     cpList = cpList.data[0].endpoints;
     for (let i = 0; i < cpList.length; i++) {
@@ -37,7 +36,6 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
       }
     }
     if (cpID) {
-      console.log('Found');
     timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`);
     timeSeries = timeSeries.data;
 
@@ -207,7 +205,6 @@ function getPeriodArray(timestamp, period) {
 }
 
 export async function getTodaysData(space, controlEndpoints) {
-  console.log(space)
   // var data = [
   //   {
   //     label: 'Energie globale',
@@ -237,7 +234,6 @@ export async function getTodaysData(space, controlEndpoints) {
     // timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/07-02-2023 00:00:00/07-02-2023 23:59:59`);
     timeSeries = timeSeries.data;
     sumSeries = timeSeries.reduce((accumulator, current) => accumulator + current.value, 0);
-    console.log(controlEndpoint.subtitle)
     data.push({
       color: controlEndpoint.color,
       value: sumSeries,
@@ -261,7 +257,6 @@ export async function getTodaysData(space, controlEndpoints) {
       data[i].subValue = (data[i].value * 100 / sum).toFixed(1) + '%';
     }
   }
-  console.log(data)
   return data;
 }
 
