@@ -89,7 +89,7 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
 
 
     prevSumSeries = prevTimeSeries.reduce((accumulator, current) => accumulator + current.value, 0);
-    let a = (prevSumSeries * 100 / sumSeries).toFixed(0);
+    let a = (prevSumSeries * 100 / sumSeries).toFixed(1);
 
       total.push({
         color: controlEndpoint.color,
@@ -108,7 +108,7 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
       sumSeries = sumSeries / label.length;
 
       let b = prevSumSeries / label.length;
-      b = (b * 100 / sumSeries).toFixed(0);
+      b = (b * 100 / sumSeries).toFixed(1);
       avg.push({
         color: controlEndpoint.color,
         value: sumSeries,
