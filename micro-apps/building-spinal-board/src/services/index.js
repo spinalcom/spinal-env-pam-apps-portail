@@ -2,12 +2,7 @@ import { HTTP } from "./http-constants";
 import moment from 'moment';
 import fr from 'moment/locale/fr'
 
-function generateRandomColor() {
-  const r = Math.floor(Math.random() * 256);
-  const g = Math.floor(Math.random() * 256);
-  const b = Math.floor(Math.random() * 256);
-  return `rgb(${r}, ${g}, ${b})`;
-}
+
 
 function getPeriodArray(timestamp, period) {
   if (period === 'Mois') {
@@ -49,7 +44,7 @@ function getPeriodArray(timestamp, period) {
   }
 }
 
-export async function getBuildingName(id_batiment){
+export async function getBuildingName(id_batiment) {
   let building = await HTTP.get(`/building/${id_batiment}/building/read`);
   return building.data.name
 }
@@ -224,7 +219,7 @@ export async function getData(timestamp, period, buildings, cp, cp_batiment, id_
     const attributs = attributsResponse.data[0].attributs;
 
     const surfaceAttribut = attributs.find(attribut => attribut.label === 'area');
-    let floorSurface = surfaceAttribut.value;
+    let floorSurface = surfaceAttribut ? surfaceAttribut.value : '';
 
     // console.log('surface',surfaceAttribut);
     const cpList = await HTTP.get(`/building/${id_batiment}/node/${floorId}/control_endpoint_list`);
@@ -285,14 +280,13 @@ export async function getData(timestamp, period, buildings, cp, cp_batiment, id_
         dynamicId: floorId,
         staticId: "5932-6086-9e1a-18506478460",
       };
-
+      stats1.buildings++;
       data1.push(row1);
 
     }
   }
 
   stats1.totalArea += parseInt(rowBat['area']);
-  stats1.buildings++;
   stats1.totalConsumption += rowBat['sum'];
   stats1.totalConsumptionSquareMeter += rowBat['squareMeter'];
 

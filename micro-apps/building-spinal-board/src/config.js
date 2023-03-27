@@ -1,9 +1,9 @@
 export default {
     config: {
-      title: 'Consommation Eau globale',
+      title: 'Consommation Eau sanitaire',
       label: 'Consommation',
       labelIndicators:"consommés",
-      buildingApiUrl: "Eau globale",
+      buildingApiUrl: "Eau sanitaire",
       floorApiUrl: "Eau sanitaire",
       unit:'L',
       color:'#14202c',
