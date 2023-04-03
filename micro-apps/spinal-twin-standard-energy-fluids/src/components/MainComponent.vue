@@ -3,36 +3,15 @@
     <div class="MC">
       <BarChart
         v-if="chart.label && chart.data"
-        :title="title"
-        :subtitle="subtitle"
+        :title="title" 
         :labels="chart.label" 
         :datasets="chart.data" 
         :prev_next="true"
         @nav="nav"
         :stacked="true"
-        :isYear="temporality.name==='Année'"
-        :calendar="calendar"
-        :next="temporality.next" 
-        :prev="temporality.prev"
-        :optional="barOptions"
-        style="max-height: 530px;"
+        style="max-height: 450px;"
         class="BR"
-        >
-        <template v-slot:extras>
-        <v-select v-model="selectedControlEndpoint" append-icon="mdi-chevron-down" :items="controlEndpointList" outlined menu-props="{ bottom: true }" color="#E3E7E8" item-color="#E3E7E8" dense style="min-width: 200px; width: 340px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="">
-              <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
-
-              <template #item="{ item }">
-                <SmallLegend :color="item.color" :text="item.name" :size="14"/>
-              </template>
-
-              <template #selection="{ item }">
-                <SmallLegend :color="item.color" :text="item.name" :size="14"/>
-              </template>
-            </v-select>
-            </template>
-
-        </BarChart>
+        />
         <div class="d-flex cards">
           <!-- <StatCard v-for="(card, index) in controlEndpoints" :key="index" 
             :value="index" 
@@ -43,8 +22,6 @@
             /> -->
             <StackCard
             v-if="totalCard.length !== 0 && cards.includes('total')"
-            :title="totalTitle"
-            :subtitle="totalSubtitle"
             :data="totalCard"
             class="flex-grow-1 pa-4" 
             style="width: 100% !important; height: fit-content;"
@@ -52,8 +29,6 @@
             <LoadingCard class="flex-grow-1 pa-4" style="width: 100% !important; min-height: 105px;" v-else-if="cards.includes('total')"/>
             <StackCard
             v-if="averageCard.length !== 0 && cards.includes('average')"
-            :title="averageTitle"
-            :subtitle="averageSubtitle"
             :data="averageCard"
             class="flex-grow-1 pa-4" 
             style="width: 100% !important; height: fit-content;"
@@ -61,8 +36,6 @@
             <LoadingCard class="flex-grow-1 pa-4" style="width: 100% !important; min-height: 105px;" v-else-if="cards.includes('average')"/>
             <StackCard
             v-if="todaysCard.length !== 0 && cards.includes('today')"
-            :title="todaysTitle"
-            :subtitle="todaysSubtitle"
             :data="todaysCard"
             class="flex-grow-1 pa-4" 
             style="width: 100% !important; height: fit-content;"
@@ -80,12 +53,9 @@ import env from '../../config';
 import BarChart from './BarCard.vue';
 import StatCard from './StatsCard.vue';
 import StackCard from './StackCard.vue';
-import SmallLegend from "./SmallLegend.vue";
 import LoadingCard from './LoadingCard.vue';
 import { ISpaceSelectorItem } from './SpaceSelector/index';
 import { TemporalityModel } from '../models/Temporality.model';
-import { LegendModel } from '../models/Legend.model';
-import { CalendarModel } from '../models/Calendar.model';
 import { getData, getTodaysData } from '../services/index.js';
 import moment from 'moment';
 import { computed } from 'vue';
@@ -95,23 +65,15 @@ import { computed } from 'vue';
     BarChart,
     StatCard,
     StackCard,
-    LoadingCard,
-    SmallLegend
+    LoadingCard
   },
 })
 class App extends Vue {
 
   title = env.title;
-  subtitle = env.subtitle;
   unit = env.unit;
   controlEndpoints = env.controlEndpoints;
   cards = env.cards;
-  totalTitle = env.totalCardTitle;
-  totalSubtitle = env.totalCardSubtitle;
-  averageTitle = env.averageCardTitle;
-  averageSubtitle = env.averageCardSubtitle;
-  todaysTitle = env.todaysCardTitle;
-  todaysSubtitle = env.todaysCardSubtitle;
   chart = {
     label: [],
     data: []
@@ -120,12 +82,6 @@ class App extends Vue {
   todaysCard = [];
   averageCard = [];
   totalCard = [];
-  calendarList: CalendarModel[] = [];
-  calendar: CalendarModel = {n: '', y: '', d: []};
-  barOptions = {unit: this.unit, footer: 'Consommation totale du patrimoine'};
-
-  selectedControlEndpoint: LegendModel = {name: this.controlEndpoints[0].name, color: this.controlEndpoints[0].color};
-  controlEndpointList: LegendModel[] = [];
 
   @Prop({type: Object as () => ISpaceSelectorItem, required: true})
   space: ISpaceSelectorItem;
@@ -146,19 +102,17 @@ class App extends Vue {
     let res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.controlEndpoints);
     this.chart.label = res[0];
     this.chart.data = res[1];
+    // let cardRes = await getAverageAndTotalData(this.space, this.controlEndpoints, this.temporality.name, this.currentTimestamp.valueTime);
     this.averageCard = res[2];
     this.totalCard = res[3];
-    this.calendarList = res[4];
-    this.calendar = this.calendarList.find((e: CalendarModel) => e.n == this.selectedControlEndpoint.name)!;
+    // let nextBatchCard = await getAverageAndTotalData(res[2], res[3]);
+    // this.averageCard = nextBatchCard[0];
+    // this.totalCard = nextBatchCard[1];
   }
 
   async mounted() {
-    for (const controlEndpoint of this.controlEndpoints) {
-      this.controlEndpointList.push({name: controlEndpoint.name, color: controlEndpoint.color});
-    }
     this.interval();
     this.todaysCard = await getTodaysData(this.space, this.controlEndpoints);
-
   }
 
   
@@ -183,11 +137,6 @@ class App extends Vue {
   @Watch('temporality')
   async temporalityChange() {
     this.interval();
-  }
-
-  @Watch('selectedControlEndpoint')
-  async selectedControlEndpointChange() {
-    this.calendar = this.calendarList.find((e: CalendarModel) => e.n == this.selectedControlEndpoint.name)!;
   }
 
   async nav(payload: number): Promise<void> {

@@ -1,12 +1,5 @@
 <template>
   <div class="d-flex flex-column card">
-    <div  v-if="title && subtitle" class="card-title card-layer pb-3 flex-shrink-1 justify-space-between" style="height: fit-content !important">
-      <p class="mb-0 text-center">
-        {{ title }}
-        <br>
-        <span class="desc" style="margin-left: 0 !important;">{{ subtitle }}</span>
-      </p>
-    </div>
     <div class="d-flex flex-row card-layer" style="height: 70px;" v-for="d of data">
       <div class="d-flex flex-column justify-center stat-value" :style="[{ color: d.color }, {'font-size': (d.root ==true) ?'48px':'30px'}]">{{ shortNumberCall(d.value) }}</div>
       <div class="d-flex flex-column justify-center stat-text">
@@ -27,15 +20,7 @@ export default {
     props: {
         data: {
             required: true
-        },
-        title: {
-          type: String,
-          required: false
-        },
-        subtitle: {
-          type: String,
-          required: false
-        },
+        }
     },
     mounted() {
         
@@ -63,9 +48,6 @@ export default {
   gap: 0px;
 }
 
-.card-layer-root {
-  border-bottom: 1px solid #acacac;
-}
 .card-layer:not(:last-child) {
     border-bottom: 1px solid #ececec;
 }
@@ -78,7 +60,7 @@ export default {
 .stat-value {
   font-family: "Charlevoix Pro";
   font-size: 48px;
-  width: 36%;
+  width: 30%;
   text-align: end;
   line-height: normal;
   padding-right: 10px;
@@ -94,12 +76,6 @@ export default {
   font-family: "Charlevoix Pro";
   width: 60%;
   color: #949da6;
-}
-
-.card-title {
-  letter-spacing: 1.1px !important;
-  color: #000000DE !important;
-  font-size: 20px !important;
 }
 
 @font-face{font-family:'Charlevoix Pro';src:url('../assets/font/CharlevoixPro-Regular.woff2') format('woff2'),url('../assets/font/CharlevoixPro-Regular.woff') format('woff'),url('../assets/font/CharlevoixPro-Regular.ttf') format('truetype');font-weight:normal;font-style:normal}
