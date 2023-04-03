@@ -113,7 +113,7 @@ export default {
 
   data: () => ({
     isD: false,
-    switchValue: false,
+    switchValue: true,
     results: {
       y: '2023',
       d: [

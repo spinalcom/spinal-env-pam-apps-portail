@@ -70,12 +70,23 @@ export default {
     interval: 0,
     maxDate: '',
     legend: env.calendarLegend
+
   }),
   mounted() {
     const flattenedArr = this.results.d.flat().filter(val => val !== -1);
-    this.max = Math.max(...flattenedArr);
-    this.min = Math.min(...flattenedArr);
-    this.min = this.min === -1 ? 0 : this.min;
+    if (typeof this.results.max !== 'undefined' && typeof this.results.max === 'number') {
+      this.max = this.results.max;
+    }
+    else {
+      this.max = Math.max(...flattenedArr);
+    }
+    if (typeof this.results.min !== 'undefined' && typeof this.results.min === 'number') {
+      this.min = this.results.min;
+    }
+    else {
+      this.min = Math.min(...flattenedArr);
+      this.min = this.min < 0 ? 0 : this.min;
+    }
     this.interval = (this.max - this.min) / 7;
     // console.log('Min:',this.min, ', Max:', this.max, ', Interval:', this.interval);
 
@@ -99,6 +110,7 @@ export default {
       let sum;
       let res = 0;
       let maxPos = [];
+      let monthSum = [];
       for (let i=0; i<12; i++) {
         missing = 0;
         sum = 0;
@@ -111,18 +123,19 @@ export default {
             return a;
           }
         })
+        monthSum.push(sum);
         maxPos.push(sum);
         // console.log(`${sum}/${this.results.d[i].length}-${missing}`);
         res = sum/(this.results.d[0].length-missing);
         // console.log('Pushing:', res);
         m.push(res);
       }
-        return [m, maxPos.indexOf(Math.max(...maxPos))];
+        return [m, maxPos.indexOf(Math.max(...maxPos)), monthSum, this.results.y];
   }
   },
   methods: {
     colorCalc (val) {
-      if(val == -1) return 'E';
+      if(val < 0) return 'E';
       else if (val < this.min + this.interval || val == 0) return 'G3';
       else if (val < this.min + this.interval * 2) return 'G2';
       else if (val < this.min + this.interval * 3) return 'G1';
@@ -141,9 +154,19 @@ export default {
   watch: {
     results() {
       const flattenedArr = this.results.d.flat().filter(val => val !== -1);
-      this.max = Math.max(...flattenedArr);
-      this.min = Math.min(...flattenedArr);
-      this.min = this.min === -1 ? 0 : this.min;
+      if (typeof this.results.max !== 'undefined' && typeof this.results.max === 'number') {
+        this.max = this.results.max;
+      }
+      else {
+        this.max = Math.max(...flattenedArr);
+      }
+      if (typeof this.results.min !== 'undefined' && typeof this.results.min === 'number') {
+        this.min = this.results.min;
+      }
+      else {
+        this.min = Math.min(...flattenedArr);
+        this.min = this.min < 0 ? 0 : this.min;
+      }
       this.interval = (this.max - this.min) / 7;
       // console.log('Min:',this.min, ', Max:', this.max, ', Interval:', this.interval);
 

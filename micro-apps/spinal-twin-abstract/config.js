@@ -48,6 +48,8 @@ module.exports = {
     controlEndpoints: [
         {
             label: 'Energie globale',
+            min: null,
+            max: 3500,
             name: 'Energie globale',
             color: '#14202c',
             unit: 'kWh',
@@ -66,6 +68,8 @@ module.exports = {
         },
         {
             label: 'Eclairage',
+            min: null,
+            max: 500,
             name: 'Eclairage',
             color: '#E8D712',
             unit: 'kWh',
@@ -81,24 +85,31 @@ module.exports = {
 
             totalTitle: 'TOTAL TEXT',
             totalSubtitle: 'TOTAL SUBTITLE',
+
             root: false,
         },
-        // {
-        //     label: 'Chauffage',
-        //     name: 'Chauffage',
-        //     color: '#5444ae',
-        //     unit: 'kWh',
-        //     stackGroup: '01',
-        //     title: 'd\'éclairage consommée',
-        //     todayTitle: 'today',
-        //     averageTitle: 'AVERAGE TEXT',
-        //     totalTitle: 'TOTAL TEXT',
-        //     subtitle: 'par rapport a l\'énergie globale',
-        //     todaySubtitle: 'today',
-        //     averageSubtitle: '',
-        //     totalSubtitle: 'TOTAL SUBTITLE',
-        //     root: false,
-        // },
+        {
+            label: 'Chauffage',
+            min: null,
+            max: 2500,
+            name: 'Chauffage',
+            color: '#5444ae',
+            unit: 'kWh',
+            stackGroup: '01',
+
+            title: 'd\'éclairage consommée',
+            todayTitle: 'today',
+            subtitle: 'par rapport a l\'énergie globale',
+            totalSubtitle: 'TOTAL SUBTITLE',
+
+            averageTitle: 'AVERAGE TEXT',
+            averageSubtitle: '',
+
+            totalTitle: 'TOTAL TEXT',
+            todaySubtitle: 'today',
+
+            root: false,
+        },
         
     ],
     

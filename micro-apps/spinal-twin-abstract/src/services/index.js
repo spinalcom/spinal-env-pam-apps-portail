@@ -64,6 +64,8 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
       calendarObject.y = moment(currentTimestamp).format('YYYY');
       calendarObject.n = controlEndpoint.name;
       calendarObject.d = prepareCalendar(calendarObject.y, timeSeries);
+      calendarObject.max = controlEndpoint.max;
+      calendarObject.min = controlEndpoint.min;
       calendar.push(calendarObject);
       label.forEach(month => {
         processedTimeSeries.push(

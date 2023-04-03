@@ -3,8 +3,24 @@
     <div class="MCTITLE">
       <p class="MCTEXT">Bilan par mois</p>
     </div>
+    
     <div class="MONTHSTRIPE">
-      <div v-for="i in 12" :key="i" class="MONTHRECT" :class="colorCalc(values[0][i-1])"><span class="MONTHLEGEND">{{legendCalc(values[0][i-1])}}</span></div>
+      <div v-for="i in 12" :key="i" class="MONTHRECT" :class="colorCalc(values[0][i-1])">
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <span style="width: 100%; height: 100%; display: flex; align-items: center; padding-left: 10px;"
+              v-bind="attrs"
+              v-on="on"
+              >
+                  <span class="MONTHLEGEND">{{legendCalc(values[0][i-1])}}</span>
+                
+            </span>
+          </template>
+          <span v-if="values[2][i-1] >= 0">{{ months[i-1].slice(0, 1).toUpperCase() + months[i-1].slice(1) }}/{{ values[3] }}: {{ values[2][i-1].toFixed(1) }} {{ unit }}</span>
+          <!-- <span v-if="(results.d[j-1][i-1]!=-1)">{{`${i}/${j}/${results.y} :`}} <b>{{results.d[j-1][i-1].toFixed(1)}}</b> {{ unit }}</span> -->
+          <span v-else>{{ months[i-1].slice(0, 1).toUpperCase() + months[i-1].slice(1) }}/{{ values[3] }}: - {{ unit }}</span>
+        </v-tooltip>
+      </div>
     </div>
     <p class="CALMAX LP">{{ legend }} <b>{{months[values[1]]}}.</b></p>
   </div>
@@ -19,16 +35,28 @@ export default {
     max: 0,
     min: 0,
     interval: 0,
-    legend: env.monthStripeLegend
+    legend: env.monthStripeLegend,
+    unit: env.unit
   }),
   mounted() {
     console.log(this.values);
+    console.log(this.values);
     const flattenedArr = this.values[0].filter(val => val >= 0)
-    this.max = Math.max(...flattenedArr);
-    this.min = Math.min(...flattenedArr);
-    this.min = this.min < 0 ? 0 : this.min;
+    if (typeof this.values.max !== 'undefined' && typeof this.values.max === 'number') {
+      this.max = this.values.max;
+    }
+    else {
+      this.max = Math.max(...flattenedArr);
+    }
+    if (typeof this.values.min !== 'undefined' && typeof this.values.min === 'number') {
+      this.min = this.values.min;
+    }
+    else {
+      this.min = Math.min(...flattenedArr);
+      this.min = this.min < 0 ? 0 : this.min;
+    }
     this.interval = (this.max - this.min) / 7;
-    console.log('Min:',this.min, ', Max:', this.max, ', Interval:', this.interval);
+    // console.log('Min:',this.min, ', Max:', this.max, ', Interval:', this.interval);
   },
   computed: {
   },
@@ -44,7 +72,7 @@ export default {
       else return 'R';
     },
     legendCalc(val) {
-      console.log(`Min val: ${this.min}, the interval is ${this.interval}, and the current val is ${val}`);
+      // console.log(`Min val: ${this.min}, the interval is ${this.interval}, and the current val is ${val}`);
       if(val < 0) return '';
       else if (val < this.min + this.interval) return 'A';
       else if (val < this.min + this.interval * 2) return 'B';
@@ -58,7 +86,22 @@ export default {
   watch: {
     values(v) {
       console.log(v);
-    }
+      const flattenedArr = this.values[0].filter(val => val >= 0)
+      if (typeof this.values.max !== 'undefined' && typeof this.values.max === 'number') {
+        this.max = this.values.max;
+      }
+      else {
+        this.max = Math.max(...flattenedArr);
+      }
+      if (typeof this.values.min !== 'undefined' && typeof this.values.min === 'number') {
+        this.min = this.values.min;
+      }
+      else {
+        this.min = Math.min(...flattenedArr);
+        this.min = this.min < 0 ? 0 : this.min;
+      }
+      this.interval = (this.max - this.min) / 7;
+      }
   }
 }
 </script>
@@ -81,7 +124,8 @@ export default {
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: 10px;
+  justify-content: center;
+  /* padding: 10px; */
   gap: 10px;
 
   width: 7.6%;
