@@ -131,7 +131,7 @@ class HomePage extends Vue {
   // CRUD
   async createPortofolio(data: IPortofolioCreation) {
     await this.toastWithCallback(
-      "Portefolio Ajouté",
+      "Portefeuille Ajouté",
       "oups, une erreur s'est produite !",
       async () => {
         await this.$store.dispatch("portofolioStore/createPortofolio", data);
@@ -157,7 +157,7 @@ class HomePage extends Vue {
 
   async editPortofolio(data: any) {
     await this.toastWithCallback(
-      "Portefolio mis à jour",
+      "Portefeuille mis à jour",
       "oups, une erreur s'est produite !",
       async () => {
         await this.$store.dispatch("portofolioStore/editPortofolio", data);
@@ -183,7 +183,7 @@ class HomePage extends Vue {
   deletePortofolio(item: IPortofolio) {
     return this.$swal({
       title: "Supprimer",
-      text: `Êtes-vous sûre de vouloir supprimer ce portefolio ?`,
+      text: `Êtes-vous sûre de vouloir supprimer ce Portefeuille ?`,
       type: "warning",
       showCancelButton: true,
       confirmButtonClass: "successBtn",
@@ -207,7 +207,7 @@ class HomePage extends Vue {
       this.goToListPage();
 
       let text = success
-        ? "Portefolio supprimé"
+        ? "Portefeuille supprimé"
         : "oups, une erreur s'est produite !";
       this.toast(text, success);
       sendEventToParent("reload_portofolio");
@@ -289,7 +289,7 @@ class HomePage extends Vue {
   }) {
     return this.$swal({
       title: "Supprimer",
-      text: `Êtes-vous sûre de vouloir supprimer ce batiment ?`,
+      text: `Êtes-vous sûre de vouloir supprimer ce bâtiment ?`,
       type: "warning",
       showCancelButton: true,
       confirmButtonClass: "successBtn",
@@ -316,7 +316,7 @@ class HomePage extends Vue {
       this.goToListPage();
 
       let text = success
-        ? "batiment supprimé"
+        ? "bâtiment supprimé"
         : "oups, une erreur s'est produite !";
       this.toast(text, success);
       sendEventToParent("reload_portofolio");

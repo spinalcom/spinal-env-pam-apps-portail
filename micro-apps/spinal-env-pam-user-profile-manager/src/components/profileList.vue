@@ -50,7 +50,8 @@ with this file. If not, see
                       :headers="headers"
                       id="table"
                       :items="profiles"
-                      item-key="name">
+                      item-key="name"
+                      no-data-text="Aucune donnée à afficher">
 
           <template v-slot:header="{ props : { headers } }">
             <thead>
@@ -104,7 +105,6 @@ with this file. If not, see
 import Vue from "vue";
 import { State } from "vuex-class";
 import { Component } from "vue-property-decorator";
-import { __values } from "tslib";
 
 @Component({
   filters: {

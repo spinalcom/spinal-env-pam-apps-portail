@@ -29,13 +29,43 @@ with this file. If not, see
             class="normalState"
             elevation="4">
       <div class="header">
-        <!-- état actuel :
-        <div class="state"></div>
-        {{ state }} -->
+        <v-card class="stateCard"
+                elevation="4">
+          <div class="_circle online"></div>
+          <div class="message"><span>En ligne :</span></div>
+          <div class="count online">{{ nbEnligne }}</div>
+        </v-card>
+
+        <v-card class="stateCard"
+                elevation="4">
+          <div class="_circle offline"></div>
+          <div class="message"><span>Hors ligne :</span></div>
+          <div class="count offline">{{ nbHorsligne }}</div>
+        </v-card>
       </div>
 
       <div class="content">
-        <TableComponent :logs="logs" />
+        <!-- <TableComponent :logs="logs" /> -->
+
+        <v-tabs vertical
+                class="tabsContainer">
+          <v-tab v-for="item of webSocketLogs"
+                 :key="item.building.id">
+            <!-- <v-icon left
+                    :color="getLogType(item)">
+              {{getIcon(item)}}
+            </v-icon> -->
+            <div class="_circle"
+                 left
+                 :class="getLogType(item)"></div>
+            {{item.building.name}}
+          </v-tab>
+
+          <v-tab-item v-for="item of webSocketLogs"
+                      :key="item.id">
+            <TableComponent :logs="item.logs" />
+          </v-tab-item>
+        </v-tabs>
 
         <!--   <div class="state">
           <h1>Etat Actuel</h1>
@@ -84,7 +114,8 @@ with this file. If not, see
 <script lang="ts">
 import Vue from "vue";
 import TableComponent from "../components/tableComponent.vue";
-import { mapActions, mapGetters, mapState } from "vuex";
+import { mapActions, mapState } from "vuex";
+import { logTypes } from "../store/constants";
 
 export default Vue.extend({
   name: "HomeComponent",
@@ -104,6 +135,7 @@ export default Vue.extend({
     this.page = this.pages.loading;
     await this.createPoolingRequest();
     this.page = this.pages.normal;
+    console.log(this.webSocketLogs);
   },
 
   methods: {
@@ -115,9 +147,32 @@ export default Vue.extend({
       //   await this.getWebSocketLogs();
       // }, 10000);
     },
+
+    getIcon(item) {
+      return item.state === logTypes.Normal
+        ? "mdi-check"
+        : "mdi-alert-circle-outline";
+    },
+    getLogType(item) {
+      // return item.state === logTypes.Normal ? "green" : "#ff5252";
+      return {
+        online: item.state === logTypes.Normal,
+        offline: item.state !== logTypes.Normal,
+      };
+    },
   },
   computed: {
-    ...mapGetters(["logs", "state"]),
+    ...mapState(["webSocketLogs"]),
+    nbEnligne() {
+      return (this.webSocketLogs || []).filter(
+        (el) => el.state === logTypes.Normal
+      ).length;
+    },
+    nbHorsligne() {
+      return (this.webSocketLogs || []).filter(
+        (el) => el.state !== logTypes.Normal
+      ).length;
+    },
   },
   watch: {},
 });
@@ -130,6 +185,21 @@ export default Vue.extend({
   display: flex;
   align-items: end;
 
+  ._circle {
+    width: 15px;
+    height: 15px;
+    border-radius: 100% !important;
+    margin-right: 5px;
+  }
+
+  ._circle.online {
+    background: green;
+  }
+
+  ._circle.offline {
+    background: #ff5252;
+  }
+
   .normalState {
     width: 99%;
     height: calc(100% - 60px);
@@ -137,29 +207,68 @@ export default Vue.extend({
     background: transparent !important;
     .header {
       width: 100%;
-      height: 70px;
-      // display: flex;
-      // // justify-content: end;
-      // align-items: center;
-      // font-size: 1.3em;
-      // text-transform: capitalize;
-      // div.state {
-      //   width: 20px;
-      //   height: 20px;
-      //   margin: 0 5px 0 10px;
-      //   border-radius: 100%;
-      //   background: red;
-      // }
+      height: 130px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      .stateCard {
+        width: 25%;
+        height: 80%;
+        margin-right: 15px;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        padding: 0 30px;
+      }
+
+      .count {
+        font-size: 3em;
+      }
+
+      .count.online {
+        color: green !important;
+      }
+      .count.offline {
+        color: #ff5252 !important;
+      }
+      .message {
+        // height: 100%;
+        margin: 0 15px;
+        font-size: 25px;
+      }
     }
 
     .content {
       width: 100%;
-      height: calc(100% - 70px);
+      height: calc(100% - 150px);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       align-items: center;
       padding: 5px;
+
+      .tabsContainer {
+        background: transparent !important;
+      }
+
+      .tabsContainer {
+        .v-tabs-bar,
+        .v-tabs-items {
+          height: 100%;
+          background: transparent !important;
+          overflow: auto;
+        }
+
+        .v-tabs-items {
+          width: calc(100% - 160px);
+        }
+
+        .v-tabs-bar {
+          width: 160px;
+          border-right: 1px dashed grey;
+        }
+      }
 
       .state {
         width: 100%;

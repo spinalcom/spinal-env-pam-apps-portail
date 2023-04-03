@@ -223,7 +223,7 @@ $header-height: 70px;
 
   .header {
     height: $header-height;
-    margin-bottom: 10px;
+    // margin-bottom: 10px;
   }
 
   .myCard {

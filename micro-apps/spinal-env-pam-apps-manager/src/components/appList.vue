@@ -26,7 +26,7 @@ with this file. If not, see
   <div class="_container">
     <div class="toolbar">
       <div class="left_side">
-        <div class="_title">{{title}}</div>
+        <div class="_title">{{title.toUpperCase() }}</div>
         <div class="searchDiv">
           <v-text-field class="textInput"
                         solo
@@ -70,16 +70,17 @@ with this file. If not, see
                     hide-default-footer
                     id="table"
                     :items="searchedApps"
-                    item-key="name">
+                    item-key="name"
+                    no-data-text="Aucune Application à afficher">
 
-        <template slot="no-data">
+        <!-- <template slot="no-data">
           <tr>
             <td :colspan="4"
                 style="text-align: center;">
               Aucune Application à afficher
             </td>
           </tr>
-        </template>
+        </template> -->
 
         <template v-slot:header>
           <thead>

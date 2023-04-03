@@ -32,11 +32,11 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    webSocketLogs: { state: logTypes.Normal, logs: [] }
+    webSocketLogs: []
   },
   mutations: {
     [SET_LOGS](state, playload) {
-      state.webSocketLogs = playload;
+      state.webSocketLogs = playload.filter(el => el.building);
     }
   },
   actions: {
@@ -46,12 +46,12 @@ export default new Vuex.Store({
     }
   },
   getters: {
-    logs(state) {
-      return state.webSocketLogs.logs.sort((a, b) => b.date - a.date);
-    },
+    // logs(state) {
+    //   return state.webSocketLogs.logs.sort((a, b) => b.date - a.date);
+    // },
 
-    state(state) {
-      return state.webSocketLogs.state;
-    }
+    // state(state) {
+    //   return state.webSocketLogs.state;
+    // }
   },
 });

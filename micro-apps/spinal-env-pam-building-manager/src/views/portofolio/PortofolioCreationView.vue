@@ -37,7 +37,7 @@ with this file. If not, see
           Retour
         </v-btn>
 
-        <h2 style="margin-left : 20px">Créer un portofolio</h2>
+        <h2 style="margin-left : 20px">Créer un portefeuille</h2>
       </div>
       <div class="right">
         <v-btn class="button"
@@ -61,15 +61,16 @@ with this file. If not, see
                  max-height="100%"
                  min-height="300px">
         <v-stepper-step editable
-                        step="1">Informations du Portofolio</v-stepper-step>
+                        step="1">Informations du Portefeuille</v-stepper-step>
         <v-stepper-content step="1">
           <v-row class="name">
             <v-col cols="6">
-              <v-text-field block
+              <v-text-field dense
+                            block
                             outlined
                             v-model="portofolio.name"
                             required
-                            label="Nom du portefolio"></v-text-field>
+                            label="Nom du Portefeuille"></v-text-field>
             </v-col>
           </v-row>
         </v-stepper-content>
@@ -86,12 +87,12 @@ with this file. If not, see
                    class="right-col">
 
               <div class="toolbar">
-                <div class="title">Apis Patrimoniales</div>
+                <div class="title">APIs Patrimoniales</div>
                 <div class="search">
                   <v-text-field dense
                                 v-model="apiSearchText"
                                 append-icon="mdi-magnify"
-                                label="Search"
+                                label="rechercher"
                                 single-line
                                 hide-details></v-text-field>
                 </div>
@@ -105,7 +106,10 @@ with this file. If not, see
                             disable-pagination
                             hide-default-footer
                             show-select
-                            class="tableDiv"></v-data-table>
+                            class="tableDiv"
+                            no-data-text="Aucune route API à afficher">
+
+              </v-data-table>
 
             </v-col>
           </v-row>
@@ -136,6 +140,7 @@ with this file. If not, see
               </div>
 
               <v-data-table v-model="portofolio.appIds"
+                            class="tableDiv"
                             :headers="appHeaders"
                             :items="appsSearched"
                             item-key="id"
@@ -143,7 +148,8 @@ with this file. If not, see
                             disable-pagination
                             hide-default-footer
                             show-select
-                            class="tableDiv"></v-data-table>
+                            no-data-text="Aucune application à afficher">
+              </v-data-table>
 
             </v-col>
           </v-row>
@@ -414,9 +420,10 @@ $toolbar-height: 50px;
     .v-stepper__content {
       min-height: 30px;
       max-height: 600px;
+
       .tableDiv {
         width: 100%;
-        height: calc(550px - #{$toolbar-height});
+        height: calc(550px - #{$toolbar-height}) !important;
         // height: calc(100% - #{$toolbar-height});
         position: relative;
         overflow: auto;
@@ -425,3 +432,4 @@ $toolbar-height: 50px;
   }
 }
 </style>
+

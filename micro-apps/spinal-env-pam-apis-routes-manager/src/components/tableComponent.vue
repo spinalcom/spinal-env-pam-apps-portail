@@ -32,7 +32,8 @@ with this file. If not, see
                   id="table"
                   :items="items"
                   item-key="name"
-                  :expanded="expanded">
+                  :expanded="expanded"
+                  no-data-text="Aucune route d'api à afficher">
 
       <template v-slot:header="{ props : { headers } }">
         <thead>
@@ -101,7 +102,6 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import { IApiRoute } from "@/interfaces";
 import Vue from "vue";
 import { Component, Prop } from "vue-property-decorator";
 

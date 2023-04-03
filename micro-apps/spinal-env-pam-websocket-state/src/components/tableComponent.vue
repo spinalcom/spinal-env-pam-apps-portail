@@ -29,7 +29,7 @@ with this file. If not, see
     <template v-slot:default>
       <thead class="tableHeader">
         <tr>
-          <th></th>
+          <!-- <th></th> -->
           <th>
             Date
           </th>
@@ -42,21 +42,25 @@ with this file. If not, see
       <tbody class="tableBody">
         <tr v-for="(log,i) in logs"
             :key="i">
-          <td class="color">
-            <!-- <div :class="getLogType(log)"></div> -->
+          <!-- <td class="color">
             <v-timeline>
               <v-timeline-item :color="getLogType(log)"
                                :icon="getIcon(log)"
                                fill-dot
                                small>
-                <!-- <template v-slot:icon>
-                  <v-icon>mdi-check</v-icon>
-                </template> -->
+
+
               </v-timeline-item>
 
             </v-timeline>
+          </td> -->
+          <td class="date">
+            <v-icon left
+                    :color="getLogType(log)">
+              {{ getIcon(log) }}
+            </v-icon>
+            {{getDate(log)}}
           </td>
-          <td class="date">{{getDate(log)}}</td>
           <td class="message">{{ log.message }}</td>
         </tr>
       </tbody>
@@ -77,31 +81,31 @@ export default {
   props: ["logs"],
   data() {
     return {
-      headers: [
-        {
-          text: "",
-          align: "start",
-          sortable: true,
-          value: "icon",
-          width: "150px",
-          class: ["tableHeader", "dateColumn"],
-        },
-        {
-          text: "Date",
-          align: "start",
-          sortable: true,
-          value: "date",
-          width: "300px",
-          class: ["tableHeader", "dateColumn"],
-        },
-        {
-          text: "Message",
-          align: "start",
-          sortable: false,
-          value: "message",
-          class: "tableHeader",
-        },
-      ],
+      // headers: [
+      //   // {
+      //   //   text: "",
+      //   //   align: "start",
+      //   //   sortable: true,
+      //   //   value: "icon",
+      //   //   width: "150px",
+      //   //   class: ["tableHeader", "dateColumn"],
+      //   // },
+      //   {
+      //     text: "Date",
+      //     align: "start",
+      //     sortable: true,
+      //     value: "date",
+      //     width: "300px",
+      //     class: ["tableHeader", "dateColumn"],
+      //   },
+      //   {
+      //     text: "Message",
+      //     align: "start",
+      //     sortable: false,
+      //     value: "message",
+      //     class: "tableHeader",
+      //   },
+      // ],
     };
   },
   methods: {
@@ -139,7 +143,7 @@ export default {
   .tableHeader {
     height: 50px !important;
     tr {
-      background: linear-gradient(121deg, #f8fafa, #d6e2e6) !important;
+      // background: linear-gradient(121deg, #f8fafa, #d6e2e6) !important;
     }
 
     th {
@@ -152,30 +156,23 @@ export default {
   .tableBody {
     td {
       min-width: unset !important;
-      height: 50px;
+      height: 60px !important;
       vertical-align: middle;
       min-width: unset;
     }
     td.color {
       width: 20px !important;
       height: 40px;
-      // div {
-      //   width: 20px;
-      //   height: 20px;
-      //   border-radius: 100%;
-      // }
-
-      // div.error {
-      //   background: #ff5252;
-      // }
-      // div.success {
-      //   background: green;
-      // }
     }
     td.date {
-      width: 280px !important;
+      min-width: 280px !important;
+      width: 280px;
     }
     td.message {
+      width: calc(100% - 280px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 }

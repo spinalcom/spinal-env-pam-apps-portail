@@ -60,7 +60,7 @@ with this file. If not, see
         </div>
 
       </div>
-      <v-divider></v-divider>
+      <!-- <v-divider></v-divider> -->
 
       <div class="table-container">
         <table-component :items="searchedData"
@@ -76,9 +76,6 @@ with this file. If not, see
 import Vue from "vue";
 import { Component, Prop, Watch } from "vue-property-decorator";
 import TableComponent from "./tableComponent.vue";
-import { Getter, Action } from "vuex-class";
-import Fuse from "fuse.js";
-import { IApiRoute } from "@/interfaces";
 
 @Component({
   components: {
