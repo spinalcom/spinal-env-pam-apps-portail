@@ -84,15 +84,15 @@ class App extends Vue {
   }
 
   selectedTime = {
-      name: 'Année',
-      next: 'Année suivante',
-      prev: 'Année précédente',
-      staticId: 'Annee',
-      dynamicId: 3,
-      level: 0,
+      name: 'Mois',
+      next: 'Mois suivant',
+      prev: 'Mois précédent',
+      staticId: 'Mois',
+      dynamicId: 1,
+      level: 1,
       isOpen: true,
       loading: false,
-      patrimoineId: 'Annee',
+      patrimoineId: 'Mois',
       parents: [],
       isLastInGrp: true,
       drawLink: [],
