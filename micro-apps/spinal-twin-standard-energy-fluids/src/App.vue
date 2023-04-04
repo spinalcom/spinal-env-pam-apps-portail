@@ -30,7 +30,6 @@
 </template>
 
 <script lang="ts">
-import env from '../config';
 import {
   ISpaceSelectorItem,
   SpaceSelector,
@@ -55,7 +54,6 @@ interface IItemDatatmp {
   },
 })
 class App extends Vue {
-  cpName = env.name;
   time = { name: "SEMAINE", value: 'week' }
   selectedFloor = '';
   openSpaceSelector = false;
@@ -87,9 +85,11 @@ class App extends Vue {
 
   selectedTime = {
       name: 'Mois',
+      next: 'Mois suivant',
+      prev: 'Mois précédent',
       staticId: 'Mois',
-      dynamicId: 3,
-      level: 0,
+      dynamicId: 1,
+      level: 1,
       isOpen: true,
       loading: false,
       patrimoineId: 'Mois',
@@ -106,40 +106,66 @@ class App extends Vue {
   }
   onTimeSelectOpen(item?: any): { name: string; staticId: string; dynamicId: number; level: number; isOpen: boolean; loading: boolean; patrimoineId: string; parents: never[]; isLastInGrp: boolean; drawLink: never[]; haveChildren: boolean; }[] {
     if (item) {
+      if (item.name == 'Temps-réel') {
+        this.selectedTime.next = 'Jour suivant';
+        this.selectedTime.prev = 'Jour précédent';
+      }
+      if (item.name == 'Semaine') {
+        this.selectedTime.next = 'Semaine suivante';
+        this.selectedTime.prev = 'Semaine précédente';
+      }
+      if (item.name == 'Mois') {
+        this.selectedTime.next = 'Mois suivant';
+        this.selectedTime.prev = 'Mois précédent';
+      }
+      else if (item.name == '3 mois') {
+        this.selectedTime.next = '3 mois suivants';
+        this.selectedTime.prev = '3 mois précédents';
+      }
+      else if (item.name == 'Année') {
+        this.selectedTime.next = 'Année suivante';
+        this.selectedTime.prev = 'Année précédente';
+      }
       return [];
     }
     let timeOptions: any[] = [];
-    // timeOptions.push({
-    //   name: 'Temps-réel',
-    //   staticId: 'Tempsreel',
-    //   dynamicId: 1,
-    //   level: 0,
-    //   isOpen: true,
-    //   loading: false,
-    //   patrimoineId: 'Semaine',
-    //   parents: [],
-    //   isLastInGrp: true,
-    //   drawLink: [],
-    //   haveChildren: false,
-    // });
-    // timeOptions.push({
-    //   name: 'Semaine',
-    //   staticId: 'Semaine',
-    //   dynamicId: 2,
-    //   level: 0,
-    //   isOpen: true,
-    //   loading: false,
-    //   patrimoineId: 'Semaine',
-    //   parents: [],
-    //   isLastInGrp: true,
-    //   drawLink: [],
-    //   haveChildren: false,
-    // });
+    timeOptions.push({
+      name: 'Temps-réel',
+      next: 'Jour suivant',
+      prev: 'Jour précédent',
+      staticId: 'Jour',
+      dynamicId: 2,
+      level: 0,
+      isOpen: true,
+      loading: false,
+      patrimoineId: 'Jour',
+      parents: [],
+      isLastInGrp: true,
+      drawLink: [],
+      haveChildren: false,
+    });
+    timeOptions.push({
+      name: 'Semaine',
+      next: 'Semaine suivante',
+      prev: 'Semaine précédente',
+      staticId: 'Semaine',
+      dynamicId: 2,
+      level: 0,
+      isOpen: true,
+      loading: false,
+      patrimoineId: 'Semaine',
+      parents: [],
+      isLastInGrp: true,
+      drawLink: [],
+      haveChildren: false,
+    });
     timeOptions.push({
       name: 'Mois',
+      next: 'Mois suivant',
+      prev: 'Mois précédent',
       staticId: 'Mois',
-      dynamicId: 3,
-      level: 0,
+      dynamicId: 1,
+      level: 1,
       isOpen: true,
       loading: false,
       patrimoineId: 'Mois',
@@ -148,33 +174,48 @@ class App extends Vue {
       drawLink: [],
       haveChildren: false,
     });
-    // timeOptions.push({
-    //   name: '3 mois',
-    //   staticId: '3derniersmois',
-    //   dynamicId: 4,
-    //   level: 0,
-    //   isOpen: true,
-    //   loading: false,
-    //   patrimoineId: '3derniersmois',
-    //   parents: [],
-    //   isLastInGrp: true,
-    //   drawLink: [],
-    //   haveChildren: false,
-    // });
-    // timeOptions.push({
-    //   name: 'Année',
-    //   staticId: 'Annee',
-    //   dynamicId: 5,
-    //   level: 0,
-    //   isOpen: true,
-    //   loading: false,
-    //   patrimoineId: 'Annee',
-    //   parents: [],
-    //   isLastInGrp: true,
-    //   drawLink: [],
-    //   haveChildren: false,
-    // });
-    return timeOptions;
+    timeOptions.push({
+      name: '3 mois',
+      staticId: '3derniersmois',
+      dynamicId: 2,
+      level: 0,
+      isOpen: true,
+      loading: false,
+      patrimoineId: '3derniersmois',
+      parents: [],
+      isLastInGrp: true,
+      drawLink: [],
+      haveChildren: false,
+    });
+    timeOptions.push({
+      name: 'Année',
+      next: 'Année suivante',
+      prev: 'Année précédente',
+      staticId: 'Annee',
+      dynamicId: 3,
+      level: 0,
+      isOpen: true,
+      loading: false,
+      patrimoineId: 'Annee',
+      parents: [],
+      isLastInGrp: true,
+      drawLink: [],
+      haveChildren: false,
+    });
+    timeOptions.push({
+      name: 'Décennie',
+      staticId: 'Decennie',
+      dynamicId: 4,
+      level: 0,
+      isOpen: true,
+      loading: false,
+      patrimoineId: 'Decennie',
+      parents: [],
+      isLastInGrp: true,
+      drawLink: [],
+      haveChildren: false,
+    });
+      return timeOptions;
   }
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<any> {
     var floorList: any[] = [];
@@ -185,7 +226,7 @@ class App extends Vue {
               name: building.name,
               staticId: building.staticId,
               dynamicId: building.dynamicId,
-              type: 'building',
+              type: 'geographicBuilding',
               level: 0,
               isOpen: true,
               loading: false,
@@ -195,8 +236,8 @@ class App extends Vue {
               drawLink: [],
               haveChildren: false,
             }];
-      case 'building':
-        const floors = await getFloors(this.cpName);
+      case 'geographicBuilding':
+        const floors = await getFloors();
         for (let floor of floors) {
           floorList.push({
               name: floor.name,
@@ -229,6 +270,7 @@ export default App;
 </script>
 
 <style>
+@import './assets/css/styles.css';
 .Hx1 {
   position: absolute;
   width: 66%;
@@ -264,5 +306,6 @@ html, body, .spinal-font, .v-application--wrap {
 }
 
 @font-face{font-family:'Charlevoix Pro';src:url('./assets/font/CharlevoixPro-Regular.woff2') format('woff2'),url('./assets/font/CharlevoixPro-Regular.woff') format('woff'),url('./assets/font/CharlevoixPro-Regular.ttf') format('truetype');font-weight:normal;font-style:normal}
+
 
 </style>

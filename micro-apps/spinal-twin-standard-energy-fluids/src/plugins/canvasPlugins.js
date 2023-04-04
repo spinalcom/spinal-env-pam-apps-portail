@@ -54,7 +54,7 @@ export const customBackgroundPlugin = {
 export const customLegendPlugin = {
   id: "htmlLegend",
   afterUpdate: (chart, args, options) => {
-    if (chart.config.type === "bar" && chart.legend) {
+    if ((chart.config.type === "bar" && chart.legend) || (chart.config.type === "line" && chart.legend)) {
       chart.legend.left = chart.chartArea.left - 10;
     } else if (chart.config.type === "pie") {
       const legendContainer = chart.canvas.parentElement?.parentNode?.lastChild;

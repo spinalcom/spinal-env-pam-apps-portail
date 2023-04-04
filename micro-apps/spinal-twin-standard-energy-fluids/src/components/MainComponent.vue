@@ -2,16 +2,42 @@
   <div class="RC" style="min-height: 480px">
     <div class="MC">
       <BarChart
-        v-if="chart.label && chart.data"
-        :title="title" 
+        v-if="chart.label && chart.data && temporality.name!='Temps-réel'"
+        :title="title"
+        :subtitle="subtitle"
         :labels="chart.label" 
         :datasets="chart.data" 
         :prev_next="true"
         @nav="nav"
         :stacked="true"
-        style="max-height: 450px;"
+        :isYear="temporality.name==='Année'"
+        :calendar="calendar"
+        :next="temporality.next" 
+        :prev="temporality.prev"
+        :optional="barOptions"
+        style="max-height: 530px;"
         class="BR"
         />
+      <LineChart 
+        v-else-if="chart.label && chart.data && temporality.name === 'Temps-réel'"
+        :title="'CONSOMMATION D\'EAU'"
+        :labels="chart.label" 
+        :datasets="chart.data" 
+        :optional="barOptions" 
+        :next="temporality.next" 
+        :prev="temporality.prev" 
+        @nav="nav" 
+        @stack="stack" 
+        :stacked="false" 
+        style="max-height: 530px;"
+        class="BR"
+        />
+      <LoadingCard
+        v-else
+        style="max-height: 530px;"
+        class="BR"
+        />
+
         <div class="d-flex cards">
           <!-- <StatCard v-for="(card, index) in controlEndpoints" :key="index" 
             :value="index" 
@@ -22,6 +48,8 @@
             /> -->
             <StackCard
             v-if="totalCard.length !== 0 && cards.includes('total')"
+            :title="totalTitle"
+            :subtitle="totalSubtitle"
             :data="totalCard"
             class="flex-grow-1 pa-4" 
             style="width: 100% !important; height: fit-content;"
@@ -29,6 +57,8 @@
             <LoadingCard class="flex-grow-1 pa-4" style="width: 100% !important; min-height: 105px;" v-else-if="cards.includes('total')"/>
             <StackCard
             v-if="averageCard.length !== 0 && cards.includes('average')"
+            :title="averageTitle"
+            :subtitle="averageSubtitle"
             :data="averageCard"
             class="flex-grow-1 pa-4" 
             style="width: 100% !important; height: fit-content;"
@@ -36,6 +66,8 @@
             <LoadingCard class="flex-grow-1 pa-4" style="width: 100% !important; min-height: 105px;" v-else-if="cards.includes('average')"/>
             <StackCard
             v-if="todaysCard.length !== 0 && cards.includes('today')"
+            :title="todaysTitle"
+            :subtitle="todaysSubtitle"
             :data="todaysCard"
             class="flex-grow-1 pa-4" 
             style="width: 100% !important; height: fit-content;"
@@ -51,11 +83,15 @@ import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
 import env from '../../config';
 import BarChart from './BarCard.vue';
+import LineChart from './LineCard.vue';
 import StatCard from './StatsCard.vue';
 import StackCard from './StackCard.vue';
+import SmallLegend from "./SmallLegend.vue";
 import LoadingCard from './LoadingCard.vue';
 import { ISpaceSelectorItem } from './SpaceSelector/index';
 import { TemporalityModel } from '../models/Temporality.model';
+import { LegendModel } from '../models/Legend.model';
+import { CalendarModel } from '../models/Calendar.model';
 import { getData, getTodaysData } from '../services/index.js';
 import moment from 'moment';
 import { computed } from 'vue';
@@ -63,17 +99,26 @@ import { computed } from 'vue';
 @Component({
   components: {
     BarChart,
+    LineChart,
     StatCard,
     StackCard,
-    LoadingCard
+    LoadingCard,
+    SmallLegend
   },
 })
 class App extends Vue {
 
   title = env.title;
+  subtitle = env.subtitle;
   unit = env.unit;
   controlEndpoints = env.controlEndpoints;
   cards = env.cards;
+  totalTitle = env.totalCardTitle;
+  totalSubtitle = env.totalCardSubtitle;
+  averageTitle = env.averageCardTitle;
+  averageSubtitle = env.averageCardSubtitle;
+  todaysTitle = env.todaysCardTitle;
+  todaysSubtitle = env.todaysCardSubtitle;
   chart = {
     label: [],
     data: []
@@ -82,6 +127,12 @@ class App extends Vue {
   todaysCard = [];
   averageCard = [];
   totalCard = [];
+  calendarList: CalendarModel[] = [];
+  calendar: CalendarModel = {n: '', y: '', d: []};
+  barOptions = {unit: this.unit, footer: 'Consommation totale du patrimoine'};
+
+  selectedControlEndpoint: LegendModel = {name: this.controlEndpoints[0].name, color: this.controlEndpoints[0].color};
+  controlEndpointList: LegendModel[] = [];
 
   @Prop({type: Object as () => ISpaceSelectorItem, required: true})
   space: ISpaceSelectorItem;
@@ -99,20 +150,22 @@ class App extends Vue {
   async spreadData() {
     this.averageCard = [];
     this.totalCard = [];
-    let res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.controlEndpoints);
+    let res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.controlEndpoints, this.space.type);
     this.chart.label = res[0];
     this.chart.data = res[1];
-    // let cardRes = await getAverageAndTotalData(this.space, this.controlEndpoints, this.temporality.name, this.currentTimestamp.valueTime);
     this.averageCard = res[2];
     this.totalCard = res[3];
-    // let nextBatchCard = await getAverageAndTotalData(res[2], res[3]);
-    // this.averageCard = nextBatchCard[0];
-    // this.totalCard = nextBatchCard[1];
+    this.calendarList = res[4];
+    this.calendar = this.calendarList.find((e: CalendarModel) => e.n == this.selectedControlEndpoint.name)!;
   }
 
   async mounted() {
+    for (const controlEndpoint of this.controlEndpoints) {
+      this.controlEndpointList.push({name: controlEndpoint.name, color: controlEndpoint.color});
+    }
     this.interval();
     this.todaysCard = await getTodaysData(this.space, this.controlEndpoints);
+
   }
 
   
@@ -137,6 +190,11 @@ class App extends Vue {
   @Watch('temporality')
   async temporalityChange() {
     this.interval();
+  }
+
+  @Watch('selectedControlEndpoint')
+  async selectedControlEndpointChange() {
+    this.calendar = this.calendarList.find((e: CalendarModel) => e.n == this.selectedControlEndpoint.name)!;
   }
 
   async nav(payload: number): Promise<void> {
