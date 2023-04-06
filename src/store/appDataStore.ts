@@ -23,10 +23,7 @@
  */
 
 import {
-  getUserApps,
-  getUserBos,
   getPortofolios,
-  addAppToFavorite,
   addAppToFavorite,
   removeAppFromFavorite,
   getFavoriteApps
@@ -43,42 +40,61 @@ export const ADD_FAVORITE_APP = "ADD_FAVORITE_APP";
 export const SET_FAVORITE_APP = "SET_FAVORITE_APP";
 export const DELETE_FAVORITE_APP = "DELETE_FAVORITE_APP";
 
-function classifyByCategory(
-  apps: any[]
-): { name: string; id: string; apps: any[] }[] {
-  const obj: { [key: string]: any } = {};
-  apps.forEach((data) => {
-    const categoryId = data.categoryName.toLowerCase();
-    if (!obj[categoryId])
-      obj[categoryId] = { id: categoryId, name: data.categoryName, apps: [] };
+const names = {
+  "apps": "Applications",
+  // "adminApps": "Administration"
+}
 
-    obj[categoryId].apps.push(data);
+
+function classifyByCategory(apps: any[]): { name: string, id: string, apps: any[] }[] {
+  const obj: { [key: string]: any } = {};
+  apps.forEach(data => {
+    const categoryId = data.categoryName.toLowerCase();
+    if (!obj[categoryId]) obj[categoryId] = { id: categoryId, name: data.categoryName, apps: [] };
+
+    obj[categoryId].apps.push(data)
   });
 
   return Array.from(Object.values(obj));
 }
 
-function classifyByCategoryAndGroup(apps: any[]) {
+function classifyByCategoryAndGroup(apps: any[], favoriteApps: any[] = []) {
   let categories = classifyByCategory(apps);
-  const groups: { [ke: string]: { name: string; id: string } } = {};
+
+  categories.unshift({ name: "Favoris", id: "favoris", apps: favoriteApps }) // Ajouter la categorie favorites
+
+  const groups: { [key: string]: { name: string; id: string } } = {};
 
   const data = categories.map(({ name, id, apps }) => {
     let t: { [key: string]: any } = { name, id };
 
-    apps.forEach((el) => {
-      const groupId = el.groupName.toLowerCase();
+    apps.forEach(el => {
+      // const groupId = el.groupName.toLowerCase();
+      const groupId = "Applications";
       if (!t[groupId]) {
         t[groupId] = [];
-        groups[groupId] = { name: el.groupName, id: groupId };
+        // groups[groupId] = { name: el.groupName, id: groupId }
+        groups[groupId] = { name: "Applications", id: groupId }
       }
 
       t[groupId].push(el);
-    });
+    })
 
-    return t;
-  });
+    return t
+  })
 
-  return { groups: Array.from(Object.values(groups)), data };
+  return { groups: Array.from(Object.values(groups)), data }
+}
+
+function reinitFavoris(old_list: any[], newList: any[]) {
+  if (!newList || !old_list) return []
+  // re-init favorites
+  return old_list.map(el => {
+    if (el.value === 'favoris') {
+      el.Applications = newList;
+    }
+    return el;
+  })
 }
 
 const appsFormattedMap = new Map();
@@ -124,16 +140,22 @@ export const appDataStore = {
 
     [ADD_FAVORITE_APP](state: any, playload: any) {
       state.favoriteApps = [...state.favoriteApps, ...playload];
+      // re-init favorites
+      if (state.appsFormatted?.data) state.appsFormatted.data = reinitFavoris(state.appsFormatted.data, state.favoriteApps);
     },
 
     [SET_FAVORITE_APP](state: any, playload: any) {
       state.favoriteApps = playload;
+      // re-init favorites
+      if (state.appsFormatted?.data) state.appsFormatted.data = reinitFavoris(state.appsFormatted.data, state.favoriteApps);
     },
 
     [DELETE_FAVORITE_APP](state: any, playload: any) {
       const obj = {};
       playload.forEach(el => obj[el.id] = el);
 
+      state.favoriteApps = state.favoriteApps.filter(el => !obj[el.id]);
+      if (state.appsFormatted?.data) state.appsFormatted.data = reinitFavoris(state.appsFormatted.data, state.favoriteApps);
     },
   },
   actions: {
@@ -166,10 +188,7 @@ export const appDataStore = {
       return userInfo;
     },
 
-    async selectSpace(
-      { commit, dispatch, state }: any,
-      data: { portofolioId: string; buildingId: string }
-    ) {
+    async selectSpace({ commit, dispatch, state }: any, data: { portofolioId: string; buildingId: string }) {
       if (!state.portofolios) {
         await dispatch("getPortofolios");
       }
@@ -203,34 +222,54 @@ export const appDataStore = {
         }
       }
 
-      let appsFormatted = classifyByCategoryAndGroup(apps);
-      // console.log(appsFormatted)
-
-      // let appsFormatted: any = [];
-      // if (appsFormattedMap.get(state.spaceSelected)) appsFormatted = appsFormattedMap.get(state.spaceSelected);
-      // else {
-      // appsFormatted = classifyByCategoryAndGroup(apps);
-      //     appsFormattedMap.set(state.spaceSelected, appsFormatted);
-      // }
+      const favoris = await dispatch("getFavoriteApps")
+      let appsFormatted = classifyByCategoryAndGroup(apps, favoris);
 
       commit(SET_AND_FORMAT_APPS, { apps, appsFormatted });
 
 
+    },
+
+
+    async addToFavoriteApps({ commit, state, getters }: any, appIds: string[]) {
+      const data = {
+        portofolioId: getters.getPortofolioId,
+        buildingId: getters.getBuildingId
+      }
+
+      const apps = await addAppToFavorite(appIds, data);
+      commit(ADD_FAVORITE_APP, apps);
+    },
+
+    async getFavoriteApps({ commit, getters }) {
+      const data = {
+        portofolioId: getters.getPortofolioId,
+        buildingId: getters.getBuildingId
+      }
+      const apps = await getFavoriteApps(data);
+      commit(SET_FAVORITE_APP, apps);
+      return apps;
+    },
+
+    async deleteFavoriteApps({ commit, getters }, appIds) {
+      const data = {
+        portofolioId: getters.getPortofolioId,
+        buildingId: getters.getBuildingId
+      }
+      const apps = await removeAppFromFavorite(appIds, data);
+      commit(DELETE_FAVORITE_APP, apps);
     }
   },
-
-  async addToFavoriteApps({ commit }: any, appIds: string[]) {
-    const apps = await addAppToFavorite(appIds);
-    commit(ADD_FAVORITE_APP, apps);
-  },
-
-  async getFavoriteApps({ commit }) {
-    const apps = await getFavoriteApps();
-    commit(SET_FAVORITE_APP, apps);
-  },
-
-  async deleteFavoriteApps({ commit }, appIds) {
-    const apps = await removeAppFromFavorite(appIds);
-    commit(DELETE_FAVORITE_APP, apps);
+  getters: {
+    getPortofolioId(state) {
+      if (!state.selectedPortofolio) return;
+      if (state.selectedPortofolio.type === "building" && state.selectedPortofolio.parents) return state.selectedPortofolio.parents[0];
+      if (state.selectedPortofolio.type === "portofolio") return state.selectedPortofolio.staticId;
+    },
+    getBuildingId(state) {
+      if (!state.selectedPortofolio) return;
+      if (state.selectedPortofolio.type === "building") return state.selectedPortofolio.staticId;
+    }
   }
+
 }

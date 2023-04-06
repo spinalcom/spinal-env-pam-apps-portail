@@ -23,7 +23,6 @@ with this file. If not, see
 -->
 
 <template>
-
   <v-data-table v-if="(categories && categories.length > 0)"
                 fixed-header
                 class="dataTable"

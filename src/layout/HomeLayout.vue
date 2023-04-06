@@ -48,6 +48,7 @@ with this file. If not, see
 import { mapActions, mapState } from "vuex";
 import NavBar from "../components/nav.vue";
 import SelectComponent from "../components/select.vue";
+import { SET_SELECTED_APP } from "../store/appDataStore";
 export default {
   components: {
     NavBar,
@@ -70,7 +71,7 @@ export default {
       return Promise.all([
         this.getPortofolios(),
         this.getUserInfo(),
-        this.getFavoriteApps(),
+        // this.getFavoriteApps(),
       ]);
     },
 

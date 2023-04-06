@@ -12,6 +12,7 @@
     "@mdi/font": "^7.0.96",
     "chart.js": "^4.2.1",
     "dateformat": "^5.0.3",
+    "http-server": "^14.1.1",
     "moment": "^2.29.4",
     "spinal-components": "github:spinalcom/spinal-components",
     "spinal-viewer-event-manager": "git+https://github.com/spinalcom/spinal-viewer-event-manager.git",

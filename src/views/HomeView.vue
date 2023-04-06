@@ -85,7 +85,7 @@ import Vue from "vue";
 // import { groups, categories } from "./data";
 import GridComponent from "../components/gridComponent.vue";
 import * as lodash from "lodash";
-import { mapState } from "vuex";
+import { mapActions, mapState } from "vuex";
 import { SET_SELECTED_APP } from "../store/appDataStore";
 
 export default Vue.extend({
@@ -121,11 +121,8 @@ export default Vue.extend({
     this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, undefined);
   },
   methods: {
-    // ...mapActions("appDataStore", ["getApps", "getBos"]),
+    ...mapActions("appDataStore", ["addToFavoriteApps", "deleteFavoriteApps"]),
 
-    // init() {
-    //   return Promise.all([this.getApps(), this.getBos()]);
-    // },
     formatData(info) {
       if (!info) return;
       const { groups, data } = info;
@@ -199,9 +196,8 @@ export default Vue.extend({
 
     addAppToFavoris({ item, isFavorite }) {
       const ids = [item.id];
-      if (isFavorite)
-        return this.$store.dispatch(`appDataStore/deleteFavoriteApps`, ids);
-      this.$store.dispatch(`appDataStore/addToFavoriteApps`, ids);
+      if (isFavorite) return this.deleteFavoriteApps(ids);
+      this.addToFavoriteApps(ids);
     },
   },
   computed: {
