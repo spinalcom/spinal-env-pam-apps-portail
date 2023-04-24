@@ -24,7 +24,8 @@ with this file. If not, see
 
 <template>
   <div class="card-container">
-    <v-card class="card">
+    <v-card class="card"
+            elevation="4">
       <v-alert v-if="showError"
                dense
                outlined
@@ -101,17 +102,25 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .card-container {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.card-container .card {
-  width: 50%;
-  padding: 15px;
+  .card {
+    width: 100%;
+    max-width: 600px;
+    padding: 15px;
+    @media (max-width: 960px) {
+      max-width: 500px;
+    }
+    .text_title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
 }
 </style>

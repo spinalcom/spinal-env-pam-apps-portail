@@ -23,7 +23,8 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card class="creationContainer">
+  <v-card class="creationContainer"
+          elevation="4">
     <div class="header">
       <div class="leftDiv">
         <div class="back">
@@ -38,14 +39,15 @@ with this file. If not, see
             Retour
           </v-btn>
         </div>
-        <div class="_title">ajouter un profile d'application</div>
+        <div class="_title">ajouter un profil d'application</div>
         <div class="description">
-          <p>Entrez un nom de profile d'application</p>
+          <p>Entrez un nom de profil d'application</p>
           <p>Sélectionnez son périmètre ci-dessous :</p>
         </div>
         <div class="searchDiv">
           <v-text-field solo
                         outlined
+                        dense
                         flat
                         label="nom du profil"
                         hide-details="auto"
@@ -62,17 +64,23 @@ with this file. If not, see
             mdi-content-save-outline
           </v-icon>
 
-          Enregister le profile
+          Enregister le profil
         </v-btn>
       </div>
     </div>
 
     <div class="profileContent">
-      <TabsComponent :portofolios="portofoliosCopy"
+      <TabsComponent v-if="portofoliosCopy && portofoliosCopy.length > 0"
+                     :portofolios="portofoliosCopy"
                      @selectPortofolio="selectPortofolio"
                      :portofolioSelected="portofolioSelected"
                      :profileSelected="profileSelected"
                      :edit="edit" />
+
+      <div class="emptyPortofolio"
+           v-if="!portofoliosCopy || portofoliosCopy.length === 0">
+        Aucun portefolio à afficher
+      </div>
     </div>
   </v-card>
 </template>
@@ -354,15 +362,15 @@ export default CreationComponent;
 
 <style lang="scss" scoped>
 $header-margin-top: 70px;
-$header-height: 190px;
+$header-height: 170px;
 $header-margin-bottom: 10px;
 
 .creationContainer {
   width: 100%;
   height: calc(100% - #{$header-margin-top});
   margin-top: $header-margin-top !important;
-  background: #f9f9f9;
   padding: 15px;
+  background: transparent !important;
 
   .header {
     height: $header-height !important;
@@ -370,21 +378,39 @@ $header-margin-bottom: 10px;
     justify-content: space-between;
     margin-bottom: $header-margin-bottom;
     .leftDiv {
-      width: 35%;
+      width: 45%;
+      height: 100%;
 
       .back {
         height: 40px;
         margin-bottom: 5px;
+        display: flex;
+        align-items: center;
       }
       ._title {
+        height: 25px;
+        vertical-align: middle;
         text-transform: uppercase;
-        font-size: 0.9em;
-        margin-bottom: 15px;
+        font-size: 1em;
+        margin-bottom: 10px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
       }
 
       .description {
+        height: 50px;
         font-size: 0.8em;
         line-height: 5px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .searchDiv {
+        height: calc(100% - 140px);
+        display: flex;
+        align-items: center;
       }
     }
 
@@ -406,68 +432,15 @@ $header-margin-bottom: 10px;
   .profileContent {
     width: 100%;
     height: calc(100% - #{$header-height + $header-margin-bottom});
-    // display: flex;
-    // justify-content: space-between;
 
-    // .portofolioList {
-    //   width: 20%;
-    //   height: 100%;
-    //   border-right: 1px solid grey;
-    // }
-
-    // .content {
-    //   width: 79%;
-    //   height: 100%;
-    //   .empty {
-    //     width: 100%;
-    //     height: 100%;
-    //     display: flex;
-    //     align-items: center;
-    //     justify-content: center;
-    //     font-size: 1.6em;
-    //   }
-
-    //   .tabs {
-    //     width: 100%;
-    //     height: 100%;
-
-    //     .tabsHeader {
-    //       width: 100%;
-    //       height: 50px;
-    //     }
-
-    //     .tabsItems {
-    //       width: 100%;
-    //       height: calc(100% - 50px);
-    //       overflow: auto;
-
-    //       // .v-window__container {
-    //       //   height: 100% !important;
-    //       //   background: yellow;
-    //       // }
-
-    //       .buildingTabsDiv {
-    //         width: 100%;
-    //         height: 100%;
-    //         .empty {
-    //           width: 100%;
-    //           height: 100%;
-    //         }
-    //         .buildingTabItems {
-    //           width: 100%;
-    //           height: 100%;
-    //         }
-    //         .buildingTabs {
-    //           width: 100%;
-    //           height: 50px;
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-
-    // display: flex;
-    // justify-content: space-between;
+    .emptyPortofolio {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      font-size: 1.6em;
+      align-items: center;
+      justify-content: center;
+    }
   }
 }
 </style>

@@ -59,14 +59,26 @@ with this file. If not, see
 
         <div class="actions">
           <div>
-            <v-btn class="favorisBtn"
-                   title="add to favorite"
+            <v-btn icon
+                   class="favorisBtn"
                    outlined
-                   small
-                   color="#bdbdbd"
+                   title="ajouter aux favoris"
+                   :class="{'isFavorite' : isFavorite}"
                    @click.stop="addAppToFavoris">
-              <v-icon>mdi-cards-diamond</v-icon>
+              <v-icon>mdi-star</v-icon>
+              <!-- <v-icon>mdi-cards-diamond</v-icon> -->
             </v-btn>
+
+            <v-btn class="favorisBtn"
+                   icon
+                   outlined
+                   title="Aller à la documentation"
+                   v-if="data.documentationLink"
+                   @click.stop="goToDocumentation">
+              <!-- <v-icon>mdi-notebook-outline</v-icon> -->
+              <v-icon>mdi-information-variant</v-icon>
+            </v-btn>
+
             <v-btn icon
                    @click.stop="show = !show">
               <v-icon>{{ show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
@@ -132,6 +144,7 @@ export default {
   name: "applicationCard",
   props: {
     data: {},
+    isFavorite: { type: Boolean, default: () => false },
   },
   data() {
     return {
@@ -147,7 +160,14 @@ export default {
       this.$emit("exploreApp", this.data);
     },
     addAppToFavoris() {
-      this.$emit("addAppToFavoris", this.data);
+      this.$emit("addAppToFavoris", {
+        item: this.data,
+        isFavorite: this.isFavorite,
+      });
+    },
+    goToDocumentation() {
+      if (this.data.documentationLink)
+        return window.open(this.data.documentationLink, "_blank");
     },
   },
   computed: {
@@ -176,10 +196,12 @@ export default {
       width: 40px;
       background: #f7f8f8;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
       .iconDiv {
         height: 30px;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         /* background: #ffffff; */
@@ -247,9 +269,16 @@ export default {
           width: 25px;
           height: 25px !important;
           border-radius: 5px;
+          color: #bdbdbd;
 
           i {
-            font-size: 10px;
+            font-size: 23px;
+          }
+        }
+
+        .favorisBtn.isFavorite {
+          i {
+            color: #ffd700 !important;
           }
         }
       }

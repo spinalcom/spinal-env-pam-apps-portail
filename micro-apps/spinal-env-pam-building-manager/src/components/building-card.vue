@@ -54,13 +54,13 @@ with this file. If not, see
              :class="{'connected': isConnected, 'disconnected': !isConnected}">
         </div>
         <div class="state-text text-caption">
-          {{isConnected ? "Connected" : "Disconnected"}}
+          {{isConnected ? "Connecté" : "Déconnecté"}}
         </div>
       </div>
 
       <div class="buttons">
         <v-btn class="button"
-               title="View on map"
+               title="Voir sur la carte"
                icon
                outlined
                color="indigo"
@@ -70,7 +70,7 @@ with this file. If not, see
         </v-btn>
 
         <v-btn class="button"
-               title="edit building"
+               title="modifier ce bâtiment"
                icon
                outlined
                color="indigo"
@@ -79,7 +79,7 @@ with this file. If not, see
         </v-btn>
 
         <v-btn class="button"
-               title="delete building"
+               title="supprimer ce bâtiment"
                icon
                outlined
                color="error"

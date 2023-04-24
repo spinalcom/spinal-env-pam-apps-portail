@@ -24,7 +24,8 @@ with this file. If not, see
 
 <template>
   <div class="tableContainer"
-       ref="tableContainer">
+       ref="tableContainer"
+       v-if="items">
     <div class="my_title"
          v-if="title">
       {{title}}
@@ -37,11 +38,8 @@ with this file. If not, see
                   id="table"
                   :items="items"
                   item-key="name"
-                  :expanded="expanded">
-
-      <template v-slot:no-data>
-        Aucune donnée
-      </template>
+                  :expanded="expanded"
+                  no-data-text="Aucune donnée à afficher">
 
       <template v-slot:header="{ props : { headers } }">
         <thead>
@@ -113,7 +111,7 @@ const TableComponentProps = Vue.extend({
     title: {
       default: "",
     },
-    items: {},
+    // items: {},
     childrenKey: {
       default: "children",
     },
@@ -124,6 +122,7 @@ const TableComponentProps = Vue.extend({
 class TableComponent extends TableComponentProps {
   @Prop() edit!: boolean;
   @Prop() itemToSelect!: any[];
+  @Prop() items!: any[];
 
   mounted() {
     if (this.edit) {

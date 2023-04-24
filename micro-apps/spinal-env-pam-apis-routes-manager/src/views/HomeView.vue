@@ -23,18 +23,20 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="_container">
+  <v-container class="_container"
+               fluid>
     <div class="header">
       <Select @selected="selectCategory" />
     </div>
 
-    <v-card class="myCard">
+    <v-card class="myCard"
+            elevation="4">
       <Home :headers="headers"
             :apis="apis"
             @upload="uploadFile"
             @delete="deleteItems" />
     </v-card>
-  </div>
+  </v-container>
 </template>
 
 
@@ -45,7 +47,7 @@ import Select from "../components/select.vue";
 import Home from "../components/Home.vue";
 import categories from "../store/categories";
 import { Action, Getter, State } from "vuex-class";
-import { IApiRoute } from "@/interfaces";
+import { IApiRoute } from "../interfaces";
 
 type updateFunc = (param: { id: string; data: IApiRoute }) => Promise<void>;
 
@@ -214,18 +216,21 @@ export default TableComponent;
 <style lang="scss">
 $header-height: 70px;
 ._container {
-  width: 100vw;
+  width: 98vw;
   height: 100vh;
+  margin: auto;
+  // margin-top: $header-height;
 
   .header {
     height: $header-height;
-    margin-bottom: 10px;
+    // margin-bottom: 10px;
   }
 
   .myCard {
-    width: 97%;
+    width: 100%;
     height: calc(100vh - 90px);
-    background: #f5f3f3;
+    // background: #f5f3f3;
+    background: transparent !important;
     border-radius: 10px !important;
     margin: auto;
   }

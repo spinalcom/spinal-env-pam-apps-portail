@@ -23,7 +23,8 @@ with this file. If not, see
 -->
 
 <template>
-  <v-data-table fixed-header
+  <v-data-table v-if="(categories && categories.length > 0)"
+                fixed-header
                 class="dataTable"
                 dense
                 disable-pagination
@@ -32,16 +33,71 @@ with this file. If not, see
                 :items="categories"
                 height="100%"
                 :style="getWidth">
+
     <template v-slot:body="{ items }">
-      <tr v-for="(item, index) in items"
+      <tr v-show="!isMobile && displayRow(item)"
+          v-for="(item, index) in items"
           class="categoriesRows"
-          :key="index">
+          :key="item.id + '_' + index">
         <td v-for="(header, index2) in headers"
-            :key="index2">
+            :key="header.value + '_' + index2">
           <div class="categoryName"
                v-if="header.value === 'name'">
             {{ item[header.value] }}
           </div>
+
+          <div class="card"
+               v-else
+               v-for="(applicationData, index3) in item[header.value]"
+               :key="applicationData.id"
+               :style="cardStyle">
+            <ApplicationCard :data="applicationData"
+                             :isFavorite="isFavorite(applicationData)"
+                             @goToApp="goToApp"
+                             @exploreApp="exploreApp"
+                             @addAppToFavoris="addAppToFavoris" />
+          </div>
+        </td>
+      </tr>
+
+      <!-- 
+      //////////////////////////////////////////////////
+      //                 Mobile                       // 
+      //////////////////////////////////////////////////
+      -->
+
+      <tr v-show="isMobile && displayRow(item)"
+          v-for="(item, index) in items"
+          class="categoriesRows"
+          :key="index + '_' + item.id">
+        <td>
+          <div class="categoryName">
+            {{ item.name }}
+          </div>
+        </td>
+
+        <td class="mobile-td">
+          <div class="card"
+               v-for="(group, index2) in mobileHeaders"
+               :key="index2 + '_' + group"
+               v-if="item[group]">
+            <div class="group_name">{{ group }}</div>
+            <div v-for="(applicationData, index3) in item[group]"
+                 :key="index3"
+                 :style="cardStyle"
+                 class="">
+
+              <ApplicationCard :data="applicationData"
+                               :isFavorite="isFavorite(applicationData)"
+                               @goToApp="goToApp"
+                               @exploreApp="exploreApp"
+                               @addAppToFavoris="addAppToFavoris" />
+
+            </div>
+          </div>
+        </td>
+        <!-- <td v-for="(header, index2) in headers"
+            :key="index2">
 
           <div class="card"
                v-else
@@ -53,10 +109,28 @@ with this file. If not, see
                              @exploreApp="exploreApp"
                              @addAppToFavoris="addAppToFavoris" />
           </div>
-        </td>
+        </td> -->
       </tr>
+
     </template>
   </v-data-table>
+
+  <div class="emptyApplication"
+       v-else-if="(!categories || categories.length === 0)">
+    <!-- <v-alert outlined
+             type="warning"
+             prominent
+             border="left">
+      Aucune application à afficher
+    </v-alert> -->
+
+    <v-alert border="bottom"
+             colored-border
+             type="warning"
+             elevation="2">
+      Aucune application à afficher
+    </v-alert>
+  </div>
 </template>
 
 <script>
@@ -70,19 +144,47 @@ export default {
   props: {
     groups: { default: () => [] },
     categories: { default: () => [] },
+    isMobile: { type: Boolean, default: false },
+    favoriteApps: { default: () => [] },
   },
   data() {
     return {
       headers: [],
+      mobileHeaders: [],
+      favoriteObj: {},
     };
   },
   mounted() {
     this.headers = this.formatHeaders(this.groups);
   },
   methods: {
+    displayRow(item) {
+      if (
+        (item.value === "favoris" || item.id === "favoris") &&
+        (!item.Applications || item.Applications.length === 0)
+      )
+        return false;
+
+      return true;
+    },
+
     formatHeaders(headers) {
+      if (this.isMobile) {
+        this.mobileHeaders = headers.map((el) => el.id || el.value || el.name);
+        return [
+          {
+            text: "",
+            value: "name",
+            sortable: false,
+          },
+          {
+            text: "",
+            value: "apps",
+            sortable: false,
+          },
+        ];
+      }
       return [{ text: "", value: "name" }, ...headers].map((el, index) => ({
-        // width: index === 0 ? "100px" : "25% !important",
         text: el.text || el.name,
         value: el.id || el.value || el.name,
         sortable: false,
@@ -93,24 +195,16 @@ export default {
       this.$emit("exploreApp", item);
     },
 
-    addAppToFavoris(item) {
-      this.$emit("addAppToFavoris", item);
+    addAppToFavoris(data) {
+      this.$emit("addAppToFavoris", data);
     },
 
     goToApp(data) {
       this.$emit("goToApp", data);
     },
 
-    isMobile() {
-      if (
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-          navigator.userAgent
-        )
-      ) {
-        return true;
-      } else {
-        return false;
-      }
+    isFavorite(applicationData) {
+      return this.favoriteObj[applicationData.id] ? true : false;
     },
   },
   computed: {
@@ -125,7 +219,7 @@ export default {
 
     cardStyle() {
       const headerLength = this.groups.length;
-      const width = headerLength < 2 && !this.isMobile() ? 32 : 100;
+      const width = headerLength < 2 && !this.isMobile ? 32 : 100;
 
       return {
         width: `${width}%`,
@@ -146,6 +240,16 @@ export default {
     // },
   },
   watch: {
+    favoriteApps() {
+      const obj = {};
+      this.favoriteApps.forEach((el) => {
+        obj[el.id] = el;
+      });
+      this.favoriteObj = obj;
+    },
+    isMobile() {
+      this.headers = this.formatHeaders(this.groups);
+    },
     groups() {
       this.headers = this.formatHeaders(this.groups);
     },
@@ -153,11 +257,19 @@ export default {
 };
 </script>
 
+
 <style lang="scss">
+.emptyApplication {
+  width: 100%;
+  // height: 50%;
+  display: flex;
+  justify-content: center;
+  // align-items: center;
+}
 .dataTable {
   width: 100%;
   height: 98%;
-  background-color: #f0f4f5 !important;
+  background-color: transparent !important;
   table {
     margin-top: 10px;
     table-layout: fixed;
@@ -167,7 +279,7 @@ export default {
     thead {
       tr {
         th {
-          background: #f0f4f5 !important;
+          background: transparent !important;
           text-transform: uppercase;
           font-size: 0.8em !important;
           vertical-align: bottom;
@@ -188,6 +300,7 @@ export default {
       td {
         height: 100px !important;
         border-top: 1px solid #adc8ce;
+
         > * {
           // width: 100%;
           display: inline-block;
@@ -197,6 +310,28 @@ export default {
 
       td:first-child {
         max-width: 20vw !important;
+      }
+
+      @media (max-width: 960px) {
+        td:not(:first-child) {
+          border-top: unset;
+        }
+      }
+
+      td.mobile-td {
+        width: 100%;
+        .card {
+          width: 100%;
+          .group_name {
+            border-top: 1px solid #adc8ce;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            font-weight: bolder;
+            color: #6aa0ad;
+            margin-bottom: 10px;
+            // background: red;
+          }
+        }
       }
 
       .categoryName {

@@ -169,7 +169,7 @@ with this file. If not, see
                           ></div>
                           <div>
                             {{ item.currentValue.toFixed(0) }}
-                            <span class="grey-color"> %</span>
+                            <span class="grey-color"> ppm</span>
                           </div>
                         </div>
                       </template>

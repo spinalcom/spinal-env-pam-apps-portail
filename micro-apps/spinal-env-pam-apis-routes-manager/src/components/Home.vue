@@ -42,6 +42,7 @@ with this file. If not, see
                           flat
                           label="rechercher"
                           hide-details="auto"
+                          dense
                           v-model.trim="searchQuery"></v-text-field>
           </div>
         </div>
@@ -54,12 +55,12 @@ with this file. If not, see
               mdi-file-upload
             </v-icon>
 
-            Upload Swagger File
+            Importer un fichier Swagger
           </v-btn>
         </div>
 
       </div>
-      <v-divider></v-divider>
+      <!-- <v-divider></v-divider> -->
 
       <div class="table-container">
         <table-component :items="searchedData"
@@ -75,9 +76,6 @@ with this file. If not, see
 import Vue from "vue";
 import { Component, Prop, Watch } from "vue-property-decorator";
 import TableComponent from "./tableComponent.vue";
-import { Getter, Action } from "vuex-class";
-import Fuse from "fuse.js";
-import { IApiRoute } from "@/interfaces";
 
 @Component({
   components: {

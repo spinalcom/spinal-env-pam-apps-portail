@@ -28,7 +28,7 @@ with this file. If not, see
       <sc-download-button
         class="ma-1 pa-1"
         :file-name="'Tickets'"
-        :data="tableData"
+        :data="stepFilteredTickets"
       ></sc-download-button>
       <sc-space-selector
         class="ma-1 pa-1"
@@ -47,8 +47,16 @@ with this file. If not, see
       <v-card-title style="height: 56px" class="text-uppercase ma-2"
         >Liste des tickets</v-card-title
       >
-      <div style="height: calc(100% - 56px)" class="d-flex flex-column">
-        <div class="d-flex flex-row ml-6 mr-2">
+      <div
+        ref="tableContainer"
+        style="height: calc(100% - 56px)"
+        class="d-flex flex-column"
+      >
+        <div
+          ref="tableHead"
+          class="d-flex flex-row ml-6 mr-2"
+          style="height: 60px"
+        >
           <div style="width: 20%">
             <v-select
               v-model="domain_filter"
@@ -57,8 +65,6 @@ with this file. If not, see
               append-icon="mdi-chevron-down"
               clearable
               clear-icon="mdi-close-circle-outline"
-              deletable-chips
-              small-chips
               multiple
               outlined
             >
@@ -69,10 +75,16 @@ with this file. If not, see
                   "
                   close
                   :close-icon="'mdi-close-circle'"
-                  style="font-size: 12px; height: 24px"
+                  style="
+                    font-size: 12px;
+                    height: 24px;
+                    max-width: calc(90% - 25px);
+                  "
                   v-if="index < 1"
                 >
-                  <span>{{ item }}</span>
+                  <span style="max-width: 90%; overflow: hidden">{{
+                    item
+                  }}</span>
                 </v-chip>
 
                 <span
@@ -92,8 +104,6 @@ with this file. If not, see
               append-icon="mdi-chevron-down"
               clearable
               clear-icon="mdi-close-circle-outline"
-              deletable-chips
-              small-chips
               multiple
               outlined
             >
@@ -104,10 +114,16 @@ with this file. If not, see
                   "
                   close
                   :close-icon="'mdi-close-circle'"
-                  style="font-size: 12px; height: 24px"
+                  style="
+                    font-size: 12px;
+                    height: 24px;
+                    max-width: calc(90% - 25px);
+                  "
                   v-if="index < 1"
                 >
-                  <span>{{ item }}</span>
+                  <span style="max-width: 90%; overflow: hidden">{{
+                    item
+                  }}</span>
                 </v-chip>
                 <span
                   v-if="index === 1"
@@ -119,32 +135,35 @@ with this file. If not, see
             </v-select>
           </div>
         </div>
-        <v-data-table
-          item-key="name"
-          class="elevation-1 table-data d-flex flex-column flex-grow-1 flex-shrink-1 justify-space-between ml-6 mr-6 mb-6"
-          loading-text="Chargement des données"
-          :loading="!loaded"
-          fixed-header
-          :headers="headers"
-          :height="tableHeight"
-          :items="stepFilteredTickets"
-          :custom-sort="customSort"
-          :footer-props="{
-            prevIcon: 'mdi-menu-left',
-            nextIcon: 'mdi-menu-right',
-            showCurrentPage: true,
-            itemsPerPageAllText: 'Tout',
-          }"
-        >
-          <v-progress-linear
-            v-show="!loaded"
-            slot="progress"
-            color="accent"
-            class="progress-bar"
-            indeterminate
-          ></v-progress-linear>
-          <template v-slot:no-data> Pas de données disponibles </template>
-        </v-data-table>
+        <div ref="dataTable" class="d-flex ml-6 mr-6 mb-6 flex-fill">
+          <v-data-table
+            item-key="name"
+            class="elevation-1 table-data d-flex flex-column flex-grow-1 justify-space-between"
+            loading-text="Chargement des données"
+            :loading="!loaded"
+            fixed-header
+            :headers="headers"
+            :height="tableHeight"
+            :items="stepFilteredTickets"
+            :custom-sort="customSort"
+            :footer-props="{
+              prevIcon: 'mdi-menu-left',
+              nextIcon: 'mdi-menu-right',
+              showCurrentPage: true,
+              itemsPerPageAllText: 'Tout',
+            }"
+          >
+            <v-progress-linear
+              v-show="!loaded"
+              slot="progress"
+              color="accent"
+              class="progress-bar"
+              indeterminate
+              style="margin-left: -16px; width: calc(100% + 32px)"
+            ></v-progress-linear>
+            <template v-slot:no-data> Pas de données disponibles </template>
+          </v-data-table>
+        </div>
       </div>
     </v-card>
   </v-app>
@@ -186,8 +205,25 @@ export default {
         "Déclarant",
       ].map((e, i) => ({ text: e, value: e, width: widths[i] + "%" }));
     },
-    tableHeight() {
-      return window.innerHeight;
+    domains() {
+      return [...new Set(this.tableData.map((t) => t.Domaine))];
+    },
+    domainFilteredTickets() {
+      if (this.domain_filter.length === 0 || this.tableData.length === 0)
+        return this.tableData;
+      return this.tableData.filter((d) =>
+        this.domain_filter.includes(d.Domaine)
+      );
+    },
+    steps() {
+      return [...new Set(this.domainFilteredTickets.map((t) => t["Étape"]))];
+    },
+    stepFilteredTickets() {
+      if (this.step_filter.length === 0 || this.tableData.length === 0)
+        return this.domainFilteredTickets;
+      return this.domainFilteredTickets.filter((d) =>
+        this.step_filter.includes(d["Étape"])
+      );
     },
     domains() {
       return [...new Set(this.tableData.map((t) => t.Domaine))];
@@ -252,16 +288,23 @@ export default {
       const e2 = date2.split("/");
       return e1[2] - e2[2] || e1[1] - e2[1] || e1[0] - e2[0];
     },
+
+    resizeTable(e) {
+      console.log("OK");
+    },
   },
 
   async mounted() {
+    await this.loadTickets();
     const { name, dynamicId } = await getBuildingAsync();
     this.el = { name: name, dynamicId: dynamicId };
     this.firstTile = { name: name, dynamicId: dynamicId };
-    await this.loadTickets();
-    const table = document.querySelector(".v-data-table");
-    this.tableHeight = table.clientHeight - 59;
-    this.loaded = true;
+    const { dataTable, tableContainer, tableHead } = this.$refs;
+    this.tableHeight = dataTable.clientHeight - 59;
+    window.onresize = () => {
+      this.tableHeight =
+        tableContainer.clientHeight - (tableHead.clientHeight + 85);
+    };
   },
 
   watch: {
@@ -288,10 +331,9 @@ html {
 
 .ticket-table {
   position: fixed;
-  width: clac(100% - 8px);
-  height: calc(100% - 84px);
-  top: 68px;
-  bottom: 8px;
+  height: calc(100% - 92px);
+  top: 70px;
+  bottom: 0;
   left: 0;
   right: 0;
 }

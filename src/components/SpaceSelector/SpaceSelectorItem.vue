@@ -31,7 +31,7 @@ with this file. If not, see
                :style="{
       'margin-left': '' + ((item.level - 1) * 20 + 30) + 'px',
     }"
-               @click="onSelect">
+               @click.stop="onSelect">
     <!-- link to parent template -->
     <template v-if="item.level > 0">
       <div class="space-selector-list-item-angle"></div>

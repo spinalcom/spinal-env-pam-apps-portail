@@ -23,14 +23,15 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="content">
+  <div class="_content">
     <div class="app_header">
       <div class="head">
         <Select @selected="selectCategory" />
       </div>
     </div>
 
-    <v-card class="cardContent">
+    <v-card class="cardContent"
+            elevation="4">
       <app-list-component :apps="apps"
                           :category="categorySelected"
                           @create="createApp"
@@ -82,12 +83,12 @@ export default HomeView;
 </script>
   
   <!-- Add "scoped" attribute to limit CSS to this component only -->
-  <style lang="scss">
-$header-height: 70px;
+<style lang="scss" scoped>
+$header-height: 60px;
 $header-margin: 10px;
 $card-background: #f8f9f9;
 
-.content {
+._content {
   width: 100%;
   height: 100%;
 
@@ -104,12 +105,12 @@ $card-background: #f8f9f9;
   }
 
   .cardContent {
-    width: 99%;
+    width: 98%;
     height: calc(
       100% - #{$header-height+ $header-margin + $header-margin + 10px}
     );
     margin: auto;
-    background: $card-background !important;
+    background: transparent !important;
     border-radius: 10px;
     padding: 10px;
   }

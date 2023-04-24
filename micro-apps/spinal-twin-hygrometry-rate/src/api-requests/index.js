@@ -165,12 +165,13 @@ export async function getControlEndpointsByNameAsync(cp, building) {
     maintainance: 0,
     noSensor: 0,
   };
+  console.log(building);
   if (cp && building) {
     await getSoloCpAsync(building.id, cp).then((v) => {
       if (v) {
         cpTable.data.push({
           name: building.name,
-          id: building.id,
+          dynamicId: building.id,
           currentValue: v.currentValue,
           floor: "-",
         });
@@ -178,32 +179,36 @@ export async function getControlEndpointsByNameAsync(cp, building) {
     });
 
     for (let i = 0; i < building.children.length; i++) {
-      await getSoloCpAsync(building.children[i].id, cp).then(async (v) => {
-        if (v) {
-          cpTable.data.push({
-            name: "-",
-            id: building.children[i].id,
-            currentValue: v.currentValue,
-            floor: building.children[i].name,
-          });
-          for (let j = 0; j < building.children[i].children.length; j++) {
-            await getSoloCpAsync(building.children[i].children[j].id, cp).then(
-              (v1) => {
+      await getSoloCpAsync(building.children[i].id, cp).then(
+        async (v) => {
+          if (v) {
+            cpTable.data.push({
+              name: "-",
+              dynamicId: building.children[i].id,
+              currentValue: v.currentValue,
+              floor: building.children[i].name,
+            });
+          }
+            for (let j = 0; j < building.children[i].children.length; j++) {
+              await getSoloCpAsync(
+                building.children[i].children[j].id,
+                cp
+              ).then((v1) => {
                 if (v1 && v1.currentValue == 0) cpTable.maintainance += 1;
                 else if (v1) {
                   cpTable.equiped += 1;
                   cpTable.data.push({
                     name: building.children[i].children[j].name,
-                    id: building.children[i].children[j].id,
+                    dynamicId: building.children[i].children[j].id,
                     currentValue: v1.currentValue,
                     floor: building.children[i].name,
                   });
                 } else cpTable.noSensor += 1;
-              }
-            );
-          }
+              });
+            }
+          
         }
-      });
+      );
     }
   }
   return cpTable;

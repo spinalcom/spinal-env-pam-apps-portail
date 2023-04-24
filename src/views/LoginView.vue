@@ -24,14 +24,18 @@ with this file. If not, see
 <template>
   <v-container class="loginAppContainer"
                fluid>
+    <for-got-password :dialog="forgotPassword"
+                      @close="() => forgotPassword = false" />
+
     <form @submit.prevent="login">
-      <v-card class="loginCard">
+      <v-card class="loginCard"
+              elevation="4">
         <v-card-title class="loginCardTitle">
           <div class="logoImg">
             <div class="logo">
-              <v-img class="img"
-                     alt="logo"
-                     :src="logoSvg"></v-img>
+              <img class="img"
+                   alt="logo"
+                   :src="logoSvg" />
             </div>
           </div>
 
@@ -70,7 +74,8 @@ with this file. If not, see
           </v-text-field>
 
           <v-btn x-small
-                 text> mot de passe oublié ? </v-btn>
+                 text
+                 @click="forgotPassword = true"> mot de passe oublié ? </v-btn>
         </v-card-text>
 
         <v-card-actions class="loginCardAction">
@@ -85,13 +90,19 @@ with this file. If not, see
 <script>
 import Vue from "vue";
 import { mapActions, mapState } from "vuex";
-import logoSvg from "../assets/logo.jpg";
+import logoSvg from "../../assets/img/logo.jpg";
+import ForGotPassword from "./password-forgot.vue";
+
 // import logoSvg from "../assets/logo.jpg";
 
 export default Vue.extend({
   name: "Login",
+  components: {
+    ForGotPassword,
+  },
   data() {
     return {
+      forgotPassword: false,
       logoSvg,
       showPassword: false,
       showError: false,
@@ -135,6 +146,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+$md-screen: 960px;
+
 .loginAppContainer {
   width: 100%;
   height: 100%;
@@ -145,6 +158,10 @@ export default Vue.extend({
   .loginCard {
     width: 450px;
     padding: 18px;
+    @media (max-width: $md-screen) {
+      width: 100%;
+      max-width: 500px;
+    }
   }
 
   .loginCardTitle,
@@ -166,15 +183,16 @@ export default Vue.extend({
     .logoImg {
       width: 100%;
       height: 200px;
-      // display: flex;
-      // align-items: center;
-      // justify-content: center;
-    }
-
-    .logo {
-      .img {
+      @media (max-width: $md-screen) {
+        height: 200px !important;
+      }
+      .logo {
         width: 100%;
         height: 100%;
+        .img {
+          width: 100%;
+          height: 100%;
+        }
       }
     }
   }

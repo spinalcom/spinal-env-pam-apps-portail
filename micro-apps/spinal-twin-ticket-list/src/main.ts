@@ -29,7 +29,7 @@ import store from "./store";
 import vuetify from "./plugins/vuetify";
 import SpinalComponents from "spinal-components";
 import "spinal-components/dist/spinal-components.css";
-import "../../../src/assets/scss/style.scss";
+import "../../../assets/scss/style.scss";
 
 Vue.use(SpinalComponents, {});
 Vue.config.productionTip = false;

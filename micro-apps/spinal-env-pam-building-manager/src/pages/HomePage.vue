@@ -66,6 +66,7 @@ import { IPortofolioCreation } from "../interfaces/IPortofolioCreation";
 import HomeView from "../views/HomeView.vue";
 import PortofolioCreation from "../views/portofolio/PortofolioCreationView.vue";
 import BuildingCreation from "../views/buildings/addBuildingView.vue";
+import { sendEventToParent } from "../event";
 
 // const portofolioModule = namespace("portofolioStore");
 
@@ -130,10 +131,11 @@ class HomePage extends Vue {
   // CRUD
   async createPortofolio(data: IPortofolioCreation) {
     await this.toastWithCallback(
-      "Portefolio Ajouté",
+      "Portefeuille Ajouté",
       "oups, une erreur s'est produite !",
       async () => {
         await this.$store.dispatch("portofolioStore/createPortofolio", data);
+        sendEventToParent("reload_portofolio");
       }
     );
 
@@ -155,10 +157,11 @@ class HomePage extends Vue {
 
   async editPortofolio(data: any) {
     await this.toastWithCallback(
-      "Portefolio mis à jour",
+      "Portefeuille mis à jour",
       "oups, une erreur s'est produite !",
       async () => {
         await this.$store.dispatch("portofolioStore/editPortofolio", data);
+        sendEventToParent("reload_portofolio");
       }
     );
     // let isSuccess;
@@ -180,7 +183,7 @@ class HomePage extends Vue {
   deletePortofolio(item: IPortofolio) {
     return this.$swal({
       title: "Supprimer",
-      text: `Êtes-vous sûre de vouloir supprimer ce portefolio ?`,
+      text: `Êtes-vous sûre de vouloir supprimer ce Portefeuille ?`,
       type: "warning",
       showCancelButton: true,
       confirmButtonClass: "successBtn",
@@ -204,9 +207,10 @@ class HomePage extends Vue {
       this.goToListPage();
 
       let text = success
-        ? "Portefolio supprimé"
+        ? "Portefeuille supprimé"
         : "oups, une erreur s'est produite !";
       this.toast(text, success);
+      sendEventToParent("reload_portofolio");
     });
   }
 
@@ -220,6 +224,7 @@ class HomePage extends Vue {
           "portofolioStore/addBuildingToPortofolio",
           data
         );
+        sendEventToParent("reload_portofolio");
       }
     );
     // let isSuccess;
@@ -254,6 +259,7 @@ class HomePage extends Vue {
       "oups, une erreur s'est produite !",
       async () => {
         await this.$store.dispatch("portofolioStore/editBuilding", data);
+        sendEventToParent("reload_portofolio");
       }
     );
 
@@ -283,7 +289,7 @@ class HomePage extends Vue {
   }) {
     return this.$swal({
       title: "Supprimer",
-      text: `Êtes-vous sûre de vouloir supprimer ce batiment ?`,
+      text: `Êtes-vous sûre de vouloir supprimer ce bâtiment ?`,
       type: "warning",
       showCancelButton: true,
       confirmButtonClass: "successBtn",
@@ -310,9 +316,10 @@ class HomePage extends Vue {
       this.goToListPage();
 
       let text = success
-        ? "batiment supprimé"
+        ? "bâtiment supprimé"
         : "oups, une erreur s'est produite !";
       this.toast(text, success);
+      sendEventToParent("reload_portofolio");
     });
   }
 
@@ -361,6 +368,7 @@ export default HomePage;
   display: flex;
 
   .content.loadingContent {
+    width: 100%;
     height: 98vh;
     display: flex;
     align-items: center;

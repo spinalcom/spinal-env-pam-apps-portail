@@ -23,7 +23,8 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="mainContent">
+  <v-container class="mainContent"
+               fluid>
     <AppListComponent :categorySelected="categorySelected"
                       :apps="apps"
                       @select="selectCategory"
@@ -31,9 +32,9 @@ with this file. If not, see
                       @upload="uploadApp"
                       @edit="goToCreationPage"
                       @delete="deleteApp"
-                      v-show="page === pages.list" />
+                      v-if="page === pages.list" />
 
-    <CreationComponent v-show="page === pages.creation"
+    <CreationComponent v-else-if="page === pages.creation"
                        @create="createApp"
                        @edit="editApp"
                        @cancel="cancelCreation"
@@ -41,8 +42,8 @@ with this file. If not, see
                        :title="title"
                        :appSelected="appSelected" />
 
-    <LoadingComponent v-show="page === pages.loading" />
-  </div>
+    <LoadingComponent v-else-if="page === pages.loading" />
+  </v-container>
 </template>
 
 <script lang="ts">
@@ -53,7 +54,7 @@ import LoadingComponent from "../components/loading.vue";
 import CreationComponent from "../components/creation.vue";
 import categories from "../store/data";
 import { IApp } from "../types/interfaces";
-
+import { sendEventToParent } from "../event";
 type updateFunc = ({
   id,
   newValue,
@@ -180,16 +181,12 @@ class HomeView extends Vue {
     }
 
     this.page = this.pages.list;
-    this.$swal({
-      toast: true,
-      position: "bottom-end",
-      showConfirmButton: false,
-      timer: 3000,
-      icon: isSuccess ? "success" : "error",
-      text: isSuccess
-        ? "application ajoutée"
-        : "oups, une erreur s'est produite !",
-    });
+    const message = isSuccess
+      ? "application ajoutée"
+      : "oups, une erreur s'est produite !";
+
+    this.alertNotification(isSuccess, message);
+    sendEventToParent("reload_portofolio");
   }
 
   uploadApp() {
@@ -244,17 +241,17 @@ class HomeView extends Vue {
     }
 
     this.page = this.pages.list;
-    this.$swal({
-      toast: true,
-      position: "bottom-end",
-      showConfirmButton: false,
-      timer: 3000,
-      icon: isSuccess ? "success" : "error",
-      text: isSuccess ? "fichier ajouté" : "oups, une erreur s'est produite !",
-    });
+    const message = isSuccess
+      ? "fichier ajouté"
+      : "oups, une erreur s'est produite !";
+    this.alertNotification(isSuccess, message);
+
+    sendEventToParent("reload_portofolio");
   }
 
   async editApp(item: IApp) {
+    if (typeof item.icon !== "string" && (<any>item.icon).name)
+      item.icon = `mdi-${(<any>item.icon).name}`;
     const id: any = this.appSelected.id;
     let isSuccess;
     try {
@@ -279,16 +276,13 @@ class HomeView extends Vue {
     }
 
     this.page = this.pages.list;
-    this.$swal({
-      toast: true,
-      position: "bottom-end",
-      showConfirmButton: false,
-      timer: 3000,
-      icon: isSuccess ? "success" : "error",
-      text: isSuccess
-        ? "application modifiée"
-        : "oups, une erreur s'est produite !",
-    });
+    const message = isSuccess
+      ? "application modifiée"
+      : "oups, une erreur s'est produite !";
+
+    this.alertNotification(isSuccess, message);
+
+    sendEventToParent("reload_portofolio");
   }
 
   deleteApp(item: IApp) {
@@ -328,16 +322,12 @@ class HomeView extends Vue {
 
         this.page = this.pages.list;
 
-        this.$swal({
-          toast: true,
-          position: "bottom-end",
-          showConfirmButton: false,
-          timer: 3000,
-          icon: isSuccess ? "success" : "error",
-          text: isSuccess
-            ? "Application supprimée"
-            : "oups, une erreur s'est produite !",
-        });
+        const message = isSuccess
+          ? "Application supprimée"
+          : "oups, une erreur s'est produite !";
+
+        this.alertNotification(isSuccess, message);
+        sendEventToParent("reload_portofolio");
       }
     });
   }
@@ -355,9 +345,9 @@ class HomeView extends Vue {
     const begin = "Créer une application";
     switch (this.categorySelected.id) {
       case categories.portofolio.id:
-        return `${begin} de portofolio`;
+        return `${begin} de portefeuille`;
       case categories.bos.id:
-        return `${begin} de batiment`;
+        return `${begin} de bâtiment`;
 
       case categories.admin.id:
         return `${begin} d'administration`;
@@ -389,6 +379,17 @@ class HomeView extends Vue {
       this.apps = this.adminApps;
     }
   }
+
+  alertNotification(isSuccess, message) {
+    this.$swal({
+      toast: true,
+      position: "bottom-end",
+      showConfirmButton: false,
+      timer: 3000,
+      icon: isSuccess ? "success" : "error",
+      text: message,
+    });
+  }
 }
 
 export default HomeView;
@@ -403,6 +404,7 @@ export default HomeView;
 .mainContent {
   width: 100%;
   height: 100%;
+  padding: 0 !important;
 }
 </style>
 
@@ -411,7 +413,7 @@ export default HomeView;
   width: 60px !important;
   height: 40px;
   border: 1px solid green;
-  color: green;
+  color: green !important;
   border-radius: 5px;
   margin: 5px;
 }
@@ -420,7 +422,7 @@ export default HomeView;
   width: 75px !important;
   height: 40px;
   border: 1px solid #ff5252;
-  color: #ff5252;
+  color: #ff5252 !important;
   border-radius: 5px;
   margin: 5px;
 }

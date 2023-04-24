@@ -37,11 +37,8 @@ with this file. If not, see
                   id="table"
                   :items="items"
                   item-key="name"
-                  :expanded="expanded">
-
-      <template v-slot:no-data>
-        Aucune donnée
-      </template>
+                  :expanded="expanded"
+                  no-data-text="Aucune donnée à afficher">
 
       <template v-slot:header="{ props : { headers } }">
         <thead>

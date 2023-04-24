@@ -24,7 +24,7 @@ with this file. If not, see
 <template>
   <v-container class="appContainer"
                fluid>
-    <div class="header">
+    <div class="my_header">
       <div class="description">
         <p>Consultez toutes les données de vos bâtiments connectés.</p>
         <p>
@@ -33,7 +33,8 @@ with this file. If not, see
                  small
                  disabled
                  class="favorisBtn">
-            <v-icon>mdi-cards-diamond</v-icon>
+            <!-- <v-icon>mdi-cards-diamond</v-icon> -->
+            <v-icon>mdi-star</v-icon>
           </v-btn>
         </p>
       </div>
@@ -69,6 +70,8 @@ with this file. If not, see
       <v-flex style="overflow: auto">
         <GridComponent :groups="groups"
                        :categories="categoriesDisplayed"
+                       :isMobile="isMobile"
+                       :favoriteApps="favoriteApps"
                        @goToApp="goToApp"
                        @exploreApp="exploreApp"
                        @addAppToFavoris="addAppToFavoris" />
@@ -82,13 +85,16 @@ import Vue from "vue";
 // import { groups, categories } from "./data";
 import GridComponent from "../components/gridComponent.vue";
 import * as lodash from "lodash";
-import { mapState } from "vuex";
+import { mapActions, mapState } from "vuex";
 import { SET_SELECTED_APP } from "../store/appDataStore";
 
 export default Vue.extend({
   name: "Home",
   components: {
     GridComponent,
+  },
+  props: {
+    isMobile: {},
   },
   data() {
     this.defaultCategory = {
@@ -111,14 +117,12 @@ export default Vue.extend({
   },
   async mounted() {
     if (this.groups.length === 0) this.formatData(this.appsFormatted);
+
     this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, undefined);
   },
   methods: {
-    // ...mapActions("appDataStore", ["getApps", "getBos"]),
+    ...mapActions("appDataStore", ["addToFavoriteApps", "deleteFavoriteApps"]),
 
-    // init() {
-    //   return Promise.all([this.getApps(), this.getBos()]);
-    // },
     formatData(info) {
       if (!info) return;
       const { groups, data } = info;
@@ -152,12 +156,15 @@ export default Vue.extend({
       for (const key in item) {
         if (Object.hasOwnProperty.call(item, key)) {
           const value = item[key];
-
           obj[key] =
             typeof value === "string"
               ? value
-              : value.filter((el) =>
-                  el.name.toLowerCase().includes(searchText.toLowerCase())
+              : value.filter(
+                  (el) =>
+                    el.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                    el.tags.find((tag) =>
+                      tag.toLowerCase().includes(searchText.toLowerCase())
+                    )
                 );
         }
       }
@@ -166,6 +173,11 @@ export default Vue.extend({
     },
 
     goToApp({ item, event }) {
+      if (item.isExternalApp) {
+        window.open(item.link, "_blank");
+        return;
+      }
+
       if (event.ctrlKey) {
         let routeData = this.$router.resolve({
           name: "App",
@@ -180,17 +192,23 @@ export default Vue.extend({
       }
     },
 
-    exploreApp(item) {
-      console.log("exploreApp", item);
-    },
-    addAppToFavoris(item) {
-      console.log("addAppToFavoris", item);
+    exploreApp(item) {},
+
+    addAppToFavoris({ item, isFavorite }) {
+      const ids = [item.id];
+      if (isFavorite) return this.deleteFavoriteApps(ids);
+      this.addToFavoriteApps(ids);
     },
   },
   computed: {
-    ...mapState("appDataStore", ["appsFormatted"]),
+    ...mapState("appDataStore", ["appsFormatted", "favoriteApps"]),
   },
   watch: {
+    // favoriteApps() {
+    //   this.favoriteApps.forEach((el) => {
+    //     this.favoriteAppsObj[el.id] = el;
+    //   });
+    // },
     appsFormatted({ data, groups }) {
       this.formatData({ data, groups });
     },
@@ -207,18 +225,22 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+$md-screen: 960px;
+
 .appContainer {
   width: 100%;
   height: 100%;
   padding: 0px;
 
-  .header {
-    width: 100%;
+  .my_header {
+    @media (max-width: $md-screen) {
+      width: 100%;
+    }
+    width: 50%;
     display: flex;
     flex-direction: column;
-
-    width: 50%;
     height: 150px;
+
     .description {
       margin-bottom: 20px;
 
@@ -247,7 +269,8 @@ export default Vue.extend({
 
   .apps-container {
     width: 100%;
-    height: calc(100% - 160px);
+    height: calc(100% - 210px);
+    background: transparent;
   }
 }
 </style>

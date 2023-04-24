@@ -24,19 +24,23 @@ with this file. If not, see
 
 <template>
   <v-container class="homeContainer"
-               fluid>
+               fluid
+               @click.stop="closeSelect">
     <div class="header">
       <div class="nav">
-        <NavBar />
+        <NavBar :isMobile="isMobile" />
       </div>
 
       <div class="select">
-        <select-component @selected="changeApps"
+        <select-component ref="select-component"
+                          :isMobile="isMobile"
+                          @selected="changeApps"
                           :portofolios="portofolios"></select-component>
       </div>
     </div>
 
-    <router-view class="content"></router-view>
+    <router-view class="content"
+                 :isMobile="isMobile"></router-view>
   </v-container>
 </template>
 
@@ -44,6 +48,7 @@ with this file. If not, see
 import { mapActions, mapState } from "vuex";
 import NavBar from "../components/nav.vue";
 import SelectComponent from "../components/select.vue";
+import { SET_SELECTED_APP } from "../store/appDataStore";
 export default {
   components: {
     NavBar,
@@ -59,10 +64,20 @@ export default {
       "getBos",
       "getUserInfo",
       "selectSpace",
+      "getFavoriteApps",
     ]),
 
     init() {
-      return Promise.all([this.getPortofolios(), this.getUserInfo()]);
+      return Promise.all([
+        this.getPortofolios(),
+        this.getUserInfo(),
+        // this.getFavoriteApps(),
+      ]);
+    },
+
+    closeSelect() {
+      const ref = this.$refs["select-component"];
+      if (ref) ref.close();
     },
 
     changeApps(data) {
@@ -71,6 +86,11 @@ export default {
   },
   computed: {
     ...mapState("appDataStore", ["appsDisplayed", "userInfo", "portofolios"]),
+    isMobile() {
+      const breakpoint = this.$vuetify.breakpoint.name;
+      if (["xs", "sm"].indexOf(breakpoint) !== -1) return true;
+      return false;
+    },
   },
 };
 </script>

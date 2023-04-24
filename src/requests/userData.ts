@@ -31,6 +31,32 @@ const host = (SERVER_BASE_URL || "").replace(`/\/$/`, el => "");
 const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
 
 
+export function addAppToFavorite(appIds, { portofolioId, buildingId }) {
+    let endpoint = `${portofolioId}/${buildingId || ""}`;
+    return axios.post(`${baseURL}/add_app_to_favoris/${endpoint}`, { appIds }).then((result) => {
+        return result.data;
+    }).catch((err) => {
+        return []
+    });
+}
+
+export function removeAppFromFavorite(appIds, { portofolioId, buildingId }) {
+    let endpoint = `${portofolioId}/${buildingId || ""}`;
+    return axios.post(`${baseURL}/remove_app_from_favoris/${endpoint}`, { appIds }).then((result) => {
+        return result.data;
+    }).catch((err) => {
+        return []
+    });
+}
+
+export function getFavoriteApps({ portofolioId, buildingId }) {
+    let endpoint = `${portofolioId}/${buildingId || ""}`;
+    return axios.get(`${baseURL}/get_favorite_apps/${endpoint}`).then((result) => {
+        return result.data;
+    }).catch((err) => {
+        return []
+    });
+}
 export function getPortofolios(profileId: string | null) {
     if (!profileId) throw new Error("no profileId found");
 

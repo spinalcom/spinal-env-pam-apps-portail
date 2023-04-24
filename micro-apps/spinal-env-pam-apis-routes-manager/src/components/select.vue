@@ -29,7 +29,8 @@ with this file. If not, see
                     :maxDepth="0"
                     :GetChildrenFct="onSpaceSelectOpen"
                     @input="getSelectedItem"
-                    :value="selectedZone" />
+                    :value="selectedZone"
+                    :isMobile="isMobile" />
 
     <!-- <v-select class="selectBar"
                 v-model="selected"
@@ -61,8 +62,8 @@ const SelectComponent = {
       selected: null,
       selectedZone: {
         platformId: "",
-        name: categories.building.name,
-        staticId: categories.building.id,
+        name: categories.portofolio.name,
+        staticId: categories.portofolio.id,
         categories: [],
         color: "#FFFFFF",
         dynamicId: 0,
@@ -70,7 +71,7 @@ const SelectComponent = {
         level: 0,
         isOpen: true,
         loading: false,
-        patrimoineId: categories.building.id,
+        patrimoineId: categories.portofolio.id,
         parents: [],
         isLastInGrp: true,
         drawLink: [],
@@ -104,6 +105,13 @@ const SelectComponent = {
     getSelectedItem(item: any) {
       this.$emit("selected", categories[item.staticId]);
       this.selectedZone = item;
+    },
+  },
+  computed: {
+    isMobile() {
+      const breakpoint = this.$vuetify.breakpoint.name;
+      if (["xs", "sm"].indexOf(breakpoint) !== -1) return true;
+      return false;
     },
   },
   watch: {

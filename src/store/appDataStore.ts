@@ -1,4 +1,33 @@
-import { getUserApps, getUserBos, getPortofolios } from "../requests/userData";
+/*
+ * Copyright 2022 SpinalCom - www.spinalcom.com
+ *
+ * This file is part of SpinalCore.
+ *
+ * Please read all of the following terms and conditions
+ * of the Free Software license Agreement ("Agreement")
+ * carefully.
+ *
+ * This Agreement is a legally binding contract between
+ * the Licensee (as defined below) and SpinalCom that
+ * sets forth the terms and conditions that govern your
+ * use of the Program. By installing and/or using the
+ * Program, you agree to abide by all the terms and
+ * conditions stated or referenced herein.
+ *
+ * If you do not agree to abide by these terms and
+ * conditions, do not demonstrate your acceptance and do
+ * not install or use the Program.
+ * You should have received a copy of the license along
+ * with this file. If not, see
+ * <http://resources.spinalcom.com/licenses.pdf>.
+ */
+
+import {
+  getPortofolios,
+  addAppToFavorite,
+  removeAppFromFavorite,
+  getFavoriteApps,
+} from "../requests/userData";
 
 export const SET_USER_APPS = "SET_USER_APPS";
 export const SET_USER_BOS = "SET_USER_BOS";
@@ -7,6 +36,14 @@ export const SET_AND_FORMAT_APPS = "SET_AND_FORMAT_APPS";
 export const SET_SELECTED_APP = "SET_SELECTED_APP";
 export const SET_PORTOFOLIOS = "SET_PORTOFOLIOS";
 export const SELECT_PORTOFOLIO = "SELECT_PORTOFOLIO";
+export const ADD_FAVORITE_APP = "ADD_FAVORITE_APP";
+export const SET_FAVORITE_APP = "SET_FAVORITE_APP";
+export const DELETE_FAVORITE_APP = "DELETE_FAVORITE_APP";
+
+const names = {
+  apps: "Applications",
+  // "adminApps": "Administration"
+};
 
 function classifyByCategory(
   apps: any[]
@@ -23,18 +60,23 @@ function classifyByCategory(
   return Array.from(Object.values(obj));
 }
 
-function classifyByCategoryAndGroup(apps: any[]) {
+function classifyByCategoryAndGroup(apps: any[], favoriteApps: any[] = []) {
   let categories = classifyByCategory(apps);
-  const groups: { [ke: string]: { name: string; id: string } } = {};
+
+  categories.unshift({ name: "Favoris", id: "favoris", apps: favoriteApps }); // Ajouter la categorie favorites
+
+  const groups: { [key: string]: { name: string; id: string } } = {};
 
   const data = categories.map(({ name, id, apps }) => {
     let t: { [key: string]: any } = { name, id };
 
     apps.forEach((el) => {
-      const groupId = el.groupName.toLowerCase();
+      // const groupId = el.groupName.toLowerCase();
+      const groupId = "Applications";
       if (!t[groupId]) {
         t[groupId] = [];
-        groups[groupId] = { name: el.groupName, id: groupId };
+        // groups[groupId] = { name: el.groupName, id: groupId }
+        groups[groupId] = { name: "Applications", id: groupId };
       }
 
       t[groupId].push(el);
@@ -44,6 +86,17 @@ function classifyByCategoryAndGroup(apps: any[]) {
   });
 
   return { groups: Array.from(Object.values(groups)), data };
+}
+
+function reinitFavoris(old_list: any[], newList: any[]) {
+  if (!newList || !old_list) return [];
+  // re-init favorites
+  return old_list.map((el) => {
+    if (el.value === "favoris") {
+      el.Applications = newList;
+    }
+    return el;
+  });
 }
 
 const appsFormattedMap = new Map();
@@ -62,6 +115,7 @@ export const appDataStore = {
     appsFormatted: undefined,
     userInfo: {},
     _privateData: { userInfoIsSet: false, appsIsSet: false },
+    favoriteApps: [],
   },
   mutations: {
     [SELECT_PORTOFOLIO](state: any, playload) {
@@ -83,6 +137,38 @@ export const appDataStore = {
 
     [SET_SELECTED_APP](state: any, playload: any) {
       state.appSelected = playload;
+    },
+
+    [ADD_FAVORITE_APP](state: any, playload: any) {
+      state.favoriteApps = [...state.favoriteApps, ...playload];
+      // re-init favorites
+      if (state.appsFormatted?.data)
+        state.appsFormatted.data = reinitFavoris(
+          state.appsFormatted.data,
+          state.favoriteApps
+        );
+    },
+
+    [SET_FAVORITE_APP](state: any, playload: any) {
+      state.favoriteApps = playload;
+      // re-init favorites
+      if (state.appsFormatted?.data)
+        state.appsFormatted.data = reinitFavoris(
+          state.appsFormatted.data,
+          state.favoriteApps
+        );
+    },
+
+    [DELETE_FAVORITE_APP](state: any, playload: any) {
+      const obj = {};
+      playload.forEach((el) => (obj[el.id] = el));
+
+      state.favoriteApps = state.favoriteApps.filter((el) => !obj[el.id]);
+      if (state.appsFormatted?.data)
+        state.appsFormatted.data = reinitFavoris(
+          state.appsFormatted.data,
+          state.favoriteApps
+        );
     },
   },
   actions: {
@@ -149,15 +235,56 @@ export const appDataStore = {
         }
       }
 
-      let appsFormatted: any = [];
-      if (appsFormattedMap.get(state.spaceSelected))
-        appsFormatted = appsFormattedMap.get(state.spaceSelected);
-      else {
-        appsFormatted = classifyByCategoryAndGroup(apps);
-        appsFormattedMap.set(state.spaceSelected, appsFormatted);
-      }
+      const favoris = await dispatch("getFavoriteApps");
+      let appsFormatted = classifyByCategoryAndGroup(apps, favoris);
 
       commit(SET_AND_FORMAT_APPS, { apps, appsFormatted });
+    },
+
+    async addToFavoriteApps({ commit, state, getters }: any, appIds: string[]) {
+      const data = {
+        portofolioId: getters.getPortofolioId,
+        buildingId: getters.getBuildingId,
+      };
+
+      const apps = await addAppToFavorite(appIds, data);
+      commit(ADD_FAVORITE_APP, apps);
+    },
+
+    async getFavoriteApps({ commit, getters }) {
+      const data = {
+        portofolioId: getters.getPortofolioId,
+        buildingId: getters.getBuildingId,
+      };
+      const apps = await getFavoriteApps(data);
+      commit(SET_FAVORITE_APP, apps);
+      return apps;
+    },
+
+    async deleteFavoriteApps({ commit, getters }, appIds) {
+      const data = {
+        portofolioId: getters.getPortofolioId,
+        buildingId: getters.getBuildingId,
+      };
+      const apps = await removeAppFromFavorite(appIds, data);
+      commit(DELETE_FAVORITE_APP, apps);
+    },
+  },
+  getters: {
+    getPortofolioId(state) {
+      if (!state.selectedPortofolio) return;
+      if (
+        state.selectedPortofolio.type === "building" &&
+        state.selectedPortofolio.parents
+      )
+        return state.selectedPortofolio.parents[0];
+      if (state.selectedPortofolio.type === "portofolio")
+        return state.selectedPortofolio.staticId;
+    },
+    getBuildingId(state) {
+      if (!state.selectedPortofolio) return;
+      if (state.selectedPortofolio.type === "building")
+        return state.selectedPortofolio.staticId;
     },
   },
 };

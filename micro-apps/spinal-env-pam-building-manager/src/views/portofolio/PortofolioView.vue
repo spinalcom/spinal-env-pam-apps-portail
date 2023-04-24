@@ -27,7 +27,7 @@ with this file. If not, see
   <div class="_container">
     <div class="header">
       <div class="header_col left">
-        <v-text-field label="Search"
+        <v-text-field label="Rechercher"
                       dark
                       append-icon="mdi-magnify"
                       v-model="searchText"></v-text-field>
@@ -35,14 +35,17 @@ with this file. If not, see
 
       <div class="header_col right">
         <button class="addButton"
-                @click="addPortofolio">Ajouter un portefolio</button>
+                @click="addPortofolio">Ajouter un Portefeuille</button>
       </div>
     </div>
 
     <div class="content">
 
-      <v-list rounded>
+      <v-list rounded
+              :expand="true"
+              v-if="portofolios && portofolios.length > 0">
         <v-list-group prepend-icon="mdi-office-building"
+                      :value="true"
                       v-for="portofolio in portofolios"
                       :key="portofolio.id">
 
@@ -50,21 +53,21 @@ with this file. If not, see
             <v-list-item-title>{{portofolio.name}}</v-list-item-title>
             <v-list-item-action>
               <v-btn icon
-                     title="ajouter un batiment"
+                     title="ajouter un bâtiment"
                      color="primary"
                      @click.stop="addBuilding(portofolio)">
                 <v-icon>mdi-plus</v-icon>
               </v-btn>
 
               <v-btn icon
-                     title="modifier le portefolio"
+                     title="modifier ce portefeuille"
                      color="primary"
                      @click.stop="editPortofolio(portofolio)">
                 <v-icon>mdi-pencil</v-icon>
               </v-btn>
 
               <v-btn icon
-                     title="supprimer le portefolio"
+                     title="supprimer ce portefeuille"
                      color="error"
                      @click.stop="deletePortofolio(portofolio)">
                 <v-icon>mdi-delete</v-icon>
@@ -84,13 +87,18 @@ with this file. If not, see
 
             <div class="empty"
                  v-if="!portofolio.buildings || portofolio.buildings.length === 0">
-              Aucun batiment dans ce portefolio
+              Aucun bâtiment dans ce portefeuille
             </div>
 
           </v-list-item-content>
 
         </v-list-group>
       </v-list>
+
+      <div v-else
+           class="emptyPortofolio">
+        Aucun Portefeuille à afficher
+      </div>
 
       <!-- <patrimoine-card v-for="building in buildings"
                        :key="building.id"
@@ -213,6 +221,15 @@ export default PortofolioView;
 
     .v-list-item__action--stack {
       flex-direction: row;
+    }
+
+    .emptyPortofolio {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.6em;
     }
   }
 

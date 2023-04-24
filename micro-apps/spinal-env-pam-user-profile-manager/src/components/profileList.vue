@@ -36,7 +36,8 @@ with this file. If not, see
       </v-card>
     </div>
 
-    <v-card class="tableCard">
+    <v-card class="tableCard"
+            elevation="4">
       <div class="toolbar">
         <div class="title">liste de profils d'utilisateurs</div>
       </div>
@@ -49,7 +50,8 @@ with this file. If not, see
                       :headers="headers"
                       id="table"
                       :items="profiles"
-                      item-key="name">
+                      item-key="name"
+                      no-data-text="Aucune donnée à afficher">
 
           <template v-slot:header="{ props : { headers } }">
             <thead>
@@ -67,8 +69,8 @@ with this file. If not, see
             <tr class="itemRow">
               <td>{{item.name}}</td>
               <td>{{item.authorized | length}}</td>
-              <!-- <td>{{item.authorizedBos | length}}</td>
-              <td>{{item.authorizedRoutes | length}}</td> -->
+              <td>{{item.authorized | bosLength}}</td>
+              <!--  <td>{{item.authorizedRoutes | length}}</td> -->
 
               <td class="actions"
                   style="background: white; text-align: center; vertical-align: middle">
@@ -79,14 +81,14 @@ with this file. If not, see
 
                 <v-btn class="actionBtn dark"
                        @click="editProfile(item)">
-                  <v-icon>mdi-pencil</v-icon>
+                  <v-icon small>mdi-pencil</v-icon>
                 </v-btn>
 
                 <v-btn class="actionBtn"
                        color="error"
                        outlined
                        @click="deleteProfile(item)">
-                  <v-icon>mdi-close</v-icon>
+                  <v-icon small>mdi-close</v-icon>
                 </v-btn>
               </td>
             </tr>
@@ -103,13 +105,22 @@ with this file. If not, see
 import Vue from "vue";
 import { State } from "vuex-class";
 import { Component } from "vue-property-decorator";
-import { __values } from "tslib";
 
 @Component({
   filters: {
     length: function (liste: any[]) {
       if (!liste || liste.length === 0) return 0;
-      return liste.length;
+      return liste.filter((el) => el.name.toLowerCase() !== "administration")
+        .length;
+    },
+    bosLength: function (liste: any) {
+      let count = 0;
+      if (!liste || liste.length === 0) return count;
+      for (const item of liste) {
+        count += item.buildings.length;
+      }
+
+      return count;
     },
     concat: function (value: any[]) {
       if (!value || value.length === 0) return "-";
@@ -121,7 +132,7 @@ class ProfileListComponent extends Vue {
   headers: any[] = [
     { text: "Intitulé", value: "name" },
     { text: "Portefolio(s) autorisé(s)", value: "portofolios" },
-    // { text: "Bâtiment(s) autorisé(s)", value: "buildings" },
+    { text: "Bâtiment(s) autorisé(s)", value: "buildings" },
     // { text: "Route(s) autorisée(s)", value: "routes" },
     { text: "Actions", value: "actions" },
   ];
@@ -148,9 +159,10 @@ class ProfileListComponent extends Vue {
 export default ProfileListComponent;
 </script>
 
+
 <style lang="scss" scoped>
 $header-height: 60px;
-$page-background: #f5f3f3;
+// $page-background: #f5f3f3;
 $header-margin-bottom: 10px;
 $toolbar-height: 30px;
 .profileListContainer {
@@ -168,7 +180,6 @@ $toolbar-height: 30px;
       height: $header-height;
       border-radius: 7px;
       padding: 10px;
-      background-color: $page-background !important;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -186,7 +197,8 @@ $toolbar-height: 30px;
 
   .tableCard {
     padding: 10px;
-    background-color: $page-background !important;
+    // background-color: $page-background !important;
+    background: transparent !important;
     width: 100%;
     height: calc(100% - #{$header-height + $header-margin-bottom});
     border-radius: 10px;
@@ -219,7 +231,7 @@ $toolbar-height: 30px;
 
         tr.itemRow {
           td {
-            height: 70px;
+            height: 50px;
             text-align: center;
             vertical-align: middle;
             background: #fff;
@@ -229,8 +241,8 @@ $toolbar-height: 30px;
           .actions {
             .actionBtn {
               min-width: unset;
-              width: 40px !important;
-              height: 40px;
+              width: 30px !important;
+              height: 30px;
               margin-left: 10px;
             }
 

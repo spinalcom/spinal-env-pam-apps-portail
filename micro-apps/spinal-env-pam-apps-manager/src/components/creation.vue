@@ -23,7 +23,8 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card class="creationContent">
+  <v-card class="creationContent"
+          elevation="4">
     <div class="back">
       <v-btn rounded
              outlined
@@ -42,16 +43,28 @@ with this file. If not, see
       <div class="_title">{{title}}</div>
 
       <div class="content">
-        <v-checkbox v-model="appInfo.hasViewer"
-                    label="Cette application utilise de la 3D"></v-checkbox>
+        <div class="appDiv">
+          <div class="selectionDiv">
+            <v-checkbox v-model="appInfo.hasViewer"
+                        label="Cette application utilise de la 3D"></v-checkbox>
+          </div>
+
+          <div class="selectionDiv">
+            <v-checkbox v-model="appInfo.isExternalApp"
+                        label="Cette application est une application externe">
+            </v-checkbox>
+          </div>
+        </div>
 
         <v-row>
-          <v-col cols="4">
+          <v-col class="colonnes"
+                 cols="4">
             <v-combobox :items="icons"
                         v-model="appInfo.icon"
                         label="Icone"
                         item-value="name"
                         item-text="name"
+                        :hide-details="true"
                         outlined>
 
               <template v-slot:item="{ item }">
@@ -70,44 +83,82 @@ with this file. If not, see
 
             </v-combobox>
           </v-col>
-          <v-col cols="8">
+          <v-col class="colonnes"
+                 cols="8">
             <v-text-field v-model="appInfo.name"
                           label="Nom de l'application"
+                          :hide-details="true"
                           outlined></v-text-field>
           </v-col>
         </v-row>
-
-        <v-text-field v-model="appInfo.packageName"
-                      label="Nom du package (dans le package.json)"
-                      outlined></v-text-field>
-
-        <v-combobox small-chips
-                    deletable-chips
-                    multiple
-                    append-icon="none"
-                    v-model="appInfo.tags"
-                    label="Tags"
-                    outlined></v-combobox>
 
         <v-row>
-          <v-col cols="6">
-            <v-text-field v-model="appInfo.categoryName"
-                          label="Categorie de l'application"
+          <v-col class="colonnes"
+                 cols="12">
+            <v-text-field v-model="appInfo.link"
+                          v-if="appInfo.isExternalApp"
+                          label="Lien vers l'application"
+                          :hide-details="true"
+                          outlined></v-text-field>
+
+            <v-text-field v-model="appInfo.packageName"
+                          v-else-if="!appInfo.isExternalApp"
+                          label="Nom du package (dans le package.json)"
+                          :hide-details="true"
                           outlined></v-text-field>
           </v-col>
 
-          <v-col cols="6">
+          <v-col cols="12">
+            <v-text-field v-model="appInfo.documentationLink"
+                          label="Lien vers la documentation de l'application"
+                          :hide-details="true"
+                          outlined></v-text-field>
+          </v-col>
+
+        </v-row>
+
+        <v-row>
+          <v-col class="colonnes"
+                 cols="12">
+            <v-combobox small-chips
+                        deletable-chips
+                        multiple
+                        append-icon="none"
+                        v-model="appInfo.tags"
+                        label="Tags"
+                        :hide-details="true"
+                        outlined></v-combobox>
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col class="colonnes"
+                 cols="6">
+            <v-text-field v-model="appInfo.categoryName"
+                          label="Categorie de l'application"
+                          :hide-details="true"
+                          outlined></v-text-field>
+          </v-col>
+
+          <v-col class="colonnes"
+                 cols="6">
             <v-text-field v-model="appInfo.groupName"
                           label="Groupe de l'application"
+                          :hide-details="true"
                           outlined></v-text-field>
           </v-col>
         </v-row>
 
-        <v-textarea v-model="appInfo.description"
-                    outlined
-                    name="input-7-4"
-                    label="Description">
-        </v-textarea>
+        <v-row>
+          <v-col class="colonnes"
+                 cols="12">
+            <v-textarea v-model="appInfo.description"
+                        outlined
+                        name="input-7-4"
+                        label="Description">
+            </v-textarea>
+          </v-col>
+        </v-row>
 
         <div class="buttons">
           <v-btn class="button"
@@ -133,7 +184,7 @@ with this file. If not, see
 </template>
   
   <script lang="ts">
-import { IApp } from "@/types/interfaces";
+import { IApp } from "../types/interfaces";
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import icons from "../store/icons";
 
@@ -155,11 +206,20 @@ class CreationComponent extends Vue {
     groupName: "",
     hasViewer: false,
     packageName: "",
+    isExternalApp: false,
+    link: "",
+    documentationLink: "",
   };
 
   mounted() {
     if (this.edit) {
+      const icon = this.icons.find(
+        (el) => `mdi-${el.name}` === this.appSelected.icon
+      );
+
       this.appInfo = Object.assign({}, this.appSelected);
+      this.appInfo.icon = icon || this.appSelected.icon;
+      if (!this.appInfo.documentationLink) this.appInfo.documentationLink = "";
     }
   }
 
@@ -209,14 +269,14 @@ export default CreationComponent;
   <!-- Add "scoped" attribute to limit CSS to this component only -->
   <style lang="scss">
 $header-height: 80px;
-$toolbar-height: 70px;
+$toolbar-height: 60px;
 
 .creationContent {
   width: 98%;
   height: calc(100% - #{$header-height + 10px});
   margin: auto;
   margin-top: $header-height;
-  background: #f8f9f9;
+  background: transparent !important;
   border-radius: 10px !important;
   display: flex;
   flex-direction: column;
@@ -231,19 +291,53 @@ $toolbar-height: 70px;
   }
 
   .form {
-    width: 50%;
+    width: 70%;
     height: calc(100% - 40px);
     padding: 10px;
     margin: auto;
+
+    @media (max-width: 960px) {
+      width: 100%;
+    }
+
+    .colonnes {
+      padding-top: 0px !important;
+    }
+
     ._title {
+      width: 100%;
+      height: 35px;
       text-align: center;
-      font-size: 2em;
+      font-size: 1.5em;
       color: #214353;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
 
     .content {
-      // height: calc(100% - #{$toolbar-height});
-      margin: auto;
+      .appDiv {
+        width: 100%;
+        display: flex;
+        margin-bottom: 10px;
+        @media (max-width: 960px) {
+          height: 100px;
+          display: block;
+        }
+        .selectionDiv {
+          @media (max-width: 960px) {
+            width: 100%;
+          }
+          width: 49%;
+          height: 50px;
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
+      }
 
       .buttons {
         width: 100%;
