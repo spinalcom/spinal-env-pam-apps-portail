@@ -16,19 +16,33 @@ const closedSteps = config.steps.closed;
 
 Vue.use(Vuex);
 
+export function displayDate(dateTime: number) {
+  const date = new Date(dateTime);
+
+  let day = "" + date.getDate(),
+    month = "" + (date.getMonth() + 1),
+    year = "" + date.getFullYear();
+
+  if (day.length == 1) day = "0" + day;
+  if (month.length == 1) month = "0" + month;
+
+  return `${day}/${month}/${year}`;
+}
+
 function toManageableTicket(ticket: any) {
   return {
+    id: ticket.dynamicId,
     Nom: ticket.name,
     Étape: ticket.step.name,
     Domaine: ticket.process.name,
-    "Date de création": new Date(
+    "Date de création": displayDate(
       ticket.creationDate || ticket.log_list[0]?.date || 0
-    ).toLocaleDateString(),
-    "Dernière modification": new Date(
+    ),
+    "Dernière modification": displayDate(
       ticket.directModificationDate ||
         ticket.log_list[ticket.log_list?.length - 1]?.date ||
         0
-    ).toLocaleDateString(),
+    ),
     Déclarant: ticket.userName || "ADMIN",
   };
 }

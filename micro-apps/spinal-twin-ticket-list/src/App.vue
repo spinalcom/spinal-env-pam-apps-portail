@@ -145,13 +145,13 @@ with this file. If not, see
             :headers="headers"
             :height="tableHeight"
             :items="stepFilteredTickets"
-            :custom-sort="customSort"
             :footer-props="{
               prevIcon: 'mdi-menu-left',
               nextIcon: 'mdi-menu-right',
               showCurrentPage: true,
               itemsPerPageAllText: 'Tout',
             }"
+            @click:row="rowClicked"
           >
             <v-progress-linear
               v-show="!loaded"
@@ -166,13 +166,381 @@ with this file. If not, see
         </div>
       </div>
     </v-card>
+    <div
+      v-show="showDialog"
+      class="dialog-background"
+      @click="switchPopUp"
+    ></div>
+    <v-card
+      v-if="detailedTicket"
+      elevation="24"
+      v-show="showDialog"
+      class="dialog-box"
+    >
+      <v-card-title class="bold px-4">
+        <div style="width: calc(50% - 230px)" class="overflow-hidden">
+          {{ detailedTicket.name || "Nom" }}
+        </div>
+        <div style="width: 460px" class="text-center">
+          Créé le: {{ dispDateCreation }} Modifié le: {{ dispDateModif }}
+        </div>
+        <div style="width: calc(50% - 230px)" class="text-right">
+          Priorité: {{ detailedTicket.priority }}
+        </div>
+      </v-card-title>
+
+      <v-divider></v-divider>
+      <v-card-text
+        style="height: calc(100% - 130px)"
+        class="d-flex flex-column overflow-y-auto overflow-x-hidden"
+      >
+        <div
+          style="height: 60%"
+          class="d-flex flex-row pb-4 justify-space-between"
+        >
+          <div style="width: 40%" class="overflow-y-auto">
+            <div class="mb-4">
+              <div class="font-weight-bold">
+                <v-icon>mdi-account</v-icon>
+                Déclarant
+              </div>
+              <div class="pl-8">
+                {{ detailedTicket.userName || "Non défini" }}
+              </div>
+            </div>
+            <div class="mb-4">
+              <div class="font-weight-bold">
+                <v-icon>mdi-map-marker</v-icon>
+                Espace
+              </div>
+              <div class="pl-8">{{ detailedTicket.elementSelected.name }}</div>
+            </div>
+            <div class="mb-4">
+              <div class="font-weight-bold">
+                <v-icon>mdi-sitemap</v-icon>
+                Workflow & Process
+              </div>
+              <div class="pl-8">
+                {{ detailedTicket.workflowName }} |
+                {{ detailedTicket.process.name }}
+              </div>
+            </div>
+            <div class="mb-4">
+              <div class="font-weight-bold">
+                <v-icon>mdi-step-forward</v-icon>
+                Étape
+              </div>
+              <div class="pl-8">
+                <div
+                  class="mr-1 rounded-circle ps-3 pt-3 d-inline-block"
+                  :style="{
+                    background:
+                      detailedTicket.step.color + ' no-repeat padding-box',
+                  }"
+                ></div>
+                {{ detailedTicket.step.name }}
+              </div>
+            </div>
+            <div>
+              <div class="font-weight-bold">
+                <v-icon>mdi-text-box</v-icon>
+                Description
+              </div>
+              <div class="pl-8">{{ detailedTicket.description }}</div>
+            </div>
+          </div>
+          <!--carousel-->
+          <div
+            v-if="image_list.length > 0"
+            style="width: 59%"
+            class="d-flex flex-column"
+          >
+            <div
+              class="d-flex justify-center flex-shrink-1"
+              style="background-color: rgba(0, 0, 0, 0.6)"
+            >
+              <div class="text-center my-2">
+                <a
+                  style="color: white"
+                  :href="image_list[c_index].src"
+                  target="_blank"
+                  :download="image_list[c_index].name"
+                  >{{ image_list[c_index].name }}
+                  <v-icon class="ml-1" style="color: white">
+                    mdi-tray-arrow-down
+                  </v-icon>
+                </a>
+              </div>
+            </div>
+            <div
+              class="d-flex flex-row flex-grow-1 justify-space-between"
+              style="
+                background-color: #bbb;
+                background-size: contain;
+                background-position: center center;
+              "
+              :style="{
+                'background-image': 'url(' + image_list[c_index].src + ')',
+              }"
+            >
+              <div class="d-flex align-center px-2">
+                <v-btn
+                  style="color: white; background-color: rgba(0, 0, 0, 0.3)"
+                  fab
+                  @click="
+                    c_index =
+                      (c_index + image_list.length - 1) % image_list.length
+                  "
+                >
+                  <v-icon large>mdi-chevron-left</v-icon>
+                </v-btn>
+              </div>
+              <div class="d-flex align-center px-2">
+                <v-btn
+                  style="color: white; background-color: rgba(0, 0, 0, 0.3)"
+                  fab
+                  @click="c_index = (c_index + 1) % image_list.length"
+                >
+                  <v-icon large>mdi-chevron-right</v-icon>
+                </v-btn>
+              </div>
+            </div>
+            <div
+              class="d-flex justify-center flex-shrink-1"
+              style="background-color: rgba(0, 0, 0, 0.6)"
+            >
+              <div
+                v-for="(img, i) in image_list"
+                :key="i"
+                class="d-flex align-center justify-center rounded-circle ma-1"
+                style="width: 18px; height: 18px"
+                :style="{
+                  'background-color': `rgba(255,255,255,${
+                    c_index === i ? '0.3' : '0'
+                  })`,
+                }"
+              >
+                <v-btn
+                  fab
+                  style="background-color: white; width: 10px; height: 10px"
+                  @click="c_index = i"
+                ></v-btn>
+              </div>
+            </div>
+          </div>
+          <div v-else id="carousel-vide"></div>
+        </div>
+        <!--Tableaux-->
+        <div style="height: 40%" class="d-flex flex-row justify-space-between">
+          <div style="width: 49%" class="text-center py-1">
+            <div
+              style="background-color: gray"
+              class="py-2 font-weight-bold rounded-t-lg"
+            >
+              LOGS
+            </div>
+            <v-data-table
+              style="border: 1px solid gray"
+              :headers="logsHeaders"
+              :items="logsValues"
+              :items-per-page="5"
+              :height="169"
+              fixed-header
+              :footer-props="{
+                'disable-items-per-page': true,
+              }"
+            >
+            </v-data-table>
+          </div>
+          <div style="width: 49%" class="text-center py-1">
+            <div
+              style="background-color: gray"
+              class="py-2 font-weight-bold rounded-t-lg"
+            >
+              ANNOTATIONS
+            </div>
+            <v-data-table
+              style="border: 1px solid gray"
+              :headers="annotationsHeaders"
+              :items="annotationsValues"
+              :items-per-page="5"
+              :height="169"
+              fixed-header
+              :footer-props="{
+                'disable-items-per-page': true,
+              }"
+            ></v-data-table>
+          </div>
+        </div>
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions class="pa-4" style="height: 64px">
+        <v-btn text color="primary" @click="downloadPDF()">
+          Télécharger au format PDF
+        </v-btn>
+        <v-spacer></v-spacer>
+        <v-btn @click="switchPopUp" color="blue darken-4" text class="bold">
+          FERMER
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+    <div id="pdf-div" v-if="detailedTicket" v-show="showPDF" class="pa-4">
+      <div class="text-center title font-weight-bold mb-10">
+        Détails du ticket n° {{ detailedTicket.dynamicId }}
+      </div>
+      <div class="mb-4">
+        <div class="font-weight-bold">
+          <v-icon>mdi-ticket</v-icon>
+          Nom du ticket
+        </div>
+        <div class="pl-8">
+          {{ detailedTicket.name }}
+        </div>
+      </div>
+      <div class="mb-4">
+        <div class="font-weight-bold">
+          <v-icon>mdi-calendar-range</v-icon>
+          Date de création
+        </div>
+        <div class="pl-8">
+          {{ dispDateCreation }}
+        </div>
+      </div>
+      <div class="mb-4">
+        <div class="font-weight-bold">
+          <v-icon>mdi-update</v-icon>
+          Dernière mise à jour
+        </div>
+        <div class="pl-8">
+          {{ dispDateModif }}
+        </div>
+      </div>
+      <div class="mb-4">
+        <div class="font-weight-bold">
+          <v-icon>mdi-priority-high</v-icon>
+          Priorité
+        </div>
+        <div class="pl-8">
+          {{ detailedTicket.priority }}
+        </div>
+      </div>
+      <div class="mb-4">
+        <div class="font-weight-bold">
+          <v-icon>mdi-account</v-icon>
+          Déclarant
+        </div>
+        <div class="pl-8">
+          {{ detailedTicket.userName || "Non défini" }}
+        </div>
+      </div>
+      <div class="mb-4">
+        <div class="font-weight-bold">
+          <v-icon>mdi-map-marker</v-icon>
+          Espace
+        </div>
+        <div class="pl-8">{{ detailedTicket.elementSelected.name }}</div>
+      </div>
+      <div class="mb-4">
+        <div class="font-weight-bold">
+          <v-icon>mdi-sitemap</v-icon>
+          Workflow & Process
+        </div>
+        <div class="pl-8">
+          {{ detailedTicket.workflowName }} |
+          {{ detailedTicket.process.name }}
+        </div>
+      </div>
+      <div class="mb-4">
+        <div class="font-weight-bold">
+          <v-icon>mdi-step-forward</v-icon>
+          Étape
+        </div>
+        <div class="pl-8">
+          <div
+            class="mr-1 rounded-circle ps-3 pt-3 d-inline-block"
+            :style="{
+              background: detailedTicket.step.color + ' no-repeat padding-box',
+            }"
+          ></div>
+          {{ detailedTicket.step.name }}
+        </div>
+      </div>
+      <div>
+        <div class="font-weight-bold">
+          <v-icon>mdi-text-box</v-icon>
+          Description
+        </div>
+        <div class="pl-8">{{ detailedTicket.description }}</div>
+      </div>
+      <div class="my-4">
+        <div class="font-weight-bold">LOGS</div>
+        <v-simple-table class="text-left">
+          <template v-slot:default>
+            <thead>
+              <tr>
+                <th
+                  v-for="item in logsHeaders"
+                  :key="item.value"
+                  style="border: 1px solid gray"
+                >
+                  {{ item.text }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, i) in logsValues" :key="i">
+                <td style="border: 1px solid gray">{{ item.event }}</td>
+                <td style="border: 1px solid gray">{{ item.date }}</td>
+              </tr>
+            </tbody>
+          </template>
+        </v-simple-table>
+      </div>
+      <div v-if="detailedTicket.annotation_list.length > 0" class="my-4">
+        <div class="font-weight-bold">ANNOTATIONS</div>
+        <v-simple-table class="text-left">
+          <template v-slot:default>
+            <thead>
+              <tr>
+                <th
+                  v-for="item in annotationsHeaders"
+                  :key="item.value"
+                  style="border: 1px solid gray"
+                >
+                  {{ item.text }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, i) in annotationsValues" :key="i">
+                <td style="border: 1px solid gray">{{ item.userName }}</td>
+                <td style="border: 1px solid gray">{{ item.date }}</td>
+                <td style="border: 1px solid gray">{{ item.message }}</td>
+              </tr>
+            </tbody>
+          </template>
+        </v-simple-table>
+      </div>
+      <div v-if="detailedTicket.file_list.length > 0" class="mt-4">
+        <div class="font-weight-bold my-3">PIÈCES JOINTES</div>
+        <img
+          v-for="(image, i) in image_list"
+          :key="i"
+          :src="image.src"
+          class="pa-3"
+          style="max-width: 100%; height: auto"
+        />
+      </div>
+    </div>
   </v-app>
 </template>
 
 <script>
 import { gradiant, HSVtoRGB, RGBtoHexa } from "spinal-components/src/colors";
-import { mapActions, mapGetters } from "vuex";
-import { getBuildingAsync } from "./api-requests";
+import { mapState, mapActions, mapGetters } from "vuex";
+import { getBuildingAsync, getFileAsync } from "./api-requests";
+import { displayDate } from "./store/index";
+import html2canvas from "html2canvas";
 
 export default {
   name: "App",
@@ -185,14 +553,32 @@ export default {
     step_filter: [],
     loaded: false,
     tableHeight: 96,
+    showDialog: false,
+    images: [],
+    selectedId: 0,
+    c_index: 0,
+    showPDF: false,
   }),
 
   computed: {
-    ...mapGetters({
-      getTickets: "getTickets",
-    }),
+    ...mapState({ tickets: "tickets" }),
+    ...mapGetters({ getTickets: "getTickets" }),
+    dispDateCreation() {
+      return displayDate(this.detailedTicket.creationDate);
+    },
+    dispDateModif() {
+      return this.detailedTicket.log_list.length > 0
+        ? displayDate([...this.detailedTicket.log_list].reverse()[0]?.date)
+        : this.dispDateCreation;
+    },
     tableData() {
       return this.loaded ? this.getTickets(this.el.dynamicId) : [];
+    },
+    detailedTicket() {
+      return this.tickets.find((t) => t.dynamicId === this.selectedId);
+    },
+    image_list() {
+      return this.images;
     },
     headers() {
       const widths = [20, 20, 20, 13, 13, 13];
@@ -203,7 +589,38 @@ export default {
         "Date de création",
         "Dernière modification",
         "Déclarant",
-      ].map((e, i) => ({ text: e, value: e, width: widths[i] + "%" }));
+      ].map((e, i) => ({
+        text: e,
+        value: e,
+        width: widths[i] + "%",
+        sort: [3, 4].includes(i) ? (a, b) => this.compareDate(a, b) : null,
+      }));
+    },
+    logsHeaders() {
+      return [
+        { text: "Évenement", value: "event" },
+        { text: "Date", value: "date", sort: (a, b) => this.compareDate(a, b) },
+      ];
+    },
+    logsValues() {
+      return this.detailedTicket.log_list.map((l) => ({
+        event: l.event,
+        date: displayDate(l.date),
+      }));
+    },
+    annotationsHeaders() {
+      return [
+        { text: "Déclarant", value: "userName" },
+        { text: "Date", value: "date", sort: (a, b) => this.compareDate(a, b) },
+        { text: "Message", value: "message", width: "70%" },
+      ];
+    },
+    annotationsValues() {
+      return this.detailedTicket.annotation_list.map((a) => ({
+        userName: a.userName || "Non défini",
+        date: displayDate(a.date),
+        message: a.message,
+      }));
     },
     domains() {
       return [...new Set(this.tableData.map((t) => t.Domaine))];
@@ -233,16 +650,6 @@ export default {
         return this.tableData;
       return this.tableData.filter((d) =>
         this.domain_filter.includes(d.Domaine)
-      );
-    },
-    steps() {
-      return [...new Set(this.domainFilteredTickets.map((t) => t["Étape"]))];
-    },
-    stepFilteredTickets() {
-      if (this.step_filter.length === 0 || this.tableData.length === 0)
-        return this.domainFilteredTickets;
-      return this.domainFilteredTickets.filter((d) =>
-        this.step_filter.includes(d["Étape"])
       );
     },
   },
@@ -268,20 +675,6 @@ export default {
           });
       }
     },
-    customSort(items, index, isDesc) {
-      items.sort((a, b) => {
-        if (["Date de création", "Dernière modification"].includes(index[0])) {
-          if (!isDesc[0]) return this.compareDate(b[index], a[index]);
-          return this.compareDate(a[index], b[index]);
-        }
-        if (a[index]) {
-          if (!isDesc[0])
-            return a[index].toLowerCase().localeCompare(b[index].toLowerCase());
-          return b[index].toLowerCase().localeCompare(a[index].toLowerCase());
-        }
-      });
-      return items;
-    },
 
     compareDate(date1, date2) {
       const e1 = date1.split("/");
@@ -289,8 +682,37 @@ export default {
       return e1[2] - e2[2] || e1[1] - e2[1] || e1[0] - e2[0];
     },
 
-    resizeTable(e) {
-      console.log("OK");
+    async rowClicked(event) {
+      this.selectedId = event.id;
+      const images = [];
+      for (const file of this.detailedTicket.file_list) {
+        images.push({
+          name: file.Name,
+          src: await getFileAsync(file.dynamicId),
+        });
+      }
+      this.images = images;
+      this.switchPopUp();
+    },
+
+    switchPopUp() {
+      this.showDialog = !this.showDialog;
+    },
+
+    async downloadPDF() {
+      this.showPDF = !this.showPDF;
+      setTimeout(() => {
+        const doc = document.querySelector("#pdf-div");
+        html2canvas(doc).then((can) => {
+          this.showPDF = !this.showPDF;
+          can.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const w = window.open(url);
+            w.document.close();
+            w.print();
+          });
+        });
+      }, 1);
     },
   },
 
@@ -318,6 +740,23 @@ export default {
 </script>
 
 <style scoped>
+@media screen {
+  #screenarea {
+    display: block;
+  }
+  #printarea {
+    display: none;
+  }
+}
+@media print {
+  #screenarea {
+    display: none;
+  }
+  #printarea {
+    display: block;
+  }
+}
+
 html {
   overflow-y: auto !important;
 }
@@ -344,5 +783,60 @@ html {
 
 .v-data-table {
   font-size: 14px;
+}
+
+.dialog-background {
+  position: fixed;
+  width: 3000px;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.dialog-box {
+  position: absolute;
+  width: 85%;
+  height: calc(100% - 120px);
+  top: 70px;
+  left: 7.5%;
+}
+
+#pdf-div {
+  z-index: 999;
+  position: absolute;
+  background-color: white;
+  width: 50%;
+  top: 70px;
+  left: 25%;
+}
+
+a {
+  color: white;
+}
+
+a:hover {
+  font-size: 15px;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+#carousel-vide {
+  width: 59%;
+  background-image: url("../asset/img/No-Image-Placeholder.png");
+  background-color: #eee;
+  background-size: contain;
+  background-position: center center;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 27mm 16mm 27mm 16mm;
+  counter-increment: page;
+  @bottom-right {
+    content: "Page " counter(page);
+    content: "Page " counter(page) " of " counter(pages);
+  }
 }
 </style>

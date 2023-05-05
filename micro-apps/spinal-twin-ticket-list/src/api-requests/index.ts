@@ -23,11 +23,22 @@
  */
 
 import { HTTP } from "./http-constants";
+import axios from "axios";
 
 export async function getBuildingAsync() {
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(`/building/${buildingId}/building/read`);
   return result.data;
+}
+
+export async function getFileAsync(nodeId: number) {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.post(
+    `/building/${buildingId}/node/${nodeId}/download_file`,
+    null,
+    { responseType: "blob" }
+  );
+  return window.URL.createObjectURL(result.data);
 }
 
 export async function getBuildingSpaceTreeAsync() {
