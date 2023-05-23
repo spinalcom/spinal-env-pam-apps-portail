@@ -33,7 +33,6 @@ with this file. If not, see
       <sc-space-selector
         class="ma-1 pa-1"
         v-model="el"
-        :path.sync="path"
         :max-depth="1"
         :onopen="expand"
         :first-tile="firstTile"
@@ -385,10 +384,10 @@ with this file. If not, see
       </v-card-actions>
     </v-card>
     <div id="pdf-div" v-if="detailedTicket" v-show="showPDF" class="pa-4">
-      <div class="text-center title font-weight-bold mb-10">
+      <div class="text-center title font-weight-bold mb-10 downloadable" id="0">
         Détails du ticket n° {{ detailedTicket.dynamicId }}
       </div>
-      <div class="mb-4">
+      <div class="mb-4 downloadable" id="1">
         <div class="font-weight-bold">
           <v-icon>mdi-ticket</v-icon>
           Nom du ticket
@@ -397,7 +396,7 @@ with this file. If not, see
           {{ detailedTicket.name }}
         </div>
       </div>
-      <div class="mb-4">
+      <div class="mb-4 downloadable" id="2">
         <div class="font-weight-bold">
           <v-icon>mdi-calendar-range</v-icon>
           Date de création
@@ -406,7 +405,7 @@ with this file. If not, see
           {{ dispDateCreation }}
         </div>
       </div>
-      <div class="mb-4">
+      <div class="mb-4 downloadable" id="3">
         <div class="font-weight-bold">
           <v-icon>mdi-update</v-icon>
           Dernière mise à jour
@@ -415,7 +414,7 @@ with this file. If not, see
           {{ dispDateModif }}
         </div>
       </div>
-      <div class="mb-4">
+      <div class="mb-4 downloadable" id="4">
         <div class="font-weight-bold">
           <v-icon>mdi-priority-high</v-icon>
           Priorité
@@ -424,7 +423,7 @@ with this file. If not, see
           {{ detailedTicket.priority }}
         </div>
       </div>
-      <div class="mb-4">
+      <div class="mb-4 downloadable" id="5">
         <div class="font-weight-bold">
           <v-icon>mdi-account</v-icon>
           Déclarant
@@ -433,14 +432,14 @@ with this file. If not, see
           {{ detailedTicket.userName || "Non défini" }}
         </div>
       </div>
-      <div class="mb-4">
+      <div class="mb-4 downloadable" id="6">
         <div class="font-weight-bold">
           <v-icon>mdi-map-marker</v-icon>
           Espace
         </div>
         <div class="pl-8">{{ detailedTicket.elementSelected.name }}</div>
       </div>
-      <div class="mb-4">
+      <div class="mb-4 downloadable" id="7">
         <div class="font-weight-bold">
           <v-icon>mdi-sitemap</v-icon>
           Workflow & Process
@@ -450,7 +449,7 @@ with this file. If not, see
           {{ detailedTicket.process.name }}
         </div>
       </div>
-      <div class="mb-4">
+      <div class="mb-4 downloadable" id="8">
         <div class="font-weight-bold">
           <v-icon>mdi-step-forward</v-icon>
           Étape
@@ -465,14 +464,14 @@ with this file. If not, see
           {{ detailedTicket.step.name }}
         </div>
       </div>
-      <div>
+      <div class="downloadable" id="9">
         <div class="font-weight-bold">
           <v-icon>mdi-text-box</v-icon>
           Description
         </div>
         <div class="pl-8">{{ detailedTicket.description }}</div>
       </div>
-      <div class="my-4">
+      <div class="my-4 downloadable" id="10">
         <div class="font-weight-bold">LOGS</div>
         <v-simple-table class="text-left">
           <template v-slot:default>
@@ -496,7 +495,11 @@ with this file. If not, see
           </template>
         </v-simple-table>
       </div>
-      <div v-if="detailedTicket.annotation_list.length > 0" class="my-4">
+      <div
+        v-if="detailedTicket.annotation_list.length > 0"
+        class="my-4 downloadable"
+        id="11"
+      >
         <div class="font-weight-bold">ANNOTATIONS</div>
         <v-simple-table class="text-left">
           <template v-slot:default>
@@ -522,12 +525,15 @@ with this file. If not, see
         </v-simple-table>
       </div>
       <div v-if="detailedTicket.file_list.length > 0" class="mt-4">
-        <div class="font-weight-bold my-3">PIÈCES JOINTES</div>
+        <div class="font-weight-bold my-3 downloadable" id="12">
+          PIÈCES JOINTES
+        </div>
         <img
           v-for="(image, i) in image_list"
           :key="i"
           :src="image.src"
-          class="pa-3"
+          class="pa-3 downloadable"
+          :id="13 + i"
           style="max-width: 100%; height: auto"
         />
       </div>
@@ -547,7 +553,6 @@ export default {
 
   data: () => ({
     el: { name: "Bâtiment" },
-    path: {},
     firstTile: {},
     domain_filter: [],
     step_filter: [],
@@ -558,6 +563,7 @@ export default {
     selectedId: 0,
     c_index: 0,
     showPDF: false,
+    PDFparts: [],
   }),
 
   computed: {
@@ -642,15 +648,10 @@ export default {
         this.step_filter.includes(d["Étape"])
       );
     },
-    domains() {
-      return [...new Set(this.tableData.map((t) => t.Domaine))];
-    },
-    domainFilteredTickets() {
-      if (this.domain_filter.length === 0 || this.tableData.length === 0)
-        return this.tableData;
-      return this.tableData.filter((d) =>
-        this.domain_filter.includes(d.Domaine)
-      );
+    isDownloadable() {
+      const requiredLength = document.querySelectorAll(".downloadable").length;
+      const currentLength = this.PDFparts.length;
+      return requiredLength > 0 && currentLength === requiredLength;
     },
   },
 
@@ -702,17 +703,17 @@ export default {
     async downloadPDF() {
       this.showPDF = !this.showPDF;
       setTimeout(() => {
-        const doc = document.querySelector("#pdf-div");
-        html2canvas(doc).then((can) => {
-          this.showPDF = !this.showPDF;
-          can.toBlob((blob) => {
-            const url = URL.createObjectURL(blob);
-            const w = window.open(url);
-            w.document.close();
-            w.print();
+        const docs = document.querySelectorAll(".downloadable");
+        this.showPDF = !this.showPDF;
+        for (const el of docs)
+          html2canvas(el).then((canvas) => {
+            const b64 = canvas.toDataURL();
+            this.PDFparts.push({
+              index: el.id,
+              html: `<div><img style="margin-bottom: 12px; max-width: 100%; height: auto" src="${b64}" /></div>`,
+            });
           });
-        });
-      }, 1);
+      }, 10);
     },
   },
 
@@ -730,33 +731,35 @@ export default {
   },
 
   watch: {
-    async el() {
+    async el(v) {
       this.loaded = false;
-      await this.setTickets(this.el.dynamicId);
+      await this.setTickets(v.dynamicId);
       this.loaded = true;
+    },
+    async isDownloadable(v) {
+      if (v) {
+        const mywindow = window.open("", "PRINT", "height=1000,width=900");
+
+        mywindow.document.write(
+          `<html><head><title> ${this.detailedTicket.name} </title>`
+        );
+        mywindow.document.write("</head><body >");
+        for (const part of this.PDFparts.sort((a, b) => a.index - b.index)) {
+          mywindow.document.writeln(part.html);
+        }
+        await mywindow.document.writeln("</body></html>");
+
+        mywindow.document.close();
+        mywindow.focus();
+        mywindow.print();
+        this.PDFparts = [];
+      }
     },
   },
 };
 </script>
 
 <style scoped>
-@media screen {
-  #screenarea {
-    display: block;
-  }
-  #printarea {
-    display: none;
-  }
-}
-@media print {
-  #screenarea {
-    display: none;
-  }
-  #printarea {
-    display: block;
-  }
-}
-
 html {
   overflow-y: auto !important;
 }
@@ -828,15 +831,5 @@ a:hover {
   background-color: #eee;
   background-size: contain;
   background-position: center center;
-}
-
-@page {
-  size: A4 portrait;
-  margin: 27mm 16mm 27mm 16mm;
-  counter-increment: page;
-  @bottom-right {
-    content: "Page " counter(page);
-    content: "Page " counter(page) " of " counter(pages);
-  }
 }
 </style>
