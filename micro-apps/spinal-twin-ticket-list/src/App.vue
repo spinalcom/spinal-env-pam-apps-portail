@@ -165,11 +165,15 @@ with this file. If not, see
         </div>
       </div>
     </v-card>
+
+    <!--Dialog background-->
     <div
       v-show="showDialog"
       class="dialog-background"
       @click="switchPopUp"
     ></div>
+
+    <!--Dialog box to display the details of the tcket-->
     <v-card
       v-if="detailedTicket"
       elevation="24"
@@ -197,7 +201,7 @@ with this file. If not, see
           style="height: 60%"
           class="d-flex flex-row pb-4 justify-space-between"
         >
-          <div style="width: 40%" class="overflow-y-auto">
+          <div style="width: 40%" class="d-flex flex-column">
             <div class="mb-4">
               <div class="font-weight-bold">
                 <v-icon>mdi-account</v-icon>
@@ -240,12 +244,14 @@ with this file. If not, see
                 {{ detailedTicket.step.name }}
               </div>
             </div>
-            <div>
+            <div class="d-flex flex-column overflow-y-hidden">
               <div class="font-weight-bold">
                 <v-icon>mdi-text-box</v-icon>
                 Description
               </div>
-              <div class="pl-8">{{ detailedTicket.description }}</div>
+              <div class="pl-8 overflow-y-auto">
+                {{ detailedTicket.description }}
+              </div>
             </div>
           </div>
           <!--carousel-->
@@ -375,7 +381,7 @@ with this file. If not, see
       <v-divider></v-divider>
       <v-card-actions class="pa-4" style="height: 64px">
         <v-btn text color="primary" @click="downloadPDF()">
-          Télécharger au format PDF
+          Imprimer le ticket
         </v-btn>
         <v-spacer></v-spacer>
         <v-btn @click="switchPopUp" color="blue darken-4" text class="bold">
@@ -383,6 +389,8 @@ with this file. If not, see
         </v-btn>
       </v-card-actions>
     </v-card>
+
+    <!--Content of the pdf file to be downloaded-->
     <div id="pdf-div" v-if="detailedTicket" v-show="showPDF" class="pa-4">
       <div class="text-center title font-weight-bold mb-10 downloadable" id="0">
         Détails du ticket n° {{ detailedTicket.dynamicId }}
