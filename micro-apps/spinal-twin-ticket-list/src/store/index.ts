@@ -6,7 +6,6 @@ import {
   getPositionAsync,
   getRoomListAsync,
   getTicketDetailsAsync,
-  getTicketWorkflowAsync,
   getWorkflowListAsync,
   getWorkflowTreeAsync,
 } from "../api-requests";
@@ -44,6 +43,8 @@ function toManageableTicket(ticket: any) {
         0
     ),
     Déclarant: ticket.userName || "ADMIN",
+    color: ticket.step.color,
+    attachement: ticket.file_list.length > 0,
   };
 }
 

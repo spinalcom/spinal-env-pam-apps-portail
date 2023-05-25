@@ -24,6 +24,7 @@ with this file. If not, see
 
 <template>
   <v-app id="application">
+    <!--Download & selector-->
     <div style="width: 100%" class="d-flex justify-end">
       <sc-download-button
         class="ma-1 pa-1"
@@ -38,6 +39,8 @@ with this file. If not, see
         :first-tile="firstTile"
       ></sc-space-selector>
     </div>
+
+    <!--Ticket table-->
     <v-card
       class="ticket-table ma-2 d-flex flex-column table-card rounded-lg flex-grow-1"
       elevation="5"
@@ -161,6 +164,23 @@ with this file. If not, see
               style="margin-left: -16px; width: calc(100% + 32px)"
             ></v-progress-linear>
             <template v-slot:no-data> Pas de données disponibles </template>
+            <template v-slot:item.Étape="{ item }">
+              <div
+                class="mr-1 rounded-circle ps-3 pt-3 d-inline-block"
+                :style="{
+                  background: item.color + ' no-repeat padding-box',
+                }"
+              ></div>
+              {{ item.Étape }}
+            </template>
+            <template v-slot:item.attachement="{ item }">
+              <div class="text-center">
+                <v-icon v-if="item.attachement" color="#0f0">
+                  mdi-check-circle-outline
+                </v-icon>
+                <v-icon v-else color="#f00">mdi-close-circle-outline</v-icon>
+              </div>
+            </template>
           </v-data-table>
         </div>
       </div>
@@ -595,7 +615,7 @@ export default {
       return this.images;
     },
     headers() {
-      const widths = [20, 20, 20, 13, 13, 13];
+      const widths = [20, 20, 19, 10, 10, 13, 8];
       return [
         "Nom",
         "Domaine",
@@ -603,9 +623,10 @@ export default {
         "Date de création",
         "Dernière modification",
         "Déclarant",
+        { text: "Pièces jointes", value: "attachement" },
       ].map((e, i) => ({
-        text: e,
-        value: e,
+        text: e.text || e,
+        value: e.value || e,
         width: widths[i] + "%",
         sort: [3, 4].includes(i) ? (a, b) => this.compareDate(a, b) : null,
       }));
