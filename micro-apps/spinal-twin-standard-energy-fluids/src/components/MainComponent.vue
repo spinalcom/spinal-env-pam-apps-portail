@@ -102,24 +102,34 @@
               <br>
 
               <div class="d-flex g flex-wrap">
-                <v-chip @click="star('root')"  :color="defaultFilter.color" filter style="color: white; cursor: pointer;">
-                  <v-avatar v-if="defaultFilter.star">
-                    <v-icon size="16" color="#ffc069">mdi-star</v-icon>
+                <v-chip @click="star('root')" :color="defaultFilter.color" filter style="color: white; cursor: pointer;">
+                  <div>
+                    <v-avatar v-if="defaultFilter.star">
+                      <v-icon size="16" color="#ffc069">mdi-star</v-icon>
+                    </v-avatar>
+                    {{ defaultFilter.name }}
+                  </div>
+                  <v-avatar v-if="!defaultFilter.star" style="cursor: pointer;" @click.stop="defaultFilter.lock = !defaultFilter.lock">
+                    <v-icon size="16" v-if="defaultFilter.lock">mdi-lock</v-icon>
+                    <v-icon size="16" v-else>mdi-lock-open</v-icon>
                   </v-avatar>
-                  {{ defaultFilter.name }}
+                  <v-avatar v-if="!defaultFilter.star" @click.stop="removeTempo('root')" style="cursor: pointer;">
+                    <v-icon size="16">mdi-close-octagon</v-icon>
+                  </v-avatar>
                 </v-chip>
-                <v-chip @click="star(tempo.name)" @click:close="removeTempo(tempo.name)" v-for="tempo in selectedFilter" close close-icon="mdi-close-octagon" :color="tempo.color" filter>
-                  <v-avatar v-if="tempo.star">
-                    <v-icon size="16" color="#ffc069">mdi-star</v-icon>
+                <v-chip @click="star(tempo.name)" v-for="tempo in selectedFilter" :key="tempo.name" :color="tempo.color" filter>
+                  <div >
+                    <v-avatar v-if="tempo.star">
+                      <v-icon size="16" color="#ffc069">mdi-star</v-icon>
+                    </v-avatar>
+                    {{ tempo.name }}
+                  </div>
+                  <v-avatar v-if="!tempo.star" style="cursor: pointer;" @click.stop="tempo.lock = !tempo.lock">
+                    <v-icon size="16" v-if="tempo.lock">mdi-lock</v-icon>
+                    <v-icon size="16" v-else>mdi-lock-open</v-icon>
                   </v-avatar>
-                  {{ tempo.name }}
-                  <v-avatar  @click="tempo.lock = !tempo.lock" style="cursor: pointer;">
-                    <v-icon size="16" v-if="tempo.lock">
-                      mdi-lock
-                    </v-icon>
-                    <v-icon size="16" v-else>
-                      mdi-lock-open
-                    </v-icon>
+                  <v-avatar v-if="!tempo.star" @click.stop="removeTempo(tempo.name)" style="cursor: pointer;">
+                    <v-icon size="16">mdi-close-octagon</v-icon>
                   </v-avatar>
                 </v-chip>
               </div>
@@ -369,7 +379,6 @@ class App extends Vue {
     this.interval();
     // this.todaysCard = await getTodaysData(this.space, this.controlEndpoints);
   }
-
   
   get stack() {
     let u = this.controlEndpoints[0].stackGroup;
@@ -620,10 +629,22 @@ class App extends Vue {
   }
 
   star(name: string): void {
-    console.log('starr');
-    
+    const oldIndex = this.selectedFilter.findIndex(e => e.star === true);
+    if (name === 'root') {
+      this.defaultFilter.star = true;
+      console.log(oldIndex);
+      if (oldIndex !== -1)
+        this.selectedFilter[oldIndex].star = false;
+    }
+    else {
+      this.defaultFilter.star = false;
+      const index = this.selectedFilter.findIndex(f => f.name === name);
+      if (oldIndex !== -1 && index === oldIndex) return ;
+      this.selectedFilter[index].star = true;
+      if (oldIndex !== -1)
+        this.selectedFilter[oldIndex].star = false;
+    }
   }
-  
 }
 export default App;
 </script>
