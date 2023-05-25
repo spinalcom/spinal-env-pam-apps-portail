@@ -25,48 +25,50 @@ with this file. If not, see
 <template>
   <!--Binding a key to the component-->
   <v-app id="application">
-    <sc-spinal-navigator class="ma-1 pa-1"
-                         v-model="navigator"
-                         :path.sync="path"
-                         :max-depth="2"
-                         :expand-selector="expand"
+    <sc-spinal-navigator
+      class="ma-1 pa-1"
+      v-model="navigator"
+      :path.sync="path"
+      :max-depth="2"
+      :expand-selector="expand"
     ></sc-spinal-navigator>
     <v-main v-if="loading">
       <sc-loader></sc-loader>
     </v-main>
     <v-main style="position: absolute; margin-top: 3.5%; width: 100%" v-else>
-      <sc-bar-card id="bar-section"
-          :title="'FRÉQUENTATION'"
-          :labels="barChartData.labels"
-          :datasets="barChartData.datasets"
+      <sc-bar-card
+        id="bar-section"
+        :title="'FRÉQUENTATION'"
+        :labels="barChartData.labels"
+        :datasets="barChartData.datasets"
       ></sc-bar-card>
 
       <v-row id="stat-section">
         <v-col>
           <sc-stat-card
-              :value="peopleNumber('year')"
-              :unit="'personnes'"
-              :title="'EN MOYENNE DANS LE BÂTIMENT'"
-              :subtitle="'CETTE ANNÉE'"
-              :color="'#14202c'"
+            :value="peopleNumber('year')"
+            :unit="'personnes'"
+            :title="'EN MOYENNE DANS LE BÂTIMENT'"
+            :subtitle="'CETTE ANNÉE'"
+            :color="'#14202c'"
           ></sc-stat-card>
         </v-col>
         <v-col>
           <sc-stat-card
-              :value="peopleNumber('week')"
-              :unit="'personnes'"
-              :title="'EN MOYENNE DANS LE BÂTIMENT'"
-              :subtitle="'CETTE SEMAINE'"
-              :color="'#14202c'"
+            :value="peopleNumber('week')"
+            :unit="'personnes'"
+            :title="'EN MOYENNE DANS LE BÂTIMENT'"
+            :subtitle="'CETTE SEMAINE'"
+            :color="'#14202c'"
           ></sc-stat-card>
         </v-col>
         <v-col>
           <sc-stat-card
-              :value="peopleNumber('day')"
-              :unit="'personnes'"
-              :title="'EN MOYENNE DANS LE BÂTIMENT'"
-              :subtitle="'AUJOURD\'HUI'"
-              :color="'#14202c'"
+            :value="peopleNumber('day')"
+            :unit="'personnes'"
+            :title="'EN MOYENNE DANS LE BÂTIMENT'"
+            :subtitle="'AUJOURD\'HUI'"
+            :color="'#14202c'"
           ></sc-stat-card>
         </v-col>
       </v-row>
@@ -175,7 +177,7 @@ export default {
 </script>
 
 <style lang="scss">
-html{
+html {
   overflow-y: auto !important;
 }
 

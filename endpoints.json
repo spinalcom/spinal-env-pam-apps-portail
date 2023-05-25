@@ -7,5 +7,6 @@
   "heating": "Chauffage",
   "autoconsommation": "Taux d'autoconsommation énergétique",
   "gain_co2_emission": "Gain en émission de CO2",
-  "energy_production": "Production d'énergie"
+  "energy_production": "Production d'énergie",
+  "occupation_rate": "Taux d'occupation"
 }
