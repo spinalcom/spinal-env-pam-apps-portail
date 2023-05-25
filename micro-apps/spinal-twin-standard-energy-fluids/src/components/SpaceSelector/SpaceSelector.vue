@@ -297,7 +297,7 @@ export default SpaceSelector;
 }
 
 .space-selector {
-  z-index: 1000;
+  z-index: 10;
   width: calc(100% - 0px);
   /* max-width: 500px; */
   height: 59px;

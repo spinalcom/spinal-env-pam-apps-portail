@@ -30,7 +30,7 @@
             <div class="CALMONTH">
               <span v-for="i in monthOffset(j)" :key="'o'+i"><div class="RECT"></div></span>
               <span v-for="i in monthDays(j)" :key="'d'+i">
-                <v-tooltip bottom>
+                <v-tooltip bottom :open-delay="0">
                   <template v-slot:activator="{ on, attrs }">
                     <span
                       v-bind="attrs"

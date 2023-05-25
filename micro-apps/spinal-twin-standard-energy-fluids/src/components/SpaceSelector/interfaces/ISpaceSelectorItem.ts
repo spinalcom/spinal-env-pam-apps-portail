@@ -33,4 +33,6 @@ export interface ISpaceSelectorItem extends IZoneItem {
   isLastInGrp: boolean;
   drawLink: number[];
   haveChildren: boolean;
+  area: number,
+  cp: number
 }

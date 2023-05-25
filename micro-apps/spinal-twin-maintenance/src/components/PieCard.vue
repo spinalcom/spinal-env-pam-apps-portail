@@ -106,9 +106,6 @@ export default {
           ]
         }
       }
-console.log('hear');
-      console.log(this.pieChartData[this.pieChartData.length-1].color);
-    console.log(this.pieChartData);
       const data = [...this.pieChartData];
       data.sort((e1, e2) => e1.value - e2.value).reverse();
       let sorted = [];

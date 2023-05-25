@@ -26,7 +26,7 @@ object = {
 }
 */
 module.exports = {
-    title: "CONSOMMATION D'ÉNERGIE",
+    title: "CONSOMMATION D'ÉNERGIE GLOBALE",
     subtitle: "Description de la consomation d'energie",
     chart: 'bar',
     unit: 'kWh',
@@ -36,11 +36,11 @@ module.exports = {
 
     // Cards title and subtitle
 
-    todaysCardTitle: 'Titre d\'aujourd\'hui',
-    todaysCardSubtitle: 'Description d\'aujourd\'hui',
+    todaysCardTitle: 'Title de la card moyenne',
+    todaysCardSubtitle: 'Description de la card moyenne',
 
-    averageCardTitle: 'Title de la card moyenne',
-    averageCardSubtitle: 'Description de la card moyenne',
+    averageCardTitle: 'Titre de la card consommation au m²',
+    averageCardSubtitle: 'Description de la consommation au m²',
 
     totalCardTitle: 'Title de la card totale',
     totalCardSubtitle: 'Description de la card totale',
@@ -63,54 +63,9 @@ module.exports = {
             averageSubtitle: '',
 
             totalTitle: 'Consommation totale',
-            totalSubtitle: 'TOTAL SUBTITLE',
+            totalSubtitle: 'Par rapport à la période précédente',
             root: true,
-        },
-        // {
-        //     label: 'Eclairage',
-        //     min: null,
-        //     max: 500,
-        //     name: 'Eclairage',
-        //     color: '#E8D712',
-        //     unit: 'kWh',
-        //     stackGroup: '01',
-
-        //     title: 'd\'éclairage consommée',
-        //     todayTitle: 'today',
-        //     subtitle: 'par rapport a l\'énergie globale',
-        //     todaySubtitle: 'today',
-
-        //     averageTitle: 'AVERAGE TEXT',
-        //     averageSubtitle: '',
-
-        //     totalTitle: 'TOTAL TEXT',
-        //     totalSubtitle: 'TOTAL SUBTITLE',
-
-        //     root: false,
-        // },
-        // {
-        //     label: 'Chauffage',
-        //     min: null,
-        //     max: 2500,
-        //     name: 'Chauffage',
-        //     color: '#5444ae',
-        //     unit: 'kWh',
-        //     stackGroup: '01',
-
-        //     title: 'd\'éclairage consommée',
-        //     todayTitle: 'today',
-        //     subtitle: 'par rapport a l\'énergie globale',
-        //     totalSubtitle: 'TOTAL SUBTITLE',
-
-        //     averageTitle: 'AVERAGE TEXT',
-        //     averageSubtitle: '',
-
-        //     totalTitle: 'TOTAL TEXT',
-        //     todaySubtitle: 'today',
-
-        //     root: false,
-        // },
-        
+        },        
     ],
     
     cards: ['total', 'average', 'today'], // ['total', 'average', 'today']

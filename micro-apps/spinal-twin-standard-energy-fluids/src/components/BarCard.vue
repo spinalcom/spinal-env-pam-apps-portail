@@ -5,7 +5,7 @@
     elevation="5"
     outlined
   >
-  <v-card-title class="card-title flex-shrink-1 justify-space-between" style="height: fit-content !important; padding: 0 !important">
+    <v-card-title class="card-title flex-shrink-1 justify-space-between" style="height: fit-content !important; padding: 0 !important">
       <p class="mb-0" style="padding: 10px;">
         {{ title }}
         <br>
@@ -13,7 +13,7 @@
       </p>
       <div class="d-flex align-center mln6" style="position: absolute; right: calc(50% - 55px)" v-if="isYear">
         <v-icon  icon style="color: #0000008a !important" class="pr-3" size="default">mdi-poll</v-icon>
-        <v-switch @click="$emit('stack', switchValue)" style="margin-top: 1px; padding: 0px;height: 24px;" v-model="switchValue" inset color="blue-grey" dense/>
+        <v-switch @click="$emit('calendar', switchValue)" style="margin-top: 1px; padding: 0px;height: 24px;" v-model="switchValue" inset color="blue-grey" dense/>
         <v-icon  icon style="color: #0000008a !important" size="default">mdi-calendar-month-outline</v-icon>
       </div>
       <div v-if="prev_next" style="height: 40px; align-self: flex-start; padding-top: 10px; padding-right: 10px;">
@@ -23,11 +23,12 @@
     </v-card-title>
     <div class="d-flex flex-column flex-grow-1">
       <slot name="extras" v-if="switchValue && isYear"></slot>
-      <div class="flex-grow-1" style="height: 0;" v-if="switchValue && isYear">
+      <div class="flex-grow-1 pt-12" style="height: 0;" v-if="switchValue && isYear">
         <CalendarAndStripe :results="calendar" :unit="optional.unit" v-if="calendar && calendar.d && calendar.d.length>0"/>
       </div>
       <div class="flex-grow-1" style="height: 0;" v-else>
-        <Bar :data="barChartData" :chart-id="'1'" :options="barChartOptions" ref="barChart"/>
+        
+        <Bar v-if="load" :data="barChartData" :chart-id="'1'" :options="barChartOptions" ref="barChart"/>
       </div>
     </div>
   </v-card>
@@ -112,6 +113,7 @@ export default {
   },
 
   data: () => ({
+    load: true,
     isD: false,
     switchValue: false,
     results: {
@@ -214,7 +216,7 @@ export default {
     barChartOptions() {
       return {
         maintainAspectRatio: false,
-        barThickness: 20,
+        // barThickness: this.datasets.length >= 3 ? 10 : 20,
         transitions: {
           show: {
             animations: {
@@ -231,6 +233,10 @@ export default {
             },
           },
         },
+        rectangle: {
+            barPercentage: 1, // set the bar width to be automatic
+            categoryPercentage: 0.8, // set the category width to be automatic
+          },
         scales: {
           y: {
             border: {
@@ -317,6 +323,11 @@ export default {
             // },
           }
         },
+        // layout: {
+        //   padding: {
+        //     left: 100
+        //   }
+        // }
       };
     },
   },
@@ -335,18 +346,16 @@ export default {
       set.borderWidth = 1;
       set.borderColor = "rgba(0,0,0,0)";
     });
-
-    // Enregistrement du plugin de légende en HTML/CSS
   },
   
   methods: {
-    
+
   },
   mounted() {
     
   },
   watch: {
-    datasets() {
+    datasets(v) {
       const radius = 4;
       const borderRadius = {
         topLeft: radius,
@@ -386,6 +395,21 @@ export default {
   letter-spacing: 1.1px !important;
   color: #000000DE !important;
   font-size: 20px !important;
+}
+
+
+.plus-button {
+  background: #f5f5f5 !important;
+  position: absolute;
+  top: 90px;
+  left: 50px;
+  font-size: 14px !important;
+  border-radius: 10px;
+  min-width: 36px !important;
+  box-shadow: none;
+  border: 1px solid #EAEEF0 !important;
+  width: 48px !important;
+  height: 36px !important;
 }
 
 ::v-deep .theme--light.v-input--switch .v-input--switch__thumb, .theme--light.v-input--switch .v-input--switch__track {

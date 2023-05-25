@@ -29,12 +29,22 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
   for (const controlEndpoint of controlEndpoints) {
     cpList = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/control_endpoint_list`);
 
-    cpList = cpList.data[0].endpoints;
-    for (let i = 0; i < cpList.length; i++) {
-      if (cpList[i].name === controlEndpoint.name) {
-        cpID = cpList[i].dynamicId;
+    // cpList = cpList.data[0].endpoints;
+    // for (let i = 0; i < cpList.length; i++) {
+    //   if (cpList[i].name === controlEndpoint.name) {
+    //     cpID = cpList[i].dynamicId;
+    //   }
+    // }
+
+    for (let j = 0; j < cpList.data.length; j++) {
+      for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
+        if (cpList.data[j].endpoints[i].name === controlEndpoint.name) {
+          cpID = cpList.data[j].endpoints[i].dynamicId;
+          console.log(cpID)
+        }
       }
     }
+    
     if (cpID) {
     timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`);
     timeSeries = timeSeries.data;
@@ -279,10 +289,20 @@ export async function getTodaysData(space, controlEndpoints) {
   let cpList, cpID, timeSeries, sumSeries, sub;
   for (const controlEndpoint of controlEndpoints) {
     cpList = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/control_endpoint_list`);
-    cpList = cpList.data[0].endpoints;
-    for (let i = 0; i < cpList.length; i++) {
-      if (cpList[i].name === controlEndpoint.name) {
-        cpID = cpList[i].dynamicId;
+    console.log(cpList.data);
+    // cpList = cpList.data[1].endpoints;
+    // for (let i = 0; i < cpList.length; i++) {
+    //   if (cpList[i].name === controlEndpoint.name) {
+    //     cpID = cpList[i].dynamicId;
+    //   }
+    // }
+
+    for (let j = 0; j < cpList.data.length; j++) {
+      for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
+        if (cpList.data[j].endpoints[i].name === controlEndpoint.name) {
+          cpID = cpList.data[j].endpoints[i].dynamicId;
+          console.log(cpID)
+        }
       }
     }
     if (cpID) {

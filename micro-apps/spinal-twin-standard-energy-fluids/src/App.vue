@@ -30,6 +30,8 @@
 </template>
 
 <script lang="ts">
+
+import env from '../config';
 import {
   ISpaceSelectorItem,
   SpaceSelector,
@@ -54,6 +56,7 @@ interface IItemDatatmp {
   },
 })
 class App extends Vue {
+  controlEndpoints = env.controlEndpoints;
   time = { name: "SEMAINE", value: 'week' }
   selectedFloor = '';
   openSpaceSelector = false;
@@ -66,7 +69,7 @@ class App extends Vue {
     staticId: '1',
     color: '',
     dynamicId: 0,
-    type: 'geographicBuilding',
+    type: 'building',
     level: 0,
     isOpen: true,
     loading: false,
@@ -75,6 +78,8 @@ class App extends Vue {
     isLastInGrp: true,
     drawLink: [],
     haveChildren: true,
+    area: 0,
+    cp: 0
   } as ISpaceSelectorItem;
   defaultSelectedTime = {
     name: 'Mois',
@@ -83,7 +88,23 @@ class App extends Vue {
     haveChildren: false
   }
 
-  selectedTime = {
+  // selectedTime = {
+  //     name: 'Trimestre',
+  //     next: 'Trimestre suivant',
+  //     prev: 'Trimestre précédent',
+  //     staticId: '3derniersmois',
+  //     dynamicId: 2,
+  //     level: 0,
+  //     isOpen: true,
+  //     loading: false,
+  //     patrimoineId: '3derniersmois',
+  //     parents: [],
+  //     isLastInGrp: true,
+  //     drawLink: [],
+  //     haveChildren: false,
+  //   };
+
+    selectedTime = {
       name: 'Mois',
       next: 'Mois suivant',
       prev: 'Mois précédent',
@@ -100,13 +121,15 @@ class App extends Vue {
     };
 
   async mounted() {
-    let building = await getBuilding();
+    let building = await getBuilding(this.controlEndpoints);
     this.defaultSelected.name = building.name;
+    this.defaultSelected.area = building.area;
+    this.defaultSelected.cp = building.cp;
     this.defaultSelected.dynamicId = building.dynamicId;
   }
   onTimeSelectOpen(item?: any): { name: string; staticId: string; dynamicId: number; level: number; isOpen: boolean; loading: boolean; patrimoineId: string; parents: never[]; isLastInGrp: boolean; drawLink: never[]; haveChildren: boolean; }[] {
     if (item) {
-      if (item.name == 'Temps-réel') {
+      if (item.name == 'Journée') {
         this.selectedTime.next = 'Jour suivant';
         this.selectedTime.prev = 'Jour précédent';
       }
@@ -119,8 +142,8 @@ class App extends Vue {
         this.selectedTime.prev = 'Mois précédent';
       }
       else if (item.name == '3 mois') {
-        this.selectedTime.next = '3 mois suivants';
-        this.selectedTime.prev = '3 mois précédents';
+        this.selectedTime.next = 'Trimestre suivants';
+        this.selectedTime.prev = 'Trimestre précédents';
       }
       else if (item.name == 'Année') {
         this.selectedTime.next = 'Année suivante';
@@ -130,7 +153,7 @@ class App extends Vue {
     }
     let timeOptions: any[] = [];
     timeOptions.push({
-      name: 'Temps-réel',
+      name: 'Journée',
       next: 'Jour suivant',
       prev: 'Jour précédent',
       staticId: 'Jour',
@@ -175,8 +198,8 @@ class App extends Vue {
       haveChildren: false,
     });
     timeOptions.push({
-      name: '3 mois',
-      staticId: '3derniersmois',
+      name: 'Trimestre',
+      staticId: 'Trimestre',
       dynamicId: 2,
       level: 0,
       isOpen: true,
@@ -221,12 +244,12 @@ class App extends Vue {
     var floorList: any[] = [];
     switch (item?.type) {
       case undefined:
-        const building = await getBuilding();
+        const building = await getBuilding(this.controlEndpoints);
         return[{
               name: building.name,
               staticId: building.staticId,
               dynamicId: building.dynamicId,
-              type: 'geographicBuilding',
+              type: 'building',
               level: 0,
               isOpen: true,
               loading: false,
@@ -235,10 +258,13 @@ class App extends Vue {
               isLastInGrp: true,
               drawLink: [],
               haveChildren: false,
+              area: building.area,
+              cp: '',
             }];
-      case 'geographicBuilding':
-        const floors = await getFloors();
+      case 'building':
+        const floors = await getFloors(this.controlEndpoints);
         for (let floor of floors) {
+          
           floorList.push({
               name: floor.name,
               staticId: floor.staticId,
@@ -252,8 +278,10 @@ class App extends Vue {
               isLastInGrp: true,
               drawLink: [],
               haveChildren: false,
+              area: floor.area,
+              cp: floor.cp
             })
-        }
+        }        
         return floorList;
       default:
         return [];

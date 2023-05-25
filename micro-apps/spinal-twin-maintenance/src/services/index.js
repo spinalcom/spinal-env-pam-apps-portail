@@ -511,7 +511,8 @@ export async function getData() {
           if (process.type === "SpinalServiceTicketProcess") {
             ticketList = [];
             totalNumberOfTickets = 0;
-            for (const step of process.children) {              
+            for (const step of process.children) {   
+              console.log(step);           
               if (step.name !== 'Clôturée' && step.name !== 'Refusée' &&  step.name !== 'Archived') {
                 ticketList = step.children;
                 for (let i = 0; i < step.children.length; i++) {
@@ -548,8 +549,28 @@ export async function getData() {
     //     domains[domain].color = gradientColors[++colorIndex];
     //   }
     // }
-
+/*
+    const ticketPromises = todaysTickets.data.map(async t => {
+      if (t.type === 'SpinalSystemServiceTicketTypeTicket') {
+        try {
+          const readDetailsResponse = await HTTP.get(`building/${buildingId}/ticket/${t.dynamicId}/read_details`);
+          if (readDetailsResponse.data && readDetailsResponse.data.log_list[0] && moment(readDetailsResponse.data.log_list[0].date).isBetween(bd.valueOf(), ed.valueOf())) {
+            return 1;
+          } else {
+            return 0;
+          }
+        } catch (error) {
+          console.error(`Error fetching read details for ticket ${t.dynamicId}: ${error}`);
+          return 0;
+        }
+      }
+      return 0;
+    });
+*/
     const ticketPromises = finalTicketList.map(async t => {
+      try {
+
+
       const readDetailsResponse = await HTTP.get(
         `building/${buildingId}/ticket/${t.dynamicId}/read_details`
       );
@@ -578,7 +599,23 @@ export async function getData() {
             decade: moment(readDetailsResponse.data.log_list[0].date).format('YYYY')
           }
         };
+      }
+      catch (error) {
+      console.error(`Error fetching read details for ticket ${t.dynamicId}: ${error}`);
 
+        return {
+          domain: '',
+          name: '',
+          step: '',
+          date: 0,
+          formatDate: {
+            week: moment(0).format('DDMMYYYY'),
+            month: moment(0).format('DDMMYYYY'),
+            year: moment(0).format('MM YYYY'),
+            decade: moment(0).format('YYYY')
+          }
+        }
+      }
     });
     
     const ticketListStream = await Promise.all(ticketPromises);
@@ -611,6 +648,7 @@ export async function ticketsCreatedtoday() {
     
     const ticketPromises = todaysTickets.data.map(async t => {
       if (t.type === 'SpinalSystemServiceTicketTypeTicket') {
+        try {
         const readDetailsResponse = await HTTP.get(`building/${buildingId}/ticket/${t.dynamicId}/read_details`);
         
         if (moment(readDetailsResponse.data && readDetailsResponse.data.log_list[0] && readDetailsResponse.data.log_list[0].date).isBetween(moment(todaysDate).startOf('day').valueOf(), moment(todaysDate).endOf('day').valueOf())) {
@@ -618,6 +656,10 @@ export async function ticketsCreatedtoday() {
         } else {
           return 0; // don't increment counter
         }
+      } catch (error) {
+        console.error(`Error fetching read details for ticket ${t.dynamicId}: ${error}`);
+        return 0;
+      }
         }
         return 0;
     });
@@ -684,15 +726,20 @@ export async function ticketsCreated(timestamp, period) {
     const todaysTickets = await HTTP.post(`building/${buildingId}/find_node_in_context_by_date`, data);
     
     const ticketPromises = todaysTickets.data.map(async t => {
-        if (t.type === 'SpinalSystemServiceTicketTypeTicket') {
+      if (t.type === 'SpinalSystemServiceTicketTypeTicket') {
+        try {
           const readDetailsResponse = await HTTP.get(`building/${buildingId}/ticket/${t.dynamicId}/read_details`);
-        if (readDetailsResponse.data && readDetailsResponse.data.log_list[0] && moment(readDetailsResponse.data.log_list[0].date).isBetween(bd.valueOf(), ed.valueOf())) {
-          return 1;
-        } else {
+          if (readDetailsResponse.data && readDetailsResponse.data.log_list[0] && moment(readDetailsResponse.data.log_list[0].date).isBetween(bd.valueOf(), ed.valueOf())) {
+            return 1;
+          } else {
+            return 0;
+          }
+        } catch (error) {
+          console.error(`Error fetching read details for ticket ${t.dynamicId}: ${error}`);
           return 0;
         }
-        }
-        return 0;
+      }
+      return 0;
     });
 
     const ticketListStream = await Promise.all(ticketPromises);

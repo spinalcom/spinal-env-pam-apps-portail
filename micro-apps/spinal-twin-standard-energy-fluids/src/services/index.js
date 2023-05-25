@@ -2,23 +2,67 @@ import { HTTP } from "./http-constants";
 import moment from 'moment';
 import fr from 'moment/locale/fr';
 
-export async function getBuilding() {
+export async function getBuilding(cp) {
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(`building/${buildingId}/building/read`);
+  let cpList = await HTTP.get(`building/${buildingId}/node/${result.data.dynamicId}/control_endpoint_list`);
+  for (let j = 0; j < cpList.data.length; j++) {
+    for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
+      if (cpList.data[j].endpoints[i].name === cp[0].name) {
+        result.data.cp = cpList.data[j].endpoints[i].dynamicId;
+      }
+    }
+  }
   return result.data;
 }
 
-export async function getFloors() {
+export async function getFloors(cp) {
   const buildingId = localStorage.getItem('idBuilding');
+  // get all floors
   const result = await HTTP.get(`building/${buildingId}/floor/list`);
-  return result.data;
+  // for each floor get its cp names
+  let promises = result.data.map(async (floor) => {
+    let cpList = await HTTP.get(`building/${buildingId}/node/${floor.dynamicId}/control_endpoint_list`);
+    for (let j = 0; j < cpList.data.length; j++) {
+      for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
+        // if there is a match add floor to array + area + cp id
+        if (cpList.data[j].endpoints[i].name === cp[0].name) {
+          let area = await HTTP.get(`building/${buildingId}/node/${floor.dynamicId}/attributsList`);
+          area = area.data[0].attributs[area.data[0].attributs.findIndex(e => e.label === 'area')].value;
+          floor.area = area;
+          floor.cp = cpList.data[j].endpoints[i].dynamicId;
+          return floor
+        }
+      }
+    }
+    return null;
+  });
+  let values = await Promise.all(promises);
+  let filteredValues = values.filter((value) => value !== null);
+  return filteredValues;
 }
 
-export async function getData(space, tempo, currentTimestamp, controlEndpoints, type) {
+async function getArea(space) {
+  const buildingId = localStorage.getItem("idBuilding");
+
+  if (space.type === 'building') {
+    const result = await HTTP.get(`building/${buildingId}/building/read`);
+    return +result.data.area;
+  }
+  else if (space.type === 'floor') {
+    let area = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/attributsList`);
+    area = area.data[0].attributs[area.data[0].attributs.findIndex(e => e.label === 'area')].value;
+    return +area;
+  }
+}
+
+export async function getData(space, tempo, currentTimestamp, controlEndpoints) {
+  const spaceArea = await getArea(space);
+  var labelLegend = '';
   var calendar = [];
   var calendarObject;
   const buildingId = localStorage.getItem("idBuilding");
-  let avg = [], total = [];
+  let avg = [], total = [], meter = [];
   let periodArray = getPeriodArray(currentTimestamp, tempo);
   let label = periodArray[0];
   let tooltipDate = periodArray[5];
@@ -28,30 +72,42 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints, 
   for (const controlEndpoint of controlEndpoints) {
     cpList = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/control_endpoint_list`);
 
-    cpList = cpList.data[0].endpoints;
-    for (let i = 0; i < cpList.length; i++) {
-      if (cpList[i].name === controlEndpoint.name) {
-        cpID = cpList[i].dynamicId;
+    // cpList = cpList.data[0].endpoints;
+    // for (let i = 0; i < cpList.length; i++) {
+    //   if (cpList[i].name === controlEndpoint.name) {
+    //     cpID = cpList[i].dynamicId;
+    //   }
+    // }
+
+    for (let j = 0; j < cpList.data.length; j++) {
+      for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
+        if (cpList.data[j].endpoints[i].name === controlEndpoint.name) {
+          cpID = cpList.data[j].endpoints[i].dynamicId;
+        }
       }
     }
+    
     if (cpID) {
-    timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`);
-    timeSeries = timeSeries.data;
+      timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`);
+      // timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/11-04-2023 00:00:00/11-04-2023 23:59:59`);
+      timeSeries = timeSeries.data;
     // prepareCalendar(timeSeries, currentTimestamp, controlEndpoint.name);
     // prevTimeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/${periodArray[3]}/${periodArray[4]}`);
     // prevTimeSeries = prevTimeSeries.data;
 
 
     let processedTimeSeries = [];
-    if (tempo === 'Temps-réel') {
-      label.forEach(day => {
+    if (tempo === 'Journée') {
+      labelLegend = moment(currentTimestamp).format('DD/MM/YYYY');
+      label.forEach(hour => {
         processedTimeSeries.push(
-          timeSeries.filter(elem => moment(elem.date).format('DD MMM') === day)
+          timeSeries.filter(elem => moment(elem.date).format('HH') === hour)
             .reduce((sum, elem) => sum + elem.value, 0)
         );
       });
-
-    } else if (tempo === 'Semaine') {
+    }
+    else if (tempo === 'Semaine') {
+      labelLegend = 'S' + moment(currentTimestamp).format('WW') + ' (' + moment(currentTimestamp).startOf('week').format('DD/MM/YYYY') + ' - ' + moment(currentTimestamp).endOf('week').format('DD/MM/YYYY') + ')';
       label.forEach(day => {
         processedTimeSeries.push(
           timeSeries.filter(elem => moment(elem.date).format('DD MMM') === day)
@@ -60,6 +116,7 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints, 
       });
 
     } else if (tempo === 'Mois') {
+      labelLegend = moment(currentTimestamp).format('MMMM YYYY');
       label.forEach(day => {
         processedTimeSeries.push(
           timeSeries.filter(elem => moment(elem.date).format('DD MMM') === day)
@@ -67,6 +124,7 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints, 
         );
       });
     } else if (tempo === 'Année') {
+      labelLegend = moment(currentTimestamp).format('YYYY');
       calendarObject = {}
       calendarObject.y = moment(currentTimestamp).format('YYYY');
       calendarObject.n = controlEndpoint.name;
@@ -87,7 +145,8 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints, 
             .reduce((sum, elem) => sum + elem.value, 0)
         );
       });
-    } else if (tempo === '3 mois') {
+    } else if (tempo === 'Trimestre') {
+      labelLegend = periodArray[6] + ' ' + moment(currentTimestamp).format('YYYY');
       label.forEach(day => {
         processedTimeSeries.push(
           timeSeries.filter(elem => moment(elem.date).format('DD MMM') === day)
@@ -97,21 +156,24 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints, 
     } else {
       processedTimeSeries = timeSeries;
     }
-
     sumSeries = timeSeries.reduce((accumulator, current) => accumulator + current.value, 0);
     if (controlEndpoint.root == true) {
       prevTotRoot = sumSeries;
     }
     // prevSumSeries = prevTimeSeries.reduce((accumulator, current) => accumulator + current.value, 0);
+    // let comparison = '∞';
+    // if (prevSumSeries) {
+    //   comparison = (((sumSeries - prevSumSeries) / prevSumSeries) * 100).toFixed(1);
+    // }
     let a = (sumSeries * 100 / prevTotRoot).toFixed(1);
     if (controlEndpoint.root == true) {
       total.push({
         color: controlEndpoint.color,
         value: sumSeries,
         unit: controlEndpoint.unit,
-        title: controlEndpoint.totalTitle,
-        subValue: '100%',
-        subtitle: controlEndpoint.totalSubtitle,
+        title: labelLegend.charAt(0).toUpperCase() + labelLegend.slice(1),
+        subValue: ' ',
+        subtitle: 'Consommation de référence',
         root: controlEndpoint.root,
         cpID: cpID,
         startDate: periodArray[3],
@@ -133,7 +195,39 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints, 
         endDate: periodArray[4],
         label: label.length,
       })
-      sumSeries = sumSeries / label.length;
+      if (controlEndpoint.root == true) {
+        meter.push({
+          color: controlEndpoint.color,
+          value: +(sumSeries/label.length).toFixed(1),
+          unit: controlEndpoint.unit,
+          title: controlEndpoint.averageTitle,
+          subValue: ' ',
+          subtitle: ' ',
+          root: controlEndpoint.root,
+          cpID: cpID,
+          startDate: periodArray[3],
+          endDate: periodArray[4],
+          label: label.length,
+        })
+      }
+      else {
+        meter.push({
+          color: controlEndpoint.color,
+          value: +(sumSeries/label.length).toFixed(1),
+          unit: controlEndpoint.unit,
+          title: controlEndpoint.averageTitle,
+          subValue: ' ',
+          subtitle: ' ',
+          root: controlEndpoint.root,
+          cpID: cpID,
+          startDate: periodArray[3],
+          endDate: periodArray[4],
+          label: label.length,
+        })
+      }
+
+
+      sumSeries = sumSeries / spaceArea;
       if (controlEndpoint.root == true) {
         prevAvgRoot = sumSeries;
       }
@@ -142,8 +236,8 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints, 
         avg.push({
           color: controlEndpoint.color,
           value: sumSeries,
-          unit: controlEndpoint.unit,
-          title: controlEndpoint.averageTitle,
+          unit: controlEndpoint.unit + '/m²',
+          title: 'Consommation au m²',
           subValue: '100%',
           subtitle: controlEndpoint.averageSubtitle,
           root: controlEndpoint.root,
@@ -157,8 +251,8 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints, 
         avg.push({
           color: controlEndpoint.color,
           value: sumSeries,
-          unit: controlEndpoint.unit,
-          title: controlEndpoint.averageTitle,
+          unit: controlEndpoint.unit + '/m²',
+          title: 'Consommation au m²',
           subValue: b + '%',
           subtitle: controlEndpoint.averageSubtitle,
           root: controlEndpoint.root,
@@ -168,27 +262,47 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints, 
           label: label.length,
         })
       }
-    data.push({
-      label: controlEndpoint.label,
-      backgroundColor: controlEndpoint.color,
-      data: processedTimeSeries,
-      stack: controlEndpoint.stackGroup,
-      tooltipDate: tooltipDate
-    })
-      
+
+      data.push({
+        label: labelLegend.charAt(0).toUpperCase() + labelLegend.slice(1),
+        backgroundColor: controlEndpoint.color,
+        data: processedTimeSeries,
+        stack: controlEndpoint.stackGroup+'1',
+        tooltipDate: tooltipDate
+      });
+
+            
   }
     
   }
 }
-catch {
+catch (e) {
   return [null, null, null, null, calendar]
 }
-  
-  return [label, data, avg, total, calendar];
+  return [label, data, avg, total, calendar, meter];
 }
 
 function getPeriodArray(timestamp, period) {
-  if (period === 'Semaine') {
+  if (period === 'Journée') {
+    var startOfDay = moment(timestamp).startOf('day');
+    var endOfDay = moment(timestamp).endOf('day');
+    var hoursInDay = [];
+    var tooltipDate = [];
+    var currentHour = moment(startOfDay);
+    while (currentHour.isSameOrBefore(endOfDay)) {
+      hoursInDay.push(currentHour.format('HH'));
+      tooltipDate.push(moment(currentHour).format('ddd DD/MM/YYYY HH:mm').slice(0, 1).toUpperCase() + moment(currentHour).format('ddd DD/MM/YYYY HH:mm').slice(1));
+      currentHour.add(1, 'hour');
+    }
+    
+    return [hoursInDay,
+      moment(timestamp).startOf('day').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).endOf('day').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).add(-1, 'day').startOf('day').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).add(-1, 'day').endOf('day').format('DD-MM-yyyy HH:mm:ss'),
+      tooltipDate
+    ];
+  } else if (period === 'Semaine') {
     var startOfWeek = moment(timestamp).startOf('week');
     var endOfWeek = moment(timestamp).endOf('week');
     var daysInMonth = [];
@@ -250,18 +364,60 @@ function getPeriodArray(timestamp, period) {
     return [yearsInDecade,
       moment(timestamp).add(-10, 'years').startOf('year').format('DD-MM-yyyy HH:mm:ss'),
       moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss'), '', '', tooltipDate];
-  } else if (period === '3 mois') {
-    var startOfMonth = moment(timestamp).add(-2, 'months').startOf('month');
-    var endOfMonth = moment(timestamp).endOf('month');
+  } else if (period === 'Trimestre') {
+    let currentMM = moment(timestamp).format('MM');
+    let T = 'T'+Math.ceil(currentMM / 3);
+    console.log(T);
+    var startOfTrimester;
+    var endOfTrimester;
+    var currentDay;
+    var endDay;
+    switch (T) {
+        case 'T1':
+            startOfTrimester = moment(`01/01/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
+            endOfTrimester = moment(`31/03/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
+            currentDay = moment(`01/01/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
+            endDay = moment(`31/03/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
+            break;
+
+        case 'T2':
+            startOfTrimester = moment(`01/04/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
+            endOfTrimester = moment(`30/06/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
+            currentDay = moment(`01/04/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
+            endDay = moment(`30/06/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
+            break;
+    
+        case 'T3':
+            startOfTrimester = moment(`01/07/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
+            endOfTrimester = moment(`30/09/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
+            currentDay = moment(`01/07/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
+            endDay = moment(`30/09/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
+            break;
+    
+        case 'T4':
+            startOfTrimester = moment(`01/10/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
+            endOfTrimester = moment(`31/12/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
+            currentDay = moment(`01/10/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
+            endDay = moment(`31/12/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
+            break;
+    }
+
     var daysIn3Months = [];
     var tooltipDate = [];
-    var currentDay = moment(startOfMonth);
-    while (currentDay.isSameOrBefore(endOfMonth)) {
+    while (currentDay.isSameOrBefore(endDay)) {
       daysIn3Months.push(currentDay.format('DD MMM'));
       tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
       currentDay.add(1, 'day');
     }
-    return [daysIn3Months, moment(timestamp).add(-2, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss'), tooltipDate];
+
+    return [daysIn3Months,
+      startOfTrimester,
+      endOfTrimester,
+      moment(timestamp).add(-5, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).add(-3, 'months').endOf('month').format('DD-MM-yyyy HH:mm:ss'),
+      tooltipDate,
+      T
+    ];
   } else {
     return [];
   }
@@ -286,10 +442,18 @@ export async function getTodaysData(space, controlEndpoints) {
   let cpList, cpID, timeSeries, sumSeries, sub;
   for (const controlEndpoint of controlEndpoints) {
     cpList = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/control_endpoint_list`);
-    cpList = cpList.data[0].endpoints;
-    for (let i = 0; i < cpList.length; i++) {
-      if (cpList[i].name === controlEndpoint.name) {
-        cpID = cpList[i].dynamicId;
+    // cpList = cpList.data[1].endpoints;
+    // for (let i = 0; i < cpList.length; i++) {
+    //   if (cpList[i].name === controlEndpoint.name) {
+    //     cpID = cpList[i].dynamicId;
+    //   }
+    // }
+
+    for (let j = 0; j < cpList.data.length; j++) {
+      for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
+        if (cpList.data[j].endpoints[i].name === controlEndpoint.name) {
+          cpID = cpList.data[j].endpoints[i].dynamicId;
+        }
       }
     }
     if (cpID) {
@@ -323,10 +487,8 @@ export async function getTodaysData(space, controlEndpoints) {
   return data;
 }
 
-
 function generateMonthlyData(y) {
   const monthlyData = [];
-  const test = 1;
   const date = moment(y, 'YYYY');
   // loop through 12 months
   for (let i = 0; i < 12; i++) {
@@ -343,96 +505,11 @@ function generateMonthlyData(y) {
 //   y: year,
 //   d: monthlyData
 // })
-  if (test == 1)
   return {
     n: '',
     y: y,
     d: monthlyData
   };
-
-  return {
-    n: '',
-    y: y,
-    d: [
-      [
-        182, 400, 200, 201, 201, 170,
-        187, 282, 258, 171, 275, 183,
-        267, 294, 288, 194, 258, 228,
-        204, 236, 244, 172, 274, 290,
-        206, 274, 293, 185, 261, 247,
-        210
-      ] ,
-      [
-        225, 140, 139, 166, 179, 205,
-        159, 134, 210, 137, 163, 227,
-        185, 197, 174, 226, 215, 147,
-        144, 216, 145, 206, 206, 159,
-        223, 169, 206, 207
-      ] ,
-      [
-        125, 156,  92, 120, 131, 113, 157,
-        133, 155, 134, 153, 137, 114, 127,
-        110, 113, 146, 107, 120, 169, 142,
-        146, 167, 165, 125, 144, 119, 153,
-        123, 144,  95
-      ] ,
-      [
-        101,  91, 139, 154, 100, 127, 157,
-        90, 141, 119, 146, 102, 137, 125,
-        118, 146,  96, 117, 106, 165, 102,
-        118,  94, 140,  95, 131,  93, 163,
-        92, 102
-      ] ,
-      [
-        86, 104, 126, 139, 116, 168, 109,
-        56, 132, 113,  55, 150, 109, 123,
-        64,  85, 129, 100,  67,  91, 137,
-        104, 157,  96, 141, 163,  89,  53,
-        119, 126, 130
-      ] ,
-      [
-        81, 32, 23,  15, 116, 57, 21, 73,  0,
-        77, 84, 76, 101, 116, 30, 79, 81, 59,
-        25, 24, 47,   3,  20, 35, 39, 29, 80,
-        64, 83, 98
-      ] ,
-      [
-        129,   1, 63, 28, 50, 106,  3, 104, 21,
-        34, 105, 48, 93,  0,  80, 36,  25, 48,
-        95,  23, 98, 25, 78,  56, 71,  40, 43,
-        86, 109, 34, 86
-      ] ,
-      [
-        32, 59, 56, 23, 94, 20, 38, 83, 41,
-        81, 64, 52, 84, 99, 97, 40, 46, 22,
-        98, 31, 94, 13, 30, 30, 37,  9, 62,
-        9,  6, 18, 16
-      ] ,
-      [
-        96, 17, 27, 94, 11, 58, 63, 34, 39,
-        74, 52, 82, 96, 80, 39,  7, 41, 32,
-        43, 89, 75, 80, 67, 70, 69, 63, 77,
-        23, 68, 12
-      ] ,
-      [
-        128, 124, 144,  87, 128, 132, 168,
-        129, 154, 158, 150,  79, 138, 101,
-        123,  74, 167, 160,  86, 162, 162,
-        116,  72, 160, 108,  71,  81, 112,
-        127,  74,  78
-      ] ,
-      [
-        252, 259, 193, 263, 285, 204,
-        232, 210, 224, 196, 198, 282,
-        240, 282, 193, 289, 245, 255,
-        178, 225, 248, 297, 228, 234,
-        280, 197, 207, 203, 282, 237
-      ] ,
-      [
-      280, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
-      ] ,
-    ],
-  }
 }
 
 function prepareCalendar(year, timeSeries) {
@@ -445,60 +522,48 @@ function prepareCalendar(year, timeSeries) {
   }
   return data;
 }
-// export async function getAverageAndTotalData(avg, total) {
-//   const buildingId = localStorage.getItem("idBuilding");
-//   let timeSeries, sumSeries;
-//   console.log(avg);
-//   for (let i = 0; i < total.lenght; i++) {
-//     timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${total[i].cpID}/timeSeries/read/${total[i].startDate}/${total[i].endDate}`);
-//     timeSeries = timeSeries.data;
-//     sumSeries = timeSeries.reduce((accumulator, current) => accumulator + current.value, 0);
-//     total[i].subValue = sumSeries;
-//     total[i].subtitle = 'sumSeries';
-//     sumSeries = sumSeries / total[i].label;
-//     avg[i].subValue = sumSeries;
-//     avg[i].subtitle = 'sumSeries';
-//     console.log(avg[i])
-//   }
-//   return [avg, total];
-// }
 
-
-/**
- * Retrieves current 24h data from a specified space, controlendpoint and a timestamp.
- *
- * @async
- * @function getRealTime
- * @param {string} space - The name or identifier of the space to monitor.
- * @param {string} controlEndpoint - The URL of the control endpoint to use for data retrieval.
- * @param {number} timestamp - The frequency (in milliseconds) at which to retrieve new data.
- * @returns {Promise<[string[], object, object, object, object]>}
- * A Promise that resolves with an array containing label, data, avg, total, and calendar objects.
- *
- * @example
- * const space = 100243424;
- * const controlEndpoint = 'Energie globale';
- * const timestamp = 1680601845
- * 
- * const realTimeData = await getRealTime(space, controlEndpoint, tempo);
- * console.log(realTimeData); // process, analyze, or visualize the data here
- */
-export async function getRealTime (space, controlEndpoit, timestamp) {
-  var startOfWeek = moment(timestamp).startOf('week');
-  var endOfWeek = moment(timestamp).endOf('week');
-  var daysInMonth = [];
-  var tooltipDate = [];
-  var currentDay = moment(startOfWeek);
-  while (currentDay.isSameOrBefore(endOfWeek)) {
-    daysInMonth.push(currentDay.format('DD MMM'));
-    tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
-    currentDay.add(1, 'day');
+export function getTempoSuggestion(tempo, currentTimestamp) {
+  if (tempo === 'Mois') {
+    return [
+      'Mois choisi (' + moment(currentTimestamp).format('MMMM YYYY') + ')',
+      'Mois précédent (' + moment(currentTimestamp).add(-1,'months').format('MMMM YYYY') + ')',
+      'Même mois que l\'année dernière (' + moment(currentTimestamp).add(-12, 'months').format('MMMM YYYY') + ')']
   }
-  return [daysInMonth,
-    moment(timestamp).startOf('week').format('DD-MM-yyyy HH:mm:ss'),
-    moment(timestamp).endOf('week').format('DD-MM-yyyy HH:mm:ss'),
-    moment(timestamp).add(-1, 'weeks').startOf('week').format('DD-MM-yyyy HH:mm:ss'),
-    moment(timestamp).add(-1, 'weeks').endOf('week').format('DD-MM-yyyy HH:mm:ss'),
-    tooltipDate
-  ];
+}
+
+export async function getSolo(space, tempo, currentTimestamp, format, controlEndpoints, color, totalCard) {
+  let ts = moment(currentTimestamp, format).valueOf();
+  if (tempo === 'Trimestre') {
+    let t = currentTimestamp.split('/');
+    switch(t[0]) {
+      case 'T1': ts = moment(`01/01/${t[1]}`, 'DD/MM/YYYY'); break;
+      case 'T2': ts = moment(`01/04/${t[1]}`, 'DD/MM/YYYY'); break;
+      case 'T3': ts = moment(`01/07/${t[1]}`, 'DD/MM/YYYY'); break;
+      case 'T4': ts = moment(`01/10/${t[1]}`, 'DD/MM/YYYY'); break;
+    }
+  }
+  let res = await getData(space, tempo, ts, controlEndpoints);
+  res[1][0].stack = currentTimestamp;
+  res[1][0].backgroundColor = color;
+  res[2][0].root = false;
+  res[2][0].color = color;
+  res[3][0].root = false;
+  res[3][0].color = color;
+  let comparison = '∞';
+  if (totalCard[0].value !== 0 && res[3][0].value > 0) {
+    comparison = (((res[3][0].value - totalCard[0].value) / totalCard[0].value) * 100).toFixed(1) + '%';
+    // comparison = (res[3][0].value * 100 / totalCard[0].value).toFixed(1) + '%'
+  }
+  res[3][0].subValue = comparison;
+  res[3][0].subtitle = 'de la consommation de référence';
+
+  res[5][0].root = false;
+  res[5][0].color = color;
+  res[5][0].title = 'Consommation au m²';
+  res[5][0].title = 'Consommation au m²';
+  // res[5][0].subValue = comparison;
+  // res[5][0].subtitle = 'de la consommation de référence';
+
+  return [res[1][0], res[2][0], res[3][0], res[5][0]];
 }

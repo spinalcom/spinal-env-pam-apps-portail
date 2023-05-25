@@ -39,8 +39,6 @@ export default {
     unit: env.unit
   }),
   mounted() {
-    console.log(this.values);
-    console.log(this.values);
     const flattenedArr = this.values[0].filter(val => val >= 0)
     if (typeof this.values.max !== 'undefined' && typeof this.values.max === 'number') {
       this.max = this.values.max;
@@ -85,7 +83,6 @@ export default {
   },
   watch: {
     values(v) {
-      console.log(v);
       const flattenedArr = this.values[0].filter(val => val >= 0)
       if (typeof this.values.max !== 'undefined' && typeof this.values.max === 'number') {
         this.max = this.values.max;

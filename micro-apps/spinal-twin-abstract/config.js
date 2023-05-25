@@ -47,12 +47,12 @@ module.exports = {
 
     controlEndpoints: [
         {
-            label: 'Energie globale',
+            label: 'Coût consommations globales',
             min: null,
             max: 3500,
-            name: 'Energie globale',
+            name: 'Coût consommations globales',
             color: '#14202c',
-            unit: 'kWh',
+            unit: 'Eur',
             stackGroup: '0',
 
             title: 'd\'énergie consommés',
@@ -67,12 +67,12 @@ module.exports = {
             root: true,
         },
         {
-            label: 'Eclairage',
+            label: 'Coût énergie globale',
             min: null,
             max: 500,
-            name: 'Eclairage',
+            name: 'Coût énergie globale',
             color: '#E8D712',
-            unit: 'kWh',
+            unit: 'Eur',
             stackGroup: '01',
 
             title: 'd\'éclairage consommée',
@@ -89,12 +89,12 @@ module.exports = {
             root: false,
         },
         {
-            label: 'Chauffage',
+            label: 'Coût eau globale',
             min: null,
             max: 2500,
-            name: 'Chauffage',
+            name: 'Coût eau globale',
             color: '#5444ae',
-            unit: 'kWh',
+            unit: 'Eur',
             stackGroup: '01',
 
             title: 'd\'éclairage consommée',
