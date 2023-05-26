@@ -22,39 +22,64 @@ with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
 <template>
-  <div class="space-selector-container"
-       :class="{ isopen: open }">
-    <div class="backdrop-handler"
-         v-show="open"
-         @click="$emit('update:open', !open)"></div>
-    <v-card elevation="4"
-            color="#14202C"
-            :class="{ 'space-selector-open': open }"
-            class="space-selector">
-      <div @click="$emit('update:open', !open)"
-           ref="SpaceSelectorTitleContainer"
-           class="space-selector-header">
-        <p class="space-selector-header-title">{{ selectedZoneName }}
-          <v-icon color="#bfbfbf"
-                  class="rotate-disabled space-selector-header-title-icon"
-                  :class="{ 'rotate-enabled': open }">mdi-chevron-down</v-icon>
+  <div class="space-selector-container" :class="{isopen: open}">
+    <div
+      class="backdrop-handler"
+      v-show="open"
+      @click.stop="$emit('update:open', !open)"
+    ></div>
+    <v-card
+      elevation="4"
+      color="#14202C"
+      :class="{'space-selector-open': open, 'is-mobile': isMobile && !open}"
+      class="space-selector"
+    >
+      <div
+        v-if="!isMobile || open"
+        @click.stop="$emit('update:open', !open)"
+        ref="SpaceSelectorTitleContainer"
+        class="space-selector-header"
+      >
+        <p class="space-selector-header-title"
+          >{{ selectedZoneName }}
+          <v-icon
+            color="#bfbfbf"
+            class="rotate-disabled space-selector-header-title-icon"
+            :class="{'rotate-enabled': open}"
+            >mdi-chevron-down</v-icon
+          >
         </p>
       </div>
-      <transition-group name="staggered-fade"
-                        class="card-list spinal-scrollbar"
-                        tag="div"
-                        v-bind:css="false"
-                        v-on:before-enter="beforeEnter"
-                        v-on:enter="enter">
-        <SpaceSelectorItem class="staggered-fade-item"
-                           v-for="(item, index) in buildingStructure"
-                           :key="`${item.staticId}-${item.platformId}-${item.patrimoineId}`"
-                           :item="item"
-                           v-bind:data-index="index"
-                           :maxDepth="maxDepth"
-                           @onSelect="select(item)"
-                           :selected="selectedZone"
-                           @onOpenClose="expandCollapse(item, index)">
+
+      <div
+        v-else
+        class="space-selector-header"
+        :class="{'is-mobile': isMobile && !open}"
+        @click.stop="$emit('update:open', !open)"
+        ref="SpaceSelectorTitleContainer"
+      >
+        <v-icon x-large color="white">menu</v-icon>
+      </div>
+
+      <transition-group
+        name="staggered-fade"
+        class="card-list spinal-scrollbar"
+        tag="div"
+        v-bind:css="false"
+        v-on:before-enter="beforeEnter"
+        v-on:enter="enter"
+      >
+        <SpaceSelectorItem
+          class="staggered-fade-item"
+          v-for="(item, index) in buildingStructure"
+          :key="`${item.staticId}-${item.platformId}-${item.patrimoineId}`"
+          :item="item"
+          v-bind:data-index="index"
+          :maxDepth="maxDepth"
+          @onSelect="select(item)"
+          :selected="selectedZone"
+          @onOpenClose="expandCollapse(item, index)"
+        >
         </SpaceSelectorItem>
       </transition-group>
     </v-card>
@@ -62,12 +87,12 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import Velocity from "velocity-animate";
-import { Vue, Component, Prop, VModel, Watch } from "vue-property-decorator";
-import type { IZoneItem } from "./interfaces/IBuildingItem";
-import type { ISpaceSelectorItem } from "./interfaces/ISpaceSelectorItem";
-import SpaceSelectorItem from "./SpaceSelectorItem.vue";
-import { convertZonesToISpaceSelectorItems } from "./convertZonesToISpaceSelectorItems";
+import Velocity from 'velocity-animate';
+import {Vue, Component, Prop, VModel, Watch} from 'vue-property-decorator';
+import type {IZoneItem} from './interfaces/IBuildingItem';
+import type {ISpaceSelectorItem} from './interfaces/ISpaceSelectorItem';
+import SpaceSelectorItem from './SpaceSelectorItem.vue';
+import {convertZonesToISpaceSelectorItems} from './convertZonesToISpaceSelectorItems';
 
 @Component({
   components: {
@@ -75,9 +100,11 @@ import { convertZonesToISpaceSelectorItems } from "./convertZonesToISpaceSelecto
   },
 })
 class SpaceSelector extends Vue {
-  @Prop({ type: Function, required: true }) GetChildrenFct: (
-    item?: ISpaceSelectorItem
-  ) => Promise<IZoneItem[]>;
+  @Prop({type: Boolean, required: false})
+  isMobile: Boolean;
+
+  @Prop({type: Function, required: true})
+  GetChildrenFct: (item?: ISpaceSelectorItem) => Promise<IZoneItem[]>;
 
   @Prop({
     type: Number,
@@ -86,7 +113,7 @@ class SpaceSelector extends Vue {
   })
   maxDepth: number;
 
-  @VModel({ type: Object }) selectedZone!: ISpaceSelectorItem;
+  @VModel({type: Object}) selectedZone!: ISpaceSelectorItem;
 
   @Prop({
     type: Boolean,
@@ -95,12 +122,12 @@ class SpaceSelector extends Vue {
   open: boolean;
 
   get selectedZoneName() {
-    return this.selectedZone?.name || "Select a Zone";
+    return this.selectedZone?.name || 'Select a Zone';
   }
 
   buildingStructure: ISpaceSelectorItem[] = [];
 
-  @Watch("selectedZone")
+  @Watch('selectedZone')
   async onSelectedChange() {
     for (let idx = 0; idx < this.buildingStructure.length; idx++) {
       const item = this.buildingStructure[idx];
@@ -119,7 +146,7 @@ class SpaceSelector extends Vue {
           if (
             parentId === item.staticId &&
             (this.selectedZone.platformId === item.platformId ||
-              item.type === "patrimoine")
+              item.type === 'patrimoine')
           ) {
             found = true;
             if (!item.isOpen) {
@@ -137,8 +164,8 @@ class SpaceSelector extends Vue {
   }
 
   select(item?: ISpaceSelectorItem) {
-    this.$emit("update:open", !this.open);
-    this.$emit("input", item);
+    // this.$emit("update:open", !this.open);
+    if (!item?.disabled) this.$emit('input', item);
   }
 
   async mounted() {
@@ -174,7 +201,7 @@ class SpaceSelector extends Vue {
         ...convertZonesToISpaceSelectorItems(children, item)
       );
     } catch (error) {
-      console.error("error fetch childrens.", error);
+      console.error('error fetch childrens.', error);
     }
     item.loading = false;
   }
@@ -184,7 +211,7 @@ class SpaceSelector extends Vue {
     const toRm: typeof this.buildingStructure = [];
     for (const it of this.buildingStructure) {
       if (
-        (it.platformId === item.platformId || item.type === "patrimoine") &&
+        (it.platformId === item.platformId || item.type === 'patrimoine') &&
         it.parents.includes(item.staticId)
       ) {
         toRm.push(it);
@@ -229,7 +256,7 @@ class SpaceSelector extends Vue {
   enter(el, done) {
     var delay = el.dataset.index * 5;
     setTimeout(function () {
-      Velocity(el, { opacity: 1, height: "50px" }, { complete: done });
+      Velocity(el, {opacity: 1, height: '50px'}, {complete: done});
     }, delay);
   }
 }
@@ -260,20 +287,25 @@ export default SpaceSelector;
 .space-selector {
   z-index: 1000;
   width: calc(100% - 16px);
-  margin: 8px;
+  margin: 5 8px 8px 8px;
   /* max-width: 500px; */
-  height: 52px;
+  height: 60px;
   float: right;
   border-radius: 10px !important;
   overflow: hidden;
   transition: height 0.3s ease-in;
 }
+
+.space-selector.is-mobile {
+  width: 50px;
+}
+
 .space-selector-container {
   position: absolute;
   height: 100vh;
   width: 100%;
   right: 0;
-  top: 5;
+  top: 0;
   max-width: 500px;
 }
 .space-selector-container.isopen {
@@ -285,6 +317,14 @@ export default SpaceSelector;
   height: 64px;
   background-color: #14202c;
   cursor: pointer;
+}
+
+.space-selector-header.is-mobile {
+  width: 50px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .space-selector-header-title {

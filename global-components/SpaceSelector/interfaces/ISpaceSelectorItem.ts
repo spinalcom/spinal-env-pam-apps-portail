@@ -22,43 +22,16 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-export interface INodeItem {
-  dynamicId: number;
-  staticId: string;
-  name: string;
-  type: string;
+import {IZoneItem} from './IBuildingItem';
+export interface ISpaceSelectorItem extends IZoneItem {
+  level: number;
+  isOpen: boolean;
+  loading?: boolean;
+  platformId: string;
+  patrimoineId: string;
+  parents: string[];
+  isLastInGrp: boolean;
+  drawLink: number[];
+  haveChildren: boolean;
+  disabled?: boolean;
 }
-
-export interface IZoneItem extends INodeItem {
-  color?: string;
-  categories?: ICategoriesItem[];
-}
-
-export interface IBuildingItem extends INodeItem {
-  color?: string;
-  area: number;
-}
-
-export interface ICategoriesItem extends INodeItem {
-  attributs: IAttributsItem[];
-}
-
-export interface IAttributsItem {
-  label: string;
-  value: string | number;
-  date: number;
-  type: string;
-  unit: string;
-}
-
-export interface IEquipmentItem extends Partial<IZoneItem> {
-  bimFileId: string;
-  version: number;
-  externalId: string;
-  dbid: number;
-}
-export interface IRefItem extends INodeItem {
-  infoReferencesObjects: IEquipmentItem[];
-}
-
-export type TGeoItem = IZoneItem | IEquipmentItem;

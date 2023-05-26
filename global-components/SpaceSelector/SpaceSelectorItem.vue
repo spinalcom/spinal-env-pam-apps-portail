@@ -22,42 +22,46 @@ with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
 <template>
-  <v-list-item class="space-selector-list-item card-hover fade"
-               :class="{
+  <v-list-item
+    class="space-selector-list-item card-hover fade"
+    :class="{
       ['space-selector-list-item-level-' + item.level]: true,
       'space-selector-list-item-isopen': item.isOpen && item.haveChildren,
       'space-selector-list-item-isSelected': isSelected,
     }"
-               :style="{
+    :style="{
       'margin-left': '' + ((item.level - 1) * 20 + 30) + 'px',
     }"
-               @click.stop="onSelect">
+    @click.stop="onSelect"
+  >
     <!-- link to parent template -->
     <template v-if="item.level > 0">
       <div class="space-selector-list-item-angle"></div>
       <div class="space-selector-list-item-angle-extend"></div>
-      <div class="parent-link"
-           v-for="depth in item.level - 1"
-           :key="depth"
-           v-show="drawParentLink(depth)"
-           :style="{ 'margin-left': '-' + (depth * 20 + 11) + 'px' }"></div>
+      <div
+        class="parent-link"
+        v-for="depth in item.level - 1"
+        :key="depth"
+        v-show="drawParentLink(depth)"
+        :style="{'margin-left': '-' + (depth * 20 + 11) + 'px'}"
+      ></div>
     </template>
-    <div class="color-square"
-         :style="{ 'background-color': item.color }"></div>
+    <div class="color-square" :style="{'background-color': item.color}"></div>
     <v-list-item-content style="margin-left: 21px">
-      <v-list-item-title>{{ item.name }}
-      </v-list-item-title>
+      <v-list-item-title>{{ item.name }} </v-list-item-title>
     </v-list-item-content>
     <v-list-item-action>
-      <v-btn elevation="0"
-             fab
-             icon
-             style="color: #bfbfbf"
-             dark
-             :loading="item.loading"
-             :disabled="item.loading"
-             @click.stop="onOpenClose"
-             v-show="item.level != maxDepth">
+      <v-btn
+        elevation="0"
+        fab
+        icon
+        style="color: #bfbfbf"
+        dark
+        :loading="item.loading"
+        :disabled="item.loading"
+        @click.stop="onOpenClose"
+        v-show="item.level != maxDepth"
+      >
         <v-icon dark> {{ icon }} </v-icon>
       </v-btn>
     </v-list-item-action>
@@ -65,14 +69,14 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
-import { ISpaceSelectorItem } from "./interfaces/ISpaceSelectorItem";
+import {Vue, Component, Prop} from 'vue-property-decorator';
+import {ISpaceSelectorItem} from './interfaces/ISpaceSelectorItem';
 
 @Component
 class SpaceSelectorItem extends Vue {
-  @Prop({ type: Object, required: true }) item: ISpaceSelectorItem;
-  @Prop({ type: Number, required: true }) maxDepth: number;
-  @Prop({ type: Object, required: true }) selected: ISpaceSelectorItem;
+  @Prop({type: Object, required: true}) item: ISpaceSelectorItem;
+  @Prop({type: Number, required: true}) maxDepth: number;
+  @Prop({type: Object, required: true}) selected: ISpaceSelectorItem;
 
   public get isSelected(): boolean {
     return (
@@ -84,14 +88,14 @@ class SpaceSelectorItem extends Vue {
   }
 
   public get icon(): string {
-    return this.item?.isOpen ? "mdi-chevron-down" : "mdi-chevron-up";
+    return this.item?.isOpen ? 'mdi-chevron-down' : 'mdi-chevron-up';
   }
 
   onSelect() {
-    this.$emit("onSelect");
+    if (!this.item?.disabled) this.$emit('onSelect');
   }
   onOpenClose() {
-    this.$emit("onOpenClose");
+    this.$emit('onOpenClose');
   }
   drawParentLink(depth: number) {
     return !this.item.drawLink.includes(depth);

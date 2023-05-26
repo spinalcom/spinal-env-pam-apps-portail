@@ -1,5 +1,5 @@
 <!--
-Copyright 2022 SpinalCom - www.spinalcom.com
+Copyright 2023 SpinalCom - www.spinalcom.com
 
 This file is part of SpinalCore.
 
@@ -21,7 +21,6 @@ You should have received a copy of the license along
 with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
-
 <template>
   <div class="headerSelect" v-if="portofolios">
     <space-selector
@@ -38,10 +37,9 @@ with this file. If not, see
 </template>
 
 <script>
-import {SELECT_PORTOFOLIO} from '../store/appDataStore';
 import {mapState} from 'vuex';
-import {SpaceSelector} from '../../global-components';
-
+import {SpaceSelector} from '../../../../global-components';
+import {SELECT_BUILDING} from '../store/constants';
 export default {
   components: {
     SpaceSelector,
@@ -111,35 +109,34 @@ export default {
     },
 
     getSelectedItem(item) {
-      this.$store.commit(`appDataStore/${SELECT_PORTOFOLIO}`, item);
-      this.selectedZone = item;
+      if (item.type === this.TYPES.portofolio) return;
+
       let portofolioId;
       let buildingId;
-      if (item.type === this.TYPES.portofolio) {
-        localStorage.setItem(
-          'patrimoine',
-          JSON.stringify({
-            id: item.staticId,
-            name: item.name,
-            buildings: item.categories,
-          })
-        );
-        portofolioId = item.staticId;
-      } else if (item.type === this.TYPES.building) {
-        localStorage.setItem('idBuilding', item.staticId);
+
+      if (item.type === this.TYPES.building) {
+        this.selectedZone = item;
         portofolioId = item.parents[0];
         buildingId = item.staticId;
       }
 
-      this.$emit('selected', {portofolioId, buildingId});
+      this.$store.commit(SELECT_BUILDING, item);
+      // this.$emit('selected', {portofolioId, buildingId});
     },
 
     close() {
       this.openSpaceSelector = false;
     },
+
+    getDefaultValue() {
+      if (this.selectedBuilding) return this.selectedBuilding;
+      for (const portofolio of this.portofolios) {
+        if (portofolio.buildings.length > 0) return portofolio.buildings[0];
+      }
+    },
   },
   computed: {
-    ...mapState('appDataStore', ['selectedPortofolio']),
+    ...mapState(['selectedBuilding']),
   },
   watch: {
     selected() {
@@ -147,7 +144,7 @@ export default {
     },
 
     portofolios() {
-      const element = this.selectedPortofolio || this.portofolios[0];
+      const element = this.getDefaultValue();
       if (Object.keys(this.selectedZone).length === 1 && element) {
         this.selectedZone = {
           platformId: '',
@@ -165,7 +162,9 @@ export default {
           isLastInGrp: true,
           drawLink: [],
           haveChildren: true,
+          disabled: element.disabled,
         };
+
         this.getSelectedItem(this.selectedZone);
       }
     },

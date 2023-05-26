@@ -23,27 +23,28 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="appLoadContainer"
-               fluid>
+  <v-container class="appLoadContainer" fluid>
     <!-- <div class="navbar"> -->
-    <NavBar class="navbar"
-            :isMobile="isMobile" />
+    <NavBar class="navbar" :isMobile="isMobile" />
     <!-- </div> -->
 
     <!-- <iframe viewer  -->
-    <ViewerIFrame v-if="showViewer"
-                  class="iframeViewerContainer"
-                  :inDrag="inDrag"
-                  v-on:update:inDrag="inDrag = $event"></ViewerIFrame>
+    <ViewerIFrame
+      v-if="showViewer"
+      class="iframeViewerContainer"
+      :inDrag="inDrag"
+      v-on:update:inDrag="inDrag = $event"
+    ></ViewerIFrame>
 
     <!-- <iframe  -->
-    <iframe v-if="appPath"
-            class="iframeContainer"
-            :class="{ 'disabled-event': inDrag }"
-            :src="appPath"></iframe>
+    <iframe
+      v-if="appPath"
+      class="iframeContainer"
+      :class="{'disabled-event': inDrag}"
+      :src="appPath"
+    ></iframe>
 
-    <div v-else
-         class="iframeContainer notFoundDiv">
+    <div v-else class="iframeContainer notFoundDiv">
       <h1 class="code">404</h1>
       <h1>No app found</h1>
     </div>
@@ -51,12 +52,12 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import NavBar from "../components/nav.vue";
-import { getAppById } from "../requests/userData";
-import { SET_SELECTED_APP } from "../store/appDataStore";
-import { Vue, Component, Watch } from "vue-property-decorator";
-import ViewerIFrame from "./ViewerIframe.vue";
-import { IApp } from "micro-apps/spinal-env-pam-apps-manager/src/types/interfaces";
+import NavBar from '../components/nav.vue';
+import {getAppById} from '../requests/userData';
+import {SET_SELECTED_APP} from '../store/appDataStore';
+import {Vue, Component, Watch} from 'vue-property-decorator';
+import ViewerIFrame from './ViewerIframe.vue';
+import {IApp} from 'micro-apps/spinal-env-pam-apps-manager/src/types/interfaces';
 @Component({
   components: {
     NavBar,
@@ -74,7 +75,7 @@ class ApplicationView extends Vue {
   }
 
   async initApp() {
-    console.log("initApp");
+    console.log('initApp');
     this.appSelected = this.getAppInfo();
     this.appPath = this.getAppPath();
 
@@ -89,7 +90,7 @@ class ApplicationView extends Vue {
 
   getAppInfo() {
     try {
-      const { query } = this.$route;
+      const {query} = this.$route;
       const appId: any = query.app;
       if (!appId) return;
 
@@ -108,14 +109,14 @@ class ApplicationView extends Vue {
     return `/micro-apps/${this.appSelected.packageName}`;
   }
 
-  @Watch("$route")
+  @Watch('$route')
   watchRoute() {
     this.initApp();
   }
 
   get isMobile() {
     const breakpoint = this.$vuetify.breakpoint.name;
-    if (["xs", "sm"].indexOf(breakpoint) !== -1) return true;
+    if (['xs', 'sm'].indexOf(breakpoint) !== -1) return true;
     return false;
   }
 }
@@ -123,11 +124,11 @@ class ApplicationView extends Vue {
 export default ApplicationView;
 </script>
 
-
 <style lang="scss">
 .appLoadContainer {
   width: 100%;
   height: 100%;
+  padding: 0px !important;
   // padding: 5px !important;
   display: flex;
 
@@ -135,7 +136,7 @@ export default ApplicationView;
     // width: 450px;
     // height: 60px;
     position: absolute;
-    top: 10px;
+    top: 5px;
     left: 0px;
   }
 
@@ -173,4 +174,3 @@ export default ApplicationView;
   }
 }
 </style>
-

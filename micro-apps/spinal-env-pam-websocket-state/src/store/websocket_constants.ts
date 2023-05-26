@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 SpinalCom - www.spinalcom.com
+ * Copyright 2023 SpinalCom - www.spinalcom.com
  *
  * This file is part of SpinalCore.
  *
@@ -22,15 +22,9 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { IZoneItem } from './IBuildingItem';
-export interface ISpaceSelectorItem extends IZoneItem {
-  level: number;
-  isOpen: boolean;
-  loading?: boolean;
-  platformId: string;
-  patrimoineId: string;
-  parents: string[];
-  isLastInGrp: boolean;
-  drawLink: number[];
-  haveChildren: boolean;
-}
+export const correspondance_actions = {
+  send_updated_event: 'Envoi de mis à jour de données',
+  receive_subscribe_event: "Reception d'une requête de souscription",
+  alert: 'Alerte',
+  send_subscribed_event: 'Envoi de la reponse de souscription',
+};

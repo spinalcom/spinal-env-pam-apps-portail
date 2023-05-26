@@ -31,11 +31,11 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import HomeView from "./views/HomeView.vue";
+import Vue from 'vue';
+import HomeView from './views/HomeView.vue';
 
 export default Vue.extend({
-  name: "App",
+  name: 'App',
 
   components: {
     HomeView,
@@ -47,10 +47,9 @@ export default Vue.extend({
 });
 </script>
 
-
 <style lang="scss" scoped>
 .appContainer {
-  width: 99vw;
+  width: 100vw;
   height: 100vh;
   background: linear-gradient(121deg, #f8fafa, #d6e2e6) !important;
 }

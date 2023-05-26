@@ -25,28 +25,27 @@ with this file. If not, see
 <template>
   <div class="_content">
     <div class="app_header">
-      <div class="head">
-        <Select @selected="selectCategory" />
-      </div>
+      <Select @selected="selectCategory" />
     </div>
 
-    <v-card class="cardContent"
-            elevation="4">
-      <app-list-component :apps="apps"
-                          :category="categorySelected"
-                          @create="createApp"
-                          @upload="uploadApp"
-                          @edit="editApp"
-                          @delete="deleteApp" />
+    <v-card class="cardContent" elevation="4">
+      <app-list-component
+        :apps="apps"
+        :category="categorySelected"
+        @create="createApp"
+        @upload="uploadApp"
+        @edit="editApp"
+        @delete="deleteApp"
+      />
     </v-card>
   </div>
 </template>
-  
-  <script lang="ts">
-import { IApp } from "../types/interfaces";
-import { Component, Prop, Vue } from "vue-property-decorator";
-import AppListComponent from "../components/appList.vue";
-import Select from "../components/select.vue";
+
+<script lang="ts">
+import {IApp} from '../types/interfaces';
+import {Component, Prop, Vue} from 'vue-property-decorator';
+import AppListComponent from '../components/appList.vue';
+import Select from '../components/select.vue';
 
 @Component({
   components: {
@@ -55,36 +54,36 @@ import Select from "../components/select.vue";
   },
 })
 class HomeView extends Vue {
-  @Prop() categorySelected!: { name: string; id: string };
+  @Prop() categorySelected!: {name: string; id: string};
   @Prop() apps!: IApp[];
 
-  selectCategory(item: { name: string; id: string }) {
-    this.$emit("select", item);
+  selectCategory(item: {name: string; id: string}) {
+    this.$emit('select', item);
   }
 
   createApp() {
-    this.$emit("create");
+    this.$emit('create');
   }
 
   uploadApp() {
-    this.$emit("upload");
+    this.$emit('upload');
   }
 
   editApp(app: IApp) {
-    this.$emit("edit", app);
+    this.$emit('edit', app);
   }
 
   deleteApp(app: IApp) {
-    this.$emit("delete", app);
+    this.$emit('delete', app);
   }
 }
 
 export default HomeView;
 </script>
-  
-  <!-- Add "scoped" attribute to limit CSS to this component only -->
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
-$header-height: 60px;
+$header-height: 70px;
 $header-margin: 10px;
 $card-background: #f8f9f9;
 
@@ -94,14 +93,14 @@ $card-background: #f8f9f9;
 
   .app_header {
     height: $header-height;
-    margin: $header-margin;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    .head {
-      width: 500px;
-      height: 100%;
-    }
+    margin-bottom: $header-margin;
+    // display: flex;
+    // align-items: center;
+    // justify-content: flex-end;
+    // .head {
+    //   width: 500px;
+    //   height: 100%;
+    // }
   }
 
   .cardContent {
@@ -116,4 +115,3 @@ $card-background: #f8f9f9;
   }
 }
 </style>
-  

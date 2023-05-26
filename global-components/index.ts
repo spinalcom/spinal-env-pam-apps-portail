@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 SpinalCom - www.spinalcom.com
+ * Copyright 2023 SpinalCom - www.spinalcom.com
  *
  * This file is part of SpinalCore.
  *
@@ -21,16 +21,4 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-
-import { IZoneItem } from './IBuildingItem';
-export interface ISpaceSelectorItem extends IZoneItem {
-  level: number;
-  isOpen: boolean;
-  loading?: boolean;
-  platformId: string;
-  patrimoineId: string;
-  parents: string[];
-  isLastInGrp: boolean;
-  drawLink: number[];
-  haveChildren: boolean;
-}
+export * from './SpaceSelector';

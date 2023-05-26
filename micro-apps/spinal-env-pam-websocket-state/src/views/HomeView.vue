@@ -23,21 +23,168 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="_container"
-               fluid>
-    <v-card v-if="page === pages.normal"
-            class="normalState"
-            elevation="4">
-      <div class="header">
-        <v-card class="stateCard"
-                elevation="4">
-          <div class="_circle online"></div>
-          <div class="message"><span>En ligne :</span></div>
-          <div class="count online">{{ nbEnligne }}</div>
+  <div class="div_container">
+    <div class="header">
+      <select-component
+        ref="select-component"
+        :isMobile="isMobile"
+        :portofolios="portofolios"
+        @selected="selectBuilding"
+      ></select-component>
+    </div>
+
+    <div v-if="page === pages.normal && selectedBuilding" class="normalState">
+      <div class="stateCard" elevation="4">
+        <v-card class="buildingInfo">
+          <div class="icon-box">
+            <v-icon size="x-large">mdi-office-building</v-icon>
+          </div>
+
+          <div class="text-box">
+            <div class="title-text">{{ selectedBuilding.name }}</div>
+            <div class="subtitle-text">
+              <v-icon :color="stateColor" size="x-large">{{
+                buildingIcon
+              }}</v-icon>
+              <div :style="{color: stateColor, marginLeft: '10px'}">{{
+                buildingState
+              }}</div>
+            </div>
+          </div>
         </v-card>
 
-        <v-card class="stateCard"
-                elevation="4">
+        <v-card class="statistics">
+          <div class="stateDiv">
+            <state-component
+              color="green"
+              icon="mdi-account-badge"
+              :count="clients.numberOfClientConnected"
+              title="Client(s) connecté(s)"
+              subtitle="En temps réel"
+            ></state-component>
+          </div>
+
+          <div class="stateDiv">
+            <state-component
+              color="orange"
+              icon="mdi-file-sign"
+              :count="getSubscriptionCount"
+              :title="'Souscription(s)'"
+              :subtitle="dates[date].title"
+            ></state-component>
+          </div>
+
+          <div class="stateDiv">
+            <state-component
+              color="red"
+              icon="mdi-bell-alert"
+              :count="getAlertCount"
+              title="Alerte(s)"
+              :subtitle="dates[date].title"
+            ></state-component>
+          </div>
+        </v-card>
+      </div>
+
+      <v-card class="tableCard" elevation="4">
+        <div class="tableheader">
+          <div
+            class="_title text-caption charlevoix"
+            v-text="'Liste des evenements'"
+          ></div>
+
+          <div class="filters">
+            <div class="selectFilters">
+              <v-select
+                dense
+                v-model="date"
+                :items="dates"
+                label="Filtrer par date"
+                item-text="title"
+                outlined
+                hide-details
+              ></v-select>
+            </div>
+
+            <div class="checkboxFilters">
+              <div class="_title">Filtrer par type : </div>
+              <div class="checkboxes">
+                <v-checkbox
+                  v-model="filterByType"
+                  class="check"
+                  dense
+                  label="Alerte"
+                  color="red"
+                  value="alert"
+                  hide-details
+                ></v-checkbox>
+
+                <!-- <v-checkbox 
+                  v-model="filterByType"
+                dense
+                label="Souscription"
+                color="yellow"
+                value="send"
+                hide-details
+              ></v-checkbox> -->
+
+                <v-checkbox
+                  v-model="filterByType"
+                  class="check"
+                  dense
+                  label="Souscription"
+                  color="orange"
+                  value="receive"
+                  hide-details
+                ></v-checkbox>
+
+                <v-checkbox
+                  v-model="filterByType"
+                  class="check"
+                  dense
+                  label="Envoi de données"
+                  color="green"
+                  value="send"
+                  hide-details
+                ></v-checkbox>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tableContent">
+          <v-data-table
+            style="background: transparent"
+            :loading="loadingTableData"
+            loadingText="Chargement... veuillez patienter"
+            no-data-text="Aucune donnée à afficher"
+            :height="tableHeight"
+            fixed-header
+            :headers="headers"
+            :items="tableData"
+            :items-per-page="15"
+            :footer-props="{
+              prevIcon: 'mdi-menu-left',
+              nextIcon: 'mdi-menu-right',
+              itemsPerPageText: '',
+              showCurrentPage: true,
+              itemsPerPageOptions: [5, 10, 15, -1],
+              pageText: '',
+            }"
+          >
+            <template v-slot:item="{item}">
+              <tr class="tableRow">
+                <td>{{ item.date | date }}</td>
+                <td>{{ getAction(item) | action }}</td>
+                <td>{{ getTargetName(item) | target }}</td>
+                <td>{{ getNodeName(item) | nodeName }}</td>
+              </tr>
+            </template>
+          </v-data-table>
+        </div>
+      </v-card>
+      <!--
+        <v-card class="stateCard" elevation="4">
           <div class="_circle offline"></div>
           <div class="message"><span>Hors ligne :</span></div>
           <div class="count offline">{{ nbHorsligne }}</div>
@@ -45,114 +192,152 @@ with this file. If not, see
       </div>
 
       <div class="content">
-        <!-- <TableComponent :logs="logs" /> -->
 
-        <v-tabs vertical
-                class="tabsContainer">
-          <v-tab v-for="item of webSocketLogs"
-                 :key="item.building.id">
-            <!-- <v-icon left
-                    :color="getLogType(item)">
-              {{getIcon(item)}}
-            </v-icon> -->
-            <div class="_circle"
-                 left
-                 :class="getLogType(item)"></div>
-            {{item.building.name}}
+        <v-tabs vertical class="tabsContainer">
+          <v-tab v-for="item of webSocketLogs" :key="item.building.id">
+
+            <div class="_circle" left :class="getLogType(item)"></div>
+            {{ item.building.name }}
           </v-tab>
 
-          <v-tab-item v-for="item of webSocketLogs"
-                      :key="item.id">
+          <v-tab-item v-for="item of webSocketLogs" :key="item.id">
             <TableComponent :logs="item.logs" />
           </v-tab-item>
         </v-tabs>
 
-        <!--   <div class="state">
-          <h1>Etat Actuel</h1>
-          <div class="icon">
 
-            <v-icon size="100px"
-                    color="success">mdi-checkbox-marked-circle-outline</v-icon>
-
-            <div class="message">
-              Une plateforme d'authentification a dejà été enregistée
-            </div>
-          </div> 
-        </div>-->
-
-        <!-- <div class="logs"> 
-         <v-alert shaped
-                   outlined
-                   v-for="log in logs"
-                   :type="getLogType(log)"
-                   :key="log.date">
-
-            <div class="message">
-              {{log.message}}
-            </div>
-
-            <div class="date">
-              {{getDate(log)}}
-            </div>
-
-          </v-alert> 
-
-        </div> -->
-      </div>
-
-    </v-card>
-
-    <div class="loading"
-         v-else-if="page === pages.loading">
-      <v-progress-circular :size="70"
-                           color="primary"
-                           indeterminate></v-progress-circular>
+      </div> -->
     </div>
-  </v-container>
+
+    <div
+      class="loading"
+      v-else-if="page === pages.loading || page === pages.error"
+    >
+      <v-progress-circular
+        v-if="page === pages.loading"
+        :size="70"
+        color="primary"
+        indeterminate
+      ></v-progress-circular>
+
+      <v-icon>mdi-error</v-icon>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import TableComponent from "../components/tableComponent.vue";
-import { mapActions, mapState } from "vuex";
-import { logTypes } from "../store/constants";
+import Vue from 'vue';
+import TableComponent from '../components/tableComponent.vue';
+import {mapActions, mapState} from 'vuex';
+import {logTypes} from '../store/constants';
+import SelectComponent from '../components/select.vue';
+import StateComponent from '../components/stateComponent.vue';
+import {correspondance_actions} from '../store/websocket_constants';
+import moment from 'moment';
+moment.locale('fr');
 
 export default Vue.extend({
-  name: "HomeComponent",
+  name: 'HomeComponent',
   components: {
     TableComponent,
+    SelectComponent,
+    StateComponent,
   },
   data() {
     this.pages = Object.freeze({
       normal: 1,
       loading: 2,
     });
+    this.dates = [
+      {title: "Aujourd'hui", value: 0, key: 'toDay'},
+      {title: 'Hier', value: 1, key: 'yesterday'},
+      {title: '7 derniers jours', value: 2, key: 'week'},
+      {title: 'Une année', value: 3, key: 'year'},
+      // {title: 'Personnaliser', value: 4},
+    ];
+    // windowInnerHeight - (headerHeight + stateHeight + filterHeight + tableHeader + (tableFooter - padding))
+    this.otherSize = 80 + 120 + 100 + 48 + 40;
     return {
+      intervalId: undefined,
+      loadingTableData: true,
       page: this.pages.normal,
+      filterByType: ['send', 'receive', 'alert'],
+      date: this.dates[0].value,
+      tableData: [],
+
+      tableHeight: window.innerHeight - this.otherSize,
+      headers: [
+        {text: 'Date', sortable: true, value: 'date'},
+        {text: 'Action', sortable: true, value: 'action'},
+        {text: "Nom de l'application", sortable: true, value: 'targetName'},
+        {text: 'Nom du noeud', sortable: true, value: 'nodeName'},
+      ],
     };
   },
+
+  created() {
+    window.addEventListener('resize', this.resizeWindow);
+  },
+
   async mounted() {
     this.page = this.pages.loading;
-    await this.createPoolingRequest();
+
+    await this.getPortofolios();
+    // await this.initialize();
     this.page = this.pages.normal;
-    console.log(this.webSocketLogs);
+    // console.log(this.webSocketLogs);
   },
 
   methods: {
-    ...mapActions(["getWebSocketLogs"]),
+    ...mapActions([
+      'getPortofolios',
+      'readCurrentYearLogs',
+      'getWebsocketState',
+      'getWebsocketClientCount',
+    ]),
+
+    async initialize() {
+      this.loadingTableData = true;
+      const buildingId =
+        this.selectedBuilding?.id || this.selectedBuilding?.staticId;
+
+      const promises = [
+        this.readCurrentYearLogs(buildingId),
+        this.createPoolingRequest(),
+      ];
+
+      return Promise.all(promises).then((result) => {
+        this.loadingTableData = false;
+      });
+    },
+
+    selectBuilding(data) {
+      console.log(data);
+    },
+
+    async pooling() {
+      const buildingId =
+        this.selectedBuilding?.id || this.selectedBuilding?.staticId;
+
+      await Promise.all([
+        this.getWebsocketState(buildingId),
+        this.getWebsocketClientCount(buildingId),
+      ]);
+    },
 
     async createPoolingRequest() {
-      await this.getWebSocketLogs();
-      // setInterval(async () => {
-      //   await this.getWebSocketLogs();
-      // }, 10000);
+      await this.pooling();
+      this.intervalId = setInterval(async () => {
+        await this.pooling();
+      }, 50000);
     },
 
     getIcon(item) {
       return item.state === logTypes.Normal
-        ? "mdi-check"
-        : "mdi-alert-circle-outline";
+        ? 'mdi-check'
+        : 'mdi-alert-circle-outline';
     },
+
     getLogType(item) {
       // return item.state === logTypes.Normal ? "green" : "#ff5252";
       return {
@@ -160,136 +345,376 @@ export default Vue.extend({
         offline: item.state !== logTypes.Normal,
       };
     },
+
+    resizeWindow() {
+      this.tableHeight = window.innerHeight - this.otherSize;
+    },
+
+    filterLogs() {
+      const key = this.dates[this.date]?.key;
+      const logs = Object.assign([], this.webSocketLogs[key] || []);
+      console.log(key, logs);
+      this.tableData = logs.filter((log) => {
+        const type = log.value?.type;
+        return this.filterByType.indexOf(type) !== -1;
+      });
+
+      console.log(this.tableData);
+    },
+
+    getAction(log) {
+      return log?.value?.action;
+    },
+    getTargetName(log) {
+      return log?.value?.targetInfo?.name;
+    },
+    getNodeName(log) {
+      return log?.value?.nodeInfo?.info?.name;
+    },
   },
   computed: {
-    ...mapState(["webSocketLogs"]),
-    nbEnligne() {
-      return (this.webSocketLogs || []).filter(
-        (el) => el.state === logTypes.Normal
-      ).length;
+    ...mapState([
+      'portofolios',
+      'webSocketLogs',
+      'websocketState',
+      'selectedBuilding',
+      'clients',
+    ]),
+
+    isMobile() {
+      const breakpoint = this.$vuetify.breakpoint.name;
+      if (['xs', 'sm'].indexOf(breakpoint) !== -1) return true;
+      return false;
     },
-    nbHorsligne() {
-      return (this.webSocketLogs || []).filter(
-        (el) => el.state !== logTypes.Normal
-      ).length;
+
+    getSubscriptionCount() {
+      const key = this.dates[this.date]?.key;
+      const logs = Object.assign([], this.webSocketLogs[key] || []);
+
+      return logs.reduce((count: number, log) => {
+        if (log.value?.type === 'receive') count++;
+        return count;
+      }, 0);
+    },
+
+    getAlertCount() {
+      const key = this.dates[this.date]?.key;
+      const logs = Object.assign([], this.webSocketLogs[key] || []);
+
+      return logs.reduce((count: number, log) => {
+        if (log.value?.type === 'alert') count++;
+        return count;
+      }, 0);
+    },
+
+    stateColor() {
+      switch (this.websocketState.state) {
+        case 'alert':
+          return 'red';
+        case 'running':
+          return 'green';
+        default:
+          return 'orange';
+      }
+    },
+    buildingIcon() {
+      switch (this.websocketState.state) {
+        case 'alert':
+          return 'mdi-bell-alert';
+        case 'running':
+          return 'mdi-circle';
+        default:
+          return 'mdi-help';
+      }
+    },
+    buildingState() {
+      const since = this.websocketState.since;
+      switch (this.websocketState.state) {
+        case 'alert':
+          return 'En alerte';
+        case 'running':
+          return 'En ligne';
+        default:
+          return 'Inconnu';
+      }
     },
   },
-  watch: {},
+  watch: {
+    webSocketLogs() {
+      this.filterLogs();
+    },
+
+    filterByType() {
+      this.filterLogs();
+    },
+
+    date() {
+      this.filterLogs();
+    },
+
+    async selectedBuilding() {
+      clearInterval(this.intervalId);
+      await this.initialize();
+      this.filterLogs();
+    },
+  },
+  filters: {
+    date(value) {
+      return moment(value).format('llll');
+    },
+    action(value) {
+      const a = correspondance_actions[value];
+      return a || value || '-';
+    },
+
+    target(value) {
+      return value || '-';
+    },
+    nodeName(value) {
+      return value || '-';
+    },
+  },
+  beforeDestroy() {
+    clearInterval(this.intervalId);
+  },
 });
 </script>
 
 <style lang="scss">
-._container {
+.div_container {
   width: 100vw;
   height: 100vh;
-  display: flex;
-  align-items: end;
 
-  ._circle {
-    width: 15px;
-    height: 15px;
-    border-radius: 100% !important;
-    margin-right: 5px;
-  }
-
-  ._circle.online {
-    background: green;
-  }
-
-  ._circle.offline {
-    background: #ff5252;
+  .header {
+    width: 100%;
+    height: 70px;
+    margin-bottom: 10px;
   }
 
   .normalState {
-    width: 99%;
-    height: calc(100% - 60px);
-    padding: 10px;
+    width: calc(100% - 20px);
+    height: calc(100% - 90px);
     background: transparent !important;
-    .header {
+    margin: 10px;
+
+    .stateCard {
       width: 100%;
-      height: 130px;
+      height: 100px;
       margin-bottom: 20px;
       display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      .stateCard {
+      justify-content: space-between;
+
+      .buildingInfo {
         width: 25%;
-        height: 80%;
-        margin-right: 15px;
-        background: transparent;
+        background: transparent !important;
         display: flex;
         align-items: center;
-        padding: 0 30px;
+        .icon-box {
+          height: 30px;
+          width: 30px;
+          margin: 0 10px 0 10px;
+          // background-color: #555;
+          border-radius: 6px;
+        }
+
+        .text-box {
+          width: 100%;
+          display: flex;
+          flex-flow: column;
+          .title-text {
+            letter-spacing: 2px;
+            font-size: 1.3em;
+            width: calc(100% - 80px);
+            max-width: calc(100% - 80px);
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+          }
+          .subtitle-text {
+            letter-spacing: 2px;
+            white-space: nowrap;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+          }
+        }
       }
 
-      .count {
-        font-size: 3em;
-      }
-
-      .count.online {
-        color: green !important;
-      }
-      .count.offline {
-        color: #ff5252 !important;
-      }
-      .message {
-        // height: 100%;
-        margin: 0 15px;
-        font-size: 25px;
-      }
-    }
-
-    .content {
-      width: 100%;
-      height: calc(100% - 150px);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      padding: 5px;
-
-      .tabsContainer {
+      .statistics {
+        width: calc(75% - 10px);
+        display: flex;
         background: transparent !important;
       }
 
-      .tabsContainer {
-        .v-tabs-bar,
-        .v-tabs-items {
+      .statistics {
+        height: 100%;
+        justify-content: space-around;
+        .stateDiv {
           height: 100%;
-          background: transparent !important;
-          overflow: auto;
-        }
-
-        .v-tabs-items {
-          width: calc(100% - 160px);
-        }
-
-        .v-tabs-bar {
-          width: 160px;
-          border-right: 1px dashed grey;
-        }
-      }
-
-      .state {
-        width: 100%;
-        height: 20%;
-        text-align: center;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      .logs {
-        width: 100%;
-        max-height: calc(80% - 60px);
-        padding: 10px;
-        overflow: auto;
-
-        .date {
-          text-align: right;
         }
       }
     }
+
+    .tableCard {
+      height: calc(100% - 120px);
+      background: transparent !important;
+      padding: 10px;
+
+      .tableheader {
+        width: 100%;
+        height: 100px;
+
+        ._title {
+          height: 30px;
+        }
+
+        .filters {
+          height: calc(100% - 40px);
+          margin: 5px 0px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          .selectFilters {
+            width: 40%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+          }
+
+          .checkboxFilters {
+            width: 49%;
+            height: 100%;
+            display: flex;
+
+            ._title {
+              width: 30%;
+              height: 100%;
+              padding-right: 20px;
+              display: flex;
+              justify-content: flex-end;
+              align-items: center;
+            }
+
+            .checkboxes {
+              width: 70%;
+              display: flex;
+              align-items: center;
+              .check {
+                margin-right: 20px;
+              }
+            }
+          }
+        }
+      }
+
+      .tableContent {
+        width: 100%;
+        height: calc(100% - 100px);
+
+        th {
+          background: transparent;
+          vertical-align: middle;
+        }
+
+        tr.tableRow {
+          height: 50px;
+          border: 1px solid #e3e7e8;
+          background: #ffffff 0% 0% no-repeat padding-box;
+
+          td {
+            font-family: charl;
+            vertical-align: middle;
+          }
+        }
+      }
+    }
+
+    // .header {
+    //   width: 100%;
+    //   height: 130px;
+    //   margin-bottom: 20px;
+    //   display: flex;
+    //   align-items: center;
+    //   justify-content: flex-end;
+    //   .stateCard {
+    //     width: 25%;
+    //     height: 80%;
+    //     margin-right: 15px;
+    //     background: transparent;
+    //     display: flex;
+    //     align-items: center;
+    //     padding: 0 30px;
+    //   }
+
+    //   .count {
+    //     font-size: 3em;
+    //   }
+
+    //   .count.online {
+    //     color: green !important;
+    //   }
+    //   .count.offline {
+    //     color: #ff5252 !important;
+    //   }
+    //   .message {
+    //     // height: 100%;
+    //     margin: 0 15px;
+    //     font-size: 25px;
+    //   }
+    // }
+
+    // .content {
+    //   width: 100%;
+    //   height: calc(100% - 150px);
+    //   display: flex;
+    //   flex-direction: column;
+    //   justify-content: space-between;
+    //   align-items: center;
+    //   padding: 5px;
+
+    //   .tabsContainer {
+    //     background: transparent !important;
+    //   }
+
+    //   .tabsContainer {
+    //     .v-tabs-bar,
+    //     .v-tabs-items {
+    //       height: 100%;
+    //       background: transparent !important;
+    //       overflow: auto;
+    //     }
+
+    //     .v-tabs-items {
+    //       width: calc(100% - 160px);
+    //     }
+
+    //     .v-tabs-bar {
+    //       width: 160px;
+    //       border-right: 1px dashed grey;
+    //     }
+    //   }
+
+    //   .state {
+    //     width: 100%;
+    //     height: 20%;
+    //     text-align: center;
+    //     display: flex;
+    //     justify-content: center;
+    //     align-items: center;
+    //   }
+
+    //   .logs {
+    //     width: 100%;
+    //     max-height: calc(80% - 60px);
+    //     padding: 10px;
+    //     overflow: auto;
+
+    //     .date {
+    //       text-align: right;
+    //     }
+    //   }
+    // }
   }
 
   .loading {
@@ -299,25 +724,5 @@ export default Vue.extend({
     justify-content: center;
     align-items: center;
   }
-}
-</style>
-
-<style>
-.successBtn {
-  width: 60px !important;
-  height: 40px;
-  border: 1px solid green;
-  color: green !important;
-  border-radius: 5px;
-  margin: 5px;
-}
-
-.errorBtn {
-  width: 75px !important;
-  height: 40px;
-  border: 1px solid #ff5252;
-  color: #ff5252 !important;
-  border-radius: 5px;
-  margin: 5px;
 }
 </style>

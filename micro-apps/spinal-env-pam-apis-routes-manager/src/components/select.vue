@@ -24,13 +24,15 @@ with this file. If not, see
 
 <template>
   <div class="headerSelect">
-    <space-selector ref="space-selector"
-                    :open.sync="openSpaceSelector"
-                    :maxDepth="0"
-                    :GetChildrenFct="onSpaceSelectOpen"
-                    @input="getSelectedItem"
-                    :value="selectedZone"
-                    :isMobile="isMobile" />
+    <space-selector
+      ref="space-selector"
+      :open.sync="openSpaceSelector"
+      :maxDepth="0"
+      :GetChildrenFct="onSpaceSelectOpen"
+      @input="getSelectedItem"
+      :value="selectedZone"
+      :isMobile="isMobile"
+    />
 
     <!-- <v-select class="selectBar"
                 v-model="selected"
@@ -45,11 +47,12 @@ with this file. If not, see
       </v-select> -->
   </div>
 </template>
-  
+
 <script lang="ts">
-import categories from "../store/categories";
-import { SpaceSelector } from "./SpaceSelector/index";
-import type { IZoneItem } from "./SpaceSelector/interfaces/IBuildingItem";
+import categories from '../store/categories';
+import {SpaceSelector} from '../../../../global-components';
+import type {IZoneItem} from '../../../../global-components';
+// import type { IZoneItem } from "./SpaceSelector/interfaces/IBuildingItem";
 
 const SelectComponent = {
   components: {
@@ -61,13 +64,13 @@ const SelectComponent = {
       openSpaceSelector: false,
       selected: null,
       selectedZone: {
-        platformId: "",
+        platformId: '',
         name: categories.portofolio.name,
         staticId: categories.portofolio.id,
         categories: [],
-        color: "#FFFFFF",
+        color: '#FFFFFF',
         dynamicId: 0,
-        type: "patrimoine",
+        type: 'patrimoine',
         level: 0,
         isOpen: true,
         loading: false,
@@ -97,20 +100,20 @@ const SelectComponent = {
           categories: [],
           staticId: categories[id].id,
           dynamicId: 0,
-          type: "patrimoine",
+          type: 'patrimoine',
         };
       });
     },
 
     getSelectedItem(item: any) {
-      this.$emit("selected", categories[item.staticId]);
+      this.$emit('selected', categories[item.staticId]);
       this.selectedZone = item;
     },
   },
   computed: {
     isMobile() {
       const breakpoint = this.$vuetify.breakpoint.name;
-      if (["xs", "sm"].indexOf(breakpoint) !== -1) return true;
+      if (['xs', 'sm'].indexOf(breakpoint) !== -1) return true;
       return false;
     },
   },
@@ -123,8 +126,8 @@ const SelectComponent = {
 
 export default SelectComponent;
 </script>
-  
-  <style lang="scss">
+
+<style lang="scss">
 .headerSelect {
   width: 100%;
   height: 100%;
@@ -141,8 +144,8 @@ export default SelectComponent;
   // }
 }
 </style>
-  
-  <style>
+
+<style>
 .theme--light.v-text-field > .v-input__control > .v-input__slot:before {
   border: none !important;
 }

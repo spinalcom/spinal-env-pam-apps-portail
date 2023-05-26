@@ -24,12 +24,14 @@ with this file. If not, see
 
 <template>
   <div class="headerSelect">
-    <space-selector ref="space-selector"
-                    :open.sync="openSpaceSelector"
-                    :maxDepth="0"
-                    :GetChildrenFct="onSpaceSelectOpen"
-                    @input="getSelectedItem"
-                    :value="selectedZone" />
+    <space-selector
+      ref="space-selector"
+      :open.sync="openSpaceSelector"
+      :maxDepth="0"
+      :GetChildrenFct="onSpaceSelectOpen"
+      @input="getSelectedItem"
+      :value="selectedZone"
+    />
 
     <!-- <v-select class="selectBar"
               v-model="selected"
@@ -46,9 +48,9 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import categories from "../store/data";
-import { SpaceSelector } from "./SpaceSelector/index";
-import type { IZoneItem } from "./SpaceSelector/interfaces/IBuildingItem";
+import categories from '../store/data';
+import {SpaceSelector} from '../../../../global-components';
+import type {IZoneItem} from '../../../../global-components';
 
 const SelectComponent = {
   components: {
@@ -60,13 +62,13 @@ const SelectComponent = {
       openSpaceSelector: false,
       selected: null,
       selectedZone: {
-        platformId: "",
+        platformId: '',
         name: categories.portofolio.name,
         staticId: categories.portofolio.id,
         categories: [],
-        color: "#FFFFFF",
+        color: '#FFFFFF',
         dynamicId: 0,
-        type: "patrimoine",
+        type: 'patrimoine',
         level: 0,
         isOpen: true,
         loading: false,
@@ -96,13 +98,13 @@ const SelectComponent = {
           categories: [],
           staticId: categories[id].id,
           dynamicId: 0,
-          type: "patrimoine",
+          type: 'patrimoine',
         };
       });
     },
 
     getSelectedItem(item: any) {
-      this.$emit("selected", categories[item.staticId]);
+      this.$emit('selected', categories[item.staticId]);
       this.selectedZone = item;
     },
   },
