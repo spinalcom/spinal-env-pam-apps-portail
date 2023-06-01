@@ -109,7 +109,7 @@
                     </v-avatar>
                     {{ defaultFilter.name }}
                   </div>
-                  <v-avatar style="cursor: pointer;" @click.stop="defaultFilter.lock = !defaultFilter.lock">
+                  <v-avatar style="cursor: pointer;" @click.stop="lock(-1)">
                     <v-icon size="16" v-if="defaultFilter.lock">mdi-lock</v-icon>
                     <v-icon size="16" v-else>mdi-lock-open-variant</v-icon>
                   </v-avatar>
@@ -117,18 +117,18 @@
                     <v-icon size="16">mdi-close-octagon</v-icon>
                   </v-avatar>
                 </v-chip>
-                <v-chip @click="star(tempo.name)" v-for="tempo in selectedFilter" :key="tempo.name" :color="tempo.color" filter>
+                <v-chip @click="star(tempo.name)" v-for="(tempo, index) in selectedFilter" :key="tempo.name" :color="tempo.color" filter>
                   <div >
                     <v-avatar v-if="tempo.star">
                       <v-icon size="16" color="#ffc069">mdi-star</v-icon>
                     </v-avatar>
                     {{ tempo.name }}
                   </div>
-                  <v-avatar v-if="!tempo.star" style="cursor: pointer;" @click.stop="tempo.lock = !tempo.lock">
+                  <v-avatar style="cursor: pointer;" @click.stop="lock(index)">
                     <v-icon size="16" v-if="tempo.lock">mdi-lock</v-icon>
                     <v-icon size="16" v-else>mdi-lock-open-variant</v-icon>
                   </v-avatar>
-                  <v-avatar v-if="!tempo.star" @click.stop="removeTempo(tempo.name)" style="cursor: pointer;">
+                  <v-avatar v-if="!tempo.star"  @click.stop="removeTempo(tempo.name)" style="cursor: pointer;">
                     <v-icon size="16">mdi-close-octagon</v-icon>
                   </v-avatar>
                 </v-chip>
@@ -176,6 +176,7 @@
             <StackCard
             v-if="totalCard.length !== 0 && cards.includes('total')"
             :star="true"
+            :lock="true"
             :title="totalTitle"
             :subtitle="totalSubtitle"
             :data="totalCard"
@@ -297,27 +298,27 @@ class App extends Vue {
 
   defaultTimeChip = '';
 
-  dialog = true;
+  dialog = false;
   days = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31'];
   weeks = ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17', 'S18', 'S19', 'S20', 'S21', 'S22', 'S23', 'S24', 'S25', 'S26', 'S27', 'S28', 'S29', 'S30', 'S31', 'S32', 'S33', 'S34', 'S35', 'S36', 'S37', 'S38', 'S39', 'S40', 'S41', 'S42', 'S43', 'S44', 'S45', 'S46', 'S47', 'S48', 'S49', 'S50', 'S51', 'S52'];
   months = [ {name: 'Janvier', value: '01'}, {name: 'Février', value: '02'}, {name: 'Mars', value: '03'}, {name: 'Avril', value: '04'}, {name: 'Mai', value: '05'}, {name: 'Juin', value: '06'}, {name: 'Juillet', value: '07'}, {name: 'Août', value: '08'}, {name: 'Septembre', value: '09'}, {name: 'Octobre', value: '10'}, {name: 'Novembre', value: '11'}, {name: 'Décembre', value: '12'}];
   trimester = ['T1', 'T2', 'T3', 'T4'];
   years = ['2023', '2022', '2021'];
   selectedFilter: tempoFilter[] = [
-  {
-    "name": "Janvier 2023",
-    "value": "01/2023",
-    "color": "#74BDCB",
-    "lock": false,
-    "star": false
-  },
-  {
-      "name": "Mars 2023",
-      "value": "03/2023",
-      "color": "#FFA384",
-      "lock": false,
-      "star": false
-  }
+  // {
+  //   "name": "Janvier 2023",
+  //   "value": "01/2023",
+  //   "color": "#74BDCB",
+  //   "lock": false,
+  //   "star": false
+  // },
+  // {
+  //     "name": "Mars 2023",
+  //     "value": "03/2023",
+  //     "color": "#FFA384",
+  //     "lock": false,
+  //     "star": false
+  // }
   ];
   defaultFilter: tempoFilter = {name: '', color: env.controlEndpoints[0].color, value: '', lock: false, star: true};
   selectedReference: number = 0;
@@ -355,6 +356,7 @@ class App extends Vue {
       res[3][0].subtitle = ' ';
       res[3][0].subValue = ' ';
     }
+    res[3][0].lock = (this.defaultFilter.lock === true) ? true : false;
     this.chart.label = res[0];
     this.chart.data = res[1];
     this.defaultFilter.name = res[1][0].label;
@@ -380,6 +382,7 @@ class App extends Vue {
           res1[3].subtitle = ' ';
           res1[3].subValue = ' ';
         }
+        res1[2].lock = (this.selectedFilter[index - 1].lock === true) ? true : false;
 
         this.addData(res1);
       }
@@ -396,6 +399,7 @@ class App extends Vue {
           res1[3].subtitle = ' ';
           res1[3].subValue = ' ';
         }
+        res1[2].lock = (this.selectedFilter[index - 1].lock === true) ? true : false;
         this.addData(res1);
       }
       else if (this.temporality.name === 'Mois'){      
@@ -411,6 +415,7 @@ class App extends Vue {
           res1[3].subtitle = ' ';
           res1[3].subValue = ' ';
         }
+        res1[2].lock = (this.selectedFilter[index - 1].lock === true) ? true : false;
         this.addData(res1);
       }
       else if (this.temporality.name === 'Trimestre'){
@@ -426,6 +431,7 @@ class App extends Vue {
           res1[3].subtitle = ' ';
           res1[3].subValue = ' ';
         }
+        res1[2].lock = (this.selectedFilter[index - 1].lock === true) ? true : false;
         this.addData(res1);
       }
       else if (this.temporality.name === 'Année'){      
@@ -441,6 +447,7 @@ class App extends Vue {
           res1[3].subtitle = ' ';
           res1[3].subValue = ' ';
         }
+        res1[2].lock = (this.selectedFilter[index - 1].lock === true) ? true : false;
         this.addData(res1);
       }
       index ++;
@@ -672,13 +679,13 @@ class App extends Vue {
       }
       return ;
     }
-    if (this.temporality.name === 'Trimestre' && this.selectedTrimester && this.selectedYear){
-      if (!this.selectedFilter.find(f => f.name === `${this.selectedTrimester} ${this.selectedYear}`)) {
+    if (this.temporality.name === 'Trimestre' && this.selectedTrimester && this.selectedYear ){
+      if (!this.selectedFilter.find(f => f.name === `${this.selectedTrimester} ${this.selectedYear}`) && this.defaultFilter.name !== `${this.selectedTrimester} ${this.selectedYear}`) {
         this.selectedFilter.push({
           name: `${this.selectedTrimester} ${this.selectedYear}`,
           value: `${this.selectedTrimester}/${this.selectedYear}`,
           color: this.selectedColor,
-          lock: false,
+          lock: false,  
           star: false
         });
         const tempovVal = `${this.selectedTrimester}/${this.selectedYear}`;
@@ -828,6 +835,22 @@ class App extends Vue {
 
 
 
+  }
+
+  lock(id: number): void {
+    if (id === -1) {
+      this.defaultFilter.lock = !this.defaultFilter.lock;
+      this.totalCard[0].lock = this.defaultFilter.lock;
+    }
+    else {
+      this.selectedFilter[id].lock = !this.selectedFilter[id].lock;
+      this.totalCard[id + 1].lock = this.selectedFilter[id].lock;
+    }
+    let temp: any[] = [];
+    for (let i = 0; i < this.totalCard.length; i++) {
+      temp.push(this.totalCard[i]);
+    }
+    this.totalCard = temp;
   }
 }
 export default App;

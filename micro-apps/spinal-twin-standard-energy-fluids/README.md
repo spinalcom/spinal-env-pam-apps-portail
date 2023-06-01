@@ -22,7 +22,7 @@ Add additional details about the week in the temporal selection dialogue. For ex
 ---
 - Implement a validation to prevent adding the same temporal selection twice.
 
-### <b style="color: #f94545;"> [  ]  Download Button </b>
+### <b style="color: #f94545;"> [ . ]  Download Button </b>
 ---
 - Add a download button to allow users to download the data.
 
@@ -38,7 +38,7 @@ Add additional details about the week in the temporal selection dialogue. For ex
 ---
 - Show the current temporality in the dialogue.
 
-### <b style="color: #f94545;"> [ . ]  Change Reference Consumption </b>
+### <b style="color: #d9af45;"> [ x ]  Change Reference Consumption </b>
 ---
 - Allow users to change the reference consumption in the dialogue bar.
 

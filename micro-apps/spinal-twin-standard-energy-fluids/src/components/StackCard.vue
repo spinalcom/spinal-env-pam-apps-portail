@@ -8,7 +8,13 @@
       </p>
     </div>
     <div class="d-flex flex-row card-layer" style="height: 70px;" v-for="d of data">
-      <v-icon v-if="star" color="#ffc069" :class="[d.root ? 'display-star': '']" class="hide-star" style="position: absolute">mdi-star</v-icon>
+      <!-- <v-icon v-if="star" color="#ffc069" :class="[d.root ? 'display-star': '']" class="hide-star" style="position: absolute">mdi-star</v-icon>
+      <v-icon v-if="lock" color="#14202C" :class="[d.lock ? 'display-star': '']" class="hide-star" style="position: absolute">mdi-lock</v-icon> -->
+    <div style="display: flex; gap: 10px;">
+      <v-icon v-if="star" color="#ffc069" :class="[d.root ? 'display-star': '']" class="hide-star">mdi-star</v-icon>
+      <v-icon v-if="lock" color="#14202C" :class="[d.lock ? 'display-star': '']" class="hide-star">mdi-lock</v-icon>
+    </div>
+
       <div class="d-flex flex-column justify-center stat-value" :style="[{ color: d.color }, {'font-size': (d.root ==true) ?'48px':'30px'}]">{{ shortNumberCall(d.value) }}</div>
       <div class="d-flex flex-column justify-center stat-text">
         <span> <span :style="{ color: d.color }">{{ d.unit }}</span> {{ d.title }}</span>
@@ -41,6 +47,11 @@ export default {
           type: Boolean,
           required: false,
           default: false
+        },
+        lock: {
+          type: Boolean,
+          required: false,
+          default: false
         }
     },
     mounted() {
@@ -55,6 +66,11 @@ export default {
         return n === Math.floor(n) ? n : n.toFixed(1);
         },
     },
+    watch: {
+      data(v) {
+        console.log(v);
+      }
+    }
 }
 
 </script>
