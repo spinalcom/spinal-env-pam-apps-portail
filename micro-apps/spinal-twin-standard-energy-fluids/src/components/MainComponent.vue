@@ -109,7 +109,7 @@
                     </v-avatar>
                     {{ defaultFilter.name }}
                   </div>
-                  <v-avatar v-if="!defaultFilter.star" style="cursor: pointer;" @click.stop="defaultFilter.lock = !defaultFilter.lock">
+                  <v-avatar style="cursor: pointer;" @click.stop="defaultFilter.lock = !defaultFilter.lock">
                     <v-icon size="16" v-if="defaultFilter.lock">mdi-lock</v-icon>
                     <v-icon size="16" v-else>mdi-lock-open-variant</v-icon>
                   </v-avatar>
@@ -303,7 +303,22 @@ class App extends Vue {
   months = [ {name: 'Janvier', value: '01'}, {name: 'Février', value: '02'}, {name: 'Mars', value: '03'}, {name: 'Avril', value: '04'}, {name: 'Mai', value: '05'}, {name: 'Juin', value: '06'}, {name: 'Juillet', value: '07'}, {name: 'Août', value: '08'}, {name: 'Septembre', value: '09'}, {name: 'Octobre', value: '10'}, {name: 'Novembre', value: '11'}, {name: 'Décembre', value: '12'}];
   trimester = ['T1', 'T2', 'T3', 'T4'];
   years = ['2023', '2022', '2021'];
-  selectedFilter: tempoFilter[] = [];
+  selectedFilter: tempoFilter[] = [
+  {
+    "name": "Janvier 2023",
+    "value": "01/2023",
+    "color": "#74BDCB",
+    "lock": false,
+    "star": false
+  },
+  {
+      "name": "Mars 2023",
+      "value": "03/2023",
+      "color": "#FFA384",
+      "lock": false,
+      "star": false
+  }
+  ];
   defaultFilter: tempoFilter = {name: '', color: env.controlEndpoints[0].color, value: '', lock: false, star: true};
   selectedReference: number = 0;
   colors =  [ '#FF4A3B', '#93876E', '#74BDCB', '#EFE7BC', '#FFA384', '#E7F2F8',
@@ -509,7 +524,8 @@ class App extends Vue {
 
   async nav(payload: number): Promise<void> {
     if (this.temporality.name === 'Journée') {
-      this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'days').valueOf()};
+      if (!this.defaultFilter.lock)
+        this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'days').valueOf()};
       for (let i = 0; i < this.selectedFilter.length; i++) {
         let date = moment(this.selectedFilter[i].value, 'DD/MM/YYYY');
         if(this.selectedFilter[i].lock === false)
@@ -522,7 +538,8 @@ class App extends Vue {
       }
     }
     if (this.temporality.name === 'Semaine') {
-      this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'weeks').valueOf()};
+      if (!this.defaultFilter.lock)
+        this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'weeks').valueOf()};
       for (let i = 0; i < this.selectedFilter.length; i++) {
         let date = moment(this.selectedFilter[i].value, 'WW/YYYY');
         if(this.selectedFilter[i].lock === false)
@@ -535,7 +552,8 @@ class App extends Vue {
       }
     }
     if (this.temporality.name === 'Mois') {
-      this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'months').valueOf()};
+      if (!this.defaultFilter.lock)
+        this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'months').valueOf()};
       for (let i = 0; i < this.selectedFilter.length; i++) {
         let date = moment(this.selectedFilter[i].value, 'MM/YYYY');
         if(this.selectedFilter[i].lock === false)
@@ -548,7 +566,8 @@ class App extends Vue {
       }
     }
     if (this.temporality.name === 'Trimestre') {
-      this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload * 3, 'months').valueOf()};
+      if (!this.defaultFilter.lock)
+        this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload * 3, 'months').valueOf()};
       for (let i = 0; i < this.selectedFilter.length; i++) {
         let t = this.selectedFilter[i].value.split('/');
         let date;
@@ -574,7 +593,8 @@ class App extends Vue {
       }
     }
     if (this.temporality.name === 'Année') {
-      this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf()};
+      if (!this.defaultFilter.lock)
+        this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf()};
       for (let i = 0; i < this.selectedFilter.length; i++) {
         let date = moment(this.selectedFilter[i].value, 'YYYY');
         if(this.selectedFilter[i].lock === false)
@@ -686,6 +706,24 @@ class App extends Vue {
   }
 
   removeTempo(name: string): void {
+    if (name === 'root') {
+      this.defaultFilter = this.selectedFilter[this.selectedReference - 1];
+      this.selectedFilter.splice(this.selectedReference - 1, 1);
+      this.totalCard[0] = this.totalCard[this.selectedReference];
+      this.averageCard[0] = this.averageCard[this.selectedReference];
+      this.meterCard[0] = this.meterCard[this.selectedReference];
+      this.totalCard.splice(this.selectedReference, 1);
+      this.averageCard.splice(this.selectedReference, 1);
+      this.meterCard.splice(this.selectedReference, 1);
+      this.chart.data[0] = this.chart.data[this.selectedReference];
+      this.chart.data.splice(this.selectedReference, 1);
+      let temp: ChartData[] = [];
+      for (let i = 0; i < this.chart.data.length; i++) {
+        temp.push(this.chart.data[i]);
+      }
+      this.chart.data = temp;
+      return ;
+    }
     const index = this.selectedFilter.findIndex(f => f.name === name);
     this.selectedFilter.splice(index, 1);
 

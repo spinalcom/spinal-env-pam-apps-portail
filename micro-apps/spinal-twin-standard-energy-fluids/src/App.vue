@@ -88,37 +88,37 @@ class App extends Vue {
     haveChildren: false
   }
 
-  selectedTime = {
-      name: 'Trimestre',
-      next: 'Trimestre suivant',
-      prev: 'Trimestre précédent',
-      staticId: '3derniersmois',
-      dynamicId: 2,
-      level: 0,
+  // selectedTime = {
+  //     name: 'Trimestre',
+  //     next: 'Trimestre suivant',
+  //     prev: 'Trimestre précédent',
+  //     staticId: '3derniersmois',
+  //     dynamicId: 2,
+  //     level: 0,
+  //     isOpen: true,
+  //     loading: false,
+  //     patrimoineId: '3derniersmois',
+  //     parents: [],
+  //     isLastInGrp: true,
+  //     drawLink: [],
+  //     haveChildren: false,
+  //   };
+
+    selectedTime = {
+      name: 'Mois',
+      next: 'Mois suivant',
+      prev: 'Mois précédent',
+      staticId: 'Mois',
+      dynamicId: 1,
+      level: 1,
       isOpen: true,
       loading: false,
-      patrimoineId: '3derniersmois',
+      patrimoineId: 'Mois',
       parents: [],
       isLastInGrp: true,
       drawLink: [],
       haveChildren: false,
     };
-
-    // selectedTime = {
-    //   name: 'Mois',
-    //   next: 'Mois suivant',
-    //   prev: 'Mois précédent',
-    //   staticId: 'Mois',
-    //   dynamicId: 1,
-    //   level: 1,
-    //   isOpen: true,
-    //   loading: false,
-    //   patrimoineId: 'Mois',
-    //   parents: [],
-    //   isLastInGrp: true,
-    //   drawLink: [],
-    //   haveChildren: false,
-    // };
 
   async mounted() {
     let building = await getBuilding(this.controlEndpoints);
