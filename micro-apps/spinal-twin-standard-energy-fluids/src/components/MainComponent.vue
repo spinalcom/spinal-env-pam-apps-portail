@@ -111,7 +111,7 @@
                   </div>
                   <v-avatar v-if="!defaultFilter.star" style="cursor: pointer;" @click.stop="defaultFilter.lock = !defaultFilter.lock">
                     <v-icon size="16" v-if="defaultFilter.lock">mdi-lock</v-icon>
-                    <v-icon size="16" v-else>mdi-lock-open</v-icon>
+                    <v-icon size="16" v-else>mdi-lock-open-variant</v-icon>
                   </v-avatar>
                   <v-avatar v-if="!defaultFilter.star" @click.stop="removeTempo('root')" style="cursor: pointer;">
                     <v-icon size="16">mdi-close-octagon</v-icon>
@@ -126,7 +126,7 @@
                   </div>
                   <v-avatar v-if="!tempo.star" style="cursor: pointer;" @click.stop="tempo.lock = !tempo.lock">
                     <v-icon size="16" v-if="tempo.lock">mdi-lock</v-icon>
-                    <v-icon size="16" v-else>mdi-lock-open</v-icon>
+                    <v-icon size="16" v-else>mdi-lock-open-variant</v-icon>
                   </v-avatar>
                   <v-avatar v-if="!tempo.star" @click.stop="removeTempo(tempo.name)" style="cursor: pointer;">
                     <v-icon size="16">mdi-close-octagon</v-icon>
@@ -175,6 +175,7 @@
         <div class="d-flex cards">
             <StackCard
             v-if="totalCard.length !== 0 && cards.includes('total')"
+            :star="true"
             :title="totalTitle"
             :subtitle="totalSubtitle"
             :data="totalCard"
@@ -185,6 +186,7 @@
             
             <StackCard
             v-if="meterCard.length !== 0 && cards.includes('today')"
+            :star="false"
             :title="todaysTitle"
             :subtitle="todaysSubtitle"
             :data="meterCard"
@@ -195,6 +197,7 @@
 
             <StackCard
             v-if="averageCard.length !== 0 && cards.includes('average')"
+            :star="false"
             :title="averageTitle"
             :subtitle="averageSubtitle"
             :data="averageCard"
@@ -302,7 +305,7 @@ class App extends Vue {
   years = ['2023', '2022', '2021'];
   selectedFilter: tempoFilter[] = [];
   defaultFilter: tempoFilter = {name: '', color: env.controlEndpoints[0].color, value: '', lock: false, star: true};
-
+  selectedReference: number = 0;
   colors =  [ '#FF4A3B', '#93876E', '#74BDCB', '#EFE7BC', '#FFA384', '#E7F2F8',
               '#ECF87F', '#B99095', '#93B9B8', '#FDA649', '#5050C8', '#0D698B',
               '#29A0B1', '#FFAEBC', '#B4F8C8', '#FBE7C6', '#3D5B59', '#A0E7E5',
@@ -330,6 +333,13 @@ class App extends Vue {
     this.meterCard = [];
     let res: any;
     res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.controlEndpoints);
+    if (this.selectedReference !== 0) {
+      res[2][0].root = false;
+      res[3][0].root = false;
+      res[5][0].root = false;
+      res[3][0].subtitle = ' ';
+      res[3][0].subValue = ' ';
+    }
     this.chart.label = res[0];
     this.chart.data = res[1];
     this.defaultFilter.name = res[1][0].label;
@@ -339,28 +349,88 @@ class App extends Vue {
     this.calendarList = res[4];
     this.calendar = this.calendarList.find((e: CalendarModel) => e.n == this.selectedControlEndpoint.name)!;
 
+    let index = 1;
     for (const ft of this.selectedFilter) {
+
       if (this.temporality.name === 'Journée'){      
         let res1 = await getSolo(this.space, this.temporality.name, ft.value, 'DD/MM/YYYY', this.controlEndpoints, ft.color, this.totalCard);
+        if (this.selectedReference === index) {
+          res1[1].root = true;
+          res1[1].subtitle = ' ';
+          res1[1].subValue = ' ';
+          res1[2].root = true;
+          res1[2].subtitle = ' ';
+          res1[2].subValue = ' ';
+          res1[3].root = true;
+          res1[3].subtitle = ' ';
+          res1[3].subValue = ' ';
+        }
+
         this.addData(res1);
       }
       else if (this.temporality.name === 'Semaine'){      
         let res1 = await getSolo(this.space, this.temporality.name, ft.value, 'WW/YYYY', this.controlEndpoints, ft.color, this.totalCard);
+        if (this.selectedReference === index) {
+          res1[1].root = true;
+          res1[1].subtitle = ' ';
+          res1[1].subValue = ' ';
+          res1[2].root = true;
+          res1[2].subtitle = ' ';
+          res1[2].subValue = ' ';
+          res1[3].root = true;
+          res1[3].subtitle = ' ';
+          res1[3].subValue = ' ';
+        }
         this.addData(res1);
       }
       else if (this.temporality.name === 'Mois'){      
         let res1 = await getSolo(this.space, this.temporality.name, ft.value, 'MM/YYYY', this.controlEndpoints, ft.color, this.totalCard);
+        if (this.selectedReference === index) {
+          res1[1].root = true;
+          res1[1].subtitle = ' ';
+          res1[1].subValue = ' ';
+          res1[2].root = true;
+          res1[2].subtitle = ' ';
+          res1[2].subValue = ' ';
+          res1[3].root = true;
+          res1[3].subtitle = ' ';
+          res1[3].subValue = ' ';
+        }
         this.addData(res1);
       }
       else if (this.temporality.name === 'Trimestre'){
         let res1 = await getSolo(this.space, this.temporality.name, ft.value, 'TT/YYYY', this.controlEndpoints, ft.color, this.totalCard);
+        if (this.selectedReference === index) {
+          res1[1].root = true;
+          res1[1].subtitle = ' ';
+          res1[1].subValue = ' ';
+          res1[2].root = true;
+          res1[2].subtitle = ' ';
+          res1[2].subValue = ' ';
+          res1[3].root = true;
+          res1[3].subtitle = ' ';
+          res1[3].subValue = ' ';
+        }
         this.addData(res1);
       }
       else if (this.temporality.name === 'Année'){      
         let res1 = await getSolo(this.space, this.temporality.name, ft.value, 'YYYY', this.controlEndpoints, ft.color, this.totalCard);
+        if (this.selectedReference === index) {
+          res1[1].root = true;
+          res1[1].subtitle = ' ';
+          res1[1].subValue = ' ';
+          res1[2].root = true;
+          res1[2].subtitle = ' ';
+          res1[2].subValue = ' ';
+          res1[3].root = true;
+          res1[3].subtitle = ' ';
+          res1[3].subValue = ' ';
+        }
         this.addData(res1);
       }
+      index ++;
     }
+
   }
 
   async mounted() {
@@ -401,6 +471,8 @@ class App extends Vue {
   @Watch('temporality')
   async temporalityChange() {    
     this.selectedFilter = [];
+    this.selectedReference = 0;
+    this.defaultFilter.star = true;
     // this.selectedDay = '';
     // this.selectedWeek = '';
     // this.selectedMonth = '';
@@ -478,13 +550,26 @@ class App extends Vue {
     if (this.temporality.name === 'Trimestre') {
       this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload * 3, 'months').valueOf()};
       for (let i = 0; i < this.selectedFilter.length; i++) {
-        let date = moment(this.selectedFilter[i].value, 'MM/YYYY');
-        if(this.selectedFilter[i].lock === false)
-          date.add(payload, 'month');
+        let t = this.selectedFilter[i].value.split('/');
+        let date;
+        switch(t[0]) {
+          case 'T1': date = moment(`01/01/${t[1]}`, 'DD/MM/YYYY'); break;
+          case 'T2': date = moment(`01/04/${t[1]}`, 'DD/MM/YYYY'); break;
+          case 'T3': date = moment(`01/07/${t[1]}`, 'DD/MM/YYYY'); break;
+          case 'T4': date = moment(`01/10/${t[1]}`, 'DD/MM/YYYY'); break;
+        }
+        // let date = moment(this.selectedFilter[i].value, 'MM/YYYY');
+        console.log(`Date: ${date}`)
+        if(this.selectedFilter[i].lock === false) {
+          date.add(payload * 3, 'months');
+        }
+        let currentMM = date.format('MM');
+        let T = 'T'+Math.ceil(+currentMM / 3);
+        console.log(`${T}/${date.format('YYYY')}`);
         let newValue = date.format('MM/YYYY');
         let newMonthName = date.format('MMMM YYYY');
-        this.selectedFilter[i].name = newMonthName;
-        this.selectedFilter[i].value = newValue;
+        this.selectedFilter[i].name = `${T} ${date.format('YYYY')}`;
+        this.selectedFilter[i].value = `${T}/${date.format('YYYY')}`;
         this.selectedFilter[i].color = this.selectedFilter[i].color;
       }
     }
@@ -501,7 +586,9 @@ class App extends Vue {
         this.selectedFilter[i].color = this.selectedFilter[i].color;
       }
     }
-    this.spreadData();
+    await this.spreadData();
+    
+    this.star(undefined, this.selectedReference);
   }
 
   addData(soloData): void {
@@ -557,7 +644,7 @@ class App extends Vue {
           color: this.selectedColor,
           lock: false,
           star: false
-        });
+        });        
         const tempovVal = `${this.months.find(m => m.value === this.selectedMonth)?.value}/${this.selectedYear}`;
         
         let res = await getSolo(this.space, this.temporality.name, tempovVal, 'MM/YYYY', this.controlEndpoints, this.selectedColor, this.totalCard);
@@ -575,7 +662,6 @@ class App extends Vue {
           star: false
         });
         const tempovVal = `${this.selectedTrimester}/${this.selectedYear}`;
-        
         let res = await getSolo(this.space, this.temporality.name, tempovVal, 'TT/YYYY', this.controlEndpoints, this.selectedColor, this.totalCard);
         this.addData(res);
       }
@@ -628,22 +714,82 @@ class App extends Vue {
     this.totalCard = tempTotalCard;
   }
 
-  star(name: string): void {
-    const oldIndex = this.selectedFilter.findIndex(e => e.star === true);
-    if (name === 'root') {
-      this.defaultFilter.star = true;
-      console.log(oldIndex);
-      if (oldIndex !== -1)
-        this.selectedFilter[oldIndex].star = false;
+  star(name?: string, id?: number): void {
+    if (id) {
+      const rootValue = this.totalCard[id].value;
+      this.totalCard.map((obj, i) => {
+        if (i !== id) {
+          obj.root = false;
+          obj.subtitle = 'de la consommation de référence';
+          obj.subValue = (rootValue !== 0 && obj.value > 0) ? (((obj.value - rootValue) / rootValue) * 100).toFixed(1) + '%' :  '∞';
+        }
+        else {
+          obj.root = true;
+          obj.subtitle = 'Consommation de référence';
+          obj.subValue = ' '
+        }
+      });
+      this.averageCard.map((obj, i) => {if (i !== id) { obj.root = false;} else {  obj.root = true; }});
+      this.meterCard.map((obj, i) => {if (i !== id) { obj.root = false;} else {  obj.root = true; }});
+
+      return ;
     }
-    else {
-      this.defaultFilter.star = false;
-      const index = this.selectedFilter.findIndex(f => f.name === name);
-      if (oldIndex !== -1 && index === oldIndex) return ;
-      this.selectedFilter[index].star = true;
-      if (oldIndex !== -1)
-        this.selectedFilter[oldIndex].star = false;
+    else if (name) {
+      const oldIndex = this.selectedFilter.findIndex(e => e.star === true);
+      if (name === 'root') {
+        this.selectedReference = 0;
+        let index = 0;
+        const rootValue = this.totalCard[0].value;
+        
+        this.totalCard.map((obj, i) => {
+          if (i !== index) {
+            obj.root = false;
+            obj.subtitle = 'de la consommation de référence';
+            obj.subValue = (rootValue !== 0 && obj.value > 0) ? (((obj.value - rootValue) / rootValue) * 100).toFixed(1) + '%' :  '∞';
+          }
+          else {
+            obj.root = true;
+            obj.subtitle = 'Consommation de référence';
+            obj.subValue = ' '
+          }
+        });
+        this.averageCard.map((obj, i) => {if (i !== index) { obj.root = false;} else {  obj.root = true; }});
+        this.meterCard.map((obj, i) => {if (i !== index) { obj.root = false;} else {  obj.root = true; }});
+
+        this.totalCard[0].subtitle = 'Consommation de référence';
+
+        this.defaultFilter.star = true;
+        if (oldIndex !== -1)
+          this.selectedFilter[oldIndex].star = false;
+      }
+      else {
+        this.defaultFilter.star = false;
+        const index = this.selectedFilter.findIndex(f => f.name === name);
+        this.selectedReference = index + 1;
+        if (oldIndex !== -1 && index === oldIndex) return ;
+        const rootValue = this.totalCard[index + 1].value;
+        this.totalCard.map((obj, i) => {if (i !== index + 1) {
+          obj.root = false;
+          obj.subtitle = 'de la consommation de référence';
+          obj.subValue = (rootValue !== 0 && obj.value > 0) ? (((obj.value - rootValue) / rootValue) * 100).toFixed(1) + '%' :  '∞';
+        }
+        else {
+          obj.root = true;
+          obj.subtitle = 'Consommation de référence';
+          obj.subValue = ' '
+        }
+      });
+        this.averageCard.map((obj, i) => {if (i !== index + 1) {obj.root = false; } else { obj.root = true; }});
+        this.meterCard.map((obj, i) => {if (i !== index + 1) {obj.root = false; } else { obj.root = true; }});
+        this.selectedFilter[index].star = true;
+        if (oldIndex !== -1)
+          this.selectedFilter[oldIndex].star = false;
+      }
     }
+
+
+
+
   }
 }
 export default App;

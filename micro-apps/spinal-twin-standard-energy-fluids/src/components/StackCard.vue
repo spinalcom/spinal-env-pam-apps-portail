@@ -8,6 +8,7 @@
       </p>
     </div>
     <div class="d-flex flex-row card-layer" style="height: 70px;" v-for="d of data">
+      <v-icon v-if="star" color="#ffc069" :class="[d.root ? 'display-star': '']" class="hide-star" style="position: absolute">mdi-star</v-icon>
       <div class="d-flex flex-column justify-center stat-value" :style="[{ color: d.color }, {'font-size': (d.root ==true) ?'48px':'30px'}]">{{ shortNumberCall(d.value) }}</div>
       <div class="d-flex flex-column justify-center stat-text">
         <span> <span :style="{ color: d.color }">{{ d.unit }}</span> {{ d.title }}</span>
@@ -36,6 +37,11 @@ export default {
           type: String,
           required: false
         },
+        star: {
+          type: Boolean,
+          required: false,
+          default: false
+        }
     },
     mounted() {
         
@@ -82,6 +88,7 @@ export default {
   text-align: end;
   line-height: normal;
   padding-right: 10px;
+  transition: all 0.1s;
 }
 .stat-subtitle {
   font-family: "Charlevoix Pro";
@@ -101,6 +108,16 @@ export default {
   color: #000000DE !important;
   font-size: 20px !important;
 }
+
+.display-star {
+  transform: scale(1) !important;
+}
+
+.hide-star {
+  transform: scale(0);
+  transition: all 0.3s;
+}
+
 
 @font-face{font-family:'Charlevoix Pro';src:url('../assets/font/CharlevoixPro-Regular.woff2') format('woff2'),url('../assets/font/CharlevoixPro-Regular.woff') format('woff'),url('../assets/font/CharlevoixPro-Regular.ttf') format('truetype');font-weight:normal;font-style:normal}
 

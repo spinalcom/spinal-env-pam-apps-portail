@@ -367,7 +367,6 @@ function getPeriodArray(timestamp, period) {
   } else if (period === 'Trimestre') {
     let currentMM = moment(timestamp).format('MM');
     let T = 'T'+Math.ceil(currentMM / 3);
-    console.log(T);
     var startOfTrimester;
     var endOfTrimester;
     var currentDay;
