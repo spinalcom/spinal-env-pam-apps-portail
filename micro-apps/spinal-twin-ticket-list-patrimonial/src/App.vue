@@ -34,7 +34,7 @@ with this file. If not, see
       <sc-space-selector
         class="ma-1 pa-1"
         v-model="el"
-        :max-depth="1"
+        :max-depth="0"
         :onopen="expand"
         :first-tile="selector"
       ></sc-space-selector>
@@ -595,14 +595,15 @@ import { mapActions, mapGetters } from "vuex";
 import { getFileAsync } from "./api-requests";
 import { displayDate } from "./store/index";
 import html2canvas from "html2canvas";
+const patrimoine = JSON.parse(localStorage.getItem("patrimoine"));
 
 export default {
   name: "App",
 
   data: () => ({
     el: {
-      name: "Patrimoine",
-      dynamicId: JSON.parse(localStorage.getItem("patrimoine")).id,
+      name: patrimoine.name,
+      dynamicId: patrimoine.id,
     },
     domain_filter: [],
     step_filter: [],
@@ -717,10 +718,7 @@ export default {
       loadTickets: "loadTickets",
     }),
     async expand(item) {
-      switch (item.level) {
-        case 0:
-          return this.selector.buildings;
-      }
+      return [];
     },
 
     compareDate(date1, date2) {
