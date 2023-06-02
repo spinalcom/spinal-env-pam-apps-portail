@@ -156,7 +156,7 @@ with this file. If not, see
             @click:row="rowClicked"
           >
             <v-progress-linear
-              v-show="!loaded(el.dynamicId)"
+              v-show="!loaded"
               slot="progress"
               color="accent"
               class="progress-bar"
@@ -428,7 +428,7 @@ with this file. If not, see
     <!--Content of the pdf file to be downloaded-->
     <div id="pdf-div" v-if="detailedTicket" v-show="showPDF" class="pa-4">
       <div class="text-center title font-weight-bold mb-10 downloadable" id="0">
-        Détails du ticket n° {{ detailedTicket.dynamicId }}
+        Détails du ticket
       </div>
       <div class="mb-4 downloadable" id="1">
         <div class="font-weight-bold">
@@ -777,8 +777,7 @@ export default {
   watch: {
     async isDownloadable(v) {
       if (v) {
-        const mywindow = window.open("", "PRINT", "height=1000,width=900");
-
+        const mywindow = window.open("", "PRINT", "height=600,width=900");
         mywindow.document.write(
           `<html><head><title> ${this.detailedTicket.name} </title>`
         );
@@ -791,6 +790,7 @@ export default {
         mywindow.document.close();
         mywindow.focus();
         mywindow.print();
+        mywindow.close();
         this.PDFparts = [];
       }
     },

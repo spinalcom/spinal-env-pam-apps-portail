@@ -109,15 +109,11 @@ export default new Vuex.Store({
         return found.tickets.map((t: any) => toManageableTicket(found, t));
       return [];
     },
-    isLoaded: (state) => (id: string) => {
-      if (id === state.patrimoine.id)
-        return (
-          state.patrimoine.buildings.length &&
-          state.patrimoine.buildings.length === state.patrimoine.loaded.length
-        );
-      const found = state.patrimoine.buildings.find((f: any) => f.id === id);
-      if (found) return found.loaded;
-      return false;
+    isLoaded: (state) => {
+      return (
+        state.patrimoine.buildings.length &&
+        state.patrimoine.buildings.length === state.patrimoine.loaded.length
+      );
     },
   },
   mutations: {
