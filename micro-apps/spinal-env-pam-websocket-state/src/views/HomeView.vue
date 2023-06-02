@@ -70,7 +70,7 @@ with this file. If not, see
               icon="mdi-file-sign"
               :count="getSubscriptionCount"
               :title="'Souscription(s)'"
-              :subtitle="dates[date].title"
+              :subtitle="subtitle"
             ></state-component>
           </div>
 
@@ -80,7 +80,7 @@ with this file. If not, see
               icon="mdi-bell-alert"
               :count="getAlertCount"
               title="Alerte(s)"
-              :subtitle="dates[date].title"
+              :subtitle="subtitle"
             ></state-component>
           </div>
         </v-card>
@@ -119,15 +119,6 @@ with this file. If not, see
                   hide-details
                 ></v-checkbox>
 
-                <!-- <v-checkbox 
-                  v-model="filterByType"
-                dense
-                label="Souscription"
-                color="yellow"
-                value="send"
-                hide-details
-              ></v-checkbox> -->
-
                 <v-checkbox
                   v-model="filterByType"
                   class="check"
@@ -147,6 +138,36 @@ with this file. If not, see
                   value="send"
                   hide-details
                 ></v-checkbox>
+
+                <v-checkbox
+                  v-model="filterByType"
+                  class="check"
+                  dense
+                  label="Connexion"
+                  color="#43A047"
+                  value="connected"
+                  hide-details
+                ></v-checkbox>
+
+                <v-checkbox
+                  v-model="filterByType"
+                  class="check"
+                  dense
+                  label="Deconnexion"
+                  color="#E53935"
+                  value="disconnected"
+                  hide-details
+                ></v-checkbox>
+
+                <v-checkbox
+                  v-model="filterByType"
+                  class="check"
+                  dense
+                  label="Redemarrage"
+                  color="green"
+                  value="restart"
+                  hide-details
+                ></v-checkbox>
               </div>
             </div>
           </div>
@@ -154,6 +175,8 @@ with this file. If not, see
 
         <div class="tableContent">
           <v-data-table
+            sort-by="date"
+            :sort-desc="true"
             style="background: transparent"
             :loading="loadingTableData"
             loadingText="Chargement... veuillez patienter"
@@ -261,8 +284,15 @@ export default Vue.extend({
       intervalId: undefined,
       loadingTableData: true,
       page: this.pages.normal,
-      filterByType: ['send', 'receive', 'alert'],
-      date: this.dates[0].value,
+      filterByType: [
+        'send',
+        'receive',
+        'alert',
+        'connected',
+        'disconnected',
+        'restart',
+      ],
+      date: undefined,
       tableData: [],
 
       tableHeight: window.innerHeight - this.otherSize,
@@ -272,6 +302,7 @@ export default Vue.extend({
         {text: "Nom de l'application", sortable: true, value: 'targetName'},
         {text: 'Nom du noeud', sortable: true, value: 'nodeName'},
       ],
+      subtitle: '',
     };
   },
 
@@ -284,6 +315,7 @@ export default Vue.extend({
 
     await this.getPortofolios();
     // await this.initialize();
+    this.date = this.dates[0].value;
     this.page = this.pages.normal;
     // console.log(this.webSocketLogs);
   },
@@ -449,6 +481,7 @@ export default Vue.extend({
     },
 
     date() {
+      this.subtitle = this.dates[this.date].title;
       this.filterLogs();
     },
 
@@ -576,14 +609,14 @@ export default Vue.extend({
           align-items: center;
 
           .selectFilters {
-            width: 40%;
+            width: 30%;
             height: 100%;
             display: flex;
             align-items: center;
           }
 
           .checkboxFilters {
-            width: 49%;
+            width: 70%;
             height: 100%;
             display: flex;
 
@@ -600,6 +633,7 @@ export default Vue.extend({
               width: 70%;
               display: flex;
               align-items: center;
+              flex-wrap: wrap;
               .check {
                 margin-right: 20px;
               }

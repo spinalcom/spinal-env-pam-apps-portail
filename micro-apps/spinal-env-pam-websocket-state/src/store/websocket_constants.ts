@@ -27,4 +27,6 @@ export const correspondance_actions = {
   receive_subscribe_event: "Reception d'une requête de souscription",
   alert: 'Alerte',
   send_subscribed_event: 'Envoi de la reponse de souscription',
+  connected: 'Connexion',
+  disconnected: 'Déconnexion',
 };
