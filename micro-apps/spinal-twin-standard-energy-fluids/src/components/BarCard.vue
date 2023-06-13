@@ -23,7 +23,7 @@
     </v-card-title>
     <div class="d-flex flex-column flex-grow-1">
       <slot name="extras" v-if="switchValue && isYear"></slot>
-      <div class="flex-grow-1 pt-12" style="height: 0;" v-if="switchValue && isYear">
+      <div class="flex-grow-1" style="height: 0;" v-if="switchValue && isYear">
         <CalendarAndStripe :results="calendar" :unit="optional.unit" v-if="calendar && calendar.d && calendar.d.length>0"/>
       </div>
       <div class="flex-grow-1" style="height: 0;" v-else>

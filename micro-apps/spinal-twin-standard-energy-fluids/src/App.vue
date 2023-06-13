@@ -24,8 +24,12 @@
           label="TEMPORALITÉ"
         />
       </div>
+      <div class="DB">
+
+        <DownloadButton :fileName="'consomation d\'energie globale'" :data="table"/>
+      </div>
     </div>
-    <MicroApp :temporality="selectedTime" :space="defaultSelected" v-if="defaultSelected.dynamicId !== 0"/>
+    <MicroApp @chart-sent="handleChart" :temporality="selectedTime" :space="defaultSelected" v-if="defaultSelected.dynamicId !== 0"/>
   </v-app>
 </template>
 
@@ -39,6 +43,8 @@ import {
 import { Vue } from 'vue-property-decorator';
 import Component from 'vue-class-component';
 import MicroApp from './components/MainComponent.vue';
+// import DownloadButton from 'spinal-components/src/components/DownloadButton.vue';
+import DownloadButton from './components/DownloadButton.vue';
 import { getBuilding, getFloors } from './services/index.js';
 interface IItemData {
   platformId: string;
@@ -52,10 +58,13 @@ interface IItemDatatmp {
 @Component({
   components: {
     SpaceSelector,
+    DownloadButton,
     MicroApp
   },
 })
 class App extends Vue {
+
+  table = [];
   controlEndpoints = env.controlEndpoints;
   time = { name: "SEMAINE", value: 'week' }
   selectedFloor = '';
@@ -88,37 +97,37 @@ class App extends Vue {
     haveChildren: false
   }
 
-  // selectedTime = {
-  //     name: 'Trimestre',
-  //     next: 'Trimestre suivant',
-  //     prev: 'Trimestre précédent',
-  //     staticId: '3derniersmois',
-  //     dynamicId: 2,
-  //     level: 0,
-  //     isOpen: true,
-  //     loading: false,
-  //     patrimoineId: '3derniersmois',
-  //     parents: [],
-  //     isLastInGrp: true,
-  //     drawLink: [],
-  //     haveChildren: false,
-  //   };
-
-    selectedTime = {
-      name: 'Mois',
-      next: 'Mois suivant',
-      prev: 'Mois précédent',
-      staticId: 'Mois',
-      dynamicId: 1,
-      level: 1,
+  selectedTime = {
+      name: 'Année',
+      next: 'Année suivante',
+      prev: 'Année précédente',
+      staticId: 'Annee',
+      dynamicId: 3,
+      level: 0,
       isOpen: true,
       loading: false,
-      patrimoineId: 'Mois',
+      patrimoineId: 'Annee',
       parents: [],
       isLastInGrp: true,
       drawLink: [],
       haveChildren: false,
     };
+
+    // selectedTime = {
+    //   name: 'Mois',
+    //   next: 'Mois suivant',
+    //   prev: 'Mois précédent',
+    //   staticId: 'Mois',
+    //   dynamicId: 1,
+    //   level: 1,
+    //   isOpen: true,
+    //   loading: false,
+    //   patrimoineId: 'Mois',
+    //   parents: [],
+    //   isLastInGrp: true,
+    //   drawLink: [],
+    //   haveChildren: false,
+    // };
 
   async mounted() {
     let building = await getBuilding(this.controlEndpoints);
@@ -287,11 +296,9 @@ class App extends Vue {
         return [];
     }
   }
-
-
-
-
-
+  handleChart(chart) {
+    this.table = chart;
+  }
 }
 
 export default App;
@@ -333,6 +340,10 @@ html, body, .spinal-font, .v-application--wrap {
   overflow: hidden !important;
 }
 
+.DB {
+  position: absolute;
+  left: -70px;
+}
 @font-face{font-family:'Charlevoix Pro';src:url('./assets/font/CharlevoixPro-Regular.woff2') format('woff2'),url('./assets/font/CharlevoixPro-Regular.woff') format('woff'),url('./assets/font/CharlevoixPro-Regular.ttf') format('truetype');font-weight:normal;font-style:normal}
 
 

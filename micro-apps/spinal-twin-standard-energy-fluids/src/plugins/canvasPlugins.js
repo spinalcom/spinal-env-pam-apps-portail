@@ -56,7 +56,7 @@ export const customLegendPlugin = {
   afterUpdate: (chart, args, options) => {
     if ((chart.config.type === "bar" && chart.legend) || (chart.config.type === "line" && chart.legend)) {
       chart.legend.left = chart.chartArea.left + 40;
-      chart.legend.legendHitBoxes = chart.legend.legendHitBoxes.map(lhb => {lhb.left += 190; return lhb});
+      chart.legend.legendHitBoxes = chart.legend.legendHitBoxes.map(lhb => {lhb.left += 120; return lhb});
     } else if (chart.config.type === "pie") {
       const legendContainer = chart.canvas.parentElement?.parentNode?.lastChild;
       while (legendContainer?.firstChild) legendContainer.firstChild?.remove();

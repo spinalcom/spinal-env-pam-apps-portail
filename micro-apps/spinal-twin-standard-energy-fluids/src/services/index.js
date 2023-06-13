@@ -71,14 +71,6 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
   try {
   for (const controlEndpoint of controlEndpoints) {
     cpList = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/control_endpoint_list`);
-
-    // cpList = cpList.data[0].endpoints;
-    // for (let i = 0; i < cpList.length; i++) {
-    //   if (cpList[i].name === controlEndpoint.name) {
-    //     cpID = cpList[i].dynamicId;
-    //   }
-    // }
-
     for (let j = 0; j < cpList.data.length; j++) {
       for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
         if (cpList.data[j].endpoints[i].name === controlEndpoint.name) {
@@ -89,23 +81,17 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
     
     if (cpID) {
       timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`);
-      // timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/11-04-2023 00:00:00/11-04-2023 23:59:59`);
       timeSeries = timeSeries.data;
-    // prepareCalendar(timeSeries, currentTimestamp, controlEndpoint.name);
-    // prevTimeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/${periodArray[3]}/${periodArray[4]}`);
-    // prevTimeSeries = prevTimeSeries.data;
-
-
-    let processedTimeSeries = [];
-    if (tempo === 'Journée') {
-      labelLegend = moment(currentTimestamp).format('DD/MM/YYYY');
-      label.forEach(hour => {
-        processedTimeSeries.push(
-          timeSeries.filter(elem => moment(elem.date).format('HH') === hour)
-            .reduce((sum, elem) => sum + elem.value, 0)
-        );
-      });
-    }
+      let processedTimeSeries = [];
+      if (tempo === 'Journée') {
+        labelLegend = moment(currentTimestamp).format('DD/MM/YYYY');
+        label.forEach(hour => {
+          processedTimeSeries.push(
+            timeSeries.filter(elem => moment(elem.date).format('HH') === hour)
+              .reduce((sum, elem) => sum + elem.value, 0)
+          );
+        });
+      }
     else if (tempo === 'Semaine') {
       labelLegend = 'S' + moment(currentTimestamp).format('WW') + ' (' + moment(currentTimestamp).startOf('week').format('DD/MM/YYYY') + ' - ' + moment(currentTimestamp).endOf('week').format('DD/MM/YYYY') + ')';
       label.forEach(day => {
@@ -114,6 +100,7 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
             .reduce((sum, elem) => sum + elem.value, 0)
         );
       });
+      label = periodArray[6];
 
     } else if (tempo === 'Mois') {
       labelLegend = moment(currentTimestamp).format('MMMM YYYY');
@@ -123,6 +110,7 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
             .reduce((sum, elem) => sum + elem.value, 0)
         );
       });
+      label = periodArray[6];
     } else if (tempo === 'Année') {
       labelLegend = moment(currentTimestamp).format('YYYY');
       calendarObject = {}
@@ -153,6 +141,7 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
             .reduce((sum, elem) => sum + elem.value, 0)
         );
       });
+      label = periodArray[7];
     } else {
       processedTimeSeries = timeSeries;
     }
@@ -306,10 +295,12 @@ function getPeriodArray(timestamp, period) {
     var startOfWeek = moment(timestamp).startOf('week');
     var endOfWeek = moment(timestamp).endOf('week');
     var daysInMonth = [];
+    var abstractDaysInMonth = [];
     var tooltipDate = [];
     var currentDay = moment(startOfWeek);
     while (currentDay.isSameOrBefore(endOfWeek)) {
       daysInMonth.push(currentDay.format('DD MMM'));
+      abstractDaysInMonth.push(currentDay.format('dddd').slice(0, 1).toUpperCase() + currentDay.format('dddd').slice(1));
       tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
       currentDay.add(1, 'day');
     }
@@ -318,15 +309,18 @@ function getPeriodArray(timestamp, period) {
       moment(timestamp).endOf('week').format('DD-MM-yyyy HH:mm:ss'),
       moment(timestamp).add(-1, 'weeks').startOf('week').format('DD-MM-yyyy HH:mm:ss'),
       moment(timestamp).add(-1, 'weeks').endOf('week').format('DD-MM-yyyy HH:mm:ss'),
-      tooltipDate
+      tooltipDate,
+      abstractDaysInMonth
     ];
   } else if (period === 'Mois') {
     var startOfMonth = moment(timestamp).startOf('month');
     var endOfMonth = moment(timestamp).endOf('month');
     var daysInMonth = [];
+    var abstractDaysInMonth = [];
     var tooltipDate = [];
     var currentDay = moment(startOfMonth);
     while (currentDay.isSameOrBefore(endOfMonth)) {
+      abstractDaysInMonth.push(currentDay.format('DD'));
       daysInMonth.push(currentDay.format('DD MMM'));
       tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
       currentDay.add(1, 'day');
@@ -336,7 +330,8 @@ function getPeriodArray(timestamp, period) {
       moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss'),
       moment(timestamp).add(-1, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'),
       moment(timestamp).add(-1, 'months').endOf('month').format('DD-MM-yyyy HH:mm:ss'),
-      tooltipDate
+      tooltipDate,
+      abstractDaysInMonth
     ];
   } else if (period === 'Année') {
     var monthsInYear = [];
@@ -402,20 +397,24 @@ function getPeriodArray(timestamp, period) {
     }
 
     var daysIn3Months = [];
+    var abstractDaysIn3Months = [];
     var tooltipDate = [];
     while (currentDay.isSameOrBefore(endDay)) {
       daysIn3Months.push(currentDay.format('DD MMM'));
+      abstractDaysIn3Months.push(currentDay.format('DD'));
       tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
       currentDay.add(1, 'day');
     }
 
+    console.log(abstractDaysIn3Months)
     return [daysIn3Months,
       startOfTrimester,
       endOfTrimester,
       moment(timestamp).add(-5, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'),
       moment(timestamp).add(-3, 'months').endOf('month').format('DD-MM-yyyy HH:mm:ss'),
       tooltipDate,
-      T
+      T,
+      abstractDaysIn3Months
     ];
   } else {
     return [];
@@ -543,6 +542,7 @@ export async function getSolo(space, tempo, currentTimestamp, format, controlEnd
     }
   }
   let res = await getData(space, tempo, ts, controlEndpoints);
+  console.log(res)
   res[1][0].stack = currentTimestamp;
   res[1][0].backgroundColor = color;
   res[2][0].root = false;
@@ -564,5 +564,5 @@ export async function getSolo(space, tempo, currentTimestamp, format, controlEnd
   // res[5][0].subValue = comparison;
   // res[5][0].subtitle = 'de la consommation de référence';
 
-  return [res[1][0], res[2][0], res[3][0], res[5][0]];
+  return [res[1][0], res[2][0], res[3][0], res[5][0], res[4][0]];
 }

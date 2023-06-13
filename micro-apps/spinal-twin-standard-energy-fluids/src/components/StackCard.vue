@@ -68,7 +68,7 @@ export default {
     },
     watch: {
       data(v) {
-        console.log(v);
+        
       }
     }
 }

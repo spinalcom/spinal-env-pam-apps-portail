@@ -171,6 +171,19 @@
         style="max-height: 530px;"
         class="BR"
         >
+        <template v-slot:extras>
+            <v-select v-model="domain" append-icon="mdi-chevron-down" :items="domainList" outlined menu-props="{ bottom: true }" color="#E3E7E8" item-color="#E3E7E8" dense style="margin-left: 100px !important; min-width: 200px; width: 340px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Temporalité">
+              <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
+
+              <template #item="{ item }">
+                <SmallLegend :color="item.color" :text="item.name" :size="14"/>
+              </template>
+
+              <template #selection="{ item }">
+                <SmallLegend :color="item.color" :text="item.name" :size="14"/>
+              </template>
+            </v-select>
+            </template>
         </BarChart>
         <div class="d-flex cards">
             <StackCard
@@ -329,6 +342,11 @@ class App extends Vue {
               '#FFD056', '#584A4A', '#C1CC80', '#AA2424', '#9DAABD', '#802877'
             ];
 
+  selectedDomain = -1;
+  domain: any = {name: '', color: ''};
+  domainList: any[] = [];
+
+
   @Prop({type: Object as () => ISpaceSelectorItem, required: true})
   space: ISpaceSelectorItem;
 
@@ -364,12 +382,11 @@ class App extends Vue {
     this.totalCard = res[3];
     this.meterCard = res[5];
     this.calendarList = res[4];
-    this.calendar = this.calendarList.find((e: CalendarModel) => e.n == this.selectedControlEndpoint.name)!;
 
     let index = 1;
     for (const ft of this.selectedFilter) {
 
-      if (this.temporality.name === 'Journée'){      
+      if (this.temporality.name === 'Journée'){
         let res1 = await getSolo(this.space, this.temporality.name, ft.value, 'DD/MM/YYYY', this.controlEndpoints, ft.color, this.totalCard);
         if (this.selectedReference === index) {
           res1[1].root = true;
@@ -451,7 +468,9 @@ class App extends Vue {
         this.addData(res1);
       }
       index ++;
+
     }
+    this.calendar = this.calendarList.find((e: CalendarModel) => e.y == this.domain.name)!;
 
   }
 
@@ -469,6 +488,8 @@ class App extends Vue {
       this.controlEndpointList.push({name: controlEndpoint.name, color: controlEndpoint.color});
     }
     this.interval();
+    this.domainList.push({name: this.selectedYear, color: env.controlEndpoints[0].color});
+    this.domain = {name: this.selectedYear, color: env.controlEndpoints[0].color};
     // this.todaysCard = await getTodaysData(this.space, this.controlEndpoints);
   }
   
@@ -491,7 +512,8 @@ class App extends Vue {
   }
 
   @Watch('temporality')
-  async temporalityChange() {    
+  async temporalityChange() {
+    this.chart.data = [];  
     this.selectedFilter = [];
     this.selectedReference = 0;
     this.defaultFilter.star = true;
@@ -525,11 +547,41 @@ class App extends Vue {
 
   }
 
+  @Watch('chart', { deep: true })
+  emitChartChange(newChart) {
+    let output: any[] = [];
+    for (let c = 0; c < newChart.data.length; c++) {
+      output.push({
+        'Temporalité': newChart.data[c].label,
+      })
+      for (let i = 0; i < newChart.label.length; i++) {
+        const label = ''+newChart.label[i];
+        const data = newChart.data[c].data[i];
+        output[c][label] = data;
+      }
+      const modifiedData = {
+        Temporalité: output[c].Temporalité,
+        ...output[c],
+      };
+
+      
+    }    
+    this.$emit('chart-sent', output);
+  }
+
+  @Watch('domain')
+  domainChange(y) {
+    console.log(y.name);
+    
+    this.calendar = this.calendarList.find((e: CalendarModel) => e.y == y.name)!;    
+  }
+
   calendarSwitch(): void {
     this.calendarSwitchState = !this.calendarSwitchState;
   }
 
   async nav(payload: number): Promise<void> {
+
     if (this.temporality.name === 'Journée') {
       if (!this.defaultFilter.lock)
         this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'days').valueOf()};
@@ -585,13 +637,11 @@ class App extends Vue {
           case 'T4': date = moment(`01/10/${t[1]}`, 'DD/MM/YYYY'); break;
         }
         // let date = moment(this.selectedFilter[i].value, 'MM/YYYY');
-        console.log(`Date: ${date}`)
         if(this.selectedFilter[i].lock === false) {
           date.add(payload * 3, 'months');
         }
         let currentMM = date.format('MM');
         let T = 'T'+Math.ceil(+currentMM / 3);
-        console.log(`${T}/${date.format('YYYY')}`);
         let newValue = date.format('MM/YYYY');
         let newMonthName = date.format('MMMM YYYY');
         this.selectedFilter[i].name = `${T} ${date.format('YYYY')}`;
@@ -600,8 +650,10 @@ class App extends Vue {
       }
     }
     if (this.temporality.name === 'Année') {
-      if (!this.defaultFilter.lock)
+      this.domain.name = ''+(+this.domain.name + payload);
+      if (!this.defaultFilter.lock) {
         this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf()};
+      }
       for (let i = 0; i < this.selectedFilter.length; i++) {
         let date = moment(this.selectedFilter[i].value, 'YYYY');
         if(this.selectedFilter[i].lock === false)
@@ -611,10 +663,23 @@ class App extends Vue {
         this.selectedFilter[i].name = newMonthName;
         this.selectedFilter[i].value = newValue;
         this.selectedFilter[i].color = this.selectedFilter[i].color;
+
       }
+
     }
     await this.spreadData();
-    
+    if (this.temporality.name === 'Année') {
+      this.domainList = [];
+      this.domainList.push({name: this.defaultFilter.name, color: this.defaultFilter.color});
+      for (let filter = 0; filter < this.selectedFilter.length; filter++) {
+        this.domainList.push({name: this.selectedFilter[filter].name, color: this.selectedFilter[filter].color});
+      }
+      if (!this.domain.name) {
+        this.domain = {name: this.defaultFilter.name, color: this.defaultFilter.color}
+      }
+      // else 
+      //   this.domain = {name: this.selectedFilter[0].name, color: this.selectedFilter[0].color}
+    }
     this.star(undefined, this.selectedReference);
   }
 
@@ -626,9 +691,11 @@ class App extends Vue {
     temp.push(soloData[0]);
     this.chart.data = temp;
     this.averageCard.push(soloData[1]);
+    this.calendarList.push(soloData[4]);
 
     this.totalCard.push(soloData[2]);
     this.meterCard.push(soloData[3]);
+    console.log(this.calendarList);
   }
 
   async addTempo(): Promise<void> {
@@ -704,7 +771,7 @@ class App extends Vue {
           star: false
         });
         const tempovVal = `${this.selectedYear}`;
-        
+        this.domainList.push({name: `${this.selectedYear}`, color: this.selectedColor})
         let res = await getSolo(this.space, this.temporality.name, tempovVal, 'YYYY', this.controlEndpoints, this.selectedColor, this.totalCard);
         this.addData(res);
       }

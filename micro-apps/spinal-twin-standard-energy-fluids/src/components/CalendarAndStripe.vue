@@ -101,7 +101,7 @@ export default {
         }
       }
     }
-    this.maxDate = moment(maxIndex[1]+1 + ' ' + maxIndex[0]+1, 'DD MM').format('DD MMMM');
+    this.maxDate = moment(maxIndex[1]+1 + ' ' + (maxIndex[0]+1), 'DD MM').format('DD MMMM');
   },
   computed:{
     monthlyValues() {
