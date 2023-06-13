@@ -570,9 +570,7 @@ class App extends Vue {
   }
 
   @Watch('domain')
-  domainChange(y) {
-    console.log(y.name);
-    
+  domainChange(y) {    
     this.calendar = this.calendarList.find((e: CalendarModel) => e.y == y.name)!;    
   }
 
@@ -683,7 +681,9 @@ class App extends Vue {
     this.star(undefined, this.selectedReference);
   }
 
-  addData(soloData): void {
+  addData(soloData): void {    
+    this.chart.label = (soloData[5].length > this.chart.label.length) ? soloData[5] : this.chart.label;
+
     let temp: ChartData[] = [];
     for (const d of this.chart.data) {
       temp.push(d);
@@ -695,7 +695,6 @@ class App extends Vue {
 
     this.totalCard.push(soloData[2]);
     this.meterCard.push(soloData[3]);
-    console.log(this.calendarList);
   }
 
   async addTempo(): Promise<void> {

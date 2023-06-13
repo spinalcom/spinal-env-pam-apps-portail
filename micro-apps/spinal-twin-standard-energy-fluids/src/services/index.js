@@ -564,5 +564,5 @@ export async function getSolo(space, tempo, currentTimestamp, format, controlEnd
   // res[5][0].subValue = comparison;
   // res[5][0].subtitle = 'de la consommation de référence';
 
-  return [res[1][0], res[2][0], res[3][0], res[5][0], res[4][0]];
+  return [res[1][0], res[2][0], res[3][0], res[5][0], res[4][0], res[0]];
 }
