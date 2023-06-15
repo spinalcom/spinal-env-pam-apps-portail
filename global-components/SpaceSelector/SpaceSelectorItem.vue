@@ -47,9 +47,27 @@ with this file. If not, see
       ></div>
     </template>
     <div class="color-square" :style="{'background-color': item.color}"></div>
+
     <v-list-item-content style="margin-left: 21px">
       <v-list-item-title>{{ item.name }} </v-list-item-title>
     </v-list-item-content>
+
+    <v-list-item-action>
+      <v-btn
+        elevation="0"
+        fab
+        icon
+        style="color: #bfbfbf"
+        dark
+        :loading="item.loading"
+        :disabled="item.loading"
+        @click.stop="onOpenInNewTab"
+        v-show="item.isExternalLink"
+      >
+        <v-icon dark>mdi-open-in-new</v-icon>
+      </v-btn>
+    </v-list-item-action>
+
     <v-list-item-action>
       <v-btn
         elevation="0"
@@ -60,7 +78,7 @@ with this file. If not, see
         :loading="item.loading"
         :disabled="item.loading"
         @click.stop="onOpenClose"
-        v-show="item.level != maxDepth"
+        v-show="item.level != maxDepth || item.haveChildren"
       >
         <v-icon dark> {{ icon }} </v-icon>
       </v-btn>
@@ -96,6 +114,9 @@ class SpaceSelectorItem extends Vue {
   }
   onOpenClose() {
     this.$emit('onOpenClose');
+  }
+  onOpenInNewTab() {
+    this.$emit('onOpenInNewTab');
   }
   drawParentLink(depth: number) {
     return !this.item.drawLink.includes(depth);

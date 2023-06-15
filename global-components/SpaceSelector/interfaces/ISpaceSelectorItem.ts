@@ -34,4 +34,5 @@ export interface ISpaceSelectorItem extends IZoneItem {
   drawLink: number[];
   haveChildren: boolean;
   disabled?: boolean;
+  isExternalLink?: boolean;
 }

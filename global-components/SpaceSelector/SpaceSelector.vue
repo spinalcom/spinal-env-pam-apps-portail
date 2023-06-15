@@ -79,6 +79,7 @@ with this file. If not, see
           @onSelect="select(item)"
           :selected="selectedZone"
           @onOpenClose="expandCollapse(item, index)"
+          @onOpenInNewTab="OpenInNewTab(item)"
         >
         </SpaceSelectorItem>
       </transition-group>
@@ -204,6 +205,10 @@ class SpaceSelector extends Vue {
       console.error('error fetch childrens.', error);
     }
     item.loading = false;
+  }
+
+  OpenInNewTab(item: ISpaceSelectorItem) {
+    this.$emit('onOpenInNewTab', item);
   }
 
   private closeItem(item: ISpaceSelectorItem) {

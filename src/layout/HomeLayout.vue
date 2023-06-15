@@ -23,32 +23,31 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="homeContainer"
-               fluid
-               @click.stop="closeSelect">
+  <v-container class="homeContainer" fluid @click.stop="closeSelect">
     <div class="header">
       <div class="nav">
         <NavBar :isMobile="isMobile" />
       </div>
 
       <div class="select">
-        <select-component ref="select-component"
-                          :isMobile="isMobile"
-                          @selected="changeApps"
-                          :portofolios="portofolios"></select-component>
+        <select-component
+          ref="select-component"
+          :isMobile="isMobile"
+          @selected="changeApps"
+          :portofolios="portofolios"
+        ></select-component>
       </div>
     </div>
 
-    <router-view class="content"
-                 :isMobile="isMobile"></router-view>
+    <router-view class="content" :isMobile="isMobile"></router-view>
   </v-container>
 </template>
 
 <script lang="ts">
-import { mapActions, mapState } from "vuex";
-import NavBar from "../components/nav.vue";
-import SelectComponent from "../components/select.vue";
-import { SET_SELECTED_APP } from "../store/appDataStore";
+import {mapActions, mapState} from 'vuex';
+import NavBar from '../components/nav.vue';
+import SelectComponent from '../components/select.vue';
+import {SET_SELECTED_APP} from '../store/appDataStore';
 export default {
   components: {
     NavBar,
@@ -58,13 +57,14 @@ export default {
     await this.init();
   },
   methods: {
-    ...mapActions("appDataStore", [
-      "getPortofolios",
-      "getApps",
-      "getBos",
-      "getUserInfo",
-      "selectSpace",
-      "getFavoriteApps",
+    ...mapActions('appDataStore', [
+      'getPortofolios',
+      'getApps',
+      'getBos',
+      'getUserInfo',
+      'selectSpace',
+      'getFavoriteApps',
+      'getBuildingInfo',
     ]),
 
     init() {
@@ -76,19 +76,29 @@ export default {
     },
 
     closeSelect() {
-      const ref = this.$refs["select-component"];
+      const ref = this.$refs['select-component'];
       if (ref) ref.close();
     },
 
-    changeApps(data) {
-      this.selectSpace(data);
+    async changeApps(data) {
+      if (!data.buildingId) return this.selectSpace(data);
+      const buildingInfo = await this.getBuildingInfo(data);
+
+      const t = window.open(buildingInfo.bosUrl, '_blank');
+
+      setTimeout(() => {
+        t?.postMessage(
+          {from: 'PAM', token: localStorage.getItem('token')},
+          '*'
+        );
+      }, 100);
     },
   },
   computed: {
-    ...mapState("appDataStore", ["appsDisplayed", "userInfo", "portofolios"]),
+    ...mapState('appDataStore', ['appsDisplayed', 'userInfo', 'portofolios']),
     isMobile() {
       const breakpoint = this.$vuetify.breakpoint.name;
-      if (["xs", "sm"].indexOf(breakpoint) !== -1) return true;
+      if (['xs', 'sm'].indexOf(breakpoint) !== -1) return true;
       return false;
     },
   },

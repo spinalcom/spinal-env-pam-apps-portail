@@ -22,8 +22,8 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import type { TGeoItem } from './interfaces/IBuildingItem';
-import type { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
+import type {TGeoItem} from './interfaces/IBuildingItem';
+import type {ISpaceSelectorItem} from './interfaces/ISpaceSelectorItem';
 
 export function convertZonesToISpaceSelectorItems(
   arr: TGeoItem[],
@@ -87,5 +87,7 @@ export function createISpaceselectorItem(
     isLastInGrp: false,
     drawLink,
     haveChildren: false,
+    disabled: false,
+    isExternalLink: false,
   };
 }

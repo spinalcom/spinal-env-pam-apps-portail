@@ -111,8 +111,6 @@ export default {
     },
 
     getSelectedItem(item) {
-      this.$store.commit(`appDataStore/${SELECT_PORTOFOLIO}`, item);
-      this.selectedZone = item;
       let portofolioId;
       let buildingId;
       if (item.type === this.TYPES.portofolio) {
@@ -130,8 +128,12 @@ export default {
         portofolioId = item.parents[0];
         buildingId = item.staticId;
       }
-
       this.$emit('selected', {portofolioId, buildingId});
+
+      if (!buildingId) {
+        this.$store.commit(`appDataStore/${SELECT_PORTOFOLIO}`, item);
+        this.selectedZone = item;
+      }
     },
 
     close() {
