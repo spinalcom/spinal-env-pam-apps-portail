@@ -6,30 +6,18 @@
           v-if="defaultSelected.name && defaultSelected.name != '' && defaultSelected.dynamicId && defaultSelected.dynamicId !== 0"
           ref="space-selector"
           :open.sync="openSpaceSelector"
-          :maxDepth="1"
+          :maxDepth="2"
           :GetChildrenFct="onSpaceSelectOpen"
           v-model="defaultSelected"
           label="ESPACE"
         />
       </div>
-      <div class="Hx2">
-        <space-selector
-          :edge="false"
-          v-if="defaultSelectedTime.name && defaultSelectedTime.name !=''"
-          ref="space-selector2"
-          :open.sync="openTimeSelector"
-          :maxDepth="0"
-          :GetChildrenFct="onTimeSelectOpen"
-          v-model="selectedTime"
-          label="TEMPORALITÉ"
-        />
-      </div>
-      <div class="DB">
+      <!-- <div class="DB">
 
         <DownloadButton :fileName="'consomation d\'energie globale'" :data="table"/>
-      </div>
+      </div> -->
     </div>
-    <MicroApp @chart-sent="handleChart" :temporality="selectedTime" :space="defaultSelected" v-if="defaultSelected.dynamicId !== 0"/>
+    <MicroApp :space="defaultSelected" v-if="defaultSelected.dynamicId !== 0"/>
   </v-app>
 </template>
 
@@ -44,7 +32,7 @@ import { Vue } from 'vue-property-decorator';
 import Component from 'vue-class-component';
 import MicroApp from './components/MainComponent.vue';
 // import DownloadButton from 'spinal-components/src/components/DownloadButton.vue';
-import DownloadButton from './components/DownloadButton.vue';
+// import DownloadButton from './components/DownloadButton.vue';
 import { getBuilding, getFloors } from './services/index.js';
 interface IItemData {
   platformId: string;
@@ -58,7 +46,7 @@ interface IItemDatatmp {
 @Component({
   components: {
     SpaceSelector,
-    DownloadButton,
+    // DownloadButton,
     MicroApp
   },
 })
@@ -97,37 +85,7 @@ class App extends Vue {
     haveChildren: false
   }
 
-  // selectedTime = {
-  //     name: 'Année',
-  //     next: 'Année suivante',
-  //     prev: 'Année précédente',
-  //     staticId: 'Annee',
-  //     dynamicId: 3,
-  //     level: 0,
-  //     isOpen: true,
-  //     loading: false,
-  //     patrimoineId: 'Annee',
-  //     parents: [],
-  //     isLastInGrp: true,
-  //     drawLink: [],
-  //     haveChildren: false,
-  //   };
 
-    selectedTime = {
-      name: 'Mois',
-      next: 'Mois suivant',
-      prev: 'Mois précédent',
-      staticId: 'Mois',
-      dynamicId: 1,
-      level: 1,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'Mois',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    };
 
   async mounted() {
     let building = await getBuilding(this.controlEndpoints);
@@ -136,120 +94,8 @@ class App extends Vue {
     this.defaultSelected.cp = building.cp;
     this.defaultSelected.dynamicId = building.dynamicId;
   }
-  onTimeSelectOpen(item?: any): { name: string; staticId: string; dynamicId: number; level: number; isOpen: boolean; loading: boolean; patrimoineId: string; parents: never[]; isLastInGrp: boolean; drawLink: never[]; haveChildren: boolean; }[] {
-    if (item) {
-      if (item.name == 'Journée') {
-        this.selectedTime.next = 'Jour suivant';
-        this.selectedTime.prev = 'Jour précédent';
-      }
-      if (item.name == 'Semaine') {
-        this.selectedTime.next = 'Semaine suivante';
-        this.selectedTime.prev = 'Semaine précédente';
-      }
-      if (item.name == 'Mois') {
-        this.selectedTime.next = 'Mois suivant';
-        this.selectedTime.prev = 'Mois précédent';
-      }
-      else if (item.name == 'Trimestre') {
-        this.selectedTime.next = 'Trimestre suivant';
-        this.selectedTime.prev = 'Trimestre précédent';
-      }
-      else if (item.name == 'Année') {
-        this.selectedTime.next = 'Année suivante';
-        this.selectedTime.prev = 'Année précédente';
-      }
-      return [];
-    }
-    let timeOptions: any[] = [];
-    timeOptions.push({
-      name: 'Journée',
-      next: 'Jour suivant',
-      prev: 'Jour précédent',
-      staticId: 'Jour',
-      dynamicId: 2,
-      level: 0,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'Jour',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    });
-    timeOptions.push({
-      name: 'Semaine',
-      next: 'Semaine suivante',
-      prev: 'Semaine précédente',
-      staticId: 'Semaine',
-      dynamicId: 2,
-      level: 0,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'Semaine',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    });
-    timeOptions.push({
-      name: 'Mois',
-      next: 'Mois suivant',
-      prev: 'Mois précédent',
-      staticId: 'Mois',
-      dynamicId: 1,
-      level: 1,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'Mois',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    });
-    timeOptions.push({
-      name: 'Trimestre',
-      staticId: 'Trimestre',
-      dynamicId: 2,
-      level: 0,
-      isOpen: true,
-      loading: false,
-      patrimoineId: '3derniersmois',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    });
-    timeOptions.push({
-      name: 'Année',
-      next: 'Année suivante',
-      prev: 'Année précédente',
-      staticId: 'Annee',
-      dynamicId: 3,
-      level: 0,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'Annee',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    });
-    timeOptions.push({
-      name: 'Décennie',
-      staticId: 'Decennie',
-      dynamicId: 4,
-      level: 0,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'Decennie',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    });
-      return timeOptions;
-  }
-  async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<any> {
+
+  async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<any> {    
     var floorList: any[] = [];
     switch (item?.type) {
       case undefined:
@@ -328,8 +174,8 @@ export default App;
   right: 10px;
   height: 60px;
   width: 50%;
-  background: #14202c;
-  border: 1px solid #f5f5f5;
+  /* background: #14202c; */
+  /* border: 1px solid #f5f5f5; */
   border-radius: 12px;
 }
 html, body, .spinal-font, .v-application--wrap {

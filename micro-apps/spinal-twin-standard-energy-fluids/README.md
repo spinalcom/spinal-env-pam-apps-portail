@@ -1,3 +1,10 @@
+# New features
+
+### <b style="color: #d9af45"> [ x ] Add select in the calendar heatmap </b>
+### <b style="color: #d9af45"> [ x ] If a month is 31 days and another is 30 we show 31 days in the chart </b>
+
+
+# Old features
 ### <b style="color: #d9af45">[ x ] Add comparison to stat cards</b>
 ---
 |Card|1ere ligne|2e ligne|
@@ -22,7 +29,7 @@ Add additional details about the week in the temporal selection dialogue. For ex
 ---
 - Implement a validation to prevent adding the same temporal selection twice.
 
-### <b style="color: #f94545;"> [ . ]  Download Button </b>
+### <b style="color: #d9af45;"> [ x ]  Download Button </b>
 ---
 - Add a download button to allow users to download the data.
 

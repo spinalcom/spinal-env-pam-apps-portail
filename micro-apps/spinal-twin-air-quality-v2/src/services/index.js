@@ -406,7 +406,7 @@ function getPeriodArray(timestamp, period) {
       currentDay.add(1, 'day');
     }
 
-    
+    console.log(abstractDaysIn3Months)
     return [daysIn3Months,
       startOfTrimester,
       endOfTrimester,
@@ -542,6 +542,7 @@ export async function getSolo(space, tempo, currentTimestamp, format, controlEnd
     }
   }
   let res = await getData(space, tempo, ts, controlEndpoints);
+  console.log(res)
   res[1][0].stack = currentTimestamp;
   res[1][0].backgroundColor = color;
   res[2][0].root = false;

@@ -681,7 +681,8 @@ class App extends Vue {
     this.star(undefined, this.selectedReference);
   }
 
-  addData(soloData): void {    
+  addData(soloData): void { 
+       
     this.chart.label = (soloData[5].length > this.chart.label.length) ? soloData[5] : this.chart.label;
 
     let temp: ChartData[] = [];
@@ -823,6 +824,16 @@ class App extends Vue {
     this.averageCard = tempAvgCard;
     this.meterCard = tempMeterCard;
     this.totalCard = tempTotalCard;
+
+    let maxLenght = 0, daysToRemove = 0;
+    for(let i = 0; i < this.chart.data.length; i++) {
+      maxLenght = (this.chart.data[i].data.length > maxLenght) ? this.chart.data[i].data.length : maxLenght;
+    }
+
+    daysToRemove = this.chart.label.length - maxLenght;
+    for (let i = 0; i < daysToRemove; i++) {
+      this.chart.label.pop();
+    }
   }
 
   star(name?: string, id?: number): void {
