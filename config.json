@@ -9,5 +9,6 @@
   },
   "steps": {
     "closed": ["Archived", "Refusée", "Clôturée"]
-  }
+  },
+  "workflowList": ["Ticket Mission", "Ticket Mamady"]
 }

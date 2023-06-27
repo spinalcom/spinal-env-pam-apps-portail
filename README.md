@@ -1,12 +1,12 @@
 # spinal-apps-portail
 
-## Control points & steps
+## Control points & tickets configuration
 
-Edit the file name config.json in the root of the project to configure your control points steps.
+Edit the file name config.json in the root of the project to configure your control points, steps and workflows.
 
 ```
-spinal-env-pam-portal
-|_endpoins.json
+spinal-env-pam-portail
+|_config.json
 ```
 
 # setup evn file

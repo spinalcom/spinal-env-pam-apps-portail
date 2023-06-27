@@ -98,7 +98,6 @@ export default new Vuex.Store({
             for (const s of d.children) {
               // on ne traite que les tickets en cours
               if (closedSteps.includes(s.name)) continue;
-
               for (const t of s.children) {
                 promises.push(
                   getTicketDetailsAsync(t.dynamicId).catch((error) =>
@@ -113,7 +112,7 @@ export default new Vuex.Store({
           .then((ret) => {
             commit(
               "SET_TICKETS",
-              ret.filter((t) => !closedSteps.includes(t.step.name))
+              ret.filter((t) => t)
             );
           })
           .then();

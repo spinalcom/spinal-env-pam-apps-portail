@@ -6,6 +6,7 @@
         :noNav="periodTickets === -1"
         :title="'Activité des tickets en cours'"
         :labels="barData.labels"
+        :current-period="barData.period"
         :datasets="barData.data"
         :prev_next="true"
         @nav="nav"
@@ -18,7 +19,7 @@
             append-icon="mdi-chevron-down"
             :items="domainList"
             outlined
-            menu-props="{ bottom: true }"
+            menu-props="offset-y"
             color="#E3E7E8"
             item-color="#E3E7E8"
             dense
@@ -79,7 +80,7 @@
           v-if="todaysTickets !== -1"
           :value="todaysTickets"
           :unit="'Tickets'"
-          :title="'crées'"
+          :title="'créés'"
           :subtitle="'Aujourd\'hui'"
           class="flex-grow-1 pa-4"
           style="width: 100% !important"
@@ -97,20 +98,17 @@
       >
         <PieCard
           style="width: 100%"
-          class="flex-grow-1"
-          :title="'Tickets par bâtiment'"
+          :title="'Tickets par bâtiments'"
           :pie-chart-data="buildingPie"
         />
         <PieCard
           style="width: 100%"
-          class="flex-grow-1"
-          :title="'Tickets par domaine'"
+          :title="'Tickets par domaines'"
           :pie-chart-data="domainPie"
         />
         <PieCard
           style="width: 100%"
-          class="flex-grow-1"
-          :title="'Tickets par déclarant'"
+          :title="'Tickets par déclarants'"
           :pie-chart-data="declarerPie"
           :color="declarerColors"
         />
@@ -162,7 +160,7 @@ class App extends Vue {
   domainList: any[] = [{ name: "Tous les domaines", color: "#fff" }];
   currentTimestamp = { valueTime: 0 };
 
-  barData = { labels: [], data: [] };
+  barData = { period: "", labels: [], data: [] };
   domain: any = { name: "Tous les domaines", color: "#fff" };
   pieData!: {};
   cardsData: StatsModel;

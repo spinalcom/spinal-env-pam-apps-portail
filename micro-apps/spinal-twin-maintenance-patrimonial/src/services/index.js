@@ -1,5 +1,32 @@
 import { HTTP } from "./http-constants";
 import moment from "moment";
+import "moment/locale/fr";
+
+moment.locale("fr", {
+  months: [
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
+  ],
+  weekdays: [
+    "Dimanche",
+    "Lundi",
+    "Mardi",
+    "Mercredi",
+    "Jeudi",
+    "Vendredi",
+    "Samedi",
+  ],
+});
 
 const buildings = JSON.parse(localStorage.getItem("patrimoine")).buildings;
 const colors = [
@@ -39,6 +66,7 @@ export function curveData(period, timestamp, domain, list, domainList) {
   cardsData.todaysTickets = list.filter((t) => t.formatDate.week == todaysDate);
 
   let barChartDataObject = {
+    period: "",
     labels: [],
     data: [
       {
@@ -66,11 +94,13 @@ export function curveData(period, timestamp, domain, list, domainList) {
   if (period === "Semaine") {
     var startOfWeek = moment(timestamp).startOf("week");
     var endOfWeek = moment(timestamp).endOf("week");
+    barChartDataObject.period =
+      startOfWeek.format("DD MMMM") + " - " + endOfWeek.format("DD MMMM");
     var exactDate = [];
     var currentDay = moment(startOfWeek);
     while (currentDay.isSameOrBefore(endOfWeek)) {
       exactDate.push(currentDay.format("DDMMYYYY"));
-      barChartDataObject.labels.push(currentDay.format("DD MMM"));
+      barChartDataObject.labels.push(currentDay.format("dddd"));
       barChartDataObject.data[0].data.push(0);
       barChartDataObject.data[1].data.push(0);
       barChartDataObject.data[2].data.push(0);
@@ -204,11 +234,12 @@ export function curveData(period, timestamp, domain, list, domainList) {
   } else if (period === "Mois") {
     var startOfMonth = moment(timestamp).startOf("month");
     var endOfMonth = moment(timestamp).endOf("month");
+    barChartDataObject.period = startOfMonth.format("MMMM");
     var exactDate = [];
     var currentDay = moment(startOfMonth);
     while (currentDay.isSameOrBefore(endOfMonth)) {
       exactDate.push(currentDay.format("DDMMYYYY"));
-      barChartDataObject.labels.push(currentDay.format("DD MMM"));
+      barChartDataObject.labels.push(currentDay.format("DD"));
       barChartDataObject.data[0].data.push(0);
       barChartDataObject.data[1].data.push(0);
       barChartDataObject.data[2].data.push(0);
@@ -328,10 +359,11 @@ export function curveData(period, timestamp, domain, list, domainList) {
     return [barChartDataObject, cardsData, domainPie, declarerPie, buildingPie];
   } else if (period === "Année") {
     var exactDate = [];
+    barChartDataObject.period = moment(timestamp).format("YYYY");
     for (var i = 0; i < 12; i++) {
       var currentMonth = moment(timestamp).month(i);
       exactDate.push(currentMonth.format("MMM YYYY"));
-      barChartDataObject.labels.push(currentMonth.format("MMM YYYY"));
+      barChartDataObject.labels.push(currentMonth.format("MMMM"));
       barChartDataObject.data[0].data.push(0);
       barChartDataObject.data[1].data.push(0);
       barChartDataObject.data[2].data.push(0);

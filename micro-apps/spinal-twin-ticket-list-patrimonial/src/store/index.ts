@@ -179,7 +179,9 @@ export default new Vuex.Store({
             .then((ret) => {
               commit("SET_BUILDING_TICKETS", {
                 building,
-                tickets: ret.filter((t) => !closedSteps.includes(t.step.name)),
+                tickets: ret.filter(
+                  (t) => t && !closedSteps.includes(t.step.name)
+                ),
               });
             })
             .then()
