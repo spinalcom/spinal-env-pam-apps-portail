@@ -2,43 +2,49 @@ import { HTTP } from "./http-constants";
 import moment from 'moment';
 import fr from 'moment/locale/fr'
 
-
-
 function getPeriodArray(timestamp, period) {
   if (period === 'Mois') {
     var startOfMonth = moment(timestamp).startOf('month');
     var endOfMonth = moment(timestamp).endOf('month');
     var daysInMonth = [];
+    var tooltipDate = [];
     var currentDay = moment(startOfMonth);
     while (currentDay.isSameOrBefore(endOfMonth)) {
       daysInMonth.push(currentDay.format('DD MMM'));
+      tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
       currentDay.add(1, 'day');
     }
-    return [daysInMonth, moment(timestamp).startOf('month').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss')];
+    return [daysInMonth, moment(timestamp).startOf('month').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss'),tooltipDate];
   } else if (period === 'Année') {
     var monthsInYear = [];
+    var tooltipDate = [];
     for (var i = 0; i < 12; i++) {
       var currentMonth = moment(timestamp).month(i);
       monthsInYear.push(currentMonth.format('MMM'));
+      tooltipDate.push(moment(currentMonth).format('MMMM/YYYY').slice(0, 1).toUpperCase() + moment(currentMonth).format('MMMM/YYYY').slice(1));
     }
-    return [monthsInYear, moment(timestamp).startOf('year').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss')];
+    return [monthsInYear, moment(timestamp).startOf('year').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss'),tooltipDate];
   } else if (period === 'Décennie') {
     var yearsInDecade = [];
+    var tooltipDate = [];
     for (var i = -9; i <= 0; i++) {
       var currentYear = moment(timestamp).add(i, 'years');
       yearsInDecade.push(currentYear.format('YYYY'));
+      tooltipDate.push(moment(currentYear).format('YYYY').slice(0, 1).toUpperCase() + moment(currentYear).format('YYYY').slice(1));
     }
-    return [yearsInDecade, moment(timestamp).add(-10, 'years').startOf('year').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss')];
+    return [yearsInDecade, moment(timestamp).add(-10, 'years').startOf('year').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss'),tooltipDate];
   } else if (period === '3 mois') {
     var startOfMonth = moment(timestamp).add(-2, 'months').startOf('month');
     var endOfMonth = moment(timestamp).endOf('month');
     var daysIn3Months = [];
+    var tooltipDate = [];
     var currentDay = moment(startOfMonth);
     while (currentDay.isSameOrBefore(endOfMonth)) {
       daysIn3Months.push(currentDay.format('DD MMM'));
+      tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
       currentDay.add(1, 'day');
     }
-    return [daysIn3Months, moment(timestamp).add(-2, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss')];
+    return [daysIn3Months, moment(timestamp).add(-2, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss'),tooltipDate];
   } else {
     return [];
   }
@@ -109,6 +115,6 @@ export async function getData(timestamp, period, buildings, cp) {
     data.push(row);
   }
 
-  return [label, data, stats];
+  return [label, data, stats,periodArray[3]];
 }
 

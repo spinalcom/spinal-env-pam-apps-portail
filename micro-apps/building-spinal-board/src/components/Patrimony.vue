@@ -1,10 +1,9 @@
 <template>
   <div class="RC" style="min-height: 480px">
     <div class="MC" v-if="loaded">
-      <LineCard :title="config.config.title" :titleDetails="currentTimestamp.stringTime" :labels="barLabels"
+      <LineCard :title="config.config.title" :titleDetails="currentTimestamp.stringTime" :hidden="hiddenelement" :labels="barLabels" :tooltipdate="tooltipinfo"
         :datasets="barChartData" :optional="lineOptions" :next="temporality.next" :prev="temporality.prev" @nav="nav"
-        @stack="stack" :stacked="stackState" class="BR" />
-      <!-- <div class="BR"><div class="flex-grow-1">a</div></div> -->
+        @stack="stack" :stacked="stackState" @update:hidden="hiddenelement = $event" class="BR" />
       <div class="d-flex cards">
         <sc-stat-card :value="stats.totalArea" :unit="'m²'" :title="`Superficie totale (${stats.buildings} Étages)`"
           class="flex-grow-1 pa-4" />
@@ -48,6 +47,8 @@ export default {
     LoadingCard
   },
   data: () => ({
+    tooltipinfo : [],
+    hiddenelement : [],
     config: config,
     stackState: true,
     stats: {},
@@ -58,7 +59,7 @@ export default {
     buildingList: null,
     barLabels: [],
     barChartData: [],
-    lineOptions: { unit: 'L', footer: 'Consommation totale du bâtiment' },
+    lineOptions: { unit: config.config.unit, footer: 'Consommation totale du bâtiment' },
     buildingsInTheList: 0,
     currentTimestamp: { stringTime: '', valueTime: 0 },
     id_batiment: '',
@@ -66,7 +67,6 @@ export default {
   }),
 
   async mounted() {
-    // console.log(this.config.waterUsageGlobal.title);
     moment.locale("fr");
     if (this.temporality.name == 'Mois') {
       this.currentTimestamp = { stringTime: 'EN ' + moment().format('MMMM YYYY'), valueTime: this.currentTimestamp.valueTime = moment().valueOf() };
@@ -124,12 +124,6 @@ export default {
     }
   },
   methods: {
-    // toto(){
-    //   console.log("salut");
-    //   console.log(this.stackState);
-
-    //   console.log(this.id_batiment );
-    // },
     nav(payload) {
       if (this.temporality.name == 'Mois') {
         this.currentTimestamp = { stringTime: 'EN ' + moment(this.currentTimestamp.valueTime).add(payload, 'months').format('MMMM YYYY'), valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'months').valueOf() };
@@ -167,7 +161,7 @@ export default {
       res = await getData(this.currentTimestamp.valueTime, this.temporality.name, this.buildingsInTheList, config.config.floorApiUrl, config.config.buildingApiUrl, this.id_batiment, config.config.color);
       this.barLabels = res[0];
       this.stats = res[2];
-      // console.log('les stats 2', this.stats);
+      this.tooltipinfo = res[3];
       this.patrimonyTable = res[1];
       this.barChartData = [];
       for (let i = 0; i < res[1].length; i++) {
@@ -185,14 +179,14 @@ export default {
       }
       this.loaded = true;
     },
-    async onRequest1() {
+    async onRequestBatiement() {
       let res;
       this.loaded = false;
       res = await getDataBuilding(this.currentTimestamp.valueTime, this.temporality.name, this.buildingsInTheList, config.config.floorApiUrl, config.config.buildingApiUrl, this.id_batiment, config.config.color);
       this.barLabels = res[0];
       this.stats = res[2];
-      // console.log('les stats 2', this.stats);
       this.patrimonyTable = res[1];
+      this.tooltipinfo = res[3];
       this.barChartData = [];
       for (let i = 0; i < res[1].length; i++) {
         this.barChartData.push(
@@ -217,7 +211,7 @@ export default {
   },
   watch: {
     currentTimestamp(value) {
-      this.onRequest1();
+      this.onRequestBatiement();
       this.onRequest();
     },
     temporality(value) {

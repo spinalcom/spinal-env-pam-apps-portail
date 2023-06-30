@@ -13,6 +13,7 @@
     "chart.js": "^4.2.1",
     "dateformat": "^5.0.3",
     "moment": "^2.29.4",
+    "socket.io": "^4.6.1",
     "spinal-components": "github:spinalcom/spinal-components",
     "spinal-viewer-event-manager": "git+https://github.com/spinalcom/spinal-viewer-event-manager.git",
     "vue-chartjs": "^5.2.0",

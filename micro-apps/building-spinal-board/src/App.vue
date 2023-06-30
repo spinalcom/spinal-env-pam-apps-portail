@@ -271,8 +271,6 @@ class App extends Vue {
           })
         }
         return buildings;
-      // case 'patrimoine':
-      //   return [d,d,d,d,d];
       default:
         return [];
     }
@@ -340,6 +338,7 @@ export default App;
 html {
   font-family: 'charlevoixpro' !important;
   overflow: hidden !important;
+  user-select: none;
 }
 
 @font-face {

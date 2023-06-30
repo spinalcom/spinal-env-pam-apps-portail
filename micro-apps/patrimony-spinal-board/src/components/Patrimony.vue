@@ -1,7 +1,7 @@
 <template>
   <div class="RC" style="min-height: 480px">
     <div class="MC" v-if="loaded">
-      <LineCard :title="config.config.title" :titleDetails="currentTimestamp.stringTime" :labels="barLabels" :datasets="barChartData" :optional="lineOptions" :next="temporality.next" :prev="temporality.prev" @nav="nav" @stack="stack" :stacked="stackState" class="BR"/>
+      <LineCard :title="config.config.title" :titleDetails="currentTimestamp.stringTime" :hidden="hiddenelement" :labels="barLabels" :datasets="barChartData" :optional="lineOptions" :next="temporality.next" :prev="temporality.prev" @nav="nav" @stack="stack" :stacked="stackState" :tooltipdate="tooltipinfo" @update:hidden="hiddenelement = $event" class="BR"/>
       <!-- <div class="BR"><div class="flex-grow-1">a</div></div> -->
       <div class="d-flex cards">
         <sc-stat-card :value="stats.totalArea" :unit="'m²'" :title="`Superficie totale (${stats.buildings} Bâtiments)`" class="flex-grow-1 pa-4"/>
@@ -23,8 +23,8 @@
 <script>
 import SpinalTable from "./nested/SpinalTable.vue";
 import { getData } from "../services/index.js";
-import LineCard from "spinal-components/src/components/LineCard.vue";
-import StatCard from "spinal-components/src/components/StatsCard.vue";
+import LineCard from "./nested/LineCard.vue";
+import StatCard from "./nested/StatsCard.vue";
 import LoadingCard from "spinal-components/src/components/LoadingCard.vue";
 import moment from 'moment';
 import config from "../config.js"
@@ -38,6 +38,8 @@ export default {
     LoadingCard
   },
   data: () => ({
+    hiddenelement : [],
+    tooltipinfo : [],
     config: config,
     stackState: true,
     stats: {},
@@ -48,7 +50,7 @@ export default {
     buildingList: null,
     barLabels: [],
     barChartData: [],
-    lineOptions: {unit: 'L', footer: 'Consommation totale du patrimoine'},
+    lineOptions: {unit: config.config.unit, footer: 'Consommation totale du patrimoine'},
     buildingsInTheList: 0,
     currentTimestamp: {stringTime: '', valueTime: 0},
   }),
@@ -140,6 +142,7 @@ export default {
       res= await getData(this.currentTimestamp.valueTime, this.temporality.name, this.buildingsInTheList, config.config.apiUrl);
       this.barLabels = res[0];
       this.stats = res[2];
+      this.tooltipinfo = res[3];
       this.patrimonyTable = res[1];
       this.barChartData = [];
       for( let i = 0; i < res[1].length; i++) {

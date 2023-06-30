@@ -1,7 +1,6 @@
 <template>
   <div style="width: 100%; max-height: 295px;min-height: 295px; font-size: 14px !important;background-color: white;border-radius: 10px !important;">
     <v-progress-circular style="z-index: 99;position: absolute;left: 50%; bottom: 13%;transform: translate(-50%);"
-    @click="toto(context.length)"
     v-if="context.length == 1"
         :size="60"
         color="#14202c"
@@ -14,15 +13,14 @@
         'items-per-page-text': '',
         'page-text': '',
       }">
-      <!-- <template v-slot:[`item.floor`]="{ item }">
-    <div class="font-table">{{item.floor}}</div>
-    </template> -->
-    
+
     
       <template class="ligne" v-slot:[`item.name`]="{ item }">
         <SmallLegend :size="14" :color="item.color" :text="item.name" />
         <!-- <div class="font-table">{{item.name}}</div> -->
-        {{ item === context[0] ? reference[0] : reference[1] }}
+        <div class="ml-1" style="font-size: 9px;">
+          {{ item === context[0] ? '('+reference[0]+')' : '('+reference[1]+')' }}</div>
+        
       </template>
       <template v-slot:[`item.surface`]="{ item }">
         <span class="text">{{ item.area.toFixed(2) }} m²</span>
@@ -221,4 +219,12 @@ export default {
 ::v-deep tr>th:last-child {
   border-top-right-radius: 10px !important;
 }
+
+::v-deep tr>td.text-start{
+  display: flex;
+  align-items: center;
+
+}
+
+
 </style>

@@ -74,6 +74,7 @@ export default {
 
 <style scoped>
 .stat-card {
+  /* user-select: none; */
   background-color: #f9f9f9;
 
 }

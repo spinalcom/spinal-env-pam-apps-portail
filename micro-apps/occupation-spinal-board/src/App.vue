@@ -26,32 +26,21 @@ with this file. If not, see
   <v-app id="application">
     <div class="selectors">
       <div class="Hx1">
-      <space-selector
-        v-if="defaultSelected.name && defaultSelected.name !=''"
-        ref="space-selector"
-        :open="false"
-        :maxDepth="-1"
-        :GetChildrenFct="onSpaceSelectOpen"
-        v-model="defaultSelected"
-      />
+        <space-selector v-if="defaultSelected.name && defaultSelected.name != ''" ref="space-selector" :open="false"
+          :maxDepth="-1" :GetChildrenFct="onSpaceSelectOpen" v-model="defaultSelected" />
+      </div>
+      <div class="Hx2">
+        <space-selector :edge="false" v-if="defaultSelectedTime.name && defaultSelectedTime.name != ''"
+          ref="space-selector2" :open="false" :maxDepth="-1" :GetChildrenFct="onTimeSelectOpen"
+          v-model="selectedTime" /> 
+      </div>
     </div>
-    <div class="Hx2">
-      <space-selector
-        :edge="false"
-        v-if="defaultSelectedTime.name && defaultSelectedTime.name !=''"
-        ref="space-selector2"
-        :open.sync="openTimeSelector"
-        :maxDepth="0"
-        :GetChildrenFct="onTimeSelectOpen"
-        v-model="selectedTime"
-      />
-    </div>
-    </div>
-    <MicroApp :temporality="selectedTime"/>
+    <MicroApp :temporality="selectedTime" />
   </v-app>
 </template>
 
 <script lang="ts">
+import { getBuildingName } from "./services/index.js";
 import {
   ISpaceSelectorItem,
   SpaceSelector,
@@ -68,8 +57,8 @@ import type {
   IZoneItem,
   TGeoItem,
 } from './components/SpaceSelector/interfaces/IBuildingItem';
-import MicroApp from './components/Patrimony.vue';
-import  { getBuilding, getFloors, getRooms } from './services/getBuilding.js';
+import MicroApp from './components/Main.vue';
+import { getBuilding, getFloors, getRooms } from './services/getBuilding.js';
 interface IItemData {
   platformId: string;
   id: number | number[];
@@ -96,7 +85,7 @@ class App extends Vue {
   timedata = { name: 'SEMAINE', value: 'week' };
   defaultSelected = {
     platformId: '',
-    name: 'Patrimoine',
+    name: 'Building',
     staticId: '1',
     color: '',
     dynamicId: 0,
@@ -111,7 +100,7 @@ class App extends Vue {
     haveChildren: true,
   } as ISpaceSelectorItem;
   defaultSelectedTime = {
-    name: 'Mois',
+    name: 'En temps réel',
     loading: false,
     parents: [],
     haveChildren: false
@@ -119,7 +108,7 @@ class App extends Vue {
 
   selectedTime = {
     platformId: '',
-    name: 'Mois',
+    name: 'Temps réel',
     next: 'Mois suivant',
     prev: 'Mois précédent',
     staticId: 'patrimoineId',
@@ -141,17 +130,30 @@ class App extends Vue {
   }
 
   public set selectedZone(v: ISpaceSelectorItem) {
-    this.selectedFloor = v.name;  
+    this.selectedFloor = v.name;
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
   }
 
   async mounted() {
     const patrimoine = localStorage.getItem("patrimoine");
     let patrimoineObject = JSON.parse(patrimoine!);
-    this.defaultSelected.name = patrimoineObject.name;
+    const idBuilding = localStorage.getItem("idBuilding");
+    const buildingName = await getBuildingName(idBuilding)
+    // for (var i = 0; i < patrimoineObject.buildings.length; i++) {
+    //   // Vérifier si l'ID du bâtiment correspond à celui stocké dans le Local Storage
+    //   if (patrimoineObject.buildings[i].id === idBuilding) {
+    //     // Récupérer le nom du bâtiment correspondant
+    //     var buildingName = patrimoineObject.buildings[i].name;
+    //     console.log("Nom du bâtiment : " + buildingName);
+    //     break; // Sortir de la boucle car on a trouvé le bâtiment correspondant
+    //   }
+    // }
+
+
+    this.defaultSelected.name = buildingName;
     // let res = await getBuilding();
     // this.defaultSelected.dynamicId = res.dynamicId;
-    this.selectedZone = this.defaultSelected;
+    // this.selectedZone = this.defaultSelected;
   }
   onTimeSelectOpen(item?: any): { name: string; staticId: string; dynamicId: number; level: number; isOpen: boolean; loading: boolean; patrimoineId: string; parents: never[]; isLastInGrp: boolean; drawLink: never[]; haveChildren: boolean; }[] {
     if (item) {
@@ -226,27 +228,27 @@ class App extends Vue {
       drawLink: [],
       haveChildren: false,
     });
-      return timeOptions;
+    return timeOptions;
   }
   onSpaceSelectOpen(item?: ISpaceSelectorItem): any {
     return [];
     console.log(item?.type);
     let d = {
-    platformId: '',
-    name: 'Patrimoine',
-    staticId: '',
-    color: '',
-    dynamicId: 0,
-    type: 'geographicBuilding',
-    level: 0,
-    isOpen: true,
-    loading: false,
-    patrimoineId: 'patrimoineId',
-    parents: [],
-    isLastInGrp: true,
-    drawLink: [],
-    haveChildren: true,
-  } as ISpaceSelectorItem;
+      platformId: '',
+      name: 'Patrimoine',
+      staticId: '',
+      color: '',
+      dynamicId: 0,
+      type: 'geographicBuilding',
+      level: 0,
+      isOpen: true,
+      loading: false,
+      patrimoineId: 'patrimoineId',
+      parents: [],
+      isLastInGrp: true,
+      drawLink: [],
+      haveChildren: true,
+    } as ISpaceSelectorItem;
     switch (item?.type) {
       case undefined:
         const patrimoine = localStorage.getItem("patrimoine");
@@ -254,23 +256,21 @@ class App extends Vue {
         let buildings: any = [];
         for (let b in patrimoineObject.buildings) {
           buildings.push({
-              name: patrimoineObject.buildings[b].name,
-              staticId: patrimoineObject.buildings[b].id,
-              dynamicId: 0,
-              type: 'patrimoine',
-              level: 0,
-              isOpen: true,
-              loading: false,
-              patrimoineId: 'patrimoineId',
-              parents: [],
-              isLastInGrp: true,
-              drawLink: [],
-              haveChildren: false,
-            })
+            name: patrimoineObject.buildings[b].name,
+            staticId: patrimoineObject.buildings[b].id,
+            dynamicId: 0,
+            type: 'patrimoine',
+            level: 0,
+            isOpen: true,
+            loading: false,
+            patrimoineId: 'patrimoineId',
+            parents: [],
+            isLastInGrp: true,
+            drawLink: [],
+            haveChildren: false,
+          })
         }
         return buildings;
-      // case 'patrimoine':
-      //   return [d,d,d,d,d];
       default:
         return [];
     }
@@ -314,6 +314,7 @@ export default App;
   top: -1px;
   height: 60px;
 }
+
 .Hx2 {
   position: absolute;
   width: 34%;
@@ -323,7 +324,7 @@ export default App;
 }
 
 .selectors {
-  position:absolute;
+  position: absolute;
   display: flex;
   top: 10px;
   right: 10px;
@@ -340,6 +341,10 @@ html {
   user-select: none;
 }
 
-@font-face{font-family:'charlevoix';src:url('./assets/font/CharlevoixPro-Regular.woff2') format('woff2'),url('./assets/font/CharlevoixPro-Regular.woff') format('woff'),url('./assets/font/CharlevoixPro-Regular.ttf') format('truetype');font-weight:normal;font-style:normal}
-
+@font-face {
+  font-family: 'charlevoix';
+  src: url('./assets/font/CharlevoixPro-Regular.woff2') format('woff2'), url('./assets/font/CharlevoixPro-Regular.woff') format('woff'), url('./assets/font/CharlevoixPro-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal
+}
 </style>
