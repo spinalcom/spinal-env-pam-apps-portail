@@ -1,9 +1,9 @@
 import axios from "axios";
 
 const endpoint = "/api/v1";
-// const host = (process.env.SPINAL_API_URL || "").replace(`/\/$/`, (el) => "");
-// const host = 'http://51.91.214.36:19056';
-const host = 'https://api-demo-spinal-tower.spinalcom.com'
+const host = (process.env.SPINAL_API_URL || "").replace(`/\/$/`, (el) => "");
+
+// const host = 'https://api-demo-spinal-tower.spinalcom.com'
 const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
 
 const http = axios.create({ baseURL });

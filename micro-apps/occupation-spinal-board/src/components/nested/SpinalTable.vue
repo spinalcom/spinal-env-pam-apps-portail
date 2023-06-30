@@ -161,9 +161,6 @@ export default {
     },
   },
   methods: {
-    toto(ref) {
-      console.log(ref);
-    },
     dynamicHeaders() {
       return this.headers.map(header => {
         const updatedHeader = Object.assign({}, header);

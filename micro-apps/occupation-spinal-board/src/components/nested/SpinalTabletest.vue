@@ -1,5 +1,5 @@
 <template>
-  <div @click="toto(selectedFloors)" class="main-tab elevation-5"
+  <div class="main-tab elevation-5"
     style=" background-color: rgb(255, 255, 255) !important;height: 100%;border: 1px solid rgb(219, 219, 219) ;width: 100%; font-size: 14px !important;border-radius: 10px !important;">
     <span class="v-card__title card-title pa-3 text-uppercase justify-space-between mb-6 ml-1 mt-2">{{
       title }}</span>
@@ -31,7 +31,7 @@
 
       <!-- ajout des unités et des pastilles de couleur-->
       <template v-for="header in headers" v-slot:[`item.${header.value}`]="{ item }">
-        <div @click="toto(header)" style=" display: flex;justify-content: center; align-items: center">
+        <div style=" display: flex;justify-content: center; align-items: center">
           <div v-if="header.colorBoolean" class="group-div">
             <v-badge style="position: relative; margin-right: 10px;margin-bottom: 8px;width: 50px;"
               v-if="header.colorBoolean && item[header.value] == header.editBoolean.split('/')[0]"
