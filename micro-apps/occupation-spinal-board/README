@@ -12,7 +12,7 @@ config: {
   headers: [ // Spécifie les données du tableau
     {
       text: 'nom de la colonne dans le header', // Nom de la colonne dans le header (type: string)
-      value: 'endpoints voulu', // Spécifie les endpoints (type: string)
+      value: 'controlePoint ou endpoint voulu', // Spécifie les endpoints (type: string)
       unit: 'unité de la donnée du tableau', // Ajoute une unité à la donnée du tableau (type: string)
       sortable: true ou false, // Active ou désactive le tri du tableau (true ou false)
       filterable: true ou false, // Active ou désactive le filtre dans la colonne souhaitée (true ou false)
@@ -24,7 +24,7 @@ config: {
     // ... autres colonnes du tableau
   ]
 }
-
+// * !! pour les values des endpoints pour le moment mettre endpoint/ devant la valeur (exemple : endpoint/Luminosité)
 // * Les booléens non renseignés sont considérés comme étant "false" par défaut (!excépté "sortable").
 // * La value colonnes ajouter au tableau des capacités doivent être de type Booleen
 // * Pour editBoolean et colorBoolean la première string correspond aux valeurs true et la seconde string correspond aux valeurs false
