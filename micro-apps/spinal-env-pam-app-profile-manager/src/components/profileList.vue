@@ -25,69 +25,74 @@ with this file. If not, see
   <div class="profileListContainer">
     <div class="header">
       <v-card class="btnCard">
-        <v-btn class="button"
-               color="#14202c"
-               @click="createProfile">
-          <v-icon class="btnIcon">
-            mdi-plus-thick
-          </v-icon>
+        <v-btn class="button" color="#14202c" @click="createProfile">
+          <v-icon class="btnIcon"> mdi-plus-thick </v-icon>
           Ajouter un profil
         </v-btn>
       </v-card>
     </div>
 
-    <v-card class="tableCard"
-            elevation="4">
+    <v-card class="tableCard" elevation="4">
       <div class="toolbar">
         <div class="title">liste de profils d'applications</div>
       </div>
 
       <div class="table-container">
-        <v-data-table dense
-                      hide-default-header
-                      disable-pagination
-                      hide-default-footer
-                      :headers="headers"
-                      id="table"
-                      :items="profiles"
-                      item-key="name"
-                      no-data-text="Aucune donnée à afficher">
-
-          <template v-slot:header="{ props : { headers } }">
+        <v-data-table
+          dense
+          hide-default-header
+          disable-pagination
+          hide-default-footer
+          :headers="headers"
+          id="table"
+          :items="profiles"
+          item-key="name"
+          no-data-text="Aucune donnée à afficher"
+        >
+          <template v-slot:header="{props: {headers}}">
             <thead>
               <tr>
-                <th v-for="headerItem in headers"
-                    class="tableHeader"
-                    :key="headerItem.value">
-                  {{headerItem.text}}
+                <th
+                  v-for="headerItem in headers"
+                  class="tableHeader"
+                  :key="headerItem.value"
+                >
+                  {{ headerItem.text }}
                 </th>
               </tr>
             </thead>
           </template>
 
-          <template v-slot:item="{ item }">
+          <template v-slot:item="{item}">
             <tr class="itemRow">
-              <td>{{item.name}}</td>
-              <td>{{item.authorized | length}}</td>
-              <td>{{item.authorizedBos | length}}</td>
+              <td>{{ item.name }}</td>
+              <td>{{ item.authorized | bosLength }}</td>
+              <td>{{ item.authorized | apiLength }}</td>
               <!--  <td>{{item.authorizedRoutes | length}}</td> -->
 
-              <td class="actions"
-                  style="background: white; text-align: center; vertical-align: middle">
+              <td
+                class="actions"
+                style="
+                  background: white;
+                  text-align: center;
+                  vertical-align: middle;
+                "
+              >
                 <!-- <v-btn class="actionBtn dark"
                        @click="seeProfile(item)">
                   <v-icon>mdi-eye-outline</v-icon>
                 </v-btn> -->
 
-                <v-btn class="actionBtn dark"
-                       @click="editProfile(item)">
+                <v-btn class="actionBtn dark" @click="editProfile(item)">
                   <v-icon small>mdi-pencil</v-icon>
                 </v-btn>
 
-                <v-btn class="actionBtn"
-                       color="error"
-                       outlined
-                       @click="deleteProfile(item)">
+                <v-btn
+                  class="actionBtn"
+                  color="error"
+                  outlined
+                  @click="deleteProfile(item)"
+                >
                   <v-icon small>mdi-close</v-icon>
                 </v-btn>
               </td>
@@ -95,24 +100,31 @@ with this file. If not, see
           </template>
         </v-data-table>
       </div>
-
     </v-card>
   </div>
 </template>
 
-
 <script lang="ts">
-import Vue from "vue";
-import { State } from "vuex-class";
-import { Component } from "vue-property-decorator";
-import { __values } from "tslib";
+import Vue from 'vue';
+import {State} from 'vuex-class';
+import {Component, Watch} from 'vue-property-decorator';
+import {__values} from 'tslib';
 
 @Component({
   filters: {
     length: function (liste: any[]) {
       if (!liste || liste.length === 0) return 0;
-      return liste.filter((el) => el.name.toLowerCase() !== "administration")
+      return liste.filter((el) => el.name.toLowerCase() !== 'administration')
         .length;
+    },
+    apiLength: function (liste: any) {
+      let count = 0;
+      if (!liste || liste.length === 0) return count;
+      for (const item of liste) {
+        count += item.apis.length;
+      }
+
+      return count;
     },
     bosLength: function (liste: any) {
       let count = 0;
@@ -124,36 +136,38 @@ import { __values } from "tslib";
       return count;
     },
     concat: function (value: any[]) {
-      if (!value || value.length === 0) return "-";
-      return value.map((el) => el.name).join(", ");
+      if (!value || value.length === 0) return '-';
+      return value.map((el) => el.name).join(', ');
     },
   },
 })
 class ProfileListComponent extends Vue {
   headers: any[] = [
-    { text: "Intitulé", value: "name" },
-    { text: "Portefolio(s) autorisé(s)", value: "portofolios" },
-    { text: "Bâtiment(s) autorisé(s)", value: "buildings" },
-    // { text: "Route(s) autorisée(s)", value: "routes" },
-    { text: "Actions", value: "actions" },
+    {text: 'Nom', value: 'name'},
+    {text: 'Bâtiment(s) autorisé(s)', value: 'buildings'},
+    // {text: 'Portefolio(s) autorisé(s)', value: 'portofolios'},
+    {text: 'Route(s) autorisée(s)', value: 'routes'},
+    {text: 'Actions', value: 'actions'},
   ];
 
   @State profiles!: any;
 
+  mounted() {}
+
   seeProfile(item: any) {
-    this.$emit("see", item);
+    this.$emit('see', item);
   }
 
   createProfile() {
-    this.$emit("create");
+    this.$emit('create');
   }
 
   editProfile(item: any) {
-    this.$emit("edit", item);
+    this.$emit('edit', item);
   }
 
   deleteProfile(item: any) {
-    this.$emit("delete", item);
+    this.$emit('delete', item);
   }
 }
 

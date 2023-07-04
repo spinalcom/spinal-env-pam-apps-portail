@@ -22,105 +22,104 @@ with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
 
-<template >
+<template>
   <div class="tabsContent">
-
-    <v-tabs class="portofolioTabs"
-            vertical
-            v-model="portofolioTab">
-      <v-tab v-for="portofolio in portofolios"
-             :key="portofolio.id">
+    <v-tabs class="portofolioTabs" vertical v-model="portofolioTab">
+      <v-tab v-for="portofolio in portofolios" :key="portofolio.id">
         <v-icon left>mdi-office-building-outline</v-icon>
-        {{portofolio.name}}
+        {{ portofolio.name }}
       </v-tab>
 
       <v-tabs-items v-model="portofolioTab">
-        <v-tab-item v-for="(portofolio,index) in portofolios"
-                    :key="index">
-
+        <v-tab-item v-for="(portofolio, index) in portofolios" :key="index">
           <div class="content">
-            <div class="empty"
-                 v-if="!portofolioSelected">
+            <div class="empty" v-if="!portofolioSelected">
               Selectionnez un portefolio
             </div>
 
-            <div v-else
-                 class="tabs">
-              <v-tabs v-model="tab"
-                      class="tabsHeader"
-                      background-color="transparent"
-                      color="primary"
-                      grow>
-                <v-tab v-for="item in tabItems"
-                       :key="item">
+            <div v-else class="tabs">
+              <v-tabs
+                v-model="tab"
+                class="tabsHeader"
+                background-color="transparent"
+                color="primary"
+                grow
+              >
+                <v-tab v-for="item in tabItems" :key="item">
                   {{ item }}
                 </v-tab>
               </v-tabs>
 
-              <v-tabs-items v-model="tab"
-                            class="tabsItems">
-
+              <v-tabs-items v-model="tab" class="tabsItems">
                 <v-tab-item>
-                  <simple-table-component :edit="edit"
-                                          :title="'selectionnez les applications de portefolio à autoriser'"
-                                          :items="portofolio.apps"
-                                          :headers="headers"
-                                          :itemToSelect="getItemToSelect(portofolio.id)">
+                  <simple-table-component
+                    :edit="edit"
+                    :title="'selectionnez les applications de portefolio à autoriser'"
+                    :items="portofolio.apps"
+                    :headers="headers"
+                    :itemToSelect="getItemToSelect(portofolio.id)"
+                  >
                   </simple-table-component>
                 </v-tab-item>
 
                 <v-tab-item>
-                  <div class="buildingTabsDiv"
-                       v-if="portofolio.buildings.length > 0">
-                    <v-tabs-items v-model="buildingTab"
-                                  class="buildingTabItems">
-                      <v-tab-item v-for="(building,index) in portofolio.buildings"
-                                  :key="index">
-                        <simple-table-component :edit="edit"
-                                                :title="'selectionnez les applications de batiments à authoriser'"
-                                                :items="building.apps"
-                                                :headers="headers"
-                                                :itemToSelect="getItemToSelect(portofolio.id, building.id)">
+                  <div
+                    class="buildingTabsDiv"
+                    v-if="portofolio.buildings.length > 0"
+                  >
+                    <v-tabs-items
+                      v-model="buildingTab"
+                      class="buildingTabItems"
+                    >
+                      <v-tab-item
+                        v-for="(building, index) in portofolio.buildings"
+                        :key="index"
+                      >
+                        <simple-table-component
+                          :edit="edit"
+                          :title="'selectionnez les applications de batiments à authoriser'"
+                          :items="building.apps"
+                          :headers="headers"
+                          :itemToSelect="
+                            getItemToSelect(portofolio.id, building.id)
+                          "
+                        >
                         </simple-table-component>
                       </v-tab-item>
                     </v-tabs-items>
 
-                    <v-tabs v-model="buildingTab"
-                            class="buildingTabs"
-                            background-color="transparent"
-                            color="primary"
-                            grow>
-                      <v-tab v-for="item in getPortofolioBuilding"
-                             :key="item">
+                    <v-tabs
+                      v-model="buildingTab"
+                      class="buildingTabs"
+                      background-color="transparent"
+                      color="primary"
+                      grow
+                    >
+                      <v-tab v-for="item in getPortofolioBuilding" :key="item">
                         {{ item }}
                       </v-tab>
                     </v-tabs>
                   </div>
 
-                  <div class="buildingTabsDiv"
-                       v-else>
+                  <div class="buildingTabsDiv" v-else>
                     <div class="empty">
                       Auncun batiment dans ce portofolio
                     </div>
                   </div>
-
                 </v-tab-item>
-
               </v-tabs-items>
             </div>
           </div>
         </v-tab-item>
-
       </v-tabs-items>
     </v-tabs>
-
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Watch } from "vue-property-decorator";
-import DoubleTableComponent from "./tableComponent.vue";
-import SimpleTableComponent from "./simpleTable.vue";
+import {Component, Prop, Watch} from 'vue-property-decorator';
+import DoubleTableComponent from './tableComponent.vue';
+import SimpleTableComponent from './simpleTable.vue';
 
 @Component({
   components: {
@@ -135,8 +134,8 @@ class TabsComponent {
   @Prop() profileSelected!: any;
 
   tabsObject = Object.freeze({
-    Applications: "Applications de Portefolios",
-    Batiments: "Batiments",
+    Applications: 'Applications de Portefolios',
+    Batiments: 'Batiments',
   });
 
   tabItems: string[] = Object.values(this.tabsObject);
@@ -145,7 +144,7 @@ class TabsComponent {
     {
       text: "Nom de l'applications",
       sortable: false,
-      value: "name",
+      value: 'name',
     },
   ];
 
@@ -190,12 +189,12 @@ class TabsComponent {
     }
   }
 
-  @Watch("portofolioTab")
+  @Watch('portofolioTab')
   watchTab(index: number) {
-    this.$emit("selectPortofolio", this.portofolios[index]);
+    this.$emit('selectPortofolio', this.portofolios[index]);
   }
 
-  @Watch("portofolios")
+  @Watch('portofolios')
   watchPortofolios() {
     this.selectItems();
   }

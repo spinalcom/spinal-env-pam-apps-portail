@@ -25,38 +25,97 @@ with this file. If not, see
 <template>
   <div class="_container">
     <div class="header">
-
-      <v-btn class="button"
-             color="#14202c"
-             @click="save"
-             :disabled="disableBtn">
-        <v-icon class="btnIcon">
-          mdi-content-save-outline
-        </v-icon>
+      <v-btn
+        class="button"
+        color="#14202c"
+        @click="save"
+        :disabled="disableBtn"
+      >
+        <v-icon class="btnIcon"> mdi-content-save-outline </v-icon>
 
         Enregister
       </v-btn>
     </div>
 
     <v-card class="content">
-      <div class="backDiv">
-        <v-btn rounded
-               outlined
-               color="#14202c"
-               dark
-               @click="cancel">
-          <v-icon left>
-            mdi-arrow-left-thin
-          </v-icon>
-          Retour
-        </v-btn>
+      <div class="content">
+        <div class="backDiv">
+          <v-btn rounded outlined color="#14202c" dark @click="cancel">
+            <v-icon left> mdi-arrow-left-thin </v-icon>
+            Retour
+          </v-btn>
+        </div>
 
-        <h2>Ajouter un Bâtiment au portefolio</h2>
+        <div class="selection">
+          <h2>Ajouter un bâtiment au portefeuille</h2>
 
-      </div>
+          <div class="form">
+            <v-row no-gutters>
+              <v-col cols="12">
+                <v-text-field
+                  dense
+                  hide-details
+                  label="Name"
+                  v-model.trim="building.name"
+                  outlined
+                ></v-text-field>
+              </v-col>
 
-      <div class="selection">
-        <v-stepper v-model="stepperData"
+              <v-col cols="12">
+                <v-text-field
+                  dense
+                  hide-details
+                  label="Alias"
+                  v-model.trim="building.aliasName"
+                  outlined
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12">
+                <v-text-field
+                  dense
+                  hide-details
+                  label="BOS Url"
+                  v-model.trim="building.bosUrl"
+                  outlined
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12">
+                <v-text-field
+                  dense
+                  hide-details
+                  label="API Url"
+                  v-model.trim="building.apiUrl"
+                  outlined
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" class="placesCol">
+                <places
+                  ref="places"
+                  class="addressInput"
+                  v-model="building.address"
+                  placeholder="Address"
+                >
+                </places>
+              </v-col>
+
+              <v-col cols="12">
+                <v-textarea
+                  dense
+                  outlined
+                  v-model.trim="building.description"
+                  no-resize
+                  rows="3"
+                  label="Description"
+                ></v-textarea>
+              </v-col>
+            </v-row>
+          </div>
+        </div>
+
+        <!-- <v-stepper v-model="stepperData"
                    vertical
                    flat
                    max-height="100%"
@@ -194,81 +253,20 @@ with this file. If not, see
             </v-row>
           </v-stepper-content>
 
-        </v-stepper>
+        </v-stepper> -->
       </div>
-
-      <!-- 
-
-      <div class="selection">
-        <v-row class="rows">
-          <v-col cols="6"
-                 class="left-col">
-
-            <div class="toolbar">
-              <div class="title">Applications du bâtiment</div>
-              <div class="search">
-                <v-text-field dense
-                              v-model="appSearchText"
-                              append-icon="mdi-magnify"
-                              label="rechercher"
-                              single-line
-                              hide-details></v-text-field>
-              </div>
-            </div>
-
-            <v-data-table v-model="building.appIds"
-                          :headers="appHeaders"
-                          :items="appsSearched"
-                          item-key="id"
-                          selectable-key="id"
-                          disable-pagination
-                          hide-default-footer
-                          show-select
-                          class="tableDiv"></v-data-table>
-
-          </v-col>
-
-          <v-col cols="6"
-                 class="right-col">
-
-            <div class="toolbar">
-              <div class="title">Apis du bâtiment</div>
-              <div class="search">
-                <v-text-field dense
-                              v-model="apiSearchText"
-                              append-icon="mdi-magnify"
-                              label="Search"
-                              single-line
-                              hide-details></v-text-field>
-              </div>
-            </div>
-
-            <v-data-table v-model="building.apiIds"
-                          :headers="apiHeaders"
-                          :items="apisSearched"
-                          item-key="id"
-                          selectable-key="id"
-                          disable-pagination
-                          hide-default-footer
-                          show-select
-                          class="tableDiv"></v-data-table>
-
-          </v-col>
-        </v-row>
-      </div> -->
     </v-card>
-
   </div>
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import Places from "vue-places";
+import Vue from 'vue';
+import Places from 'vue-places';
 
-import { Component, Prop } from "vue-property-decorator";
-import { IApiRoute } from "../../interfaces/IApiRoute";
-import { IApp } from "../../interfaces/IApp";
-import { IBuilding, IPortofolio } from "../../interfaces/IBuilding";
+import {Component, Prop} from 'vue-property-decorator';
+import {IApiRoute} from '../../interfaces/IApiRoute';
+import {IApp} from '../../interfaces/IApp';
+import {IBuilding, IPortofolio} from '../../interfaces/IBuilding';
 
 @Component({
   components: {
@@ -285,13 +283,13 @@ class AddBuilding extends Vue {
   building: any = {};
 
   appsSearched: IApp[] = [];
-  appSearchText: string = "";
+  appSearchText: string = '';
 
   apisSearched: IApiRoute[] = [];
-  apiSearchText: string = "";
+  apiSearchText: string = '';
 
-  appHeaders = [{ text: "Nom", value: "name" }];
-  apiHeaders = [{ text: "Route", value: "route" }];
+  appHeaders = [{text: 'Nom', value: 'name'}];
+  apiHeaders = [{text: 'Route', value: 'route'}];
 
   async mounted() {
     await this.init();
@@ -303,26 +301,26 @@ class AddBuilding extends Vue {
   }
 
   async init() {
-    this.$refs["places"].placesAutocomplete.on("locate", this.locateOnMap);
+    this.$refs['places'].placesAutocomplete.on('locate', this.locateOnMap);
 
     this.building = {
-      name: "",
-      aliasName: "",
-      bosUrl: "",
-      apiUrl: "",
-      clientId: "",
-      clientSecret: "",
-      address: "",
+      name: '',
+      aliasName: '',
+      bosUrl: '',
+      apiUrl: '',
+      clientId: '',
+      clientSecret: '',
+      address: '',
       // concerned_user: "",
-      description: "",
+      description: '',
       location: {},
       appIds: [],
       apiIds: [],
     };
 
     await Promise.all([
-      this.$store.dispatch("appsStore/getBuildingApps"),
-      this.$store.dispatch("appsStore/getBuildingApis"),
+      this.$store.dispatch('appsStore/getBuildingApps'),
+      this.$store.dispatch('appsStore/getBuildingApis'),
     ]);
 
     this._filterApps();
@@ -331,13 +329,13 @@ class AddBuilding extends Vue {
 
   save() {
     if (!this.edit) {
-      return this.$emit("save", {
+      return this.$emit('save', {
         portofolioId: this.portofolioSelected.id,
         data: this._getCreationData(),
       });
     }
 
-    this.$emit("edit", {
+    this.$emit('edit', {
       portofolioId: this.portofolioSelected.id,
       buildingId: this.buildingSelected.id,
       data: this._getEditData(),
@@ -345,7 +343,7 @@ class AddBuilding extends Vue {
   }
 
   cancel() {
-    this.$emit("cancel");
+    this.$emit('cancel');
   }
 
   _getEditData() {
@@ -372,17 +370,17 @@ class AddBuilding extends Vue {
     };
   }
 
-  _getListToRemove(liste1: any[], obj: { [key: string]: string }) {
-    return liste1.reduce((liste, { id }) => {
+  _getListToRemove(liste1: any[], obj: {[key: string]: string}) {
+    return liste1.reduce((liste, {id}) => {
       if (!obj[id]) liste.push(id);
 
       return liste;
     }, []);
   }
 
-  _formatIds(liste): { ids: string[]; obj: { [key: string]: string } } {
+  _formatIds(liste): {ids: string[]; obj: {[key: string]: string}} {
     const obj = {};
-    const ids = liste.map(({ id }) => {
+    const ids = liste.map(({id}) => {
       obj[id] = id;
       return id;
     });
@@ -419,7 +417,7 @@ class AddBuilding extends Vue {
     }
 
     this.appsSearched = this.$store.state.appsStore.buildingsApps.filter(
-      ({ name }) => name.toLocaleLowerCase().includes(val)
+      ({name}) => name.toLocaleLowerCase().includes(val)
     );
   }
 
@@ -434,7 +432,7 @@ class AddBuilding extends Vue {
     }
 
     this.apisSearched = this.$store.state.appsStore.buildingsApis.filter(
-      ({ route }) => route.toLocaleLowerCase().includes(val)
+      ({route}) => route.toLocaleLowerCase().includes(val)
     );
   }
 
@@ -443,7 +441,7 @@ class AddBuilding extends Vue {
   }
 
   locateOnMap(res) {
-    this.$emit("geoLocate");
+    this.$emit('geoLocate');
   }
 }
 
@@ -493,15 +491,20 @@ $form-header: 70px;
       $toolbar-height: 50px;
       width: 100%;
       height: calc(100% - #{$backDiv-height});
+      display: flex;
+      flex-direction: column;
+      align-items: center;
 
       .form {
-        width: 100%;
+        width: 60%;
         height: 35%;
+        margin-top: 10px;
         .v-input {
           margin: 12px 0;
         }
         .placesCol {
-          padding: 0 12px;
+          // padding: 0 12px;
+          margin: 10px 0;
           .addressInput {
             height: 40px;
             // margin-bottom: 20px;

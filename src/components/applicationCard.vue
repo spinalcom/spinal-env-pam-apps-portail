@@ -23,8 +23,7 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card class="appCardContainer"
-          @click="goToApplication">
+  <v-card class="appCardContainer" @click="goToApplication">
     <div class="cardContent">
       <div class="left">
         <v-card class="iconDiv">
@@ -33,55 +32,57 @@ with this file. If not, see
       </div>
 
       <div class="right">
-        <div class="name"
-             :title="data.name">
+        <div class="name" :title="data.name">
           {{ data.name }}
         </div>
 
-        <div class="description"
-             :title="data.description">
+        <div class="description" :title="data.description">
           {{ data.description }}
         </div>
 
-        <div class="tags"
-             :title="getTagsTitle">
-          <v-chip class="chip"
-                  label
-                  color="#6699cc"
-                  v-for="(tag, index) in data.tags"
-                  :key="index"
-                  small>
-            <v-icon left
-                    color="#ffffff"> mdi-circle-small </v-icon>
+        <div class="tags" :title="getTagsTitle">
+          <v-chip
+            class="chip"
+            label
+            color="#6699cc"
+            v-for="(tag, index) in data.tags"
+            :key="index"
+            small
+          >
+            <v-icon left color="#ffffff"> mdi-circle-small </v-icon>
             {{ tag.toUpperCase() }}
           </v-chip>
         </div>
 
         <div class="actions">
           <div>
-            <v-btn icon
-                   class="favorisBtn"
-                   outlined
-                   title="ajouter aux favoris"
-                   :class="{'isFavorite' : isFavorite}"
-                   @click.stop="addAppToFavoris">
+            <v-btn
+              icon
+              class="favorisBtn"
+              outlined
+              title="ajouter aux favoris"
+              :class="{isFavorite: isFavorite}"
+              @click.stop="addAppToFavoris"
+            >
               <v-icon>mdi-star</v-icon>
               <!-- <v-icon>mdi-cards-diamond</v-icon> -->
             </v-btn>
 
-            <v-btn class="favorisBtn"
-                   icon
-                   outlined
-                   title="Aller à la documentation"
-                   v-if="data.documentationLink"
-                   @click.stop="goToDocumentation">
+            <v-btn
+              class="favorisBtn"
+              icon
+              outlined
+              title="Aller à la documentation"
+              v-if="data.documentationLink"
+              @click.stop="goToDocumentation"
+            >
               <!-- <v-icon>mdi-notebook-outline</v-icon> -->
               <v-icon>mdi-information-variant</v-icon>
             </v-btn>
 
-            <v-btn icon
-                   @click.stop="show = !show">
-              <v-icon>{{ show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
+            <v-btn icon @click.stop="show = !show">
+              <v-icon
+                >{{ show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
               </v-icon>
             </v-btn>
           </div>
@@ -108,7 +109,7 @@ with this file. If not, see
         <v-divider></v-divider>
 
         <v-card-text>
-          {{data.description}}
+          {{ data.description }}
         </v-card-text>
       </div>
     </v-expand-transition>
@@ -141,10 +142,10 @@ with this file. If not, see
 
 <script>
 export default {
-  name: "applicationCard",
+  name: 'applicationCard',
   props: {
     data: {},
-    isFavorite: { type: Boolean, default: () => false },
+    isFavorite: {type: Boolean, default: () => false},
   },
   data() {
     return {
@@ -153,26 +154,31 @@ export default {
   },
   methods: {
     goToApplication(event) {
-      this.$emit("goToApp", { event, item: this.data });
+      this.$emit('goToApp', {event, item: this.data});
     },
 
     exploreApp() {
-      this.$emit("exploreApp", this.data);
+      this.$emit('exploreApp', this.data);
     },
     addAppToFavoris() {
-      this.$emit("addAppToFavoris", {
+      this.$emit('addAppToFavoris', {
         item: this.data,
         isFavorite: this.isFavorite,
       });
     },
     goToDocumentation() {
-      if (this.data.documentationLink)
-        return window.open(this.data.documentationLink, "_blank");
+      if (this.data.documentationLink) {
+        const link = /ĥttp:\/\//.test(this.data.documentationLink)
+          ? this.data.documentationLink
+          : `http://${this.data.documentationLink}`;
+
+        return window.open(link, '_blank');
+      }
     },
   },
   computed: {
     getTagsTitle() {
-      return this.data.tags.join(", ");
+      return this.data.tags.join(', ');
     },
   },
 };

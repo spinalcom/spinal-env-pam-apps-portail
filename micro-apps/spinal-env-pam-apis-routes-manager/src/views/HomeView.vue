@@ -25,7 +25,7 @@ with this file. If not, see
 <template>
   <v-container class="_container" fluid>
     <div class="header">
-      <Select @selected="selectCategory" />
+      <!-- <Select @selected="selectCategory" /> -->
     </div>
 
     <v-card class="myCard" elevation="4">
@@ -63,11 +63,11 @@ class TableComponent extends Vue {
   @Getter bosApisGet!: any;
   @Getter portofolioApisGet!: any;
 
-  @Action createBosApiRoute!: (api: IApiRoute) => Promise<void>;
-  @Action updateBosApiRoute!: updateFunc;
-  @Action getAllBosApiRoute!: () => Promise<void>;
-  @Action deleteBosApiRoute!: (id: string) => Promise<void>;
-  @Action uploadBosSwaggerFile!: (data: FormData) => Promise<void>;
+  // @Action createBosApiRoute!: (api: IApiRoute) => Promise<void>;
+  // @Action updateBosApiRoute!: updateFunc;
+  // @Action getAllBosApiRoute!: () => Promise<void>;
+  // @Action deleteBosApiRoute!: (id: string) => Promise<void>;
+  // @Action uploadBosSwaggerFile!: (data: FormData) => Promise<void>;
 
   @Action createPortofolioApiRoute!: (api: IApiRoute) => Promise<void>;
   @Action updatePortofolioApiRoute!: updateFunc;
@@ -85,26 +85,28 @@ class TableComponent extends Vue {
   categorySelected: any;
 
   async mounted() {
-    await Promise.all([
-      this.getAllBosApiRoute(),
-      this.getAllPortofolioApiRoute(),
-    ]);
+    // await Promise.all([
+    //   this.getAllBosApiRoute(),
+    this.getAllPortofolioApiRoute(),
+      // ]);
 
-    this.selectCategory(categories.building);
+      this.selectCategory(categories.portofolio);
   }
 
   async uploadFile(formData: FormData) {
     let isSuccess;
     try {
-      switch (this.categorySelected.id) {
-        case categories.building.id:
-          await this.uploadBosSwaggerFile(formData);
-          break;
+      await this.uploadPortofolioSwaggerFile(formData);
 
-        case categories.portofolio.id:
-          await this.uploadPortofolioSwaggerFile(formData);
-          break;
-      }
+      // switch (this.categorySelected.id) {
+      //   case categories.building.id:
+      //     await this.uploadBosSwaggerFile(formData);
+      //     break;
+
+      //   case categories.portofolio.id:
+      //     await this.uploadPortofolioSwaggerFile(formData);
+      //     break;
+      // }
       isSuccess = true;
     } catch (error) {
       isSuccess = false;
@@ -122,18 +124,20 @@ class TableComponent extends Vue {
 
   selectCategory(item: {name: string; id: string}) {
     this.categorySelected = item;
-    switch (item.id) {
-      case categories.building.id:
-        this.apis = this.bosApisGet;
-        break;
+    this.apis = this.portofolioApisGet;
 
-      case categories.portofolio.id:
-        this.apis = this.portofolioApisGet;
-        break;
+    // switch (item.id) {
+    //   case categories.building.id:
+    //     this.apis = this.bosApisGet;
+    //     break;
 
-      default:
-        break;
-    }
+    //   case categories.portofolio.id:
+    //     this.apis = this.portofolioApisGet;
+    //     break;
+
+    //   default:
+    //     break;
+    // }
   }
 
   async deleteItems(items: IApiRoute[]) {
@@ -190,14 +194,14 @@ class TableComponent extends Vue {
     return isSuccess;
   }
 
-  @Watch('bosApis')
-  watchBosApis() {
-    if (
-      this.categorySelected &&
-      this.categorySelected.id === categories.building.id
-    )
-      this.apis = this.bosApisGet;
-  }
+  // @Watch('bosApis')
+  // watchBosApis() {
+  //   if (
+  //     this.categorySelected &&
+  //     this.categorySelected.id === categories.building.id
+  //   )
+  //     this.apis = this.bosApisGet;
+  // }
 
   @Watch('portofolioApis')
   watchPortofolioApis() {

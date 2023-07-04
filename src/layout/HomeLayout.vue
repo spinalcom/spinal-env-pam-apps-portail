@@ -47,7 +47,7 @@ with this file. If not, see
 import {mapActions, mapState} from 'vuex';
 import NavBar from '../components/nav.vue';
 import SelectComponent from '../components/select.vue';
-import {SET_SELECTED_APP} from '../store/appDataStore';
+
 export default {
   components: {
     NavBar,
@@ -84,14 +84,31 @@ export default {
       if (!data.buildingId) return this.selectSpace(data);
       const buildingInfo = await this.getBuildingInfo(data);
 
-      const t = window.open(buildingInfo.bosUrl, '_blank');
+      const d = {
+        from: 'PAM',
+        data: {
+          token: localStorage.getItem('token'),
+          userInfo: this.userInfo,
+        },
+      };
 
-      setTimeout(() => {
-        t?.postMessage(
-          {from: 'PAM', token: localStorage.getItem('token')},
-          '*'
-        );
-      }, 100);
+      const t = window.open(
+        `${buildingInfo.bosUrl}?data=${btoa(JSON.stringify(d))}`,
+        '_blank'
+      );
+
+      // setTimeout(() => {
+      //   t?.postMessage(
+      //     {
+      //       from: 'PAM',
+      //       data: {
+      //         token: localStorage.getItem('token'),
+      //         userInfo: this.userInfo,
+      //       },
+      //     },
+      //     '*'
+      //   );
+      // }, 100);
     },
   },
   computed: {

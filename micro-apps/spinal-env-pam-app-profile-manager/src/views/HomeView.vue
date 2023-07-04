@@ -90,17 +90,12 @@ class HomeComponent extends Vue {
     loading: 4,
   });
 
-  actualState: any = this.STATES.loading;
+  actualState: any = this.STATES.creation;
 
   async mounted() {
-    this.goToLoadingPage();
-    await Promise.all([
-      this.getAllAppProfiles(),
-      this.getAllPortofolios(),
-      // this.getAllBos(),
-      // this.getAllApis(),
-    ]);
-    this.goToHomePage();
+    // this.goToLoadingPage();
+    await Promise.all([this.getAllAppProfiles(), this.getAllPortofolios()]);
+    // this.goToHomePage();
   }
 
   async createProfile(profileInfo: any) {

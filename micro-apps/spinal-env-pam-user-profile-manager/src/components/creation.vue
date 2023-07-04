@@ -23,19 +23,12 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card class="creationContainer"
-          elevation="4">
+  <v-card class="creationContainer" elevation="4">
     <div class="header">
       <div class="leftDiv">
         <div class="back">
-          <v-btn rounded
-                 outlined
-                 color="#14202c"
-                 dark
-                 @click="goBack">
-            <v-icon left>
-              mdi-arrow-left-thin
-            </v-icon>
+          <v-btn rounded outlined color="#14202c" dark @click="goBack">
+            <v-icon left> mdi-arrow-left-thin </v-icon>
             Retour
           </v-btn>
         </div>
@@ -45,24 +38,26 @@ with this file. If not, see
           <p>Sélectionnez son périmètre ci-dessous :</p>
         </div>
         <div class="searchDiv">
-          <v-text-field solo
-                        outlined
-                        dense
-                        flat
-                        label="nom du profil"
-                        hide-details="auto"
-                        v-model.trim="profileName"></v-text-field>
+          <v-text-field
+            solo
+            outlined
+            dense
+            flat
+            label="nom du profil"
+            hide-details="auto"
+            v-model.trim="profileName"
+          ></v-text-field>
         </div>
       </div>
 
       <div class="rightDiv">
-        <v-btn class="button"
-               color="#14202c"
-               @click="saveProfile"
-               :disabled="disableSaveButton">
-          <v-icon class="btnIcon">
-            mdi-content-save-outline
-          </v-icon>
+        <v-btn
+          class="button"
+          color="#14202c"
+          @click="saveProfile"
+          :disabled="disableSaveButton"
+        >
+          <v-icon class="btnIcon"> mdi-content-save-outline </v-icon>
 
           Enregister le profil
         </v-btn>
@@ -70,15 +65,24 @@ with this file. If not, see
     </div>
 
     <div class="profileContent">
-      <TabsComponent v-if="portofoliosCopy && portofoliosCopy.length > 0"
+      <!-- <TabsComponent v-if="portofoliosCopy && portofoliosCopy.length > 0"
                      :portofolios="portofoliosCopy"
                      @selectPortofolio="selectPortofolio"
                      :portofolioSelected="portofolioSelected"
                      :profileSelected="profileSelected"
-                     :edit="edit" />
+                     :edit="edit" /> -->
 
-      <div class="emptyPortofolio"
-           v-if="!portofoliosCopy || portofoliosCopy.length === 0">
+      <steppers-component
+        :buildingPortofolios="buildingPortofolios"
+        :appsPortofolios="appsPortofolios"
+        :edit="edit"
+        :profileSelected="profileSelected"
+      ></steppers-component>
+
+      <div
+        class="emptyPortofolio"
+        v-if="!portofolios || portofolios.length === 0"
+      >
         Aucun portefolio à afficher
       </div>
     </div>
@@ -86,19 +90,21 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import { Component, Prop, Watch } from "vue-property-decorator";
+import Vue from 'vue';
+import {Component, Prop, Watch} from 'vue-property-decorator';
 
-import { State } from "vuex-class";
-import TreeViewComponent from "./treeView.vue";
-import PortofolioList from "./portofolioList.vue";
-import TabsComponent from "./tabsComponent.vue";
+import {State} from 'vuex-class';
+import TreeViewComponent from './treeView.vue';
+import PortofolioList from './portofolioList.vue';
+// import TabsComponent from './tabsComponent.vue';
+import SteppersComponent from './stepsComponent.vue';
 
 @Component({
   components: {
     TreeViewComponent,
     PortofolioList,
-    TabsComponent,
+    SteppersComponent,
+    // TabsComponent,
   },
 })
 class CreationComponent extends Vue {
@@ -106,24 +112,27 @@ class CreationComponent extends Vue {
   @Prop() profileSelected!: any;
 
   tabsObject = Object.freeze({
-    Applications: "Applications de Portefolios",
-    Batiments: "Applications de Batiments",
+    Applications: 'Applications de Portefolios',
+    Batiments: 'Applications de Batiments',
   });
 
-  profileName = "";
+  profileName = '';
 
   headers: any = [
     {
       text: "Nom de l'application",
       sortable: false,
-      value: "name",
+      value: 'name',
     },
   ];
 
   @State portofolios!: any;
 
   portofolioSelected: any = null;
-  portofoliosCopy: any = null;
+  // portofoliosCopy: any = null;
+
+  buildingPortofolios: any = null;
+  appsPortofolios: any = null;
 
   tabItems: string[] = Object.values(this.tabsObject);
 
@@ -139,46 +148,41 @@ class CreationComponent extends Vue {
   }
 
   goBack() {
-    this.$emit("goBack");
+    this.$emit('goBack');
   }
 
   saveProfile() {
     if (!this.edit) {
       const data = this._getProfileCreationData();
-      return this.$emit("create", data);
+
+      return this.$emit('create', data);
+      return;
     }
 
-    this.$emit("edit", {
+    const data = this._getDiffBetweenProfile();
+
+    this.$emit('edit', {
       profileId: this.profileSelected.id,
-      data: this._getDiffBetweenProfile(),
+      data,
     });
   }
 
   _initProfile() {
-    this.profileName = !this.edit ? "" : this.profileSelected.name;
-    this.portofoliosCopy = this.createCopy(this.portofolios);
+    this.profileName = !this.edit ? '' : this.profileSelected.name;
+    this.buildingPortofolios = this.createCopy(this.portofolios, 'buildings');
+    this.appsPortofolios = this.createCopy(this.portofolios, 'apps');
   }
 
-  createCopy(liste: any) {
+  createCopy(liste: any, type: 'apps' | 'buildings') {
     if (!liste) return [];
     return liste.map((el: any) => {
-      const copy = this._addSelectedAttr(el);
-      copy.apps = copy.apps.map((app: any) => this._addSelectedAttr(app));
-      if (copy.buildings) copy.buildings = this.createCopy(copy.buildings);
-      return copy;
-    });
-  }
-
-  getItemToSelect(parentId: string, isBuilding = false) {
-    if (!this.edit) return [];
-
-    if (!isBuilding) {
-      const found = this.profileSelected.authorized.find(
-        (el: any) => el.id === parentId
+      const copy = {selected: false, name: el.name, id: el.id};
+      copy[type] = (el[type] || []).map((app: any) =>
+        this._addSelectedAttr(app)
       );
 
-      return found ? found.apps : [];
-    }
+      return copy;
+    });
   }
 
   get getPortofolioBuilding() {
@@ -191,7 +195,7 @@ class CreationComponent extends Vue {
     return false;
   }
 
-  @Watch("portofolios")
+  @Watch('portofolios')
   watchPortofolios() {
     this._initProfile();
   }
@@ -201,7 +205,7 @@ class CreationComponent extends Vue {
   //   this._initBos(newValue);
   // }
 
-  @Watch("edit")
+  @Watch('edit')
   watchEditMode(newValue: boolean) {
     this._initProfile();
   }
@@ -212,32 +216,40 @@ class CreationComponent extends Vue {
 
     for (const portofolio of toCreate.authorize) {
       const appsIds = portofolio.appsIds;
-      const objData = obj[portofolio.portofolioId]?.apps || {};
+      const buildingIds = portofolio.buildingIds;
 
-      portofolio.unauthorizeAppsIds = this._getAppsToUnauthorize(
+      const appsObjData = obj[portofolio.portofolioId]?.apps || {};
+      const buildingsObjData = obj[portofolio.portofolioId]?.buildings || {};
+
+      portofolio.unauthorizeAppsIds = this._getIdsToUnauthorize(
         appsIds,
-        objData
+        appsObjData
       );
 
-      for (const building of portofolio.building) {
-        const buildingAppsIds = building.appsIds;
-        const buildingObjData =
-          obj[portofolio.portofolioId]?.buildings[building.buildingId] || {};
+      portofolio.unauthorizeBuildingIds = this._getIdsToUnauthorize(
+        buildingIds,
+        buildingsObjData
+      );
 
-        building.unauthorizeAppsIds = this._getAppsToUnauthorize(
-          buildingAppsIds,
-          buildingObjData
-        );
-      }
+      // for (const building of portofolio.building) {
+      //   const buildingAppsIds = building.appsIds;
+      //   const buildingObjData =
+      //     obj[portofolio.portofolioId]?.buildings[building.buildingId] || {};
+
+      //   building.unauthorizeAppsIds = this._getAppsToUnauthorize(
+      //     buildingAppsIds,
+      //     buildingObjData
+      //   );
+      // }
     }
 
     return toCreate;
   }
 
-  _getAppsToUnauthorize(apps: any, obj: any) {
+  _getIdsToUnauthorize(ids: any, obj: any) {
     if (Object.keys(obj).length === 0) return [];
-    for (const app of apps) {
-      delete obj[app];
+    for (const id of ids) {
+      delete obj[id];
     }
 
     return Object.keys(obj);
@@ -250,28 +262,43 @@ class CreationComponent extends Vue {
   }
 
   _getProfileCreationData() {
-    return this.portofoliosCopy.reduce(
-      (liste: any, item: any) => {
-        const obj = this._formatData(item);
-        liste.authorize.push(obj);
+    const data: any = {
+      name: this.profileName,
+      authorize: [],
+    };
+    for (let i = 0; i < this.portofolios.length; i++) {
+      const obj = {
+        portofolioId: this.portofolios[i].id,
+        appsIds: this._getSelected(this.appsPortofolios[i].apps),
+        buildingIds: this._getSelected(this.buildingPortofolios[i].buildings),
+      };
 
-        return liste;
-      },
-      { name: this.profileName, authorize: [] }
-    );
+      data.authorize.push(obj);
+    }
+
+    return data;
+    // return this.portofoliosCopy.reduce(
+    //   (liste: any, item: any) => {
+    //     const obj = this._formatData(item);
+    //     liste.authorize.push(obj);
+    //     return liste;
+    //   },
+    //   {name: this.profileName, authorize: []}
+    // );
   }
 
-  _formatData(item: any, idAttr = "portofolioId") {
+  _formatData(item: any, idAttr = 'portofolioId') {
     const obj: any = {
       [idAttr]: item.id,
       appsIds: this._getSelected(item.apps),
+      buildingIds: this._getSelected(item.buildings),
     };
 
-    if (item.buildings) {
-      obj.building = item.buildings.map((el: any) =>
-        this._formatData(el, "buildingId")
-      );
-    }
+    // if (item.buildings) {
+    //   obj.building = item.buildings.map((el: any) =>
+    //     this._formatData(el, 'buildingId')
+    //   );
+    // }
 
     return obj;
   }
@@ -284,28 +311,27 @@ class CreationComponent extends Vue {
   }
 
   _convertProfileToObj(profile: any) {
-    console.log(profile);
     const obj: any = {};
-    for (const { id, apps, buildings } of profile.authorized) {
+    for (const {id, apps, buildings} of profile.authorized) {
       obj[id] = {};
-      obj[id]["apps"] = this._convertAppsToObj(apps);
-      obj[id]["buildings"] = this._convertBuildings(buildings);
+      obj[id]['apps'] = this._convertlistToObj(apps);
+      obj[id]['buildings'] = this._convertlistToObj(buildings);
     }
 
     return obj;
   }
 
-  _convertBuildings(buildings: any) {
-    const obj: { [key: string]: any } = {};
-    for (const { id, apps } of buildings) {
-      obj[id] = this._convertAppsToObj(apps);
-    }
+  // _convertBuildings(buildings: any) {
+  //   const obj: {[key: string]: any} = {};
+  //   for (const {id, apps} of buildings) {
+  //     obj[id] = this._convertAppsToObj(apps);
+  //   }
 
-    return obj;
-  }
+  //   return obj;
+  // }
 
-  _convertAppsToObj(apps: any) {
-    const obj: { [key: string]: any } = {};
+  _convertlistToObj(apps: any) {
+    const obj: {[key: string]: any} = {};
 
     for (const item of apps) {
       obj[item.id] = item;

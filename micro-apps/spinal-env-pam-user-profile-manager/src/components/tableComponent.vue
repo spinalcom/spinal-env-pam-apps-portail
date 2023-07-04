@@ -23,96 +23,106 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="tableContainer"
-       ref="tableContainer">
-    <div class="my_title"
-         v-if="title">
-      {{title}}
+  <div class="tableContainer" ref="tableContainer">
+    <div class="my_title" v-if="title">
+      {{ title }}
     </div>
-    <v-data-table dense
-                  hide-default-header
-                  disable-pagination
-                  hide-default-footer
-                  :headers="headers"
-                  id="table"
-                  :items="items"
-                  item-key="name"
-                  :expanded="expanded"
-                  no-data-text="Aucune donnée à afficher">
-
-      <template v-slot:header="{ props : { headers } }">
+    <v-data-table
+      dense
+      hide-default-header
+      disable-pagination
+      hide-default-footer
+      :headers="headers"
+      id="table"
+      :items="items"
+      item-key="name"
+      :expanded="expanded"
+      no-data-text="Aucune donnée à afficher"
+    >
+      <template v-slot:header="{props: {headers}}">
         <thead>
           <tr>
             <th class="expandedColumn">
-              <v-checkbox class="checkboxDiv"
-                          :value="checkIfAllCategoriesAreSelected"
-                          @click="selectAll"></v-checkbox>
+              <v-checkbox
+                class="checkboxDiv"
+                :value="checkIfAllCategoriesAreSelected"
+                @click="selectAll"
+              ></v-checkbox>
             </th>
-            <th v-for="headerItem in headers"
-                class="tableHeader"
-                :key="headerItem.value">
-              {{headerItem.text}}
+            <th
+              v-for="headerItem in headers"
+              class="tableHeader"
+              :key="headerItem.value"
+            >
+              {{ headerItem.text }}
             </th>
             <th class="expandedColumn"></th>
           </tr>
         </thead>
       </template>
 
-      <template v-slot:item="{ item }">
+      <template v-slot:item="{item}">
         <tr class="categoryRow">
           <td>
-            <v-checkbox v-model="item.selected"
-                        @change="() => selectCategory(item)"
-                        class="checkboxDiv">
+            <v-checkbox
+              v-model="item.selected"
+              @change="() => selectCategory(item)"
+              class="checkboxDiv"
+            >
             </v-checkbox>
           </td>
-          <td @click="expand(item)">{{item.name}}</td>
+          <td @click="expand(item)">{{ item.name }}</td>
           <td @click="expand(item)">
-            <v-btn icon
-                   x-small
-                   color="white">
+            <v-btn icon x-small color="white">
               <v-icon>
-                {{IsExpanded(item) ? "mdi-chevron-down" : "mdi-chevron-up"}}
+                {{ IsExpanded(item) ? 'mdi-chevron-down' : 'mdi-chevron-up' }}
               </v-icon>
             </v-btn>
           </td>
         </tr>
       </template>
 
-      <template v-slot:expanded-item="{ item }">
-        <tr class="subItemRow"
-            v-for="child of item[childrenKey]"
-            :key="item.id + child.id">
-
+      <template v-slot:expanded-item="{item}">
+        <tr
+          class="subItemRow"
+          v-for="child of item[childrenKey]"
+          :key="item.id + child.id"
+        >
           <td>
-            <v-checkbox v-model="child.selected"
-                        @change="() => selectSubItem(item, child)"
-                        class="checkboxDiv"></v-checkbox>
+            <v-checkbox
+              v-model="child.selected"
+              @change="() => selectSubItem(item, child)"
+              class="checkboxDiv"
+            ></v-checkbox>
           </td>
           <td>
             {{ child.name }}
           </td>
           <td></td>
         </tr>
+        <tr v-if="isEmpty(item[childrenKey])">
+          <td></td>
+          <td>Aucune donnée à afficher</td>
+          <td></td>
+        </tr>
       </template>
     </v-data-table>
   </div>
-
 </template>
-  
-  <script lang="ts">
-import Vue from "vue";
-import { Component, Prop } from "vue-property-decorator";
+
+<script lang="ts">
+import Vue from 'vue';
+import {Component, Prop, Watch} from 'vue-property-decorator';
 
 const TableComponentProps = Vue.extend({
   props: {
     headers: {},
     title: {
-      default: "",
+      default: '',
     },
     items: {},
     childrenKey: {
-      default: "children",
+      default: 'children',
     },
   },
 });
@@ -120,9 +130,11 @@ const TableComponentProps = Vue.extend({
 @Component
 class TableComponent extends TableComponentProps {
   @Prop() edit!: boolean;
-  @Prop() itemToSelect!: any[];
+  @Prop() itemToSelect!: {[key: string]: any[]};
 
   mounted() {
+    if (this.items.length > 0) this.expand(this.items[0]);
+
     if (this.edit) {
       this._selectItemsOnEdit(this.itemToSelect);
     }
@@ -162,7 +174,7 @@ class TableComponent extends TableComponentProps {
   }
 
   get checkIfAllCategoriesAreSelected() {
-    for (const { selected } of this.items) {
+    for (const {selected} of this.items) {
       if (!selected) {
         // this.allCategoriesAreSelected = false;
         return false;
@@ -174,31 +186,33 @@ class TableComponent extends TableComponentProps {
   }
 
   checkIfAllItemsAreSelectedInCategory(category: any) {
-    for (const { selected } of category[this.childrenKey]) {
+    for (const {selected} of category[this.childrenKey]) {
       if (!selected) return;
     }
 
     category.selected = true;
-
     this.selectCategory(category);
   }
 
   _selectItemsOnEdit(itemToSelect: any) {
-    const obj: any = {};
-    for (const { tag, id } of itemToSelect) {
-      if (obj[tag]) obj[tag][id] = id;
-      else obj[tag] = { [id]: id };
-    }
-
     for (const category of this.items) {
-      if (obj[category.name]) {
-        for (const subItem of category.children) {
-          if (obj[category.name][subItem.id]) {
+      const values = itemToSelect[category.id];
+      if (values?.length > 0) {
+        for (const subItem of category[this.childrenKey]) {
+          if (values.indexOf(subItem.id) > -1) {
             subItem.selected = true;
             this.selectSubItem(category, subItem);
           }
         }
       }
+      //   if (obj[category.name]) {
+      //     for (const subItem of category.children) {
+      //       if (obj[category.name][subItem.id]) {
+      //         subItem.selected = true;
+      //         this.selectSubItem(category, subItem);
+      //       }
+      //     }
+      //   }
     }
   }
 
@@ -217,12 +231,17 @@ class TableComponent extends TableComponentProps {
   IsExpanded(item: any) {
     return this.expanded.find((el: any) => el.name === item.name);
   }
+
+  isEmpty(item: any[]) {
+    if (!item || item.length === 0) return true;
+    return false;
+  }
 }
 
 export default TableComponent;
 </script>
-  
-  <style lang="scss">
+
+<style lang="scss">
 $expand-column-width: 50px;
 $title-background: #14202c;
 
@@ -241,8 +260,9 @@ $title-background: #14202c;
     font-size: 1.2em;
     padding-left: 10px;
     margin-bottom: 5px;
-    color: #fff;
-    background: $title-background;
+    color: #000;
+    // color: #fff;
+    // background: $title-background;
   }
 
   #table {
@@ -306,4 +326,3 @@ $title-background: #14202c;
   }
 }
 </style>
-  

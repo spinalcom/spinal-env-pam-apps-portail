@@ -23,38 +23,42 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="mainContent"
-               fluid>
-    <AppListComponent :categorySelected="categorySelected"
-                      :apps="apps"
-                      @select="selectCategory"
-                      @create="goToCreationPage"
-                      @upload="uploadApp"
-                      @edit="goToCreationPage"
-                      @delete="deleteApp"
-                      v-if="page === pages.list" />
+  <v-container class="mainContent" fluid>
+    <AppListComponent
+      :categorySelected="categorySelected"
+      :portofolioApps="portofolioApps"
+      :adminApps="adminApps"
+      @select="selectCategory"
+      @create="goToCreationPage"
+      @upload="uploadApp"
+      @edit="goToCreationPage"
+      @delete="deleteApp"
+      v-if="page === pages.list"
+    />
 
-    <CreationComponent v-else-if="page === pages.creation"
-                       @create="createApp"
-                       @edit="editApp"
-                       @cancel="cancelCreation"
-                       :edit="edition"
-                       :title="title"
-                       :appSelected="appSelected" />
+    <CreationComponent
+      v-else-if="page === pages.creation"
+      @create="createApp"
+      @edit="editApp"
+      @cancel="cancelCreation"
+      :edit="edition"
+      :title="title"
+      :appSelected="appSelected"
+    />
 
     <LoadingComponent v-else-if="page === pages.loading" />
   </v-container>
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
-import { Action, State } from "vuex-class";
-import AppListComponent from "../components/appsComponent.vue";
-import LoadingComponent from "../components/loading.vue";
-import CreationComponent from "../components/creation.vue";
-import categories from "../store/data";
-import { IApp } from "../types/interfaces";
-import { sendEventToParent } from "../event";
+import {Component, Vue, Watch} from 'vue-property-decorator';
+import {Action, State} from 'vuex-class';
+import AppListComponent from '../components/appsComponent.vue';
+import LoadingComponent from '../components/loading.vue';
+import CreationComponent from '../components/creation.vue';
+import categories from '../store/data';
+import {IApp} from '../types/interfaces';
+import {sendEventToParent} from '../event';
 type updateFunc = ({
   id,
   newValue,
@@ -126,23 +130,23 @@ class HomeView extends Vue {
   selectCategory(item?: any) {
     this.categorySelected = item;
 
-    switch (item.id) {
-      case categories.portofolio.id:
-        this.apps = this.portofolioApps;
-        break;
+    // switch (item.id) {
+    //   case categories.portofolio.id:
+    //     this.apps = this.portofolioApps;
+    //     break;
 
-      case categories.bos.id:
-        this.apps = this.buildingApps;
-        break;
+    //   case categories.bos.id:
+    //     this.apps = this.buildingApps;
+    //     break;
 
-      case categories.admin.id:
-        this.apps = this.adminApps;
-        break;
+    //   case categories.admin.id:
+    //     this.apps = this.adminApps;
+    //     break;
 
-      default:
-        this.apps = [];
-        break;
-    }
+    //   default:
+    //     this.apps = [];
+    //     break;
+    // }
   }
 
   goToCreationPage(item: IApp) {
@@ -155,7 +159,7 @@ class HomeView extends Vue {
   }
 
   async createApp(appInfo: IApp) {
-    if (typeof appInfo.icon !== "string" && (<any>appInfo.icon).name)
+    if (typeof appInfo.icon !== 'string' && (<any>appInfo.icon).name)
       appInfo.icon = `mdi-${(<any>appInfo.icon).name}`;
 
     let isSuccess;
@@ -182,35 +186,35 @@ class HomeView extends Vue {
 
     this.page = this.pages.list;
     const message = isSuccess
-      ? "application ajoutée"
+      ? 'application ajoutée'
       : "oups, une erreur s'est produite !";
 
     this.alertNotification(isSuccess, message);
-    sendEventToParent("reload_portofolio");
+    sendEventToParent('reload_portofolio');
   }
 
   uploadApp() {
     const maxSize = 25000000;
-    const input = document.createElement("input");
-    input.type = "file";
+    const input = document.createElement('input');
+    input.type = 'file';
     input.multiple = false;
     input.click();
     input.addEventListener(
-      "change",
+      'change',
       (event: any) => {
         const [file] = event.target.files;
         if (file.size >= maxSize) {
           alert(
-            "The selected file is too large. The maximum size must not exceed 25 MB"
+            'The selected file is too large. The maximum size must not exceed 25 MB'
           );
           return;
         }
         if (!/.*\.xlsx$/.test(file.name)) {
-          alert("The selected file must an excel file");
+          alert('The selected file must an excel file');
           return;
         }
         var formData = new FormData();
-        formData.append("file", file);
+        formData.append('file', file);
         this.uploadFile(formData);
       },
       false
@@ -242,15 +246,15 @@ class HomeView extends Vue {
 
     this.page = this.pages.list;
     const message = isSuccess
-      ? "fichier ajouté"
+      ? 'fichier ajouté'
       : "oups, une erreur s'est produite !";
     this.alertNotification(isSuccess, message);
 
-    sendEventToParent("reload_portofolio");
+    sendEventToParent('reload_portofolio');
   }
 
   async editApp(item: IApp) {
-    if (typeof item.icon !== "string" && (<any>item.icon).name)
+    if (typeof item.icon !== 'string' && (<any>item.icon).name)
       item.icon = `mdi-${(<any>item.icon).name}`;
     const id: any = this.appSelected.id;
     let isSuccess;
@@ -259,15 +263,15 @@ class HomeView extends Vue {
 
       switch (this.categorySelected.id) {
         case categories.portofolio.id:
-          await this.updatePortofolioApp({ id, newValue: item });
+          await this.updatePortofolioApp({id, newValue: item});
           break;
 
         case categories.bos.id:
-          await this.updateBuildingApp({ id, newValue: item });
+          await this.updateBuildingApp({id, newValue: item});
           break;
 
         case categories.admin.id:
-          await this.updateAdminApp({ id, newValue: item });
+          await this.updateAdminApp({id, newValue: item});
           break;
       }
       isSuccess = true;
@@ -277,26 +281,26 @@ class HomeView extends Vue {
 
     this.page = this.pages.list;
     const message = isSuccess
-      ? "application modifiée"
+      ? 'application modifiée'
       : "oups, une erreur s'est produite !";
 
     this.alertNotification(isSuccess, message);
 
-    sendEventToParent("reload_portofolio");
+    sendEventToParent('reload_portofolio');
   }
 
   deleteApp(item: IApp) {
     return this.$swal({
-      title: "Supprimer",
+      title: 'Supprimer',
       text: `Êtes-vous sûre de vouloir supprimer ${item.name} ?`,
-      type: "warning",
+      type: 'warning',
       showCancelButton: true,
-      confirmButtonClass: "successBtn",
-      cancelButtonClass: "errorBtn",
-      confirmButtonText: "Oui",
-      cancelButtonText: "Annuler",
+      confirmButtonClass: 'successBtn',
+      cancelButtonClass: 'errorBtn',
+      confirmButtonText: 'Oui',
+      cancelButtonText: 'Annuler',
       buttonsStyling: false,
-      icon: "warning",
+      icon: 'warning',
     }).then(async (result) => {
       if (result.isConfirmed) {
         this.page = this.pages.loading;
@@ -323,11 +327,11 @@ class HomeView extends Vue {
         this.page = this.pages.list;
 
         const message = isSuccess
-          ? "Application supprimée"
+          ? 'Application supprimée'
           : "oups, une erreur s'est produite !";
 
         this.alertNotification(isSuccess, message);
-        sendEventToParent("reload_portofolio");
+        sendEventToParent('reload_portofolio');
       }
     });
   }
@@ -338,11 +342,11 @@ class HomeView extends Vue {
   }
 
   get title() {
-    if (!this.categorySelected) return "";
+    if (!this.categorySelected) return '';
 
-    if (this.edition) return "Modifier une application";
+    if (this.edition) return 'Modifier une application';
 
-    const begin = "Créer une application";
+    const begin = 'Créer une application';
     switch (this.categorySelected.id) {
       case categories.portofolio.id:
         return `${begin} de portefeuille`;
@@ -354,7 +358,7 @@ class HomeView extends Vue {
     }
   }
 
-  @Watch("portofolioApps")
+  @Watch('portofolioApps')
   watch_portofolioApps() {
     if (
       this.categorySelected &&
@@ -364,13 +368,13 @@ class HomeView extends Vue {
     }
   }
 
-  @Watch("buildingApps")
+  @Watch('buildingApps')
   watch_buildingApps() {
     if (this.categorySelected && this.categorySelected.id === categories.bos.id)
       this.apps = this.buildingApps;
   }
 
-  @Watch("adminApps")
+  @Watch('adminApps')
   watch_adminApps() {
     if (
       this.categorySelected &&
@@ -383,10 +387,10 @@ class HomeView extends Vue {
   alertNotification(isSuccess, message) {
     this.$swal({
       toast: true,
-      position: "bottom-end",
+      position: 'bottom-end',
       showConfirmButton: false,
       timer: 3000,
-      icon: isSuccess ? "success" : "error",
+      icon: isSuccess ? 'success' : 'error',
       text: message,
     });
   }

@@ -23,19 +23,12 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card class="creationContainer"
-          elevation="4">
+  <v-card class="creationContainer" elevation="4">
     <div class="header">
       <div class="leftDiv">
         <div class="back">
-          <v-btn rounded
-                 outlined
-                 color="#14202c"
-                 dark
-                 @click="goBack">
-            <v-icon left>
-              mdi-arrow-left-thin
-            </v-icon>
+          <v-btn rounded outlined color="#14202c" dark @click="goBack">
+            <v-icon left> mdi-arrow-left-thin </v-icon>
             Retour
           </v-btn>
         </div>
@@ -45,24 +38,26 @@ with this file. If not, see
           <p>Sélectionnez son périmètre ci-dessous :</p>
         </div>
         <div class="searchDiv">
-          <v-text-field solo
-                        outlined
-                        dense
-                        flat
-                        label="nom du profil"
-                        hide-details="auto"
-                        v-model.trim="profileName"></v-text-field>
+          <v-text-field
+            solo
+            outlined
+            dense
+            flat
+            label="nom du profil"
+            hide-details="auto"
+            v-model.trim="profileName"
+          ></v-text-field>
         </div>
       </div>
 
       <div class="rightDiv">
-        <v-btn class="button"
-               color="#14202c"
-               @click="saveProfile"
-               :disabled="disableSaveButton">
-          <v-icon class="btnIcon">
-            mdi-content-save-outline
-          </v-icon>
+        <v-btn
+          class="button"
+          color="#14202c"
+          @click="saveProfile"
+          :disabled="disableSaveButton"
+        >
+          <v-icon class="btnIcon"> mdi-content-save-outline </v-icon>
 
           Enregister le profil
         </v-btn>
@@ -70,15 +65,17 @@ with this file. If not, see
     </div>
 
     <div class="profileContent">
-      <TabsComponent v-if="portofoliosCopy && portofoliosCopy.length > 0"
-                     :portofolios="portofoliosCopy"
-                     @selectPortofolio="selectPortofolio"
-                     :portofolioSelected="portofolioSelected"
-                     :profileSelected="profileSelected"
-                     :edit="edit" />
+      <steppers-component
+        :buildingPortofolios="buildingPortofolios"
+        :apisPortofolios="apisPortofolios"
+        :edit="edit"
+        :profileSelected="profileSelected"
+      ></steppers-component>
 
-      <div class="emptyPortofolio"
-           v-if="!portofoliosCopy || portofoliosCopy.length === 0">
+      <div
+        class="emptyPortofolio"
+        v-if="!portofolios || portofolios.length === 0"
+      >
         Aucun portefolio à afficher
       </div>
     </div>
@@ -86,59 +83,50 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import { Component, Prop, Watch } from "vue-property-decorator";
+import Vue from 'vue';
+import {Component, Prop, Watch} from 'vue-property-decorator';
 // import DoubleTableComponent from "./tableComponent.vue";
 // import SimpleTableComponent from "./simpleTable.vue";
-import { State } from "vuex-class";
-import TreeViewComponent from "./treeView.vue";
-import PortofolioList from "./portofolioList.vue";
-import TabsComponent from "./tabsComponent.vue";
-
-interface IDataTypes {
-  id: string;
-  apps: string[];
-  apis: string[];
-  buildings?: IDataTypes[];
-}
+import {State} from 'vuex-class';
+import TreeViewComponent from './treeView.vue';
+import PortofolioList from './portofolioList.vue';
+// import TabsComponent from "./tabsComponent.vue";
+import SteppersComponent from './stepsComponent.vue';
 
 @Component({
   components: {
     // DoubleTableComponent,
     TreeViewComponent,
     PortofolioList,
+    SteppersComponent,
     // SimpleTableComponent,
-    TabsComponent,
+    // TabsComponent,
   },
 })
 class CreationComponent extends Vue {
   @Prop() edit!: boolean;
   @Prop() profileSelected!: any;
+  @State portofolios!: any;
 
   tabsObject = Object.freeze({
-    Applications: "Apis de Portefolios",
-    Batiments: "Batiments",
+    Applications: 'Apis de Portefolios',
+    Batiments: 'Batiments',
   });
 
-  profileName = "";
+  profileName = '';
 
   headers: any = [
     {
-      text: "Route",
+      text: 'Route',
       sortable: false,
-      value: "route",
+      value: 'route',
     },
   ];
 
-  @State portofolios!: any;
-
   portofolioSelected: any = null;
-  portofoliosCopy: any = null;
 
-  tabItems: string[] = Object.values(this.tabsObject);
-
-  tab = this.tabsObject.Applications;
-  buildingTab = null;
+  buildingPortofolios: any = null;
+  apisPortofolios: any = null;
 
   mounted() {
     this._initProfile();
@@ -149,55 +137,53 @@ class CreationComponent extends Vue {
   }
 
   goBack() {
-    this.$emit("goBack");
+    this.$emit('goBack');
   }
 
   saveProfile() {
     if (!this.edit) {
       const data = this._getProfileCreationData();
-      return this.$emit("create", data);
+      return this.$emit('create', data);
     }
 
-    this.$emit("edit", {
+    const data = this._getDiffBetweenProfile();
+    this.$emit('edit', {
       profileId: this.profileSelected.id,
-      data: this._getDiffBetweenProfile(),
+      data,
     });
   }
 
   _initProfile() {
-    this.profileName = !this.edit ? "" : this.profileSelected.name;
-    this.portofoliosCopy = this.createCopy(this.portofolios);
+    this.profileName = !this.edit ? '' : this.profileSelected.name;
+    this.buildingPortofolios = this.createCopy(this.portofolios, 'buildings');
+    this.apisPortofolios = this.createCopy(this.portofolios, 'apis');
   }
 
-  createCopy(liste: any) {
+  createCopy(liste: any, type: 'apis' | 'buildings') {
     if (!liste) return [];
     return liste.map((el: any) => {
-      const copy = this._addSelectedAttr(el);
-      copy.apis = this._formatApis(copy.apis);
-      if (copy.buildings) copy.buildings = this.createCopy(copy.buildings);
+      const copy = {selected: false, name: el.name, id: el.id};
+
+      copy[type] =
+        type === 'buildings'
+          ? this.getBuildingList(el[type])
+          : this._formatApis(el[type]);
+
       return copy;
     });
   }
 
-  getItemToSelect(parentId: string, isBuilding = false) {
-    if (!this.edit) return [];
-
-    if (!isBuilding) {
-      const found = this.profileSelected.authorized.find(
-        (el: any) => el.id === parentId
-      );
-
-      return found ? found.apis : [];
-    }
+  getBuildingList(list = []) {
+    return list.map((app: any) => this._addSelectedAttr(app));
   }
 
   get getPortofolioBuilding() {
     return this.portofolioSelected.buildings.map((el: any) => el.name);
   }
 
-  get getBuildingApis() {
-    return this.portofolioSelected.buildings[this.buildingTab]?.apis || [];
-  }
+  // get getBuildingApis() {
+  //   return this.portofolioSelected.buildings[this.buildingTab]?.apis || [];
+  // }
 
   get disableSaveButton() {
     if (this.profileName.length === 0) return true;
@@ -205,7 +191,7 @@ class CreationComponent extends Vue {
     return false;
   }
 
-  @Watch("portofolios")
+  @Watch('portofolios')
   watchPortofolios() {
     this._initProfile();
   }
@@ -215,7 +201,7 @@ class CreationComponent extends Vue {
   //   this._initBos(newValue);
   // }
 
-  @Watch("edit")
+  @Watch('edit')
   watchEditMode(newValue: boolean) {
     this._initProfile();
   }
@@ -226,32 +212,40 @@ class CreationComponent extends Vue {
 
     for (const portofolio of toCreate.authorize) {
       const apisIds = portofolio.apisIds;
-      const objData = obj[portofolio.portofolioId].apis || {};
+      const buildingIds = portofolio.buildingIds;
 
-      portofolio.unauthorizeApisIds = this._getApisToUnauthorize(
+      const apisObjData = obj[portofolio.portofolioId].apis || {};
+      const buildingsObjData = obj[portofolio.portofolioId]?.buildings || {};
+
+      portofolio.unauthorizeApisIds = this._getIdsToUnauthorize(
         apisIds,
-        objData
+        apisObjData
       );
 
-      for (const building of portofolio.building) {
-        const buildingApisIds = building.apisIds;
-        const buildingObjData =
-          obj[portofolio.portofolioId].buildings[building.buildingId] || {};
+      portofolio.unauthorizeBuildingIds = this._getIdsToUnauthorize(
+        buildingIds,
+        buildingsObjData
+      );
 
-        building.unauthorizeApisIds = this._getApisToUnauthorize(
-          buildingApisIds,
-          buildingObjData
-        );
-      }
+      // for (const building of portofolio.building) {
+      //   const buildingApisIds = building.apisIds;
+      //   const buildingObjData =
+      //     obj[portofolio.portofolioId].buildings[building.buildingId] || {};
+
+      //   building.unauthorizeApisIds = this._getApisToUnauthorize(
+      //     buildingApisIds,
+      //     buildingObjData
+      //   );
+      // }
     }
 
     return toCreate;
   }
 
-  _getApisToUnauthorize(apis: any, obj: any) {
+  _getIdsToUnauthorize(ids: any, obj: any) {
     if (Object.keys(obj).length === 0) return [];
-    for (const api of apis) {
-      delete obj[api];
+    for (const id of ids) {
+      delete obj[id];
     }
 
     return Object.keys(obj);
@@ -271,6 +265,7 @@ class CreationComponent extends Vue {
       liste.push({
         selected: false,
         name: item.tag,
+        id: item.tag,
         children: [copy],
       });
 
@@ -285,33 +280,55 @@ class CreationComponent extends Vue {
   }
 
   _getProfileCreationData() {
-    return this.portofoliosCopy.reduce(
-      (liste: any, item: any) => {
-        const obj = this._formatData(item);
-        liste.authorize.push(obj);
-
-        return liste;
-      },
-      { name: this.profileName, authorize: [] }
-    );
-  }
-
-  _formatData(item: any, idAttr = "portofolioId") {
-    const obj: any = {
-      [idAttr]: item.id,
-      apisIds: this._getSelected(item.apis),
+    const data: any = {
+      name: this.profileName,
+      authorize: [],
     };
+    for (let i = 0; i < this.portofolios.length; i++) {
+      const obj = {
+        portofolioId: this.portofolios[i].id,
+        apisIds: this._getApisSelected(this.apisPortofolios[i].apis),
+        buildingIds: this._getSelected(this.buildingPortofolios[i].buildings),
+      };
 
-    if (item.buildings) {
-      obj.building = item.buildings.map((el: any) =>
-        this._formatData(el, "buildingId")
-      );
+      data.authorize.push(obj);
     }
 
-    return obj;
+    return data;
+    // return this.portofoliosCopy.reduce(
+    //   (liste: any, item: any) => {
+    //     const obj = this._formatData(item);
+    //     liste.authorize.push(obj);
+    //     return liste;
+    //   },
+    //   {name: this.profileName, authorize: []}
+    // );
   }
 
+  // _formatData(item: any, idAttr = 'portofolioId') {
+  //   const obj: any = {
+  //     [idAttr]: item.id,
+  //     apisIds: this._getSelected(item.apis),
+  //   };
+
+  //   if (item.buildings) {
+  //     obj.building = item.buildings.map((el: any) =>
+  //       this._formatData(el, 'buildingId')
+  //     );
+  //   }
+
+  //   return obj;
+  // }
+
   _getSelected(arr: any) {
+    return arr.reduce((liste: any[], item: any) => {
+      if (item.selected) liste.push(item.id);
+
+      return liste;
+    }, []);
+  }
+
+  _getApisSelected(arr: any) {
     return arr.reduce((liste: any[], item: any) => {
       if (item.selected) liste.push(...item.children.map((el: any) => el.id));
       else
@@ -325,29 +342,26 @@ class CreationComponent extends Vue {
     }, []);
   }
 
+  _getBuildingSelected(arr) {
+    return arr.reduce((liste: any[], item: any) => {
+      if (item.selected) liste.push(item.id);
+      return liste;
+    }, []);
+  }
+
   _convertProfileToObj(profile: any) {
-    console.log(profile);
     const obj: any = {};
-    for (const { id, apis, buildings } of profile.authorized) {
+    for (const {id, apis, buildings} of profile.authorized) {
       obj[id] = {};
-      obj[id]["apis"] = this._convertApisToObj(apis);
-      obj[id]["buildings"] = this._convertBuildings(buildings);
+      obj[id]['apis'] = this._convertlistToObj(apis);
+      obj[id]['buildings'] = this._convertlistToObj(buildings);
     }
 
     return obj;
   }
 
-  _convertBuildings(buildings: any) {
-    const obj: { [key: string]: any } = {};
-    for (const { id, apis } of buildings) {
-      obj[id] = this._convertApisToObj(apis);
-    }
-
-    return obj;
-  }
-
-  _convertApisToObj(apis: any) {
-    const obj: { [key: string]: any } = {};
+  _convertlistToObj(apis: any) {
+    const obj: {[key: string]: any} = {};
 
     for (const item of apis) {
       obj[item.id] = item;

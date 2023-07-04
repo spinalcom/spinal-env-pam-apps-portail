@@ -53,7 +53,6 @@ with this file. If not, see
 
 <script lang="ts">
 import NavBar from '../components/nav.vue';
-import {getAppById} from '../requests/userData';
 import {SET_SELECTED_APP} from '../store/appDataStore';
 import {Vue, Component, Watch} from 'vue-property-decorator';
 import ViewerIFrame from './ViewerIframe.vue';

@@ -25,27 +25,62 @@ with this file. If not, see
 <template>
   <div class="_content">
     <div class="app_header">
-      <Select @selected="selectCategory" />
+      <!-- <Select @selected="selectCategory" /> -->
     </div>
 
     <v-card class="cardContent" elevation="4">
-      <app-list-component
+      <v-tabs
+        class="tabsHeader"
+        v-model="tab"
+        background-color="transparent"
+        color="primary"
+        grow
+      >
+        <v-tab v-for="item in tabItems" :key="item">
+          {{ item }}
+        </v-tab>
+      </v-tabs>
+
+      <v-tabs-items v-model="tab" class="tabsItems">
+        <v-tab-item>
+          <app-list-component
+            :apps="portofolioApps"
+            @create="createApp"
+            @upload="uploadApp"
+            @edit="editApp"
+            @delete="deleteApp"
+          />
+        </v-tab-item>
+
+        <v-tab-item>
+          <app-list-component
+            :apps="adminApps"
+            @create="createApp"
+            @upload="uploadApp"
+            @edit="editApp"
+            @delete="deleteApp"
+          />
+        </v-tab-item>
+      </v-tabs-items>
+
+      <!-- <app-list-component
         :apps="apps"
         :category="categorySelected"
         @create="createApp"
         @upload="uploadApp"
         @edit="editApp"
         @delete="deleteApp"
-      />
+      /> -->
     </v-card>
   </div>
 </template>
 
 <script lang="ts">
 import {IApp} from '../types/interfaces';
-import {Component, Prop, Vue} from 'vue-property-decorator';
+import {Component, Prop, Vue, Watch} from 'vue-property-decorator';
 import AppListComponent from '../components/appList.vue';
 import Select from '../components/select.vue';
+import categories from '../store/data';
 
 @Component({
   components: {
@@ -55,7 +90,17 @@ import Select from '../components/select.vue';
 })
 class HomeView extends Vue {
   @Prop() categorySelected!: {name: string; id: string};
-  @Prop() apps!: IApp[];
+  @Prop() portofolioApps!: IApp[];
+  @Prop() adminApps!: IApp[];
+  // @Prop() apps!: IApp[];
+
+  tabsObject = Object.freeze({
+    portofolio: 'Applications Patrimoniales',
+    admin: "Applications d'adminstration",
+  });
+
+  tabItems: string[] = Object.values(this.tabsObject);
+  tab = this.tabsObject.portofolio;
 
   selectCategory(item: {name: string; id: string}) {
     this.$emit('select', item);
@@ -75,6 +120,24 @@ class HomeView extends Vue {
 
   deleteApp(app: IApp) {
     this.$emit('delete', app);
+  }
+
+  @Watch('tab')
+  watchTab() {
+    const key = Object.keys(this.tabsObject)[this.tab];
+    const t = categories[key];
+    this.selectCategory(t);
+
+    // switch (this.tabItems[this.tab]) {
+    // case this.tabsObject.Batiments:
+    // this.selectCategory(t);
+    // break;
+
+    // case this.tabsObject.Adminstration:
+    // const ca = categories[this.tab]
+    // this.selectCategory(t);
+    // break;
+    // }
   }
 }
 
@@ -112,6 +175,18 @@ $card-background: #f8f9f9;
     background: transparent !important;
     border-radius: 10px;
     padding: 10px;
+
+    .tabsHeader {
+      width: 100%;
+      height: 50px;
+    }
+
+    .tabsItems {
+      width: 100%;
+      height: calc(100% - 50px);
+      overflow: auto;
+      background: transparent !important;
+    }
   }
 }
 </style>
