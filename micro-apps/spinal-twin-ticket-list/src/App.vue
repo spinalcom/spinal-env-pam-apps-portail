@@ -27,17 +27,20 @@ with this file. If not, see
     <!--Download & selector-->
     <div style="width: 100%" class="d-flex justify-end">
       <sc-download-button
-        class="ma-1 pa-1"
+        class="mx-1"
         :file-name="'Tickets'"
-        :data="stepFilteredTickets"
+        :data="downloadList"
       ></sc-download-button>
-      <sc-space-selector
-        class="ma-1 pa-1"
-        v-model="el"
-        :max-depth="1"
-        :onopen="expand"
-        :first-tile="firstTile"
-      ></sc-space-selector>
+      <div class="Hx1">
+        <space-selector
+          ref="space-selector"
+          :open.sync="openSpaceSelector"
+          :maxDepth="-1"
+          :GetChildrenFct="() => []"
+          v-model="el"
+          label="ESPACE"
+        />
+      </div>
     </div>
 
     <!--Ticket table-->
@@ -194,6 +197,7 @@ with this file. If not, see
       v-model="showDialog"
       :detailedTicket="detailedTicket"
       :baseURL="baseURL"
+      :token="token"
     ></sc-ticket-detail>
   </v-app>
 </template>
@@ -202,18 +206,20 @@ with this file. If not, see
 import { gradiant, HSVtoRGB, RGBtoHexa } from "spinal-components/src/colors";
 import { mapState, mapActions, mapGetters } from "vuex";
 import { HTTP } from "./api-requests/http-constants";
-import { getBuildingAsync, getFileAsync } from "./api-requests";
+import { getBuildingAsync } from "./api-requests";
 import { displayDate } from "./store/index";
-import html2canvas from "html2canvas";
+import { SpaceSelector } from "./components/SpaceSelector/index";
 const buildingId = localStorage.getItem("idBuilding");
 const token = localStorage.getItem("token");
 
 export default {
   name: "App",
 
+  components: { SpaceSelector },
+
   data: () => ({
     el: { name: "Bâtiment" },
-    firstTile: {},
+    openSpaceSelector: false,
     selectedId: 0,
     baseURL: `${HTTP.getUri()}/building/${buildingId}/node`,
     token: token,
@@ -277,6 +283,19 @@ export default {
       return this.domainFilteredTickets.filter((d) =>
         this.step_filter.includes(d["Étape"])
       );
+    },
+    downloadList() {
+      return this.stepFilteredTickets.map((t) => {
+        const { Nom, Étape, Domaine, Déclarant } = t;
+        return {
+          Nom,
+          "Date de création": t["Date de création"],
+          "Dernière modification": t["Dernière modification"],
+          Étape,
+          Domaine,
+          Déclarant,
+        };
+      });
     },
   },
 
@@ -366,48 +385,11 @@ html {
   font-size: 14px;
 }
 
-.dialog-background {
-  position: fixed;
-  width: 3000px;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: rgba(0, 0, 0, 0.1);
-}
-
-.dialog-box {
-  position: absolute;
-  width: 85%;
-  height: calc(100% - 120px);
-  top: 70px;
-  left: 7.5%;
-}
-
-#pdf-div {
-  z-index: 999;
-  position: absolute;
-  background-color: white;
-  width: 50%;
-  top: 70px;
-  left: 25%;
-}
-
-a {
-  color: white;
-}
-
-a:hover {
-  font-size: 15px;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-#carousel-vide {
-  width: 59%;
-  background-image: url("../asset/img/No-Image-Placeholder.png");
-  background-color: #eee;
-  background-size: contain;
-  background-position: center center;
+.Hx1 {
+  position: relative;
+  width: 33%;
+  right: 0px;
+  top: -1px;
+  height: 60px;
 }
 </style>

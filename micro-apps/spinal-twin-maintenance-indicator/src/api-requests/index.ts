@@ -45,9 +45,8 @@ const weekBegin = dateFormat(
 // Contexte spatial du bâtiment(bâtiment, étages et pièces)
 export async function getBuildingAsync() {
   const buildingId = localStorage.getItem("idBuilding");
-  const result = await HTTP.get(`/building/${buildingId}/geographicContext`);
-  const body = result.data.body ? result.data.body : result.data;
-  return body.children.find((b: any) => b.type == "geographicBuilding");
+  const result = await HTTP.get(`/building/${buildingId}/building/read`);
+  return result.data;
 }
 
 // Liste des salles d'un étage
@@ -106,7 +105,7 @@ export async function getMonthTimeSeriesAsync(endpointId: number) {
 export async function getWeekTimeSeriesAsync(endpointId: number) {
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
-    `/building/${buildingId}/endpoint/${endpointId}/timeSeries/readCurrentWeek`
+    `/building/${buildingId}/endpoint/${endpointId}/timeSeries/read/${weekBegin}/${end}`
   );
   return result.data;
 }

@@ -1,6 +1,28 @@
 <template>
   <v-app id="application">
-    <sc-time-selector v-model="period"></sc-time-selector>
+    <div class="d-flex justify-end">
+      <div class="selectors">
+        <div class="Hx1">
+          <space-selector
+            :open.sync="openSpaceSelector"
+            :maxDepth="-1"
+            :GetChildrenFct="() => []"
+            v-model="el"
+            label="ESPACE"
+          />
+        </div>
+        <div class="Hx2">
+          <space-selector
+            :edge="false"
+            :open.sync="openTimeSelector"
+            :maxDepth="0"
+            :GetChildrenFct="onTimeSelectOpen"
+            v-model="period"
+            label="TEMPORALITÉ"
+          />
+        </div>
+      </div>
+    </div>
 
     <div class="main-app d-flex flex-column justify-space-between">
       <sc-bar-card
@@ -142,15 +164,22 @@
 <script>
 import config from "../../../config.json";
 import { mapActions, mapGetters, mapState } from "vuex";
+import { SpaceSelector } from "./components/SpaceSelector";
+import { getBuildingAsync } from "./api-requests";
 
 export default {
   name: "App",
+
+  components: { SpaceSelector },
 
   data() {
     return {
       workflow: [],
       process: [],
       period: { name: "SEMAINE", value: "week" },
+      openSpaceSelector: false,
+      openTimeSelector: false,
+      el: { name: "Bâtiment" },
     };
   },
 
@@ -175,10 +204,9 @@ export default {
           );
     },
     pieChartData() {
-      const pie = this.getPieChartData({
+      return this.getPieChartData({
         displayedIds: this.to_display.map((d) => d.dynamicId),
       });
-      return pie;
     },
     barChartData() {
       return this.getBarChartData({
@@ -223,9 +251,21 @@ export default {
           break;
       }
     },
+
+    onTimeSelectOpen(item) {
+      if (item) return [];
+      return [
+        { name: "Semaine" },
+        { name: "Mois" },
+        { name: "Année" },
+        { name: "Décennie" },
+      ];
+    },
   },
 
   async mounted() {
+    const { name } = await getBuildingAsync();
+    this.el.name = name;
     await this.initWorkflows();
   },
 
@@ -238,6 +278,20 @@ export default {
     },
 
     async period(p) {
+      switch (p.name) {
+        case "Semaine":
+          p.value = "week";
+          break;
+        case "Mois":
+          p.value = "month";
+          break;
+        case "Année":
+          p.value = "year";
+          break;
+        case "Décennie":
+          p.value = "decade";
+          break;
+      }
       await this.updateProcesses({
         displayedIds: this.to_display.map((d) => d.dynamicId),
         period: p.value,
@@ -262,5 +316,29 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
+}
+
+.Hx1 {
+  position: absolute;
+  width: 66%;
+  right: 0px;
+  top: -1px;
+  height: 60px;
+}
+.Hx2 {
+  position: absolute;
+  width: 34%;
+  right: calc(66%);
+  top: -1px;
+  height: 60px;
+}
+.selectors {
+  position: relative;
+  display: flex;
+  height: 60px;
+  width: 50%;
+  background: #14202c;
+  border: 1px solid #f5f5f5;
+  border-radius: 12px;
 }
 </style>

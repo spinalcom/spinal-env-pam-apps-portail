@@ -114,35 +114,23 @@ function compareDates(date1: Date, date2: Date) {
 }
 
 export function sameDecade(date1: Date, date2: Date) {
-  const compared = compareDates(date1, date2);
-  return moment(compared.inf).isBetween(
-    moment(compared.sup).subtract(10, "year"),
-    compared.sup
-  );
+  const { inf, sup } = compareDates(date1, date2);
+  return moment(inf).isBetween(moment(sup).subtract(10, "year"), sup);
 }
 
 export function sameYear(date1: Date, date2: Date) {
-  const compared = compareDates(date1, date2);
-  return moment(compared.inf).isBetween(
-    moment(compared.sup).subtract(1, "year"),
-    compared.sup
-  );
+  const { inf, sup } = compareDates(date1, date2);
+  return moment(inf).isBetween(moment(sup).subtract(1, "year"), sup);
 }
 
 export function sameMonth(date1: Date, date2: Date) {
-  const compared = compareDates(date1, date2);
-  return moment(compared.inf).isBetween(
-    moment(compared.sup).subtract(1, "month"),
-    compared.sup
-  );
+  const { inf, sup } = compareDates(date1, date2);
+  return moment(inf).isBetween(moment(sup).subtract(1, "month"), sup);
 }
 
 export function sameWeek(date1: Date, date2: Date) {
-  const compared = compareDates(date1, date2);
-  return moment(compared.inf).isBetween(
-    moment(compared.sup).subtract(1, "week"),
-    compared.sup
-  );
+  const { inf, sup } = compareDates(date1, date2);
+  return moment(inf).isBetween(moment(sup).subtract(6, "days"), sup);
 }
 
 export function lastWeek(date: Date) {

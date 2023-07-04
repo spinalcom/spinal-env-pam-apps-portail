@@ -8,7 +8,7 @@ import {
   getYearTimeSeriesAsync,
 } from "../api-requests";
 import { barColors } from "../colors";
-import { lastWeek, sameWeek } from "../date-comparison";
+import { sameWeek } from "../date-comparison";
 
 export class Workflow {
   private readonly dynamicId: number;

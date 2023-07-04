@@ -47,7 +47,6 @@ import type {
   TGeoItem,
 } from "./components/SpaceSelector/interfaces/IBuildingItem";
 import MicroApp from "./components/MaintenanceActivity.vue";
-import { getBuilding } from "./services/index.js";
 interface IItemData {
   platformId: string;
   id: number | number[];
@@ -250,7 +249,6 @@ export default App;
 .selectors {
   position: absolute;
   display: flex;
-  top: 10px;
   right: 10px;
   height: 60px;
   width: 50%;
