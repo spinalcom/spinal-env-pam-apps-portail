@@ -796,6 +796,17 @@ class App extends Vue {
         temp.push(this.chart.data[i]);
       }
       this.chart.data = temp;
+
+      let maxLenght = 0, daysToRemove = 0;
+      for(let i = 0; i < this.chart.data.length; i++) {
+        maxLenght = (this.chart.data[i].data.length > maxLenght) ? this.chart.data[i].data.length : maxLenght;
+      }
+
+      daysToRemove = this.chart.label.length - maxLenght;
+      for (let i = 0; i < daysToRemove; i++) {
+        this.chart.label.pop();
+      }
+      
       return ;
     }
     const index = this.selectedFilter.findIndex(f => f.name === name);

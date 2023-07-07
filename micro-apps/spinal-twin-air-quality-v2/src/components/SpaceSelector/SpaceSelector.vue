@@ -20,6 +20,7 @@
         @click="$emit('update:open', !open);showSign()"
         ref="SpaceSelectorTitleContainer"
         class="space-selector-header"
+        :style="{'cursor': maxDepth !== -1 ? 'pointer' : 'default'}"
       >
         <span class="legend">{{ label }}</span>
         <p class="space-selector-header-title">

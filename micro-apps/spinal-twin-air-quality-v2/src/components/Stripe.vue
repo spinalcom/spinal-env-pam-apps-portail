@@ -1,18 +1,18 @@
 <template>
     <div class="long-stripe">
-        <div class="stripe-el">
-            <div class="square g"></div>
-            <span class="big-number">7</span>
+        <div class="stripe-el" v-for="d in data">
+            <div class="square" :style="{'background': d.color}"></div>
+            <span class="big-number">{{ d.value }}</span>
             <div class="ver-text">
-                <span>Niveau Correct</span>
-                <span>33%</span>
+                <span>{{ d.name}}</span>
+                <span>{{ d.percentage }}</span>
             </div>
         </div>
-        <div class="stripe-el">
+        <!-- <div class="stripe-el">
             <div class="square y"></div>
             <span class="big-number">7</span>
             <div class="ver-text">
-                <span>Niveau Correct</span>
+                <span>Modéré</span>
                 <span>33%</span>
             </div>
         </div>
@@ -20,7 +20,7 @@
             <div class="square o"></div>
             <span class="big-number">7</span>
             <div class="ver-text">
-                <span>Niveau Correct</span>
+                <span>Pas sain</span>
                 <span>33%</span>
             </div>
         </div>
@@ -28,12 +28,30 @@
             <div class="square r"></div>
             <span class="big-number">7</span>
             <div class="ver-text">
-                <span>Niveau Correct</span>
+                <span>Hasardeux</span>
                 <span>33%</span>
             </div>
-        </div>
+        </div> -->
     </div>
 </template>
+
+<script lang="ts">
+import Component from 'vue-class-component';
+import { Prop, Vue, Watch } from 'vue-property-decorator';
+
+
+
+@Component({
+  components: {},
+})
+class App extends Vue {
+  @Prop({required: true})
+    data: any[];
+
+  mounted() {}
+}
+export default App;
+</script>
 
 <style scoped>
 .long-stripe {

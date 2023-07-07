@@ -61,7 +61,6 @@ export const customLegendPlugin = {
       while (legendContainer?.firstChild) legendContainer.firstChild?.remove();
       const items =
         chart.options.plugins?.legend?.labels?.generateLabels(chart);
-
       for (const item of items) {
         const li = document.createElement("li");
         li.classList.add("d-flex", "flex-row");

@@ -1,79 +1,78 @@
-/*
-object = {
-    title: "Consommation d'énergie",
-    chart: 'bar',
-    unit: 'Kw',
-    compareBy: 'date', //part
-    controlEndpoints: [
-        {
-            title
-            label: 'Energie globale',
-            name: 'Energie globale',
-            color: '#14202c',
-            unit: 'kWh',
-            stackGroup: '0',
-            title: 'd\'énergie consommés',
-            todayTitle: 'today',
-            averageTitle: 'Consommation moyenne',
-            totalTitle: 'Consommation totale',
-            subtitle: 'today',
-            todaySubtitle: 'today ${date}',
-            averageSubtitle: '',
-            totalSubtitle: 'TOTAL SUBTITLE',
-            root: true,
-        },
-    ]
-}
-*/
+// module.exports = {
+//     title: 'Qualité de l\'air',
+//     fileName: 'Qualité de l\'air',
+//     columnName: 'Niveau CO2',
+//     unit: 'ppm',
+//     controlEndpoint: 'Dioxyde de carbone',
+//     // the min is <=
+//     // the max is >
+//     level: [
+//         {
+//             name: 'Niveau correct',
+//             color: '#11eda9',
+//             interval: {
+//                 min: -Infinity, // <=
+//                 max: 600 // >
+//             }
+//         },
+//         {
+//             name: 'Modéré',
+//             color: '#ffe600',
+//             interval: {
+//                 min: 600, // <=
+//                 max: 1200 // >
+//             }
+//         },
+//         {
+//             name: 'Pas sain',
+//             color: '#ffa400',
+//             interval: {
+//                 min: 1200, // <=
+//                 max: 5000 // >
+//             }
+//         },
+//         {
+//             name: 'Hasardeux',
+//             color: '#ff000b',
+//             interval: {
+//                 min: 5000, // <=
+//                 max: Infinity // >
+//             }
+//         }
+//     ]
+// };
+
 module.exports = {
-    title: "CONSOMMATION D'ÉNERGIE GLOBALE",
-    subtitle: "Description de la consomation d'energie",
-    chart: 'bar',
-    unit: 'kWh',
-    calendarLegend: 'Le jour le plus où le batiment a le plus consommé est le',
-    monthStripeLegend: 'Le mois où le bâtiment a le plus consommé est',
-    compareBy: 'date', //part
-
-    // Cards title and subtitle
-
-    todaysCardTitle: 'Title de la card moyenne',
-    todaysCardSubtitle: 'Description de la card moyenne',
-
-    averageCardTitle: 'Titre de la card consommation au m²',
-    averageCardSubtitle: 'Description de la consommation au m²',
-
-    totalCardTitle: 'Title de la card totale',
-    totalCardSubtitle: 'Description de la card totale',
-
-    controlEndpoints: [
+    title: 'Température',
+    fileName: 'Température',
+    columnName: 'Degré de température',
+    unit: '°C',
+    controlEndpoint: 'Température',
+    // [min, max[
+    level: [
         {
-            label: 'Energie globale',
-            min: null,
-            max: 3500,
-            name: 'Energie globale',
-            color: '#14202c',
-            unit: 'kWh',
-            stackGroup: '0',
-
-            title: 'd\'énergie consommés',
-            subtitle: 'today',
-            todayTitle: 'today',
-
-            averageTitle: 'Consommation moyenne',
-            averageSubtitle: '',
-
-            totalTitle: 'Consommation totale',
-            totalSubtitle: 'Par rapport à la période précédente',
-            root: true,
-        },        
-    ],
-    
-    cards: ['total', 'average', 'today'], // ['total', 'average', 'today']
+            name: 'Trop froid',
+            color: '#3177e0',
+            interval: {
+                min: -Infinity, // >=
+                max: 10 // <
+            }
+        },
+        {
+            name: 'Niveau correct',
+            color: '#11eda9',
+            interval: {
+                min: 10, // >=
+                max: 27 // <
+            }
+        },
+        {
+            name: 'Trop chaud',
+            color: '#ff000b',
+            interval: {
+                min: 27, // >=
+                max: Infinity // <
+            }
+        }
+    ]
 };
-
-// "water": "Eau globale",
-// "sanitary_water": "Eau sanitaire",
-// "people_number": "Nombre de personnes",
-// "energy": "Energie globale",
-// "lighting": "Eclairage",
-// "heating": "Chauffage"

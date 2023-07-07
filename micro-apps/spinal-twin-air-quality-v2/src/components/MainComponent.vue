@@ -1,12 +1,11 @@
 <template>
   <div class="RC" style="min-height: 480px">
     <div class="MC">
-      <Stripe/>
-      <spinal-table/>
-
+      <Stripe :data="floorLevels"/>
+      <spinal-table v-if="floorTable !== null" :data="floorTable" @dataChange="dataChange"/>
       <div class="pies">
-          <PieCard style="width: 100%;" class="flex-grow-1" :title="'ÉTAT DES SALLES'" :pie-chart-data="domainPie"/>
-          <PieCard style="width: 100%;" class="flex-grow-1" :title="'ÉTAT GLOBAL'" :pie-chart-data="domainPie"/>
+          <PieCard style="width: 100%;" class="flex-grow-1" :title="'ÉTAT DES SALLES'" :pie-chart-data="roomStatus"/>
+          <PieCard style="width: 100%;" class="flex-grow-1" :title="'ÉTAT GLOBAL'" :pie-chart-data="globalStatus"/>
       </div>
     </div>
   </div>
@@ -32,8 +31,6 @@ import moment from 'moment';
     Stripe,
     SpinalTable,
     PieCard,
-    // LoadingCard,
-    // SmallLegend,
   },
 })
 class App extends Vue {
@@ -42,84 +39,107 @@ class App extends Vue {
   subtitle = env.subtitle;
   unit = env.unit;
   controlEndpoints = env.controlEndpoints;
-  cards = env.cards;
-  totalTitle = env.totalCardTitle;
-  totalSubtitle = env.totalCardSubtitle;
-  averageTitle = env.averageCardTitle;
-  averageSubtitle = env.averageCardSubtitle;
-  todaysTitle = env.todaysCardTitle;
-  todaysSubtitle = env.todaysCardSubtitle;
-  
-  domainPie = [
+  levels = env.level;
+  floorLevels: any[] = [];
+  floorTable: any = null;
+  stripeLoaded = false;
+  roomStatus: any[] = [];
+
+  globalStatus: any[] = [
     {
-        "label": "BATIMENT/SECOND ŒUVRE/CLOS COU",
-        "value": 3,
-        "color": "#FF4A3B"
+      label: "Équipé d'un capteur",
+      value: 0,
+      color: "#14202c"
     },
     {
-        "label": "CHAUFFAGE - CLIMATISATION",
-        "value": 4,
-        "color": "#93876E"
+      label: "Entretien requis",
+      value: 0,
+      color: "#00c4ff"
     },
     {
-        "label": "CONTRÔLE REGLEMENTAIRE",
-        "value": 2,
-        "color": "#74BDCB"
-    },
-    {
-        "label": "COURANTS FAIBLES",
-        "value": 6,
-        "color": "#EFE7BC"
-    },
-    {
-        "label": "COURANTS FORTS",
-        "value": 11,
-        "color": "#FFA384"
-    },
-    {
-        "label": "ESPACE VERTS",
-        "value": 1,
-        "color": "#E7F2F8"
-    },
-    {
-        "label": "PLOMBERIE",
-        "value": 1,
-        "color": "#ECF87F"
-    },
-    {
-        "label": "PROPRETE ENTRETIEN HYG DECHET",
-        "value": 1,
-        "color": "#B99095"
-    },
-    {
-        "label": "SERRURERIE/MENUISERIE",
-        "value": 1,
-        "color": "#93B9B8"
-    },
-    {
-        "label": "SERVICE RESIDENT",
-        "value": 2,
-        "color": "#FDA649"
-    },
-    {
-        "label": "TRAVAUX D'AMENAGEMENT",
-        "value": 1,
-        "color": "#5050C8"
+      label: "Aucun capteur trouvé",
+      value: 0,
+      color: "#cadee2"
     }
-]
+  ];
 
   @Prop({type: Object as () => ISpaceSelectorItem, required: true})
   space: ISpaceSelectorItem;
 
-  async mounted() {
-  }
-  
+  @Prop({required: true})
+  data: any[];
 
+  mounted() {
+    this.floorTable = this.data;
+    this.updateStripe();
+  }
 
   @Watch('space')
-  async spaceChange() {
+  spaceChange(v) {
+    if (v.type === 'building')
+      this.floorTable = this.data;
+    else
+      this.floorTable = this.data.filter(e => e.floorName === this.space.name);
+
+    console.log(this.floorTable);
     
-    // this.spreadData();
+    this.updateStripe();
+  }
+
+  updateStripe() {
+    this.floorLevels = [];
+    this.roomStatus = [];
+    this.globalStatus[0].value = 0;this.globalStatus[1].value = 0;this.globalStatus[2].value = 0;
+    this.stripeLoaded = false;
+    var counter = 0;
+    for (let i = 0; i < this.levels.length; i++) {
+      for (let j = 0; j < this.floorTable.length; j++) {
+        if (this.floorTable[j].endpoints?.currentValue < this.levels[i].interval.max && this.floorTable[j].endpoints?.currentValue > this.levels[i].interval.min) {
+          counter ++;
+        }
+      }
+
+      this.floorLevels.push({name: this.levels[i].name, color: this.levels[i].color, value: counter, percentage: ((counter * 100) / this.floorTable.length).toFixed(1)+'%'});
+      this.roomStatus.push({label: this.levels[i].name, color: this.levels[i].color, value: counter});
+      counter = 0;
+    };
+
+
+    // {
+    //     "label": "Équipé d'un capteur de Co2",
+    //     "value": 3,
+    //     "color": "#14202c"
+    // },
+    // {
+    //     "label": "Entretien requis",
+    //     "value": 1,
+    //     "color": "#00c4ff"
+    // },
+    // {
+    //     "label": "Aucun capteur trouvé",
+    //     "value": 2,
+    //     "color": "#cadee2"
+    // }
+  
+
+    for (let i = 0; i < this.floorTable.length; i++) {
+      if (this.floorTable[i].endpoints && this.floorTable[i].endpoints.currentValue && this.floorTable[i].endpoints.currentValue > 0) {
+        this.globalStatus[0].value++;
+      }
+      else if (this.floorTable[i].endpoints && this.floorTable[i].endpoints.currentValue && this.floorTable[i].endpoints.currentValue === 0) {
+        this.globalStatus[1].value++;
+      }
+      else {
+        this.globalStatus[2].value++;
+      }
+    }
+    this.stripeLoaded = true;
+    
+    return this.levels;
+  }
+
+  dataChange(data: any[]): void {
+    this.$emit('dataChange', data);
   }
 
 }

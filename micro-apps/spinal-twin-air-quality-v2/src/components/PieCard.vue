@@ -22,7 +22,7 @@
 
 <script>
 import { Pie } from "vue-chartjs";
-import { customBackgroundPlugin } from "../plugins/canvasPlugins";
+import { customBackgroundPlugin, customLegendPlugin } from "../plugins/canvasPlugins";
 import {
   Chart as ChartJS,
   Title,
@@ -38,7 +38,8 @@ ChartJS.register(
   Legend,
   Tooltip,
   CategoryScale,
-  customBackgroundPlugin
+  customBackgroundPlugin,
+  customLegendPlugin
 );
 
 export default {
@@ -95,7 +96,11 @@ export default {
 
   computed: {
     pieData() {
-      if (this.pieChartData.length == 0) {
+      let sum = 0;
+      for (let i = 0; i < this.pieChartData.length; i++) {
+        sum += this.pieChartData[i].value;
+      }
+      if (this.pieChartData.length === 0 || sum === 0) {
         return {
           labels: ['Pas de données disponibles'],
           datasets: [
@@ -168,6 +173,10 @@ export default {
 <style>
 .v-application {
   font-family: "Charlevoix Pro";
+}
+
+.pie-card {
+  border: none !important;
 }
 
 .card-title {
