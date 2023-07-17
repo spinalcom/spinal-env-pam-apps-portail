@@ -1,5 +1,5 @@
 <template>
-  <v-card class="stat-card rounded-lg" elevation="5" outlined style="background: #f9f9f9">
+  <v-card class="stat-card rounded-lg" outlined style="background: #f9f9f9">
     <v-flex class="d-flex flex-row fill-height">
       <v-flex
         class="d-flex flex-column justify-center text-center stat-value"
@@ -20,7 +20,7 @@
           v-else-if="subtitle"
           class="stat-subtitle orange--text text-uppercase"
         >
-          <div class="rounded-circle d-inline-block orange pa-1" ></div>
+          <div class="rounded-circle d-inline-block orange pa-1"></div>
           {{ subtitle }}
         </div>
       </v-flex>
@@ -85,7 +85,7 @@ export default {
   font-family: "Charlevoix Pro";
   font-size: 12px;
   font-weight: bold;
-  color: #FF7612 !important;
+  color: #ff7612 !important;
 }
 .stat-text {
   font-size: 16px;
@@ -94,6 +94,12 @@ export default {
   color: #949da6;
 }
 
-@font-face{font-family:'Charlevoix Pro';src:url('../assets/font/CharlevoixPro-Regular.woff2') format('woff2'),url('../assets/font/CharlevoixPro-Regular.woff') format('woff'),url('../assets/font/CharlevoixPro-Regular.ttf') format('truetype');font-weight:normal;font-style:normal}
-
+@font-face {
+  font-family: "Charlevoix Pro";
+  src: url("../assets/font/CharlevoixPro-Regular.woff2") format("woff2"),
+    url("../assets/font/CharlevoixPro-Regular.woff") format("woff"),
+    url("../assets/font/CharlevoixPro-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
 </style>

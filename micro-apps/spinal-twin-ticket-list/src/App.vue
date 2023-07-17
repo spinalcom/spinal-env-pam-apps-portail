@@ -57,91 +57,6 @@ with this file. If not, see
         style="height: calc(100% - 56px)"
         class="d-flex flex-column"
       >
-        <div
-          ref="tableHead"
-          class="d-flex flex-row ml-6 mr-2"
-          style="height: 60px"
-        >
-          <div style="width: 20%">
-            <v-select
-              v-model="domain_filter"
-              label="Domaine"
-              :items="domains"
-              append-icon="mdi-chevron-down"
-              clearable
-              clear-icon="mdi-close-circle-outline"
-              multiple
-              outlined
-              menu-props="offset-y"
-            >
-              <template v-slot:selection="{ item, index }">
-                <v-chip
-                  @click:close="
-                    domain_filter = domain_filter.filter((d) => d !== item)
-                  "
-                  close
-                  :close-icon="'mdi-close-circle'"
-                  style="
-                    font-size: 12px;
-                    height: 24px;
-                    max-width: calc(90% - 25px);
-                  "
-                  v-if="index < 1"
-                >
-                  <span style="max-width: 90%; overflow: hidden">{{
-                    item
-                  }}</span>
-                </v-chip>
-
-                <span
-                  v-if="index === 1"
-                  class="text-grey text-caption align-self-center"
-                >
-                  (+{{ domain_filter.length - 1 }})
-                </span>
-              </template>
-            </v-select>
-          </div>
-          <div style="width: 20%" class="ml-5">
-            <v-select
-              v-model="step_filter"
-              label="Étape"
-              :items="steps"
-              append-icon="mdi-chevron-down"
-              clearable
-              clear-icon="mdi-close-circle-outline"
-              multiple
-              outlined
-              menu-props="offset-y"
-            >
-              <template v-slot:selection="{ item, index }">
-                <v-chip
-                  @click:close="
-                    step_filter = step_filter.filter((s) => s !== item)
-                  "
-                  close
-                  :close-icon="'mdi-close-circle'"
-                  style="
-                    font-size: 12px;
-                    height: 24px;
-                    max-width: calc(90% - 25px);
-                  "
-                  v-if="index < 1"
-                >
-                  <span style="max-width: 90%; overflow: hidden">{{
-                    item
-                  }}</span>
-                </v-chip>
-                <span
-                  v-if="index === 1"
-                  class="text-grey text-caption align-self-center"
-                >
-                  (+{{ step_filter.length - 1 }})
-                </span>
-              </template>
-            </v-select>
-          </div>
-        </div>
         <div ref="dataTable" class="d-flex ml-6 mr-6 mb-6 flex-fill">
           <v-data-table
             item-key="name"
@@ -169,6 +84,106 @@ with this file. If not, see
               style="margin-left: -16px; width: calc(100% + 32px)"
             ></v-progress-linear>
             <template v-slot:no-data> Pas de données disponibles </template>
+            <template v-slot:header.Domaine="{ header }">
+              <v-select
+                color="#14202C"
+                style="
+                  width: calc(100% - 18px);
+                  margin-left: -12px;
+                  transform: translate(0%, 4%);
+                "
+                class="d-inline-block mt-4"
+                dense
+                solo
+                flat
+                @click.stop
+                v-model="domain_filter"
+                placeholder="Domaine"
+                :items="domains"
+                append-icon="mdi-chevron-down"
+                clearable
+                clear-icon="mdi-close-circle-outline"
+                multiple
+                menu-props="offset-y"
+              >
+                <template v-slot:selection="{ item, index }">
+                  <v-chip
+                    @click:close="
+                      domain_filter = domain_filter.filter((d) => d !== item)
+                    "
+                    close
+                    :close-icon="'mdi-close-circle'"
+                    style="
+                      font-size: 11px;
+                      height: 24px;
+                      max-width: calc(100% - 50px);
+                    "
+                    v-if="index < 1"
+                  >
+                    <span style="max-width: 90%; overflow: hidden">{{
+                      item
+                    }}</span>
+                  </v-chip>
+
+                  <span
+                    v-if="index === 1"
+                    class="text-grey text-caption align-self-center"
+                  >
+                    (+{{ domain_filter.length - 1 }})
+                  </span>
+                </template>
+              </v-select>
+            </template>
+            <template v-slot:header.Étape="{ header }">
+              <v-select
+                color="#14202C"
+                style="
+                  width: calc(100% - 18px);
+                  margin-left: -12px;
+                  transform: translate(0%, 4%);
+                "
+                class="d-inline-block mt-4"
+                dense
+                solo
+                flat
+                @click.stop
+                v-model="step_filter"
+                placeholder="Étape"
+                :items="steps"
+                append-icon="mdi-chevron-down"
+                clearable
+                clear-icon="mdi-close-circle-outline"
+                multiple
+                menu-props="offset-y"
+              >
+                <template v-slot:selection="{ item, index }">
+                  <v-chip
+                    @click:close="
+                      step_filter = step_filter.filter((s) => s !== item)
+                    "
+                    close
+                    :close-icon="'mdi-close-circle'"
+                    style="
+                      font-size: 11px;
+                      height: 24px;
+                      max-width: calc(100% - 50px);
+                    "
+                    v-if="index < 1"
+                  >
+                    <span style="max-width: 90%; overflow: hidden">{{
+                      item
+                    }}</span>
+                  </v-chip>
+
+                  <span
+                    v-if="index === 1"
+                    class="text-grey text-caption align-self-center"
+                  >
+                    (+{{ step_filter.length - 1 }})
+                  </span>
+                </template>
+              </v-select>
+            </template>
             <template v-slot:item.Étape="{ item }">
               <div
                 class="mr-1 rounded-circle ps-3 pt-3 d-inline-block"
@@ -337,12 +352,12 @@ export default {
     await this.loadTickets();
     const { name, dynamicId } = await getBuildingAsync();
     this.el = { name: name, dynamicId: dynamicId };
+    await this.loadTickets();
     this.firstTile = { name: name, dynamicId: dynamicId };
-    const { dataTable, tableContainer, tableHead } = this.$refs;
+    const { dataTable, tableContainer } = this.$refs;
     this.tableHeight = dataTable.clientHeight - 59;
     window.onresize = () => {
-      this.tableHeight =
-        tableContainer.clientHeight - (tableHead.clientHeight + 85);
+      this.tableHeight = tableContainer.clientHeight - 85;
     };
   },
 
@@ -359,6 +374,10 @@ export default {
 <style scoped>
 html {
   overflow-y: auto !important;
+}
+
+.v-input {
+  font-size: 0.75rem;
 }
 
 #application {

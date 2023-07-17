@@ -2,7 +2,6 @@
   <v-card
     style="min-height: 220px !important; background: #f9f9f9"
     class="bar-card pa-1 rounded-lg d-flex flex-shrink-1 flex-column"
-    elevation="5"
     outlined
   >
     <v-card-title

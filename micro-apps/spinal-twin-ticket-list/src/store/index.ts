@@ -4,14 +4,17 @@ import {
   getBuildingAsync,
   getFloorListAsync,
   getPositionAsync,
+  getProcessListAsync,
   getRoomListAsync,
+  getStepListAsync,
   getTicketDetailsAsync,
+  getTicketListAsync,
   getWorkflowListAsync,
-  getWorkflowTreeAsync,
 } from "../api-requests";
 
-import config from "../../../../config.json";
+import config from "../../config.js";
 const closedSteps = config.steps.closed;
+const workflow_list = config.workflowList;
 
 Vue.use(Vuex);
 
@@ -50,7 +53,11 @@ function toManageableTicket(ticket: any) {
 
 export default new Vuex.Store({
   state: {
-    building: {},
+    building: {
+      dynamicId: 0,
+      tickets: <any[]>[],
+      children: <any[]>[],
+    },
     tickets: [],
   },
   getters: {
@@ -92,13 +99,21 @@ export default new Vuex.Store({
       const promises = [];
       try {
         const workflows = await getWorkflowListAsync();
-        for (const workflow of workflows) {
-          const domain = await getWorkflowTreeAsync(workflow.dynamicId);
-          for (const d of domain.children) {
-            for (const s of d.children) {
+        for (const workflow of workflows.filter((w: any) =>
+          workflow_list.includes(w.name)
+        )) {
+          const domains = await getProcessListAsync(workflow.dynamicId);
+          for (const domain of domains) {
+            const steps = await getStepListAsync(
+              workflow.dynamicId,
+              domain.dynamicId
+            );
+            for (const step of steps.filter(
+              (s: any) => !closedSteps.includes(s.name)
+            )) {
               // on ne traite que les tickets en cours
-              if (closedSteps.includes(s.name)) continue;
-              for (const t of s.children) {
+              const tickets = await getTicketListAsync(step.dynamicId);
+              for (const t of tickets) {
                 promises.push(
                   getTicketDetailsAsync(t.dynamicId).catch((error) =>
                     console.log(error)

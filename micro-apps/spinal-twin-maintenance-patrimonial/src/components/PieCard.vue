@@ -1,7 +1,6 @@
 <template>
   <v-card
     class="pie-card pa-1 rounded-lg d-flex flex-column"
-    elevation="5"
     outlined
     style="background: #f9f9f9"
   >
@@ -159,14 +158,7 @@ export default {
     },
   },
 
-  watch: {
-    "$el.clientWidth": function (val) {
-      this.renderChart();
-    },
-    "$el.clientHeight": function (val) {
-      this.renderChart();
-    },
-  },
+  watch: {},
 };
 </script>
 

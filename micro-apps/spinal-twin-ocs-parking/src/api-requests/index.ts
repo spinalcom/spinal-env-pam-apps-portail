@@ -23,7 +23,77 @@
  */
 
 import { HTTP } from "./http-constants";
+import moment from "moment";
 
+const today = moment();
+today.hours(0);
+today.minutes(0);
+
+//group api
+export async function getRoomGroupContextsAsync() {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(`/building/${buildingId}/roomsGroup/list`);
+  return result.data;
+}
+
+export async function getRoomGroupCategoriesAsync(contextId: number) {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(
+    `/building/${buildingId}/roomsGroup/${contextId}/category_list`
+  );
+  return result.data;
+}
+
+export async function getRoomGroupGroupsAsync(
+  contextId: number,
+  categoryId: number
+) {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(
+    `/building/${buildingId}/roomsGroup/${contextId}/category/${categoryId}/group_list`
+  );
+  return result.data;
+}
+
+// endpoints & time series
+export async function getEndpointListAsync(nodeId: number) {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(
+    `/building/${buildingId}/node/${nodeId}/endpoint_list`
+  );
+  return result.data;
+}
+
+export async function getControlEndpointListAsync() {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(
+    `/building/${buildingId}/node/control_endpoint_list`
+  );
+  return result.data;
+}
+
+export async function getDayTimeSeries(endpointId: number) {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(
+    `/building/${buildingId}/endpoint/${endpointId}/timeSeries/readCurrentDay`
+  );
+  return result.data;
+}
+
+export async function getTimeSeriesAsync(endpointId: number, index: number) {
+  const begin = moment(today).add(index, "days");
+  const end = moment(begin).add(1, "days");
+
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(
+    `/building/${buildingId}/endpoint/${endpointId}/timeSeries/read/${begin.format(
+      "DD-MM-YYYY HH:mm:ss"
+    )}/${end.format("DD-MM-YYYY HH:mm:ss")}`
+  );
+  return result.data;
+}
+
+// building
 export async function getBuildingAsync() {
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(`/building/${buildingId}/building/read`);
@@ -70,29 +140,6 @@ export async function getRoomListAsync(floorId: number) {
   return result.data;
 }
 
-// Tickets de maintenances
-export async function getWorkflowListAsync() {
-  const buildingId = localStorage.getItem("idBuilding");
-  const result = await HTTP.get(`building/${buildingId}/workflow/list`);
-  return result.data;
-}
-
-export async function getProcessListAsync(workflowId: number) {
-  const buildingId = localStorage.getItem("idBuilding");
-  const result = await HTTP.get(
-    `building/${buildingId}/workflow/${workflowId}/processList`
-  );
-  return result.data;
-}
-
-export async function getStepListAsync(workflowId: number, processId: number) {
-  const buildingId = localStorage.getItem("idBuilding");
-  const result = await HTTP.get(
-    `building/${buildingId}/workflow/${workflowId}/process/${processId}/stepList`
-  );
-  return result.data;
-}
-
 export async function getTicketListAsync(nodeId: number) {
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
@@ -101,6 +148,12 @@ export async function getTicketListAsync(nodeId: number) {
   return result.data;
 }
 
+// Tickets de maintenances
+export async function getWorkflowListAsync() {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(`building/${buildingId}/workflow/list`);
+  return result.data;
+}
 export async function getTicketWorkflowAsync() {
   const result = await getWorkflowListAsync();
   return result[0];

@@ -1,6 +1,7 @@
 <template>
   <v-app id="application">
     <div class="d-flex justify-end">
+      <sc-download-button class="mr-1"></sc-download-button>
       <div class="selectors">
         <div class="Hx1">
           <space-selector

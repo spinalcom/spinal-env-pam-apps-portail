@@ -1,8 +1,12 @@
 <template>
   <div class="RC" style="min-height: 480px">
-    <div class="MC">
+    <div
+      class="MC d-flex flex-column justify-space-between"
+      style="height: 100%; width: 100%"
+    >
       <BarChart
         v-if="load"
+        style="height: calc(55% - 16px)"
         :noNav="periodTickets === -1"
         :title="'Activité des tickets en cours'"
         :labels="barData.labels"
@@ -48,75 +52,67 @@
           </v-select>
         </template>
       </BarChart>
-      <LoadingCard v-else class="flex-grow-1 pa-4 br" style="width: 100%" />
-      <div class="d-flex cards">
+      <LoadingCard v-else style="height: calc(55% - 16px); width: 100%" />
+      <div
+        class="d-flex cards flex-row justify-space-between"
+        style="height: 10%"
+      >
         <StatCard
           v-if="periodTickets !== -1"
+          style="width: calc(100% / 3 - 8px)"
           :value="periodTickets"
           :unit="'Tickets'"
           :title="selectedTempoTicketsText"
-          class="flex-grow-1 pa-4"
-          style="width: 100% !important"
         />
-        <LoadingCard
-          v-else
-          class="flex-grow-1 pa-4"
-          style="height: 106px; width: 100% !important"
-        />
+        <LoadingCard v-else style="width: calc(100% / 3 - 8px)" />
         <StatCard
           v-if="load"
+          style="width: calc(100% / 3 - 8px)"
           :value="cardsData.onGoingTickets"
           :unit="'Tickets'"
           :title="'en cours'"
-          class="flex-grow-1 pa-4"
-          style="width: 100% !important"
         />
-        <LoadingCard
-          v-else
-          class="flex-grow-1 pa-4"
-          style="height: 106px; width: 100% !important"
-        />
+        <LoadingCard v-else style="width: calc(100% / 3 - 8px)" />
         <StatCard
           v-if="todaysTickets !== -1"
+          style="width: calc(100% / 3 - 8px)"
           :value="todaysTickets"
           :unit="'Tickets'"
           :title="'créés'"
           :subtitle="'Aujourd\'hui'"
-          class="flex-grow-1 pa-4"
-          style="width: 100% !important"
         />
-        <LoadingCard
-          v-else
-          class="flex-grow-1 pa-4"
-          style="height: 106px; width: 100% !important"
-        />
+        <LoadingCard v-else style="width: calc(100% / 3 - 8px)" />
       </div>
       <div
         v-if="load"
-        style="height: 280px; gap: 10px; width: 100%"
-        class="d-flex flex-row"
+        style="width: 100%; height: calc(35% - 16px)"
+        class="d-flex flex-row justify-space-between"
       >
         <PieCard
-          style="width: 100%"
+          style="width: calc(100% / 3 - 8px)"
           :title="'Tickets par bâtiments'"
           :pie-chart-data="buildingPie"
         />
         <PieCard
-          style="width: 100%"
+          style="width: calc(100% / 3 - 8px)"
           :title="'Tickets par domaines'"
           :pie-chart-data="domainPie"
         />
         <PieCard
-          style="width: 100%"
+          style="width: calc(100% / 3 - 8px)"
           :title="'Tickets par déclarants'"
           :pie-chart-data="declarerPie"
           :color="declarerColors"
         />
       </div>
-      <div v-else style="height: 280px; width: 100%; gap: 10px" class="d-flex">
-        <LoadingCard class="flex-grow-1 pa-4" style="height: 100%" />
-        <LoadingCard class="flex-grow-1 pa-4" style="height: 100%" />
-        <LoadingCard class="flex-grow-1 pa-4" style="height: 100%" />
+      <div
+        v-else
+        style="width: 100%; height: calc(35% - 16px)"
+        class="d-flex flex-row justify-space-between"
+      >
+        <LoadingCard style="height: 100%; width: calc(100% / 3 - 8px)" />
+        <LoadingCard style="height: 100%; width: calc(100% / 3 - 8px)" />
+        <LoadingCard style="height: 100%; width: calc(100% / 3 - 8px)" />
       </div>
     </div>
   </div>
@@ -325,50 +321,17 @@ export default App;
   flex-direction: row;
   align-items: flex-start;
   padding: 80px 10px 10px;
-  gap: 10px;
   height: 100vh;
   width: 100%;
   background: linear-gradient(111.34deg, #f8fafa 0%, #d6e2e6 100%);
 }
-/* main container */
-.MC {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 0px;
-  gap: 10px;
-  /* background: #F9F9F9; */
-  /* border: 1px solid #F7F7F7; */
-  /* box-shadow: 0px 3px 10px rgba(73, 84, 92, 0.16); */
-  border-radius: 10px;
-  width: 100%;
-  flex: none;
-  order: 0;
-  align-self: stretch;
-  flex-grow: 0;
-  overflow-y: auto;
-}
 
 .BR {
-  /* height: 100%; */
-  flex-grow: 1;
-  width: 100%;
-  margin: 0 !important;
-  padding: 0 !important;
   min-height: 300px;
 }
 
 .cards {
-  gap: 10px;
   width: 100%;
-}
-
-.v-application .ma-2 {
-  margin: 0 !important;
-}
-
-.v-application .elevation-5 {
-  box-shadow: 0px 3px 10px #49545c29 !important;
 }
 
 ::v-deep .v-label {

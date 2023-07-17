@@ -24,23 +24,42 @@
 
 import { HTTP } from "./http-constants";
 
-export async function getFileAsync(buildingId: number, nodeId: number) {
-  const result = await HTTP.post(
-    `/building/${buildingId}/node/${nodeId}/download_file`,
-    null,
-    { responseType: "blob" }
-  );
-  return window.URL.createObjectURL(result.data);
-}
-
 // Tickets de maintenances
-export async function getWorkflowListAsync(buildingId: number) {
+export async function getWorkflowListAsync(buildingId: string) {
   const result = await HTTP.get(`building/${buildingId}/workflow/list`);
   return result.data;
 }
 
+export async function getProcessListAsync(
+  buildingId: string,
+  workflowId: number
+) {
+  const result = await HTTP.get(
+    `building/${buildingId}/workflow/${workflowId}/processList`
+  );
+  return result.data;
+}
+
+export async function getStepListAsync(
+  buildingId: string,
+  workflowId: number,
+  processId: number
+) {
+  const result = await HTTP.get(
+    `building/${buildingId}/workflow/${workflowId}/process/${processId}/stepList`
+  );
+  return result.data;
+}
+
+export async function getTicketListAsync(buildingId: string, nodeId: number) {
+  const result = await HTTP.get(
+    `building/${buildingId}/node/${nodeId}/ticket_list`
+  );
+  return result.data;
+}
+
 export async function getWorkflowTreeAsync(
-  buildingId: number,
+  buildingId: string,
   workflowId: number
 ) {
   const result = await HTTP.get(
@@ -50,7 +69,7 @@ export async function getWorkflowTreeAsync(
 }
 
 export async function getTicketDetailsAsync(
-  buildingId: number,
+  buildingId: string,
   ticketId: number
 ) {
   const result = await HTTP.get(

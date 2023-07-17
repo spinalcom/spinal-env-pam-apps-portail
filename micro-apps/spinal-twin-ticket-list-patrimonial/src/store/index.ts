@@ -1,15 +1,18 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import {
+  getProcessListAsync,
+  getStepListAsync,
   getTicketDetailsAsync,
+  getTicketListAsync,
   getWorkflowListAsync,
-  getWorkflowTreeAsync,
 } from "../api-requests";
 
 import { gradiant, HSVtoRGB, RGBtoHexa } from "spinal-components/src/colors";
 
-import config from "../../../../config.json";
+import config from "../../config.js";
 const closedSteps = config.steps.closed;
+const workflow_list = config.workflowList;
 
 Vue.use(Vuex);
 
@@ -79,7 +82,7 @@ export default new Vuex.Store({
     },
     getTickets: (state) => (id: string) => {
       if (!id || id === state.patrimoine.id) {
-        const tickets = [];
+        const tickets = <any[]>[];
         const buildings = state.patrimoine.buildings;
         const indexes = state.patrimoine.loaded;
 
@@ -136,7 +139,7 @@ export default new Vuex.Store({
   },
   actions: {
     async loadTickets({ state, commit }) {
-      const pat = JSON.parse(localStorage.getItem("patrimoine"));
+      const pat = JSON.parse(localStorage.getItem("patrimoine") || "");
       pat.loaded = [];
       const colors = gradiant(pat.buildings.length);
 
@@ -155,17 +158,27 @@ export default new Vuex.Store({
         const promises = [];
         try {
           const workflows = await getWorkflowListAsync(building.id);
-          for (const workflow of workflows) {
-            const domain = await getWorkflowTreeAsync(
+          for (const workflow of workflows.filter((w: any) =>
+            workflow_list.includes(w.name)
+          )) {
+            const domains = await getProcessListAsync(
               building.id,
               workflow.dynamicId
             );
-            for (const d of domain.children) {
-              for (const s of d.children) {
-                // on ne traite que les tickets en cours
-                if (closedSteps.includes(s.name)) continue;
-
-                for (const t of s.children) {
+            for (const domain of domains) {
+              const steps = await getStepListAsync(
+                building.id,
+                workflow.dynamicId,
+                domain.dynamicId
+              );
+              for (const step of steps.filter(
+                (s: any) => !closedSteps.includes(s.name)
+              )) {
+                const tickets = await getTicketListAsync(
+                  building.id,
+                  step.dynamicId
+                );
+                for (const t of tickets) {
                   promises.push(
                     getTicketDetailsAsync(building.id, t.dynamicId).catch(
                       (error) => console.log(error)
