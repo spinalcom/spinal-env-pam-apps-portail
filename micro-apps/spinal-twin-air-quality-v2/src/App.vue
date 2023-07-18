@@ -1505,6 +1505,8 @@ class App extends Vue {
   }
 
   dataChange(data: any[]): void {
+    console.log(data);
+    
     const valueCaption = `Valeur (en ${env.unit})`
     this.filtered = data.map((e: any) => {return { 'Nom': e.roomName, 'Etage': e.floorName, 'Niveau': e.currentLevel, [valueCaption]: e.endpoints.currentValue.toFixed(2)}});
   }

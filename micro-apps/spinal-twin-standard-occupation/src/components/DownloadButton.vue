@@ -4,16 +4,18 @@
         @click.prevent="download"
         v-ripple
         class="main-button card-colored outer-card"
-        style="background: #14202C; border-radius: 10px !important; box-shadow: none !important; border-bottom: 1px solid #f5f5f5; border-left: 1px solid #f5f5f5;"
+        style="background: #14202C; border-radius: 10px !important;"
         :class="{ 'enter-button': hover }"
         @mouseover="hover = true"
         @mouseleave="hover = false"
+        elevation="8"
       >
         <v-card
           v-ripple
           class="first-nested card-colored inner-card"
         style="background: #14202C; margin: auto;"
           :class="{ inside: hover }"
+          elevation="8"
         >
           <v-icon :class="{ inside: hover }" style="color: #bfbfbf; padding: 3px"
             >mdi-file-download</v-icon
@@ -108,7 +110,7 @@
   }
   .outer-card {
     border-radius: 10px;
-    height: 59px;
+    height: 60px;
     width: 60px;
   }
   .inner-card {

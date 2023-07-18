@@ -48,6 +48,11 @@ module.exports = {
     columnName: 'Degré de température',
     unit: '°C',
     controlEndpoint: 'Température',
+    source: {
+        type: 'controlEndpoint', // [controlEndpoint, endpoint]
+        Name: 'Température',
+        profile: 'Control Point'
+    },
     // [min, max[
     level: [
         {

@@ -71,6 +71,7 @@ import { watch } from 'fs';
 })
 class App extends Vue {
   unit = env.unit;
+  columnName = env.columnName;
   levels = env.level.map((item: any) => ({ ...item, check: true }));
   colorF = Array.from( this.levels ).fill(true);
   headers = [
@@ -82,7 +83,7 @@ class App extends Vue {
     },
     { text: "Étage", sortable: true, value: "floorName" },
     {
-      text: "Niveau CO2",
+      text: this.columnName,
       align: "start",
       sortable: true,
       value: "endpoints.currentValue",

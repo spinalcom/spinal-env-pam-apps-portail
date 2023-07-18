@@ -46,38 +46,6 @@ export async function getFloors(cp) {
   return floorList;
 }
 
-// export async function getBuildingEndpoints() {
-//   try {
-//     let selectorFloorList = [];
-
-//     const buildingId = localStorage.getItem('idBuilding');
-//     const floorListResponse = HTTP.get(`building/${buildingId}/floor/list`);
-//     const floorList = await floorListResponse;
-//     const roomListPromises = floorList.data.map(floor => {
-//       selectorFloorList.push({name: floor.name, staticId: floor.staticId, dynamicId: floor.dynamicId});
-//       return HTTP.get(`building/${buildingId}/floor/${floor.dynamicId}/room_list`);
-//     });
-//     const roomListResponses = await Promise.all(roomListPromises);
-//     const endpointPromises = [];
-//     for (const roomListResponse of roomListResponses) {
-//       const roomList = roomListResponse.data;
-//       for (const room of roomList) {
-//         endpointPromises.push(HTTP.get(`building/${buildingId}/node/${room.dynamicId}/control_endpoint_list`));
-//       }
-//     }
-//     const endpointResponses = await Promise.all(endpointPromises);
-
-//     // Process the endpointResponses as needed
-//     for (const response of endpointResponses) {
-//       console.log('Endpoints for room:', response.data);
-//     }
-//     return selectorFloorList
-//   } catch (error) {
-//     console.error('An error occurred during API calls:', error);
-//     throw error;
-//   }
-// }
-
 
 export async function getBuildingEndpoints() {
   const cpName = "Dioxyde de carbone";

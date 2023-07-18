@@ -49,7 +49,7 @@
       </table>
       <p class="CALMAX">{{ legend }} <b>{{ maxDate }}</b></p>
     </div>
-    <MonthlyStripe :values="monthlyValues"/>
+    <MonthlyStripe :values="monthlyValues" :unit="unit"/>
   </div>
 </template>
 
@@ -73,8 +73,6 @@ export default {
 
   }),
   mounted() {
-
-    console.log(this.results);
     const flattenedArr = this.results.d.flat().filter(val => val !== -1);
     if (typeof this.results.max !== 'undefined' && typeof this.results.max === 'number') {
       this.max = this.results.max;
