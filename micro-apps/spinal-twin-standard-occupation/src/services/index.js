@@ -2,17 +2,17 @@ import { HTTP } from "./http-constants";
 import moment from 'moment';
 import fr from 'moment/locale/fr';
 
-export async function getBuilding(cp) {
+export async function getBuilding(source) {
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(`building/${buildingId}/building/read`);
-  let cpList = await HTTP.get(`building/${buildingId}/node/${result.data.dynamicId}/control_endpoint_list`);
-  for (let j = 0; j < cpList.data.length; j++) {
-    // TODO:task implement the endpoints / profileName
-    // if (cpList.data[j].profileName)
-    for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
-      if (cpList.data[j].endpoints[i].name === cp) {
-        result.data.cp = cpList.data[j].endpoints[i].dynamicId;
-      }
+  result.data.source = [];
+  const type = new Set(source.map(item => item.type)).size === 1 ? source[0].type : 'both';
+  let cpList, pList;
+  if (type !== 'endpoint') cpList = await HTTP.get(`building/${buildingId}/node/${result.data.dynamicId}/control_endpoint_list`);
+  if (type !== 'controlEndpoint') pList = await HTTP.get(`building/${buildingId}/node/${result.data.dynamicId}/endpoint_list`);
+  for (const s of source) {
+    if (s.type === 'controlEndpoint' && cpList.data.find(e => e.profileName === s.profile) && cpList.data[cpList.data.findIndex(e => e.profileName === s.profile)].endpoints.find(e => e.name === s.name)) {
+      result.data.source.push({...s, dynamicId: cpList.data[cpList.data.findIndex(e => e.profileName === s.profile)].endpoints.find(e => e.name === s.name).dynamicId});
     }
   }
   return result.data;
@@ -58,7 +58,7 @@ async function getArea(space) {
   }
 }
 
-export async function getHeatCal(space, tempo, currentTimestamp, env) {
+export async function getHeatCal(space, tempo, currentTimestamp, source) {
   var calendar = [];
   var calendarObject;
   const buildingId = localStorage.getItem("idBuilding");
@@ -67,7 +67,7 @@ export async function getHeatCal(space, tempo, currentTimestamp, env) {
   let tooltipDate = periodArray[5];
   let data = [];
 
-  let cpList, cpID = space.cp, timeSeries, prevTimeSeries, prevSumSeries, sumSeries, prevTotRoot, prevAvgRoot;
+  let cpList, cpID = source.dynamicId, timeSeries, prevTimeSeries, prevSumSeries, sumSeries, prevTotRoot, prevAvgRoot;
   try {
       timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`);
       timeSeries = timeSeries.data;
@@ -76,10 +76,10 @@ export async function getHeatCal(space, tempo, currentTimestamp, env) {
       labelLegend = moment(currentTimestamp).format('YYYY');
       calendarObject = {}
       calendarObject.y = moment(currentTimestamp).format('YYYY');
-      calendarObject.n = env.name;
+      calendarObject.n = source.title;
       calendarObject.d = prepareCalendar(calendarObject.y, timeSeries);
-      calendarObject.max = env.max;
-      calendarObject.min = env.min;
+      calendarObject.max = source.max;
+      calendarObject.min = source.min;
       calendar.push(calendarObject);
       label.forEach(month => {
         processedTimeSeries.push(

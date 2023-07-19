@@ -1,11 +1,14 @@
 <template>
-  <div class="RC" style="min-height: 480px">
+  <div class="RC" style="min-height: 480px" :class="loading ? 'loading' : 'not-loading'">
     <div class="MC">
       <HeatCal
         v-if="calendar"
         :next="temporality.next" 
         :prev="temporality.prev"
         :data="calendar"
+        :source="space.source"
+        @source="spread($event)"
+        @nav="nav($event)"
       />
     </div>
   </div>
@@ -46,9 +49,8 @@ interface state {
   },
 })
 class App extends Vue {
-
-  controlEndpoint = env.controlEndpoint;
-  source = env.source;
+  loading = false;
+  defaultSource = 0;
   currentTimestamp = {valueTime: 0};
   calendar: any = null;
   @Prop({type: Object as () => ISpaceSelectorItem, required: true})
@@ -59,13 +61,21 @@ class App extends Vue {
 
   mounted() {
     this.currentTimestamp = {valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
-    this.spread(0);
+    this.spread(this.defaultSource);
   }
 
   async spread(source: number) {
-    // this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.source[source]);
-    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, env);
+    this.loading = true;
+    this.defaultSource = source;
+    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[source]);
+    this.loading = false;
+  }
 
+  nav(payload: number) {
+    if (this.temporality.name === 'Année') {
+      this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf()};
+    }
+    this.spread(this.defaultSource);
   }
 }
 export default App;
@@ -149,7 +159,14 @@ export default App;
 
 .active-select {
   border-color: green ; /* set the border color to red when the select is active */
+}
 
+.loading {
+  cursor: wait;
+}
+
+.not-loading {
+  cursor: default;
 }
 
 ::v-deep .v-application .primary--text {

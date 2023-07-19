@@ -21,21 +21,21 @@
     <div class="d-flex flex-column flex-grow-1">
       <!-- <slot name="extras" v-if="switchValue && true"></slot> -->
       <div class="selects">
-        <v-select v-model="space" append-icon="mdi-chevron-down" :items="spaceList" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 100px; width: 250px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Espace sélectionné">
+        <v-select v-model="space" append-icon="mdi-chevron-down" :items="source" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 100px; width: 260px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Espace sélectionné">
             <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
 
             <template #item="{ item }">
-            {{ item }}
-            <!-- <SmallLegend :color="item.color" :text="item.name" :size="14"/> -->
+            <!-- {{ item. }} -->
+            <SmallLegend :color="item.color" :text="item.title" :size="14"/>
             </template>
 
             <template #selection="{ item }">
-            {{ item }}
-            <!-- <SmallLegend :color="item.color" :text="item.name" :size="14"/> -->
+            <!-- {{ item }} -->
+            <SmallLegend :color="item.color" :text="item.title" :size="14"/>
             </template>
         </v-select>
 
-        <v-select v-model="calculation" append-icon="mdi-chevron-down" :items="calculationList" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 100px; width: 250px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Calcul">
+        <v-select v-model="calculation" append-icon="mdi-chevron-down" :items="calculationList" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 100px; width: 260px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Calcul">
             <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
 
             <template #item="{ item }">
@@ -50,7 +50,7 @@
         </v-select>
       </div>
       <div class="flex-grow-1">
-        <CalendarAndStripe :results="data" :unit="unit" v-if="data && data.d && data.d.length>0"/>
+        <CalendarAndStripe :results="data" :max="max" :unit="unit" v-if="data && data.d && data.d.length>0"/>
       </div>
     </div>
     </v-card>
@@ -58,25 +58,31 @@
 
 <script>
 import env from '../../config';
-import CalendarAndStripe from './CalendarAndStripe'
+import CalendarAndStripe from './CalendarAndStripe';
+import SmallLegend from './SmallLegend';
 export default {
     name: 'HeatCal',
     components: {
-        CalendarAndStripe
+        CalendarAndStripe,
+        SmallLegend
     },
     props: {
         next: {type: String, required: true},
         prev: {type: String, required: true},
-        data: {required: true}
+        data: {required: true},
+        source: {required: true}
     },
     mounted() {
         this.arrCal = this.data.d;
-        this.data.d = this.arrCal.max;
+        this.data.d = this.capacitySwitch(this.arrCal.max);
+        this.max = this.source[0].max;
         this.unit = this.switchValue ? this.env.unit.right.name : this.env.unit.left.name
     },
     data() {
         return {
+            idx: 0,
             env: env,
+            max: 100,
             title: 'Title of the heat cal',
             subtitle: 'No sub',
             switchValue: env.unit.default,
@@ -479,21 +485,59 @@ export default {
                 "max": 3500,
                 "min": null
             },*/
-            space: 'Bâtiment',
-            spaceList: ['Bâtiment'],
+            space: this.source[0],
             calculation: 'Maximum',
             calculationList: ['Maximum', 'Minimum', 'Moyenne', 'Somme'],
         }
     },
+    methods: {
+        capacitySwitch(data) {
+            if (this.switchValue === true) {
+                this.data.max = this.env.source[this.idx].capacity;
+                console.log('max is', this.data.max)
+                return data.map(month => month.map(day => 
+                {
+                    if (day !== -1) 
+                      return day  * this.source[this.idx].capacity / 100;
+                    else
+                      return -1;
+                }));
+            }
+            else {
+            this.data.max = this.env.source[this.idx].max;
+              return data;
+            }
+        }
+    },
     watch: {
         calculation(v) {
-            if (v === 'Maximum') this.data.d = this.arrCal.max;
-            if (v === 'Minimum') this.data.d = this.arrCal.min;
-            if (v === 'Moyenne') this.data.d = this.arrCal.mean;
-            if (v === 'Somme') this.data.d = this.arrCal.sum;
+            if (v === 'Maximum') this.data.d = this.capacitySwitch(this.arrCal.max);
+            if (v === 'Minimum') this.data.d = this.capacitySwitch(this.arrCal.min);
+            if (v === 'Moyenne') this.data.d = this.capacitySwitch(this.arrCal.mean);
+            if (v === 'Somme') this.data.d = this.capacitySwitch(this.arrCal.sum);
         },
         switchValue(v) {
+            console.log(v);
             this.unit = v ? this.env.unit.right.name : this.env.unit.left.name;
+            if (this.calculation === 'Maximum') this.data.d = this.capacitySwitch(this.arrCal.max);
+            if (this.calculation === 'Minimum') this.data.d = this.capacitySwitch(this.arrCal.min);
+            if (this.calculation === 'Moyenne') this.data.d = this.capacitySwitch(this.arrCal.mean);
+            if (this.calculation === 'Somme') this.data.d = this.capacitySwitch(this.arrCal.sum);
+        },
+        space(v) {
+            // @TODO:replace title with dynamicId
+            const index = this.source.findIndex(e => e.title === v.title);
+            if (index !== -1) {
+              this.idx = index;
+              this.$emit('source', index);
+            }
+        },
+        data(v) {
+            this.arrCal = this.data.d;
+            if (this.calculation === 'Maximum') this.data.d = this.capacitySwitch(this.arrCal.max);
+            if (this.calculation === 'Minimum') this.data.d = this.capacitySwitch(this.arrCal.min);
+            if (this.calculation === 'Moyenne') this.data.d = this.capacitySwitch(this.arrCal.mean);
+            if (this.calculation === 'Somme') this.data.d = this.capacitySwitch(this.arrCal.sum);
         }
     }
 }

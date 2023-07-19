@@ -63,9 +63,10 @@ interface IItemDatatmp {
   },
 })
 class App extends Vue {
-
+  building !: any;
   table = [];
   controlEndpoint = env.controlEndpoint;
+  source = env.source;
   time = { name: "SEMAINE", value: 'week' }
   selectedFloor = '';
   openSpaceSelector = false;
@@ -87,7 +88,8 @@ class App extends Vue {
     drawLink: [],
     haveChildren: true,
     area: 0,
-    cp: 0
+    cp: 0,
+    source: [],
   } as ISpaceSelectorItem;
   defaultSelectedTime = {
     name: 'Mois',
@@ -129,11 +131,10 @@ class App extends Vue {
     };
 
   async mounted() {
-    let building = await getBuilding(this.controlEndpoint);
-    this.defaultSelected.name = building.name;
-    this.defaultSelected.area = building.area;
-    this.defaultSelected.cp = building.cp;
-    this.defaultSelected.dynamicId = building.dynamicId;
+    this.building = await getBuilding(this.source);
+    this.defaultSelected.name = this.building.name;
+    this.defaultSelected.source = this.building.source;
+    this.defaultSelected.dynamicId = this.building.dynamicId;
   }
   onTimeSelectOpen(item?: any): { name: string; staticId: string; dynamicId: number; level: number; isOpen: boolean; loading: boolean; patrimoineId: string; parents: never[]; isLastInGrp: boolean; drawLink: never[]; haveChildren: boolean; }[] {
     if (item) {
@@ -252,7 +253,7 @@ class App extends Vue {
     var floorList: any[] = [];
     switch (item?.type) {
       case undefined:
-        const building = await getBuilding(this.controlEndpoint);
+        const building = this.building;
         return[{
               name: building.name,
               staticId: building.staticId,

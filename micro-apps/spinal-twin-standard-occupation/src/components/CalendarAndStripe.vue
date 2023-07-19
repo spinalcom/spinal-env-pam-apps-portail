@@ -152,36 +152,40 @@ export default {
     }
   },
   watch: {
-    results() {
-      const flattenedArr = this.results.d.flat().filter(val => val !== -1);
-      if (typeof this.results.max !== 'undefined' && typeof this.results.max === 'number') {
-        this.max = this.results.max;
-      }
-      else {
-        this.max = Math.max(...flattenedArr);
-      }
-      if (typeof this.results.min !== 'undefined' && typeof this.results.min === 'number') {
-        this.min = this.results.min;
-      }
-      else {
-        this.min = Math.min(...flattenedArr);
-        this.min = this.min < 0 ? 0 : this.min;
-      }
-      this.interval = (this.max - this.min) / 7;
-      // console.log('Min:',this.min, ', Max:', this.max, ', Interval:', this.interval);
+    results: {
+      deep: true,
+      handler(n, o) {
+        console.log('res chng', n.max);
+        const flattenedArr = this.results.d.flat().filter(val => val !== -1);
+        if (typeof this.results.max !== 'undefined' && typeof this.results.max === 'number') {
+          this.max = this.results.max;
+        }
+        else {
+          this.max = Math.max(...flattenedArr);
+        }
+        if (typeof this.results.min !== 'undefined' && typeof this.results.min === 'number') {
+          this.min = this.results.min;
+        }
+        else {
+          this.min = Math.min(...flattenedArr);
+          this.min = this.min < 0 ? 0 : this.min;
+        }
+        this.interval = (this.max - this.min) / 7;
+        // console.log('Min:',this.min, ', Max:', this.max, ', Interval:', this.interval);
 
-      let max = this.results.d[0][0];
-      let maxIndex = [0, 0];
+        let max = this.results.d[0][0];
+        let maxIndex = [0, 0];
 
-      for (let i = 0; i < this.results.d.length; i++) {
-        for (let j = 0; j < this.results.d[i].length; j++) {
-          if (this.results.d[i][j] > max) {
-            max = this.results.d[i][j];
-            maxIndex = [i, j];
+        for (let i = 0; i < this.results.d.length; i++) {
+          for (let j = 0; j < this.results.d[i].length; j++) {
+            if (this.results.d[i][j] > max) {
+              max = this.results.d[i][j];
+              maxIndex = [i, j];
+            }
           }
         }
+        this.maxDate = moment((maxIndex[1]+1) + ' ' + (maxIndex[0]+1), 'DD MM').format('DD MMMM');
       }
-      this.maxDate = moment((maxIndex[1]+1) + ' ' + (maxIndex[0]+1), 'DD MM').format('DD MMMM');
     }
   }
 }
