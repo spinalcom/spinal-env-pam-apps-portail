@@ -35,7 +35,7 @@ export default {
     max: 0,
     min: 0,
     interval: 0,
-    legend: env.monthStripeLegend
+    legend: env.stripLegend
   }),
   mounted() {
     const flattenedArr = this.values[0].filter(val => val >= 0)

@@ -281,21 +281,34 @@ function generateMonthlyData(y) {
 }
 
 function prepareCalendar(year, timeSeries) {
+  
   var sumData = generateMonthlyData(year).d;
   var maxData = generateMonthlyData(year).d;
   var minData = generateMonthlyData(year).d;
   var meanData = generateMonthlyData(year).d;
   var month, day;
+  const occurrenceCounts = {};
   for (const timeSerie of timeSeries) {
     month = +moment(timeSerie.date).format('MM') - 1;
     day = +moment(timeSerie.date).format('DD') - 1;
     sumData[month][day] = (sumData[month][day] === -1) ? timeSerie.value : sumData[month][day] + timeSerie.value;
     maxData[month][day] = (maxData[month][day] < timeSerie.value) ? timeSerie.value : maxData[month][day];
     minData[month][day] = (minData[month][day] > timeSerie.value || minData[month][day] === -1) ? timeSerie.value : minData[month][day];
-    // TODO:task
+    const key = `${month}-${day}`;
+    occurrenceCounts[key] = (occurrenceCounts[key] || 0) + 1;
+
     meanData[month][day] = (meanData[month][day] == -1) ? timeSerie.value : meanData[month][day] + timeSerie.value;
   }
-  
+  console.log(occurrenceCounts);
+  for (let i = 0; i < meanData.length; i++) {
+    for (let j = 0; j < meanData[i].length; j++) {
+      const month = i;
+      const day = j;
+      const key = `${month}-${day}`;
+      const count = occurrenceCounts[key] || 1;
+      meanData[i][j] = meanData[i][j] / count;
+    }
+  }
   return {sum: sumData, max: maxData, min: minData, mean: meanData};
 }
 

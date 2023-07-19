@@ -13,9 +13,28 @@ module.exports = {
             icon: 'mdi-account-multiple', // visit this link to search for icons that work with this project https://v2.vuetifyjs.com/en/features/icon-fonts/#material-design-icons
         }
     },
-    calculs: ['mean', 'max', 'min', 'sum'], // todo: object
+    calculs: [
+        {
+            name: 'Moyenne',
+            value: 'mean'
+        },
+        {
+            name: 'Maximum',
+            value: 'max'
+        },
+        {
+            name: 'Minimum',
+            value: 'min'
+        },
+        {
+            name: 'Somme',
+            value: 'sum'
+        }
+    ],
     name: 'affluence_entree',
     controlEndpoint: 'affluence_entree',
+    calendarLegend: 'La légende du calendrier',
+    stripLegend: 'La légende de la longue bande',
     source: [
         {
             title: 'Espace d\'accueil',

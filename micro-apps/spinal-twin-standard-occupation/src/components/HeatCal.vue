@@ -494,7 +494,6 @@ export default {
         capacitySwitch(data) {
             if (this.switchValue === true) {
                 this.data.max = this.env.source[this.idx].capacity;
-                console.log('max is', this.data.max)
                 return data.map(month => month.map(day => 
                 {
                     if (day !== -1) 
@@ -517,7 +516,6 @@ export default {
             if (v === 'Somme') this.data.d = this.capacitySwitch(this.arrCal.sum);
         },
         switchValue(v) {
-            console.log(v);
             this.unit = v ? this.env.unit.right.name : this.env.unit.left.name;
             if (this.calculation === 'Maximum') this.data.d = this.capacitySwitch(this.arrCal.max);
             if (this.calculation === 'Minimum') this.data.d = this.capacitySwitch(this.arrCal.min);

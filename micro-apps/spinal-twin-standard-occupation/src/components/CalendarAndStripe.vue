@@ -155,7 +155,6 @@ export default {
     results: {
       deep: true,
       handler(n, o) {
-        console.log('res chng', n.max);
         const flattenedArr = this.results.d.flat().filter(val => val !== -1);
         if (typeof this.results.max !== 'undefined' && typeof this.results.max === 'number') {
           this.max = this.results.max;

@@ -12,6 +12,6 @@
 |[Réalisé]|13/07/2023 | 13/07/2023 |Calculer le maximum|
 |[Réalisé]|13/07/2023 | 13/07/2023 |Calculer le minimum|
 |[Réalisé]|13/07/2023 | 19/07/2023 |Basculer entre Taux d'occupation et Nombre de personnes|
-|[En cours]| 19/07/2023 | - |Calculer la moyenne|
+|[Réalisé]| 19/07/2023 | 19/07/2023 |Calculer la moyenne|
 |[Réalisé]|13/07/2023 | 13/07/2023 |Calculer la somme|
 |[Réalisé]|17/07/2023 | 19/07/2023 |Appels API pour chaque espaces, et chaque temporalite|
