@@ -50,7 +50,7 @@
         </v-select>
       </div>
       <div class="flex-grow-1">
-        <CalendarAndStripe :results="data" :max="max" :unit="unit" v-if="data && data.d && data.d.length>0"/>
+        <CalendarAndStripe @chart-sent="handleChart" :results="data" :max="max" :unit="unit" v-if="data && data.d && data.d.length>0"/>
       </div>
     </div>
     </v-card>
@@ -486,8 +486,8 @@ export default {
                 "min": null
             },*/
             space: this.source[0],
-            calculation: 'Maximum',
-            calculationList: ['Maximum', 'Minimum', 'Moyenne', 'Somme'],
+            calculation: env.calculs[0],
+            calculationList: env.calculs,
         }
     },
     methods: {
@@ -506,6 +506,9 @@ export default {
             this.data.max = this.env.source[this.idx].max;
               return data;
             }
+        },
+        handleChart(output) {
+            this.$emit('chart-sent', output);
         }
     },
     watch: {

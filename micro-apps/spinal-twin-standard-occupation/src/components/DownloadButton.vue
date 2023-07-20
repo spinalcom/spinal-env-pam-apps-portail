@@ -4,11 +4,10 @@
         @click.prevent="download"
         v-ripple
         class="main-button card-colored outer-card"
-        style="background: #14202C; border-radius: 10px !important;"
+        style="background: #14202C; border-radius: 10px !important; box-shadow: none !important;"
         :class="{ 'enter-button': hover }"
         @mouseover="hover = true"
         @mouseleave="hover = false"
-        elevation="8"
       >
         <v-card
           v-ripple

@@ -299,7 +299,6 @@ function prepareCalendar(year, timeSeries) {
 
     meanData[month][day] = (meanData[month][day] == -1) ? timeSerie.value : meanData[month][day] + timeSerie.value;
   }
-  console.log(occurrenceCounts);
   for (let i = 0; i < meanData.length; i++) {
     for (let j = 0; j < meanData[i].length; j++) {
       const month = i;

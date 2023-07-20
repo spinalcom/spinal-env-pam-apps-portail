@@ -13,24 +13,7 @@ module.exports = {
             icon: 'mdi-account-multiple', // visit this link to search for icons that work with this project https://v2.vuetifyjs.com/en/features/icon-fonts/#material-design-icons
         }
     },
-    calculs: [
-        {
-            name: 'Moyenne',
-            value: 'mean'
-        },
-        {
-            name: 'Maximum',
-            value: 'max'
-        },
-        {
-            name: 'Minimum',
-            value: 'min'
-        },
-        {
-            name: 'Somme',
-            value: 'sum'
-        }
-    ],
+    calculs: ['Maximum', 'Minimum', 'Moyenne'],
     name: 'affluence_entree',
     controlEndpoint: 'affluence_entree',
     calendarLegend: 'La légende du calendrier',
@@ -51,7 +34,7 @@ module.exports = {
             type: 'controlEndpoint', // [controlEndpoint, endpoint]
             name: 'affluence_entree',
             profile: 'Ubigreen affluence',
-            capacity: 500,
+            capacity: 100,
             max: 10,
             min: 0,
             color: '#ad42f5',

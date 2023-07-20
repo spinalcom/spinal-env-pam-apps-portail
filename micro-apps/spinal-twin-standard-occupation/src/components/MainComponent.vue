@@ -9,6 +9,7 @@
         :source="space.source"
         @source="spread($event)"
         @nav="nav($event)"
+        @chart-sent="handleChart"
       />
     </div>
   </div>
@@ -76,6 +77,10 @@ class App extends Vue {
       this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf()};
     }
     this.spread(this.defaultSource);
+  }
+
+  handleChart(output: any) {
+    this.$emit('chart-sent', output);
   }
 }
 export default App;

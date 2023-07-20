@@ -565,7 +565,7 @@ class App extends Vue {
       };
 
       
-    }    
+    }
     this.$emit('chart-sent', output);
   }
 

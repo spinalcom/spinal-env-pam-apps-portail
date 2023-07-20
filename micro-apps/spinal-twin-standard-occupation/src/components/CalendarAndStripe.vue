@@ -73,6 +73,13 @@ export default {
 
   }),
   mounted() {
+    let exportDate = this.generateDatesArray(this.results.y);
+    let exportValues = this.results.d.flat().map(e => e === -1 ? 'N.C' : e);
+    let output = [{}];
+    for (let i = 0; i < exportDate.length; i++) {
+      output[0][exportDate[i]] = exportValues[i];
+    }
+    this.$emit('chart-sent', output);
     const flattenedArr = this.results.d.flat().filter(val => val !== -1);
     if (typeof this.results.max !== 'undefined' && typeof this.results.max === 'number') {
       this.max = this.results.max;
@@ -149,12 +156,31 @@ export default {
     },
     monthDays(month) {
       return new Date (this.results.y, month, 0).getDate();
+    },
+    generateDatesArray(year) {
+      const startDate = moment(`${year}-01-01`, 'YYYY-MM-DD');
+      const endDate = moment(`${year}-12-31`, 'YYYY-MM-DD');
+      const datesArray = [];
+
+      while (startDate.isSameOrBefore(endDate)) {
+        datesArray.push(startDate.format('DD/MM/YYYY'));
+        startDate.add(1, 'days');
+      }
+
+      return datesArray;
     }
   },
   watch: {
     results: {
       deep: true,
       handler(n, o) {
+        let exportDate = this.generateDatesArray(this.results.y);
+        let exportValues = this.results.d.flat().map(e => e === -1 ? 'N.C' : e);
+        let output = [{}];
+        for (let i = 0; i < exportDate.length; i++) {
+          output[0][exportDate[i]] = exportValues[i];
+        }
+        this.$emit('chart-sent', output);
         const flattenedArr = this.results.d.flat().filter(val => val !== -1);
         if (typeof this.results.max !== 'undefined' && typeof this.results.max === 'number') {
           this.max = this.results.max;

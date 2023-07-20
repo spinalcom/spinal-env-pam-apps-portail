@@ -24,12 +24,12 @@
           label="TEMPORALITÉ"
         />
       </div>
-      <!-- <div class="DB">
+      <div class="DB">
 
-        <DownloadButton :fileName="'consomation d\'energie globale'" :data="table"/>
-      </div> -->
+        <DownloadButton :fileName="fileName" :data="table"/>
+      </div>
     </div>
-    <MicroApp :temporality="selectedTime" :space="defaultSelected" v-if="defaultSelected.dynamicId !== 0"/>
+    <MicroApp @chart-sent="handleChart" :temporality="selectedTime" :space="defaultSelected" v-if="defaultSelected.dynamicId !== 0"/>
   </v-app>
 </template>
 
@@ -43,8 +43,7 @@ import {
 import { Vue } from 'vue-property-decorator';
 import Component from 'vue-class-component';
 import MicroApp from './components/MainComponent.vue';
-// import DownloadButton from 'spinal-components/src/components/DownloadButton.vue';
-// import DownloadButton from './components/DownloadButton.vue';
+import DownloadButton from './components/DownloadButton.vue';
 import { getBuilding, getFloors } from './services/index.js';
 interface IItemData {
   platformId: string;
@@ -58,11 +57,12 @@ interface IItemDatatmp {
 @Component({
   components: {
     SpaceSelector,
-    // DownloadButton,
+    DownloadButton,
     MicroApp
   },
 })
 class App extends Vue {
+  fileName = env.fileName;
   building !: any;
   table = [];
   controlEndpoint = env.controlEndpoint;
@@ -275,6 +275,8 @@ class App extends Vue {
     }
   }
   handleChart(chart) {
+    console.log(chart);
+    
     this.table = chart;
   }
 }
