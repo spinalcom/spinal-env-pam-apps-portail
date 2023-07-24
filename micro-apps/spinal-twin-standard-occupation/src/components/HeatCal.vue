@@ -50,7 +50,7 @@
         </v-select>
       </div>
       <div class="flex-grow-1">
-        <CalendarAndStripe @chart-sent="handleChart" :results="data" :max="max" :unit="unit" v-if="data && data.d && data.d.length>0"/>
+        <CalendarAndStripe @chart-sent="handleChart" :calc="calculation" :results="data" :max="max" :unit="unit" v-if="data && data.d && data.d.length>0"/>
       </div>
     </div>
     </v-card>
@@ -76,14 +76,14 @@ export default {
         this.arrCal = this.data.d;
         this.data.d = this.capacitySwitch(this.arrCal.max);
         this.max = this.source[0].max;
-        this.unit = this.switchValue ? this.env.unit.right.name : this.env.unit.left.name
+        this.unit = this.switchValue ? this.env.unit.right : this.env.unit.left
     },
     data() {
         return {
             idx: 0,
             env: env,
             max: 100,
-            title: 'Title of the heat cal',
+            title: env.title,
             subtitle: 'No sub',
             switchValue: env.unit.default,
             unit: null,
@@ -513,13 +513,14 @@ export default {
     },
     watch: {
         calculation(v) {
+            console.log(v);
             if (v === 'Maximum') this.data.d = this.capacitySwitch(this.arrCal.max);
             if (v === 'Minimum') this.data.d = this.capacitySwitch(this.arrCal.min);
             if (v === 'Moyenne') this.data.d = this.capacitySwitch(this.arrCal.mean);
             if (v === 'Somme') this.data.d = this.capacitySwitch(this.arrCal.sum);
         },
         switchValue(v) {
-            this.unit = v ? this.env.unit.right.name : this.env.unit.left.name;
+            this.unit = v ? this.env.unit.right : this.env.unit.left;
             if (this.calculation === 'Maximum') this.data.d = this.capacitySwitch(this.arrCal.max);
             if (this.calculation === 'Minimum') this.data.d = this.capacitySwitch(this.arrCal.min);
             if (this.calculation === 'Moyenne') this.data.d = this.capacitySwitch(this.arrCal.mean);

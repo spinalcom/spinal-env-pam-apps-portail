@@ -15,6 +15,7 @@
 |[Réalisé]|13/07/2023 | 13/07/2023 |Calculer la somme|
 |[Réalisé]|17/07/2023 | 19/07/2023 |Appels API pour chaque espaces, et chaque temporalite|
 |[Réalisé]| 19/07/2023 | 19/07/2023 |Calculer la moyenne|
-|[En cours]|19/07/2023 | 20/07/2023 |Bouton telechargement|
-|[En attente]|20/07/2023 | 20/07/2023 |Ajouter que les methodes de calculs dans le fichier config|
+|[Réalisé]|19/07/2023 | 20/07/2023 |Bouton telechargement|
+|[Réalisé]|20/07/2023 | 20/07/2023 |Ajouter que les methodes de calculs dans le fichier config|
 |[En attente]|- | - |Aouter un interval de temps|
+|[En cours]| 20/07/2023 | - |Mettre les valeurs dans la longue bande (bilan par mois)|

@@ -275,8 +275,6 @@ class App extends Vue {
     }
   }
   handleChart(chart) {
-    console.log(chart);
-    
     this.table = chart;
   }
 }

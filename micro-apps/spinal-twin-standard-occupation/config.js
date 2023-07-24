@@ -1,19 +1,21 @@
 
 module.exports = {
-    title: 'Affluence entree',
+    title: 'STANDARD OCCUPATION',
     fileName: 'Affluence entree',
     unit: {
         default: false,
         left: {
             name: '%',
+            shortName: '%',
             icon: 'mdi-percent', // visit this link to search for icons that work with this project https://v2.vuetifyjs.com/en/features/icon-fonts/#material-design-icons
         },
         right: {
             name: 'Personnes',
+            shortName: 'Per',
             icon: 'mdi-account-multiple', // visit this link to search for icons that work with this project https://v2.vuetifyjs.com/en/features/icon-fonts/#material-design-icons
         }
     },
-    calculs: ['Maximum', 'Minimum', 'Moyenne'],
+    calculs: ['Maximum', 'Minimum', 'Moyenne'],  // 'Maximum', 'Minimum', 'Moyenne', 'Somme'
     name: 'affluence_entree',
     controlEndpoint: 'affluence_entree',
     calendarLegend: 'La légende du calendrier',

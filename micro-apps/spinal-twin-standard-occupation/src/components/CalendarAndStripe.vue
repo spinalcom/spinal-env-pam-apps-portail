@@ -39,8 +39,8 @@
                     <div class="RECT unset" :class="colorCalc(results.d[j-1][i-1])"></div>
                   </span>
                   </template>
-                  <span v-if="(results.d[j-1][i-1]!=-1)">{{`${i}/${j}/${results.y} :`}} <b>{{results.d[j-1][i-1].toFixed(1)}}</b> {{ unit }}</span>
-                  <span v-else>{{`${i}/${j}/${results.y} :`}} <b>-</b> {{ unit }}</span>
+                  <span v-if="(results.d[j-1][i-1]!=-1)">{{`${i}/${j}/${results.y} :`}} <b>{{results.d[j-1][i-1].toFixed(1)}}</b> {{ unit.name }}</span>
+                  <span v-else>{{`${i}/${j}/${results.y} :`}} <b>-</b> {{ unit.name }}</span>
                 </v-tooltip>
               </span>
             </div>
@@ -62,7 +62,7 @@ export default {
   components: {
     MonthlyStripe
   },
-  props: ['results', 'unit'],
+  props: ['results', 'unit', 'calc'],
   data: () => ({
     d: 0,
     max: 0,
@@ -70,7 +70,6 @@ export default {
     interval: 0,
     maxDate: '',
     legend: env.calendarLegend
-
   }),
   mounted() {
     let exportDate = this.generateDatesArray(this.results.y);
@@ -112,6 +111,7 @@ export default {
   },
   computed:{
     monthlyValues() {
+      if (this.calc === 'Somme') {
       let m = [];
       let missing;
       let sum;
@@ -138,6 +138,69 @@ export default {
         m.push(res);
       }
         return [m, maxPos.indexOf(Math.max(...maxPos)), monthSum, this.results.y];
+    }
+    else if (this.calc === 'Maximum') {
+      let m = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+      let monthmax = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+      for (let i = 0; i < 12; i++) {
+        const filteredArr = this.results.d[i].filter((value) => value !== -1);
+        if (filteredArr.length > 0) {
+          m[i] = Math.max(...filteredArr);
+          monthmax[i] = Math.max(...filteredArr);
+        }
+      }
+      console.log([m, monthmax.indexOf(Math.max(...monthmax)), monthmax, this.results.y]);
+      return [m, monthmax.indexOf(Math.max(...monthmax)), monthmax, this.results.y];
+    }
+    else if (this.calc === 'Minimum') {
+      let m = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+      let missing;
+      let min;
+      let res = 0;
+      let minValues = [];
+      let monthMin = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+      for (let i = 0; i < 12; i++) {
+        
+        missing = 0;
+        min = 500; // Initialize min to the largest possible integer value
+        const filteredArr = this.results.d[i].filter((value) => value !== -1);
+        if (filteredArr.length > 0) {
+          m[i] = Math.min(...filteredArr);
+          monthMin[i] = Math.min(...filteredArr);
+        }
+        minValues.push(min);
+        res = min;
+      }
+      console.log([m, minValues.indexOf(Math.min(...minValues)), monthMin, this.results.y]);
+      return [m, minValues.indexOf(Math.min(...minValues)), monthMin, this.results.y];
+    }
+    else if (this.calc === 'Moyenne') {
+      let m = [];
+      let missing;
+      let sum;
+      let res = 0;
+      let monthAverage = [];
+
+      for (let i = 0; i < 12; i++) {
+        missing = 0;
+        sum = 0;
+
+        sum += this.results.d[i].reduce((a, b) => {
+          if (b !== -1) {
+            return a + b;
+          } else {
+            missing++;
+            return a;
+          }
+        });
+
+        monthAverage.push(sum / (this.results.d[i].length - missing));
+        res = sum / (this.results.d[0].length - missing);
+        m.push(res);
+      }
+
+      return [m, monthAverage.indexOf(Math.max(...monthAverage)), monthAverage, this.results.y];
+    }
   }
   },
   methods: {
@@ -171,6 +234,11 @@ export default {
     }
   },
   watch: {
+    calc: {
+      handler(n, o) {
+
+      }
+    },
     results: {
       deep: true,
       handler(n, o) {

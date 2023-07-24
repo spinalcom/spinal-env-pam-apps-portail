@@ -8,17 +8,16 @@
       <div v-for="i in 12" :key="i" class="MONTHRECT" :class="colorCalc(values[0][i-1])">
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
-            <span style="width: 100%; height: 100%; display: flex; align-items: center; padding-left: 10px;"
+            <span style="width: 100%; height: 100%; display: flex; align-items: center; padding-left: 10px; justify-content: center;"
               v-bind="attrs"
               v-on="on"
               >
-                  <span class="MONTHLEGEND">{{legendCalc(values[0][i-1])}}</span>
-                
+                  <span v-if="values[2][i-1] !== -1" class="MONTHLEGEND">{{ shortNumberCall(values[2][i-1]) }} {{ unit.shortName }}</span>
             </span>
           </template>
-          <span v-if="values[2][i-1] >= 0">{{ months[i-1].slice(0, 1).toUpperCase() + months[i-1].slice(1) }}/{{ values[3] }}: {{ values[2][i-1].toFixed(1) }} {{ unit }}</span>
-          <!-- <span v-if="(results.d[j-1][i-1]!=-1)">{{`${i}/${j}/${results.y} :`}} <b>{{results.d[j-1][i-1].toFixed(1)}}</b> {{ unit }}</span> -->
-          <span v-else>{{ months[i-1].slice(0, 1).toUpperCase() + months[i-1].slice(1) }}/{{ values[3] }}: - {{ unit }}</span>
+          <span v-if="values[2][i-1] >= 0">{{ months[i-1].slice(0, 1).toUpperCase() + months[i-1].slice(1) }}/{{ values[3] }}: {{ values[2][i-1].toFixed(1) }} {{ unit.name }}</span>
+          <!-- <span v-if="(results.d[j-1][i-1]!=-1)">{{`${i}/${j}/${results.y} :`}} <b>{{results.d[j-1][i-1].toFixed(1)}}</b> {{ unit.name }}</span> -->
+          <span v-else>{{ months[i-1].slice(0, 1).toUpperCase() + months[i-1].slice(1) }}/{{ values[3] }}: - {{ unit.name }}</span>
         </v-tooltip>
       </div>
     </div>
@@ -38,6 +37,7 @@ export default {
     legend: env.stripLegend
   }),
   mounted() {
+    console.log(this.values[0].reduce((a, c) => a + c, 0));
     const flattenedArr = this.values[0].filter(val => val >= 0)
     if (typeof this.values.max !== 'undefined' && typeof this.values.max === 'number') {
       this.max = this.values.max;
@@ -78,6 +78,12 @@ export default {
       else if (val < this.min + this.interval * 5) return 'E';
       else if (val < this.min + this.interval * 6) return 'F';
       else return 'G';
+    },
+    shortNumberCall(n) {
+      if (Math.abs(n) >= 1000000000) return Math.round(n / 100000000) / 10 + "Md";
+      if (Math.abs(n) >= 1000000) return Math.round(n / 100000) / 10 + "M";
+      if (Math.abs(n) >= 1000) return Math.round(n / 100) / 10 + "K";
+      return n === Math.floor(n) ? n : n.toFixed(1);
     }
   },
   watch: {
@@ -97,7 +103,7 @@ export default {
         this.min = this.min < 0 ? 0 : this.min;
       }
       this.interval = (this.max - this.min) / 7;
-      }
+    }
   }
 }
 </script>
@@ -135,7 +141,7 @@ export default {
   font-family: "Charlevoix Pro";
   font-style: normal;
   font-weight: 700;
-  font-size: 20px;
+  font-size: 14px;
   line-height: 100%;
   /* or 20px */
 
