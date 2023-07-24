@@ -513,7 +513,6 @@ export default {
     },
     watch: {
         calculation(v) {
-            console.log(v);
             if (v === 'Maximum') this.data.d = this.capacitySwitch(this.arrCal.max);
             if (v === 'Minimum') this.data.d = this.capacitySwitch(this.arrCal.min);
             if (v === 'Moyenne') this.data.d = this.capacitySwitch(this.arrCal.mean);

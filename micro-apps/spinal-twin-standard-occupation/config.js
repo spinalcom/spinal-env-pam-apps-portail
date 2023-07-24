@@ -28,7 +28,7 @@ module.exports = {
             profile: 'Ubigreen affluence',
             capacity: 500,
             max: 100,
-            min: 0,
+            min: null,
             color: '#4287f5',
         },
         {
@@ -38,7 +38,7 @@ module.exports = {
             profile: 'Ubigreen affluence',
             capacity: 100,
             max: 10,
-            min: 0,
+            min: null,
             color: '#ad42f5',
         },
         {
@@ -48,7 +48,7 @@ module.exports = {
             profile: 'Ubigreen affluence',
             capacity: 500,
             max: 100,
-            min: 0,
+            min: null,
             color: '#f57e42',
         },
         {
@@ -58,7 +58,7 @@ module.exports = {
             profile: 'Ubigreen affluence',
             capacity: 500,
             max: 100,
-            min: 0,
+            min: null,
             color: '#14202c',
         },
         {
@@ -68,7 +68,7 @@ module.exports = {
             profile: 'Ubigreen affluence',
             capacity: 500,
             max: 100,
-            min: 0,
+            min: null,
             color: '#f54299',
         }
     ],

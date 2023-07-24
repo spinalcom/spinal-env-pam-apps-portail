@@ -73,10 +73,10 @@ export default {
   }),
   mounted() {
     let exportDate = this.generateDatesArray(this.results.y);
-    let exportValues = this.results.d.flat().map(e => e === -1 ? 'N.C' : e);
+    let exportValues = this.results.d.flat().map(e => e === -1 ? '' : e);
     let output = [{}];
     for (let i = 0; i < exportDate.length; i++) {
-      output[0][exportDate[i]] = exportValues[i];
+      output[i] = {date: exportDate[i], ['Valeur' + `(${this.unit.name})`]: exportValues[i]};
     }
     this.$emit('chart-sent', output);
     const flattenedArr = this.results.d.flat().filter(val => val !== -1);
@@ -149,7 +149,6 @@ export default {
           monthmax[i] = Math.max(...filteredArr);
         }
       }
-      console.log([m, monthmax.indexOf(Math.max(...monthmax)), monthmax, this.results.y]);
       return [m, monthmax.indexOf(Math.max(...monthmax)), monthmax, this.results.y];
     }
     else if (this.calc === 'Minimum') {
@@ -171,7 +170,6 @@ export default {
         minValues.push(min);
         res = min;
       }
-      console.log([m, minValues.indexOf(Math.min(...minValues)), monthMin, this.results.y]);
       return [m, minValues.indexOf(Math.min(...minValues)), monthMin, this.results.y];
     }
     else if (this.calc === 'Moyenne') {
@@ -243,10 +241,10 @@ export default {
       deep: true,
       handler(n, o) {
         let exportDate = this.generateDatesArray(this.results.y);
-        let exportValues = this.results.d.flat().map(e => e === -1 ? 'N.C' : e);
-        let output = [{}];
+        let exportValues = this.results.d.flat().map(e => e === -1 ? '' : e);
+        let output = [];
         for (let i = 0; i < exportDate.length; i++) {
-          output[0][exportDate[i]] = exportValues[i];
+          output[i] = {date: exportDate[i], ['Valeur' + `(${this.unit.name})`]: exportValues[i]};
         }
         this.$emit('chart-sent', output);
         const flattenedArr = this.results.d.flat().filter(val => val !== -1);

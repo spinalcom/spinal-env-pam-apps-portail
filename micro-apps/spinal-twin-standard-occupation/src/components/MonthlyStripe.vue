@@ -37,7 +37,6 @@ export default {
     legend: env.stripLegend
   }),
   mounted() {
-    console.log(this.values[0].reduce((a, c) => a + c, 0));
     const flattenedArr = this.values[0].filter(val => val >= 0)
     if (typeof this.values.max !== 'undefined' && typeof this.values.max === 'number') {
       this.max = this.values.max;

@@ -64,7 +64,7 @@ interface IItemDatatmp {
 class App extends Vue {
   fileName = env.fileName;
   building !: any;
-  table = [];
+  table:any[] = [];
   controlEndpoint = env.controlEndpoint;
   source = env.source;
   time = { name: "SEMAINE", value: 'week' }
@@ -276,6 +276,8 @@ class App extends Vue {
   }
   handleChart(chart) {
     this.table = chart;
+
+    
   }
 }
 
