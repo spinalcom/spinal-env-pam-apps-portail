@@ -17,5 +17,5 @@
 |[Réalisé]| 19/07/2023 | 19/07/2023 |Calculer la moyenne|
 |[Réalisé]|19/07/2023 | 20/07/2023 |Bouton telechargement|
 |[Réalisé]|20/07/2023 | 20/07/2023 |Ajouter que les methodes de calculs dans le fichier config|
-|[En attente]|- | - |Aouter un interval de temps|
-|[En cours]| 20/07/2023 | - |Mettre les valeurs dans la longue bande (bilan par mois)|
+|[Réalisé]|24/07/2023 | 25/07/2023 |Aouter un interval de temps|
+|[Réalisé]| 20/07/2023 | 24/07/2023 |Mettre les valeurs dans la longue bande (bilan par mois)|
