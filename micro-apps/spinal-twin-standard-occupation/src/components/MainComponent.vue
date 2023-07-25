@@ -10,6 +10,7 @@
         @source="spread($event)"
         @nav="nav($event)"
         @chart-sent="handleChart"
+        @call-trigger="callTrigger"
       />
     </div>
   </div>
@@ -69,6 +70,16 @@ class App extends Vue {
     this.loading = true;
     this.defaultSource = source;
     this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[source]);
+    this.loading = false;
+  }
+
+  async callTrigger(interval = {start: null, end: null}) {
+    // console.log(interval.start);
+    // console.log(interval.end);
+    // console.log(this.calendar.rawData);
+    
+    this.loading = true;
+    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[this.defaultSource], {data: this.calendar.rawData, start: interval.start, end: interval.end});
     this.loading = false;
   }
 

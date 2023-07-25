@@ -58,9 +58,10 @@ async function getArea(space) {
   }
 }
 
-export async function getHeatCal(space, tempo, currentTimestamp, source) {
+export async function getHeatCal(space, tempo, currentTimestamp, source, raw = {start: null, end: null, data: []}) {
   var calendar = [];
-  var calendarObject;
+  var calendarObject = {};
+  calendarObject.rawData = raw.data;
   const buildingId = localStorage.getItem("idBuilding");
   let periodArray = getPeriodArray(currentTimestamp, tempo);
   let label = periodArray[0];
@@ -69,12 +70,21 @@ export async function getHeatCal(space, tempo, currentTimestamp, source) {
 
   let cpList, cpID = source.dynamicId, timeSeries, prevTimeSeries, prevSumSeries, sumSeries, prevTotRoot, prevAvgRoot;
   try {
+    if (raw.data.length === 0) {
       timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`);
       timeSeries = timeSeries.data;
-      let processedTimeSeries = [];
-      if (tempo === 'Année') {
+      calendarObject.rawData = timeSeries;
+    }
+    else {
+      timeSeries = raw.data;
+    }
+    timeSeries = timeSeries.filter(({ date }) => {
+      const formattedTime = moment(date).format('HH:mm');
+      return (!raw.start || formattedTime >= raw.start) && (!raw.end || formattedTime <= raw.end);
+    });
+    let processedTimeSeries = [];
+    if (tempo === 'Année') {
       labelLegend = moment(currentTimestamp).format('YYYY');
-      calendarObject = {}
       calendarObject.y = moment(currentTimestamp).format('YYYY');
       calendarObject.n = source.title;
       calendarObject.d = prepareCalendar(calendarObject.y, timeSeries);
