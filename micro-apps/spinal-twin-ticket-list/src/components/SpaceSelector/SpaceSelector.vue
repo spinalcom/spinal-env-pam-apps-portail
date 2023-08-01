@@ -22,10 +22,7 @@
       ]"
     >
       <div
-        @click="
-          $emit('update:open', !open);
-          showSign();
-        "
+        @click="dropDown()"
         ref="SpaceSelectorTitleContainer"
         class="space-selector-header"
       >
@@ -142,7 +139,7 @@ class SpaceSelector extends Vue {
           await this.openItem(item, idx);
         }
       } else {
-        for (const parentId of this.selectedZone.parents) {
+        for (const parentId of this.selectedZone.parents || []) {
           if (
             parentId === item.staticId &&
             (this.selectedZone.platformId === item.platformId ||
@@ -180,14 +177,11 @@ class SpaceSelector extends Vue {
       this.isFill = "hidden";
     }
   }
-  async mounted() {
+  async dropDown() {
     const children = await this.GetChildrenFct();
     this.buildingStructure = convertZonesToISpaceSelectorItems(children);
-
-    if (this.buildingStructure.length === 1) {
-      await this.expandCollapse(this.buildingStructure[0], 0);
-    }
-    this.onSelectedChange();
+    this.$emit("update:open", this.maxDepth === -1 ? false : !this.open);
+    this.showSign();
   }
 
   // on click the righht button open / close

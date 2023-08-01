@@ -31,7 +31,7 @@ with this file. If not, see
         :file-name="'Tickets'"
         :data="downloadList"
       ></sc-download-button>
-      <div class="Hx1">
+      <div class="Hx1 mx-2">
         <space-selector
           ref="space-selector"
           :open.sync="openSpaceSelector"
@@ -98,6 +98,7 @@ with this file. If not, see
                 flat
                 @click.stop
                 v-model="building_filter"
+                label="Bâtiment"
                 placeholder="Bâtiment"
                 :items="buildings"
                 append-icon="mdi-chevron-down"
@@ -150,6 +151,7 @@ with this file. If not, see
                 flat
                 @click.stop
                 v-model="domain_filter"
+                label="Domaine"
                 placeholder="Domaine"
                 :items="domains"
                 append-icon="mdi-chevron-down"
@@ -200,6 +202,7 @@ with this file. If not, see
                 flat
                 @click.stop
                 v-model="step_filter"
+                label="Étape"
                 placeholder="Étape"
                 :items="steps"
                 append-icon="mdi-chevron-down"
@@ -319,6 +322,7 @@ export default {
     ...mapGetters({
       selector: "selector",
       tickets: "getTickets",
+      ticketList: "ticketList",
       tableTickets: "tableTickets",
       loaded: "isLoaded",
     }),
@@ -339,7 +343,7 @@ export default {
       });
     },
     headers() {
-      const widths = [17, 10, 16, 16, 10, 10, 13, 8];
+      const widths = [16, 16, 16, 16, 8, 10, 11, 8];
       return [
         "Nom",
         "Bâtiment",
@@ -386,6 +390,7 @@ export default {
     downloadList() {
       return this.stepFilteredTickets.map((t) => {
         const { Nom, Bâtiment, Étape, Domaine, Déclarant } = t;
+        const tdetail = this.ticketList.find((tc) => tc.dynamicId === t.id);
         return {
           Nom,
           Bâtiment,
@@ -394,6 +399,11 @@ export default {
           Étape,
           Domaine,
           Déclarant,
+          bosId: tdetail.staticId,
+          gmaoId: tdetail.gmaoId,
+          description: tdetail.description,
+          targetName: tdetail.elementSelected.name,
+          targetId: tdetail.elementSelected.staticId,
         };
       });
     },
@@ -446,7 +456,7 @@ export default {
   },
 
   async mounted() {
-    const { dataTable, tableContainer, tableHead } = this.$refs;
+    const { dataTable, tableContainer } = this.$refs;
     this.tableHeight = dataTable.clientHeight - 59;
     window.onresize = () => {
       this.tableHeight = tableContainer.clientHeight - 85;
@@ -457,11 +467,8 @@ export default {
 </script>
 
 <style scoped>
-html {
-  overflow-y: auto !important;
-}
-
-.v-input {
+.v-input,
+::v-deep .v-label {
   font-size: 0.75rem;
 }
 

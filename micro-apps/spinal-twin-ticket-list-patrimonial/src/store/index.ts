@@ -95,6 +95,14 @@ export default new Vuex.Store({
       if (found) return found.tickets;
       return [];
     },
+    ticketList: (state) => {
+      const ret = <any[]>[];
+      const tickets = state.patrimoine.buildings
+        .map((b) => b.tickets)
+        .filter((t) => t);
+      for (const ticket of tickets) ret.push(...ticket);
+      return ret;
+    },
     tableTickets: (state) => (id: string) => {
       if (!id || id === state.patrimoine.id) {
         const tickets = [];

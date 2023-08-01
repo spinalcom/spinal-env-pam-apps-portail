@@ -148,6 +148,7 @@ export default new Vuex.Store({
       const found = state.building.children.find(
         (f: any) => f.dynamicId === floorId
       );
+
       if (!found || found.loaded) return;
       const rooms = (await getRoomListAsync(floorId)).map(
         (r: any) => r.dynamicId
@@ -164,8 +165,8 @@ export default new Vuex.Store({
             rooms.includes(t.elementSelected.dynamicId))
         )
           tickets.push(t);
+        state.tickets.splice(state.tickets.indexOf(t), 1);
       }
-      state.tickets.filter((t: any) => {});
       commit("SET_FLOOR_TICKETS", { floorId, tickets });
     },
   },

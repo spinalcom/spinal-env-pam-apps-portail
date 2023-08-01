@@ -27,16 +27,15 @@ with this file. If not, see
     <!--Download & selector-->
     <div style="width: 100%" class="d-flex justify-end">
       <sc-download-button
-        class="mx-1"
         :file-name="'Tickets'"
         :data="downloadList"
       ></sc-download-button>
-      <div class="Hx1">
+      <div class="Hx1 mx-2">
         <space-selector
           ref="space-selector"
           :open.sync="openSpaceSelector"
-          :maxDepth="-1"
-          :GetChildrenFct="() => []"
+          :maxDepth="0"
+          :GetChildrenFct="expand"
           v-model="el"
           label="ESPACE"
         />
@@ -98,6 +97,7 @@ with this file. If not, see
                 flat
                 @click.stop
                 v-model="domain_filter"
+                label="Domaine"
                 placeholder="Domaine"
                 :items="domains"
                 append-icon="mdi-chevron-down"
@@ -148,6 +148,7 @@ with this file. If not, see
                 flat
                 @click.stop
                 v-model="step_filter"
+                label="Étape"
                 placeholder="Étape"
                 :items="steps"
                 append-icon="mdi-chevron-down"
@@ -233,6 +234,7 @@ export default {
   components: { SpaceSelector },
 
   data: () => ({
+    initiated: false,
     el: { name: "Bâtiment" },
     openSpaceSelector: false,
     selectedId: 0,
@@ -241,7 +243,7 @@ export default {
     domain_filter: [],
     step_filter: [],
     loaded: false,
-    tableHeight: 96,
+    tableHeight: 156,
     showDialog: false,
   }),
 
@@ -302,6 +304,7 @@ export default {
     downloadList() {
       return this.stepFilteredTickets.map((t) => {
         const { Nom, Étape, Domaine, Déclarant } = t;
+        const tdetail = this.tickets.find((tc) => tc.dynamicId === t.id);
         return {
           Nom,
           "Date de création": t["Date de création"],
@@ -309,6 +312,11 @@ export default {
           Étape,
           Domaine,
           Déclarant,
+          bosId: tdetail.staticId,
+          gmaoId: tdetail.gmaoId,
+          description: tdetail.description,
+          targetName: tdetail.elementSelected.name,
+          targetId: tdetail.elementSelected.staticId,
         };
       });
     },
@@ -321,19 +329,25 @@ export default {
       setTickets: "setFloorTickets",
     }),
     async expand(item) {
-      switch (item.level) {
-        case 0:
-          const floors = await this.floors();
-          const colors = gradiant(floors.length);
-          return floors.map((f, i) => {
-            const { r, g, b } = HSVtoRGB(colors[i] / 100, 1, 1);
-            return {
-              name: f.name,
-              dynamicId: f.dynamicId,
-              color: RGBtoHexa(r, g, b),
-            };
-          });
+      if (item) {
+        switch (item.level) {
+          case 0:
+            const floors = await this.floors();
+            const colors = gradiant(floors.length);
+            return floors.map((f, i) => {
+              const { r, g, b } = HSVtoRGB(colors[i] / 100, 1, 1);
+              return {
+                name: f.name,
+                dynamicId: f.dynamicId,
+                color: RGBtoHexa(r, g, b),
+              };
+            });
+
+          default:
+            return [];
+        }
       }
+      return [await getBuildingAsync()];
     },
 
     compareDate(date1, date2) {
@@ -349,20 +363,21 @@ export default {
   },
 
   async mounted() {
-    await this.loadTickets();
-    const { name, dynamicId } = await getBuildingAsync();
-    this.el = { name: name, dynamicId: dynamicId };
-    await this.loadTickets();
-    this.firstTile = { name: name, dynamicId: dynamicId };
     const { dataTable, tableContainer } = this.$refs;
     this.tableHeight = dataTable.clientHeight - 59;
     window.onresize = () => {
       this.tableHeight = tableContainer.clientHeight - 85;
     };
+    const { name, dynamicId } = await getBuildingAsync();
+    this.el = { name: name, dynamicId: dynamicId };
+    await this.loadTickets();
+    this.initiated = true;
+    this.loaded = true;
   },
 
   watch: {
     async el(v) {
+      if (!this.initiated) return;
       this.loaded = false;
       await this.setTickets(v.dynamicId);
       this.loaded = true;
@@ -376,7 +391,8 @@ html {
   overflow-y: auto !important;
 }
 
-.v-input {
+.v-input,
+::v-deep .v-label {
   font-size: 0.75rem;
 }
 
