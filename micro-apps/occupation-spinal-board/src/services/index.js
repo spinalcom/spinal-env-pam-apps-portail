@@ -82,7 +82,7 @@ export async function getDataApi(ApiGroupingCategory, ApiBIMObjectGroup, ApiCont
   } else {
     objectList = await HTTP.get(`equipementsGroup/${idContext}/category/${idCategory}/group/${idGroupe}/equipementList`);
   }
-  let nbEquipement =  objectList.data.length;;
+  let nbEquipement = objectList.data.length;;
   const elementsToSubscribe = [];
   for (let i = 0; i < nbEquipement; i++) {
     if (count == 0) {
@@ -111,34 +111,47 @@ async function getDataEquipement() {
   if (count == 0) {
     for (const [index, objet] of tab.entries()) {
       const dynamicId = objet.dynamicId;
+      let controlEndpointData = null;
+      let endpointData = null;
+
       try {
+        for (const header of config.config.headers) {
+          if (header.type == "controle point" && !controlEndpointData) {
+            const response = await HTTP.get(`/node/${dynamicId}/control_endpoint_list`);
+            controlEndpointData = response.data;
+          }
 
-        const response = await HTTP.get(`/node/${dynamicId}/control_endpoint_list`);
+          if (header.type == "endpoint" && !endpointData) {
+            const response2 = await HTTP.get(`/node/${dynamicId}/endpoint_list`);
+            endpointData = response2.data;
+          }
 
-        for (i = 0; i < response.data.length; i++) {
-          const { endpoints } = response.data[i]
-          for (const endpoint of endpoints) {
-            for (const header of config.config.headers) {
-              if (header.value == endpoint.name && header.type == "controle point") {
+          if (header.type == "controle point" && controlEndpointData) {
+            for (let i = 0; i < controlEndpointData.length; i++) {
+              const { endpoints } = controlEndpointData[i];
+              for (const endpoint of endpoints) {
+                if (header.value == endpoint.name) {
+                  objet[header.value] = endpoint.currentValue;
+                }
+              }
+            }
+          }
+
+          if (header.type == "endpoint" && endpointData) {
+            for (const endpoint of endpointData) {
+              if (header.value.replace("endpoint/", "") === endpoint.name) {
                 objet[header.value] = endpoint.currentValue;
               }
             }
           }
         }
 
-        const response2 = await HTTP.get(`/node/${dynamicId}/endpoint_list`);
-        for (const endpoint of response2.data) {
-          for (const header of config.config.headers) {
-            if (header.value.replace("endpoint/", "") === endpoint.name && header.type == "endpoint") {
-              objet[header.value] = endpoint.currentValue;
-            }
-          }
-        }
         tab.splice(index, 1, objet);
       } catch (error) {
         console.error(error);
       }
     }
+
     count++;
   }
 }
