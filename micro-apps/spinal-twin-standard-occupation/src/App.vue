@@ -30,6 +30,7 @@
       </div>
     </div>
     <MicroApp @chart-sent="handleChart" :temporality="selectedTime" :space="defaultSelected" v-if="defaultSelected.dynamicId !== 0"/>
+    <LoadinComponent v-else/>
   </v-app>
 </template>
 
@@ -42,6 +43,7 @@ import {
 } from './components/SpaceSelector/index';
 import { Vue } from 'vue-property-decorator';
 import Component from 'vue-class-component';
+import LoadinComponent from './components/LoadinComponent.vue';
 import MicroApp from './components/MainComponent.vue';
 import DownloadButton from './components/DownloadButton.vue';
 import { getBuilding, getFloors } from './services/index.js';
@@ -58,7 +60,8 @@ interface IItemDatatmp {
   components: {
     SpaceSelector,
     DownloadButton,
-    MicroApp
+    MicroApp,
+    LoadinComponent
   },
 })
 class App extends Vue {

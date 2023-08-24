@@ -12,6 +12,16 @@
         @chart-sent="handleChart"
         @call-trigger="callTrigger"
       />
+      <LoadingCard v-else style="width: 100%; height: 485px;"/>
+      <div class="stat-heat">
+        <div class="stats">
+          <StatsCard v-if="calendar && calendar.d " :value="Math.max(...calendar.d.max.flat().filter(value => value !== -1))" :unit="'%'" :title="'Taux d\'occupation maximum'"/>
+          <LoadingCard v-else style="width: 100%; height: 74px;"/>
+        </div>
+        <div class="heat">
+          <HeatWeek/>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -21,7 +31,9 @@ import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
 import env from '../../config';
 import HeatCal from './HeatCal.vue';
-// import LoadingCard from './LoadingCard.vue';
+import HeatWeek from './HeatWeek.vue';
+import StatsCard from './StatsCard.vue';
+import LoadingCard from './LoadingCard.vue';
 import { ISpaceSelectorItem } from './SpaceSelector/index';
 import { TemporalityModel } from '../models/Temporality.model';
 import { LegendModel } from '../models/Legend.model';
@@ -46,8 +58,10 @@ interface state {
 
 @Component({
   components: {
-    // LoadingCard,
+    LoadingCard,
     HeatCal,
+    HeatWeek,
+    StatsCard
   },
 })
 class App extends Vue {
@@ -71,6 +85,8 @@ class App extends Vue {
     this.defaultSource = source;
     this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[source]);
     this.loading = false;
+    console.log(Math.max(...this.calendar.d.max.flat().filter(value => value !== -1)));
+    
   }
 
   async callTrigger(interval = {start: null, end: null}) {
@@ -185,6 +201,20 @@ export default App;
   cursor: default;
 }
 
+.stat-heat {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+
+  width: 100%;
+}
+
+.stats {
+  width: 50%;
+}
+.heat {
+  width: 50%;
+}
 ::v-deep .v-application .primary--text {
   color: #000000DE !important;
 }

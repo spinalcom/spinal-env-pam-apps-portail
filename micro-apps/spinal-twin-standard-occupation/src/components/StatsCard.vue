@@ -1,5 +1,5 @@
 <template>
-  <v-card class="stat-card" elevation="5" outlined style="background: #f9f9f9; border-radius: 10px;">
+  <v-card class="stat-card" elevation="5" outlined style="background: #ffffff; border-radius: 10px;">
     <v-flex class="d-flex flex-row fill-height">
       <v-flex
         v-if="value !== -1"
@@ -87,7 +87,7 @@ export default {
 <style scoped>
 .stat-card {
   font-family: "Charlevoix Pro";
-  background-color: #f9f9f9;
+  background-color: #ffffff;
 }
 .stat-value {
   font-family: "Charlevoix Pro";

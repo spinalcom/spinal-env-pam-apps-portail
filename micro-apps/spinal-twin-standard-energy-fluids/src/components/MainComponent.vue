@@ -378,7 +378,7 @@ class App extends Vue {
     this.chart.label = res[0];
     this.chart.data = res[1];
     this.defaultFilter.name = res[1][0].label;
-    this.averageCard = res[2];
+    this.averageCard = res[2];    
     this.totalCard = res[3];
     this.meterCard = res[5];
     this.calendarList = res[4];

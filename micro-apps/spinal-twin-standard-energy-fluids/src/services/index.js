@@ -43,10 +43,13 @@ export async function getFloors(cp) {
 }
 
 async function getArea(space) {
+  console.log('Get Area');
   const buildingId = localStorage.getItem("idBuilding");
 
   if (space.type === 'building') {
+    console.log('of building');
     const result = await HTTP.get(`building/${buildingId}/building/read`);
+    console.log(result);
     return +result.data.area;
   }
   else if (space.type === 'floor') {
@@ -215,12 +218,13 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
         })
       }
 
-
+      console.log(sumSeries);
       sumSeries = sumSeries / spaceArea;
       if (controlEndpoint.root == true) {
         prevAvgRoot = sumSeries;
       }
       let b = (sumSeries * 100 / prevAvgRoot).toFixed(1);
+      console.log(sumSeries);
       if (controlEndpoint.root == true) {
         avg.push({
           color: controlEndpoint.color,

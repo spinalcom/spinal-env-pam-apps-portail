@@ -19,3 +19,4 @@
 |[Réalisé]|20/07/2023 | 20/07/2023 |Ajouter que les methodes de calculs dans le fichier config|
 |[Réalisé]|24/07/2023 | 25/07/2023 |Aouter un interval de temps|
 |[Réalisé]| 20/07/2023 | 24/07/2023 |Mettre les valeurs dans la longue bande (bilan par mois)|
+|[En cours]| 25/07/2023 | - |Week heatmap|

@@ -72,6 +72,9 @@ export default {
     legend: env.calendarLegend
   }),
   mounted() {
+    console.log(this.results);
+    console.log(this.unit);
+    console.log(this.calc);
     let exportDate = this.generateDatesArray(this.results.y);
     let exportValues = this.results.d.flat().map(e => e === -1 ? '' : e);
     let output = [{}];
