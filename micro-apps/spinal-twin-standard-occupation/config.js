@@ -22,9 +22,9 @@ module.exports = {
     stripLegend: 'La légende de la longue bande',
     source: [
         {
-            title: 'Espace d\'accueil',
+            title: 'Taux d\'occupation Bâtiment',
             type: 'controlEndpoint', // [controlEndpoint, endpoint]
-            name: 'affluence_entree',
+            name: 'Taux d\'occupation Bâtiment',
             profile: 'Ubigreen affluence',
             capacity: 500,
             max: 100,
@@ -32,9 +32,9 @@ module.exports = {
             color: '#4287f5',
         },
         {
-            title: 'Salle d\'attente',
+            title: 'Taux d\'occupation Cafétériat',
             type: 'controlEndpoint', // [controlEndpoint, endpoint]
-            name: 'affluence_entree',
+            name: 'Taux d\'occupation Cafétériat',
             profile: 'Ubigreen affluence',
             capacity: 100,
             max: 10,
@@ -42,9 +42,9 @@ module.exports = {
             color: '#ad42f5',
         },
         {
-            title: 'Parking / Garage',
+            title: 'Taux d\'occupation Auditorium',
             type: 'controlEndpoint', // [controlEndpoint, endpoint]
-            name: 'affluence_entree',
+            name: 'Taux d\'occupation Auditorium',
             profile: 'Ubigreen affluence',
             capacity: 500,
             max: 100,
@@ -52,9 +52,9 @@ module.exports = {
             color: '#f57e42',
         },
         {
-            title: 'Salle de sport / Gymnase',
+            title: 'Taux d\'occupation RIE',
             type: 'controlEndpoint', // [controlEndpoint, endpoint]
-            name: 'affluence_entree',
+            name: 'Taux d\'occupation RIE',
             profile: 'Ubigreen affluence',
             capacity: 500,
             max: 100,
@@ -62,10 +62,10 @@ module.exports = {
             color: '#14202c',
         },
         {
-            title: 'Cafétéria',
+            title: 'Taux d\'occupation',
             type: 'controlEndpoint', // [controlEndpoint, endpoint]
-            name: 'affluence_entree',
-            profile: 'Ubigreen affluence',
+            name: 'Taux d\'occupation',
+            profile: 'Position de travail',
             capacity: 500,
             max: 100,
             min: null,

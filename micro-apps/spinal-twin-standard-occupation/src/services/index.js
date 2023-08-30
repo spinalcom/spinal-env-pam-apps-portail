@@ -67,7 +67,6 @@ export async function getHeatCal(space, tempo, currentTimestamp, source, raw = {
   let label = periodArray[0];
   let tooltipDate = periodArray[5];
   let data = [];
-
   let cpList, cpID = source.dynamicId, timeSeries, prevTimeSeries, prevSumSeries, sumSeries, prevTotRoot, prevAvgRoot;
   try {
     if (raw.data.length === 0) {

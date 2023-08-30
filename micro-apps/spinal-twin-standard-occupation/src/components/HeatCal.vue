@@ -21,7 +21,7 @@
     <div class="d-flex flex-column flex-grow-1">
       <!-- <slot name="extras" v-if="switchValue && true"></slot> -->
       <div class="selects">
-        <v-select v-model="space" append-icon="mdi-chevron-down" :items="source" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 100px; width: 260px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Espace sélectionné">
+        <v-select v-model="space" append-icon="mdi-chevron-down" :items="source" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 100px; width: 300px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Espace sélectionné">
             <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
 
             <template #item="{ item }">
@@ -35,7 +35,7 @@
             </template>
         </v-select>
 
-        <v-select v-model="calculation" append-icon="mdi-chevron-down" :items="calculationList" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 100px; width: 260px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Calcul">
+        <v-select v-model="calculation" append-icon="mdi-chevron-down" :items="calculationList" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 100px; width: 130px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Calcul">
             <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
 
             <template #item="{ item }">
@@ -106,7 +106,8 @@ export default {
         this.arrCal = this.data.d;
         this.data.d = this.capacitySwitch(this.arrCal.max);
         this.max = this.source[0].max;
-        this.unit = this.switchValue ? this.env.unit.right : this.env.unit.left
+        this.unit = this.switchValue ? this.env.unit.right : this.env.unit.left;
+        this.$emit('unit-switch', this.switchValue ? this.env.unit.right : this.env.unit.left);
     },
     data() {
         return {
@@ -163,8 +164,10 @@ export default {
             if (v === 'Minimum') this.data.d = this.capacitySwitch(this.arrCal.min);
             if (v === 'Moyenne') this.data.d = this.capacitySwitch(this.arrCal.mean);
             if (v === 'Somme') this.data.d = this.capacitySwitch(this.arrCal.sum);
+            this.$emit('calculus', v);
         },
         switchValue(v) {
+            this.$emit('unit-switch', v ? this.env.unit.right : this.env.unit.left);
             this.unit = v ? this.env.unit.right : this.env.unit.left;
             if (this.calculation === 'Maximum') this.data.d = this.capacitySwitch(this.arrCal.max);
             if (this.calculation === 'Minimum') this.data.d = this.capacitySwitch(this.arrCal.min);

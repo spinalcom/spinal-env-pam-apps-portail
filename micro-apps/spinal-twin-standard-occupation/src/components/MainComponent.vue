@@ -11,15 +11,18 @@
         @nav="nav($event)"
         @chart-sent="handleChart"
         @call-trigger="callTrigger"
+        @calculus="calculus"
+        @unit-switch="unitSwitch"
       />
       <LoadingCard v-else style="width: 100%; height: 485px;"/>
       <div class="stat-heat">
         <div class="stats">
-          <StatsCard v-if="calendar && calendar.d " :value="Math.max(...calendar.d.max.flat().filter(value => value !== -1))" :unit="'%'" :title="'Taux d\'occupation maximum'"/>
+          <StatsCard v-if="calendar && calendar.d" :value="unit.shortName === '%' ? stat.value : stat.maxCapacity" :unit="unit.shortName" :title="stat.text"/>
           <LoadingCard v-else style="width: 100%; height: 74px;"/>
         </div>
         <div class="heat">
-          <HeatWeek/>
+          <HeatWeek v-if="weekData" :data="weekData" :unit="unit"/>
+          <LoadingCard v-else style="height: 286px;"/>
         </div>
       </div>
     </div>
@@ -65,29 +68,46 @@ interface state {
   },
 })
 class App extends Vue {
+
   loading = false;
+
   defaultSource = 0;
+
   currentTimestamp = {valueTime: 0};
+
   calendar: any = null;
+
+  weekData: any = null;
+
+  stat: { value: number, maxCapacity: number, text: string } = {value: 0, maxCapacity: 0, text: ''};
+
+  unit = env.unit.default ? env.unit.right : env.unit.left;
+
+
   @Prop({type: Object as () => ISpaceSelectorItem, required: true})
   space: ISpaceSelectorItem;
 
+
   @Prop({type: Object as () => TemporalityModel, required: true})
   temporality: TemporalityModel;
+
 
   mounted() {
     this.currentTimestamp = {valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
     this.spread(this.defaultSource);
   }
 
+
   async spread(source: number) {
     this.loading = true;
     this.defaultSource = source;
     this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[source]);
     this.loading = false;
-    console.log(Math.max(...this.calendar.d.max.flat().filter(value => value !== -1)));
+    this.calculus('Maximum');
+    // console.log(Math.max(...this.calendar.d.max.flat().filter(value => value !== -1)));
     
   }
+
 
   async callTrigger(interval = {start: null, end: null}) {
     // console.log(interval.start);
@@ -99,6 +119,151 @@ class App extends Vue {
     this.loading = false;
   }
 
+
+  calculus(calc) {
+    const weekDays = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
+    const colors = ['#B1D6FA', '#8EBEEC', '#568ABC', '#204D78', '#0A2540'];
+    const capacity = env.source[this.defaultSource].capacity;
+
+    if (calc === 'Maximum') {
+      this.stat.text = 'Taux d\'occupation maximum';
+      let maxOverall = 0;
+
+      const result = weekDays.map(day => {
+        return Array.from({ length: 24 }, (_, hourIndex) => {
+          const valuesForHour = this.calendar.rawData.filter(item => {
+            const itemDay = moment(item.date).format('ddd');
+            const itemHour = moment(item.date).hours();
+            return itemDay === day && itemHour === hourIndex;
+          });
+
+          if (valuesForHour.length > 0) {
+            const max = Math.max(...valuesForHour.map(item => item.value));
+            const maxItem = valuesForHour.find(item => item.value === max);
+            const formattedDate = moment(maxItem.date).format('D MMMM YYYY');
+            let color = '';
+            if (max > 80) color = colors[4];
+            else if (max > 60) color = colors[3];
+            else if (max > 40) color = colors[2];
+            else if (max > 20) color = colors[1];
+            else color = colors[0];
+
+            const maxCapacity = (max * capacity) / 100;
+
+            if (max > maxOverall) {
+              maxOverall = max;
+              this.stat.value = maxOverall;
+              this.stat.maxCapacity = maxCapacity;
+            }
+            return { date: formattedDate, value: max, color: color, maxCapacity: maxCapacity };
+          } else {
+            return null;
+          }
+        });
+      });
+
+      console.log(result);
+
+      this.weekData = result;
+    }
+
+    if (calc === 'Minimum') {
+      this.stat.text = 'Taux d\'occupation minimum';
+      let minOverall = Infinity;
+
+      const result = weekDays.map(day => {
+        return Array.from({ length: 24 }, (_, hourIndex) => {
+          const valuesForHour = this.calendar.rawData.filter(item => {
+            const itemDay = moment(item.date).format('ddd');
+            const itemHour = moment(item.date).hours();
+            return itemDay === day && itemHour === hourIndex;
+          });
+
+          if (valuesForHour.length > 0) {
+            const min = Math.min(...valuesForHour.map(item => item.value));
+            const minItem = valuesForHour.find(item => item.value === min);
+            const formattedDate = moment(minItem.date).format('D MMMM YYYY');
+            let color = '';
+            if (min > 80) color = colors[4];
+            else if (min > 60) color = colors[3];
+            else if (min > 40) color = colors[2];
+            else if (min > 20) color = colors[1];
+            else color = colors[0];
+
+            const minCapacity = (min * capacity) / 100;
+
+            if (min < minOverall) {
+              minOverall = min;
+              this.stat.value = minOverall;
+              this.stat.maxCapacity = minCapacity;
+            }
+
+            return { date: formattedDate, value: min, color: color, maxCapacity: minCapacity };
+          } else {
+            return null;
+          }
+        });
+      });
+
+      console.log(result);
+
+      this.weekData = result;
+    }
+
+    if (calc === 'Moyenne') {
+      this.stat.text = 'Taux d\'occupation moyen';
+      let sumOverall = 0;
+      let countOverall = 0;
+
+      const result = weekDays.map(day => {
+        return Array.from({ length: 24 }, (_, hourIndex) => {
+          const valuesForHour = this.calendar.rawData.filter(item => {
+            const itemDay = moment(item.date).format('ddd');
+            const itemHour = moment(item.date).hours();
+            return itemDay === day && itemHour === hourIndex;
+          });
+
+          if (valuesForHour.length > 0) {
+            const sum = valuesForHour.reduce((acc, item) => acc + item.value, 0);
+            const average = sum / valuesForHour.length;
+            const formattedDate = moment(valuesForHour[0].date).format('D MMMM YYYY');
+            let color = '';
+            if (average > 80) color = colors[4];
+            else if (average > 60) color = colors[3];
+            else if (average > 40) color = colors[2];
+            else if (average > 20) color = colors[1];
+            else color = colors[0];
+
+            const avgCapacity = (average * capacity) / 100;
+
+            sumOverall += sum;
+            countOverall += valuesForHour.length;
+            const overallAverage = sumOverall / countOverall;
+
+            this.stat.value = overallAverage;
+            this.stat.maxCapacity = (avgCapacity * capacity) / 100;
+
+            return { date: formattedDate, value: average, color: color, maxCapacity: avgCapacity };
+          } else {
+            return null;
+          }
+        });
+      });
+
+      console.log(result);
+
+      this.weekData = result;
+    }
+  }
+
+
+
+  unitSwitch(unit) {
+    this.unit = unit;
+  }
+
+
+
   nav(payload: number) {
     if (this.temporality.name === 'Année') {
       this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf()};
@@ -106,9 +271,12 @@ class App extends Vue {
     this.spread(this.defaultSource);
   }
 
+  
   handleChart(output: any) {
     this.$emit('chart-sent', output);
   }
+
+
 }
 export default App;
 </script>

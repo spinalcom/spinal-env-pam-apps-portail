@@ -8,7 +8,7 @@
             <LoadingCard style="width: 100%; height: 74px;"/>
           </div>
           <div class="heat">
-            <LoadingCard style="width: 100%; height: 330px;"/>
+            <LoadingCard style="width: 100%; height: 286px;"/>
           </div>
         </div>
       </div>
