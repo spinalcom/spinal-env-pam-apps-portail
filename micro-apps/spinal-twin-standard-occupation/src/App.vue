@@ -5,8 +5,8 @@
         <space-selector
           v-if="defaultSelected.name && defaultSelected.name != '' && defaultSelected.dynamicId && defaultSelected.dynamicId !== 0"
           ref="space-selector"
-          :open="false"
-          :maxDepth="-1"
+          :open.sync="openSpaceSelector"
+          :maxDepth="1"
           :GetChildrenFct="onSpaceSelectOpen"
           v-model="defaultSelected"
           label="ESPACE"
@@ -273,6 +273,27 @@ class App extends Vue {
               area: building.area,
               cp: '',
             }];
+      case 'building':
+      const floors = await getFloors(this.source);
+        for (let floor of floors) {
+          floorList.push({
+              name: floor.name,
+              staticId: floor.staticId,
+              dynamicId: floor.dynamicId,
+              type: 'floor',
+              level: 0,
+              isOpen: true,
+              loading: false,
+              patrimoineId: 'patrimoineId',
+              parents: [],
+              isLastInGrp: true,
+              drawLink: [],
+              haveChildren: false,
+              area: floor.area,
+              cp: floor.cp
+            })
+        }        
+        return floorList;
       default:
         return [];
     }

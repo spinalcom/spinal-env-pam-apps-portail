@@ -18,30 +18,12 @@ export async function getBuilding(source) {
   return result.data;
 }
 
-export async function getFloors(cp) {
+export async function getFloors(source) {
   const buildingId = localStorage.getItem('idBuilding');
   // get all floors
   const result = await HTTP.get(`building/${buildingId}/floor/list`);
-  // for each floor get its cp names
-  let promises = result.data.map(async (floor) => {
-    let cpList = await HTTP.get(`building/${buildingId}/node/${floor.dynamicId}/control_endpoint_list`);
-    for (let j = 0; j < cpList.data.length; j++) {
-      for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
-        // if there is a match add floor to array + area + cp id
-        if (cpList.data[j].endpoints[i].name === cp.name) {
-          let area = await HTTP.get(`building/${buildingId}/node/${floor.dynamicId}/attributsList`);
-          area = area.data[0].attributs[area.data[0].attributs.findIndex(e => e.label === 'area')].value;
-          floor.area = area;
-          floor.cp = cpList.data[j].endpoints[i].dynamicId;
-          return floor
-        }
-      }
-    }
-    return null;
-  });
-  let values = await Promise.all(promises);
-  let filteredValues = values.filter((value) => value !== null);
-  return filteredValues;
+  console.log(result.data);
+  return result.data;
 }
 
 async function getArea(space) {

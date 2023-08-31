@@ -21,7 +21,7 @@
           <LoadingCard v-else style="width: 100%; height: 74px;"/>
         </div>
         <div class="heat">
-          <HeatWeek v-if="weekData" :data="weekData" :unit="unit"/>
+          <HeatWeek v-if="weekData" :data="weekData" :unit="unit" :calculus="calcul"/>
           <LoadingCard v-else style="height: 286px;"/>
         </div>
       </div>
@@ -83,6 +83,7 @@ class App extends Vue {
 
   unit = env.unit.default ? env.unit.right : env.unit.left;
 
+  calcul = 'Maximum';
 
   @Prop({type: Object as () => ISpaceSelectorItem, required: true})
   space: ISpaceSelectorItem;
@@ -104,7 +105,6 @@ class App extends Vue {
     this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[source]);
     this.loading = false;
     this.calculus('Maximum');
-    // console.log(Math.max(...this.calendar.d.max.flat().filter(value => value !== -1)));
     
   }
 
@@ -121,15 +121,16 @@ class App extends Vue {
 
 
   calculus(calc) {
+    this.calcul = calc;
     const weekDays = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
-    const colors = ['#B1D6FA', '#8EBEEC', '#568ABC', '#204D78', '#0A2540'];
+    const colors = ['#D6E9FB', '#B7D7F5', '#97C4EF', '#72AFE8', '#519BE1', '#3A87D0', '#2F72B1', '#245D93', '#194773', '#0E3255'];
     const capacity = env.source[this.defaultSource].capacity;
-
+    let result;
     if (calc === 'Maximum') {
       this.stat.text = 'Taux d\'occupation maximum';
-      let maxOverall = 0;
+      let maxOverall = 0;      
 
-      const result = weekDays.map(day => {
+      result = weekDays.map(day => {
         return Array.from({ length: 24 }, (_, hourIndex) => {
           const valuesForHour = this.calendar.rawData.filter(item => {
             const itemDay = moment(item.date).format('ddd');
@@ -139,14 +140,15 @@ class App extends Vue {
 
           if (valuesForHour.length > 0) {
             const max = Math.max(...valuesForHour.map(item => item.value));
+            const min = Math.min(...valuesForHour.map(item => item.value));
             const maxItem = valuesForHour.find(item => item.value === max);
             const formattedDate = moment(maxItem.date).format('D MMMM YYYY');
+
+            const interval = (max - min) / colors.length;
+            const intervalIndex = Math.floor((max - min) / interval);
+            const colorIndex = Math.min(Math.max(intervalIndex, 0), 9);
+            
             let color = '';
-            if (max > 80) color = colors[4];
-            else if (max > 60) color = colors[3];
-            else if (max > 40) color = colors[2];
-            else if (max > 20) color = colors[1];
-            else color = colors[0];
 
             const maxCapacity = (max * capacity) / 100;
 
@@ -161,17 +163,13 @@ class App extends Vue {
           }
         });
       });
-
-      console.log(result);
-
-      this.weekData = result;
     }
 
     if (calc === 'Minimum') {
       this.stat.text = 'Taux d\'occupation minimum';
       let minOverall = Infinity;
 
-      const result = weekDays.map(day => {
+      result = weekDays.map(day => {
         return Array.from({ length: 24 }, (_, hourIndex) => {
           const valuesForHour = this.calendar.rawData.filter(item => {
             const itemDay = moment(item.date).format('ddd');
@@ -184,11 +182,6 @@ class App extends Vue {
             const minItem = valuesForHour.find(item => item.value === min);
             const formattedDate = moment(minItem.date).format('D MMMM YYYY');
             let color = '';
-            if (min > 80) color = colors[4];
-            else if (min > 60) color = colors[3];
-            else if (min > 40) color = colors[2];
-            else if (min > 20) color = colors[1];
-            else color = colors[0];
 
             const minCapacity = (min * capacity) / 100;
 
@@ -204,10 +197,6 @@ class App extends Vue {
           }
         });
       });
-
-      console.log(result);
-
-      this.weekData = result;
     }
 
     if (calc === 'Moyenne') {
@@ -215,7 +204,7 @@ class App extends Vue {
       let sumOverall = 0;
       let countOverall = 0;
 
-      const result = weekDays.map(day => {
+      result = weekDays.map(day => {
         return Array.from({ length: 24 }, (_, hourIndex) => {
           const valuesForHour = this.calendar.rawData.filter(item => {
             const itemDay = moment(item.date).format('ddd');
@@ -228,11 +217,6 @@ class App extends Vue {
             const average = sum / valuesForHour.length;
             const formattedDate = moment(valuesForHour[0].date).format('D MMMM YYYY');
             let color = '';
-            if (average > 80) color = colors[4];
-            else if (average > 60) color = colors[3];
-            else if (average > 40) color = colors[2];
-            else if (average > 20) color = colors[1];
-            else color = colors[0];
 
             const avgCapacity = (average * capacity) / 100;
 
@@ -249,11 +233,42 @@ class App extends Vue {
           }
         });
       });
-
-      console.log(result);
-
-      this.weekData = result;
     }
+
+    const flatArray = result.flat();
+
+    const min = flatArray.reduce((minValue, obj) => {
+      if (obj !== null) {
+        return Math.min(minValue, obj.value);
+      }
+      return minValue;
+    }, Infinity);
+
+    const max = flatArray.reduce((maxValue, obj) => {
+      if (obj !== null) {
+        return Math.max(maxValue, obj.value);
+      }
+      return maxValue;
+    }, -Infinity);
+
+    const interval = (max - min) / 10;
+
+    for (let i = 0; i < result.length; i++) {
+      for (let j = 0; j < 24; j++) {
+        if(result[i][j] === null) continue;
+        else if (result[i][j].value < min + interval || result[i][j].value == 0) result[i][j].color = colors[0];
+        else if (result[i][j].value < min + interval * 2) result[i][j].color = colors[1];
+        else if (result[i][j].value < min + interval * 3) result[i][j].color = colors[2];
+        else if (result[i][j].value < min + interval * 4) result[i][j].color = colors[3];
+        else if (result[i][j].value < min + interval * 5) result[i][j].color = colors[4];
+        else if (result[i][j].value < min + interval * 6) result[i][j].color = colors[5];
+        else if (result[i][j].value < min + interval * 3) result[i][j].color = colors[6];
+        else if (result[i][j].value < min + interval * 4) result[i][j].color = colors[7];
+        else if (result[i][j].value < min + interval * 5) result[i][j].color = colors[8];
+        else result[i][j].color = colors[9];
+      }
+    }
+    this.weekData = result;
   }
 
 

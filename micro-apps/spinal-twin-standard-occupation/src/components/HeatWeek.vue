@@ -2,7 +2,7 @@
 <v-card class="bar-card-w  d-flex flex-shrink-1 flex-column" >
     <v-card-title class="card-title flex-shrink-1 justify-space-between">
       <p class="mb-0" style="padding: 10px;">
-        {{ title }}
+        SEMAINE TYPE : {{ calculus.toUpperCase() }}
       </p>
     </v-card-title>
 
@@ -89,10 +89,11 @@ export default {
     props: {
         data: {required: true},
         unit: {required: true},
+        calculus: {required: true},
         // source: {required: true}
     },
     mounted() {
-      console.log(this.data);
+      
     },
     data() {
         return {
