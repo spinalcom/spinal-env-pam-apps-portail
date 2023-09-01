@@ -23,7 +23,7 @@
 import Vue from 'vue';
 import { ref } from 'vue';
 import { tab } from "../services/index.js";
-import SpinalTabletest from "./nested/SpinalTabletest.vue";
+import SpinalTabletest from "./nested/SpinalTableTest.vue";
 import capacityTable from "./nested/CapacityTable.vue";
 import config from "../config.js"
 import { gettabdata } from "../services/index.js"
