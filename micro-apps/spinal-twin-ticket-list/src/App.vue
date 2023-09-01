@@ -312,11 +312,11 @@ export default {
           Étape,
           Domaine,
           Déclarant,
-          bosId: tdetail.staticId,
-          gmaoId: tdetail.gmaoId,
-          description: tdetail.description,
-          targetName: tdetail.elementSelected.name,
-          targetId: tdetail.elementSelected.staticId,
+          bosId: tdetail?.staticId || 0,
+          gmaoId: tdetail?.gmaoId || 0,
+          description: tdetail?.description || "",
+          targetName: tdetail?.elementSelected?.name || "",
+          targetId: tdetail?.elementSelected?.staticId || 0,
         };
       });
     },
@@ -340,6 +340,7 @@ export default {
                 name: f.name,
                 dynamicId: f.dynamicId,
                 color: RGBtoHexa(r, g, b),
+                count: f.tickets.length,
               };
             });
 
@@ -347,7 +348,9 @@ export default {
             return [];
         }
       }
-      return [await getBuildingAsync()];
+      const building = await getBuildingAsync();
+      building.count = this.tickets.length;
+      return [building];
     },
 
     compareDate(date1, date2) {

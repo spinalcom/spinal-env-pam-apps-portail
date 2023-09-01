@@ -7,8 +7,8 @@ import {
   getWeekTimeSeriesAsync,
   getYearTimeSeriesAsync,
 } from "../api-requests";
-import { barColors } from "../colors";
-import { sameWeek } from "../date-comparison";
+import * as config from "../../config";
+import moment from "moment";
 
 export class Workflow {
   private readonly dynamicId: number;
@@ -17,15 +17,7 @@ export class Workflow {
   private color: number;
   private readonly endpoints: { dynamicId: number; name: string }[];
   private barChart: BarChart[];
-  private pieChart: { label: string; value: number }[];
-  private readonly indicators: {
-    unit: string;
-    title: string;
-    subtitle: string;
-    value: number;
-    compared: string;
-    type: string;
-  }[];
+  private lineChart: BarChart[];
 
   constructor(dynamicId: number, name: string) {
     this.dynamicId = dynamicId;
@@ -33,9 +25,8 @@ export class Workflow {
     this.initiated = false;
     this.color = 0;
     this.endpoints = [];
-    this.indicators = [];
     this.barChart = <BarChart[]>[];
-    this.pieChart = [];
+    this.lineChart = <BarChart[]>[];
   }
 
   public isLoaded(period: string) {
@@ -58,145 +49,77 @@ export class Workflow {
     return this.barChart.map((p) => p.getData(period));
   }
 
-  public getPieChart() {
-    if (this.pieChart.length === 1 && this.pieChart[0].value == 0) return [];
-    return this.pieChart;
+  public getLineChart(period: string) {
+    return this.lineChart.map((p) => p.getData(period));
   }
 
-  public getIndicators() {
-    return this.indicators;
-  }
-
-  public async buildWorkflow(period: string) {
+  public async buildWorkflow(period: string, index: number = 0) {
     await this.initWorkflow();
-    await this.buildBarChart(period);
+    await this.buildBarChart(period, index);
   }
 
-  private initWorkflow() {
+  private async initWorkflow() {
     if (this.initiated) return;
-    const promises = [];
-    promises.push(getAttributsList(this.dynamicId));
-    promises.push(getNodeControlEndpointsListAsync(this.dynamicId));
+    const endpoint_list = await getNodeControlEndpointsListAsync(
+      this.dynamicId
+    );
 
-    return Promise.all(promises).then((results) => {
-      const attribute_list = results[0];
-      const endpoint_list = results[1];
-
-      this.pieChart = attribute_list
-        .find((a: any) => a.name === "Nombre de tickets par declarant")
-        .attributs.map((att: any) => ({
-          label: att.label,
-          value: Number(att.value),
-        }));
-
-      const colors = barColors();
-      let i = 0;
+    if (endpoint_list)
       for (const endpoint of endpoint_list.endpoints) {
         this.endpoints.push({
           dynamicId: endpoint.dynamicId,
           name: endpoint.name,
         });
-        if (endpoint.name === "Temps moyen de résolution de tickets") continue;
-        this.barChart.push(
-          new BarChart(colors[i], colors[i++], 1, endpoint.name)
-        );
+        const color = config.controlPointProfil.endpoints.find(
+          (e: any) => e.name === endpoint.name
+        ).color;
+        if (endpoint.name === "Temps de résolution")
+          this.lineChart.push(new BarChart(color, color, 2, endpoint.name));
+        else this.barChart.push(new BarChart(color, color, 1, endpoint.name));
       }
+    else
+      for (const endpoint of config.controlPointProfil.endpoints)
+        if (endpoint.name === "Temps de résolution")
+          this.lineChart.push(
+            new BarChart(endpoint.color, endpoint.color, 2, endpoint.name)
+          );
+        else
+          this.barChart.push(
+            new BarChart(endpoint.color, endpoint.color, 1, endpoint.name)
+          );
 
-      this.initiated = true;
-    });
+    this.initiated = true;
   }
 
-  private async buildBarChart(period: string) {
-    if (this.barChart[0].isLoaded(period)) return;
+  private async buildBarChart(period: string, index: number = 0) {
     for (const endpoint of this.endpoints) {
       let series = [{ date: Date.now(), value: 0 }];
       switch (period) {
         case "week":
-          series = await getWeekTimeSeriesAsync(endpoint.dynamicId);
+          series = await getWeekTimeSeriesAsync(endpoint.dynamicId, index);
           break;
         case "month":
-          series = await getMonthTimeSeriesAsync(endpoint.dynamicId);
+          series = await getMonthTimeSeriesAsync(endpoint.dynamicId, index);
           break;
         case "year":
-          series = await getYearTimeSeriesAsync(endpoint.dynamicId);
+          series = await getYearTimeSeriesAsync(endpoint.dynamicId, index);
           break;
         case "decade":
-          series = await getTimeSeriesAsync(endpoint.dynamicId);
+          series = await getTimeSeriesAsync(endpoint.dynamicId, index);
           break;
       }
       this.barChart.forEach((b) => {
         if (b.getLabel() === endpoint.name) {
           if (endpoint.name === "Nombre de tickets en cours") {
-            b.setDataAVG(period, series);
-          } else b.setData(period, series);
+            b.setDataAVG(period, series, index);
+          } else b.setData(period, series, index);
         }
       });
-      this.buildIndicators(endpoint, series);
-    }
-  }
-
-  private compareWeek(series: { date: number; value: number }[]) {
-    const this_week_value = series[series.length - 1]?.value || 0;
-    const last_week_value = series[series.length - 8]?.value || 0;
-
-    const sign = this_week_value < last_week_value ? "-" : "+";
-    return `${sign}${Math.abs(this_week_value - last_week_value)}`;
-  }
-
-  private buildIndicators(
-    endpoint: any,
-    series: { date: number; value: number }[]
-  ) {
-    if (this.indicators.length >= 4) return;
-    const val =
-      series.length === 0
-        ? 0
-        : new Date(
-            series.map((ts) => ts.value).reduce((ts1, ts2) => ts1 + ts2, 0) /
-              series.length
-          ).getHours();
-    switch (endpoint.name) {
-      case "Nombre de tickets créés":
-        this.indicators.push({
-          unit: "Tickets",
-          title: "créés aujourd'hui",
-          subtitle: "Aujourd'hui",
-          value: series[series.length - 1]?.value || 0,
-          compared: "",
-          type: "date",
-        });
-        this.indicators.push({
-          unit: "Tickets",
-          title: "créés cette semaine",
-          subtitle: "cette semaine",
-          value: series
-            .filter((s) => sameWeek(new Date(s.date), new Date()))
-            .map((t) => t.value)
-            .reduce((t1, t2) => t1 + t2, 0),
-          compared: "",
-          type: "date",
-        });
-        break;
-      case "Nombre de tickets en cours":
-        this.indicators.push({
-          unit: "Tickets",
-          title: "en cours",
-          subtitle: "par rapport à la semaine dernière",
-          value: series[series.length - 1]?.value || 0,
-          compared: this.compareWeek(series),
-          type: "comparison",
-        });
-        break;
-      case "Temps moyen de résolution de tickets":
-        this.indicators.push({
-          unit: "Heures",
-          title: "Temps de résolution moyen",
-          subtitle: "par rapport à la moyenne",
-          value: val,
-          compared: val < 3 ? "Rapide " : val < 6 ? "Normal " : "Lent ",
-          type: "comparison",
-        });
-        break;
+      this.lineChart.forEach((b) => {
+        if (b.getLabel() === endpoint.name) {
+          b.setLineData(period, series, index);
+        }
+      });
     }
   }
 }

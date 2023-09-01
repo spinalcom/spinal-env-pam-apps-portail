@@ -138,7 +138,10 @@ export default new Vuex.Store({
     async getFloorList({ state, commit }) {
       if (!state.building.children) {
         const floors = await getFloorListAsync();
-        floors.forEach((f: any) => (f.loaded = false));
+        floors.forEach((f: any) => {
+          f.loaded = false;
+          f.tickets = <any[]>[];
+        });
         commit("SET_FLOORS", floors);
       }
       return this.state.building.children;

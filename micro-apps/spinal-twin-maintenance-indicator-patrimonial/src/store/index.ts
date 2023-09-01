@@ -218,7 +218,7 @@ export default new Vuex.Store({
               {
                 value: -1,
                 unit: "Heures",
-                title: "Temps de résolution moyen",
+                title: "Temps de résolution",
                 subtitle: "par rapport à la moyenne",
                 type: "comparison",
                 compared: "Non défini",

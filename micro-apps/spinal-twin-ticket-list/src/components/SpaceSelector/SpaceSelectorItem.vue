@@ -51,6 +51,11 @@ with this file. If not, see
       <!-- v-tooltip="item.name" -->
       <v-list-item-title>{{ item.name }} </v-list-item-title>
     </v-list-item-content>
+    <v-list-item-icon>
+      <v-icon dark>
+        {{ `mdi-numeric-${item.count || 0}-box-outline` }}
+      </v-icon>
+    </v-list-item-icon>
     <v-list-item-action>
       <v-btn
         elevation="0"

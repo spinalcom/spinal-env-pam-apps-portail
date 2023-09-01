@@ -25,22 +25,13 @@
 import { HTTP } from "./http-constants";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import dateFormat from "dateformat";
-import * as config from "../../../../config.json";
+import moment from "moment";
+import * as config from "../../config.js";
 
 // durée de relevé des time séries : 10 ans
-const today = new Date(Date.now() + 24 * 60 * 60 * 1000);
-today.setHours(0);
-const end = dateFormat(today, "dd-mm-yyyy hh:MM:ss");
-
-const begin = dateFormat(
-  new Date(today.getFullYear() - 10, today.getMonth()),
-  "dd-mm-yyyy hh:MM:ss"
-);
-const weekBegin = dateFormat(
-  new Date(today.getFullYear(), today.getMonth(), today.getDate() - 15),
-  "dd-mm-yyyy hh:MM:ss"
-);
+const today = moment();
+today.hours(0);
+today.minutes(0);
 
 // Contexte spatial du bâtiment(bâtiment, étages et pièces)
 export async function getBuildingAsync() {
@@ -64,7 +55,9 @@ export async function getNodeControlEndpointsListAsync(nodeId: number) {
   const result = await HTTP.get(
     `/building/${buildingId}/node/${nodeId}/control_endpoint_list`
   );
-  return result.data[0];
+  return result.data.find(
+    (d: any) => d.profileName === config.controlPointProfil.name
+  );
 }
 
 export async function getControlEndPointByNameAsync(
@@ -78,34 +71,69 @@ export async function getControlEndPointByNameAsync(
 }
 
 // Time series
-export async function getTimeSeriesAsync(endpointId: number) {
+export async function getTimeSeriesAsync(
+  endpointId: number,
+  index: number = 0
+) {
+  const end = moment(today).add(index * 10, "year");
+  const begin = moment(end).add(-9, "year");
+
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
-    `/building/${buildingId}/endpoint/${endpointId}/timeSeries/read/${begin}/${end}`
+    `/building/${buildingId}/endpoint/${endpointId}/timeSeries/read/${begin.format(
+      "DD-MM-YYYY HH:mm:ss"
+    )}/${end.format("DD-MM-YYYY HH:mm:ss")}`
   );
   return result.data;
 }
 
-export async function getYearTimeSeriesAsync(endpointId: number) {
+export async function getYearTimeSeriesAsync(
+  endpointId: number,
+  index: number = 0
+) {
+  const end = moment(today).add(index, "year");
+  end.month(13);
+  const begin = moment(end).subtract(12, "year");
+
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
-    `/building/${buildingId}/endpoint/${endpointId}/timeSeries/readCurrentYear`
+    `/building/${buildingId}/endpoint/${endpointId}/timeSeries/read/${begin.format(
+      "DD-MM-YYYY HH:mm:ss"
+    )}/${end.format("DD-MM-YYYY HH:mm:ss")}`
   );
   return result.data;
 }
 
-export async function getMonthTimeSeriesAsync(endpointId: number) {
+export async function getMonthTimeSeriesAsync(
+  endpointId: number,
+  index: number = 0
+) {
+  const end = moment(today).add(index, "month");
+  end.date(end.daysInMonth());
+  const begin = moment(end).subtract(end.daysInMonth(), "days");
+
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
-    `/building/${buildingId}/endpoint/${endpointId}/timeSeries/readCurrentMonth`
+    `/building/${buildingId}/endpoint/${endpointId}/timeSeries/read/${begin.format(
+      "DD-MM-YYYY HH:mm:ss"
+    )}/${end.format("DD-MM-YYYY HH:mm:ss")}`
   );
   return result.data;
 }
 
-export async function getWeekTimeSeriesAsync(endpointId: number) {
+export async function getWeekTimeSeriesAsync(
+  endpointId: number,
+  index: number = 0
+) {
+  const end = moment(today).add(index, "week");
+  end.day(8);
+  const begin = moment(end).add(-7, "days");
+
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
-    `/building/${buildingId}/endpoint/${endpointId}/timeSeries/read/${weekBegin}/${end}`
+    `/building/${buildingId}/endpoint/${endpointId}/timeSeries/read/${begin.format(
+      "DD-MM-YYYY HH:mm:ss"
+    )}/${end.format("DD-MM-YYYY HH:mm:ss")}`
   );
   return result.data;
 }

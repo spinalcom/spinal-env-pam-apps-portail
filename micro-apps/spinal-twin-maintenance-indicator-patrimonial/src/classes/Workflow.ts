@@ -8,7 +8,7 @@ import {
   getYearTimeSeriesAsync,
 } from "../api-requests";
 import { barColors } from "../colors";
-import { lastWeek, sameWeek } from "../date-comparison";
+import { sameWeek } from "../date-comparison";
 import { Endpoint } from "./Endpoint";
 
 export class Workflow {
@@ -112,8 +112,7 @@ export class Workflow {
             name: endpoint.name,
             currentValue: endpoint.currentValue,
           });
-          if (endpoint.name === "Temps moyen de résolution de tickets")
-            continue;
+          if (endpoint.name === "Temps de résolution") continue;
           this.barChart.push(
             new BarChart(colors[i], colors[i++], 1, endpoint.name)
           );
@@ -217,10 +216,10 @@ export class Workflow {
           type: "comparison",
         });
         break;
-      case "Temps moyen de résolution de tickets":
+      case "Temps de résolution":
         this.indicators.push({
           unit: "Heures",
-          title: "Temps de résolution moyen",
+          title: "Temps de résolution",
           subtitle: "par rapport à la moyenne",
           value: val,
           compared: val < 3 ? "Rapide " : val < 5 ? "Normal " : "Lent ",

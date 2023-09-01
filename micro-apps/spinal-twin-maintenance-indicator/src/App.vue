@@ -1,7 +1,11 @@
 <template>
   <v-app id="application">
     <div class="d-flex justify-end">
-      <sc-download-button class="mr-1"></sc-download-button>
+      <sc-download-button
+        class="mr-1"
+        file-name="T"
+        :data="[]"
+      ></sc-download-button>
       <div class="selectors">
         <div class="Hx1">
           <space-selector
@@ -29,10 +33,16 @@
       <sc-bar-card
         v-if="loaded"
         style="height: calc(65% - 16px)"
-        :title="'Historique des tickets'"
+        :title="cardTitle"
         :labels="barChartData.labels"
         :datasets="barChartData.datasets"
+        :line-datasets="barLineChartData"
+        :units="{ line: 'h' }"
         stacked
+        nav-enabled
+        @nav="nav"
+        :nav-text="navText"
+        line-point
       >
         <template v-slot:extras>
           <div class="d-flex flex-row ml-8">
@@ -120,21 +130,13 @@
         style="height: calc(65% - 16px)"
       ></sc-loading-card>
       <div style="height: 35%" class="d-flex flex-row justify-space-between">
-        <sc-pie-card
-          v-if="loaded"
-          class="d-flex"
-          style="width: 36%"
-          title="Tickets par déclarants"
-          :pie-chart-data="pieChartData"
-        ></sc-pie-card>
-        <sc-loading-card v-else style="width: 36%"></sc-loading-card>
         <div
           v-if="loaded"
-          style="width: calc(64% - 16px)"
+          style="width: 100%"
           class="d-flex flex-row align-content-space-between justify-space-between flex-wrap"
         >
           <sc-stat-card
-            style="width: calc(50% - 8px); height: calc(50% - 8px)"
+            style="width: calc(100% / 3 - 8px); height: calc(50% - 8px)"
             v-for="(indicator, i) in indicators"
             :key="i"
             :value="indicator.value"
@@ -148,13 +150,13 @@
         </div>
         <div
           v-else
-          style="width: calc(64% - 16px)"
+          style="width: 100%"
           class="d-flex flex-row align-content-space-between justify-space-between flex-wrap"
         >
           <sc-loading-card
-            v-for="i in 4"
+            v-for="i in 6"
             :key="i"
-            style="width: calc(50% - 8px); height: calc(50% - 8px)"
+            style="width: calc(100% / 3 - 8px); height: calc(50% - 8px)"
           ></sc-loading-card>
         </div>
       </div>
@@ -163,10 +165,12 @@
 </template>
 
 <script>
-import config from "../../../config.json";
+import config from "../config.js";
 import { mapActions, mapGetters, mapState } from "vuex";
 import { SpaceSelector } from "./components/SpaceSelector";
 import { getBuildingAsync } from "./api-requests";
+import moment from "moment";
+import { sameDecade } from "./date-comparison";
 
 export default {
   name: "App",
@@ -181,6 +185,8 @@ export default {
       openSpaceSelector: false,
       openTimeSelector: false,
       el: { name: "Bâtiment" },
+      navIndex: 0,
+      cardTitle: config.dashboardTitle,
     };
   },
 
@@ -191,8 +197,9 @@ export default {
     }),
     ...mapGetters({
       getBarChartData: "getBarData",
-      getPieChartData: "getPieData",
+      getLineChartData: "getLineData",
       getIndicators: "getIndicators",
+      getPeriode: "getPeriode",
     }),
     to_display() {
       return !this.process.length
@@ -204,26 +211,141 @@ export default {
                 .includes(p.workflowId) && this.process.includes(p.name)
           );
     },
-    pieChartData() {
-      return this.getPieChartData({
-        displayedIds: this.to_display.map((d) => d.dynamicId),
-      });
-    },
     barChartData() {
       return this.getBarChartData({
         displayedIds: this.to_display.map((d) => d.dynamicId),
         period: this.period.value,
+        index: this.navIndex,
       });
     },
-    indicators() {
-      return this.getIndicators({
+    barLine() {
+      return this.getLineChartData({
         displayedIds: this.to_display.map((d) => d.dynamicId),
+        period: this.period.value,
       });
+    },
+
+    barLineChartData() {
+      const line = JSON.parse(JSON.stringify(this.barLine));
+      line.forEach((set) => {
+        set.data = set.data.map((d) =>
+          d.length
+            ? Math.round(
+                d.reduce((e1, e2) => e1 + e2.value, 0) / (d.length * 3600000)
+              )
+            : null
+        );
+      });
+      return line;
+    },
+
+    indicators() {
+      if (
+        !this.to_display.reduce((e1, e2) => e2.endpoints.length || e1, false)
+      ) {
+        return [
+          {
+            value: -1,
+            unit: "Tickets",
+            title: "créés",
+          },
+          {
+            value: -1,
+            unit: "Tickets",
+            title: "résolus",
+          },
+          {
+            value: -1,
+            unit: "%",
+            title: "résolution des tickets",
+          },
+          {
+            value: NaN,
+            unit: "Heures",
+            title: "Temps minimal de résolution",
+          },
+          {
+            value: NaN,
+            unit: "Heures",
+            title: "Temps maximal de résolution",
+          },
+          {
+            value: NaN,
+            unit: "Heures",
+            title: "Temps moyen de résolution",
+          },
+        ];
+      }
+      const indics = this.barChartData.datasets
+        .filter((b) => !b.label.includes("en cours"))
+        .map((b) => ({
+          value: b.data.reduce((e1, e2) => e1 + e2, 0),
+          unit: "Tickets",
+          title: b.label.split(" ").slice(3).join(" "),
+        }));
+      const lineIndics = this.barLine[0];
+      const timeTable = lineIndics.data
+        .map((d) =>
+          d.filter((ds) => ds.value || ds.value === 0).map((ds) => ds.value)
+        )
+        .reduce((e1, e2) => e1.concat(e2), []);
+      const min = {
+        value: Math.round(Math.min(...timeTable) / 3600000),
+        unit: "Heures",
+        title: lineIndics.label.split(" ").fill("minimal", 1, 2).join(" "),
+      };
+      const max = {
+        value: Math.round(Math.max(...timeTable) / 3600000),
+        unit: "Heures",
+        title: lineIndics.label.split(" ").fill("maximal", 1, 2).join(" "),
+      };
+      let quot = 0;
+      const moy = {
+        value: Math.round(
+          timeTable.reduce((e1, e2) => {
+            e2 = e2 || 0;
+            quot++;
+            return e1 + e2;
+          }, 0) /
+            ((quot || 1) * 3600000)
+        ),
+        unit: "Heures",
+        title: lineIndics.label.split(" ").fill("moyen", 1, 2).join(" "),
+      };
+      const solvedInPeriod = lineIndics.data
+        .map((d) => {
+          if (this.period.value !== "decade")
+            return d.filter((ds) =>
+              moment()
+                .add(this.navIndex, this.period.value)
+                .isSame(moment(ds.date - ds.value), this.period.value)
+            );
+          const currentDecade = moment().add(this.navIndex * 10, "years");
+          return d.filter((ds) =>
+            sameDecade(moment(ds.date - ds.value), moment(currentDecade))
+          );
+        })
+        .reduce((e1, e2) => e1.concat(e2), []);
+      const created = indics.find((b) => b.title.includes("créés")).value;
+      const rate = {
+        value: created
+          ? Math.round((solvedInPeriod.length / created) * 100)
+          : 0,
+        unit: "%",
+        title: "résolution des tickets",
+      };
+      return indics.concat(rate, min, max, moy);
     },
     currentWorkflow() {
       return !this.workflow.length
         ? this.displayed.filter((d) => !d.workflowId)
         : this.displayed.filter((d) => this.workflow.includes(d.name));
+    },
+    navText() {
+      return this.getPeriode({
+        period: this.period.value,
+        index: this.navIndex,
+      });
     },
   },
 
@@ -254,13 +376,20 @@ export default {
     },
 
     onTimeSelectOpen(item) {
-      if (item) return [];
+      if (item) {
+        this.navIndex = 0;
+        return [];
+      }
       return [
         { name: "Semaine" },
         { name: "Mois" },
         { name: "Année" },
         { name: "Décennie" },
       ];
+    },
+
+    nav(i) {
+      this.navIndex += i;
     },
   },
 
@@ -275,6 +404,15 @@ export default {
       await this.updateProcesses({
         displayedIds: v.map((d) => d.dynamicId),
         period: this.period.value,
+        index: this.navIndex,
+      });
+    },
+
+    async navIndex(i) {
+      await this.updateProcesses({
+        displayedIds: this.to_display.map((d) => d.dynamicId),
+        period: this.period.value,
+        index: i,
       });
     },
 
@@ -293,10 +431,13 @@ export default {
           p.value = "decade";
           break;
       }
-      await this.updateProcesses({
-        displayedIds: this.to_display.map((d) => d.dynamicId),
-        period: p.value,
-      });
+      if (!this.navIndex)
+        await this.updateProcesses({
+          displayedIds: this.to_display.map((d) => d.dynamicId),
+          period: p.value,
+          index: this.navIndex,
+        });
+      else this.navIndex = 0;
     },
   },
 };

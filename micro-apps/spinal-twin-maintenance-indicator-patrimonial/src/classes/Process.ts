@@ -121,8 +121,7 @@ export class Process {
             dynamicId: endpoint.dynamicId,
             name: endpoint.name,
           });
-          if (endpoint.name === "Temps moyen de résolution de tickets")
-            continue;
+          if (endpoint.name === "Temps de résolution") continue;
           this.barChart.push(
             new BarChart(colors[i], colors[i++], 1, endpoint.name)
           );
@@ -219,7 +218,7 @@ export class Process {
           type: "comparison",
         });
         break;
-      case "Temps moyen de résolution de tickets":
+      case "Temps de résolution":
         const val =
           series.length === 0
             ? 0
@@ -231,7 +230,7 @@ export class Process {
 
         this.indicators.push({
           unit: "Heures",
-          title: "Temps de résolution moyen",
+          title: "Temps de résolution",
           subtitle: "par rapport à la moyenne",
           value: val,
           compared: val < 3 ? "Rapide " : val < 5 ? "Normal " : "Lent ",

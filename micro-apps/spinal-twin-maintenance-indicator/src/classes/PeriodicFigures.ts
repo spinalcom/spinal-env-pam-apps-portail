@@ -13,37 +13,37 @@ export class PeriodicFigures {
 
   private decade: {
     loaded: boolean;
-    values: number[];
+    values: any[];
   };
   private year: {
     loaded: boolean;
-    values: number[];
+    values: any[];
   };
   private month: {
     loaded: boolean;
-    values: number[];
+    values: any[];
   };
   private week: {
     loaded: boolean;
-    values: number[];
+    values: any[];
   };
 
   constructor() {
     this.decade = {
       loaded: false,
-      values: <number[]>[],
+      values: <any[]>[],
     };
     this.year = {
       loaded: false,
-      values: <number[]>[],
+      values: <any[]>[],
     };
     this.month = {
       loaded: false,
-      values: <number[]>[],
+      values: <any[]>[],
     };
     this.week = {
       loaded: false,
-      values: <number[]>[],
+      values: <any[]>[],
     };
   }
 
@@ -57,7 +57,8 @@ export class PeriodicFigures {
 
   public setData(
     period: string,
-    series: { date: number; value: number }[]
+    series: { date: number; value: number }[],
+    index: number = 0
   ): void {
     switch (period) {
       case "week":
@@ -70,7 +71,29 @@ export class PeriodicFigures {
         this.setYear(series);
         break;
       case "decade":
-        this.setDecade(series);
+        this.setDecade(series, index);
+        break;
+    }
+    this[period].loaded = true;
+  }
+
+  public setLineData(
+    period: string,
+    series: { date: number; value: number }[],
+    index: number = 0
+  ): void {
+    switch (period) {
+      case "week":
+        this.setLineWeek(series);
+        break;
+      case "month":
+        this.setLineMonth(series);
+        break;
+      case "year":
+        this.setLineYear(series);
+        break;
+      case "decade":
+        this.setLineDecade(series, index);
         break;
     }
     this[period].loaded = true;
@@ -78,52 +101,95 @@ export class PeriodicFigures {
 
   public setDataAVG(
     period: string,
-    series: { date: number; value: number }[]
+    series: { date: number; value: number }[],
+    index: number = 0
   ): void {
     switch (period) {
       case "week":
-        this.setWeek(series);
+        this.setWeekAVG(series);
         break;
       case "month":
-        this.setMonth(series);
+        this.setMonthAVG(series);
         break;
       case "year":
         this.setYearAVG(series);
         break;
       case "decade":
-        this.setDecadeAVG(series);
+        this.setDecadeAVG(series, index);
         break;
     }
     this[period].loaded = true;
   }
 
   private setWeek(series: { date: number; value: number }[]): void {
-    const filtered = series.filter((bts) =>
-      sameWeek(new Date(bts.date), today)
-    );
+    this.week.values = [];
     for (const c of calendar.week) {
-      const found = filtered.find((e) => new Date(e.date).getDay() === c);
-      this.week.values.push(found ? found.value : 0);
+      const found = series.filter((e) => new Date(e.date).getDay() === c);
+      this.week.values.push(found.reduce((e1, e2) => e1 + e2.value, 0));
+    }
+  }
+
+  private setLineWeek(series: { date: number; value: number }[]): void {
+    this.week.values = [];
+    for (const c of calendar.week) {
+      this.week.values.push(
+        series.filter((e) => new Date(e.date).getDay() === c)
+      );
+    }
+  }
+
+  private setWeekAVG(series: { date: number; value: number }[]): void {
+    this.week.values = [];
+    for (const c of calendar.week) {
+      const found = series.filter((e) => new Date(e.date).getDay() === c);
+      this.week.values.push(
+        found.length > 0
+          ? Math.floor(
+              found.map((e) => e.value).reduce((e1, e2) => e1 + e2, 0) /
+                found.length
+            )
+          : -1
+      );
     }
   }
 
   private setMonth(series: { date: number; value: number }[]): void {
-    const filtered = series.filter((bts) =>
-      sameMonth(new Date(bts.date), today)
-    );
+    this.month.values = [];
     for (const c of calendar.month) {
-      const found = filtered.find((e) => new Date(e.date).getDate() === c);
-      this.month.values.push(found ? found.value : 0);
+      const found = series.filter((e) => new Date(e.date).getDate() === c);
+      this.month.values.push(found.reduce((e1, e2) => e1 + e2.value, 0));
+    }
+  }
+
+  private setLineMonth(series: { date: number; value: number }[]): void {
+    this.month.values = [];
+    for (const c of calendar.month) {
+      this.month.values.push(
+        series.filter((e) => new Date(e.date).getDate() === c)
+      );
+    }
+  }
+
+  private setMonthAVG(series: { date: number; value: number }[]): void {
+    this.month.values = [];
+    for (const c of calendar.month) {
+      const found = series.filter((e) => new Date(e.date).getDate() === c);
+      this.month.values.push(
+        found.length > 0
+          ? Math.floor(
+              found.map((e) => e.value).reduce((e1, e2) => e1 + e2, 0) /
+                found.length
+            )
+          : -1
+      );
     }
   }
 
   private setYear(series: { date: number; value: number }[]): void {
-    const filtered = series.filter((bts) =>
-      sameYear(new Date(bts.date), today)
-    );
+    this.year.values = [];
     for (const c of calendar.year) {
       this.year.values.push(
-        filtered
+        series
           .filter((e) => new Date(e.date).getMonth() === c)
           .map((e) => e.value)
           .reduce((e1, e2) => Math.floor(e1 + e2), 0)
@@ -131,44 +197,65 @@ export class PeriodicFigures {
     }
   }
 
-  private setYearAVG(series: { date: number; value: number }[]): void {
-    const filtered = series.filter((bts) =>
-      sameYear(new Date(bts.date), today)
-    );
+  private setLineYear(series: { date: number; value: number }[]): void {
+    this.year.values = [];
     for (const c of calendar.year) {
-      const found = filtered.filter((e) => new Date(e.date).getMonth() === c);
+      this.year.values.push(
+        series.filter((e) => new Date(e.date).getMonth() === c)
+      );
+    }
+  }
+
+  private setYearAVG(series: { date: number; value: number }[]): void {
+    this.year.values = [];
+    for (const c of calendar.year) {
+      const found = series.filter((e) => new Date(e.date).getMonth() === c);
       this.year.values.push(
         found.length > 0
           ? Math.floor(
               found.map((e) => e.value).reduce((e1, e2) => e1 + e2, 0) /
                 found.length
             )
-          : 0
+          : -1
       );
     }
   }
 
-  private setDecade(series: { date: number; value: number }[]): void {
-    const filtered = series.filter((bts) =>
-      sameDecade(new Date(bts.date), today)
-    );
+  private setDecade(
+    series: { date: number; value: number }[],
+    index: number = 0
+  ): void {
+    this.decade.values = [];
     for (const c of calendar.decade) {
       this.decade.values.push(
-        filtered
-          .filter((e) => new Date(e.date).getFullYear() === c)
+        series
+          .filter((e) => new Date(e.date).getFullYear() === c - 10 * index)
           .map((e) => e.value)
           .reduce((e1, e2) => Math.floor(e1 + e2), 0)
       );
     }
   }
 
-  private setDecadeAVG(series: { date: number; value: number }[]): void {
-    const filtered = series.filter((bts) =>
-      sameDecade(new Date(bts.date), today)
-    );
+  private setLineDecade(
+    series: { date: number; value: number }[],
+    index: number = 0
+  ): void {
+    this.decade.values = [];
     for (const c of calendar.decade) {
-      const found = filtered.filter(
-        (e) => new Date(e.date).getFullYear() === c
+      this.decade.values.push(
+        series.filter((e) => new Date(e.date).getFullYear() === c - 10 * index)
+      );
+    }
+  }
+
+  private setDecadeAVG(
+    series: { date: number; value: number }[],
+    index: number = 0
+  ): void {
+    this.decade.values = [];
+    for (const c of calendar.decade) {
+      const found = series.filter(
+        (e) => new Date(e.date).getFullYear() === c - 10 * index
       );
       this.decade.values.push(
         found.length > 0
@@ -177,7 +264,7 @@ export class PeriodicFigures {
                 .map((e) => e.value)
                 .reduce((e1, e2) => Math.floor(e1 + e2), 0) / found.length
             )
-          : 0
+          : -1
       );
     }
   }

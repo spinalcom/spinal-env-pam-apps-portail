@@ -2,9 +2,36 @@ import Vue from "vue";
 import Vuex from "vuex";
 import { getProcessListAsync, getWorkflowListAsync } from "../api-requests";
 import { Process } from "../classes/Process";
-import { label } from "../date-comparison";
 import { Workflow } from "../classes/Workflow";
 import { gradiant } from "../colors";
+import moment from "moment";
+import "moment/locale/fr";
+
+moment.locale("fr", {
+  months: [
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
+  ],
+  weekdays: [
+    "Lundi",
+    "Mardi",
+    "Mercredi",
+    "Jeudi",
+    "Vendredi",
+    "Samedi",
+    "Dimanche",
+  ],
+});
 
 Vue.use(Vuex);
 
@@ -53,29 +80,21 @@ export default new Vuex.Store({
       });
     },
 
-    async updateProcess({ commit, state }, payload) {
-      const displayables = state.displayable;
-      for (const displayable of displayables)
-        if (displayable.getDynamicId() === payload.displayedId) {
-          if (displayable instanceof Process)
-            await displayable.buildProcess(payload.period);
-          else if (displayable instanceof Workflow)
-            await displayable.buildWorkflow(payload.period);
-        }
-      commit("SET_LOADED", true);
+    async updateProcess({ state }, payload) {
+      const displayable = state.displayable.find(
+        (d) => d.getDynamicId() === payload.displayedId
+      );
+      if (displayable instanceof Process)
+        await displayable.buildProcess(payload.period, payload.index);
+      else if (displayable instanceof Workflow)
+        await displayable.buildWorkflow(payload.period, payload.index);
     },
-    async updateProcesses({ commit, getters, dispatch }, payload) {
-      if (
-        payload.displayedIds.every(
-          (displayedId: any) =>
-            !getters.isLoaded({ displayedId, period: payload.period })
-        )
-      )
-        commit("SET_LOADED", false);
+    async updateProcesses({ dispatch }, payload) {
       payload.displayedIds.forEach((displayedId: any) => {
         dispatch("updateProcess", {
           displayedId,
           period: payload.period,
+          index: payload.index,
         });
       });
     },
@@ -97,7 +116,7 @@ export default new Vuex.Store({
       },
     getBarData:
       (state, getters) =>
-      (payload: { displayedIds: number[]; period: string }) => {
+      (payload: { displayedIds: number[]; period: string; index: number }) => {
         const bars = payload.displayedIds.map((displayedId) =>
           getters.getSingleBarData({ displayedId, period: payload.period })
         );
@@ -121,108 +140,94 @@ export default new Vuex.Store({
           }
           return e1;
         }, []);
+        datasets.forEach((set: any) => {
+          set.data = set.data.map((d: number) => (d >= 0 ? d : null));
+        });
 
+        let labels = <any[]>[];
+        switch (payload.period) {
+          case "week":
+            labels = moment.weekdays();
+            break;
+          case "month":
+            const monthEnd = moment()
+              .add(payload.index, "months")
+              .daysInMonth();
+            for (let i = 1; i <= monthEnd; i++) labels.push(i);
+            break;
+          case "year":
+            labels = moment.months();
+            break;
+          case "decade":
+            const decEnd = moment()
+              .add(payload.index * 10, "years")
+              .year();
+            for (let i = 0; i < 10; i++) labels.unshift(decEnd - i);
+            break;
+        }
         return {
-          labels: (label as { [key: string]: number[] | string[] })[
-            payload.period
-          ],
+          labels,
           datasets,
         };
       },
 
-    getSingleIndicators: (state) => (payload: { displayedId: number }) => {
-      const displayed = state.displayable.find(
-        (d) => d.getDynamicId() === payload.displayedId
-      );
-      return displayed ? displayed.getIndicators() : [];
-    },
-    getIndicators:
-      (state, getters) => (payload: { displayedIds: number[] }) => {
-        const indicators = payload.displayedIds.map((displayedId) =>
-          getters.getSingleIndicators({ displayedId })
+    getSingleLineData:
+      (state) => (payload: { displayedId: number; period: string }) => {
+        const displayed = state.displayable.find(
+          (d) => d.getDynamicId() === payload.displayedId
         );
-        const indicator = indicators.reduce((e1, e2) => {
+        return displayed ? displayed.getLineChart(payload.period) : [];
+      },
+    getLineData:
+      (state, getters) =>
+      (payload: { displayedIds: number[]; period: string }) => {
+        const lines = payload.displayedIds.map((displayedId) =>
+          getters.getSingleLineData({ displayedId, period: payload.period })
+        );
+        const datasets = lines.reduce((e1, e2) => {
           for (const el of e2) {
-            const found = e1.find((e: any) => e.title === el.title);
+            const found = e1.find((e: any) => e.label === el.label);
             if (!found) {
-              const { compared, subtitle, title, type, unit, value } = el;
-              e1.push({ compared, subtitle, title, type, unit, value });
+              const { label, backgroundColor, borderColor, borderWidth } = el;
+              e1.push({
+                label,
+                backgroundColor,
+                borderColor,
+                borderWidth,
+                data: [...el.data],
+              });
             } else {
-              if (found.title === "en cours") {
-                const val = parseInt(found.compared) + parseInt(el.compared);
-                const sign = val < 0 ? "-" : "+";
-                found.compared = sign + Math.abs(val);
-              }
-              found.value += el.value;
+              el.data.forEach((num: any, i: number) =>
+                found.data[i].push(...el.data[i])
+              );
             }
           }
           return e1;
         }, []);
-        if (indicators.length > 0) {
-          const found = indicator.find((i: any) => i.title.includes("moyen"));
-          found.value = Math.round((found.value /= indicators.length));
-          found.compared =
-            found.value < 3 ? "Rapide" : found.value < 6 ? "Normal" : "Lent";
-        } else
-          return [
-            {
-              value: -1,
-              unit: "Tickets",
-              title: "créés aujourd'hui",
-              subtitle: "aujourd'hui",
-              type: "date",
-              compared: "",
-            },
-            {
-              value: -1,
-              unit: "Tickets",
-              title: "créés cette semaine",
-              subtitle: "cette semaine",
-              type: "date",
-              compared: "",
-            },
-            {
-              value: -1,
-              unit: "Tickets",
-              title: "en cours",
-              subtitle: "par rapport à la semaine dernière",
-              type: "comparison",
-              compared: "Non défini",
-            },
-            {
-              value: -1,
-              unit: "Heures",
-              title: "Temps de résolution moyen",
-              subtitle: "par rapport à la moyenne",
-              type: "comparison",
-              compared: "Non défini",
-            },
-          ];
 
-        return indicator;
+        return datasets;
       },
-
-    getSinglePieData: (state) => (payload: { displayedId: number }) => {
-      const displayed = state.displayable.find(
-        (d) => d.getDynamicId() === payload.displayedId
-      );
-      return displayed ? displayed.getPieChart() : [];
-    },
-    getPieData: (state, getters) => (payload: { displayedIds: number[] }) => {
-      const pies = payload.displayedIds.map((displayedId) =>
-        getters.getSinglePieData({ displayedId })
-      );
-      const pie = pies.reduce((e1: any[], e2: any[]) => {
-        for (const el of e2) {
-          const found = e1.find((e) => e.label === el.label);
-          if (found) found.value += parseInt(el.value);
-          else e1.push({ label: el.label, value: parseInt(el.value) });
-        }
-
-        return e1;
-      }, []);
-
-      return !pie.length ? [{ label: "Pas de données", value: 1 }] : pie;
+    getPeriode: (state) => (payload: { period: String; index: number }) => {
+      const currentDay = moment();
+      switch (payload.period) {
+        case "week":
+          currentDay.add(payload.index, "week");
+          const end = currentDay.endOf("week");
+          return `${moment(end)
+            .add(-6, "days")
+            .format("DD MMMM")} - ${end.format("DD MMMM")}`;
+        case "month":
+          currentDay.add(payload.index, "months");
+          return currentDay.format("MMMM YYYY");
+        case "year":
+          currentDay.add(payload.index, "years");
+          return currentDay.format("YYYY");
+        case "decade":
+          currentDay.add(payload.index * 10, "years");
+          return `${moment(currentDay)
+            .add(-9, "years")
+            .format("YYYY")}-${currentDay.format("YYYY")}`;
+      }
     },
   },
   modules: {},

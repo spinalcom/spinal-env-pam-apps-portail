@@ -26,16 +26,26 @@ export class BarChart {
 
   public setData(
     period: string,
-    series: { date: number; value: number }[]
+    series: { date: number; value: number }[],
+    index: number = 0
   ): void {
-    this.data.setData(period, series);
+    this.data.setData(period, series, index);
+  }
+
+  public setLineData(
+    period: string,
+    series: { date: number; value: number }[],
+    index: number = 0
+  ): void {
+    this.data.setLineData(period, series, index);
   }
 
   public setDataAVG(
     period: string,
-    series: { date: number; value: number }[]
+    series: { date: number; value: number }[],
+    index: number = 0
   ): void {
-    this.data.setDataAVG(period, series);
+    this.data.setDataAVG(period, series, index);
   }
 
   public isLoaded(period: string) {
