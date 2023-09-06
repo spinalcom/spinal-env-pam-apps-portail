@@ -22,6 +22,9 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
+import { ISpaceSelectorItem } from "./ISpaceSelectorItem";
+
+
 export interface INodeItem {
   dynamicId: number;
   staticId: string;
@@ -61,4 +64,4 @@ export interface IRefItem extends INodeItem {
   infoReferencesObjects: IEquipmentItem[];
 }
 
-export type TGeoItem = IZoneItem | IEquipmentItem;
+export type TGeoItem = IZoneItem | IEquipmentItem | ISpaceSelectorItem;

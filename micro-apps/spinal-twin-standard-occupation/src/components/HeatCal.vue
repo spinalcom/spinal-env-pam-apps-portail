@@ -100,7 +100,8 @@ export default {
         next: {type: String, required: true},
         prev: {type: String, required: true},
         data: {required: true},
-        source: {required: true}
+        source: {required: true},
+        defaultSource: {required: true}
     },
     mounted() {
         this.arrCal = this.data.d;
@@ -188,6 +189,15 @@ export default {
             if (this.calculation === 'Minimum') this.data.d = this.capacitySwitch(this.arrCal.min);
             if (this.calculation === 'Moyenne') this.data.d = this.capacitySwitch(this.arrCal.mean);
             if (this.calculation === 'Somme') this.data.d = this.capacitySwitch(this.arrCal.sum);
+        },
+        source(v) {
+            if (v.length > 0) {
+                // Set the selected item to the item at index 0
+                this.space = v[0];
+            } else {
+                // Handle the case when the source array is empty
+                this.space = null; // Set to null or handle it as needed
+            }
         }
     }
 }

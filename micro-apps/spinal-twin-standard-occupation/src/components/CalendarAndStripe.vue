@@ -39,7 +39,7 @@
                     <div class="RECT unset" :class="colorCalc(results.d[j-1][i-1])"></div>
                   </span>
                   </template>
-                  <span v-if="(results.d[j-1][i-1]!=-1)">{{`${i}/${j}/${results.y} :`}} <b>{{results.d[j-1][i-1].toFixed(1)}}</b> {{ unit.name }}</span>
+                  <span v-if="results.d[j-1][i-1] && results.d[j-1][i-1]!=-1">{{`${i}/${j}/${results.y} :`}} <b>{{results.d[j-1][i-1].toFixed(1)}}</b> {{ unit.name }}</span>
                   <span v-else>{{`${i}/${j}/${results.y} :`}} <b>-</b> {{ unit.name }}</span>
                 </v-tooltip>
               </span>

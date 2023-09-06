@@ -18,13 +18,55 @@ export async function getBuilding(source) {
   return result.data;
 }
 
+/**
+ * Get the floor list, it should be at least one element of the source in that floor cp or endpoints list
+ */
 export async function getFloors(source) {
   const buildingId = localStorage.getItem('idBuilding');
-  // get all floors
   const result = await HTTP.get(`building/${buildingId}/floor/list`);
-  console.log(result.data);
-  return result.data;
+  let filteredFloors = [];
+  const type = new Set(source.map(item => item.type)).size === 1 ? source[0].type : 'both';
+  for (const floor of result.data) {
+    let cpList, pList;
+    if (type === 'controlEndpoint' || type === 'both') {
+      cpList = await HTTP.get(`building/${buildingId}/node/${floor.dynamicId}/control_endpoint_list`);
+    }
+
+    if (type === 'endpoint' || type === 'both') {
+      pList = await HTTP.get(`building/${buildingId}/node/${floor.dynamicId}/endpoint_list`);
+    }
+
+    const floorSources = [];
+
+    if (type === 'controlEndpoint' || type === 'both') {
+      for (const s of source) {
+        if (s.type === 'controlEndpoint' && cpList.data.find(e => e.profileName === s.profile) && cpList.data[cpList.data.findIndex(e => e.profileName === s.profile)].endpoints.find(e => e.name === s.name)) {
+          floorSources.push({...s, dynamicId: cpList.data[cpList.data.findIndex(e => e.profileName === s.profile)].endpoints.find(e => e.name === s.name).dynamicId});
+        }
+      }
+    }
+
+    if (floorSources.length > 0) {
+      filteredFloors.push({ ...floor, sources: floorSources });
+    }
+  }
+
+  // Add a section for the endpoints
+  // ...
+  
+  return filteredFloors;
 }
+
+/**
+ * Get all floors in the building
+ */
+// export async function getFloors(source) {
+//   const buildingId = localStorage.getItem('idBuilding');
+//   // get all floors
+//   const result = await HTTP.get(`building/${buildingId}/floor/list`);
+//   console.log(result.data);
+//   return result.data;
+// }
 
 async function getArea(space) {
   const buildingId = localStorage.getItem("idBuilding");

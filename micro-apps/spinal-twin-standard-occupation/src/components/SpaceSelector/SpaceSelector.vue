@@ -121,7 +121,7 @@ item?: ISpaceSelectorItem
   @Watch('selectedZone')
   async onSelectedChange() {
     for (let idx = 0; idx < this.buildingStructure.length; idx++) {
-      const item = this.buildingStructure[idx];
+      const item = this.buildingStructure[idx];      
       let found = false;
       if (
         item.platformId === this.selectedZone.platformId &&
@@ -157,7 +157,7 @@ item?: ISpaceSelectorItem
 
   select(item?: ISpaceSelectorItem) {
     this.$emit('update:open', !this.open);
-    this.$emit('input', item);
+    this.$emit('input', item);    
   }
   private myDiv!: HTMLDivElement;
   checkingOverflow() {

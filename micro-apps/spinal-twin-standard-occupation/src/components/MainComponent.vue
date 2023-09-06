@@ -13,6 +13,7 @@
         @call-trigger="callTrigger"
         @calculus="calculus"
         @unit-switch="unitSwitch"
+        :defaultSource="defaultSource"
       />
       <LoadingCard v-else style="width: 100%; height: 485px;"/>
       <div class="stat-heat">
@@ -85,6 +86,8 @@ class App extends Vue {
 
   calcul = 'Maximum';
 
+  weekConfig = env.weekmap;
+
   @Prop({type: Object as () => ISpaceSelectorItem, required: true})
   space: ISpaceSelectorItem;
 
@@ -92,8 +95,13 @@ class App extends Vue {
   @Prop({type: Object as () => TemporalityModel, required: true})
   temporality: TemporalityModel;
 
+  @Prop({type: Object as () => any, required: false})
+  sourceList: any;
+
 
   mounted() {
+    // console.log(this.space);
+    
     this.currentTimestamp = {valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
     this.spread(this.defaultSource);
   }
@@ -104,7 +112,7 @@ class App extends Vue {
     this.defaultSource = source;
     this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[source]);
     this.loading = false;
-    this.calculus('Maximum');
+    this.calculus(this.calcul);
     
   }
 
@@ -123,7 +131,9 @@ class App extends Vue {
   calculus(calc) {
     this.calcul = calc;
     const weekDays = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
-    const colors = ['#D6E9FB', '#B7D7F5', '#97C4EF', '#72AFE8', '#519BE1', '#3A87D0', '#2F72B1', '#245D93', '#194773', '#0E3255'];
+    let colors = ['#D6E9FB', '#B7D7F5', '#97C4EF', '#72AFE8', '#519BE1', '#3A87D0', '#2F72B1', '#245D93', '#194773', '#0E3255'];
+    if (this.weekConfig.colors)
+      colors = this.weekConfig.colors
     const capacity = env.source[this.defaultSource].capacity;
     let result;
     if (calc === 'Maximum') {
@@ -237,25 +247,44 @@ class App extends Vue {
 
     const flatArray = result.flat();
 
-    const min = flatArray.reduce((minValue, obj) => {
-      if (obj !== null) {
-        return Math.min(minValue, obj.value);
-      }
-      return minValue;
-    }, Infinity);
+    /**
+     * calculate the minimum if it is not defined in config.js file
+    */ 
+    let max = 0, min = 0;
+    if (this.weekConfig.min === null) {
+      min = flatArray.reduce((minValue, obj) => {
+        if (obj !== null) {
+          return Math.min(minValue, obj.value);
+        }
+        return minValue;
+      }, Infinity);
+    }
+    else {
+      min = this.weekConfig.min;
+    }
 
-    const max = flatArray.reduce((maxValue, obj) => {
-      if (obj !== null) {
-        return Math.max(maxValue, obj.value);
-      }
-      return maxValue;
-    }, -Infinity);
+
+    /**
+     * calculate the max if it is not defined in config.js file
+    */ 
+
+    if (this.weekConfig.max === null) {
+      max = flatArray.reduce((maxValue, obj) => {
+        if (obj !== null) {
+          return Math.max(maxValue, obj.value);
+        }
+        return maxValue;
+      }, -Infinity);
+    }
+    else {
+      max = this.weekConfig.max;
+    }
 
     const interval = (max - min) / 10;
 
     for (let i = 0; i < result.length; i++) {
       for (let j = 0; j < 24; j++) {
-        if(result[i][j] === null) continue;
+        if(result[i][j] === null) {result[i][j] = {color: colors[0], value: 0, maxCapacity: 0, unit: ''};}
         else if (result[i][j].value < min + interval || result[i][j].value == 0) result[i][j].color = colors[0];
         else if (result[i][j].value < min + interval * 2) result[i][j].color = colors[1];
         else if (result[i][j].value < min + interval * 3) result[i][j].color = colors[2];
@@ -292,6 +321,14 @@ class App extends Vue {
   }
 
 
+  @Watch('space')
+  async spaceChange(v) {
+    this.loading = true;
+    this.defaultSource = 0;
+    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[0]);
+    this.loading = false;
+    this.calculus(this.calcul);
+  }
 }
 export default App;
 </script>

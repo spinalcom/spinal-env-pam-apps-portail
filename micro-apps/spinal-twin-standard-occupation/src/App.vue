@@ -10,6 +10,7 @@
           :GetChildrenFct="onSpaceSelectOpen"
           v-model="defaultSelected"
           label="ESPACE"
+          @input="getSelected"
         />
       </div>
       <div class="Hx2">
@@ -140,6 +141,7 @@ class App extends Vue {
     this.defaultSelected.dynamicId = this.building.dynamicId;
   }
   onTimeSelectOpen(item?: any): { name: string; staticId: string; dynamicId: number; level: number; isOpen: boolean; loading: boolean; patrimoineId: string; parents: never[]; isLastInGrp: boolean; drawLink: never[]; haveChildren: boolean; }[] {
+    return [];
     if (item) {
       if (item.name == 'Journée') {
         this.selectedTime.next = 'Jour suivant';
@@ -272,9 +274,11 @@ class App extends Vue {
               haveChildren: false,
               area: building.area,
               cp: '',
+              source: building.source
             }];
       case 'building':
       const floors = await getFloors(this.source);
+      
         for (let floor of floors) {
           floorList.push({
               name: floor.name,
@@ -290,7 +294,8 @@ class App extends Vue {
               drawLink: [],
               haveChildren: false,
               area: floor.area,
-              cp: floor.cp
+              cp: floor.cp,
+              source: floor.sources
             })
         }        
         return floorList;
@@ -298,10 +303,15 @@ class App extends Vue {
         return [];
     }
   }
+
+
   handleChart(chart) {
     this.table = chart;
+  }
 
-    
+
+  getSelected(v): void {
+    // console.log(v)
   }
 }
 

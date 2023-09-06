@@ -31,7 +31,7 @@ export function convertZonesToISpaceSelectorItems(
 ): ISpaceSelectorItem[] {
   let drawLink = parent?.drawLink.map((x) => x + 1) || [];
   if (parent?.isLastInGrp === true) drawLink.unshift(1);
-  const res = arr.map((item) => {
+  const res = arr.map((item: TGeoItem) => {
     let platformId, patrimoineId;
     const level = parent ? parent.level + 1 : 0;
     const parents = parent ? parent.parents.concat(parent?.staticId) : [];
@@ -87,5 +87,8 @@ export function createISpaceselectorItem(
     isLastInGrp: false,
     drawLink,
     haveChildren: false,
+    source: item.source,
+    cp: 0,
+    area: 0
   };
 }
