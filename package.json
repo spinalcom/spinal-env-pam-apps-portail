@@ -15,6 +15,7 @@
     "http-server": "^14.1.1",
     "moment": "^2.29.4",
     "spinal-components": "github:spinalcom/spinal-components",
+    "spinal-env-viewer-plugin-excel-manager-service": "git+https://github.com/spinalcom/spinal-env-viewer-plugin-excel-manager-service.git",
     "spinal-viewer-event-manager": "git+https://github.com/spinalcom/spinal-viewer-event-manager.git",
     "vue-chartjs": "^5.2.0",
     "vue-sweetalert2": "^5.0.5",
