@@ -293,11 +293,13 @@ export default {
         value: Math.round(Math.min(...timeTable) / 3600000),
         unit: "Heures",
         title: lineIndics.label.split(" ").fill("minimal", 1, 2).join(" "),
+        subtitle: "ticket résolu le plus lentement",
       };
       const max = {
         value: Math.round(Math.max(...timeTable) / 3600000),
         unit: "Heures",
         title: lineIndics.label.split(" ").fill("maximal", 1, 2).join(" "),
+        subtitle: "ticket résolu le plus rapidement",
       };
       let quot = 0;
       const moy = {
@@ -333,6 +335,7 @@ export default {
           : 0,
         unit: "%",
         title: "résolution des tickets",
+        subtitle: "tickets créés et résolus sur la période",
       };
       return indics.concat(rate, min, max, moy);
     },

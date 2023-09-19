@@ -76,7 +76,12 @@ export async function getTimeSeriesAsync(
   index: number = 0
 ) {
   const end = moment(today).add(index * 10, "year");
+  end.month(12);
+  end.date(0);
   const begin = moment(end).add(-9, "year");
+  begin.month(0);
+  begin.date(1);
+  begin.hour(0);
 
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
@@ -92,8 +97,9 @@ export async function getYearTimeSeriesAsync(
   index: number = 0
 ) {
   const end = moment(today).add(index, "year");
-  end.month(13);
-  const begin = moment(end).subtract(12, "year");
+  end.month(12);
+  end.date(0);
+  const begin = moment(end).subtract(12, "months");
 
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
@@ -126,7 +132,8 @@ export async function getWeekTimeSeriesAsync(
   index: number = 0
 ) {
   const end = moment(today).add(index, "week");
-  end.day(8);
+  end.day(7);
+  end.hour(0);
   const begin = moment(end).add(-7, "days");
 
   const buildingId = localStorage.getItem("idBuilding");

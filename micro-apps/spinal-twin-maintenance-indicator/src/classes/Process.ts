@@ -1,6 +1,5 @@
 import { BarChart } from "./BarChart";
 import {
-  getAttributsList,
   getMonthTimeSeriesAsync,
   getNodeControlEndpointsListAsync,
   getTimeSeriesAsync,
