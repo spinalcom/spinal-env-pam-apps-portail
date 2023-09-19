@@ -34,15 +34,18 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     groups: [],
-    labels: Array(480)
+    labels: Array(1440)
       .fill(0)
       .map((e, i) => {
-        const hour = (i * 3) / 60;
-        if (hour === Math.floor(hour)) return `${hour}h`;
+        const hour = i / 60;
+        const fhour = Math.floor(hour);
+        if (hour === fhour) return `${hour}h00`;
         const min = Math.round((hour - Math.floor(hour)) * 60);
-        return `${Math.floor(hour)}h${min > 9 ? min : "0" + min}`;
+        return `${fhour > 9 ? fhour : "0" + fhour}h${
+          min > 9 ? min : "0" + min
+        }`;
       }),
-    step: 120,
+    step: 360,
     capacities: [],
     datasets: <any[]>[],
   },
@@ -106,7 +109,15 @@ export default new Vuex.Store({
           return {
             label: g.name,
             borderColor: g.color,
-            data: await getTimeSeriesAsync(g.endpointId, index),
+            data: (await getTimeSeriesAsync(g.endpointId, index)).reduce(
+              (tab: any, s: any) => {
+                const ret: { [key: string]: any } = {};
+                const label = moment(s.date).format("HH[h]mm");
+                ret[label] = s.value;
+                return { ...tab, ...ret };
+              },
+              {}
+            ),
           };
         })
       );
@@ -115,15 +126,9 @@ export default new Vuex.Store({
         label: "Total",
         borderColor: "#14202c",
         data: datasets.reduce((e1: any, e2: any) => {
-          const tab: any[] = [];
-          e2.data.forEach((e: any, i: number) => {
-            tab.push({
-              date: e.date,
-              value: e.value + (e1[i]?.value ?? 0),
-            });
-          });
-          return tab;
-        }, []),
+          for (const i in e2.data) e1[i] = e2.data[i] + (e1[i] || 0);
+          return e1;
+        }, {}),
       };
       datasets.unshift(total);
       commit("SET_DATASETS", datasets);
@@ -156,7 +161,7 @@ export default new Vuex.Store({
         return state.datasets.map((d) => ({
           label: d.label,
           borderColor: d.borderColor,
-          data: d.data.map((d: any) => d.value),
+          data: state.labels.map((l) => d.data?.[l]),
         }));
       }
       return state.datasets.map((d) => {
@@ -168,7 +173,9 @@ export default new Vuex.Store({
         return {
           label: d.label,
           borderColor: d.borderColor,
-          data: d.data.map((val: any) => Math.round((val.value * 100) / total)),
+          data: state.labels.map((l) =>
+            Math.round((d.data?.[l] * 100) / total)
+          ),
         };
       });
     },
@@ -188,13 +195,10 @@ export default new Vuex.Store({
       for (const i in state.datasets[0]?.data || []) {
         const el: { [key: string]: any } = {};
         for (const key of header) {
-          if (key === "Typologie")
-            el[key] = moment(state.datasets[0]?.data[i]?.date || "").format(
-              "DD/MM/YY HH:mm:ss"
-            );
+          if (key === "Typologie") el[key] = i;
           else {
             const found: any = state.datasets.find((c: any) => c.label === key);
-            el[key] = found?.data[i]?.value || 0;
+            el[key] = found?.data[i] || 0;
           }
         }
         tabRet.push(el);
