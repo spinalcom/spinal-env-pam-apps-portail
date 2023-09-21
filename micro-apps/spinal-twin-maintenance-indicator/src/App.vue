@@ -3,8 +3,8 @@
     <div class="d-flex justify-end">
       <sc-download-button
         class="mr-1"
-        file-name="T"
-        :data="[]"
+        :file-name="`Analyse des tickets: ${navText}`"
+        :data="tableData"
       ></sc-download-button>
       <div class="selectors">
         <div class="Hx1">
@@ -349,6 +349,22 @@ export default {
         period: this.period.value,
         index: this.navIndex,
       });
+    },
+    tableData() {
+      const chartData = [
+        ...this.barChartData.datasets,
+        ...this.barLineChartData,
+      ];
+      const dates = this.barChartData.labels;
+      const data = this.to_display.map((d) => ({ Node: d.name, "": "" }));
+      dates.forEach((date, i) => {
+        data[i] = { ...data[i], Date: date };
+        for (const set of chartData) {
+          const unit = set.label.includes("Temps") ? " (H)" : "";
+          data[i][set.label + unit] = set.data[i];
+        }
+      });
+      return data;
     },
   },
 

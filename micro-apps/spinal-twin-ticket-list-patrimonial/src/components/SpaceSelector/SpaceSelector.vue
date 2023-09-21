@@ -1,5 +1,10 @@
 <template>
   <div class="space-selector-container" :class="{ isopen: open }">
+    <!-- <div
+      class="backdrop-handler"
+      v-show="open"
+      @click="$emit('update:open', !open)"
+    ></div> -->
     <v-card
       color="#14202C"
       :class="{ 'space-selector-open': open }"
@@ -63,8 +68,9 @@
           :item="item"
           v-bind:data-index="index"
           :maxDepth="maxDepth"
-          @onSelect="select(item)"
+          @onSelect="select(item, index)"
           :selected="selectedZone"
+          :is-selected="indexSelected === index"
           @onOpenClose="expandCollapse(item, index)"
         ></SpaceSelectorItem>
       </transition-group>
@@ -124,6 +130,7 @@ class SpaceSelector extends Vue {
   }
 
   isFill = "hidden";
+  indexSelected = -1;
 
   buildingStructure: ISpaceSelectorItem[] = [];
 
@@ -164,7 +171,8 @@ class SpaceSelector extends Vue {
     this.checkingOverflow();
   }
 
-  select(item?: ISpaceSelectorItem) {
+  select(item?: ISpaceSelectorItem, index?: number) {
+    this.indexSelected = index || 0;
     this.$emit("update:open", !this.open);
     this.$emit("input", item);
   }

@@ -51,11 +51,6 @@ with this file. If not, see
       <!-- v-tooltip="item.name" -->
       <v-list-item-title>{{ item.name }} </v-list-item-title>
     </v-list-item-content>
-    <v-list-item-icon>
-      <v-icon dark>
-        {{ `mdi-numeric-${item.count || 0}-box-outline` }}
-      </v-icon>
-    </v-list-item-icon>
     <v-list-item-action>
       <v-btn
         elevation="0"
@@ -66,7 +61,7 @@ with this file. If not, see
         :loading="item.loading"
         :disabled="item.loading"
         @click.stop="onOpenClose"
-        v-show="item.level <= maxDepth"
+        v-show="item.level != maxDepth"
       >
         <v-icon dark> {{ icon }} </v-icon>
       </v-btn>
@@ -86,15 +81,8 @@ class SpaceSelectorItem extends Vue {
   maxDepth!: number;
   @Prop({ type: Object, required: true })
   selected!: ISpaceSelectorItem;
-
-  public get isSelected(): boolean {
-    return (
-      this.item.patrimoineId === this.selected.patrimoineId &&
-      this.item.platformId === this.selected.platformId &&
-      (this.item.staticId === this.selected?.staticId ||
-        this.selected?.parents?.includes(this.item.staticId))
-    );
-  }
+  @Prop({ type: Boolean })
+  isSelected = false;
 
   public get icon(): string {
     return this.item?.isOpen ? "mdi-chevron-up" : "mdi-chevron-down";

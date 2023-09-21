@@ -41,7 +41,7 @@ with this file. If not, see
       <div
         class="parent-link"
         v-for="depth in item.level - 1"
-        :key="depth+item.staticId"
+        :key="depth + item.staticId"
         v-show="drawParentLink(depth)"
         :style="{ 'margin-left': '-' + (depth * 20 + 11) + 'px' }"
       ></div>
@@ -49,9 +49,7 @@ with this file. If not, see
     <div class="color-square" :style="{ 'background-color': item.color }"></div>
     <v-list-item-content style="margin-left: 21px">
       <!-- v-tooltip="item.name" -->
-      <v-list-item-title
-        >{{ item.name }}
-      </v-list-item-title>
+      <v-list-item-title>{{ item.name }} </v-list-item-title>
     </v-list-item-content>
     <v-list-item-action>
       <v-btn
@@ -72,36 +70,29 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import { Vue, Component, Prop } from 'vue-property-decorator';
-import { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
+import { Vue, Component, Prop } from "vue-property-decorator";
+import { ISpaceSelectorItem } from "./interfaces/ISpaceSelectorItem";
 
 @Component
 class SpaceSelectorItem extends Vue {
   @Prop({ type: Object, required: true })
-item!: ISpaceSelectorItem;
+  item!: ISpaceSelectorItem;
   @Prop({ type: Number, required: true })
-maxDepth!: number;
+  maxDepth!: number;
   @Prop({ type: Object, required: true })
-selected!: ISpaceSelectorItem;
-
-  public get isSelected(): boolean {
-    return (
-      this.item.patrimoineId === this.selected.patrimoineId &&
-      this.item.platformId === this.selected.platformId &&
-      (this.item.staticId === this.selected?.staticId ||
-        this.selected?.parents?.includes(this.item.staticId))
-    );
-  }
+  selected!: ISpaceSelectorItem;
+  @Prop({ type: Boolean })
+  isSelected = false;
 
   public get icon(): string {
-    return this.item?.isOpen ? 'mdi-chevron-up' : 'mdi-chevron-down';
+    return this.item?.isOpen ? "mdi-chevron-up" : "mdi-chevron-down";
   }
 
   onSelect() {
-    this.$emit('onSelect');
+    this.$emit("onSelect");
   }
   onOpenClose() {
-    this.$emit('onOpenClose');
+    this.$emit("onOpenClose");
   }
   drawParentLink(depth: number) {
     return !this.item.drawLink.includes(depth);

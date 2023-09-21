@@ -1,5 +1,10 @@
 <template>
   <div class="space-selector-container" :class="{ isopen: open }">
+    <!-- <div
+      class="backdrop-handler"
+      v-show="open"
+      @click="$emit('update:open', !open)"
+    ></div> -->
     <v-card
       color="#14202C"
       :class="{ 'space-selector-open': open }"
@@ -22,7 +27,10 @@
       ]"
     >
       <div
-        @click="dropDown()"
+        @click="
+          $emit('update:open', !open);
+          showSign();
+        "
         ref="SpaceSelectorTitleContainer"
         class="space-selector-header"
       >
@@ -60,8 +68,9 @@
           :item="item"
           v-bind:data-index="index"
           :maxDepth="maxDepth"
-          @onSelect="select(item)"
+          @onSelect="select(item, index)"
           :selected="selectedZone"
+          :is-selected="indexSelected === index"
           @onOpenClose="expandCollapse(item, index)"
         ></SpaceSelectorItem>
       </transition-group>
@@ -121,6 +130,7 @@ class SpaceSelector extends Vue {
   }
 
   isFill = "hidden";
+  indexSelected = -1;
 
   buildingStructure: ISpaceSelectorItem[] = [];
 
@@ -139,7 +149,7 @@ class SpaceSelector extends Vue {
           await this.openItem(item, idx);
         }
       } else {
-        for (const parentId of this.selectedZone.parents || []) {
+        for (const parentId of this.selectedZone.parents) {
           if (
             parentId === item.staticId &&
             (this.selectedZone.platformId === item.platformId ||
@@ -161,7 +171,8 @@ class SpaceSelector extends Vue {
     this.checkingOverflow();
   }
 
-  select(item?: ISpaceSelectorItem) {
+  select(item?: ISpaceSelectorItem, index?: number) {
+    this.indexSelected = index || 0;
     this.$emit("update:open", !this.open);
     this.$emit("input", item);
   }
@@ -177,11 +188,14 @@ class SpaceSelector extends Vue {
       this.isFill = "hidden";
     }
   }
-  async dropDown() {
+  async mounted() {
     const children = await this.GetChildrenFct();
     this.buildingStructure = convertZonesToISpaceSelectorItems(children);
-    this.$emit("update:open", this.maxDepth === -1 ? false : !this.open);
-    this.showSign();
+
+    if (this.buildingStructure.length === 1) {
+      await this.expandCollapse(this.buildingStructure[0], 0);
+    }
+    this.onSelectedChange();
   }
 
   // on click the righht button open / close

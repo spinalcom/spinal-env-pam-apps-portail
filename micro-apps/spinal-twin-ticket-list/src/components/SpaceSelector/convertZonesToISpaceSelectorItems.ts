@@ -22,8 +22,8 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import type { TGeoItem } from "./interfaces/IBuildingItem";
-import type { ISpaceSelectorItem } from "./interfaces/ISpaceSelectorItem";
+import type { TGeoItem } from './interfaces/IBuildingItem';
+import type { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
 
 export function convertZonesToISpaceSelectorItems(
   arr: TGeoItem[],
@@ -35,15 +35,15 @@ export function convertZonesToISpaceSelectorItems(
     let platformId, patrimoineId;
     const level = parent ? parent.level + 1 : 0;
     const parents = parent ? parent.parents.concat(parent?.staticId) : [];
-    if (item.type === "patrimoine") {
-      patrimoineId = parent?.staticId || "";
-      platformId = "";
-    } else if (item.type === "platform") {
-      patrimoineId = parent?.staticId || "";
+    if (item.type === 'patrimoine') {
+      patrimoineId = parent?.staticId || '';
+      platformId = '';
+    } else if (item.type === 'platform') {
+      patrimoineId = parent?.staticId || '';
       platformId = item.staticId;
     } else {
-      patrimoineId = parent?.patrimoineId || "";
-      platformId = parent?.platformId || "";
+      patrimoineId = parent?.patrimoineId || '';
+      platformId = parent?.platformId || '';
     }
     return createISpaceselectorItem(
       item,
@@ -87,6 +87,5 @@ export function createISpaceselectorItem(
     isLastInGrp: false,
     drawLink,
     haveChildren: false,
-    count: (item as any).count || 0,
   };
 }
