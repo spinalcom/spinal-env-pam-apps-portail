@@ -13,6 +13,7 @@
         @call-trigger="callTrigger"
         @calculus="calculus"
         @unit-switch="unitSwitch"
+        @dayFilter="dayFilter"
         :defaultSource="defaultSource"
       />
       <LoadingCard v-else style="width: 100%; height: 485px;"/>
@@ -88,6 +89,9 @@ class App extends Vue {
 
   weekConfig = env.weekmap;
 
+  dayF = [false, false, false, false, false, false, false];
+
+  interv = {start: null, end: null}
   @Prop({type: Object as () => ISpaceSelectorItem, required: true})
   space: ISpaceSelectorItem;
 
@@ -100,17 +104,16 @@ class App extends Vue {
 
 
   mounted() {
-    // console.log(this.space);
     
     this.currentTimestamp = {valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
     this.spread(this.defaultSource);
   }
 
 
-  async spread(source: number) {
+  async spread(source: number) {    
     this.loading = true;
     this.defaultSource = source;
-    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[source]);
+    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[source], this.interv, true, this.dayF);
     this.loading = false;
     this.calculus(this.calcul);
     
@@ -118,17 +121,17 @@ class App extends Vue {
 
 
   async callTrigger(interval = {start: null, end: null}) {
-    // console.log(interval.start);
-    // console.log(interval.end);
-    // console.log(this.calendar.rawData);
-    
+    this.interv = interval;
     this.loading = true;
-    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[this.defaultSource], {data: this.calendar.rawData, start: interval.start, end: interval.end});
+    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[this.defaultSource], {data: this.calendar.rawData, start: interval.start, end: interval.end}, false, this.dayF);
+    this.calculus(this.calcul);
     this.loading = false;
   }
 
 
   calculus(calc) {
+
+    
     this.calcul = calc;
     const weekDays = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
     let colors = ['#D6E9FB', '#B7D7F5', '#97C4EF', '#72AFE8', '#519BE1', '#3A87D0', '#2F72B1', '#245D93', '#194773', '#0E3255'];
@@ -138,8 +141,12 @@ class App extends Vue {
     let result;
     if (calc === 'Maximum') {
       this.stat.text = 'Taux d\'occupation maximum';
-      let maxOverall = 0;      
-
+      let maxOverall = 0;
+      if (this.calendar.rawInterval && this.calendar.rawInterval.length > 0)
+      this.stat.value = this.calendar.rawInterval.reduce((max, obj) => obj.value > max ? obj.value : max, -Infinity);
+      else return ;
+      if (this.stat.value === -Infinity || this.stat.value === Infinity || isNaN(this.stat.value)) this.stat.value = 0;
+      this.stat.maxCapacity = (this.stat.value * capacity) / 100;
       result = weekDays.map(day => {
         return Array.from({ length: 24 }, (_, hourIndex) => {
           const valuesForHour = this.calendar.rawData.filter(item => {
@@ -162,11 +169,6 @@ class App extends Vue {
 
             const maxCapacity = (max * capacity) / 100;
 
-            if (max > maxOverall) {
-              maxOverall = max;
-              this.stat.value = maxOverall;
-              this.stat.maxCapacity = maxCapacity;
-            }
             return { date: formattedDate, value: max, color: color, maxCapacity: maxCapacity };
           } else {
             return null;
@@ -178,7 +180,10 @@ class App extends Vue {
     if (calc === 'Minimum') {
       this.stat.text = 'Taux d\'occupation minimum';
       let minOverall = Infinity;
-
+      if (this.calendar.rawInterval && this.calendar.rawInterval.length > 0)
+      this.stat.value = this.calendar.rawInterval.reduce((min, obj) => obj.value < min ? obj.value : min, Infinity);
+      if (this.stat.value === -Infinity || this.stat.value === Infinity || isNaN(this.stat.value)) this.stat.value = 0;
+      this.stat.maxCapacity = (this.stat.value * capacity) / 100;
       result = weekDays.map(day => {
         return Array.from({ length: 24 }, (_, hourIndex) => {
           const valuesForHour = this.calendar.rawData.filter(item => {
@@ -195,12 +200,6 @@ class App extends Vue {
 
             const minCapacity = (min * capacity) / 100;
 
-            if (min < minOverall) {
-              minOverall = min;
-              this.stat.value = minOverall;
-              this.stat.maxCapacity = minCapacity;
-            }
-
             return { date: formattedDate, value: min, color: color, maxCapacity: minCapacity };
           } else {
             return null;
@@ -213,6 +212,10 @@ class App extends Vue {
       this.stat.text = 'Taux d\'occupation moyen';
       let sumOverall = 0;
       let countOverall = 0;
+      let totalValue = this.calendar.rawInterval.reduce((sum, obj) => sum + obj.value, 0);
+      this.stat.value = totalValue / this.calendar.rawInterval.length;
+      if (this.stat.value === -Infinity || this.stat.value === Infinity || isNaN(this.stat.value)) this.stat.value = 0;
+      this.stat.maxCapacity = (this.stat.value * capacity) / 100;
 
       result = weekDays.map(day => {
         return Array.from({ length: 24 }, (_, hourIndex) => {
@@ -233,9 +236,6 @@ class App extends Vue {
             sumOverall += sum;
             countOverall += valuesForHour.length;
             const overallAverage = sumOverall / countOverall;
-
-            this.stat.value = overallAverage;
-            this.stat.maxCapacity = (avgCapacity * capacity) / 100;
 
             return { date: formattedDate, value: average, color: color, maxCapacity: avgCapacity };
           } else {
@@ -321,13 +321,24 @@ class App extends Vue {
   }
 
 
+  dayFilter(n) {
+    this.dayF = n;
+    this.callTrigger(this.interv);
+  }
+
+
   @Watch('space')
   async spaceChange(v) {
     this.loading = true;
     this.defaultSource = 0;
-    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[0]);
-    this.loading = false;
+
+
+    // Commented this because when the source changes, it triggers the spread() function
+    // this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[0], this.interv, true, this.dayF);
+    
+    
     this.calculus(this.calcul);
+    this.loading = false;
   }
 }
 export default App;

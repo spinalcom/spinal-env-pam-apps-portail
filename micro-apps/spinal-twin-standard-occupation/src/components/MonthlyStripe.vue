@@ -58,6 +58,7 @@ export default {
   },
   methods: {
     colorCalc (val) {
+      
       if(val < 0) return 'E';
       else if (val < this.min + this.interval || val == 0) return 'G3';
       else if (val < this.min + this.interval * 2) return 'G2';

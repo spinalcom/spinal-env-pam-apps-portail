@@ -6,6 +6,7 @@
       <p class="mb-0" style="padding: 10px;">
         {{ title }}
         <!-- <br> -->
+        
         <!-- <span class="desc">{{ subtitle }}</span> -->
       </p>
       <div class="d-flex align-center mln6" style="position: absolute; right: calc(50% - 50px); font-size: 14px;" v-if="true">
@@ -80,7 +81,7 @@
 
       </div>
       <div class="flex-grow-1">
-        <CalendarAndStripe @chart-sent="handleChart" :calc="calculation" :results="data" :max="max" :unit="unit" v-if="data && data.d && data.d.length>0"/>
+        <CalendarAndStripe @dayFilter="dayFilter" @chart-sent="handleChart" :calc="calculation" :results="data" :max="max" :unit="unit" v-if="data && data.d && data.d.length>0"/>
       </div>
     </div>
     </v-card>
@@ -151,6 +152,9 @@ export default {
         },
         handleChart(output) {
             this.$emit('chart-sent', output);
+        },
+        dayFilter(n) {
+            this.$emit('dayFilter', n);
         }
     },
     watch: {

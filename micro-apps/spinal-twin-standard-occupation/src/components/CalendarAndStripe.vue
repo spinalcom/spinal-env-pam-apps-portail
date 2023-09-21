@@ -6,6 +6,14 @@
 
     <div class="CALHEAT">
       <table class="CALTABLE">
+
+        <span :class="lines[0] === true ? 'draw-line' : ''" class="line l0"></span>
+        <span :class="lines[1] === true ? 'draw-line' : ''" class="line l1"></span>
+        <span :class="lines[2] === true ? 'draw-line' : ''" class="line l2"></span>
+        <span :class="lines[3] === true ? 'draw-line' : ''" class="line l3"></span>
+        <span :class="lines[4] === true ? 'draw-line' : ''" class="line l4"></span>
+        <span :class="lines[5] === true ? 'draw-line' : ''" class="line l5"></span>
+        <span :class="lines[6] === true ? 'draw-line' : ''" class="line l6"></span>
         <tr>
           <td width="70"></td>
           <td class="CALHEAD">Jan</td>
@@ -23,8 +31,15 @@
         </tr>
         <tr>
           <td class="WEEKDAYS" width="70">
-            <p class="CALDAY mb-0">Lundi</p>
-            <p class="CALDAY mb-0">Dimanche</p>
+            <p class="CALDAY mb-0" @click="lineUp(0)">
+              Lundi
+            </p>
+            <p class="mb-0 fade-effect" @click="lineUp(1)">Mardi</p>
+            <p class="mb-0 fade-effect" @click="lineUp(2)">Mercredi</p>
+            <p class="mb-0 fade-effect" @click="lineUp(3)">Jeudi</p>
+            <p class="mb-0 fade-effect" @click="lineUp(4)">Vendredi</p>
+            <p class="mb-0 fade-effect" @click="lineUp(5)">Samedi</p>
+            <p class="CALDAY mb-0" @click="lineUp(6)">Dimanche</p>
           </td>
           <td v-for="j in 12" :key="j">
             <div class="CALMONTH">
@@ -36,7 +51,7 @@
                       v-bind="attrs"
                       v-on="on"
                     >
-                    <div class="RECT unset" :class="colorCalc(results.d[j-1][i-1])"></div>
+                    <div class="RECT unset" :class="[colorCalc(results.d[j-1][i-1], i, j, results.y)]"></div>
                   </span>
                   </template>
                   <span v-if="results.d[j-1][i-1] && results.d[j-1][i-1]!=-1">{{`${i}/${j}/${results.y} :`}} <b>{{results.d[j-1][i-1].toFixed(1)}}</b> {{ unit.name }}</span>
@@ -69,12 +84,10 @@ export default {
     min: 0,
     interval: 0,
     maxDate: '',
-    legend: env.calendarLegend
+    legend: env.calendarLegend,
+    lines: [false, false, false, false, false, false, false]
   }),
   mounted() {
-    // console.log(this.results);
-    // console.log(this.unit);
-    // console.log(this.calc);
     let exportDate = this.generateDatesArray(this.results.y);
     let exportValues = this.results.d.flat().map(e => e === -1 ? '' : e);
     let output = [{}];
@@ -97,7 +110,6 @@ export default {
       this.min = this.min < 0 ? 0 : this.min;
     }
     this.interval = (this.max - this.min) / 7;
-    // console.log('Min:',this.min, ', Max:', this.max, ', Interval:', this.interval);
 
     let max = this.results.d[0][0];
     let maxIndex = [0, 0];
@@ -135,9 +147,7 @@ export default {
         })
         monthSum.push(sum);
         maxPos.push(sum);
-        // console.log(`${sum}/${this.results.d[i].length}-${missing}`);
         res = sum/(this.results.d[0].length-missing);
-        // console.log('Pushing:', res);
         m.push(res);
       }
         return [m, maxPos.indexOf(Math.max(...maxPos)), monthSum, this.results.y];
@@ -205,8 +215,9 @@ export default {
   }
   },
   methods: {
-    colorCalc (val) {
-      if(val < 0) return 'E';
+    colorCalc (val, i, j, y) {
+      const dayOfWeek = moment(`${y}-${j}-${i}`, 'YYYY-MM-DD').isoWeekday();
+      if(val < 0 || this.lines[dayOfWeek - 1]) return 'E';
       else if (val < this.min + this.interval || val == 0) return 'G3';
       else if (val < this.min + this.interval * 2) return 'G2';
       else if (val < this.min + this.interval * 3) return 'G1';
@@ -232,6 +243,10 @@ export default {
       }
 
       return datesArray;
+    },
+    lineUp(n) {
+      this.$set(this.lines, n, !this.lines[n]);
+      this.$emit('dayFilter', this.lines);
     }
   },
   watch: {
@@ -265,7 +280,6 @@ export default {
           this.min = this.min < 0 ? 0 : this.min;
         }
         this.interval = (this.max - this.min) / 7;
-        // console.log('Min:',this.min, ', Max:', this.max, ', Interval:', this.interval);
 
         let max = this.results.d[0][0];
         let maxIndex = [0, 0];
@@ -341,6 +355,7 @@ export default {
 }
 
 .WEEKDAYS {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -362,18 +377,23 @@ export default {
   height: 22px;
   background: transparent;
   border-radius: 5px;
+  transition: background .3s ease-in-out;
 }
 .unset {
   background: #D9D9D9;
 }
 
 .CALDAY {
+  height: 22px;
   font-family: "Charlevoix Pro";
   font-style: normal;
   font-weight: 400;
   font-size: 10px;
   line-height: 13px;
   color: #214353;
+  cursor: pointer;
+  display: flex;
+  align-content: center;
 }
 
 .CALMAX {
@@ -386,5 +406,68 @@ export default {
   letter-spacing: 1.1px;
   color: #14202C;
   width: 100%;
+}
+
+.fade-effect {
+  height: 22px;
+  cursor: pointer;
+  font-family: "Charlevoix Pro";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 10px;
+  line-height: 13px;
+  color: transparent;
+  transition: all .3s ease-out;
+}
+
+.fade-effect:hover {
+  color: #214353;
+}
+
+.line {
+  width: 0;
+  margin-left: auto;
+  margin-right: auto;
+  left: 50%;
+  height: 0px;
+  border: 2px solid rgba(255, 255, 255, 0);
+  position: absolute;
+  transition: all .1s ease-in-out;
+}
+
+.l0 {
+  top: 144px;
+}
+
+.l1 {
+  top: 171px;
+}
+
+.l2 {
+  top: 196px;
+}
+
+.l3 {
+  top: 221px;
+}
+
+.l4 {
+  top: 245px;
+}
+
+.l5 {
+  top: 271px;
+}
+
+.l6 {
+  top: 296px;
+}
+
+
+.draw-line {
+  left: 0;
+  width: 100% !important;
+  /* border: 2px solid orange; */
+  border: 2px solid orange;
 }
 </style>
