@@ -7,13 +7,13 @@
     <div class="CALHEAT">
       <table class="CALTABLE">
 
-        <span :class="lines[0] === true ? 'draw-line' : ''" class="line l0"></span>
+        <!-- <span :class="lines[0] === true ? 'draw-line' : ''" class="line l0"></span>
         <span :class="lines[1] === true ? 'draw-line' : ''" class="line l1"></span>
         <span :class="lines[2] === true ? 'draw-line' : ''" class="line l2"></span>
         <span :class="lines[3] === true ? 'draw-line' : ''" class="line l3"></span>
         <span :class="lines[4] === true ? 'draw-line' : ''" class="line l4"></span>
         <span :class="lines[5] === true ? 'draw-line' : ''" class="line l5"></span>
-        <span :class="lines[6] === true ? 'draw-line' : ''" class="line l6"></span>
+        <span :class="lines[6] === true ? 'draw-line' : ''" class="line l6"></span> -->
         <tr>
           <td width="70"></td>
           <td class="CALHEAD">Jan</td>
@@ -51,7 +51,10 @@
                       v-bind="attrs"
                       v-on="on"
                     >
-                    <div class="RECT unset" :class="[colorCalc(results.d[j-1][i-1], i, j, results.y)]"></div>
+                    <div style="position: relative;" class="RECT unset" :class="[colorCalc(results.d[j-1][i-1], i, j, results.y)]">
+                      <span class="upper line-x1" v-if="shouldDisplayLine(i, j, results.y)"></span>
+                      <span class="upper line-x2" v-if="shouldDisplayLine(i, j, results.y)"></span>
+                    </div>
                   </span>
                   </template>
                   <span v-if="results.d[j-1][i-1] && results.d[j-1][i-1]!=-1">{{`${i}/${j}/${results.y} :`}} <b>{{results.d[j-1][i-1].toFixed(1)}}</b> {{ unit.name }}</span>
@@ -247,6 +250,10 @@ export default {
     lineUp(n) {
       this.$set(this.lines, n, !this.lines[n]);
       this.$emit('dayFilter', this.lines);
+    },
+    shouldDisplayLine(day, month, year) {
+      const dayOfWeek = moment(`${year}-${month}-${day}`, 'YYYY-MM-DD').isoWeekday();
+      return this.lines[dayOfWeek - 1];
     }
   },
   watch: {
@@ -294,7 +301,7 @@ export default {
         }
         this.maxDate = moment((maxIndex[1]+1) + ' ' + (maxIndex[0]+1), 'DD MM').format('DD MMMM');
       }
-    }
+    },
   }
 }
 </script>
@@ -379,6 +386,7 @@ export default {
   border-radius: 5px;
   transition: background .3s ease-in-out;
 }
+
 .unset {
   background: #D9D9D9;
 }
@@ -470,4 +478,30 @@ export default {
   /* border: 2px solid orange; */
   border: 2px solid orange;
 }
+
+.upper {
+  height: 1px;
+  width: 24px;
+  border: 1px solid #ff6f0000;
+  transform: rotate(0deg);
+  display: inline-block;
+  top: 10px;
+  left: -3px;
+  position: absolute;
+  border-radius: 144px;
+  transition: all .1s ease-in-out;
+}
+
+.line-x1 {
+  border: 1px solid #ff6f00;
+  transform: rotate(56deg);
+}
+
+.line-x2 {
+    border: 1px solid #ff6f00;
+    transform: rotate(125deg);
+}
+
+
+
 </style>

@@ -540,7 +540,6 @@ export async function getHeatCal(space, tempo, currentTimestamp, source, raw = {
     } else {
       processedTimeSeries = timeSeries;
     }
-    console.log(calendarObject);
     return calendarObject;
     
   

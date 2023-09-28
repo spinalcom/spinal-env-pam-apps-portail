@@ -125,6 +125,7 @@ class App extends Vue {
     this.loading = true;
     this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[this.defaultSource], {data: this.calendar.rawData, start: interval.start, end: interval.end}, false, this.dayF);
     this.calculus(this.calcul);
+    
     this.loading = false;
   }
 
