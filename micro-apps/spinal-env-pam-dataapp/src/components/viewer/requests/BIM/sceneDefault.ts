@@ -22,20 +22,14 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import type { IEquipmentItem, IZoneItem } from '../../../components/SpaceSelector';
-import type { IViewInfoItemRes } from '../../../services/spinalAPI/GeographicContext/getViewInfo';
-import type { IGetAllBuildingsRes } from '../../../interfaces/IGetAllBuildingsRes';
-import { defaultTemporalitySelected, defaultZoneSelected } from './utils/defaultZoneSelected';
+import type { SpinalAPI } from '../SpinalAPI';
+import { ISceneDefaultRes } from '../../../interfaces/ISceneDefaultRes';
 
-
-export type StateAppData = typeof state;
-export const state = {
-  buildings: [] as IGetAllBuildingsRes[],
-  zoneSelected: defaultZoneSelected(),
-  temporalitySelected: defaultTemporalitySelected(),
-  floors: {} as Record<string, IZoneItem[]>,
-  rooms: {} as Record<number, IZoneItem[]>,
-  roomBimObj: {} as Record<number, IEquipmentItem[]>,
-  buildingInfo: {} as Record<number, IViewInfoItemRes[]>,
-  viewerStartedList: {} as {[key:string]:string}
-};
+export async function sceneDefaut(
+  spinalAPI: SpinalAPI,
+  buildingId: string
+): Promise<ISceneDefaultRes> {
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, 'api/v1/BIM/scene/default');
+  const res = await spinalAPI.get<ISceneDefaultRes>(url);
+  return res.data;
+}

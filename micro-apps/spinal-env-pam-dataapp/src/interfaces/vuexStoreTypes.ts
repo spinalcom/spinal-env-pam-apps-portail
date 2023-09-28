@@ -68,16 +68,16 @@ export interface Actions {
   
   [ActionTypes.GET_EQUIPMENTS]: TFctGeoAPICall<IFctGeoCallPayload, IEquipmentItem[]>;
 
-  [ActionTypes.OPEN_VIEWER]({ commit, state }: AugmentedActionContextAppData, payload: ISpaceSelectorItem ): Promise<void>;
+  [ActionTypes.OPEN_VIEWER]({ commit, state }: AugmentedActionContextAppData, payload: { onlyThisModel: boolean; item: ISpaceSelectorItem }): Promise<void>;
 
-  [ActionTypes.GET_VIEWER_INFO]( { commit, state }: AugmentedActionContextAppData, payload: { patrimoineId: string;  buildingId: string; id: number | number[]; forceUpdate?: boolean; }): Promise<IViewInfoItemRes[]>;
+  [ActionTypes.GET_VIEWER_INFO]( { commit, state }: AugmentedActionContextAppData, payload: { item: ISpaceSelectorItem; forceUpdate?: boolean; }): Promise<IViewInfoItemRes[]>;
   
   [ActionTypes.GET_GEOGRAPHIC_ITEMS_GROUPS]({ commit, state }: AugmentedActionContextAppData, playload: { forceUpdate?: boolean;  buildingId: string}): Promise<{ [key: string]: INodeItem }>;
   
 
-  [ActionTypes.SELECT_ITEMS]: TFctViewerIteract;
-  [ActionTypes.FIT_TO_VIEW_ITEMS]: TFctViewerIteract;
-  [ActionTypes.ISOLATE_ITEMS]: TFctViewerIteract;
+  [ActionTypes.SELECT_ITEMS]({commit, dispatch, state}: AugmentedActionContextAppData, playload: any) : void;
+  [ActionTypes.FIT_TO_VIEW_ITEMS]({commit, dispatch, state}: AugmentedActionContextAppData, playload: any) : void;
+  [ActionTypes.ISOLATE_ITEMS]({commit, dispatch, state}: AugmentedActionContextAppData, playload: any) : void;
 }
 
 

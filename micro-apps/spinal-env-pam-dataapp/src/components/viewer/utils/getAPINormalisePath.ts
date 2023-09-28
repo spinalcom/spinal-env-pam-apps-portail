@@ -24,13 +24,10 @@
 
 export function getAPINormalisePath(path: string, buildingId: string = ''): string {
   let res = path;
-  const orig = process.env.SPINAL_API_URL;
-  if (!/https?:\/\//.test(path)) {
-    res = `${orig}${
-      orig.endsWith('/') ? '' : '/'
-    }api/v1/building/${buildingId}/BIM/file${path}`;
+  const orig = process.env.SPINAL_API_URL || "";
 
-    //  window.location.origin + path;
+  if (!/https?:\/\//.test(path)) {
+    res = `${orig}${orig.endsWith('/') ? '' : '/'}api/v1/building/${buildingId}/BIM/file${path}`;
   }
   return res;
 }

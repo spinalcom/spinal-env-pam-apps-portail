@@ -59,7 +59,7 @@ with this file. If not, see
           :GetChildrenFct="onSpaceSelectOpen"
           v-model="selectedZone"
           label="ESPACE"
-          :spaceSelectorItemButtons="config.spaceSelectorButtons"
+          :spaceSelectorItemButtons="spaceSelectorButtons" @onActionClick="onActionClick"
         />
       </div>
       
@@ -68,8 +68,20 @@ with this file. If not, see
     <div class="appContainer">
       <viewerApp class="viewerContainer"></viewerApp>
       <v-card elevation="4" class="dataContainer">
-        <div class="detail_header"></div>
-        <div class="detail_container"></div>
+        <div class="detail_header">
+          <div class="title_date">
+            <div class="_title">{{config.title}}</div>
+            <div class="date">Date picker</div>
+          </div>
+          <div class="gradient_content">
+            <div class="color"></div>
+          </div>
+          <!-- <div class="calcul_content">calcul div</div> -->
+        </div>
+
+        <div class="detail_container">
+          <!-- <GroupDataView v-for="(d,i) in data" :key="i" :data="d" /> -->
+        </div>
       </v-card>
     </div>
     <!-- <v-card
@@ -98,13 +110,14 @@ import { ActionTypes } from './interfaces/vuexStoreTypes';
 import Component from 'vue-class-component';
 import type { Store } from './services/store';
 import { MutationTypes } from './services/store/appDataStore/mutations';
-import type { IZoneItem, TGeoItem } from './components/SpaceSelector/interfaces/IBuildingItem';
-import { IGetAllBuildingsRes } from './interfaces/IGetAllBuildingsRes';
+import type { IButton, IZoneItem, TGeoItem } from './components/SpaceSelector/interfaces/IBuildingItem';
 import { DataTable } from './components/data-table';
 import viewerApp from './components/viewer/viewer.vue';
 import ScDownloadButton from 'spinal-components/src/components/DownloadButton.vue';
+import { ViewerButtons } from './components/SpaceSelector/spaceSelectorButtons';
 import { config } from './config'
 import { IConfig } from './interfaces/IConfig';
+import GroupDataView from './components/groupDataView.vue'
 
 interface IItemData {
   platformId: string;
@@ -120,7 +133,8 @@ interface IItemDatatmp {
     SpaceSelector,
     DataTable,
     viewerApp,
-    ScDownloadButton
+    ScDownloadButton,
+    GroupDataView
   },
 })
 
@@ -129,9 +143,31 @@ class App extends Vue {
   openSpaceSelector = false;
   openTemporalitySelector = false;
   config: IConfig = config;
+  spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
 
   dataTable: IZoneItem[] = [];
   $refs: { spaceSelector };
+
+  data = [{
+    name: "Etage 1",
+    value:  100,
+    unit: "%",
+    color: "green",
+    children: [
+      {
+        name: "Multicapteur 1",
+        value:  "Libre",
+        unit: "",
+        color: "green",
+      },
+      {
+        name: "Multicapteur 2",
+        value:  "Occupé",
+        unit: "",
+        color: "red",
+      }
+    ]
+  }]
 
   public get selectedZone(): ISpaceSelectorItem {
     return this.$store.state.appDataStore.zoneSelected;
@@ -139,9 +175,9 @@ class App extends Vue {
 
   public set selectedZone(v: ISpaceSelectorItem) {
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
-    if (v.type.includes("geographic")) {
-      this.$store.dispatch(ActionTypes.OPEN_VIEWER, v);
-    }
+    // if (v.type.includes("geographic")) {
+    //   this.$store.dispatch(ActionTypes.OPEN_VIEWER, v);
+    // }
   }
 
    public get temporalitySelected(): ISpaceSelectorItem {
@@ -272,16 +308,19 @@ class App extends Vue {
       id: res.id.size > 0 ? Array.from(res.id) : res.id.values().next().value,
     };
   }
+
   async onSelect(item: TGeoItem | TGeoItem[]) {
     if (!item) return;
     const it = this.getItemData(item);
     await this.$store.dispatch(ActionTypes.SELECT_ITEMS, it);
   }
+
   async onfitToView(item: TGeoItem | TGeoItem[]) {
     if (!item) return;
     const it = this.getItemData(item);
     await this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, it);
   }
+
   async onIsolate(item: TGeoItem | TGeoItem[]) {
     if (!item) return;
     const it = this.getItemData(item);
@@ -290,6 +329,31 @@ class App extends Vue {
   
   async onColor(item: TGeoItem | TGeoItem[]) {
     // TBD
+  }
+
+  onActionClick({ button, item }) {
+    const data = {
+      buildingId: item.buildingId,
+      staticId : item.staticId,
+      id: item.dynamicId,
+      dynamicId: item.dynamicId,
+      floorId: item.floorId,
+      roomId: item.roomId,
+      type: item.type
+    }
+
+    switch (button.onclickEvent) {
+      case ActionTypes.OPEN_VIEWER:
+        this.$store.dispatch(button.onclickEvent, { onlyThisModel: true, item: data });
+        break;
+      case "OPEN_VIEWER_PLUS":
+        this.$store.dispatch(ActionTypes.OPEN_VIEWER, { onlyThisModel: false, item: data });
+        break;
+      default:
+        this.$store.dispatch(button.onclickEvent, data);
+        break;
+    }
+
   }
 }
 
@@ -361,8 +425,31 @@ export default App;
 .appContainer .dataContainer .detail_header {
   width: 100%;
   height: 150px;
-  background: blue;
 }
+
+.appContainer .dataContainer .detail_header .title_date {
+  width: 100%;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+
+.appContainer .dataContainer .detail_header .title_date ._title {
+  max-width: 50%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  font-size: 0.8em;
+}
+.appContainer .dataContainer .detail_header .title_date .date {}
+
+
+gradient_content
+calcul_content
+
 .appContainer .dataContainer .detail_container {
   width: 100%;
   height: calc(100% - 150px);

@@ -22,26 +22,23 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-export async function load1stThenAll<T, K>(
-  tasks: T[],
-  callback: (itm: T) => Promise<K>,
-  isFirstCall: boolean
-): Promise<K[]> {
+export async function load1stThenAll<T, K>(tasks: T[], callback: (itm: T) => Promise<K>, isFirstCall: boolean ): Promise<K[]> {
   const results: K[] = [];
   let idx = 0;
+
   if (tasks.length > 0 && isFirstCall) {
     idx = 1;
     await callback(tasks[0]).then((res: K): void => {
-      results.push(res);
+      if(res) results.push(res);
     });
   }
-  const proms = [];
+
+  const proms: Promise<void>[] = [];
+
   for (; idx < tasks.length; idx++) {
-    proms.push(
-      callback(tasks[idx]).then(function (res: K): void {
-        results.push(res);
-      })
-    );
+    proms.push(callback(tasks[idx]).then(function (res: K): void {
+      if (res) results.push(res);
+    }));
   }
   return Promise.all(proms).then(() => results);
 }

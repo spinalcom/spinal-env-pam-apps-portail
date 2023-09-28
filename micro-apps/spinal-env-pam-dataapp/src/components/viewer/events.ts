@@ -22,47 +22,8 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { ActionTypes } from "./vuexStoreTypes";
-
-
-export const enum calculTypes {
-   Maximum = "Maximum",
-   Minimum = "Minimum",
-   Moyenne = "Moyenne",
-   Somme = "Somme"
-}
-
-interface ISource {
-   name: string;
-   profileName?: string;
-   type: "controlPoint" | "Endpoint";
-}
-
-interface ILegendValue {
-   value: number;
-   color: string;
-}
-
-interface ILegend {
-   min: ILegendValue;
-   median?: ILegendValue;
-   max: ILegendValue;
-}
-
-export interface IConfig {
-   title: string;
-   viewButtons: "base" | "advanced",
-   calculs: calculTypes[],
-   source: ISource;
-   sprites: boolean;
-   legend: "auto" | ILegend;
-   regroupement?:any
-}
-
-
-export interface IButton {
-   title: string;
-   icon: string;
-   isShownTypes?: string[]; 
-   onclickEvent?: ActionTypes
+export const enum VIEWER_EVENTS {
+   UNLOAD = "unload",
+   UNLOADED = "unloaded",
+   LOADED = "loaded",
 }

@@ -22,40 +22,55 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { IButton } from "../interfaces/IConfig";
+import { IButton } from "../../interfaces/IConfig";
+import { ActionTypes } from "../../interfaces/vuexStoreTypes";
+import { config } from '../../config'
 
-export const spaceSelectorButtons: IButton[] = [
-   {
-      title: "charger ce model uniquement",
+const spaceSelectorButtons: { [key: string]: IButton } = {
+   load: {
+      title: "charger",
       icon : "mdi-video-3d",
-      onclickEvent: "load",
+      onclickEvent: ActionTypes.OPEN_VIEWER,
       isShownTypes: ["geographicFloor"]
    },
-   {
-      title: "charger ce model en plus",
+
+   load_plus: {
+      title: "charger en plus",
       icon : "mdi-rotate-3d",
-      onclickEvent: "load_plus",
+      onclickEvent: <any>"OPEN_VIEWER_PLUS",
       isShownTypes: ["geographicFloor"]
    },
-   {
-      title: "decharger ce model",
+
+   unload: {
+      title: "decharger",
       icon : "mdi-video-3d-off",
-      onclickEvent: "unload",
+      onclickEvent: ActionTypes.UNLOAD_MODEL,
       isShownTypes: ["geographicFloor"]
    },
-  {
+
+   fitToView : {
       title: "Zoomer",
       icon : "mdi-fit-to-screen-outline",
-      onclickEvent: "fitToView"
+      onclickEvent: ActionTypes.FIT_TO_VIEW_ITEMS,
+      isShownTypes: ["geographicRoom"]
    },
-  {
+
+   select : {
       title: "selectionner",
       icon : "mdi-selection",
-      onclickEvent: "select"
+      onclickEvent:  ActionTypes.SELECT_ITEMS,
+      isShownTypes: ["geographicRoom"]
    },
-  {
+   isolate : {
       title: "isoler",
-      icon : "mdi-plus",
-      onclickEvent: "isolate"
+      icon : "mdi-target",
+      onclickEvent:  ActionTypes.ISOLATE_ITEMS,
+      isShownTypes: ["geographicRoom"]
    }
-]
+}
+   
+
+export const ViewerButtons: { [key: string]: IButton[] } = {
+   base: [spaceSelectorButtons.load, spaceSelectorButtons.unload, spaceSelectorButtons.isolate],
+   advanced : Object.values(spaceSelectorButtons)
+}

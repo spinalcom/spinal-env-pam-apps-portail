@@ -22,9 +22,14 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { IConfig } from "../interfaces/IConfig";
-import { spaceSelectorButtons } from "./spaceSelectorButtons"
+import { IConfig, calculTypes } from "./interfaces/IConfig";
 
 export const config: IConfig = {
-   spaceSelectorButtons
+   viewButtons: "advanced",
+   title: "Le titre de mon app",
+   calculs : [calculTypes.Maximum, calculTypes.Minimum, calculTypes.Moyenne, calculTypes.Somme],
+   source : {name : "endpoint", profileName: "", type: "controlPoint" },
+   sprites: false,
+   legend: "auto",
+   regroupement: ""
 }

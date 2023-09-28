@@ -23,8 +23,7 @@ with this file. If not, see
 -->
 
 <script lang="ts">
-import { initViewer } from './utils/viewerUtils';
-import { listenAllEvents } from './startEvents';
+import { ViewerManager, EventManager } from './manager';
 import { Vue, Component } from 'vue-property-decorator';
 
 @Component
@@ -33,8 +32,8 @@ class viewerApp extends Vue {
 
   async mounted() {
     const div = <HTMLElement>this.$refs.viewerDiv;
-    const view = await initViewer(div);
-    this.stopEventListener = await listenAllEvents(view);
+    const view = await ViewerManager.getInstance().initViewer(div);
+    this.stopEventListener = await EventManager.getInstance().listenAllEvents(view);
   }
 
   beforeDestroy() {
@@ -43,6 +42,7 @@ class viewerApp extends Vue {
 }
 
 export default viewerApp;
+export { viewerApp }
 </script>
 
 <template>

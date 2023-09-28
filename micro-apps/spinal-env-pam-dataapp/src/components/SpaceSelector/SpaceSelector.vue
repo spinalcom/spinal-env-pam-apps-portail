@@ -80,6 +80,7 @@ with this file. If not, see
           :selected="selectedZone"
           @onOpenClose="expandCollapse(item, index)"
           :spaceSelectorItemButtons="spaceSelectorItemButtons"
+          @onActionClick="onActionClick"
         ></SpaceSelectorItem>
       </transition-group>
     </v-card>
@@ -93,7 +94,6 @@ import type { IZoneItem, IButton } from './interfaces/IBuildingItem';
 import type { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
 import SpaceSelectorItem from './SpaceSelectorItem.vue';
 import { convertZonesToISpaceSelectorItems } from './convertZonesToISpaceSelectorItems';
-import { } from 'vue';
 
 @Component({
   components: {
@@ -172,9 +172,10 @@ class SpaceSelector extends Vue {
   }
 
   select(item?: ISpaceSelectorItem) {
-    this.$emit('update:open', !this.open);
+    // this.$emit('update:open', !this.open);
     this.$emit('input', item);
   }
+
   private myDiv!: HTMLDivElement;
   checkingOverflow() {
     const myDiv = document.getElementById('myDiv');
@@ -186,6 +187,7 @@ class SpaceSelector extends Vue {
       this.isFill = 'hidden';
     }
   }
+
   async mounted() {
     const children = await this.GetChildrenFct();
     this.buildingStructure = convertZonesToISpaceSelectorItems(children);
@@ -281,11 +283,16 @@ class SpaceSelector extends Vue {
     el.style.opacity = 0;
     el.style.height = 0;
   }
+
   enter(el: { dataset: { index: number; }; }, done: any) {
     var delay = el.dataset.index * 5;
     setTimeout(function () {
       Velocity(el, { opacity: 1, height: '50px' }, { complete: done });
     }, delay);
+  }
+
+  onActionClick(data) {
+    this.$emit("onActionClick", data)
   }
 
 }

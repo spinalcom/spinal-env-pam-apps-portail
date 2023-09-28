@@ -23,9 +23,9 @@
  */
 
 import { SpinalAPI } from '../SpinalAPI';
-import { sceneDefaut } from '../../../services/spinalAPI/BIM/sceneDefault';
-import { getBIMFileContext } from '../../../services/spinalAPI/BIM/BIMFileContext';
-import { ISpaceSelectorItem } from '../../../components/SpaceSelector';
+import { sceneDefaut } from '../BIM/sceneDefault';
+import { getBIMFileContext } from '../BIM/BIMFileContext';
+import { IPlayload } from '../../interfaces/IPlayload';
 
 export interface IViewInfoBody {
   dynamicId: number | number[];
@@ -84,7 +84,7 @@ export function mergeIViewInfo(resBody: IViewInfoTmpRes[], sources: IViewInfoIte
 }
 
 
-export async function getViewInfoFormatted(buildingId: string, res: IViewInfoTmpRes[], floor: ISpaceSelectorItem) {
+export async function getViewInfoFormatted(buildingId: string, res: IViewInfoTmpRes[], floor: IPlayload) {
   const defaultScene = await getDefaultScene(buildingId);
 
   const models = await getAndFormatModels(buildingId, res, floor.staticId);

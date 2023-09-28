@@ -47,7 +47,7 @@ with this file. If not, see
       ></div>
     </template>
 
-    <div class="color-square" :style="{ 'background-color': item.color }"></div>
+    <div class="color-square" :style="{ 'background-color': color }"></div>
     <v-list-item-content style="margin-left: 21px">
       <v-list-item-title v-tooltip="item.name"
         >{{ item.name }}
@@ -56,14 +56,19 @@ with this file. If not, see
 
     <v-list-item-action class="actionsDiv">
 
-      <v-btn v-for="(button,index) in spaceSelectorItemButtons" :key="index"
-          x-small
-          elevation="0" fab
-          icon
-          style="color: #bfbfbf"
-          dark
-          :loading="item.loading" :tile="button.title">
-          <v-icon>{{ button.icon }}</v-icon>
+      <v-btn v-for="(button,index) in spaceSelectorItemButtons" 
+        :key="index"
+        x-small
+        elevation="0" fab
+        icon
+        style="color: #bfbfbf"
+        dark
+        :loading="item.loading" 
+        :title="button.title"
+        @click.stop="onclick(button)"
+        v-show="display(button)" 
+        :disabled="disableBtn(button)">
+        <v-icon>{{ button.icon }}</v-icon>
       </v-btn>
 
       <v-btn
@@ -85,6 +90,7 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
+import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 import { Vue, Component, Prop } from 'vue-property-decorator';
 import { IButton } from './interfaces/IBuildingItem';
 import { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
@@ -105,12 +111,33 @@ class SpaceSelectorItem extends Vue {
     );
   }
 
+
+  public get color(): string {
+    if (this.item.type === "geographicFloor" && this.isLoaded(this.item)) return "#008000";
+
+    return this.item.color as string
+  }
+
+  
   public get icon(): string {
     return this.item?.isOpen ? 'mdi-chevron-down' : 'mdi-chevron-up';
   }
 
+  public isLoaded(item: ISpaceSelectorItem): boolean {
+    const id = item.type === "geographicFloor" ? item.staticId : (item as any).floorId;
+    return !id ? false : this.$store.state.appDataStore.viewerStartedList[id] ? true : false;
+  }
+
   onSelect() {
     this.$emit('onSelect');
+  }
+
+  onclick(button: IButton) {
+    this.$emit("onActionClick", { button, item: this.item });
+  }
+
+  display(button: IButton) {
+    return !button.isShownTypes || button.isShownTypes.indexOf(this.item.type) !== -1
   }
 
   onOpenClose() {
@@ -119,6 +146,22 @@ class SpaceSelectorItem extends Vue {
 
   drawParentLink(depth: number) {
     return !this.item.drawLink.includes(depth);
+  }
+
+  disableBtn(button: IButton) {
+    switch (button.onclickEvent) {
+      case ActionTypes.OPEN_VIEWER:
+      case ActionTypes.OPEN_VIEWER:
+      case ActionTypes.OPEN_VIEWER:
+      case "OPEN_VIEWER_PLUS":
+        return this.isLoaded(this.item);
+    
+      case ActionTypes.UNLOAD_MODEL:
+      case ActionTypes.FIT_TO_VIEW_ITEMS:
+      case ActionTypes.SELECT_ITEMS:
+      case ActionTypes.ISOLATE_ITEMS:
+        return !this.isLoaded(this.item);
+    }
   }
 }
 export default SpaceSelectorItem;

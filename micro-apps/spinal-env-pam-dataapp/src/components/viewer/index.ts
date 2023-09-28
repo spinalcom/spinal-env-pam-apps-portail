@@ -22,6 +22,6 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-export * from "./startEvents";
-export * from "./ModelDictionnary";
+export * from "./manager";
 export * from "./viewer.vue";
+export * from "./interfaces";
