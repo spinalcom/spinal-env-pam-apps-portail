@@ -37,12 +37,16 @@
         :labels="barChartData.labels"
         :datasets="barChartData.datasets"
         :line-datasets="barLineChartData"
-        :units="{ line: 'h' }"
+        :units="{ right: lineUnit }"
         stacked
         nav-enabled
         @nav="nav"
         :nav-text="navText"
         line-point
+        :tooltip-callbacks="{
+          title: titleCallback,
+          afterTitle: subtitleCallback,
+        }"
       >
         <template v-slot:extras>
           <div class="d-flex flex-row ml-8">
@@ -186,7 +190,23 @@ export default {
       openTimeSelector: false,
       el: { name: "Bâtiment" },
       navIndex: 0,
+      lineUnit: "h",
       cardTitle: config.dashboardTitle,
+      titleCallback: () => {
+        return;
+      },
+      subtitleCallback: () => {
+        return;
+      },
+      label: (tooltipItem) => {
+        if (tooltipItem.dataset.type === "bar")
+          return `${tooltipItem.dataset.label}: ${tooltipItem.raw}`;
+        return `${tooltipItem.dataset.label}: ${
+          tooltipItem.raw < 24
+            ? tooltipItem.raw
+            : Math.round(parseInt(tooltipItem.raw) / 24)
+        }${tooltipItem.raw < 24 ? "h" : "j"}`;
+      },
     };
   },
 
@@ -235,6 +255,10 @@ export default {
               )
             : null
         );
+        if (Math.max(...set.data) >= 24) {
+          this.lineUnit = "j";
+          set.data = set.data.map((d) => (d ? Math.round(d / 24) : null));
+        } else this.lineUnit = "h";
       });
       return line;
     },
@@ -289,29 +313,31 @@ export default {
           d.filter((ds) => ds.value || ds.value === 0).map((ds) => ds.value)
         )
         .reduce((e1, e2) => e1.concat(e2), []);
+      let val = Math.min(...timeTable) / 3600000;
       const min = {
-        value: Math.round(Math.min(...timeTable) / 3600000),
-        unit: "Heures",
+        value: val < 24 ? Math.round(val) : Math.round(val / 24),
+        unit: val < 24 ? "Heures" : "Jours",
         title: lineIndics.label.split(" ").fill("minimal", 1, 2).join(" "),
-        subtitle: "ticket résolu le plus lentement",
-      };
-      const max = {
-        value: Math.round(Math.max(...timeTable) / 3600000),
-        unit: "Heures",
-        title: lineIndics.label.split(" ").fill("maximal", 1, 2).join(" "),
         subtitle: "ticket résolu le plus rapidement",
       };
+      val = Math.max(...timeTable) / 3600000;
+      const max = {
+        value: val < 24 ? Math.round(val) : Math.round(val / 24),
+        unit: val < 24 ? "Heures" : "Jours",
+        title: lineIndics.label.split(" ").fill("maximal", 1, 2).join(" "),
+        subtitle: "ticket résolu le plus lentement",
+      };
       let quot = 0;
+      val =
+        timeTable.reduce((e1, e2) => {
+          e2 = e2 || 0;
+          quot++;
+          return e1 + e2;
+        }, 0) /
+        ((quot || 1) * 3600000);
       const moy = {
-        value: Math.round(
-          timeTable.reduce((e1, e2) => {
-            e2 = e2 || 0;
-            quot++;
-            return e1 + e2;
-          }, 0) /
-            ((quot || 1) * 3600000)
-        ),
-        unit: "Heures",
+        value: val < 24 ? Math.round(val) : Math.round(val / 24),
+        unit: val < 24 ? "Heures" : "Jours",
         title: lineIndics.label.split(" ").fill("moyen", 1, 2).join(" "),
       };
       const solvedInPeriod = lineIndics.data
@@ -360,7 +386,9 @@ export default {
       dates.forEach((date, i) => {
         data[i] = { ...data[i], Date: date };
         for (const set of chartData) {
-          const unit = set.label.includes("Temps") ? " (H)" : "";
+          const unit = set.label.includes("Temps")
+            ? ` (${this.lineUnit.toUpperCase()})`
+            : "";
           data[i][set.label + unit] = set.data[i];
         }
       });
@@ -410,12 +438,44 @@ export default {
     nav(i) {
       this.navIndex += i;
     },
+
+    setTitleCallback() {
+      if (this.period.value === "month") {
+        const part2 = moment(this.navText, "MMMM YYYY").format("MM/YY");
+        this.titleCallback = (context) => {
+          return context[0].label + "/" + part2;
+        };
+      } else if (this.period.value === "year") {
+        const part2 = this.navText;
+        this.titleCallback = (context) => {
+          return context[0].label + " " + part2;
+        };
+      } else {
+        this.titleCallback = () => {
+          return;
+        };
+      }
+    },
+
+    setSubtitleCallback() {
+      if (this.period.value === "week") {
+        const date = moment(this.navText.split(" - ")[0], "DD MMMM");
+        this.subtitleCallback = (context) => {
+          const day = moment.weekdays().indexOf(context[0].label);
+          return moment(date).add(day, "days").format("DD/MM");
+        };
+      } else
+        this.subtitleCallback = () => {
+          return;
+        };
+    },
   },
 
   async mounted() {
     const { name } = await getBuildingAsync();
     this.el.name = name;
     await this.initWorkflows();
+    this.setSubtitleCallback();
   },
 
   watch: {
@@ -433,6 +493,8 @@ export default {
         period: this.period.value,
         index: i,
       });
+      this.setTitleCallback();
+      this.setSubtitleCallback();
     },
 
     async period(p) {
@@ -450,13 +512,15 @@ export default {
           p.value = "decade";
           break;
       }
-      if (!this.navIndex)
+      if (!this.navIndex) {
         await this.updateProcesses({
           displayedIds: this.to_display.map((d) => d.dynamicId),
           period: p.value,
           index: this.navIndex,
         });
-      else this.navIndex = 0;
+        this.setTitleCallback();
+        this.setSubtitleCallback();
+      } else this.navIndex = 0;
     },
   },
 };

@@ -6,3 +6,4 @@ dist/
 .env.*
 .parcel-cache
 package-lock.json
+micro-apps/spinal-env-pam-ticket-viewer

@@ -142,6 +142,7 @@ export default new Vuex.Store({
         }, []);
         datasets.forEach((set: any) => {
           set.data = set.data.map((d: number) => (d >= 0 ? d : null));
+          set.stack = set.label.includes("résolus") ? "stack2" : "stack1";
         });
 
         let labels = <any[]>[];
