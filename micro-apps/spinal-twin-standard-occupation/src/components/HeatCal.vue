@@ -22,7 +22,7 @@
     <div class="d-flex flex-column flex-grow-1">
       <!-- <slot name="extras" v-if="switchValue && true"></slot> -->
       <div class="selects">
-        <v-select v-model="space" append-icon="mdi-chevron-down" :items="source" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 100px; width: 300px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Espace sélectionné">
+        <v-select v-model="space" append-icon="mdi-chevron-down" :items="source" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 100px; width: 300px; flex-grow: 0; font-size: 14px !important;" class="ml-8" :label="selectTitle">
             <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
 
             <template #item="{ item }">
@@ -50,17 +50,15 @@
             </template>
         </v-select>
         <div class="selects inside">
-            <v-select v-model="interval.start" append-icon="mdi-chevron-down" :items="startHours" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 100px; width: 100px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Début">
+            <!-- <v-select v-model="interval.start" append-icon="mdi-chevron-down" :items="startHours" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 100px; width: 100px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Début">
                 <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
 
                 <template #item="{ item }">
                 {{ item }}
-                <!-- <SmallLegend :color="item.color" :text="item.name" :size="14"/> -->
                 </template>
 
                 <template #selection="{ item }">
                 {{ item }}
-                <!-- <SmallLegend :color="item.color" :text="item.name" :size="14"/> -->
                 </template>
             </v-select>
 
@@ -69,11 +67,23 @@
 
                 <template #item="{ item }">
                 {{ item }}
-                <!-- <SmallLegend :color="item.color" :text="item.name" :size="14"/> -->
                 </template>
 
                 <template #selection="{ item }">
                 {{ item }}
+                </template>
+            </v-select> -->
+
+            <v-select v-model="timeRange" append-icon="mdi-chevron-down" :items="timeRanges" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 200px; width: 200px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Intervalle de temps">
+                <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
+
+                <template #item="{ item }">
+                {{ item.name }}
+                <!-- <SmallLegend :color="item.color" :text="item.name" :size="14"/> -->
+                </template>
+
+                <template #selection="{ item }">
+                {{ item.name }}
                 <!-- <SmallLegend :color="item.color" :text="item.name" :size="14"/> -->
                 </template>
             </v-select>
@@ -81,7 +91,7 @@
 
       </div>
       <div class="flex-grow-1">
-        <CalendarAndStripe @dayFilter="dayFilter" @chart-sent="handleChart" :calc="calculation" :results="data" :max="max" :unit="unit" v-if="data && data.d && data.d.length>0"/>
+        <CalendarAndStripe @dayFilter="dayFilter" @toggle="toggle" @chart-sent="handleChart" :calc="calculation" :results="data" :max="max" :unit="unit" v-if="data && data.d && data.d.length>0"/>
       </div>
     </div>
     </v-card>
@@ -113,6 +123,7 @@ export default {
     },
     data() {
         return {
+            selectTitle: env.selectTitle,
             idx: 0,
             env: env,
             max: 100,
@@ -130,7 +141,8 @@ export default {
             },
             startHours: ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'],
             endHours: ['00:59', '01:59', '02:59', '03:59', '04:59', '05:59', '06:59', '07:59', '08:59', '09:59', '10:59', '11:59', '12:59', '13:59', '14:59', '15:59', '16:59', '17:59', '18:59', '19:59', '20:59', '21:59', '22:59', '23:59'],
-
+            timeRanges: env.timeRanges,
+            timeRange: null,
         }
     },
     methods: {
@@ -155,6 +167,9 @@ export default {
         },
         dayFilter(n) {
             this.$emit('dayFilter', n);
+        },
+        toggle(n) {
+            this.$emit('toggle', n);
         }
     },
     watch: {
@@ -162,6 +177,12 @@ export default {
             deep: true,
             handler(n, o) {
                 this.$emit('call-trigger', n);
+            }
+        },
+        timeRange: {
+            deep: true,
+            handler(n, o) {
+                this.$emit('call-trigger', n.intervals);
             }
         },
         calculation(v) {

@@ -51,8 +51,8 @@
                       v-bind="attrs"
                       v-on="on"
                     >
-                    <div style="position: relative;" class="RECT unset" :class="[colorCalc(results.d[j-1][i-1], i, j, results.y)]">
-                      <span class="upper line-x1" v-if="shouldDisplayLine(i, j, results.y)"></span>
+                    <div style="position: relative;" class="RECT unset" :class="[colorCalc(results.d[j-1][i-1], i, j, results.y)]" @click="toggle(i+'/'+j+'/'+results.y, colorCalc(results.d[j-1][i-1]))">
+                      <!-- <span class="upper line-x1" v-if="shouldDisplayLine(i, j, results.y)"></span> -->
                       <span class="upper line-x2" v-if="shouldDisplayLine(i, j, results.y)"></span>
                     </div>
                   </span>
@@ -88,7 +88,8 @@ export default {
     interval: 0,
     maxDate: '',
     legend: env.calendarLegend,
-    lines: [false, false, false, false, false, false, false]
+    lines: [false, false, false, false, false, false, false],
+    toggleSet: new Set(),
   }),
   mounted() {
     let exportDate = this.generateDatesArray(this.results.y);
@@ -220,7 +221,7 @@ export default {
   methods: {
     colorCalc (val, i, j, y) {
       const dayOfWeek = moment(`${y}-${j}-${i}`, 'YYYY-MM-DD').isoWeekday();
-      if(val < 0 || this.lines[dayOfWeek - 1]) return 'E';
+      if(val < 0 || (this.lines[dayOfWeek - 1] && !this.toggleSet.has(`${i}/${j}/${y}`)) || (this.lines[dayOfWeek - 1] === false && this.toggleSet.has(`${i}/${j}/${y}`))) return 'E';
       else if (val < this.min + this.interval || val == 0) return 'G3';
       else if (val < this.min + this.interval * 2) return 'G2';
       else if (val < this.min + this.interval * 3) return 'G1';
@@ -253,7 +254,17 @@ export default {
     },
     shouldDisplayLine(day, month, year) {
       const dayOfWeek = moment(`${year}-${month}-${day}`, 'YYYY-MM-DD').isoWeekday();
-      return this.lines[dayOfWeek - 1];
+      // (dayFilter[isoDayOfWeek - 1] === false && !toggleSet.has(moment(date).format('D/M/YYYY'))) || (dayFilter[isoDayOfWeek - 1] === true && toggleSet.has(moment(date).format('D/M/YYYY')));
+      return (this.lines[dayOfWeek - 1] && !this.toggleSet.has(`${day}/${month}/${year}`)) || (this.lines[dayOfWeek - 1] === false && this.toggleSet.has(`${day}/${month}/${year}`));
+    },
+    toggle(d, val) {
+      if (this.toggleSet.has(d)) {
+        this.toggleSet.delete(d);
+      }
+      else {
+        this.toggleSet.add(d);
+      }
+      this.$emit('toggle', this.toggleSet);
     }
   },
   watch: {

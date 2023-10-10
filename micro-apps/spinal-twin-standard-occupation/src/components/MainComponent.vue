@@ -14,6 +14,7 @@
         @calculus="calculus"
         @unit-switch="unitSwitch"
         @dayFilter="dayFilter"
+        @toggle="toggle"
         :defaultSource="defaultSource"
       />
       <LoadingCard v-else style="width: 100%; height: 485px;"/>
@@ -91,7 +92,9 @@ class App extends Vue {
 
   dayF = [false, false, false, false, false, false, false];
 
-  interv = {start: null, end: null}
+  toggleSet = new Set();
+
+  interv = [{start: '00:00', end: '23:59'}];
   @Prop({type: Object as () => ISpaceSelectorItem, required: true})
   space: ISpaceSelectorItem;
 
@@ -104,7 +107,6 @@ class App extends Vue {
 
 
   mounted() {
-    
     this.currentTimestamp = {valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
     this.spread(this.defaultSource);
   }
@@ -113,20 +115,17 @@ class App extends Vue {
   async spread(source: number) {    
     this.loading = true;
     this.defaultSource = source;
-    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[source], this.interv, true, this.dayF);
-    console.log(this.calendar);
-    console.log(this.calendar.d);
-    
+    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[source], {interval: this.interv}, true, this.dayF, this.toggleSet);
     this.loading = false;
     this.calculus(this.calcul);
     
   }
 
 
-  async callTrigger(interval = {start: null, end: null}) {
+  async callTrigger(interval = [{start: '00:00', end: '23:59'}]) {
     this.interv = interval;
     this.loading = true;
-    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[this.defaultSource], {data: this.calendar.rawData, start: interval.start, end: interval.end}, false, this.dayF);
+    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[this.defaultSource], {data: this.calendar.rawData, interval: interval}, false, this.dayF, this.toggleSet);
     this.calculus(this.calcul);
     this.loading = false;
   }
@@ -304,11 +303,9 @@ class App extends Vue {
   }
 
 
-
   unitSwitch(unit) {
     this.unit = unit;
   }
-
 
 
   nav(payload: number) {
@@ -326,6 +323,11 @@ class App extends Vue {
 
   dayFilter(n) {
     this.dayF = n;
+    this.callTrigger(this.interv);
+  }
+
+  toggle(n) {
+    this.toggleSet = n;
     this.callTrigger(this.interv);
   }
 
