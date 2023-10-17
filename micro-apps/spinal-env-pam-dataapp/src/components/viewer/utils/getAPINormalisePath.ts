@@ -27,7 +27,7 @@ export function getAPINormalisePath(path: string, buildingId: string = ''): stri
   const orig = process.env.SPINAL_API_URL || "";
 
   if (!/https?:\/\//.test(path)) {
-    res = `${orig}${orig.endsWith('/') ? '' : '/'}api/v1/building/${buildingId}/BIM/file${path}`;
+    res = `${orig}${orig.endsWith('/') ? '' : '/'}api/v2/building/${buildingId}/BIM/file${path}`;
   }
   return res;
 }

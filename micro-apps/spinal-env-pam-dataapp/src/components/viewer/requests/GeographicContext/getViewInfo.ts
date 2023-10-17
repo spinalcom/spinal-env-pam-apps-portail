@@ -87,7 +87,7 @@ export function mergeIViewInfo(resBody: IViewInfoTmpRes[], sources: IViewInfoIte
 export async function getViewInfoFormatted(buildingId: string, res: IViewInfoTmpRes[], floor: IPlayload) {
   const defaultScene = await getDefaultScene(buildingId);
 
-  const models = await getAndFormatModels(buildingId, res, floor.staticId);
+  const models = await getAndFormatModels(buildingId, res, floor.dynamicId as any);
   const data = {
     item: floor,
     buildingId: buildingId,

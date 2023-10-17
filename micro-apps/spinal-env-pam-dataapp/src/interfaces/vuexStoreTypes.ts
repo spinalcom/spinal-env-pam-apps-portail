@@ -25,9 +25,7 @@
 import { ActionContext  } from 'vuex';
 import { MutationsAppData } from '../services/store/appDataStore/mutations';
 import type { StateAppData } from '../services/store/appDataStore/state';
-import type { IEquipmentItem, INodeItem, ISpaceSelectorItem, IZoneItem, } from '../components/SpaceSelector';
-import { IViewInfoItemRes  } from '../services/spinalAPI/GeographicContext/getViewInfo';
-import { IGetAllBuildingsRes } from './IGetAllBuildingsRes';
+import  { INodeItem } from '../interfaces/INodeItem';
 
 export type AugmentedActionContextAppData = {
   commit<K extends keyof MutationsAppData>(key: K, payload: Parameters<MutationsAppData[K]>[1]): ReturnType<MutationsAppData[K]>;
@@ -45,7 +43,11 @@ export enum ActionTypes {
   GET_FLOORS = 'GET_FLOORS',
   GET_ROOMS = 'GET_ROOMS',
   GET_EQUIPMENTS = 'GET_EQUIPMENTS',
-  GET_GEOGRAPHIC_ITEMS_GROUPS = "GET_GEOGRAPHIC_ITEMS_GROUPS"
+  GET_GROUPS_ITEMS = "GET_GROUPS_ITEMS",
+  GET_GROUPS_ITEMS_BY_GEOITEM = "GET_GROUPS_ITEMS_BY_GEOITEM",
+  GET_ITEM_CONTROL_POINT = "GET_ITEM_CONTROL_POINT",
+  COLOR_ITEMS = "COLOR_ITEMS",
+  ADD_SPRITES = "ADD_SPRITES"
 }
 
 export type TFctViewerIteract = (stateContext: AugmentedActionContextAppData, payload: { buildingId: string; id: number | number[]; }) => Promise<void>;
@@ -57,6 +59,7 @@ export interface IFctGeoCallPayload {
   forceUpdate?: boolean;
 }
 
+/*
 export interface Actions {
   [ActionTypes.GET_BUILDINGS]({ commit, state }: AugmentedActionContextAppData, playload: {patrimoineId: string ,forceUpdate?: boolean }): Promise<IGetAllBuildingsRes[]>;
   
@@ -79,7 +82,7 @@ export interface Actions {
   [ActionTypes.FIT_TO_VIEW_ITEMS]({commit, dispatch, state}: AugmentedActionContextAppData, playload: any) : void;
   [ActionTypes.ISOLATE_ITEMS]({commit, dispatch, state}: AugmentedActionContextAppData, playload: any) : void;
 }
-
+*/
 
 type asyncGen = {[ActionIt in ActionTypes]? : AsyncGenerator<Awaited<ReturnType<ActionIt>>>}
 

@@ -61,7 +61,6 @@ export class SpinalAPI {
   }
 
   public createUrlWithPlatformId(buildingId: string, ApiRoute: string): string {
-    console.log(this.apiUrl)
     if (!ApiRoute.startsWith('/')) ApiRoute = '/' + ApiRoute;
     return `${this.apiUrl}api/v2/building/${buildingId}${ApiRoute}`;
   }

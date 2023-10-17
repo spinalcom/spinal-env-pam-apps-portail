@@ -25,6 +25,21 @@
 import { ActionTypes } from "./vuexStoreTypes";
 
 
+export interface IConfig {
+   entryPoint: EntryPoint;
+   title: string;
+   viewButtons: "base" | "advanced",
+   calculs: calculTypes[];
+   source: ISource;
+   sprites: boolean;
+   legend: ILegend;
+   regroupement: "floors" | "rooms" | "groups";
+}
+
+
+export type EntryPoint = { context: string; group?: string;  category?: string} 
+
+
 export const enum calculTypes {
    Maximum = "Maximum",
    Minimum = "Minimum",
@@ -32,11 +47,19 @@ export const enum calculTypes {
    Somme = "Somme"
 }
 
-interface ISource {
+
+
+export interface ISource {
    name: string;
    profileName?: string;
-   type: "controlPoint" | "Endpoint";
+   type: "controlPoint" | "endpoint" | "attribute";
+   objectType: "equipments" | "rooms";
+   categoryName?: string;
+   unit?: string;
 }
+
+
+
 
 interface ILegendValue {
    value: number;
@@ -48,17 +71,6 @@ interface ILegend {
    median?: ILegendValue;
    max: ILegendValue;
 }
-
-export interface IConfig {
-   title: string;
-   viewButtons: "base" | "advanced",
-   calculs: calculTypes[],
-   source: ISource;
-   sprites: boolean;
-   legend: "auto" | ILegend;
-   regroupement?:any
-}
-
 
 export interface IButton {
    title: string;

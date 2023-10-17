@@ -22,8 +22,7 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { group } from "console";
-import { INodeItem } from "../../../components/SpaceSelector";
+import { INodeItem } from "../../../../interfaces/INodeItem";
 import { SpinalAPI } from '../SpinalAPI';
 
 

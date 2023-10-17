@@ -56,4 +56,9 @@ export { viewerApp }
   background: transparent;
   position: relative;
 }
+
+/* #guiviewer3d-toolbar {
+  display: none;
+} */
+
 </style>

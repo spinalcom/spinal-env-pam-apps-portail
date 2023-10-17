@@ -22,15 +22,7 @@ with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
 <template>
-  <v-app>
-    <!-- <space-selector
-      ref="space-selector"
-      :open.sync="openSpaceSelector"
-      :maxDepth="3"
-      :GetChildrenFct="onSpaceSelectOpen"
-      v-model="selectedZone"
-      label="ESPACE"
-    />  -->
+  <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
 
     <div class="selectors">
 
@@ -59,48 +51,29 @@ with this file. If not, see
           :GetChildrenFct="onSpaceSelectOpen"
           v-model="selectedZone"
           label="ESPACE"
-          :spaceSelectorItemButtons="spaceSelectorButtons" @onActionClick="onActionClick"
+          :spaceSelectorItemButtons="spaceSelectorButtons"
+          :viewButtonsType="config.viewButtons"
+          @onActionClick="onActionClick"
         />
       </div>
       
     </div>
 
-    <div class="appContainer">
+    <div class="dataBody">
       <viewerApp class="viewerContainer"></viewerApp>
-      <v-card elevation="4" class="dataContainer">
-        <div class="detail_header">
-          <div class="title_date">
-            <div class="_title">{{config.title}}</div>
-            <div class="date">Date picker</div>
-          </div>
-          <div class="gradient_content">
-            <div class="color"></div>
-          </div>
-          <!-- <div class="calcul_content">calcul div</div> -->
-        </div>
-
-        <div class="detail_container">
-          <!-- <GroupDataView v-for="(d,i) in data" :key="i" :data="d" /> -->
-        </div>
-      </v-card>
+      <InsightApp class="appContainer" :config="config" :selectedZone="selectedZone"></InsightApp>
     </div>
-    <!-- <v-card
-      elevation="4"
-      style="margin: 70px 8px 0 8px"
-      height="calc(100% - 80px)"
-    >
-      <DataTable
-        :tableData="dataTable"
-        v-model="selectedZone"
-        :GetChildrenFct="onSpaceSelectOpen"
-        @goBack="onGoBack"
-        @onSelect="onSelect"
-        @onfitToView="onfitToView"
-        @onIsolate="onIsolate"
-        @onColor="onColor"
-      ></DataTable>
-    </v-card> -->
   </v-app>
+
+  <v-container class="loading" v-else-if="pageSate === PAGE_STATES.loading" fluid>
+    <v-progress-circular
+      :size="70"
+      :width="3"
+      color="purple"
+      indeterminate
+    ></v-progress-circular>
+  </v-container>
+
 </template>
 
 <script lang="ts">
@@ -117,12 +90,14 @@ import ScDownloadButton from 'spinal-components/src/components/DownloadButton.vu
 import { ViewerButtons } from './components/SpaceSelector/spaceSelectorButtons';
 import { config } from './config'
 import { IConfig } from './interfaces/IConfig';
-import GroupDataView from './components/groupDataView.vue'
+import  InsightApp  from './components/inshight_data/app.vue'
+import { PAGE_STATES } from "./interfaces/pageStates";
 
 interface IItemData {
   platformId: string;
   id: number | number[];
 }
+
 interface IItemDatatmp {
   platformId: string;
   id: Set<number>;
@@ -134,40 +109,36 @@ interface IItemDatatmp {
     DataTable,
     viewerApp,
     ScDownloadButton,
-    GroupDataView
+    InsightApp
   },
 })
 
 class App extends Vue {
+  PAGE_STATES: typeof PAGE_STATES = PAGE_STATES;
+  pageSate: PAGE_STATES = PAGE_STATES.loading;
   $store: Store;
-  openSpaceSelector = false;
-  openTemporalitySelector = false;
+  openSpaceSelector: boolean = false;
+  openTemporalitySelector: boolean = false;
   config: IConfig = config;
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
 
   dataTable: IZoneItem[] = [];
   $refs: { spaceSelector };
 
-  data = [{
-    name: "Etage 1",
-    value:  100,
-    unit: "%",
-    color: "green",
-    children: [
-      {
-        name: "Multicapteur 1",
-        value:  "Libre",
-        unit: "",
-        color: "green",
-      },
-      {
-        name: "Multicapteur 2",
-        value:  "Occupé",
-        unit: "",
-        color: "red",
-      }
-    ]
-  }]
+
+  async mounted() {
+    try {
+
+      this.pageSate = PAGE_STATES.loading;
+      // const buildingId = localStorage.getItem("idBuilding");
+      // await this.$store.dispatch(ActionTypes.GET_GROUPS_ITEMS, { config, buildingId });
+      this.pageSate = PAGE_STATES.loaded;
+
+    } catch (error) {
+      this.pageSate = PAGE_STATES.error;
+    }
+ 
+  }
 
   public get selectedZone(): ISpaceSelectorItem {
     return this.$store.state.appDataStore.zoneSelected;
@@ -175,51 +146,39 @@ class App extends Vue {
 
   public set selectedZone(v: ISpaceSelectorItem) {
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
+    
+     
+    
     // if (v.type.includes("geographic")) {
     //   this.$store.dispatch(ActionTypes.OPEN_VIEWER, v);
     // }
   }
 
-   public get temporalitySelected(): ISpaceSelectorItem {
+  public get temporalitySelected(): ISpaceSelectorItem {
     return this.$store.state.appDataStore.temporalitySelected;
   }
 
   public set temporalitySelected(v: ISpaceSelectorItem) {
       this.$store.commit(MutationTypes.SET_TEMPORALITY, v);
   }
-
-  mounted() { }
   
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<IZoneItem[]> {
     switch (item?.type) {
-      // case undefined: // 1st call send undifined => send patrimoine // later change with Moussa API edit
-      //   const patrimoine = JSON.parse(localStorage.getItem("patrimoine"));
-      //   return [{
-      //     name: patrimoine.name,
-      //     staticId: patrimoine.id,
-      //     categories: patrimoine.buildings,
-      //     color: '#FFFFFF',
-      //     dynamicId: 0,
-      //     type: 'patrimoine',
-      //   }];
-      // case 'patrimoine': // get building in patrimoine
-      //   const buildings = await this.$store.dispatch(ActionTypes.GET_BUILDINGS, {patrimoineId: item.staticId});
-      //   return buildings.map((it: IGetAllBuildingsRes) => {
-      //     const res = {
-      //       name: it.name,
-      //       staticId: it.id,
-      //       patrimoineId: item.staticId,
-      //       categories: [],
-      //       color: '#35CAE5',
-      //       dynamicId: 0,
-      //       type: 'building',
-      //     };
-      //     return res;
-      //   });
       case undefined:
         const buildingId = localStorage.getItem("idBuilding");
-        const promises = [this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }), this.$store.dispatch(ActionTypes.GET_GEOGRAPHIC_ITEMS_GROUPS, { buildingId })]
-        const [building] =  await Promise.all(promises)
+        const playload = {
+          config,
+          item: { buildingId, type: "building" },
+        }
+
+        const promises = [
+          this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }),
+          // this.$store.dispatch(ActionTypes.GET_GROUPS_ITEMS_BY_GEOITEM, playload)
+        ]
+
+        const [building, items] = await Promise.all(promises);
+
+        // this.data = items;
         return [
           {
             name: building.name,
@@ -234,7 +193,7 @@ class App extends Vue {
         return await this.$store.dispatch(ActionTypes.GET_FLOORS, { buildingId: item.staticId,  patrimoineId: item.patrimoineId });
       case 'geographicFloor':
         //@ts-ignore
-        return await this.$store.dispatch(ActionTypes.GET_ROOMS, { floorId: item.staticId, buildingId: item.buildingId, patrimoineId: item.patrimoineId, id: item.dynamicId });
+        return await this.$store.dispatch(ActionTypes.GET_ROOMS, { floorId: item.dynamicId, buildingId: item.buildingId, patrimoineId: item.patrimoineId, id: item.dynamicId });
       // case 'geographicRoom':
       //   //@ts-ignore
       //   return await this.$store.dispatch(ActionTypes.GET_EQUIPMENTS, { floorId: item.floorId, roomId: item.staticId, buildingId: item.buildingId, patrimoineId: item.patrimoineId, id: item.dynamicId });
@@ -242,7 +201,6 @@ class App extends Vue {
         return [];
     }
   }
-
 
   onTemporalitySelectOpen(item?: any) {
     switch (item?.type) {
@@ -286,8 +244,7 @@ class App extends Vue {
     //     this.selectedTime.prev = 'Année précédente';
     //   }
     //   return [];
-    }
-
+  }
 
   onGoBack() {
     const parent = this.$refs['space-selector'].getParentOfSelected();
@@ -355,107 +312,80 @@ class App extends Vue {
     }
 
   }
+
 }
 
 export default App;
 </script>
 
 
-<style scoped>
+<style scoped lang="scss">
 
-.selectors {
-  position:absolute;
-  display: flex;
-  justify-content: flex-end;
-  top: 5px;
-  right: 5px;
-  height: 60px;
+.app {
   width: 100%;
-  /* background: #14202c; */
-  border: 1px solid #f5f5f5;
-  border-radius: 12px;
-}
-
-.selectors .DButton {
-  /* position: absolute; */
-  /* right: calc(90%);  */
-  /* top: -1px; */
-  width: 60px;
-  height: 60px;
-}
-
-.selectors .temporality {
-  position: relative;
-  width: 200px;
-  height: 60px;
-  /* right: calc(66%); */
-  /* top: -1px; */
-}
-
-.selectors .space {
-  position: relative;
-  /* right: 0px;
-  top: -1px; */
-  width: 40%;
-  height: 60px;
-}
-
-
-
-
-.appContainer {
-  height : calc(100% - 90px);
-  margin: 80px 8px 0 8px;
-}
-
-.appContainer .viewerContainer {
-  width: 60%;
   height: 100%;
-  float: left;
+
+  $selectorHeight : 60px;
+  
+  .selectors {
+    position:absolute;
+    display: flex;
+    justify-content: flex-end;
+    top: 5px;
+    right: 5px;
+    height: $selectorHeight;
+    width: 100%;
+    border: 1px solid #f5f5f5;
+    border-radius: 12px;
+    .DButton {
+      width: 60px;
+      height: 60px;
+    }
+
+    .temporality {
+      position: relative;
+      width: 200px;
+      height: $selectorHeight;
+    }
+
+    .space {
+      position: relative;
+      width: 40%;
+      height: $selectorHeight;
+    }
+  }
+
+  
+  .dataBody {
+    height : calc(100% - #{ $selectorHeight + 30px});
+    margin: 80px 8px 0 8px;
+      .viewerContainer {
+        width: 60%;
+        height: 100%;
+        float: left;
+      }
+
+      .appContainer {
+        width: 40%;
+        height: 100%;
+        float: right;
+      }
+  }
+
+  
+
+
 }
 
-.appContainer .dataContainer {
-  width: calc(40% - 5px);
-  height: 100%;
-  float: right;
-  border-radius: 10px;
-  padding: 5px;
-}
+  .loading {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-.appContainer .dataContainer .detail_header {
-  width: 100%;
-  height: 150px;
-}
-
-.appContainer .dataContainer .detail_header .title_date {
-  width: 100%;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+  }
 
 
-.appContainer .dataContainer .detail_header .title_date ._title {
-  max-width: 50%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  font-size: 0.8em;
-}
-.appContainer .dataContainer .detail_header .title_date .date {}
-
-
-gradient_content
-calcul_content
-
-.appContainer .dataContainer .detail_container {
-  width: 100%;
-  height: calc(100% - 150px);
-  background: green;
-  overflow: auto;
-}
 </style>
 
 <style>
@@ -510,5 +440,9 @@ body {
   box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
   -webkit-border-radius: 5px;
   border-radius: 5px;
+}
+
+.appContainer .dataContainer .calcul_content .calcul .select .v-text-field.v-text-field--solo .v-input__control {
+  min-height: unset !important;
 }
 </style>

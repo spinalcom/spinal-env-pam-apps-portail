@@ -13,6 +13,7 @@
     "chart.js": "^4.2.1",
     "dateformat": "^5.0.3",
     "http-server": "^14.1.1",
+    "javascript-color-gradient": "^2.4.4",
     "moment": "^2.29.4",
     "spinal-components": "github:spinalcom/spinal-components",
     "spinal-env-viewer-plugin-excel-manager-service": "git+https://github.com/spinalcom/spinal-env-viewer-plugin-excel-manager-service.git",

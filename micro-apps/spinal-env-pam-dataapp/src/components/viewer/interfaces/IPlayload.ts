@@ -30,4 +30,6 @@ export interface IPlayload  {
    roomId?: string;
    patrimoineId?: string;
    dynamicId: number;
+   displayValue?: string | number;
+   color?: string;
 }

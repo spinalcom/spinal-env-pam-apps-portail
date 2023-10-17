@@ -30,12 +30,15 @@ import { addOffsetFromAEC } from "./addOffsetFromAEC";
 import { getAPINormalisePath } from "./getAPINormalisePath";
 import { ModelManager } from '../manager/modelManager';
 import { IViewerColorData } from '../interfaces/IViewerColorData';
+import { getAllObjectsPositionsAndFormat } from "./getObjectPos";
+import { createSprite } from "./threejsManager";
 
 
 export class ViewerUtils {
 
   private static _instance : ViewerUtils;
   private _isFirstModel: boolean = true;
+  private _modelIsLoading: boolean = true;
   
   private constructor() { }
   
@@ -72,7 +75,7 @@ export class ViewerUtils {
 
     const instance = ModelManager.getInstance();
     for (const id of arg_modelIds) {
-      const models = instance.getModelById(id);
+      const models = instance.getModelById((id));
       if (models) {
         for (const model of models) {
           (viewer.impl as any).unloadModel(model);
@@ -120,7 +123,6 @@ export class ViewerUtils {
     }
   }
 
-
   public viewerIsolation(viewer: Autodesk.Viewing.Viewer3D, data: IDbIdModelAggregate[]): void {
     const aggregateIsolation = viewer.getAggregateIsolation();
 
@@ -136,6 +138,7 @@ export class ViewerUtils {
     
     } else {
       const modelDico = ModelManager.getInstance().getModelList();      
+
 
       for (const [modelId, models] of modelDico) {
         let found = false;
@@ -166,7 +169,6 @@ export class ViewerUtils {
     }
   }
 
-
   public viewerFitToView(viewer: Autodesk.Viewing.Viewer3D, data: IDbIdModelAggregate[] ): void {
     const res = data.map((d) => {
       return {
@@ -190,18 +192,35 @@ export class ViewerUtils {
     viewer.setViewCube(dataFormatted.join(", "));
   }
 
-  public setObjColor(viewer: Autodesk.Viewing.Viewer3D,  data : IViewerColorData[]) {
-    for (const d of data) {
-      for (const id of d.dbIds) {
-        for (const model of d.models) {
-          viewer.setThemingColor(id, d.color, model);
+  public async setObjColor(viewer: Autodesk.Viewing.Viewer3D, data: IViewerColorData[]) {
+    // await this._waitModelIsLoading();
+    setTimeout(() => {
+      for (const d of data) {
+        for (const id of d.dbIds) {
+          const models = ModelManager.getInstance().getModelById(d.modelId)
+          if (!models) continue;
+          for (const model of models) {
+            const rgbColor  = convertHexColorToRGB(d.color);
+            let realColor = rgbColor ? new THREE.Vector4(rgbColor.r / 255, rgbColor.g / 255, rgbColor.b / 255, 0.7) : new THREE.Vector4(1, 0, 0, 0);
+            viewer.setThemingColor(id, realColor, model);
+          }
         }
       }
-    }
+    }, 4 * 1000);
+
 
   }
 
-  public addSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
+  public addSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) {
+    setTimeout(async () => {
+      const pos = await getAllObjectsPositionsAndFormat(data);
+      pos.forEach(({pos, color, text}) => {
+        createSprite(viewer, pos, { color, text });
+      })
+    }, 5 * 1000);
+
+    
+  }
   
   public removeSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
   
@@ -215,7 +234,7 @@ export class ViewerUtils {
 
   public moveLine(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
 
-  public addSphere(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
+  public addSphere(viewer: Autodesk.Viewing.Viewer3D, data: any) {   }
 
   public removeSphere(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
 
@@ -228,7 +247,9 @@ export class ViewerUtils {
 
    private async _loadBimFile(viewer: Autodesk.Viewing.Viewer3D, urlpath: string, sceneAlignMethod: SceneAlignMethod, modelId: string, dbids?: number[],aecPath?: string, buildingId?: string ): Promise<Autodesk.Viewing.Model> {
     try {
-      const option: { globalOffset?: THREE.Vector3; applyRefPoint?: boolean; ids?: number[]; } = {};
+      const option: { globalOffset?: THREE.Vector3; applyRefPoint?: boolean; ids?: number[];headlessViewer: boolean } = {
+        headlessViewer: true
+      };
 
       if (dbids) {
         option.ids = dbids;
@@ -261,9 +282,11 @@ export class ViewerUtils {
   private _loadModel(modelId: string, viewer: Autodesk.Viewing.Viewer3D, path: string, option: any = {}, start: boolean = false): Promise<Autodesk.Viewing.Model> {
     return new Promise((resolve, reject) => {
       let m : Autodesk.Viewing.Model = undefined;
+      // this._modelIsLoading = true;
       const fn = (e: any) => {
 
         if (m && e.model.id === m.id) {
+          // this._modelIsLoading = false;
           viewer.removeEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, fn);
           resolve(m);
         }
@@ -275,7 +298,9 @@ export class ViewerUtils {
       fct.call(viewer, path, option, (model: Autodesk.Viewing.Model): void => {
         ModelManager.getInstance().addNewModel(modelId, model);
           m = model;
-      }, reject );
+      }, reject);
+      
+      if (start) viewer.loadExtension('Autodesk.ViewCubeUi', viewer.config);
     });
   }
 
@@ -327,7 +352,6 @@ export class ViewerUtils {
     viewer.impl.api.dispatchEvent(event);
   }
 
-
   private _isSameData(data1: IDbIdModelAggregate[], data2: { ids: number[]; model: Autodesk.Viewing.Model }[] ): boolean {
     if (data1.length !== data2.length) return false;
     for (const d1 of data1) {
@@ -347,6 +371,19 @@ export class ViewerUtils {
     return true;
   }
 
+  private _waitModelIsLoading(): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      const id = setInterval(() => {
+        console.log("check if model is loaded")
+        if (!this._modelIsLoading) {
+          clearInterval(id);
+          console.log("modelIsLoaded");
+          resolve(true);
+        }
+      }, 200);
+    });
+  }
+
 }
 
 function checkdbIds(dbid1: number[], dbid2: number[]): boolean {
@@ -362,4 +399,15 @@ function checkdbIds(dbid1: number[], dbid2: number[]): boolean {
     if (found === false) return false;
   }
   return true;
+}
+
+
+function convertHexColorToRGB(hex: string) {
+  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } :
+    null;
 }

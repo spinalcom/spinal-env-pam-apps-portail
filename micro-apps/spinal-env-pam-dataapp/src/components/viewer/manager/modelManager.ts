@@ -51,14 +51,14 @@ export class ModelManager {
    public getSpinalModelID(model: number | Autodesk.Viewing.Model ): string | void {
       const modelId = typeof model === 'number' ? model : model.id;
       for (const [id, mo] of this._modelDico) {
-         const found = mo.find(m => m.id === modelId);
+         const found = mo.find(m => m.id == modelId);
          if (found) return id;
       }
    }
 
    public getModelById(nodeId: string): Autodesk.Viewing.Model[] | void {
       for (const [id, model] of this._modelDico) {
-         if (nodeId === id) return model;
+         if (nodeId == id) return model;
       }
    }
 

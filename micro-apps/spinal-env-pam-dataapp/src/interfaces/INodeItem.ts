@@ -22,13 +22,21 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import Vue from 'vue';
+export const geoTypeCorrespondance = Object.freeze({
+  geographicFloor: "floors",
+  geographicRoom: "rooms",
+  geographicBuilding: "buildings"
+})
 
-export const enum VIEWER_EVENTS {
-   UNLOAD = "unload",
-   UNLOADED = "unloaded",
-   LOADED = "loaded"
+export interface INodeItem {
+  dynamicId: number;
+  staticId: string;
+  name: string;
+  type: string;
 }
 
-
-export const EventBus = new Vue();
+export interface INodeItemTree extends INodeItem {
+  displayValue: number | string;
+  children: INodeItemTree[];
+  endpoint?: any
+}

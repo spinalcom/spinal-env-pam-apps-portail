@@ -22,13 +22,8 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import Vue from 'vue';
-
-export const enum VIEWER_EVENTS {
-   UNLOAD = "unload",
-   UNLOADED = "unloaded",
-   LOADED = "loaded"
+export  enum PAGE_STATES {
+   error = "error",
+   loading = "loading",
+   loaded = "loaded"
 }
-
-
-export const EventBus = new Vue();

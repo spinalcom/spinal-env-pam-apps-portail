@@ -80,6 +80,7 @@ with this file. If not, see
           :selected="selectedZone"
           @onOpenClose="expandCollapse(item, index)"
           :spaceSelectorItemButtons="spaceSelectorItemButtons"
+          :viewButtonsType="viewButtonsType"
           @onActionClick="onActionClick"
         ></SpaceSelectorItem>
       </transition-group>
@@ -104,6 +105,9 @@ class SpaceSelector extends Vue {
 
   @Prop({ type: Array<IButton>, required: false, default: () => [] })
   spaceSelectorItemButtons!: IButton[];
+
+  @Prop({ type: String, required: false })
+  viewButtonsType!: string;
 
   @Prop({ type: Function, required: false })
   GetChildrenFct!: ( item?: ISpaceSelectorItem) => Promise<IZoneItem[]>;

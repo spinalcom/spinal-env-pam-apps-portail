@@ -56,7 +56,8 @@ with this file. If not, see
 
     <v-list-item-action class="actionsDiv">
 
-      <v-btn v-for="(button,index) in spaceSelectorItemButtons" 
+      <v-btn v-if="viewButtonsType === 'advanced'" 
+        v-for="(button,index) in spaceSelectorItemButtons" 
         :key="index"
         x-small
         elevation="0" fab
@@ -65,7 +66,7 @@ with this file. If not, see
         dark
         :loading="item.loading" 
         :title="button.title"
-        @click.stop="onclick(button)"
+        @click.stop="onActionClick(button)"
         v-show="display(button)" 
         :disabled="disableBtn(button)">
         <v-icon>{{ button.icon }}</v-icon>
@@ -94,6 +95,7 @@ import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 import { Vue, Component, Prop } from 'vue-property-decorator';
 import { IButton } from './interfaces/IBuildingItem';
 import { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
+import { Action } from "vuex-class";
 
 @Component
 class SpaceSelectorItem extends Vue {
@@ -101,12 +103,12 @@ class SpaceSelectorItem extends Vue {
   @Prop({ type: Number, required: true }) maxDepth: number;
   @Prop({ type: Object, required: true }) selected: ISpaceSelectorItem;
   @Prop({ type: Array<IButton>, required: false, default: () => [] }) spaceSelectorItemButtons!: IButton[];
-    
+  @Prop({ type: String, required: false }) viewButtonsType!: string;
+
   public get isSelected(): boolean {
     return (
       this.item.patrimoineId === this.selected.patrimoineId &&
-      this.item.platformId === this.selected.platformId &&
-      (this.item.staticId === this.selected?.staticId ||
+      this.item.platformId === this.selected.platformId && (this.item.staticId === this.selected?.staticId ||
         this.selected?.parents?.includes(this.item.staticId))
     );
   }
@@ -129,10 +131,14 @@ class SpaceSelectorItem extends Vue {
   }
 
   onSelect() {
+    if (this.viewButtonsType === 'base') {
+      const button = this.getButton();
+      if(button) this.$emit("onActionClick", { button, item: this.item });
+    }
     this.$emit('onSelect');
   }
 
-  onclick(button: IButton) {
+  onActionClick(button: IButton) {
     this.$emit("onActionClick", { button, item: this.item });
   }
 
@@ -162,6 +168,15 @@ class SpaceSelectorItem extends Vue {
       case ActionTypes.ISOLATE_ITEMS:
         return !this.isLoaded(this.item);
     }
+  }
+
+  getButton() {
+    if (this.item.type === "building") return;
+
+    if (this.item.type === "geographicFloor")
+      return this.spaceSelectorItemButtons.find(el => el.onclickEvent === ActionTypes.OPEN_VIEWER);
+
+    return this.spaceSelectorItemButtons.find(el => el.onclickEvent === ActionTypes.ISOLATE_ITEMS);
   }
 }
 export default SpaceSelectorItem;

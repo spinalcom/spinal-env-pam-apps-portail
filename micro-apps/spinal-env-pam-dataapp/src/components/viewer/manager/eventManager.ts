@@ -51,7 +51,8 @@ export class EventManager {
 
       emitterHandler.on(VIEWER_START_LOAD_MODEL, async (data: any) => {
           const models = await viewerUtils.load3DModels(viewer, data);
-          emitterHandler.emit(<any>VIEWER_EVENTS.LOADED,{id: data.item.staticId, models})
+        // emitterHandler.emit(<any>VIEWER_EVENTS.LOADED,{id: data.item.staticId, models})
+          emitterHandler.emit(<any>VIEWER_EVENTS.LOADED,{id: data.item.dynamicId, models})
       });
 
       emitterHandler.on(VIEWER_OBJ_ISOLATE, (data: any) => {

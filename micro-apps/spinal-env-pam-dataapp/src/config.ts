@@ -25,11 +25,16 @@
 import { IConfig, calculTypes } from "./interfaces/IConfig";
 
 export const config: IConfig = {
-   viewButtons: "advanced",
+   entryPoint: { context : "Gestion des équipements", category : "Typologie", group: "Multicapteurs" },
+   viewButtons: "base",
    title: "Le titre de mon app",
    calculs : [calculTypes.Maximum, calculTypes.Minimum, calculTypes.Moyenne, calculTypes.Somme],
-   source : {name : "endpoint", profileName: "", type: "controlPoint" },
+   source: { name: "Température", profileName: "Multicapteurs", type: "controlPoint", objectType: "equipments", unit : "°C" },
    sprites: false,
-   legend: "auto",
-   regroupement: ""
+   legend: {
+      min: { value: 15, color: "#0074FF" },
+      median: { value: 27.5, color: "#FFFF00" },
+      max: {value: 40, color: "#FF004B"}
+   },
+   regroupement: "rooms"
 }

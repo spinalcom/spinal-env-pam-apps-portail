@@ -22,20 +22,21 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { ActionTree } from 'vuex';
 import { getBuildings, getBuildingById } from '../../spinalAPI/GeographicContext/getBuildings';
 import { IGetAllBuildingsRes } from '../../../interfaces/IGetAllBuildingsRes';
 import { SpinalAPI } from '../../spinalAPI/SpinalAPI';
 import { MutationTypes } from './mutations';
-import type { StateAppData } from './state';
 import { getEquipments, getFloors, getRooms } from '../../spinalAPI/GeographicContext/geographicContext';
-import type { IEquipmentItem, INodeItem, ISpaceSelectorItem, IZoneItem, } from '../../../components/SpaceSelector';
-import { getViewInfo, getViewInfoFormatted, IViewInfoItemRes, IViewInfoTmpRes, mergeIViewInfo } from '../../spinalAPI/GeographicContext/getViewInfo';
-import { VIEWER_INITIALIZED, EmitterViewerHandler, ViewerEventWithData, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_START_LOAD_MODEL } from 'spinal-viewer-event-manager';
-import { ActionTypes, Actions, ApiIteratorStoreRecordNumberType, ApiIteratorStoreRecordStringType, ApiIteratorStoreType, AugmentedActionContextAppData } from '../../../interfaces/vuexStoreTypes';
-import { getGeographicItemsGroups } from '../../spinalAPI/GeographicContext/geographicItemsGroups';
+import type { IEquipmentItem, IZoneItem, } from '../../../components/SpaceSelector';
+import { INodeItem, geoTypeCorrespondance } from '../../../interfaces/INodeItem';
+import {  IViewInfoItemRes } from '../../spinalAPI/GeographicContext/getViewInfo';
+import {  EmitterViewerHandler, ViewerEventWithData } from 'spinal-viewer-event-manager';
+import { ActionTypes, ApiIteratorStoreRecordNumberType, ApiIteratorStoreRecordStringType, ApiIteratorStoreType, AugmentedActionContextAppData } from '../../../interfaces/vuexStoreTypes';
+import { getGroupsItems } from '../../spinalAPI/GeographicContext/groupsItems';
 import { VIEWER_EVENTS } from '../../../components/viewer/events';
 import ViewerManager from '../../../components/viewer/manager/viewerManager';
+import { IConfig, ISource } from '../../../interfaces/IConfig';
+import { getSourceValue } from '../../spinalAPI/endpoints/getEndpoints';
 
 // const eventEmitter = EmitterViewerHandler.getInstance();
 
@@ -52,7 +53,7 @@ const ApiIteratorStore: ApiIteratorStoreType &
 
 // const viewerStartedList = new Set<string>();
 // const viewerStartedList = {};
-
+/*
 async function FctViewerIteract(eventName: keyof ViewerEventWithData, { state, dispatch, commit }: AugmentedActionContextAppData, payload: any): Promise<any> {
   const emitter = EmitterViewerHandler.getInstance();
 
@@ -93,8 +94,9 @@ async function FctViewerIteract(eventName: keyof ViewerEventWithData, { state, d
   });
   emitter.emit(eventName, res);
 }
+*/
 
-export const actions: ActionTree<StateAppData, StateAppData> & Actions = {
+export const actions = {
   
   async [ActionTypes.GET_BUILDINGS]({ commit, state }: AugmentedActionContextAppData, { patrimoineId, forceUpdate}  ): Promise<IGetAllBuildingsRes[]> {
     const spinalAPI = SpinalAPI.getInstance();
@@ -174,19 +176,44 @@ export const actions: ActionTree<StateAppData, StateAppData> & Actions = {
     return equipments.value;
   },
 
-  async [ActionTypes.GET_GEOGRAPHIC_ITEMS_GROUPS]({ commit, state }: AugmentedActionContextAppData, {forceUpdate, buildingId}): Promise<{ [key: string]: INodeItem }> {
+  async [ActionTypes.GET_GROUPS_ITEMS]({ commit, state }: AugmentedActionContextAppData, {forceUpdate, config, buildingId}): Promise<{ [key: string]: INodeItem }> {
     const spinalAPI = SpinalAPI.getInstance();
     
-    if (typeof ApiIteratorStore[ActionTypes.GET_GEOGRAPHIC_ITEMS_GROUPS] === 'undefined') {
-      ApiIteratorStore[ActionTypes.GET_GEOGRAPHIC_ITEMS_GROUPS] = {};
+    if (typeof ApiIteratorStore[ActionTypes.GET_GROUPS_ITEMS] === 'undefined') {
+      ApiIteratorStore[ActionTypes.GET_GROUPS_ITEMS] = {};
     }
 
-    if (typeof ApiIteratorStore[ActionTypes.GET_GEOGRAPHIC_ITEMS_GROUPS][buildingId] === "undefined" || forceUpdate) {
-      ApiIteratorStore[ActionTypes.GET_GEOGRAPHIC_ITEMS_GROUPS][buildingId] = spinalAPI.createIteratorCall(getGeographicItemsGroups, buildingId);
+    if (typeof ApiIteratorStore[ActionTypes.GET_GROUPS_ITEMS][buildingId] === "undefined" || forceUpdate) {
+      ApiIteratorStore[ActionTypes.GET_GROUPS_ITEMS][buildingId] = spinalAPI.createIteratorCall(getGroupsItems, config, buildingId);
     }
 
-    const items = await ApiIteratorStore[ActionTypes.GET_GEOGRAPHIC_ITEMS_GROUPS][buildingId].next()
+    const items = await ApiIteratorStore[ActionTypes.GET_GROUPS_ITEMS][buildingId].next();
     return items?.value;
+  },
+
+  async [ActionTypes.GET_GROUPS_ITEMS_BY_GEOITEM]({ dispatch, commit, state }: AugmentedActionContextAppData, playload: { config: IConfig, item: any }) {
+
+    const { buildingId, dynamicId, type } = playload.item;
+    const map = await dispatch(ActionTypes.GET_GROUPS_ITEMS, { config: playload.config, buildingId });
+    const obj = map.get(playload.config.regroupement);
+    let _data: any[] = [];
+
+    if (type === "building") {
+      return [];     
+      // return Array.from(Object.values(obj));
+    }
+
+    const key = geoTypeCorrespondance[type] || "items";
+    if (key === playload.config.regroupement) {
+      const data = obj[dynamicId];
+      _data = data ? [data] : [];
+    }
+
+    const items = _data.map(el => el.children || []).flat();
+
+    await getSourceValue(buildingId, items, playload.config.source);
+    
+    return _data;
   },
 
 
@@ -201,98 +228,10 @@ export const actions: ActionTree<StateAppData, StateAppData> & Actions = {
     if (playload.onlyThisModel) state.viewerStartedList = {};
 
     commit(MutationTypes.ADD_VIEWER_LOADED, playload.item.staticId);
-
-    // const floorId = playload.item.type === "geographicFloor" ? playload.item.staticId : (playload.item as any).floorId;
-    // if (state.viewerStartedList[floorId]) return;
-
-    // if (playload.onlyThisModel) {
-    //   // const ids = Array.from(state.viewerStartedList);
-    //   // const promises = ids.map(el => dispatch(ActionTypes.UNLOAD_MODEL, { staticId: el }));
-    //   // await Promise.all(promises);
-    //   const items = Object.keys(state.viewerStartedList);
-    //   await dispatch(ActionTypes.UNLOAD_MODEL, items)
-    // }
-
-    
-
-    // const emitter = EmitterViewerHandler.getInstance();
-
-    // emitter.once(VIEWER_INITIALIZED, async () => {
-    //   const buildingId = playload.item.buildingId;
-    //   const dynamicId = playload.item.dynamicId;
-    //   const res = await dispatch(ActionTypes.GET_VIEWER_INFO, {item: playload.item});
-      
-    //   emitter.once(<any>VIEWER_EVENTS.LOADED, (data) => {
-    //     commit(MutationTypes.ADD_VIEWER_LOADED, data);
-    //   })
-
-    //   const viewerInfo = await getViewInfoFormatted(buildingId, res, playload.item);
-    //   emitter.emit(VIEWER_START_LOAD_MODEL, viewerInfo);
-
-    // })
-
-    // // const buildingId = item.buildingId;
-    // // const floorId = item.type === "geographicFloor" ? item.staticId : (item as any).floorId;
-    // // // const id = `${buildingId}_${floorId}`;
-     
-    // // if (!state.viewerStartedList.has(floorId)) {
-    // //   await startViewer(item);
-    // //   commit(MutationTypes.ADD_VIEWER_LOADED, { id: floorId });
-    // // }
-
-    // // // if (item.type !== "geographicFloor") {
-    // // //   dispatch(ActionTypes.SELECT_ITEMS, { buildingId, id: item.dynamicId });
-    // // //   dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, { buildingId, id: item.dynamicId });
-    // // // }
-
   },
 
   async [ActionTypes.GET_VIEWER_INFO]({ commit, state }: AugmentedActionContextAppData, playload ): Promise<IViewInfoItemRes[]> {
-    return ViewerManager.getInstance().getViewerInfo(playload);
-    // if (typeof ApiIteratorStore[ActionTypes.GET_VIEWER_INFO] === 'undefined') {
-    //   ApiIteratorStore[ActionTypes.GET_VIEWER_INFO] = {};
-    // }
-
-    // if (typeof ApiIteratorStore[ActionTypes.GET_VIEWER_INFO][playload.item.dynamicId] === "undefined") {
-
-    //   const ids =  [playload.item.dynamicId];
-    //   const res: IViewInfoTmpRes[] = [];
-    //   const nodeTofetech: number[] = [];
-
-    //   for (const dynId of ids) {
-    //     if (state.buildingInfo[dynId]) {
-    //       mergeIViewInfo(res, state.buildingInfo[dynId]);
-    //     } else {
-    //       nodeTofetech.push(dynId);
-    //     }
-    //   }
-
-    //   if (nodeTofetech.length > 0) {
-    //     const datas = await getViewInfo(playload.item.buildingId, { dynamicId: nodeTofetech, floorRef: true, roomRef: true, equipements: true });
-    //     for (const _item of datas) {
-    //       commit(MutationTypes.SET_VIEWINFO, {
-    //         id: _item.dynamicId,
-    //         items: _item.data,
-    //       });
-    //       mergeIViewInfo(res, _item.data);
-    //     }
-    //   }
-
-    //   async function* generator(): AsyncGenerator<Awaited<any>> {
-    //     const data = res.map((it: IViewInfoTmpRes): IViewInfoItemRes => {
-    //       return { bimFileId: it.bimFileId, dbIds: Array.from(it.dbIds) };
-    //     });
-    //     while (true) {
-    //       yield data;
-    //     }
-    //   }
-      
-    //   // ApiIteratorStore[ActionTypes.GET_VIEWER_INFO][<any>id] = getViewInfoFormatted(buildingId,nodeTofetech, res);
-    //   ApiIteratorStore[ActionTypes.GET_VIEWER_INFO][playload.item.dynamicId] = generator();
-    // }
-
-    // const items = await ApiIteratorStore[ActionTypes.GET_VIEWER_INFO][playload.item.dynamicId].next();
-    // return items?.value;
+    return ViewerManager.getInstance().getViewerInfoMerged(playload);
   },
 
   [ActionTypes.SELECT_ITEMS]({commit, dispatch, state}, playload: any) {
@@ -315,6 +254,22 @@ export const actions: ActionTree<StateAppData, StateAppData> & Actions = {
     for (const item of playload) {
       commit(MutationTypes.REMOVE_VIEWER_LOADED, item.staticId);
     }
-  }
+  },
+
+  [ActionTypes.COLOR_ITEMS]({ commit, dispatch, state }, {items, buildingId }: any) {
+    // const _items = Array.isArray(items) ? items : [items];
+
+    // const data = _items.map(el => {
+    //   const copy = Object.assign({}, el);
+    //   copy.buildingId = buildingId;
+    //   return copy;
+    // })
+    return ViewerManager.getInstance().colorItems(items, buildingId);
+  },
+
+  [ActionTypes.ADD_SPRITES]({ commit, dispatch, state }, {items, buildingId }: any) {
+    return ViewerManager.getInstance().addSprites(items, buildingId);
+  },
+
 
 };
