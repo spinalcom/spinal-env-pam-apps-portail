@@ -5,7 +5,7 @@
     </div>
     
     <div class="MONTHSTRIPE">
-      <div v-for="i in 12" :key="i" class="MONTHRECT" :class="colorCalc(values[0][i-1])">
+      <div v-for="i in [10, 11, 12]" :key="i" class="MONTHRECT" :class="colorCalc(values[0][i-1])">
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
             <span style="width: 100%; height: 100%; display: flex; align-items: center; padding-left: 10px; justify-content: center;"
@@ -28,7 +28,7 @@
 <script>
 import env from '../../config';
 export default {
-  props: ['values', 'unit', 'results'],
+  props: ['values', 'unit'],
   data: () => ({
     months: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
     max: 0,
@@ -38,24 +38,21 @@ export default {
   }),
   mounted() {
     const flattenedArr = this.values[0].filter(val => val >= 0)
-    if (typeof this.results.max !== 'undefined' && typeof this.results.max === 'number') {
-      if (this.unit.name === '%')
-        this.max = this.results.max;
-      else {
-        this.max = this.results.capacity;
-      }
+    if (typeof this.values.max !== 'undefined' && typeof this.values.max === 'number') {
+      this.max = this.values.max;
     }
     else {
       this.max = Math.max(...flattenedArr);
     }
-    if (typeof this.results.min !== 'undefined' && typeof this.results.min === 'number') {
-      this.min = this.results.min;
+    if (typeof this.values.min !== 'undefined' && typeof this.values.min === 'number') {
+      this.min = this.values.min;
     }
     else {
       this.min = Math.min(...flattenedArr);
       this.min = this.min < 0 ? 0 : this.min;
     }
     this.interval = (this.max - this.min) / 7;
+    // console.log('Min:',this.min, ', Max:', this.max, ', Interval:', this.interval);
   },
   computed: {
   },
@@ -72,6 +69,7 @@ export default {
       else return 'R';
     },
     legendCalc(val) {
+      // console.log(`Min val: ${this.min}, the interval is ${this.interval}, and the current val is ${val}`);
       if(val < 0) return '';
       else if (val < this.min + this.interval) return 'A';
       else if (val < this.min + this.interval * 2) return 'B';
@@ -91,18 +89,14 @@ export default {
   watch: {
     values(v) {
       const flattenedArr = this.values[0].filter(val => val >= 0)
-      if (typeof this.results.max !== 'undefined' && typeof this.results.max === 'number') {
-        if (this.unit.name === '%')
-          this.max = this.results.max;
-        else {
-          this.max = this.results.capacity;
-        }
+      if (typeof this.values.max !== 'undefined' && typeof this.values.max === 'number') {
+        this.max = this.values.max;
       }
       else {
         this.max = Math.max(...flattenedArr);
       }
-      if (typeof this.results.min !== 'undefined' && typeof this.results.min === 'number') {
-        this.min = this.results.min;
+      if (typeof this.values.min !== 'undefined' && typeof this.values.min === 'number') {
+        this.min = this.values.min;
       }
       else {
         this.min = Math.min(...flattenedArr);
@@ -136,7 +130,7 @@ export default {
   /* padding: 10px; */
   gap: 10px;
 
-  width: 7.6%;
+  width: 30%;
   height: 30px;
 
   background: #D9D9D9;

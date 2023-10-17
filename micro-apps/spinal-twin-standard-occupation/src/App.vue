@@ -18,8 +18,8 @@
           :edge="false"
           v-if="defaultSelectedTime.name && defaultSelectedTime.name !=''"
           ref="space-selector2"
-          :open="false"
-          :maxDepth="-1"
+          :open.sync="openTimeSelector"
+          :maxDepth="0"
           :GetChildrenFct="onTimeSelectOpen"
           v-model="selectedTime"
           label="TEMPORALITÉ"
@@ -103,9 +103,9 @@ class App extends Vue {
   }
 
   // selectedTime = {
-  //     name: 'Année',
-  //     next: 'Année suivante',
-  //     prev: 'Année précédente',
+  //     name: 'Trimestre',
+  //     next: 'Trimestre suivant',
+  //     prev: 'Trimestre précédent',
   //     staticId: 'Annee',
   //     dynamicId: 3,
   //     level: 0,
@@ -141,21 +141,22 @@ class App extends Vue {
     this.defaultSelected.dynamicId = this.building.dynamicId;
   }
   onTimeSelectOpen(item?: any): { name: string; staticId: string; dynamicId: number; level: number; isOpen: boolean; loading: boolean; patrimoineId: string; parents: never[]; isLastInGrp: boolean; drawLink: never[]; haveChildren: boolean; }[] {
-    return [];
+    // return [];
     if (item) {
-      if (item.name == 'Journée') {
-        this.selectedTime.next = 'Jour suivant';
-        this.selectedTime.prev = 'Jour précédent';
-      }
-      if (item.name == 'Semaine') {
-        this.selectedTime.next = 'Semaine suivante';
-        this.selectedTime.prev = 'Semaine précédente';
-      }
-      if (item.name == 'Mois') {
-        this.selectedTime.next = 'Mois suivant';
-        this.selectedTime.prev = 'Mois précédent';
-      }
-      else if (item.name == 'Trimestre') {
+      // if (item.name == 'Journée') {
+      //   this.selectedTime.next = 'Jour suivant';
+      //   this.selectedTime.prev = 'Jour précédent';
+      // }
+      // if (item.name == 'Semaine') {
+      //   this.selectedTime.next = 'Semaine suivante';
+      //   this.selectedTime.prev = 'Semaine précédente';
+      // }
+      // if (item.name == 'Mois') {
+      //   this.selectedTime.next = 'Mois suivant';
+      //   this.selectedTime.prev = 'Mois précédent';
+      // }
+      // else 
+      if (item.name == 'Trimestre') {
         this.selectedTime.next = 'Trimestre suivant';
         this.selectedTime.prev = 'Trimestre précédent';
       }
@@ -166,51 +167,51 @@ class App extends Vue {
       return [];
     }
     let timeOptions: any[] = [];
-    timeOptions.push({
-      name: 'Journée',
-      next: 'Jour suivant',
-      prev: 'Jour précédent',
-      staticId: 'Jour',
-      dynamicId: 2,
-      level: 0,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'Jour',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    });
-    timeOptions.push({
-      name: 'Semaine',
-      next: 'Semaine suivante',
-      prev: 'Semaine précédente',
-      staticId: 'Semaine',
-      dynamicId: 2,
-      level: 0,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'Semaine',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    });
-    timeOptions.push({
-      name: 'Mois',
-      next: 'Mois suivant',
-      prev: 'Mois précédent',
-      staticId: 'Mois',
-      dynamicId: 1,
-      level: 1,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'Mois',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    });
+    // timeOptions.push({
+    //   name: 'Journée',
+    //   next: 'Jour suivant',
+    //   prev: 'Jour précédent',
+    //   staticId: 'Jour',
+    //   dynamicId: 2,
+    //   level: 0,
+    //   isOpen: true,
+    //   loading: false,
+    //   patrimoineId: 'Jour',
+    //   parents: [],
+    //   isLastInGrp: true,
+    //   drawLink: [],
+    //   haveChildren: false,
+    // });
+    // timeOptions.push({
+    //   name: 'Semaine',
+    //   next: 'Semaine suivante',
+    //   prev: 'Semaine précédente',
+    //   staticId: 'Semaine',
+    //   dynamicId: 2,
+    //   level: 0,
+    //   isOpen: true,
+    //   loading: false,
+    //   patrimoineId: 'Semaine',
+    //   parents: [],
+    //   isLastInGrp: true,
+    //   drawLink: [],
+    //   haveChildren: false,
+    // });
+    // timeOptions.push({
+    //   name: 'Mois',
+    //   next: 'Mois suivant',
+    //   prev: 'Mois précédent',
+    //   staticId: 'Mois',
+    //   dynamicId: 1,
+    //   level: 1,
+    //   isOpen: true,
+    //   loading: false,
+    //   patrimoineId: 'Mois',
+    //   parents: [],
+    //   isLastInGrp: true,
+    //   drawLink: [],
+    //   haveChildren: false,
+    // });
     timeOptions.push({
       name: 'Trimestre',
       staticId: 'Trimestre',
@@ -239,19 +240,19 @@ class App extends Vue {
       drawLink: [],
       haveChildren: false,
     });
-    timeOptions.push({
-      name: 'Décennie',
-      staticId: 'Decennie',
-      dynamicId: 4,
-      level: 0,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'Decennie',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    });
+    // timeOptions.push({
+    //   name: 'Décennie',
+    //   staticId: 'Decennie',
+    //   dynamicId: 4,
+    //   level: 0,
+    //   isOpen: true,
+    //   loading: false,
+    //   patrimoineId: 'Decennie',
+    //   parents: [],
+    //   isLastInGrp: true,
+    //   drawLink: [],
+    //   haveChildren: false,
+    // });
       return timeOptions;
   }
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<any> {

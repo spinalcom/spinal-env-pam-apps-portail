@@ -549,6 +549,7 @@ class App extends Vue {
 
   @Watch('chart', { deep: true })
   emitChartChange(newChart) {
+    console.log(this.chart);
     let output: any[] = [];
     for (let c = 0; c < newChart.data.length; c++) {
       output.push({

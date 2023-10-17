@@ -5,9 +5,6 @@
     <v-card-title class="card-title flex-shrink-1 justify-space-between">
       <p class="mb-0" style="padding: 10px;">
         {{ title }}
-        <!-- <br> -->
-        
-        <!-- <span class="desc">{{ subtitle }}</span> -->
       </p>
       <div class="d-flex align-center mln6" style="position: absolute; right: calc(50% - 50px); font-size: 14px;" v-if="true">
         <v-icon style="margin-top: -1px; font-size: 18px; margin-right: 10px; color: #63717f;">{{ env.unit.left.icon }}</v-icon>
@@ -20,18 +17,15 @@
       </div>
     </v-card-title>
     <div class="d-flex flex-column flex-grow-1">
-      <!-- <slot name="extras" v-if="switchValue && true"></slot> -->
       <div class="selects">
         <v-select v-model="space" append-icon="mdi-chevron-down" :items="source" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 100px; width: 300px; flex-grow: 0; font-size: 14px !important;" class="ml-8" :label="selectTitle">
             <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
 
             <template #item="{ item }">
-            <!-- {{ item. }} -->
             <SmallLegend :color="item.color" :text="item.title" :size="14"/>
             </template>
 
             <template #selection="{ item }">
-            <!-- {{ item }} -->
             <SmallLegend :color="item.color" :text="item.title" :size="14"/>
             </template>
         </v-select>
@@ -41,78 +35,80 @@
 
             <template #item="{ item }">
             {{ item }}
-            <!-- <SmallLegend :color="item.color" :text="item.name" :size="14"/> -->
             </template>
 
             <template #selection="{ item }">
             {{ item }}
-            <!-- <SmallLegend :color="item.color" :text="item.name" :size="14"/> -->
             </template>
         </v-select>
         <div class="selects inside">
-            <!-- <v-select v-model="interval.start" append-icon="mdi-chevron-down" :items="startHours" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 100px; width: 100px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Début">
-                <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
-
-                <template #item="{ item }">
-                {{ item }}
-                </template>
-
-                <template #selection="{ item }">
-                {{ item }}
-                </template>
-            </v-select>
-
-            <v-select v-model="interval.end" append-icon="mdi-chevron-down" :items="endHours" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 100px; width: 100px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Fin">
-                <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
-
-                <template #item="{ item }">
-                {{ item }}
-                </template>
-
-                <template #selection="{ item }">
-                {{ item }}
-                </template>
-            </v-select> -->
-
             <v-select v-model="timeRange" append-icon="mdi-chevron-down" :items="timeRanges" outlined menu-props="{ bottom: true }" color="#000000DE" item-color="#000000DE" dense style="margin-left: 10px !important; min-width: 200px; width: 200px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Intervalle de temps">
                 <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
 
                 <template #item="{ item }">
                 {{ item.name }}
-                <!-- <SmallLegend :color="item.color" :text="item.name" :size="14"/> -->
                 </template>
 
                 <template #selection="{ item }">
                 {{ item.name }}
-                <!-- <SmallLegend :color="item.color" :text="item.name" :size="14"/> -->
                 </template>
             </v-select>
         </div>
 
       </div>
-      <div class="flex-grow-1">
+      <div class="flex-grow-1" v-if="chart === 'calendar'">
         <CalendarAndStripe @dayFilter="dayFilter" @toggle="toggle" @chart-sent="handleChart" :calc="calculation" :results="data" :max="max" :unit="unit" v-if="data && data.d && data.d.length>0"/>
+      </div>
+
+      <div class="d-flex flex-row flex-grow-1" style="padding: 10px; width: 100%; justify-content: space-between;" v-else-if="chart === 'line'">
+        <LineChart 
+            :title="'title'"
+            :subtitle="'subtitle'"
+            :labels="chartx.label" 
+            :datasets="chartx.data" 
+            :next="'temporality.next'" 
+            :prev="'temporality.prev'"  
+            :stacked="false" 
+            style="max-height: 530px; width: 70%"
+            class="BR"
+        />
+        <CalendarAndStripeTri
+            @dayFilter="dayFilter"
+            @toggle="toggle"
+            @chart-sent="handleChart"
+            :calc="calculation"
+            :results="data"
+            :max="max"
+            :unit="unit"
+            v-if="data && data.d && data.d.length>0"
+            style="width: 30%"
+        />
       </div>
     </div>
     </v-card>
 </template>
 
 <script>
+import LineChart from './LineCard';
 import env from '../../config';
 import CalendarAndStripe from './CalendarAndStripe';
+import CalendarAndStripeTri from './CalendarAndStripeTri';
 import SmallLegend from './SmallLegend';
 export default {
     name: 'HeatCal',
     components: {
         CalendarAndStripe,
-        SmallLegend
+        SmallLegend,
+        LineChart,
+        CalendarAndStripeTri
     },
     props: {
         next: {type: String, required: true},
         prev: {type: String, required: true},
         data: {required: true},
         source: {required: true},
-        defaultSource: {required: true}
+        defaultSource: {required: true},
+        chart: {type: String, required: false}
     },
     mounted() {
         this.arrCal = this.data.d;
@@ -123,6 +119,291 @@ export default {
     },
     data() {
         return {
+            chartx: {
+    "label": [
+        "01",
+        "02",
+        "03",
+        "04",
+        "05",
+        "06",
+        "07",
+        "08",
+        "09",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "26",
+        "27",
+        "28",
+        "29",
+        "30",
+        "31",
+        "01",
+        "02",
+        "03",
+        "04",
+        "05",
+        "06",
+        "07",
+        "08",
+        "09",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "26",
+        "27",
+        "28",
+        "29",
+        "30",
+        "01",
+        "02",
+        "03",
+        "04",
+        "05",
+        "06",
+        "07",
+        "08",
+        "09",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "26",
+        "27",
+        "28",
+        "29",
+        "30",
+        "31"
+    ],
+    "data": [
+        {
+            "label": "T4 2023",
+            "backgroundColor": "#14202c",
+            "data": [
+            10, 13, 11, 10, 10, 8, 9, 10, 10,
+                50.875,
+                60.375,
+                70.875,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "stack": "01",
+            "tooltipDate": [
+                "Dim. 01/10/2023",
+                "Lun. 02/10/2023",
+                "Mar. 03/10/2023",
+                "Mer. 04/10/2023",
+                "Jeu. 05/10/2023",
+                "Ven. 06/10/2023",
+                "Sam. 07/10/2023",
+                "Dim. 08/10/2023",
+                "Lun. 09/10/2023",
+                "Mar. 10/10/2023",
+                "Mer. 11/10/2023",
+                "Jeu. 12/10/2023",
+                "Ven. 13/10/2023",
+                "Sam. 14/10/2023",
+                "Dim. 15/10/2023",
+                "Lun. 16/10/2023",
+                "Mar. 17/10/2023",
+                "Mer. 18/10/2023",
+                "Jeu. 19/10/2023",
+                "Ven. 20/10/2023",
+                "Sam. 21/10/2023",
+                "Dim. 22/10/2023",
+                "Lun. 23/10/2023",
+                "Mar. 24/10/2023",
+                "Mer. 25/10/2023",
+                "Jeu. 26/10/2023",
+                "Ven. 27/10/2023",
+                "Sam. 28/10/2023",
+                "Dim. 29/10/2023",
+                "Lun. 30/10/2023",
+                "Mar. 31/10/2023",
+                "Mer. 01/11/2023",
+                "Jeu. 02/11/2023",
+                "Ven. 03/11/2023",
+                "Sam. 04/11/2023",
+                "Dim. 05/11/2023",
+                "Lun. 06/11/2023",
+                "Mar. 07/11/2023",
+                "Mer. 08/11/2023",
+                "Jeu. 09/11/2023",
+                "Ven. 10/11/2023",
+                "Sam. 11/11/2023",
+                "Dim. 12/11/2023",
+                "Lun. 13/11/2023",
+                "Mar. 14/11/2023",
+                "Mer. 15/11/2023",
+                "Jeu. 16/11/2023",
+                "Ven. 17/11/2023",
+                "Sam. 18/11/2023",
+                "Dim. 19/11/2023",
+                "Lun. 20/11/2023",
+                "Mar. 21/11/2023",
+                "Mer. 22/11/2023",
+                "Jeu. 23/11/2023",
+                "Ven. 24/11/2023",
+                "Sam. 25/11/2023",
+                "Dim. 26/11/2023",
+                "Lun. 27/11/2023",
+                "Mar. 28/11/2023",
+                "Mer. 29/11/2023",
+                "Jeu. 30/11/2023",
+                "Ven. 01/12/2023",
+                "Sam. 02/12/2023",
+                "Dim. 03/12/2023",
+                "Lun. 04/12/2023",
+                "Mar. 05/12/2023",
+                "Mer. 06/12/2023",
+                "Jeu. 07/12/2023",
+                "Ven. 08/12/2023",
+                "Sam. 09/12/2023",
+                "Dim. 10/12/2023",
+                "Lun. 11/12/2023",
+                "Mar. 12/12/2023",
+                "Mer. 13/12/2023",
+                "Jeu. 14/12/2023",
+                "Ven. 15/12/2023",
+                "Sam. 16/12/2023",
+                "Dim. 17/12/2023",
+                "Lun. 18/12/2023",
+                "Mar. 19/12/2023",
+                "Mer. 20/12/2023",
+                "Jeu. 21/12/2023",
+                "Ven. 22/12/2023",
+                "Sam. 23/12/2023",
+                "Dim. 24/12/2023",
+                "Lun. 25/12/2023",
+                "Mar. 26/12/2023",
+                "Mer. 27/12/2023",
+                "Jeu. 28/12/2023",
+                "Ven. 29/12/2023",
+                "Sam. 30/12/2023",
+                "Dim. 31/12/2023"
+            ],
+            "fill": false,
+            "borderColor": "#14202c"
+        }
+    ]
+},
             selectTitle: env.selectTitle,
             idx: 0,
             env: env,

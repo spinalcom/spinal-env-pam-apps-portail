@@ -15,33 +15,12 @@
         <span :class="lines[5] === true ? 'draw-line' : ''" class="line l5"></span>
         <span :class="lines[6] === true ? 'draw-line' : ''" class="line l6"></span> -->
         <tr>
-          <td width="70"></td>
-          <td class="CALHEAD">Jan</td>
-          <td class="CALHEAD">Fev</td>
-          <td class="CALHEAD">Mar</td>
-          <td class="CALHEAD">Avr</td>
-          <td class="CALHEAD">Mai</td>
-          <td class="CALHEAD">Jui</td>
-          <td class="CALHEAD">Jui</td>
-          <td class="CALHEAD">Aou</td>
-          <td class="CALHEAD">Sep</td>
           <td class="CALHEAD">Oct</td>
           <td class="CALHEAD">Nov</td>
           <td class="CALHEAD">Dec</td>
         </tr>
         <tr>
-          <td class="WEEKDAYS" width="70">
-            <p class="CALDAY mb-0" @click="lineUp(0)">
-              Lundi
-            </p>
-            <p class="mb-0 fade-effect" @click="lineUp(1)">Mardi</p>
-            <p class="mb-0 fade-effect" @click="lineUp(2)">Mercredi</p>
-            <p class="mb-0 fade-effect" @click="lineUp(3)">Jeudi</p>
-            <p class="mb-0 fade-effect" @click="lineUp(4)">Vendredi</p>
-            <p class="mb-0 fade-effect" @click="lineUp(5)">Samedi</p>
-            <p class="CALDAY mb-0" @click="lineUp(6)">Dimanche</p>
-          </td>
-          <td v-for="j in 12" :key="j">
+          <td v-for="j in [10, 11, 12]" :key="j">
             <div class="CALMONTH">
               <span v-for="i in monthOffset(j)" :key="'o'+i"><div class="RECT"></div></span>
               <span v-for="i in monthDays(j)" :key="'d'+i">
@@ -67,18 +46,18 @@
       </table>
       <p class="CALMAX">{{ legend }} <b>{{ maxDate }}</b></p>
     </div>
-    <MonthlyStripe :results="results" :values="monthlyValues" :unit="unit"/>
+    <MonthlyStripeTri :values="monthlyValues" :unit="unit"/>
   </div>
 </template>
 
 <script>
-import MonthlyStripe from './MonthlyStripe.vue';
+import MonthlyStripeTri from './MonthlyStripeTri.vue';
 import moment from 'moment';
 import env from '../../config';
 export default {
   name: 'CalHeat',
   components: {
-    MonthlyStripe
+    MonthlyStripeTri
   },
   props: ['results', 'unit', 'calc'],
   data: () => ({
@@ -92,6 +71,40 @@ export default {
     toggleSet: new Set(),
   }),
   mounted() {
+    console.log(this.results.d);
+    this.results.d[9] = [
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        40,
+        55,
+        61,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+    ];
     let exportDate = this.generateDatesArray(this.results.y);
     let exportValues = this.results.d.flat().map(e => e === -1 ? '' : e);
     let output = [{}];

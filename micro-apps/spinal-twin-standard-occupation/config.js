@@ -21,6 +21,7 @@ module.exports = {
     controlEndpoint: 'affluence_entree',
     calendarLegend: 'La légende du calendrier',
     stripLegend: 'La légende de la longue bande',
+
     source: [
         {
             title: 'Taux d\'occupation Bâtiment',
@@ -29,7 +30,7 @@ module.exports = {
             profile: 'Ubigreen affluence',
             capacity: 500,
             max: 100,
-            min: null,
+            min: 0,
             color: '#4287f5',
         },
         {
@@ -39,7 +40,7 @@ module.exports = {
             profile: 'Ubigreen affluence',
             capacity: 100,
             max: 10,
-            min: null,
+            min: 0,
             color: '#ad42f5',
         },
         {
@@ -49,7 +50,7 @@ module.exports = {
             profile: 'Ubigreen affluence',
             capacity: 500,
             max: 100,
-            min: null,
+            min: 0,
             color: '#f57e42',
         },
         {
@@ -59,7 +60,7 @@ module.exports = {
             profile: 'Ubigreen affluence',
             capacity: 500,
             max: 100,
-            min: null,
+            min: 0,
             color: '#14202c',
         },
         {
@@ -69,7 +70,7 @@ module.exports = {
             profile: 'Position de travail',
             capacity: 500,
             max: 100,
-            min: null,
+            min: 0,
             color: '#f54299',
         }
     ],
