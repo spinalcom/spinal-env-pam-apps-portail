@@ -48,6 +48,17 @@ export class ModelManager {
       this.setModels(id, model);
    }
 
+   public allModelAreLoaded(): boolean {
+      if (this._modelDico.size === 0) return false;
+
+      for (const [id, models] of this._modelDico) {
+         const found = models.find(el => !el.isLoadDone());
+         if (found) return false;
+      }
+
+      return true;
+   }
+
    public getSpinalModelID(model: number | Autodesk.Viewing.Model ): string | void {
       const modelId = typeof model === 'number' ? model : model.id;
       for (const [id, mo] of this._modelDico) {

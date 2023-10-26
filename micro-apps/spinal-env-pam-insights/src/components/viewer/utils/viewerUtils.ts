@@ -224,16 +224,19 @@ export class ViewerUtils {
 
   public async setObjColor(viewer: Autodesk.Viewing.Viewer3D, data: IViewerColorData[]) {
     await this._waitModelIsLoading();
+    for (const item of data) {
+      const viewData = item.data;
+      for (const d of viewData) {
+        const model = this._getModel(item.modelId, d.bimFileId);
+        if (!model) continue;
 
-    for (const d of data) {
-      const model = this._getModel(d.modelId, d.bimFileId);
-      if (!model) continue;
-
-      const rgbColor = convertHexColorToRGB(d.color);
-      let realColor = rgbColor ? new THREE.Vector4(rgbColor.r / 255, rgbColor.g / 255, rgbColor.b / 255, 0.7) : new THREE.Vector4(1, 0, 0, 0);
-      for (const id of d.dbIds) {
-        viewer.setThemingColor(id, realColor, model);
+        const rgbColor = convertHexColorToRGB(item.color);
+        let realColor = rgbColor ? new THREE.Vector4(rgbColor.r / 255, rgbColor.g / 255, rgbColor.b / 255, 0.7) : new THREE.Vector4(1, 0, 0, 0);
+        for (const id of d.dbIds) {
+          viewer.setThemingColor(id, realColor, model);
+        }
       }
+      
     }
   }
 
@@ -241,19 +244,17 @@ export class ViewerUtils {
     await this._waitModelIsLoading();
 
     const promises = data.map(async (item) => {
-      const model = this._getModel(item.modelId, item.bimFileId);
+      const data = item.data.map(({ bimFileId, dbIds }) => ({ dbIds, model: this._getModel(item.modelId, bimFileId) }));
 
-      if (!model) return;
-
-        return {
-          modelId: item.modelId,
-          color: item.color,
-          value: item.value,
-          model,
-          dbId: item.dbIds[0],
-          position: await getPosition(model, item.dbIds),
-          data: item.data
-        }
+      return {
+        modelId: item.modelId,
+        color: item.color,
+        value: item.value,
+        models: data,
+        dbId: data[0]?.dbIds[0],
+        position: await getPosition(data),
+        data: item.parent
+      }
     })
 
     Promise.all(promises).then((result) => {
@@ -423,10 +424,10 @@ export class ViewerUtils {
       wait();
 
       function wait() {
-        if (_self.waitBeforeDisplaySprites) {
+        if (_self.waitBeforeDisplaySprites && !_self._allModelsAreLoaded()) {
           setTimeout(() => {
             wait();
-          }, 100);
+          }, 500);
         } else {
           resolve(true);
           _self.setWaitBeforeDisplaySprites(true);
@@ -475,6 +476,10 @@ export class ViewerUtils {
 
     return models.find(model => (model as any).bimFileId === bimFileId)
 
+  }
+
+  private _allModelsAreLoaded() {
+    return ModelManager.getInstance().allModelAreLoaded();
   }
 
 }

@@ -356,6 +356,7 @@ export default SpaceSelector;
 }
 
 .space-selector-header-title {
+  width: calc(100% - 20px);
   display: flex;
   align-items: center;
   margin: 0;
@@ -363,6 +364,9 @@ export default SpaceSelector;
   padding: 8px;
   font-size: 20px;
   color: #f5f5f5;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .space-selector-header-title-icon {

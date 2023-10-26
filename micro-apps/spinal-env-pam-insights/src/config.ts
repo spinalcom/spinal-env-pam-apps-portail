@@ -24,17 +24,36 @@
 
 import { IConfig, calculTypes } from "./interfaces/IConfig";
 
+// export const config: IConfig = {
+//    entryPoint: { context : "Contexte équipement capteur", category : "Ubigreen", group: "All" },
+//    viewButtons: "base",
+//    title: "Le titre de mon app",
+//    calculs : [calculTypes.Maximum, calculTypes.Minimum, calculTypes.Moyenne, calculTypes.Somme],
+//    source: { name: "Ubigreen", profileName: "Ubigreen", type: "controlPoint", objectType: "equipments", unit : "" },
+//    sprites: false,
+//    legend: {
+//       min: { value: 0, color: "#0074FF" },
+//       // median: { value: 27.5, color: "#FFFF00" },
+//       max: {value: 1, color: "#FF004B"}
+//    },
+//    regroupement: "rooms"
+// }
+
+
 export const config: IConfig = {
-   entryPoint: { context : "Gestion des équipements", category : "Typologie", group: "Multicapteurs" },
+   // entryPoint: { context : "Gestion des équipements", category : "Typologie", group: "Multicapteurs" },
+   entryPoint: { context : "Gestion des espaces", category : "Typologie", group: "Bureaux" },
    viewButtons: "base",
    title: "Le titre de mon app",
    calculs : [calculTypes.Maximum, calculTypes.Minimum, calculTypes.Moyenne, calculTypes.Somme],
-   source: { name: "Température", profileName: "Multicapteurs", type: "controlPoint", objectType: "equipments", unit : "°C" },
+   source: { name: "Température", profileName: "Control Point", type: "controlPoint", objectType: "equipments", unit : "°C" },
+   // source: { name: "Température", profileName: "Multicapteurs", type: "controlPoint", objectType: "equipments", unit : "°C" },
    sprites: true,
    legend: {
       min: { value: 15, color: "#0074FF" },
       median: { value: 27.5, color: "#FFFF00" },
       max: {value: 40, color: "#FF004B"}
    },
-   regroupement: "Typologie"
+   // regroupement: "Typologie"
+   regroupement: "Affectation par service"
 }

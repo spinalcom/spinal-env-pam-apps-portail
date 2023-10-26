@@ -183,7 +183,7 @@ export class ViewerManager {
 
    public async colorItems(item: IPlayload | IPlayload[], buildingId?: string) {
       const formatted = await this._getAndFormatViewerInfos(item,buildingId)
-
+      console.log(formatted)
       const emitter = EmitterViewerHandler.getInstance();
       emitter.emit(VIEWER_OBJ_COLOR, formatted as any);
    }
@@ -204,15 +204,17 @@ export class ViewerManager {
    private async _getAndFormatViewerInfos(item: IPlayload | IPlayload[], buildingId) {
       item = Array.isArray(item) ? item : [item];
       const data = await this.getViewerInfo(item, buildingId);
+
       const obj = convertToObj(data);
 
       return item.map(i => ({
-         dbIds: obj[i.dynamicId]?.dbIds ||[],
-         bimFileId: obj[i.dynamicId]?.bimFileId,
+         // dbIds: obj[i.dynamicId]?.dbIds ||[],
+         // bimFileId: obj[i.dynamicId]?.bimFileId,
+         data: obj[i.dynamicId],
          color: i.color,
          value: i.displayValue,
          modelId: (i as IPlayload).floorId || (i as IPlayload).id || (i as IPlayload).dynamicId,
-         data : Object.assign({}, i)
+         parent : Object.assign({}, i)
       }))
    } 
 
@@ -268,12 +270,12 @@ export class ViewerManager {
 function convertToObj(arr) {
 
    return arr.reduce((obj, item) => {
-
-      obj[item.dynamicId] = item.data.reduce((obj2, el) => {
-         obj2.dbIds.push(...el.dbIds);
-         obj2.bimFileId = el.bimFileId;
-         return obj2;
-      }, { dbIds: [], bimFileId: undefined });
+      obj[item.dynamicId] = item.data;
+      // obj[item.dynamicId] = item.data.reduce((obj2, el) => {
+      //    obj2.dbIds.push(...el.dbIds);
+      //    obj2.bimFileId = el.bimFileId;
+      //    return obj2;
+      // }, { dbIds: [], bimFileId: undefined });
       
       return obj;
    }, {})

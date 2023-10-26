@@ -25,8 +25,13 @@
 import ModelManager from "../manager/modelManager";
 
 
-export async function getPosition(model: Autodesk.Viewing.Model, dbIds : number[]) {
-   const box3 = await getObjectPosition(model, dbIds);
+export async function getPosition(data: { model: Autodesk.Viewing.Model, dbIds: number[] }[]) {
+   const promises = data.map(({ model, dbIds }) => getObjectPosition(model, dbIds));
+   const boxes = await Promise.all(promises);
+   const box3 = boxes.reduce((box: THREE.Box3, b) => {
+      box.union(b);
+      return box;
+   }, new THREE.Box3())
    return box3.getCenter();
 }
 
@@ -36,15 +41,6 @@ function getObjectPosition(model: Autodesk.Viewing.Model, dbIds: number | number
 
    return convertAllDbIdsToBox3(model, dbIds);
 
-
-   // return Promise.all(promises).then((result) => {
-   //    return result.flat().reduce((obj, {dbId, box}) => {
-   //       obj[dbId] = { pos: box.getCenter(), color, text };
-   //       return obj;
-   //    }, {})
-   // }).catch((err) => {
-   //    console.error(err);
-   // });
 }
 
 async function convertAllDbIdsToBox3(model: Autodesk.Viewing.Model, dbIds: number | number[]) {
@@ -55,37 +51,28 @@ async function convertAllDbIdsToBox3(model: Autodesk.Viewing.Model, dbIds: numbe
    let bounds = new THREE.Box3();
 
    for (const id of dbIds) {
-      const box = await convertDbIdToBox3(instanceTree, fragList, id);
-      if(box) bounds.union(box);
+      await addToBounds(instanceTree, fragList, id, bounds);
    }
 
    return bounds;
 
-   // const promises = dbIds.map(async id => ({
-   //    dbId: id,
-   //    box: await convertDbIdToBox3(instanceTree, fragList, id)
-   // }));
-   
-   // return Promise.all(promises);
 }
 
 
-function convertDbIdToBox3(instanceTree: Autodesk.Viewing.Private.InstanceTree, fragList: Autodesk.Viewing.Private.FragmentList, dbId: number) : Promise<THREE.Box3> {
-   return new Promise((resolve, reject) => {
-      const timeoutID = setTimeout(() => reject('took too long'), 2000);
-      
-      try {
-         instanceTree.enumNodeFragments(dbId, (fragId) => {
-            let box = new THREE.Box3();
-            fragList.getWorldBounds( fragId, box );
-            resolve(box);
-         }, false);
-      } catch (error) {
-         console.error(error);
-         resolve(undefined);
-      }
-      
-   });
+function addToBounds(instanceTree: Autodesk.Viewing.Private.InstanceTree, fragList: Autodesk.Viewing.Private.FragmentList, dbId: number,bounds: THREE.Box3) : Promise<THREE.Box3> {
+
+   try {
+      instanceTree.enumNodeFragments(dbId, (fragId) => {
+         let box = new THREE.Box3();
+         fragList.getWorldBounds(fragId, box);
+         bounds.union(box);
+      }, true);
+   } catch (error) {
+      console.error(error);
+
+   }
+    
+
 }
 
 function convertResultToObj(result: { [key: number]: { pos: THREE.Vector3, color: string;  text: string}}[]) {

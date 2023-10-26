@@ -79,6 +79,10 @@ with this file. If not, see
          </div>
       </div>
 
+      <div class="centered" v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected">
+         Aucune donnée à afficher ! veuillez selectionner un étage ou une pièce.
+      </div>
+
       <div class="centered" v-else-if="pageSate === PAGE_STATES.loading">
          <v-progress-circular
             :size="70"
@@ -96,6 +100,7 @@ with this file. If not, see
             <v-btn small outlined color="red" @click="retry">réessayer </v-btn>
          </div>
       </div>
+
    </v-card>
 </template>
 
@@ -379,6 +384,7 @@ export default InsightApp;
          flex-direction: column;
          align-items: center;
          justify-content: center;
+         text-align: center;
       }
    }
 
