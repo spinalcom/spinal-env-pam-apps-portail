@@ -57,31 +57,42 @@
 
       </div>
       <div class="flex-grow-1" v-if="chart === 'calendar'">
-        <CalendarAndStripe @dayFilter="dayFilter" @toggle="toggle" @chart-sent="handleChart" :calc="calculation" :results="data" :max="max" :unit="unit" v-if="data && data.d && data.d.length>0"/>
+        <CalendarAndStripe v-if="data && data.d && data.d.length>0"
+          :calMonths="calMonths"
+          @dayFilter="dayFilter" 
+          @toggle="toggle" 
+          @chart-sent="handleChart" 
+          :calc="calculation" 
+          :results="data" 
+          :max="max" 
+          :unit="unit"
+          />
       </div>
 
       <div class="d-flex flex-row flex-grow-1" style="padding: 10px; width: 100%; justify-content: space-between;" v-else-if="chart === 'line'">
-        <LineChart 
+        <CalendarAndStripe v-if="data && data.d && data.d.length>0"
+          style="width: 30%"
+          :calMonths="calMonths"
+          @dayFilter="dayFilter" 
+          @toggle="toggle" 
+          @chart-sent="handleChart" 
+          :calc="calculation" 
+          :results="data" 
+          :max="max" 
+          :unit="unit"
+          />
+        
+        <LineChart
+          v-if="data.chart && data.chart.label"
             :title="'title'"
             :subtitle="'subtitle'"
-            :labels="chartx.label" 
-            :datasets="chartx.data" 
+            :labels="data.chart.label" 
+            :datasets="data.chart.data" 
             :next="'temporality.next'" 
             :prev="'temporality.prev'"  
             :stacked="false" 
             style="max-height: 530px; width: 70%"
             class="BR"
-        />
-        <CalendarAndStripeTri
-            @dayFilter="dayFilter"
-            @toggle="toggle"
-            @chart-sent="handleChart"
-            :calc="calculation"
-            :results="data"
-            :max="max"
-            :unit="unit"
-            v-if="data && data.d && data.d.length>0"
-            style="width: 30%"
         />
       </div>
     </div>
@@ -92,7 +103,6 @@
 import LineChart from './LineCard';
 import env from '../../config';
 import CalendarAndStripe from './CalendarAndStripe';
-import CalendarAndStripeTri from './CalendarAndStripeTri';
 import SmallLegend from './SmallLegend';
 export default {
     name: 'HeatCal',
@@ -100,7 +110,6 @@ export default {
         CalendarAndStripe,
         SmallLegend,
         LineChart,
-        CalendarAndStripeTri
     },
     props: {
         next: {type: String, required: true},
@@ -108,7 +117,8 @@ export default {
         data: {required: true},
         source: {required: true},
         defaultSource: {required: true},
-        chart: {type: String, required: false}
+        chart: {type: String, required: false},
+        calMonths: {required: true}
     },
     mounted() {
         this.arrCal = this.data.d;

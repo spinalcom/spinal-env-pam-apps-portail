@@ -16,6 +16,10 @@
 
 <script>
 import { Line as LineChart } from "vue-chartjs";
+import {
+  customBackgroundPlugin,
+  customLegendPlugin,
+} from "../plugins/canvasPlugins";
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, LinearScale, CategoryScale, PointElement, Filler } from 'chart.js';
 ChartJS.register( Title, Tooltip, Legend, LineElement, LinearScale, CategoryScale, PointElement, Filler );
 export default {
@@ -59,6 +63,9 @@ export default {
   },
   components: {
     LineChart,
+  },
+  mounted() {
+
   },
   computed: {
     lineChartData() {
@@ -134,7 +141,7 @@ export default {
         },
         plugins: {
           legend: {
-            display: true,
+            display: false,
             align: "start",
             labels: {
               color: "#000000DE",
@@ -154,10 +161,10 @@ export default {
           intersect: false,
           callbacks: {
             title: (data) => {
-              return data[0].dataset.tooltipDate[data[0].parsed.x];
+              return data[0].dataset.tooltipDate[data[0].parsed.x]
             },
             label: (tooltipItem, data) => {
-              return `${tooltipItem.dataset.label}: ${tooltipItem.raw} ${this.optional.unit}`;
+              return `${tooltipItem.dataset.label}: ${tooltipItem.raw.toFixed(1)} ${this.optional.unit}`;
             },
             // footer: (data) => {
             //   let total = data.reduce((a, b) => a+b.raw, 0);
@@ -186,6 +193,13 @@ export default {
   data() {
   return {
     switchValue: this.stacked
+  }
+},
+watch: {
+  datasets: {
+    deep: true,
+    handler(n, o) {
+    }
   }
 }
 };

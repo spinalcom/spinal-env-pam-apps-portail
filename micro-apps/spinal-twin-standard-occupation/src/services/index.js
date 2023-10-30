@@ -109,7 +109,7 @@ function isDateWithinIntervals(date, intervals) {
  * @returns {object} A structured calendar object for heatmap visualization.
  * @throws {object} Returns a blank object if an error occurs during data retrieval or processing.
  */
-export async function getHeatCal(space, tempo, currentTimestamp, source, raw = {interval: [{start: '00:00', end: '23:59'}], data: []}, makeCall = true, dayFilter = [false, false, false, false, false, false, false], toggleSet) {
+export async function getHeatCal(space, tempo, currentTimestamp, source, raw = {interval: [{start: '00:00', end: '23:59'}], data: []}, makeCall = true, dayFilter = [false, false, false, false, false, false, false], toggleSet, calcul = 'Maximum') {
   try {
   var calendar = [];
   var calendarObject = {};
@@ -161,13 +161,38 @@ export async function getHeatCal(space, tempo, currentTimestamp, source, raw = {
     let processedTimeSeries = [];
     if (tempo === 'Trimestre') {
       labelLegend = periodArray[6] + ' ' + moment(currentTimestamp).format('YYYY');
+      calendarObject.y = moment(currentTimestamp).format('YYYY');
+      calendarObject.n = source.title;
+      calendarObject.d = prepareCalendarTri(calendarObject.y, timeSeries, periodArray[6]);
+      // calendarObject.d = calendarObject.dddd.max;
+      calendarObject.max = source.max;
+      calendarObject.min = source.min;
+      calendarObject.capacity = source.capacity;
+      calendarObject.chart = {
+        label: periodArray[7],
+        data: [{
+          label: source.name,
+          tooltipDate: tooltipDate,
+          backgroundColor: source.color,
+          data: []
+        }]
+      }
+
+      if (calcul === 'Maximum') calendarObject.chart.data[0].data = [].concat(...calendarObject.d.max);
+      else if (calcul === 'Minimum') calendarObject.chart.data[0].data = [].concat(...calendarObject.d.min);
+      else if (calcul === 'Moyenne') calendarObject.chart.data[0].data = [].concat(...calendarObject.d.mean);
+      else if (calcul === 'Somme') calendarObject.chart.data[0].data = [].concat(...calendarObject.d.sum);
+
+      calendarObject.chart.data[0].data = calendarObject.chart.data[0].data.map(e => e < 0 ? 0 : e);
+
+      calendar.push(calendarObject);
+
       label.forEach(day => {
         processedTimeSeries.push(
           timeSeries.filter(elem => moment(elem.date).format('DD MMM') === day)
             .reduce((sum, elem) => sum + elem.value, 0)
         );
       });
-      label = periodArray[7];
     }
     else if (tempo === 'Année') {
       labelLegend = moment(currentTimestamp).format('YYYY');
@@ -336,13 +361,12 @@ function getPeriodArray(timestamp, period) {
       tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
       currentDay.add(1, 'day');
     }
-
     
     return [daysIn3Months,
       startOfTrimester,
       endOfTrimester,
-      moment(timestamp).add(-5, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-3, 'months').endOf('month').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).add(-3, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).add(-1, 'months').endOf('month').format('DD-MM-yyyy HH:mm:ss'),
       tooltipDate,
       T,
       abstractDaysIn3Months
@@ -358,6 +382,31 @@ function generateMonthlyData(y) {
   const date = moment(y, 'YYYY');
   // loop through 12 months
   for (let i = 0; i < 12; i++) {
+    let daysInMonth = date.month(i).daysInMonth();
+    if (i === 1) { // February
+      if (moment([y]).isLeapYear()) {
+        daysInMonth = 29;
+      }
+    }
+    const monthArray = Array(daysInMonth).fill(-1);
+    monthlyData.push(monthArray);
+  }
+  return {
+    n: '',
+    y: y,
+    d: monthlyData
+  };
+}
+
+function generateMonthlyDataTri(y, t) {
+  const monthlyData = [];
+  const date = moment(y, 'YYYY');
+  var tValue = ['T1', 'T2', 'T3', 'T4'].indexOf(t);
+  var start = tValue * 3;
+  var end = start + 3;
+  
+  // loop through 12 months
+  for (let i = start; i < end; i++) {
     let daysInMonth = date.month(i).daysInMonth();
     if (i === 1) { // February
       if (moment([y]).isLeapYear()) {
@@ -405,13 +454,40 @@ function prepareCalendar(year, timeSeries) {
   return {sum: sumData, max: maxData, min: minData, mean: meanData};
 }
 
-export function getTempoSuggestion(tempo, currentTimestamp) {
-  if (tempo === 'Mois') {
-    return [
-      'Mois choisi (' + moment(currentTimestamp).format('MMMM YYYY') + ')',
-      'Mois précédent (' + moment(currentTimestamp).add(-1,'months').format('MMMM YYYY') + ')',
-      'Même mois que l\'année dernière (' + moment(currentTimestamp).add(-12, 'months').format('MMMM YYYY') + ')']
+function prepareCalendarTri(year, timeSeries, T) {
+  var threshold;
+  if (T === 'T1') threshold = 0;
+  else if (T === 'T2') threshold = 3;
+  else if (T === 'T3') threshold = 6;
+  else if (T === 'T4') threshold = 9;
+  var sumData = generateMonthlyDataTri(year, T).d;
+  var maxData = generateMonthlyDataTri(year, T).d;
+  var minData = generateMonthlyDataTri(year, T).d;
+  var meanData = generateMonthlyDataTri(year, T).d;
+  var month, day;
+  const occurrenceCounts = {};
+  for (const timeSerie of timeSeries) {
+    month = +moment(timeSerie.date).format('MM') - 1 - threshold;
+    month = (month < 0) ? 0 : month;
+    day = +moment(timeSerie.date).format('DD') - 1;
+    sumData[month][day] = (sumData[month][day] === -1) ? timeSerie.value : sumData[month][day] + timeSerie.value;
+    maxData[month][day] = (maxData[month][day] < timeSerie.value) ? timeSerie.value : maxData[month][day];
+    minData[month][day] = (minData[month][day] > timeSerie.value || minData[month][day] === -1) ? timeSerie.value : minData[month][day];
+    const key = `${month}-${day}`;
+    occurrenceCounts[key] = (occurrenceCounts[key] || 0) + 1;
+
+    meanData[month][day] = (meanData[month][day] == -1) ? timeSerie.value : meanData[month][day] + timeSerie.value;
   }
+  for (let i = 0; i < meanData.length; i++) {
+    for (let j = 0; j < meanData[i].length; j++) {
+      const month = i;
+      const day = j;
+      const key = `${month}-${day}`;
+      const count = occurrenceCounts[key] || 1;
+      meanData[i][j] = meanData[i][j] / count;
+    }
+  }
+  return {sum: sumData, max: maxData, min: minData, mean: meanData};
 }
 
 export async function getSolo(space, tempo, currentTimestamp, format, controlEndpoints, color, totalCard) {

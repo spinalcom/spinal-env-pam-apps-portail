@@ -71,7 +71,6 @@ export default {
     toggleSet: new Set(),
   }),
   mounted() {
-    console.log(this.results.d);
     this.results.d[9] = [
         10,
         10,
@@ -386,8 +385,8 @@ export default {
 }
 
 .WEEKDAYS {
-  position: relative;
   display: flex;
+  position: relative;
   flex-direction: column;
   justify-content: space-between;
   height: 172px;

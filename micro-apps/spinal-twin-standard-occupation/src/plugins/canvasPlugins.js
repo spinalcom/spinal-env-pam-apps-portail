@@ -40,7 +40,37 @@ export const customBackgroundPlugin = {
           begin += width;
         });
         break;
-
+        case "line":
+          width = chartArea.width / (chart.data.labels?.length || 1);
+          ctx.fillStyle = '#fff';
+          chart.data.labels?.forEach(() => {
+            ctx.moveTo(begin + 5, top);
+  
+            ctx.lineTo(begin + width - 5, top);
+            ctx.arcTo(begin + width, top, begin + width, top + 5, 15);
+  
+            ctx.lineTo(begin + width, top + height - 5);
+            ctx.arcTo(
+              begin + width,
+              top + height,
+              begin + width - 5,
+              top + height,
+              15
+            );
+  
+            ctx.lineTo(begin + 5, top + height);
+            ctx.arcTo(begin, top + height, begin, top + height - 5, 15);
+  
+            ctx.lineTo(begin, top + 5);
+            ctx.arcTo(begin, top, begin + 5, top, 15);
+  
+            ctx.fill();
+            ctx.strokeStyle = "#f9f9f9";
+            ctx.stroke();
+            begin += width;
+          });
+          break;
+  
       case "pie":
         break;
 

@@ -17,6 +17,7 @@
         @dayFilter="dayFilter"
         @toggle="toggle"
         :defaultSource="defaultSource"
+        :calMonths="calMonths"
       />
       <LoadingCard v-else style="width: 100%; height: 485px;"/>
       <div class="stat-heat">
@@ -95,7 +96,18 @@ class App extends Vue {
 
   toggleSet = new Set();
 
-  chart = 'calendar';
+  chart = 'line';  // calendar / line
+
+  //  calMonths = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jui', 'Juil', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  calMonths = ['Oct', 'Nov', 'Dec'];
+
+  monthMap = {
+    'T1': ['Jan', 'Fev', 'Mar'],
+    'T2': ['Avr', 'Mai', 'Jui'],
+    'T3': ['Juil', 'Aou', 'Sep'],
+    'T4': ['Oct', 'Nov', 'Dec'],
+  };
 
   interv = [{start: '00:00', end: '23:59'}];
   @Prop({type: Object as () => ISpaceSelectorItem, required: true})
@@ -119,25 +131,26 @@ class App extends Vue {
     this.loading = true;
     this.defaultSource = source;
 
-    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[source], {interval: this.interv}, true, this.dayF, this.toggleSet);
+    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[source], {interval: this.interv}, true, this.dayF, this.toggleSet, this.calcul);
+
     this.loading = false;
-    this.calculus(this.calcul);
-    
+    this.calculus(this.calcul);  
   }
 
 
   async callTrigger(interval = [{start: '00:00', end: '23:59'}]) {
     this.interv = interval;
     this.loading = true;
-    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[this.defaultSource], {data: this.calendar.rawData, interval: interval}, false, this.dayF, this.toggleSet);
+    this.calendar = await getHeatCal(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.space.source[this.defaultSource], {data: this.calendar.rawData, interval: interval}, false, this.dayF, this.toggleSet, this.calcul);
     this.calculus(this.calcul);
     this.loading = false;
   }
 
 
   calculus(calc) {
-
-    
+    if (this.temporality.name === 'Trimestre') {
+      this.fillLineChart();
+    }
     this.calcul = calc;
     const weekDays = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
     let colors = ['#D6E9FB', '#B7D7F5', '#97C4EF', '#72AFE8', '#519BE1', '#3A87D0', '#2F72B1', '#245D93', '#194773', '#0E3255'];
@@ -145,85 +158,131 @@ class App extends Vue {
       colors = this.weekConfig.colors
     const capacity = env.source[this.defaultSource].capacity;
     let result;
-    // if (calc === 'Maximum') {
-    //   this.stat.text = 'Taux d\'occupation maximum';
-    //   let maxOverall = 0;
-    //   if (this.calendar.rawInterval && this.calendar.rawInterval.length > 0)
-    //   this.stat.value = this.calendar.rawInterval.reduce((max, obj) => obj.value > max ? obj.value : max, -Infinity);
-    //   else return ;
-    //   if (this.stat.value === -Infinity || this.stat.value === Infinity || isNaN(this.stat.value)) this.stat.value = 0;
-    //   this.stat.maxCapacity = (this.stat.value * capacity) / 100;
-    //   result = weekDays.map(day => {
-    //     return Array.from({ length: 24 }, (_, hourIndex) => {
-    //       const valuesForHour = this.calendar.rawData.filter(item => {
-    //         const itemDay = moment(item.date).format('ddd');
-    //         const itemHour = moment(item.date).hours();
-    //         return itemDay === day && itemHour === hourIndex;
-    //       });
 
-    //       if (valuesForHour.length > 0) {
-    //         const max = Math.max(...valuesForHour.map(item => item.value));
-    //         const min = Math.min(...valuesForHour.map(item => item.value));
-    //         const maxItem = valuesForHour.find(item => item.value === max);
-    //         const formattedDate = moment(maxItem.date).format('D MMMM YYYY');
-
-    //         const interval = (max - min) / colors.length;
-    //         const intervalIndex = Math.floor((max - min) / interval);
-    //         const colorIndex = Math.min(Math.max(intervalIndex, 0), 9);
-            
-    //         let color = '';
-
-    //         const maxCapacity = (max * capacity) / 100;
-
-    //         return { date: formattedDate, value: max, color: color, maxCapacity: maxCapacity };
-    //       } else {
-    //         return null;
-    //       }
-    //     });
-    //   });
-    // }
-
-    // if (calc === 'Minimum') {
-    //   this.stat.text = 'Taux d\'occupation minimum';
-    //   let minOverall = Infinity;
-    //   if (this.calendar.rawInterval && this.calendar.rawInterval.length > 0)
-    //   this.stat.value = this.calendar.rawInterval.reduce((min, obj) => obj.value < min ? obj.value : min, Infinity);
-    //   if (this.stat.value === -Infinity || this.stat.value === Infinity || isNaN(this.stat.value)) this.stat.value = 0;
-    //   this.stat.maxCapacity = (this.stat.value * capacity) / 100;
-    //   result = weekDays.map(day => {
-    //     return Array.from({ length: 24 }, (_, hourIndex) => {
-    //       const valuesForHour = this.calendar.rawData.filter(item => {
-    //         const itemDay = moment(item.date).format('ddd');
-    //         const itemHour = moment(item.date).hours();
-    //         return itemDay === day && itemHour === hourIndex;
-    //       });
-
-    //       if (valuesForHour.length > 0) {
-    //         const min = Math.min(...valuesForHour.map(item => item.value));
-    //         const minItem = valuesForHour.find(item => item.value === min);
-    //         const formattedDate = moment(minItem.date).format('D MMMM YYYY');
-    //         let color = '';
-
-    //         const minCapacity = (min * capacity) / 100;
-
-    //         return { date: formattedDate, value: min, color: color, maxCapacity: minCapacity };
-    //       } else {
-    //         return null;
-    //       }
-    //     });
-    //   });
-    // }
-
-    if (calc === 'Moyenne' || true) {
-      this.stat.text = 'Taux d\'occupation moyen';
+    /**
+     * this is not tested yet !!!
+     */ 
+    if (calc === 'Somme') {
+      this.stat.text = 'Taux d\'occupation total';
       let sumOverall = 0;
-      let countOverall = 0;
+      if (this.calendar.rawInterval && this.calendar.rawInterval.length > 0) {
+        sumOverall = this.calendar.rawInterval.reduce((sum, obj) => sum + obj.value, 0);
+      } else {
+        return;
+      }
+      this.stat.value = sumOverall;
+      this.stat.maxCapacity = (sumOverall * capacity) / 100;
+    }
+
+    if (calc === 'Maximum') {
+      this.stat.text = 'Taux d\'occupation maximum';
+      let maxOverall = 0;
+      if (this.calendar.rawInterval && this.calendar.rawInterval.length > 0)
+      this.stat.value = this.calendar.rawInterval.reduce((max, obj) => obj.value > max ? obj.value : max, -Infinity);
+      else return ;
+      if (this.stat.value === -Infinity || this.stat.value === Infinity || isNaN(this.stat.value)) this.stat.value = 0;
+      this.stat.maxCapacity = (this.stat.value * capacity) / 100;
+      // result = weekDays.map(day => {
+      //   return Array.from({ length: 24 }, (_, hourIndex) => {
+      //     const valuesForHour = this.calendar.rawData.filter(item => {
+      //       const itemDay = moment(item.date).format('ddd');
+      //       const itemHour = moment(item.date).hours();
+      //       return itemDay === day && itemHour === hourIndex;
+      //     });
+
+      //     if (valuesForHour.length > 0) {
+      //       const max = Math.max(...valuesForHour.map(item => item.value));
+      //       const min = Math.min(...valuesForHour.map(item => item.value));
+      //       const maxItem = valuesForHour.find(item => item.value === max);
+      //       const formattedDate = moment(maxItem.date).format('D MMMM YYYY');
+
+      //       const interval = (max - min) / colors.length;
+      //       const intervalIndex = Math.floor((max - min) / interval);
+      //       const colorIndex = Math.min(Math.max(intervalIndex, 0), 9);
+            
+      //       let color = '';
+
+      //       const maxCapacity = (max * capacity) / 100;
+
+      //       return { date: formattedDate, value: max, color: color, maxCapacity: maxCapacity };
+      //     } else {
+      //       return null;
+      //     }
+      //   });
+      // });
+    }
+
+    if (calc === 'Minimum') {
+      this.stat.text = 'Taux d\'occupation minimum';
+      let minOverall = Infinity;
+      if (this.calendar.rawInterval && this.calendar.rawInterval.length > 0)
+      this.stat.value = this.calendar.rawInterval.reduce((min, obj) => obj.value < min ? obj.value : min, Infinity);
+      if (this.stat.value === -Infinity || this.stat.value === Infinity || isNaN(this.stat.value)) this.stat.value = 0;
+      this.stat.maxCapacity = (this.stat.value * capacity) / 100;
+      // result = weekDays.map(day => {
+      //   return Array.from({ length: 24 }, (_, hourIndex) => {
+      //     const valuesForHour = this.calendar.rawData.filter(item => {
+      //       const itemDay = moment(item.date).format('ddd');
+      //       const itemHour = moment(item.date).hours();
+      //       return itemDay === day && itemHour === hourIndex;
+      //     });
+
+      //     if (valuesForHour.length > 0) {
+      //       const min = Math.min(...valuesForHour.map(item => item.value));
+      //       const minItem = valuesForHour.find(item => item.value === min);
+      //       const formattedDate = moment(minItem.date).format('D MMMM YYYY');
+      //       let color = '';
+
+      //       const minCapacity = (min * capacity) / 100;
+
+      //       return { date: formattedDate, value: min, color: color, maxCapacity: minCapacity };
+      //     } else {
+      //       return null;
+      //     }
+      //   });
+      // });
+    }
+
+
+    let sumOverall = 0;
+    let countOverall = 0;
+
+    if (calc === 'Moyenne') {
+      this.stat.text = 'Taux d\'occupation moyen';
       let totalValue = this.calendar.rawInterval.reduce((sum, obj) => sum + obj.value, 0);
       this.stat.value = totalValue / this.calendar.rawInterval.length;
       if (this.stat.value === -Infinity || this.stat.value === Infinity || isNaN(this.stat.value)) this.stat.value = 0;
       this.stat.maxCapacity = (this.stat.value * capacity) / 100;
 
-      result = weekDays.map(day => {
+      // result = weekDays.map(day => {
+      //   return Array.from({ length: 24 }, (_, hourIndex) => {
+      //     const valuesForHour = this.calendar.rawData.filter(item => {
+      //       const itemDay = moment(item.date).format('ddd');
+      //       const itemHour = moment(item.date).hours();
+      //       return itemDay === day && itemHour === hourIndex;
+      //     });
+
+      //     if (valuesForHour.length > 0) {
+      //       const sum = valuesForHour.reduce((acc, item) => acc + item.value, 0);
+      //       const average = sum / valuesForHour.length;
+      //       const formattedDate = moment(valuesForHour[0].date).format('D MMMM YYYY');
+      //       let color = '';
+
+      //       const avgCapacity = (average * capacity) / 100;
+
+      //       sumOverall += sum;
+      //       countOverall += valuesForHour.length;
+      //       const overallAverage = sumOverall / countOverall;
+
+      //       return { date: formattedDate, value: average, color: color, maxCapacity: avgCapacity };
+      //     } else {
+      //       return null;
+      //     }
+      //   });
+      // });
+    }
+
+    result = weekDays.map(day => {
         return Array.from({ length: 24 }, (_, hourIndex) => {
           const valuesForHour = this.calendar.rawData.filter(item => {
             const itemDay = moment(item.date).format('ddd');
@@ -249,7 +308,6 @@ class App extends Vue {
           }
         });
       });
-    }
 
     const flatArray = result.flat();
 
@@ -314,7 +372,13 @@ class App extends Vue {
 
   nav(payload: number) {
     if (this.temporality.name === 'Trimestre') {
+      for (let i = 0; i < 3; i++)
+        for (let j = 0; j < this.calendar.d[i].length; j++)
+          this.calendar.d[i][j] = -1;
       this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload * 3, 'months').valueOf()};
+      let currentMM = moment(this.currentTimestamp.valueTime).format('MM');
+      let T = 'T'+Math.ceil(+currentMM / 3);
+      this.calMonths = this.monthMap[T];
     }
     else if (this.temporality.name === 'Année') {
       this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf()};
@@ -338,6 +402,23 @@ class App extends Vue {
     this.callTrigger(this.interv);
   }
 
+  fillLineChart(): void {
+    
+    if (this.calcul === 'Maximum'){
+      this.calendar.chart.data[0].data = (this.calendar.d && this.calendar.d.max) ? [].concat(...this.calendar.d.max) : [].concat(...this.calendar.d) ;
+    }
+    if (this.calcul === 'Minimum'){
+      this.calendar.chart.data[0].data = (this.calendar.d && this.calendar.d.min) ? [].concat(...this.calendar.d.min) : [].concat(...this.calendar.d) ;
+    }
+    if (this.calcul === 'Moyenne'){
+      this.calendar.chart.data[0].data = (this.calendar.d && this.calendar.d.mean) ? [].concat(...this.calendar.d.mean) : [].concat(...this.calendar.d) ;
+    }
+    if (this.calcul === 'Somme'){
+      this.calendar.chart.data[0].data = (this.calendar.d && this.calendar.d.sum) ? [].concat(...this.calendar.d.sum) : [].concat(...this.calendar.d) ;
+    }
+
+    this.calendar.chart.data[0].data = this.calendar.chart.data[0].data.map(e => e < 0 ? 0 : e);
+  }
 
   @Watch('space')
   async spaceChange(v) {
@@ -352,12 +433,9 @@ class App extends Vue {
   @Watch('temporality')
   async timeChange(v) {
     if (v.name === 'Année') {
-      console.log('year')
+      this.calMonths = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jui', 'Juil', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'];
       this.chart = 'calendar';
-    }
-    else if (v.name === 'Trimestre') {
-      this.chart = 'line';
-      const res = await getHeatCal(
+      this.calendar = await getHeatCal(
         this.space,
         this.temporality.name,
         this.currentTimestamp.valueTime,
@@ -365,11 +443,31 @@ class App extends Vue {
         {data: this.calendar.rawData, interval: this.interv},
         true, // Wether to make API call (true) or not (false)
         this.dayF,
-        this.toggleSet
+        this.toggleSet,
+        this.calcul
       );
-      console.log(res);
+      this.calculus(this.calcul);
     }
-    this.loading = true;
+    else if (v.name === 'Trimestre') {
+      let currentMM = moment(this.currentTimestamp.valueTime).format('MM');
+      let T = 'T'+Math.ceil(+currentMM / 3);
+      this.calMonths = this.monthMap[T];
+      this.loading = true;
+      
+      this.chart = 'line';
+      this.calendar = await getHeatCal(
+        this.space,
+        this.temporality.name,
+        this.currentTimestamp.valueTime,
+        this.space.source[this.defaultSource],
+        {data: this.calendar.rawData, interval: this.interv},
+        true, // Wether to make API call (true) or not (false)
+        this.dayF,
+        this.toggleSet,
+        this.calcul
+      );
+      this.calculus(this.calcul);
+    }
     // const res = await getHeatCal(
     //   this.space,
     //   this.temporality.name,

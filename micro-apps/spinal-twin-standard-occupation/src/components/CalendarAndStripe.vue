@@ -15,36 +15,30 @@
         <span :class="lines[5] === true ? 'draw-line' : ''" class="line l5"></span>
         <span :class="lines[6] === true ? 'draw-line' : ''" class="line l6"></span> -->
         <tr>
-          <td width="70"></td>
-          <td class="CALHEAD">Jan</td>
-          <td class="CALHEAD">Fev</td>
-          <td class="CALHEAD">Mar</td>
-          <td class="CALHEAD">Avr</td>
-          <td class="CALHEAD">Mai</td>
-          <td class="CALHEAD">Jui</td>
-          <td class="CALHEAD">Jui</td>
-          <td class="CALHEAD">Aou</td>
-          <td class="CALHEAD">Sep</td>
-          <td class="CALHEAD">Oct</td>
-          <td class="CALHEAD">Nov</td>
-          <td class="CALHEAD">Dec</td>
+          <td></td>
+          <td v-for="m of calMonths" class="CALHEAD">{{m}}</td>
         </tr>
         <tr>
-          <td class="WEEKDAYS" width="70">
+          <td class="WEEKDAYS CALHEAD">
             <p class="CALDAY mb-0" @click="lineUp(0)">
               Lundi
             </p>
-            <p class="mb-0 fade-effect" @click="lineUp(1)">Mardi</p>
-            <p class="mb-0 fade-effect" @click="lineUp(2)">Mercredi</p>
-            <p class="mb-0 fade-effect" @click="lineUp(3)">Jeudi</p>
-            <p class="mb-0 fade-effect" @click="lineUp(4)">Vendredi</p>
-            <p class="mb-0 fade-effect" @click="lineUp(5)">Samedi</p>
+            <div style="height: 2px;"></div>
+            <p class="mb-0 CALDAY fade-effect" @click="lineUp(1)">Mardi</p>
+            <div style="height: 2px;"></div>
+            <p class="mb-0 CALDAY fade-effect" @click="lineUp(2)">Mercredi</p>
+            <div style="height: 2px;"></div>
+            <p class="mb-0 CALDAY fade-effect" @click="lineUp(3)">Jeudi</p>
+            <p class="mb-0 CALDAY fade-effect" @click="lineUp(4)">Vendredi</p>
+            <div style="height: 2px;"></div>
+            <p class="mb-0 CALDAY fade-effect" @click="lineUp(5)">Samedi</p>
+            <div style="height: 2px;"></div>
             <p class="CALDAY mb-0" @click="lineUp(6)">Dimanche</p>
           </td>
-          <td v-for="j in 12" :key="j">
+          <td v-for="j in calMonths.length" :key="j">
             <div class="CALMONTH">
-              <span v-for="i in monthOffset(j)" :key="'o'+i"><div class="RECT"></div></span>
-              <span v-for="i in monthDays(j)" :key="'d'+i">
+              <span v-for="i in monthOffset(calMonths[j-1], j-1)" :key="'o'+i"><div class="RECT"></div></span>
+              <span v-for="i in monthDays(calMonths[j-1], j-1)" :key="'d'+i">
                 <v-tooltip bottom :open-delay="0">
                   <template v-slot:activator="{ on, attrs }">
                     <span
@@ -57,8 +51,8 @@
                     </div>
                   </span>
                   </template>
-                  <span v-if="results.d[j-1][i-1] && results.d[j-1][i-1]!=-1">{{`${i}/${j}/${results.y} :`}} <b>{{results.d[j-1][i-1].toFixed(1)}}</b> {{ unit.name }}</span>
-                  <span v-else>{{`${i}/${j}/${results.y} :`}} <b>-</b> {{ unit.name }}</span>
+                  <span v-if="results.d[j-1][i-1] && results.d[j-1][i-1]!=-1">{{`${i}/${monthToNumber(j)}/${results.y} :`}} <b>{{results.d[j-1][i-1].toFixed(1)}}</b> {{ unit.name }}</span>
+                  <span v-else>{{`${i}/${monthToNumber(j)}/${results.y} :`}} <b>-</b> {{ unit.name }}</span>
                 </v-tooltip>
               </span>
             </div>
@@ -67,7 +61,7 @@
       </table>
       <p class="CALMAX">{{ legend }} <b>{{ maxDate }}</b></p>
     </div>
-    <MonthlyStripe :results="results" :values="monthlyValues" :unit="unit"/>
+    <MonthlyStripe :results="results" :values="monthlyValues" :calMonths="calMonths" :unit="unit"/>
   </div>
 </template>
 
@@ -80,7 +74,7 @@ export default {
   components: {
     MonthlyStripe
   },
-  props: ['results', 'unit', 'calc'],
+  props: ['results', 'unit', 'calc', 'calMonths'],
   data: () => ({
     d: 0,
     max: 0,
@@ -90,6 +84,7 @@ export default {
     legend: env.calendarLegend,
     lines: [false, false, false, false, false, false, false],
     toggleSet: new Set(),
+    monthsArr: ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jui', 'Juil', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec']
   }),
   mounted() {
     let exportDate = this.generateDatesArray(this.results.y);
@@ -137,7 +132,7 @@ export default {
       let res = 0;
       let maxPos = [];
       let monthSum = [];
-      for (let i=0; i<12; i++) {
+      for (let i=0; i< this.calMonths.length; i++) {
         missing = 0;
         sum = 0;
         sum += this.results.d[i].reduce((a,b) => {
@@ -157,9 +152,9 @@ export default {
         return [m, maxPos.indexOf(Math.max(...maxPos)), monthSum, this.results.y];
     }
     else if (this.calc === 'Maximum') {
-      let m = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
-      let monthmax = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
-      for (let i = 0; i < 12; i++) {
+      let m = Array.from({ length: this.calMonths.length }, () => -1);
+      let monthmax = Array.from({ length: this.calMonths.length }, () => -1);
+      for (let i = 0; i < this.calMonths.length; i++) {
         const filteredArr = this.results.d[i].filter((value) => value !== -1);
         if (filteredArr.length > 0) {
           m[i] = Math.max(...filteredArr);
@@ -169,12 +164,12 @@ export default {
       return [m, monthmax.indexOf(Math.max(...monthmax)), monthmax, this.results.y];
     }
     else if (this.calc === 'Minimum') {
-      let m = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+      let m = Array.from({ length: this.calMonths.length }, () => -1);
       let missing;
       let min;
       let res = 0;
       let minValues = [];
-      let monthMin = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+      let monthMin = Array.from({ length: this.calMonths.length }, () => -1);
       for (let i = 0; i < 12; i++) {
         
         missing = 0;
@@ -196,7 +191,7 @@ export default {
       let res = 0;
       let monthAverage = [];
 
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < this.calMonths.length; i++) {
         missing = 0;
         sum = 0;
 
@@ -230,11 +225,14 @@ export default {
       else if (val < this.min + this.interval * 6) return 'O1';
       else return 'R';
     },
-    monthOffset(month) {
-      return ( 6 + new Date (this.results.y, month-1, 1).getDay()) % 7;
+    monthOffset(MMM, j) {
+      const month = this.monthsArr.findIndex(e => e === MMM);
+      // console.log(`Month: ${MMM}, offset: ${(6 + new Date (this.results.y, month, 1).getDay()) % 7}`);
+      return ( 6 + new Date (this.results.y, month, 1).getDay()) % 7;
     },
-    monthDays(month) {
-      return new Date (this.results.y, month, 0).getDate();
+    monthDays(MMM, j) {
+      const month = this.monthsArr.findIndex(e => e === MMM);
+      return new Date (this.results.y, month+1, 0).getDate();
     },
     generateDatesArray(year) {
       const startDate = moment(`${year}-01-01`, 'YYYY-MM-DD');
@@ -249,15 +247,25 @@ export default {
       return datesArray;
     },
     lineUp(n) {
+      const oldLines = this.lines.slice();
       this.$set(this.lines, n, !this.lines[n]);
+      for (const [key, value] of this.toggleSet.entries()) {
+        if(this.lines[moment(key, 'DD/MM/YYYY').isoWeekday() - 1] !== oldLines[moment(key, 'DD/MM/YYYY').isoWeekday() - 1]) {
+          this.toggleSet.delete(key);
+        }
+      }
       this.$emit('dayFilter', this.lines);
     },
     shouldDisplayLine(day, month, year) {
+      month = this.monthsArr.findIndex(e => e === this.calMonths[month - 1]) + 1;
       const dayOfWeek = moment(`${year}-${month}-${day}`, 'YYYY-MM-DD').isoWeekday();
       // (dayFilter[isoDayOfWeek - 1] === false && !toggleSet.has(moment(date).format('D/M/YYYY'))) || (dayFilter[isoDayOfWeek - 1] === true && toggleSet.has(moment(date).format('D/M/YYYY')));
       return (this.lines[dayOfWeek - 1] && !this.toggleSet.has(`${day}/${month}/${year}`)) || (this.lines[dayOfWeek - 1] === false && this.toggleSet.has(`${day}/${month}/${year}`));
     },
     toggle(d, val) {
+      var splittedDate = d.split('/');
+      splittedDate[1] = this.monthsArr.findIndex(e => e === this.calMonths[splittedDate[1] - 1]) + 1;
+      d = splittedDate.join('/');
       if (this.toggleSet.has(d)) {
         this.toggleSet.delete(d);
       }
@@ -265,6 +273,10 @@ export default {
         this.toggleSet.add(d);
       }
       this.$emit('toggle', this.toggleSet);
+    },
+    monthToNumber(j) {
+      // Example output: Got 1 month is Oct index is 10
+      return this.monthsArr.findIndex(e => e === this.calMonths[j - 1]) + 1;
     }
   },
   watch: {
@@ -373,10 +385,11 @@ export default {
 }
 
 .WEEKDAYS {
+  width: 7.7% !important;
+  /* display: flex;
   position: relative;
-  display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: space-between; */
   height: 172px;
   padding-left: 10px;
 }
@@ -428,7 +441,7 @@ export default {
 }
 
 .fade-effect {
-  height: 22px;
+  height: 24px;
   cursor: pointer;
   font-family: "Charlevoix Pro";
   font-style: normal;
