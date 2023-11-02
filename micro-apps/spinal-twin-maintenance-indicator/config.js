@@ -1,5 +1,5 @@
 module.exports = {
-  workflowList: ["Ticket Mission", "Ticket Mamady"],
+  workflowList: ["Ticket Mission"],
   dashboardTitle: "Historique des tickets",
   controlPointProfil: {
     name: "Maintenance Control Points",

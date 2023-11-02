@@ -103,7 +103,6 @@ export class Process {
   }
 
   private async buildBarChart(period: string, index: number = 0) {
-    if (this.barChart[0].isLoaded(period)) return;
     for (const endpoint of this.endpoints) {
       let series = [{ date: Date.now(), value: 0 }];
       const currentPeriod = moment();

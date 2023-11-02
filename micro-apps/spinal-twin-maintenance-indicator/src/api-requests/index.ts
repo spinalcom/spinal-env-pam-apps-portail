@@ -98,8 +98,9 @@ export async function getYearTimeSeriesAsync(
 ) {
   const end = moment(today).add(index, "year");
   end.month(12);
-  end.date(0);
+  end.date(31);
   const begin = moment(end).subtract(12, "months");
+  begin.date(1);
 
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(

@@ -124,12 +124,8 @@ export default new Vuex.Store({
           for (const el of e2) {
             const found = e1.find((e: any) => e.label === el.label);
             if (!found) {
-              const { label, backgroundColor, borderColor, borderWidth } = el;
               e1.push({
-                label,
-                backgroundColor,
-                borderColor,
-                borderWidth,
+                ...el,
                 data: [...el.data],
               });
             } else {
@@ -185,21 +181,19 @@ export default new Vuex.Store({
         const lines = payload.displayedIds.map((displayedId) =>
           getters.getSingleLineData({ displayedId, period: payload.period })
         );
+
         const datasets = lines.reduce((e1, e2) => {
           for (const el of e2) {
             const found = e1.find((e: any) => e.label === el.label);
             if (!found) {
-              const { label, backgroundColor, borderColor, borderWidth } = el;
               e1.push({
-                label,
-                backgroundColor,
-                borderColor,
-                borderWidth,
+                ...el,
                 data: [...el.data],
               });
             } else {
-              el.data.forEach((num: any, i: number) =>
-                found.data[i].push(...el.data[i])
+              el.data.forEach(
+                (num: any, i: number) =>
+                  (found.data[i] = [...found.data[i], ...el.data[i]])
               );
             }
           }
@@ -208,6 +202,7 @@ export default new Vuex.Store({
 
         return datasets;
       },
+
     getPeriode: (state) => (payload: { period: String; index: number }) => {
       const currentDay = moment();
       switch (payload.period) {

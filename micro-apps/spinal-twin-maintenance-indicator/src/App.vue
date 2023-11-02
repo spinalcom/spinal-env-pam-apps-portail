@@ -42,6 +42,9 @@
         nav-enabled
         @nav="nav"
         :nav-text="navText"
+        :switch-enabled="false"
+        switch-false-icon="mdi-chart-bar"
+        switch-true-icon="mdi-chart-line"
         line-point
         :tooltip-callbacks="{
           title: titleCallback,
@@ -307,7 +310,7 @@ export default {
           unit: "Tickets",
           title: b.label.split(" ").slice(3).join(" "),
         }));
-      const lineIndics = this.barLine[0];
+      const lineIndics = { ...this.barLine[0] };
       const timeTable = lineIndics.data
         .map((d) =>
           d.filter((ds) => ds.value || ds.value === 0).map((ds) => ds.value)
@@ -341,19 +344,15 @@ export default {
         title: lineIndics.label.split(" ").fill("moyen", 1, 2).join(" "),
       };
       const solvedInPeriod = lineIndics.data
-        .map((d) => {
+        .reduce((e1, e2) => [...e1, ...e2], [])
+        .filter((d, i) => {
           if (this.period.value !== "decade")
-            return d.filter((ds) =>
-              moment()
-                .add(this.navIndex, this.period.value)
-                .isSame(moment(ds.date - ds.value), this.period.value)
-            );
+            return moment()
+              .add(this.navIndex, this.period.value)
+              .isSame(moment(d.date - d.value), this.period.value);
           const currentDecade = moment().add(this.navIndex * 10, "years");
-          return d.filter((ds) =>
-            sameDecade(moment(ds.date - ds.value), moment(currentDecade))
-          );
-        })
-        .reduce((e1, e2) => e1.concat(e2), []);
+          return sameDecade(moment(d.date - d.value), moment(currentDecade));
+        });
       const created = indics.find((b) => b.title.includes("créés")).value;
       const rate = {
         value: created
