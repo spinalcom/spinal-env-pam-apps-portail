@@ -58,7 +58,6 @@ export class ViewerUtils {
 
   public async load3DModels(viewer: Autodesk.Viewing.Viewer3D, data: IStartLoadModel): Promise<Autodesk.Viewing.Model[]> {
     const tasks: IloadModelTask[] = [];
-
     for (const d of data.models) {
       tasks.push({
         bimFileId: d.bimFileId,
@@ -66,7 +65,7 @@ export class ViewerUtils {
         dbids: d.dbids,
         aecPath: this._addSlash(d.aecPath),
         id: d.id,
-        name: d.name,
+        name: d.name
       });
     }
 
@@ -252,6 +251,7 @@ export class ViewerUtils {
         value: item.value,
         models: data,
         dbId: data[0]?.dbIds[0],
+        // position: item.position || await getPosition(data),
         position: await getPosition(data),
         data: item.parent
       }
@@ -259,27 +259,28 @@ export class ViewerUtils {
 
     Promise.all(promises).then((result) => {
       SpriteManager.getInstance().createSprite(viewer, result);
+      // SpriteManager.getInstance().createSprite2(viewer, result);
     })
 
   }
   
-  public removeSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
+  // public removeSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
   
-  public removeAllSprites(viewer: Autodesk.Viewing.Viewer3D) { }
+  // public removeAllSprites(viewer: Autodesk.Viewing.Viewer3D) { }
 
-  public moveSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
+  // public moveSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
 
-  public addLine(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
+  // public addLine(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
 
-  public removeLine(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
+  // public removeLine(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
 
-  public moveLine(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
+  // public moveLine(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
 
-  public addSphere(viewer: Autodesk.Viewing.Viewer3D, data: any) {   }
+  // public addSphere(viewer: Autodesk.Viewing.Viewer3D, data: any) {   }
 
-  public removeSphere(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
+  // public removeSphere(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
 
-  public moveSphere(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
+  // public moveSphere(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
 
 
   ///////////////////////////////////////////////////////////////////

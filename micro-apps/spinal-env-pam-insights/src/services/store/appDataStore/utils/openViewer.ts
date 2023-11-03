@@ -1,19 +1,19 @@
 /*
- * Copyright 2022 SpinalCom - www.spinalcom.com
- *
+ * Copyright 2023 SpinalCom - www.spinalcom.com
+ * 
  * This file is part of SpinalCore.
- *
+ * 
  * Please read all of the following terms and conditions
  * of the Free Software license Agreement ("Agreement")
  * carefully.
- *
+ * 
  * This Agreement is a legally binding contract between
  * the Licensee (as defined below) and SpinalCom that
  * sets forth the terms and conditions that govern your
  * use of the Program. By installing and/or using the
  * Program, you agree to abide by all the terms and
  * conditions stated or referenced herein.
- *
+ * 
  * If you do not agree to abide by these terms and
  * conditions, do not demonstrate your acceptance and do
  * not install or use the Program.
@@ -22,18 +22,20 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import type { SpinalAPI } from '../SpinalAPI';
-import { ISceneDefaultRes } from '../../../interfaces/ISceneDefaultRes';
 
-export async function sceneDefaut(spinalAPI: SpinalAPI, buildingId: string): Promise<ISceneDefaultRes> {
-  const url = spinalAPI.createUrlWithPlatformId(buildingId, 'api/v1/BIM/scene/default');
-  const res = await spinalAPI.get<ISceneDefaultRes>(url);
-  return res.data;
-}
+export function classifyItemByBimFileId(map: Map<string, any>, dynamicId: number, key: string) {
+   const obj = map.get(key);
 
+   let ids = []
+   if (obj && obj[dynamicId]) {
+      const temp = (obj[dynamicId].children || []).reduce((_obj, item) => {
+         if (_obj[item.bimFileId]) _obj[item.bimFileId].dbIds.push(item.dbid);
+         else _obj[item.bimFileId] = { bimFileId: item.bimFileId, dbIds: [item.dbid] };
+         return _obj;
+      }, {})
+      
+      ids = Array.from(Object.values(temp))
+   }
 
-export async function getSceneList(spinalAPI: SpinalAPI, buildingId: string): Promise<ISceneDefaultRes> {
-  const url = spinalAPI.createUrlWithPlatformId(buildingId, 'api/v1/BIM/scene/list');
-  const res = await spinalAPI.get<ISceneDefaultRes>(url);
-  return res.data;
+   return ids
 }

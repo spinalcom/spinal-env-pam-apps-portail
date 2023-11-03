@@ -37,6 +37,7 @@ export async function getSourceValue(buildingId: string, items: any[], source: I
       if (item) {
          item.groups = _getGroupsId(detail);
          item.endpoint = _getEndpoint(detail, source);
+         item.position = _getPos(detail)
       }
    }
 
@@ -98,6 +99,19 @@ function _getEndpoint(detail, source: ISource) {
 
 
 
+}
+
+function _getPos(detail) {
+   const category = (detail.attributsList || []).find(el => el.name === "Spatial");
+   if (category) {
+      const attribute = category.attributs.find(el => el.label === "XYZ center");
+      if (attribute) {
+         const [x, y, z] = (attribute.value || "").split(";");
+         if (x && y && z) {
+            return {x : Number(x), y: Number(y), z : Number(z)}
+         }
+      }
+   }
 }
 
 

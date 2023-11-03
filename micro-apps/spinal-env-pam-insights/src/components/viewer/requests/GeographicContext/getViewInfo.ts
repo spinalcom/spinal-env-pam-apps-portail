@@ -23,7 +23,7 @@
  */
 
 import { SpinalAPI } from '../SpinalAPI';
-import { sceneDefaut } from '../BIM/sceneDefault';
+import { getSceneList, sceneDefaut } from '../BIM/sceneDefault';
 import { getBIMFileContext } from '../BIM/BIMFileContext';
 import { IPlayload } from '../../interfaces/IPlayload';
 
@@ -104,7 +104,6 @@ export async function getAndFormatModels(buildingId: string, res : IViewInfoTmpR
   const bimFiles = await getBIMFileContext(buildingId);
   
   return bimFiles.reduce((list, itm) => {
-    
     const dbids = obj[itm.staticId];
     if (dbids) {
       list.push({
@@ -112,6 +111,7 @@ export async function getAndFormatModels(buildingId: string, res : IViewInfoTmpR
         id: floorId,
         name: itm.name,
         path: getPath(itm),
+        aecPath: getAecPath(itm),
         dbids
       })
     }
@@ -128,6 +128,12 @@ export async function getDefaultScene(buildingId: string) {
   }
     
     return buildingDefaultScenes[buildingId]; 
+}
+
+
+async function sceneDefaut(spinalAPi: SpinalAPI, buildingId: string) {
+  const sceneList = await getSceneList(spinalAPi, buildingId);
+  return sceneList?.scenes[0];
 }
 
 // export async function getAndFormatModels(res: IViewInfoTmpRes[]) {
@@ -149,6 +155,12 @@ export function convertViewerInfoToObj(res: IViewInfoTmpRes[]) {
 
 function getPath(itm: any) {
   const path : string = itm.items[0]?.path || "";
+
+  return path.replace("/html/viewerForgeFiles", "");
+}
+
+function getAecPath(itm: any) {
+  const path : string = itm.items[0]?.aecPath || "";
 
   return path.replace("/html/viewerForgeFiles", "");
 }

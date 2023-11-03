@@ -33,6 +33,7 @@ interface ISpriteData {
 }
 
 const baseURL = require("../assets/circle.svg");
+const thermo = require("../assets/thermo.png");
 
 export class SpriteManager {
 
@@ -41,6 +42,7 @@ export class SpriteManager {
    private _dataVizExtn: any;
    private _viewableType;
    private dbIdToViewable: { [key: number | string]: any } = {};
+   private labels = {};
 
    private constructor() {}
 
@@ -69,6 +71,73 @@ export class SpriteManager {
       viewer.addEventListener(this.DataVizCore.MOUSE_HOVERING, this._onSpriteHovering.bind(this));
    }
 
+
+   public async createSprite2(viewer: Autodesk.Viewing.Viewer3D, data: ISpriteData | ISpriteData[]) {
+      await viewer.loadExtension('Autodesk.Edit3D');
+      data = Array.isArray(data) ? data : [data];
+      for (const item of data) {
+         if (!item.position || item.position.x == null && item.position.y == null && item.position.z == null) continue;
+         
+         const label = new Autodesk.Edit3D.Label3D(viewer, item.position, item.data.displayValue);
+
+         label.id = item.dbId;
+         let img = document.createElement("img");
+         img.src = thermo;
+
+         label.container.childNodes[0].style.borderStyle = "solid";
+         label.container.childNodes[0].style.borderWidth = "3px";
+         label.container.childNodes[0].style.backgroundColor = item.color;
+         label.container.childNodes[0].style.borderColor = item.color;
+         label.container.childNodes[0].style.borderRadius = "100px";
+         label.container.childNodes[0].style.color = "#14202C";
+
+         label.container.childNodes[0].style["z-index"] = 1;
+         label.container.style.display = "flex";
+         label.container.style.pointerEvents = 'auto';
+         label.container.style.background = 'none';
+         label.container.style.alignItems = 'center';
+         label.container.style.height = 'fit-content';
+         label.container.style.padding = '0px';
+         label.container.style.color = 'transparent';
+         label.container.style["box-shadow"] = 'none';
+
+         img.style.height = "20px";
+         img.style.width = "20px";
+         img.style.borderStyle = "solid";
+         img.style.borderWidth = "3px";
+         img.style.backgroundColor = item.color;
+         img.style.borderColor = item.color;
+
+         img.style["z-index"] = 2;
+         img.style["-moz-border-radius"] = "75px";
+         img.style["-webkit-border-radius"] = "75px";
+         img.style["border-radius"] = "75px";
+
+
+         label.container.childNodes[0].style.marginLeft = "-15px";
+         label.container.childNodes[0].style.paddingLeft = "15px";
+         label.container.childNodes[0].style.paddingRight = "5px";
+         label.container.childNodes[0].style.marginRight = "0px";
+         label.container.childNodes[0].style.height = "15px";
+         label.container.childNodes[0].style.fontSize = "15px";
+         img.style["margin-left"] = "5px;"
+         label.container.childNodes[0].style.display = item.data.displayValue;
+
+
+         // if (data.text.type == "boolean" || data.text.type == "string") {
+         //   label.container.childNodes[0].style.display = "none";
+         // }
+         // else {
+         //   label.container.childNodes[0].style.display = "";
+
+         // }
+         label.container.insertBefore(img, label.container.childNodes[0]);
+         
+         this.labels[item.dbId] = label;
+      }
+   }
+
+
    public async createSprite(viewer: Autodesk.Viewing.Viewer3D, data: ISpriteData | ISpriteData[]) {
 
       const viewableData = new this.DataVizCore.ViewableData();
@@ -76,7 +145,10 @@ export class SpriteManager {
       
 
       data = Array.isArray(data) ? data : [data];
+
       for (const item of data) {
+         if (!item.position || item.position.x == null && item.position.y == null && item.position.z == null) continue;
+
          const spriteColor = new THREE.Color(item.color);
          const style = new this.DataVizCore.ViewableStyle(this._viewableType, spriteColor, baseURL);
          
@@ -94,7 +166,14 @@ export class SpriteManager {
    }
 
    public removeSprites() {
-      if(this._dataVizExtn) return this.dataVizExtn.removeAllViewables();      
+      if (this._dataVizExtn) this.dataVizExtn.removeAllViewables();
+      
+      // for (const key in this.labels) {
+      //    if (Object.prototype.hasOwnProperty.call(this.labels, key)) {
+      //       const element = this.labels[key];
+      //       element.setVisible(false)
+      //    }
+      // }
    }
 
    private _addSpriteToObject(modelId: string | number, dbId: number, viewable:  any) {

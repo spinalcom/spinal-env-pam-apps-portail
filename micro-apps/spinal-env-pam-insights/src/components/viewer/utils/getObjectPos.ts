@@ -26,10 +26,14 @@ import ModelManager from "../manager/modelManager";
 
 
 export async function getPosition(data: { model: Autodesk.Viewing.Model, dbIds: number[] }[]) {
+   
    const promises = data.map(({ model, dbIds }) => getObjectPosition(model, dbIds));
-   const boxes = await Promise.all(promises);
+   let boxes = await Promise.all(promises);
+   boxes = boxes.filter(el => el);
+   if (boxes.length === 0) return { x: null, y: null, z: null };
+   
    const box3 = boxes.reduce((box: THREE.Box3, b) => {
-      box.union(b);
+      if(b) box.union(b);
       return box;
    }, new THREE.Box3())
    return box3.getCenter();
@@ -37,6 +41,7 @@ export async function getPosition(data: { model: Autodesk.Viewing.Model, dbIds: 
 
 
 function getObjectPosition(model: Autodesk.Viewing.Model, dbIds: number | number[]) {
+   if (!model) return;
    if (!Array.isArray(dbIds)) dbIds = [dbIds];
 
    return convertAllDbIdsToBox3(model, dbIds);

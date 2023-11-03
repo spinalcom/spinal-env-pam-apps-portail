@@ -110,6 +110,14 @@ export default {
       border-radius: 3px;
    }
 
+
+   .dataView .name {
+      width: 75%;
+      max-width: 75%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+   }
    
 
    

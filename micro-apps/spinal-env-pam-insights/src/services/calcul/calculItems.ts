@@ -29,6 +29,7 @@ export function calculItemsValue(data: INodeItemTree[], calculMode: calculTypes)
    return data.reduce((arr: INodeItemTree[], item) => {
       const values = item.children.map(el => getValue(el));
       const value = calculateValue(values, calculMode);
+
       item.displayValue = isFinite(value) ? value : "-";
       arr.push(item);
       return arr
@@ -39,8 +40,10 @@ export function calculItemsValue(data: INodeItemTree[], calculMode: calculTypes)
 
 export function getColor(item, legend) {
    const value = item.displayValue;
-
+   
    if (isNaN(value)) return legend.min.color;
+   
+   if (!isFinite(value)) return value < 0 ? legend.min.color : legend.max.color;
 
    if (value == legend.min.value) return legend.min.color;
    if (legend.median && value == legend.median.value) return legend.median.color;

@@ -29,7 +29,7 @@ import { MutationTypes } from './mutations';
 import { getEquipments, getFloors, getRooms } from '../../spinalAPI/GeographicContext/geographicContext';
 import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem, } from '../../../components/SpaceSelector';
 import { INodeItem } from '../../../interfaces/INodeItem';
-import {  IViewInfoItemRes } from '../../spinalAPI/GeographicContext/getViewInfo';
+import {  IViewInfoBody, IViewInfoItemRes } from '../../spinalAPI/GeographicContext/getViewInfo';
 import { ActionTypes, ApiIteratorStoreRecordNumberType, ApiIteratorStoreRecordStringType, ApiIteratorStoreType, AugmentedActionContextAppData } from '../../../interfaces/vuexStoreTypes';
 import { getGroupsItems, getAllCategoriesTree } from '../../spinalAPI/GeographicContext/groupsItems';
 import SpriteManager from '../../../components/viewer/manager/spriteManager';
@@ -37,6 +37,7 @@ import ViewerManager from '../../../components/viewer/manager/viewerManager';
 import { IConfig } from '../../../interfaces/IConfig';
 import { getSourceValue } from '../../spinalAPI/endpoints/getEndpoints';
 import { getItemsToRegroup, regroupByGeographicItem, regroupByGeograhicGroup } from './utils/regroupement';
+import { classifyItemByBimFileId } from './utils/openViewer';
 // const eventEmitter = EmitterViewerHandler.getInstance();
 
 
@@ -146,7 +147,7 @@ export const actions = {
     return items?.value;
   },
 
-  async [ActionTypes.GET_CATEGORIES_TREE]({ commit, state }: AugmentedActionContextAppData, {forceUpdate, buildingId}): Promise<{ [key: string]: INodeItem }> {
+  async [ActionTypes.GET_CATEGORIES_TREE]({ commit, state }: AugmentedActionContextAppData, {forceUpdate, buildingId, context}): Promise<{ [key: string]: INodeItem }> {
     const spinalAPI = SpinalAPI.getInstance();
     
     if (typeof ApiIteratorStore[ActionTypes.GET_CATEGORIES_TREE] === 'undefined') {
@@ -154,7 +155,7 @@ export const actions = {
     }
 
     if (typeof ApiIteratorStore[ActionTypes.GET_CATEGORIES_TREE][buildingId] === "undefined" || forceUpdate) {
-      ApiIteratorStore[ActionTypes.GET_CATEGORIES_TREE][buildingId] = spinalAPI.createIteratorCall(getAllCategoriesTree, buildingId);
+      ApiIteratorStore[ActionTypes.GET_CATEGORIES_TREE][buildingId] = spinalAPI.createIteratorCall(getAllCategoriesTree, buildingId, context);
     }
 
     const items = await ApiIteratorStore[ActionTypes.GET_CATEGORIES_TREE][buildingId].next();
@@ -175,8 +176,8 @@ export const actions = {
     if(regroupement === "floors") return regroupByGeographicItem(map,"geographicFloor", itemsToRegroup)
     if (regroupement === "rooms") return regroupByGeographicItem(map, "geographicRoom", itemsToRegroup);
 
-    const obj = await dispatch(ActionTypes.GET_CATEGORIES_TREE,{buildingId: playload.item.buildingId})
-    const groups = Object.assign([], obj[regroupement] || []);
+    const obj = await dispatch(ActionTypes.GET_CATEGORIES_TREE,{buildingId: playload.item.buildingId, context: regroupement.context})
+    const groups = Object.assign([], obj[regroupement.category] || []);
 
     return regroupByGeograhicGroup(groups, itemsToRegroup);
   },
@@ -214,12 +215,35 @@ export const actions = {
   ////////////////////////////////////////////////////////
 
 
-  async [ActionTypes.OPEN_VIEWER]({ commit, dispatch, state }: AugmentedActionContextAppData, playload: { onlyThisModel: boolean;  item: any} ): Promise<void> {
-    await ViewerManager.getInstance().loadInViewer(playload.item, playload.onlyThisModel);
+  async [ActionTypes.OPEN_VIEWER]({ commit, dispatch, state }: AugmentedActionContextAppData, playload: { onlyThisModel: boolean; config: IConfig; item: any }): Promise<void> {
+    try {
+      const viewerInfo = playload.config.viewerInfo;
+      const body = {
+        dynamicId: [playload.item.dynamicId],
+        roomRef: viewerInfo.roomRef,
+        floorRef: viewerInfo.floorRef,
+        equipements: false,
+        dbIdsToAdd: []
+      }
+      
+      if (viewerInfo.equipments === "all") {
+        body.equipements = true;
+        body.dbIdsToAdd = [];
+      } else if(viewerInfo.equipments === "groupItem") {
+        body.equipements = false;
+        const map = await dispatch(ActionTypes.GET_GROUPS_ITEMS, { config: playload.config, buildingId: playload.item.buildingId });
+        body.dbIdsToAdd = classifyItemByBimFileId(map, playload.item.dynamicId, playload.item.type);
+      }
+      
+      await ViewerManager.getInstance().loadInViewer(playload.item, playload.onlyThisModel, body);
     
-    if (playload.onlyThisModel) state.viewerStartedList = {};
+      if (playload.onlyThisModel) state.viewerStartedList = {};
 
-    commit(MutationTypes.ADD_VIEWER_LOADED, {id : playload.item.dynamicId});
+      commit(MutationTypes.ADD_VIEWER_LOADED, {id : playload.item.dynamicId});
+    } catch (error) {
+      console.log("errror", error)
+    }
+   
   },
 
   async [ActionTypes.GET_VIEWER_INFO]({ commit, state }: AugmentedActionContextAppData, playload ): Promise<IViewInfoItemRes[]> {

@@ -30,10 +30,18 @@ export interface IConfig {
    title: string;
    viewButtons: "base" | "advanced",
    calculs: calculTypes[];
+   viewerInfo: { roomRef: boolean, floorRef: boolean, equipments: "all" | "groupItem" | "none" };
    source: ISource;
    sprites: boolean;
    legend: ILegend;
-   regroupement: "floors" | "rooms" | string;
+   regroupement: "floors" | "rooms" | IRegroupement
+}
+
+
+
+interface IRegroupement {
+   context: string;
+   category: string;
 }
 
 

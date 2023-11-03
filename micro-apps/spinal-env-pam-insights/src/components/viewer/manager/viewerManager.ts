@@ -23,7 +23,7 @@
  */
 
 import { ModelManager } from "./modelManager"
-import { getViewInfo, getViewInfoFormatted, IViewInfoItemRes, IViewInfoTmpRes, mergeIViewInfo } from '../requests/GeographicContext/getViewInfo';
+import { getViewInfo, getViewInfoFormatted, IViewInfoBody, IViewInfoItemRes, IViewInfoTmpRes, mergeIViewInfo } from '../requests/GeographicContext/getViewInfo';
 import { IPlayload } from "../interfaces/IPlayload";
 import { EmitterViewerHandler, VIEWER_ADD_SPRITE, VIEWER_INITIALIZED, VIEWER_OBJ_COLOR, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_START_LOAD_MODEL, ViewerEventWithData } from "spinal-viewer-event-manager";
 import { VIEWER_EVENTS } from "../events";
@@ -74,7 +74,7 @@ export class ViewerManager {
       });
    }
 
-   public async loadInViewer(item: IPlayload, loadOnlyThisModel : boolean = true) {
+   public async loadInViewer(item: IPlayload, loadOnlyThisModel: boolean = true, body?: IViewInfoBody & {dbIdsToAdd?: { bimFileId: string;  dbIds: number[]}[]}) {
 
       // if (this._viewerStartedList[item.staticId]) return;
       if (this._viewerStartedList[item.dynamicId]) {
@@ -92,7 +92,9 @@ export class ViewerManager {
       emitter.once(VIEWER_INITIALIZED, async () => {
          const buildingId = item.buildingId;
          const dynamicId = item.dynamicId;
-         const res = await this.getViewerInfoMerged(item);
+         if(!body) body = { dynamicId: [dynamicId], floorRef: true, roomRef: true, equipements: false }
+         
+         const res = await this.getViewerInfoMerged(item, body);
          
          emitter.once(<any>VIEWER_EVENTS.LOADED, (data) => {
             this._addViewLoaded(data.id, data.models);
@@ -104,21 +106,22 @@ export class ViewerManager {
       })
    }
 
-   public async getViewerInfoMerged(argItem: IPlayload | IPlayload[]): Promise<IViewInfoItemRes[]> {
-      const datas = await this.getViewerInfo(argItem);
-
+   public async getViewerInfoMerged(argItem: IPlayload | IPlayload[], body?: IViewInfoBody & {dbIdsToAdd? : { bimFileId: string;  dbIds: number[]}[]}): Promise<IViewInfoItemRes[]> {
+      const datas = await this.getViewerInfo(argItem, undefined, body);
       const res = [];
-
+      
       for (const _item of datas) {
          mergeIViewInfo(res, _item.data)
       }
+
+      mergeIViewInfo(res, (body?.dbIdsToAdd || []))
 
       return res.map((it: IViewInfoTmpRes): IViewInfoItemRes => {
          return { bimFileId: it.bimFileId, dbIds: Array.from(it.dbIds) };
       });;
    }
 
-   public async getViewerInfo(argItem: IPlayload | IPlayload[], argBuildingId?: string): Promise<any[]> {
+   public async getViewerInfo(argItem: IPlayload | IPlayload[], argBuildingId?: string, body?: IViewInfoBody): Promise<any[]> {
       if (typeof this._viewerStores["GET_VIEWER_INFO"] === 'undefined') {
          this._viewerStores["GET_VIEWER_INFO"] = {};
       }
@@ -141,7 +144,9 @@ export class ViewerManager {
 
 
       if (nodeTofetech.length > 0) {
-         const datas = await getViewInfo(buildingId, { dynamicId: nodeTofetech, floorRef: true, roomRef: true, equipements: true });
+         if (!body) body = { dynamicId: nodeTofetech, floorRef: true, roomRef: true, equipements: false };
+         const datas = await getViewInfo(buildingId, body);
+         
          for (const _item of datas) {
             this._viewerStores["GET_VIEWER_INFO"][_item.dynamicId] = generator(_item);
             res.push(_item);
@@ -183,16 +188,13 @@ export class ViewerManager {
 
    public async colorItems(item: IPlayload | IPlayload[], buildingId?: string) {
       const formatted = await this._getAndFormatViewerInfos(item,buildingId)
-      console.log(formatted)
       const emitter = EmitterViewerHandler.getInstance();
       emitter.emit(VIEWER_OBJ_COLOR, formatted as any);
    }
 
 
    public async addSprites(item: IPlayload | IPlayload[], buildingId?: string) {
-
       const formatted = await this._getAndFormatViewerInfos(item,buildingId)
-
       const emitter = EmitterViewerHandler.getInstance();
       emitter.emit(VIEWER_ADD_SPRITE, formatted as any);
    }
@@ -210,11 +212,12 @@ export class ViewerManager {
       return item.map(i => ({
          // dbIds: obj[i.dynamicId]?.dbIds ||[],
          // bimFileId: obj[i.dynamicId]?.bimFileId,
-         data: obj[i.dynamicId],
+         data: obj[i.dynamicId] ,
          color: i.color,
          value: i.displayValue,
          modelId: (i as IPlayload).floorId || (i as IPlayload).id || (i as IPlayload).dynamicId,
-         parent : Object.assign({}, i)
+         parent: Object.assign({}, i),
+         position: (i as any).position
       }))
    } 
 

@@ -303,10 +303,10 @@ class App extends Vue {
 
     switch (button.onclickEvent) {
       case ActionTypes.OPEN_VIEWER:
-        this.$store.dispatch(button.onclickEvent, { onlyThisModel: true, item: data });
+        this.$store.dispatch(button.onclickEvent, { onlyThisModel: true, config: this.config, item: data });
         break;
       case "OPEN_VIEWER_PLUS":
-        this.$store.dispatch(ActionTypes.OPEN_VIEWER, { onlyThisModel: false, item: data });
+        this.$store.dispatch(ActionTypes.OPEN_VIEWER, { onlyThisModel: false, config: this.config,  item: data });
         break;
       default:
         this.$store.dispatch(button.onclickEvent, data);

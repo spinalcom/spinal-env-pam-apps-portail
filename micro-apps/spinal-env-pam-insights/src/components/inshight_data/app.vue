@@ -163,7 +163,7 @@ class InsightApp extends Vue {
          const buildingId = localStorage.getItem("idBuilding");
          const promises = [this.$store.dispatch(ActionTypes.GET_GROUPS_ITEMS, { config: this.config, buildingId, forceUpdate: true })];
          if (["rooms", "equipments"].indexOf(this.config.regroupement) === -1) {
-            promises.push(this.$store.dispatch(ActionTypes.GET_CATEGORIES_TREE, {  buildingId, forceUpdate: true }))
+            promises.push(this.$store.dispatch(ActionTypes.GET_CATEGORIES_TREE, {  buildingId, forceUpdate: true,context : this.config.regroupement.context }))
          }
 
          const result = await Promise.all(promises);
@@ -185,6 +185,7 @@ class InsightApp extends Vue {
       
          this.pageSate = PAGE_STATES.loading;
          const regrouped = await this.$store.dispatch(ActionTypes.REGROUP_ITEMS, playload);
+         console.log("regrouped",regrouped)
          this.data = calculItemsValue(regrouped, this.calculMode);
          this.pageSate = PAGE_STATES.loaded;
 

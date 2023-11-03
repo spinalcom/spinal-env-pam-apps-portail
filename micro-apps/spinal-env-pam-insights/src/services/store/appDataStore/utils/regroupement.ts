@@ -55,6 +55,7 @@ export function regroupByGeographicItem(map, key, itemsToRegroup) {
 }
 
 export async function regroupByGeograhicGroup(parents: any[], itemsToRegroup: any[]) {
+
    const parentsObj = _convertParentToObj(parents)   
    const obj = {};
 

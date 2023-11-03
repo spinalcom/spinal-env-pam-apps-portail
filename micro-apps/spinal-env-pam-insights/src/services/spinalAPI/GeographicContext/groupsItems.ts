@@ -34,35 +34,58 @@ export async function getGroupsItems(config: IConfig, buildingId: string): Promi
    else tree = await getGroupContextTreeByNames(buildingId, config.entryPoint);
 
    const items = getItemsInTree(tree);
-
    // map.set("items", itemsObj);
    return classifyItemsByGeographicTypes(buildingId, items);
 
 }
 
 
-export async function getAllCategoriesTree(buildingId: string) {
-   const contexts = await _getContextRequest(buildingId);
+export async function getAllCategoriesTree(buildingId: string, contextName: string) {
+   let contexts = await _getContextRequest(buildingId, contextName);
+   if(!contexts) throw new Error(`[regroupment] - No group context found for ${contextName}`);
+   
+   contexts = Array.isArray(contexts) ? contexts : [contexts];
    const geoGroupContexts = contexts.filter(el => ["BIMObjectGroupContext", "geographicRoomGroupContext"].indexOf(el.type) !== -1);
-   const promises = geoGroupContexts.map(async el => ({ contextId: el.dynamicId, categories: await _getCategoriesRequest(el.dynamicId, buildingId) }));
+   const promises = geoGroupContexts.map(async el => _getTree(el.dynamicId, buildingId));
+   
    return Promise.all(promises).then((result) => {
-      return result.reduce(async (prom, { contextId, categories }) => {
-         const obj = await prom;
-         const p = categories.map(async el => {
-            const groups =  await _getGroupsRequest(contextId, el.dynamicId, buildingId); 
-            if (!obj[el.name]) obj[el.name] = [];
-            obj[el.name].push(...groups);
-            return el;
-         });
-         await Promise.all(p);
+      return result.flat().reduce((obj, context) => {
+         const categories = context.children;
+         for (const category of categories) {
+            if (!obj[category.name]) obj[category.name] = [];
+            obj[category.name].push(..._formatGroups(category.children, context.dynamicId, category.dynamicId));
+         }
          return obj;
-      }, Promise.resolve({}))
+      }, {});
+
    })
+
+
+   // return Promise.all(promises).then((result) => {
+   //    return result.reduce(async (prom, { contextId, categories }) => {
+   //       const obj = await prom;
+   //       const p = categories.map(async el => {
+   //          const groups =  await _getGroupsRequest(contextId, el.dynamicId, buildingId); 
+   //          if (!obj[el.name]) obj[el.name] = [];
+   //          obj[el.name].push(...groups);
+   //          return el;
+   //       });
+   //       await Promise.all(p);
+   //       return obj;
+   //    }, Promise.resolve({}))
+   // })
 }
 
 
 /////////////////////////////////////////////////////////////////
 
+function _formatGroups(groups, contextId: string, categoryId: string) {
+   return groups.map(el => {
+            el.categoryId = categoryId;
+            el.contextId = contextId;
+            return el;
+         })
+}
 
 function getItemsInTree(tree) {
    let categories = tree.children || [];
@@ -154,7 +177,6 @@ async function classifyItemsByGeographicTypes(buildingId: string, items: any[]) 
    
    const { dynamicIds, type, obj } = items.reduce((data, item) => {
       if (typeof item?.dynamicId === "undefined") return data;
-
       data.type = item.type;
       data.dynamicIds.push(item.dynamicId);
       data.obj[item.dynamicId] = item;
@@ -228,6 +250,13 @@ async function _getContextRequest(buildingId: string, contextName?: string)  {
    return result.data.find((el) => el.name === contextName)
 }
 
+async function _getTree(contextId: number, buildingId: string) {
+   const spinalAPI = SpinalAPI.getInstance();
+   const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/context/${contextId}/tree/2/depth`);
+   let result = await spinalAPI.get<INodeItem[]>(url);
+   return result.data;
+}
+
 async function _getCategoriesRequest(contextId: number, buildingId: string, categoryName?: string) {
    const spinalAPI = SpinalAPI.getInstance();
    const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/groupeContext/${contextId}/category_list`);
@@ -244,7 +273,7 @@ async function _getGroupsRequest(contextId: number, categoryId: number, building
       return result.data.map((el) => {
          el["categoryId"] = categoryId;
          el["contextId"] = contextId;
-         return el as INodeItem & { categoryId: number;  contextId: number};
+         return el as (INodeItem & { categoryId: number;  contextId: number});
       });
    }
 
