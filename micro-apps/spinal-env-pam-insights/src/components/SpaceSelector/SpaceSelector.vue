@@ -40,15 +40,12 @@ with this file. If not, see
       { 'border-top-right-radius': edge ? '' : '0 !important' },
       { 'border-bottom-right-radius': (edge || (!edge && open)) ? '' : '0 !important' }]"
     >
-      <div
-        @click="$emit('update:open', !open);showSign()"
-        ref="SpaceSelectorTitleContainer"
+      <div ref="SpaceSelectorTitleContainer" @click.stop="$emit('update:open', !open); showSign()"
         class="space-selector-header"
-        :style="{'cursor': maxDepth !== -1 ? 'pointer' : 'default'}"
-      >
+        :style="{'cursor': maxDepth !== -1 ? 'pointer' : 'default'}">
         <span class="legend">{{ label }}</span>
         <p class="space-selector-header-title">
-          <v-icon
+          <v-icon  
             :style="[{color: maxDepth !== -1 ? '#f5f5f5' : '#14202c'}, {width: maxDepth !== -1 ? 'auto' : '0 !important'}, {color: maxDepth !== -1 ? '#f5f5f5' : '#14202c'}]"
             class="rotate-disabled space-selector-header-title-icon"
             :class="{ 'rotate-enabled': open }">

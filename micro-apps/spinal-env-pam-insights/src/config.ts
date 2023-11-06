@@ -25,20 +25,22 @@
 import { IConfig, calculTypes } from "./interfaces/IConfig";
 
 export const config: IConfig = {
-   entryPoint: { context : "Contexte équipement capteur", category : "Ubigreen", group: "All" },
+   // entryPoint: { context: "Contexte équipement capteur", category: "Ubigreen", group: "All" },
+   entryPoint: { context : "Intégration équipements communicants", category : "Multicapteurs", group: "Avec convention de nommage" },
    viewButtons: "base",
    title: "Le titre de mon app",
    calculs : [calculTypes.Maximum, calculTypes.Minimum, calculTypes.Moyenne, calculTypes.Somme],
-   source: { name: "Ubigreen", profileName: "Ubigreen", type: "controlPoint", objectType: "equipments", unit : "" },
+   source: { name: "Température", profileName: "KPI", type: "controlPoint", objectType: "equipments", unit : "" },
+   // source: { name: "Ubigreen", profileName: "Ubigreen", type: "controlPoint", objectType: "equipments", unit : "" },
    sprites: true,
    viewerInfo: {roomRef: true, floorRef: true, equipments: "groupItem"},
    legend: {
       min: { value: 0, color: "#0074FF" },
-      // median: { value: 27.5, color: "#FFFF00" },
+      median: { value: 27.5, color: "#FFFF00" },
       max: {value: 1, color: "#FF004B"}
    },
-   // regroupement: "rooms"
-   regroupement: {context: "Affectation des quartiers", category : "Quartiers"}
+   regroupement: "rooms"
+   // regroupement: {context: "Affectation des quartiers", category : "Quartiers"}
 }
 
 

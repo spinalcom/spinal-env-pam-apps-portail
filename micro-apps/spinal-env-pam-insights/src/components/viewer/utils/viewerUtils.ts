@@ -245,6 +245,8 @@ export class ViewerUtils {
     const promises = data.map(async (item) => {
       const data = item.data.map(({ bimFileId, dbIds }) => ({ dbIds, model: this._getModel(item.modelId, bimFileId) }));
 
+      if(item.position) console.log(item.position, await getPosition(data))
+
       return {
         modelId: item.modelId,
         color: item.color,
@@ -298,8 +300,11 @@ export class ViewerUtils {
       }
       
       if (sceneAlignMethod === SceneAlignMethod.OriginToOrigin) {
+        console.log("OriginToOrigin")
         option.globalOffset = getGlobalOffset(viewer);
       } else if (sceneAlignMethod === SceneAlignMethod.ShareCoordinates && aecPath) {
+        console.log("ShareCoordinates")
+        
         option.applyRefPoint = true;
         option.globalOffset = await addOffsetFromAEC(getAPINormalisePath(aecPath, buildingId), viewer);
       }

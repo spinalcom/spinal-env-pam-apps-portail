@@ -52,7 +52,7 @@ with this file. If not, see
           v-model="selectedZone"
           label="ESPACE"
           :spaceSelectorItemButtons="spaceSelectorButtons"
-          :viewButtonsType="config.viewButtons"
+          :viewButtonsType="config.viewButtons" 
           @onActionClick="onActionClick"
         />
       </div>

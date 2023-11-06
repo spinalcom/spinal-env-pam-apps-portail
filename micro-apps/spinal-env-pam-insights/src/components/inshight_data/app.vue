@@ -167,6 +167,7 @@ class InsightApp extends Vue {
          }
 
          const result = await Promise.all(promises);
+         console.log(result)
          this.pageSate = PAGE_STATES.loaded;
       } catch (err) {
          console.error(err);
