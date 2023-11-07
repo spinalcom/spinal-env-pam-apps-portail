@@ -26,14 +26,14 @@ import ModelManager from "../manager/modelManager";
 
 
 export async function getPosition(data: { model: Autodesk.Viewing.Model, dbIds: number[] }[]) {
-   
+
    const promises = data.map(({ model, dbIds }) => getObjectPosition(model, dbIds));
    let boxes = await Promise.all(promises);
    boxes = boxes.filter(el => el);
    if (boxes.length === 0) return { x: null, y: null, z: null };
-   
+
    const box3 = boxes.reduce((box: THREE.Box3, b) => {
-      if(b) box.union(b);
+      if (b) box.union(b);
       return box;
    }, new THREE.Box3())
    return box3.getCenter();
@@ -51,9 +51,13 @@ function getObjectPosition(model: Autodesk.Viewing.Model, dbIds: number | number
 async function convertAllDbIdsToBox3(model: Autodesk.Viewing.Model, dbIds: number | number[]) {
    dbIds = Array.isArray(dbIds) ? dbIds : [dbIds];
 
-   const instanceTree = model.getData().instanceTree;
+   const instanceTree = await _waitInstanceTree(model);
+   if (!instanceTree) return;
+
+   console.log(instanceTree)
    const fragList = model.getFragmentList();
    let bounds = new THREE.Box3();
+
 
    for (const id of dbIds) {
       await addToBounds(instanceTree, fragList, id, bounds);
@@ -64,8 +68,7 @@ async function convertAllDbIdsToBox3(model: Autodesk.Viewing.Model, dbIds: numbe
 }
 
 
-function addToBounds(instanceTree: Autodesk.Viewing.Private.InstanceTree, fragList: Autodesk.Viewing.Private.FragmentList, dbId: number,bounds: THREE.Box3) : Promise<THREE.Box3> {
-
+function addToBounds(instanceTree: Autodesk.Viewing.Private.InstanceTree, fragList: Autodesk.Viewing.Private.FragmentList, dbId: number, bounds: THREE.Box3): Promise<THREE.Box3> {
    try {
       instanceTree.enumNodeFragments(dbId, (fragId) => {
          let box = new THREE.Box3();
@@ -76,12 +79,32 @@ function addToBounds(instanceTree: Autodesk.Viewing.Private.InstanceTree, fragLi
       console.error(error);
 
    }
-    
+}
+
+function _waitInstanceTree(model: Autodesk.Viewing.Model): Promise<Autodesk.Viewing.Private.InstanceTree> {
+   let time = 0;
+   const interval = 200;
+
+   return new Promise((resolve, reject) => {
+      wait();
+
+      function wait() {
+         setTimeout(() => {
+            if (model.getData().instanceTree) return resolve(model.getData().instanceTree);
+            else if (time === 2000) return resolve(undefined);
+
+            time += interval;
+            wait();
+         }, interval);
+      }
+
+   });
+
 
 }
 
-function convertResultToObj(result: { [key: number]: { pos: THREE.Vector3, color: string;  text: string}}[]) {
-   return result.reduce((obj, item: {[key:number] : THREE.Vector3}) => {
+function convertResultToObj(result: { [key: number]: { pos: THREE.Vector3, color: string; text: string } }[]) {
+   return result.reduce((obj, item: { [key: number]: THREE.Vector3 }) => {
       if (item) {
          for (const key in item) {
             obj[key] = item[key];

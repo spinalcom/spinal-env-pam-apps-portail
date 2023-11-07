@@ -24,11 +24,10 @@
 
 let globalOffset: THREE.Vector3;
 
-export function getGlobalOffset(
-  viewer: Autodesk.Viewing.Viewer3D
-): THREE.Vector3 | undefined {
+export function getGlobalOffset(viewer: Autodesk.Viewing.Viewer3D): THREE.Vector3 | undefined {
   if (!globalOffset) {
     globalOffset = viewer.model?.getData().globalOffset;
   }
   return globalOffset;
+
 }

@@ -30,17 +30,17 @@ import { addOffsetFromAEC } from "./addOffsetFromAEC";
 import { getAPINormalisePath } from "./getAPINormalisePath";
 import { ModelManager } from '../manager/modelManager';
 import { IViewerColorData } from '../interfaces/IViewerColorData';
-import {  getPosition } from "./getObjectPos";
+import { getPosition } from "./getObjectPos";
 import SpriteManager from "../manager/spriteManager";
 
 export class ViewerUtils {
 
-  private static _instance : ViewerUtils;
+  private static _instance: ViewerUtils;
   private _isFirstModel: boolean = true;
   public waitBeforeDisplaySprites: boolean = true;
-  
+
   private constructor() { }
-  
+
   public static getInstance(): ViewerUtils {
     if (!this._instance) this._instance = new ViewerUtils;
 
@@ -70,12 +70,13 @@ export class ViewerUtils {
     }
 
     this.setWaitBeforeDisplaySprites(true);
-    
-    return load1stThenAll( tasks, async (d: IloadModelTask): Promise<Autodesk.Viewing.Model> => {
+
+    return load1stThenAll(tasks, async (d: IloadModelTask): Promise<Autodesk.Viewing.Model> => {
+      // return this._loadBimFile(viewer, d.path, data.loadingType as any, d.id, d.dbids, d.aecPath, data.buildingId);
       return this._loadBimFile(viewer, d.path, data.loadingType as any, d.id, d.dbids, d.aecPath, data.buildingId);
     }, this._isFirstModel)
       .then((result) => {
-        ModelManager.getInstance().addNewModel((data as any).item?.dynamicId,result)
+        ModelManager.getInstance().addNewModel((data as any).item?.dynamicId, result)
         this.setWaitBeforeDisplaySprites(false);
 
         this.setCamera(viewer, EViewerSetCamera.top)
@@ -108,7 +109,7 @@ export class ViewerUtils {
     //     i--;
     //   }
     // }
-    
+
   }
 
   public clearSelect(viewer: Autodesk.Viewing.Viewer3D): void {
@@ -120,7 +121,7 @@ export class ViewerUtils {
 
     const datas = this._classifyDbIdsByModel(data);
 
-    for (const {model, dbIds} of datas) {
+    for (const { model, dbIds } of datas) {
       model.selector.setSelection(dbIds, "selectOnly");
     }
 
@@ -154,7 +155,7 @@ export class ViewerUtils {
 
     const datas = this._classifyDbIdsByModel(data);
 
-    for (const {model, dbIds} of datas) {
+    for (const { model, dbIds } of datas) {
       if (dbIds.length > 0) {
         if (model.visibilityManager) viewer.isolate(dbIds, model);
       } else {
@@ -190,7 +191,7 @@ export class ViewerUtils {
     const hiddenModels = viewer.getHiddenModels();
 
     for (const model of hiddenModels) {
-      viewer.showModel(model.id,false)
+      viewer.showModel(model.id, false)
     }
 
     this.setWaitBeforeDisplaySprites(false);
@@ -202,21 +203,21 @@ export class ViewerUtils {
 
   public viewerFitToView(viewer: Autodesk.Viewing.Viewer3D, data: IDbIdModelAggregate[]): void {
     const datas = this._classifyDbIdsByModel(data as any);
-    const arrayToFit: {model : Autodesk.Viewing.Model, selection : number[]}[] = datas.map(({dbIds, model}) => ({model, selection : dbIds}))
+    const arrayToFit: { model: Autodesk.Viewing.Model, selection: number[] }[] = datas.map(({ dbIds, model }) => ({ model, selection: dbIds }))
     viewer.fitToView(arrayToFit as any);
   }
-  
-  public setCamera(viewer: Autodesk.Viewing.Viewer3D, data : EViewerSetCamera | EViewerSetCamera[] = EViewerSetCamera["top,front"] ) {
+
+  public setCamera(viewer: Autodesk.Viewing.Viewer3D, data: EViewerSetCamera | EViewerSetCamera[] = EViewerSetCamera["top,front"]) {
     if (!Array.isArray(data)) data = [data];
-    
+
     const dataFormatted: string[] = data.map((el: any) => {
       if (!isNaN(el)) el = EViewerSetCamera[el];
 
       return `[${el.replace(",", "/")}]`;
     })
-    
+
     const viewcuiext = viewer.getExtension('Autodesk.ViewCubeUi')
-    if(viewcuiext) viewcuiext.setViewCube(dataFormatted.join(", "));
+    if (viewcuiext) viewcuiext.setViewCube(dataFormatted.join(", "));
 
     // viewcuiext.setViewCube(display);
   }
@@ -235,7 +236,7 @@ export class ViewerUtils {
           viewer.setThemingColor(id, realColor, model);
         }
       }
-      
+
     }
   }
 
@@ -244,8 +245,6 @@ export class ViewerUtils {
 
     const promises = data.map(async (item) => {
       const data = item.data.map(({ bimFileId, dbIds }) => ({ dbIds, model: this._getModel(item.modelId, bimFileId) }));
-
-      if(item.position) console.log(item.position, await getPosition(data))
 
       return {
         modelId: item.modelId,
@@ -265,9 +264,9 @@ export class ViewerUtils {
     })
 
   }
-  
+
   // public removeSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
-  
+
   // public removeAllSprites(viewer: Autodesk.Viewing.Viewer3D) { }
 
   // public moveSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
@@ -289,7 +288,7 @@ export class ViewerUtils {
   //                            PRIVATE                            //
   ///////////////////////////////////////////////////////////////////
 
-   private async _loadBimFile(viewer: Autodesk.Viewing.Viewer3D, urlpath: string, sceneAlignMethod: SceneAlignMethod, modelId: string, dbids?: number[],aecPath?: string, buildingId?: string ): Promise<Autodesk.Viewing.Model> {
+  private async _loadBimFile(viewer: Autodesk.Viewing.Viewer3D, urlpath: string, sceneAlignMethod: SceneAlignMethod, modelId: string, dbids?: number[], aecPath?: string, buildingId?: string): Promise<Autodesk.Viewing.Model> {
     try {
       const option: { globalOffset?: THREE.Vector3; applyRefPoint?: boolean; ids?: number[]; headlessViewer: boolean; theme?: string } = {
         headlessViewer: true
@@ -298,13 +297,10 @@ export class ViewerUtils {
       if (dbids) {
         option.ids = dbids;
       }
-      
+
       if (sceneAlignMethod === SceneAlignMethod.OriginToOrigin) {
-        console.log("OriginToOrigin")
         option.globalOffset = getGlobalOffset(viewer);
       } else if (sceneAlignMethod === SceneAlignMethod.ShareCoordinates && aecPath) {
-        console.log("ShareCoordinates")
-        
         option.applyRefPoint = true;
         option.globalOffset = await addOffsetFromAEC(getAPINormalisePath(aecPath, buildingId), viewer);
       }
@@ -316,9 +312,9 @@ export class ViewerUtils {
 
       return model;
     } catch (error) {
-      
+
     }
-    
+
   }
 
   private _addSlash(path: string): string {
@@ -328,7 +324,7 @@ export class ViewerUtils {
 
   private _loadModel(modelId: string, viewer: Autodesk.Viewing.Viewer3D, path: string, option: any = {}, start: boolean = false): Promise<Autodesk.Viewing.Model> {
     return new Promise((resolve, reject) => {
-      let m : Autodesk.Viewing.Model = undefined;
+      let m: Autodesk.Viewing.Model = undefined;
       const fn = (e: any) => {
 
         if (m && e.model.id === m.id) {
@@ -338,13 +334,13 @@ export class ViewerUtils {
       };
 
       viewer.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, fn);
-      
+
       let fct = start ? viewer.start : viewer.loadModel;
       fct.call(viewer, path, option, (model: Autodesk.Viewing.Model): void => {
         // ModelManager.getInstance().addNewModel(modelId, model);
-          m = model;
+        m = model;
       }, reject);
-      
+
       if (start) {
         viewer.loadExtension('Autodesk.ViewCubeUi', viewer.config);
         SpriteManager.getInstance().loadDataVisualizationExtension(viewer);
@@ -405,17 +401,17 @@ export class ViewerUtils {
     viewer.impl.api.dispatchEvent(event);
   }
 
-  private _isSameData(data1: IDbIdModelAggregate[], data2: { ids: number[]; model: Autodesk.Viewing.Model }[] ): boolean {
+  private _isSameData(data1: IDbIdModelAggregate[], data2: { ids: number[]; model: Autodesk.Viewing.Model }[]): boolean {
     if (data1.length !== data2.length) return false;
     for (const d1 of data1) {
       const models = ModelManager.getInstance().getModelById(d1.modelId);
-      if(!models) return false
+      if (!models) return false
       let found: any = [];
       for (const d2 of data2) {
         if (models.find(el => el.id === d2.model.id)) {
           if (checkdbIds(d1.dbIds, d2.ids) === false) return false;
           found.push(d2);
-          if(found.length === models.length) return true
+          if (found.length === models.length) return true
           break;
         }
       }
@@ -444,7 +440,7 @@ export class ViewerUtils {
   }
 
 
-  private _classifyDbIdsByModel(data : (IDbIdModelAggregate & {bimFileId: string})[]) {
+  private _classifyDbIdsByModel(data: (IDbIdModelAggregate & { bimFileId: string })[]) {
     // return data.reduce((list: {model: any, dbIds: number[]}[], el) => {
     //   const models = ModelManager.getInstance().getModelById(el.modelId);
     //   if (!models) return list;
@@ -457,7 +453,7 @@ export class ViewerUtils {
     // }, [])
 
     const obj = data.reduce((o, { bimFileId, dbIds }) => {
-      o[bimFileId] = dbIds; 
+      o[bimFileId] = dbIds;
       return o;
     }, {})
 
@@ -467,13 +463,13 @@ export class ViewerUtils {
 
     for (const [modelId, models] of modelList) {
       for (const model of models) {
-        const value =  {model, dbIds : obj[(model as any).bimFileId] || []};
+        const value = { model, dbIds: obj[(model as any).bimFileId] || [] };
         list.push(value);
       }
     }
 
     return list;
-    
+
   }
 
   private _getModel(modelId: string | number, bimFileId: string): Autodesk.Viewing.Model | void {
@@ -509,9 +505,9 @@ function checkdbIds(dbid1: number[], dbid2: number[]): boolean {
 function convertHexColorToRGB(hex: string) {
   var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } :
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } :
     null;
 }

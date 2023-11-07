@@ -36,8 +36,8 @@ export const config: IConfig = {
    viewerInfo: {roomRef: true, floorRef: true, equipments: "groupItem"},
    legend: {
       min: { value: 0, color: "#0074FF" },
-      median: { value: 27.5, color: "#FFFF00" },
-      max: {value: 1, color: "#FF004B"}
+      median: { value: 15, color: "#FFFF00" },
+      max: { value: 30, color: "#FF004B"}
    },
    regroupement: "rooms"
    // regroupement: {context: "Affectation des quartiers", category : "Quartiers"}
