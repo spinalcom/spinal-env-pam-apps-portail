@@ -185,7 +185,6 @@ class InsightApp extends Vue {
       
          this.pageSate = PAGE_STATES.loading;
          const regrouped = await this.$store.dispatch(ActionTypes.REGROUP_ITEMS, playload);
-         console.log("regrouped",regrouped)
          this.data = calculItemsValue(regrouped, this.calculMode);
          this.pageSate = PAGE_STATES.loaded;
 
