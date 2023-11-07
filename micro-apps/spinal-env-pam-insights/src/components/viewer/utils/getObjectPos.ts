@@ -54,7 +54,6 @@ async function convertAllDbIdsToBox3(model: Autodesk.Viewing.Model, dbIds: numbe
    const instanceTree = await _waitInstanceTree(model);
    if (!instanceTree) return;
 
-   console.log(instanceTree)
    const fragList = model.getFragmentList();
    let bounds = new THREE.Box3();
 
