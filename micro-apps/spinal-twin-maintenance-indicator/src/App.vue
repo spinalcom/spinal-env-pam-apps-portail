@@ -35,21 +35,25 @@
         style="height: calc(65% - 16px)"
         :title="cardTitle"
         :labels="barChartData.labels"
-        :datasets="barChartData.datasets"
-        :line-datasets="barLineChartData"
+        :datasets="displayScatter ? [] : barChartData.datasets"
+        :second-datasets="displayScatter ? scatterData : barLineChartData"
         :units="{ right: lineUnit }"
         stacked
         nav-enabled
         @nav="nav"
         :nav-text="navText"
-        :switch-enabled="false"
+        switch-enabled
+        :switch-value.sync="displayScatter"
         switch-false-icon="mdi-chart-bar"
-        switch-true-icon="mdi-chart-line"
+        switch-true-icon="mdi-chart-scatter-plot"
         line-point
         :tooltip-callbacks="{
           title: titleCallback,
           afterTitle: subtitleCallback,
+          label: label,
+          afterLabel: afterLabel,
         }"
+        :right-ticks="rightTicks"
       >
         <template v-slot:extras>
           <div class="d-flex flex-row ml-8">
@@ -186,6 +190,7 @@ export default {
 
   data() {
     return {
+      timeoutId: 0,
       workflow: [],
       process: [],
       period: { name: "SEMAINE", value: "week" },
@@ -193,6 +198,7 @@ export default {
       openTimeSelector: false,
       el: { name: "Bâtiment" },
       navIndex: 0,
+      displayScatter: false,
       lineUnit: "h",
       cardTitle: config.dashboardTitle,
       titleCallback: () => {
@@ -202,13 +208,31 @@ export default {
         return;
       },
       label: (tooltipItem) => {
-        if (tooltipItem.dataset.type === "bar")
-          return `${tooltipItem.dataset.label}: ${tooltipItem.raw}`;
-        return `${tooltipItem.dataset.label}: ${
-          tooltipItem.raw < 24
-            ? tooltipItem.raw
-            : Math.round(parseInt(tooltipItem.raw) / 24)
-        }${tooltipItem.raw < 24 ? "h" : "j"}`;
+        if (tooltipItem.dataset.type === "line") {
+          const d = moment.duration(tooltipItem.raw.y || tooltipItem.raw);
+          return `${tooltipItem.dataset.label}: ${Math.floor(
+            d.asDays()
+          )}j ${d.hours()}h ${d.minutes()}min`;
+        }
+      },
+      afterLabel: (tooltipItem) => {
+        return tooltipItem.raw.c || "";
+      },
+      rightTicks: {
+        callback: (val, i, tab) => {
+          if ([tab.length - 1, Math.round((tab.length - 1) / 2)].includes(i)) {
+            const dur = moment.duration(val);
+            const [d, h, m] = [
+              Math.floor(dur.asDays()),
+              dur.hours(),
+              dur.minutes(),
+            ];
+            if (d) return `${d}j ${h ? h + "h" : ""}`;
+            if (h) return `${h}h ${h == 1 ? m + "min" : ""}`;
+            return `${m}min`;
+          }
+          return "";
+        },
       },
     };
   },
@@ -251,19 +275,35 @@ export default {
     barLineChartData() {
       const line = JSON.parse(JSON.stringify(this.barLine));
       line.forEach((set) => {
+        set.label = "Temps moyen de résolution";
+        set.pointBackgroundColor = set.backgroundColor;
         set.data = set.data.map((d) =>
           d.length
-            ? Math.round(
-                d.reduce((e1, e2) => e1 + e2.value, 0) / (d.length * 3600000)
-              )
+            ? Math.round(d.reduce((e1, e2) => e1 + e2.value, 0) / d.length)
             : null
         );
-        if (Math.max(...set.data) >= 24) {
-          this.lineUnit = "j";
-          set.data = set.data.map((d) => (d ? Math.round(d / 24) : null));
-        } else this.lineUnit = "h";
       });
       return line;
+    },
+
+    scatterData() {
+      const scatter = JSON.parse(JSON.stringify(this.barLine));
+      scatter.forEach((set) => {
+        set.borderWidth = 0;
+        set.pointBackgroundColor = set.backgroundColor;
+        set.data = set.data
+          .map((data, i) =>
+            data.map((d) => ({
+              x: this.barChartData.labels[i],
+              y: d.value,
+              c: moment(d.date - d.value).format(
+                "[Créé le: ]DD/MM/YYYY[ à ]HH[h]mm"
+              ),
+            }))
+          )
+          .reduce((e1, e2) => [...e1, ...e2], []);
+      });
+      return scatter;
     },
 
     indicators() {
@@ -316,31 +356,36 @@ export default {
           d.filter((ds) => ds.value || ds.value === 0).map((ds) => ds.value)
         )
         .reduce((e1, e2) => e1.concat(e2), []);
-      let val = Math.min(...timeTable) / 3600000;
+      let val = moment.duration(Math.min(...timeTable));
+      let j = Math.round(val.asDays());
       const min = {
-        value: val < 24 ? Math.round(val) : Math.round(val / 24),
-        unit: val < 24 ? "Heures" : "Jours",
+        value: j || Math.round(val.asHours()),
+        unit: j ? "Jours" : "Heures",
         title: lineIndics.label.split(" ").fill("minimal", 1, 2).join(" "),
         subtitle: "ticket résolu le plus rapidement",
       };
-      val = Math.max(...timeTable) / 3600000;
+      val = moment.duration(Math.max(...timeTable));
+      j = Math.round(val.asDays());
       const max = {
-        value: val < 24 ? Math.round(val) : Math.round(val / 24),
-        unit: val < 24 ? "Heures" : "Jours",
+        value: j || Math.round(val.asHours()),
+        unit: j ? "Jours" : "Heures",
         title: lineIndics.label.split(" ").fill("maximal", 1, 2).join(" "),
         subtitle: "ticket résolu le plus lentement",
       };
       let quot = 0;
-      val =
-        timeTable.reduce((e1, e2) => {
-          e2 = e2 || 0;
-          quot++;
-          return e1 + e2;
-        }, 0) /
-        ((quot || 1) * 3600000);
+      val = moment.duration(
+        Math.round(
+          timeTable.reduce((e1, e2) => {
+            e2 = e2 || 0;
+            quot++;
+            return e1 + e2;
+          }, 0) / (quot || 1)
+        )
+      );
+      j = Math.round(val.asDays());
       const moy = {
-        value: val < 24 ? Math.round(val) : Math.round(val / 24),
-        unit: val < 24 ? "Heures" : "Jours",
+        value: j || Math.round(val.asHours()),
+        unit: j ? "Jours" : "Heures",
         title: lineIndics.label.split(" ").fill("moyen", 1, 2).join(" "),
       };
       const solvedInPeriod = lineIndics.data
@@ -479,24 +524,33 @@ export default {
 
   watch: {
     async to_display(v) {
-      await this.updateProcesses({
-        displayedIds: v.map((d) => d.dynamicId),
-        period: this.period.value,
-        index: this.navIndex,
-      });
+      clearTimeout(this.timeoutId);
+      this.timeoutId = setTimeout(
+        async () =>
+          await this.updateProcesses({
+            displayedIds: v.map((d) => d.dynamicId),
+            period: this.period.value,
+            index: this.navIndex,
+          }),
+        1000
+      );
     },
 
     async navIndex(i) {
-      await this.updateProcesses({
-        displayedIds: this.to_display.map((d) => d.dynamicId),
-        period: this.period.value,
-        index: i,
-      });
-      this.setTitleCallback();
-      this.setSubtitleCallback();
+      clearTimeout(this.timeoutId);
+      this.timeoutId = setTimeout(async () => {
+        await this.updateProcesses({
+          displayedIds: this.to_display.map((d) => d.dynamicId),
+          period: this.period.value,
+          index: i,
+        });
+        this.setTitleCallback();
+        this.setSubtitleCallback();
+      }, 1000);
     },
 
     async period(p) {
+      clearTimeout(this.timeoutId);
       switch (p.name) {
         case "Semaine":
           p.value = "week";
@@ -512,13 +566,15 @@ export default {
           break;
       }
       if (!this.navIndex) {
-        await this.updateProcesses({
-          displayedIds: this.to_display.map((d) => d.dynamicId),
-          period: p.value,
-          index: this.navIndex,
-        });
-        this.setTitleCallback();
-        this.setSubtitleCallback();
+        this.timeoutId = setTimeout(async () => {
+          await this.updateProcesses({
+            displayedIds: this.to_display.map((d) => d.dynamicId),
+            period: p.value,
+            index: this.navIndex,
+          });
+          this.setTitleCallback();
+          this.setSubtitleCallback();
+        }, 1000);
       } else this.navIndex = 0;
     },
   },

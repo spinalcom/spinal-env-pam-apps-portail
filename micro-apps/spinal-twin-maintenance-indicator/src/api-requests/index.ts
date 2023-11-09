@@ -75,13 +75,13 @@ export async function getTimeSeriesAsync(
   endpointId: number,
   index: number = 0
 ) {
-  const end = moment(today).add(index * 10, "year");
-  end.month(12);
-  end.date(0);
-  const begin = moment(end).add(-9, "year");
-  begin.month(0);
-  begin.date(1);
-  begin.hour(0);
+  const end = moment(today)
+    .add(index * 10, "year")
+    .month(11)
+    .date(31)
+    .hour(23)
+    .minute(59);
+  const begin = moment(end).add(-9, "year").month(0).date(1).hour(0).minute(0);
 
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
@@ -96,11 +96,13 @@ export async function getYearTimeSeriesAsync(
   endpointId: number,
   index: number = 0
 ) {
-  const end = moment(today).add(index, "year");
-  end.month(12);
-  end.date(31);
-  const begin = moment(end).subtract(12, "months");
-  begin.date(1);
+  const end = moment(today)
+    .add(index, "year")
+    .month(11)
+    .date(31)
+    .hour(23)
+    .minutes(59);
+  const begin = moment(end).month(0).date(1).hour(0).minutes(0);
 
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
@@ -115,9 +117,9 @@ export async function getMonthTimeSeriesAsync(
   endpointId: number,
   index: number = 0
 ) {
-  const end = moment(today).add(index, "month");
+  const end = moment(today).add(index, "month").hour(23).minute(59);
   end.date(end.daysInMonth());
-  const begin = moment(end).subtract(end.daysInMonth(), "days");
+  const begin = moment(end).date(1).hour(0).minute(0);
 
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
@@ -132,10 +134,8 @@ export async function getWeekTimeSeriesAsync(
   endpointId: number,
   index: number = 0
 ) {
-  const end = moment(today).add(index, "week");
-  end.day(7);
-  end.hour(0);
-  const begin = moment(end).add(-7, "days");
+  const end = moment(today).add(index, "week").day(7).hour(23).minute(59);
+  const begin = moment(end).day(-7);
 
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
