@@ -27,16 +27,17 @@ with this file. If not, see
 
     <v-tabs class="portofolioTabs"
             vertical
-            v-model="portofolioTab">
+            v-model="portofolioTab"
+            background-color="transparent">
       <v-tab v-for="portofolio in portofolios"
              :key="portofolio.id">
         <v-icon left>mdi-office-building-outline</v-icon>
         {{portofolio.name}}
       </v-tab>
 
-      <v-tabs-items v-model="portofolioTab">
+      <v-tabs-items v-model="portofolioTab" class="porTabItems">
         <v-tab-item v-for="(portofolio,index) in portofolios"
-                    :key="index">
+                    :key="index" class="tabItems">
 
           <div class="content">
             <div class="empty"
@@ -72,12 +73,24 @@ with this file. If not, see
                 <v-tab-item>
                   <div class="buildingTabsDiv"
                        v-if="portofolio.buildings.length > 0">
+
+                    <v-tabs v-model="buildingTab"
+                            class="buildingTabs"
+                            background-color="#14202c"
+                            color="cyan"
+                            grow dark>
+                      <v-tab v-for="item in getPortofolioBuilding"
+                             :key="item">
+                        {{ item }}
+                      </v-tab>
+                    </v-tabs>
+
                     <v-tabs-items v-model="buildingTab"
                                   class="buildingTabItems">
                       <v-tab-item v-for="(building,index) in portofolio.buildings"
                                   :key="index">
                         <simple-table-component :edit="edit"
-                                                :title="'selectionnez les applications de batiments à authoriser'"
+                                                :title="'selectionnez les applications de batiments à autoriser'"
                                                 :items="building.apps"
                                                 :headers="headers"
                                                 :itemToSelect="getItemToSelect(portofolio.id, building.id)">
@@ -85,16 +98,6 @@ with this file. If not, see
                       </v-tab-item>
                     </v-tabs-items>
 
-                    <v-tabs v-model="buildingTab"
-                            class="buildingTabs"
-                            background-color="transparent"
-                            color="primary"
-                            grow>
-                      <v-tab v-for="item in getPortofolioBuilding"
-                             :key="item">
-                        {{ item }}
-                      </v-tab>
-                    </v-tabs>
                   </div>
 
                   <div class="buildingTabsDiv"
@@ -154,7 +157,7 @@ class TabsComponent {
   buildingTab = null;
 
   mounted() {
-    // if (this.edit) this.selectItems();
+    if (this.edit) this.selectItems();
   }
 
   selectItems() {
@@ -228,9 +231,15 @@ export default TabsComponent;
 .tabsContent {
   width: 100%;
   height: 100%;
+  background: transparent !important;
   .portofolioTabs {
     width: 100%;
     height: 100%;
+    background: transparent;
+
+    .porTabItems {
+      background: transparent;
+    }
 
     .content {
       width: 100%;
@@ -247,7 +256,6 @@ export default TabsComponent;
       .tabs {
         width: 100%;
         height: 100%;
-
         .tabsHeader {
           width: 100%;
           height: 50px;
@@ -258,7 +266,7 @@ export default TabsComponent;
           //   height: calc(100% - 50px);
           height: 100%;
           overflow: auto;
-
+          background: transparent ;
           // .v-window__container {
           //   height: 100% !important;
           //   background: yellow;
@@ -274,6 +282,7 @@ export default TabsComponent;
             .buildingTabItems {
               width: 100%;
               height: 100%;
+              background: transparent;
             }
             .buildingTabs {
               width: 100%;

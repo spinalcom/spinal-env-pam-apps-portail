@@ -69,7 +69,7 @@ with this file. If not, see
             <tr class="itemRow">
               <td>{{item.name}}</td>
               <td>{{item.authorized | length}}</td>
-              <td>{{item.authorizedBos | length}}</td>
+              <td>{{item.authorized | bosLength}}</td>
               <!--  <td>{{item.authorizedRoutes | length}}</td> -->
 
               <td class="actions"
@@ -105,7 +105,6 @@ with this file. If not, see
 import Vue from "vue";
 import { State } from "vuex-class";
 import { Component } from "vue-property-decorator";
-import { __values } from "tslib";
 
 @Component({
   filters: {
@@ -140,6 +139,7 @@ class ProfileListComponent extends Vue {
 
   @State profiles!: any;
 
+
   seeProfile(item: any) {
     this.$emit("see", item);
   }
@@ -154,6 +154,10 @@ class ProfileListComponent extends Vue {
 
   deleteProfile(item: any) {
     this.$emit("delete", item);
+  }
+
+  log(item) {
+    console.log("item", item)
   }
 }
 

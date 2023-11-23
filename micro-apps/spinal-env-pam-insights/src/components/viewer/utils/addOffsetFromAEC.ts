@@ -27,7 +27,7 @@ import { getGlobalOffset } from './getGlobalOffset';
 
 export async function addOffsetFromAEC(aecPath: string, viewer: Autodesk.Viewing.Viewer3D): Promise<THREE.Vector3> {
   const globalOffset = getGlobalOffset(viewer);
-  const aecModelData = await getAecModelData(aecPath);
+  const aecModelData = await getAecModelData(aecPath);  // recuperer l'aecData de la première maquette de la scene 1 (scene par default)
   if (aecModelData) {
     const tf = aecModelData && aecModelData.refPointTransformation;
     const refPoint = tf ? { x: tf[9], y: tf[10], z: 0 } : { x: 0, y: 0, z: 0 };

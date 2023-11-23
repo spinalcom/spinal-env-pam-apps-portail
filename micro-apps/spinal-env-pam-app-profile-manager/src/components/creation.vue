@@ -226,7 +226,7 @@ class CreationComponent extends Vue {
 
     for (const portofolio of toCreate.authorize) {
       const apisIds = portofolio.apisIds;
-      const objData = obj[portofolio.portofolioId].apis || {};
+      const objData = obj[portofolio.portofolioId]?.apis || {};
 
       portofolio.unauthorizeApisIds = this._getApisToUnauthorize(
         apisIds,
@@ -236,7 +236,7 @@ class CreationComponent extends Vue {
       for (const building of portofolio.building) {
         const buildingApisIds = building.apisIds;
         const buildingObjData =
-          obj[portofolio.portofolioId].buildings[building.buildingId] || {};
+          obj[portofolio.portofolioId]?.buildings[building.buildingId] || {};
 
         building.unauthorizeApisIds = this._getApisToUnauthorize(
           buildingApisIds,
@@ -326,7 +326,7 @@ class CreationComponent extends Vue {
   }
 
   _convertProfileToObj(profile: any) {
-    console.log(profile);
+
     const obj: any = {};
     for (const { id, apis, buildings } of profile.authorized) {
       obj[id] = {};
