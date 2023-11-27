@@ -22,12 +22,33 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
+import { getDefaultOrFirstScene } from "../requests/GeographicContext/getViewInfo";
+import { getAecModelData } from "./getAecModelData";
+
 let globalOffset: THREE.Vector3;
 
-export function getGlobalOffset(viewer: Autodesk.Viewing.Viewer3D): THREE.Vector3 | undefined {
+export async function getGlobalOffset(viewer: Autodesk.Viewing.Viewer3D, buildingId: string): Promise<THREE.Vector3> {
+
   if (!globalOffset) {
-    globalOffset = viewer.model?.getData().globalOffset;
+    const scene = await getDefaultOrFirstScene(buildingId);
+    const firstBim = (scene?.scenesItems || [])[0];
+
+    if(!firstBim || !firstBim.aecPath) {
+      globalOffset = viewer.model?.getData().globalOffset;
+      return globalOffset;
+    }
+
+    const aecModelData = await getAecModelData(firstBim.aecPath);
+    if(!aecModelData) {
+      globalOffset = viewer.model?.getData().globalOffset;
+      return globalOffset;
+    }
+
+    const tf = aecModelData && aecModelData.refPointTransformation;
+    globalOffset = tf ? new THREE.Vector3(tf[9],  tf[10],  0)  :  new THREE.Vector3(0,  0,  0)
   }
+  
+  console.log("🚀 ~ file: getGlobalOffset.ts:49 ~ getGlobalOffset ~ globalOffset:", globalOffset)
   return globalOffset;
 
 }

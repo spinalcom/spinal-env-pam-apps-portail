@@ -1,6 +1,6 @@
 {
   "name": "spinal-env-pam-apps-portail",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "scripts": {
     "watch": "rm -rf dist && parcel watch index.html micro-apps/*/index.html --dist-dir dist/",

@@ -26,7 +26,6 @@ import { SpinalAPI } from '../SpinalAPI';
 import { getSceneList, sceneDefaut } from '../BIM/sceneDefault';
 import { getBIMFileContext } from '../BIM/BIMFileContext';
 import { IPlayload } from '../../interfaces/IPlayload';
-
 export interface IViewInfoBody {
   dynamicId: number | number[];
   floorRef?: boolean;
@@ -85,7 +84,7 @@ export function mergeIViewInfo(resBody: IViewInfoTmpRes[], sources: IViewInfoIte
 
 
 export async function getViewInfoFormatted(buildingId: string, res: IViewInfoTmpRes[], floor: IPlayload) {
-  const defaultScene = await getDefaultScene(buildingId);
+  const defaultScene = await getDefaultOrFirstScene(buildingId);
 
   const models = await getAndFormatModels(buildingId, res, floor.dynamicId as any);
   const data = {
@@ -121,17 +120,21 @@ export async function getAndFormatModels(buildingId: string, res : IViewInfoTmpR
   }, [])
 }
 
-export async function getDefaultScene(buildingId: string) {
+export async function getDefaultOrFirstScene(buildingId: string) {
+
   if (!buildingDefaultScenes[buildingId]) {
     const spinalAPi = SpinalAPI.getInstance();
-    buildingDefaultScenes[buildingId] = await sceneDefaut(spinalAPi, buildingId);
+    let def = await sceneDefaut(spinalAPi,buildingId);
+    if(!def || Object.keys(def || {}).length === 0) def = await getFirstScene(spinalAPi, buildingId);
+
+    buildingDefaultScenes[buildingId] = def;
   }
     
     return buildingDefaultScenes[buildingId]; 
 }
 
 
-async function sceneDefaut(spinalAPi: SpinalAPI, buildingId: string) {
+async function getFirstScene(spinalAPi: SpinalAPI, buildingId: string) {
   const sceneList = await getSceneList(spinalAPi, buildingId);
   return sceneList?.scenes[0];
 }

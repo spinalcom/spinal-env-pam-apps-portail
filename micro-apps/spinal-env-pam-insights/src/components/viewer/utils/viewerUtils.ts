@@ -252,8 +252,8 @@ export class ViewerUtils {
         value: item.value,
         models: data,
         dbId: data[0]?.dbIds[0],
-        // position: item.position || await getPosition(data),
-        position: await getPosition(data),
+        position: item.position || await getPosition(data),
+        // position: await getPosition(data),
         data: item.parent
       }
     })
@@ -299,10 +299,10 @@ export class ViewerUtils {
       }
 
       if (sceneAlignMethod === SceneAlignMethod.OriginToOrigin) {
-        option.globalOffset = getGlobalOffset(viewer);
+        option.globalOffset = await getGlobalOffset(viewer, buildingId);
       } else if (sceneAlignMethod === SceneAlignMethod.ShareCoordinates && aecPath) {
         option.applyRefPoint = true;
-        option.globalOffset = await addOffsetFromAEC(getAPINormalisePath(aecPath, buildingId), viewer);
+        option.globalOffset = await addOffsetFromAEC(getAPINormalisePath(aecPath, buildingId), viewer, buildingId);
       }
 
 
