@@ -33,34 +33,54 @@ with this file. If not, see
       color="#14202C"
       :class="{ 'space-selector-open': open }"
       class="space-selector"
-      style="border: 1px solid #f5f5f5; border-left: 2px solid #f5f5f5; border-bottom: none !important; overflow: hidden;"
-      :style="[{height: open ? selectorHeight+'px !important' : '59px'},
-      {'overflow-y': !isFill},
-      { 'border-right': edge ? '' : 'none' },
-      { 'border-top-right-radius': edge ? '' : '0 !important' },
-      { 'border-bottom-right-radius': (edge || (!edge && open)) ? '' : '0 !important' }]"
+      style="
+        border: 1px solid #f5f5f5;
+        border-left: 2px solid #f5f5f5;
+        border-bottom: none !important;
+        overflow: hidden;
+      "
+      :style="[
+        { height: open ? selectorHeight + 'px !important' : '59px' },
+        { 'overflow-y': !isFill },
+        { 'border-right': edge ? '' : 'none' },
+        { 'border-top-right-radius': edge ? '' : '0 !important' },
+        {
+          'border-bottom-right-radius':
+            edge || (!edge && open) ? '' : '0 !important',
+        },
+      ]"
     >
-      <div ref="SpaceSelectorTitleContainer" @click.stop="$emit('update:open', !open); showSign()"
+      <div
+        ref="SpaceSelectorTitleContainer"
+        @click.stop="
+          $emit('update:open', !open);
+          showSign();
+        "
         class="space-selector-header"
-        :style="{'cursor': maxDepth !== -1 ? 'pointer' : 'default'}">
+        :style="{ cursor: maxDepth !== -1 ? 'pointer' : 'default' }"
+      >
         <span class="legend">{{ label }}</span>
         <p class="space-selector-header-title">
-          <v-icon  
-            :style="[{color: maxDepth !== -1 ? '#f5f5f5' : '#14202c'}, {width: maxDepth !== -1 ? 'auto' : '0 !important'}, {color: maxDepth !== -1 ? '#f5f5f5' : '#14202c'}]"
+          <v-icon
+            :style="[
+              { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
+              { width: maxDepth !== -1 ? 'auto' : '0 !important' },
+              { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
+            ]"
             class="rotate-disabled space-selector-header-title-icon"
-            :class="{ 'rotate-enabled': open }">
+            :class="{ 'rotate-enabled': open }"
+          >
             mdi-chevron-down
           </v-icon>
-            
-            {{ selectedZoneName.toUpperCase() }}
-          
+
+          {{ selectedZoneName.toUpperCase() }}
         </p>
       </div>
       <transition-group
         id="myDiv"
         name="staggered-fade"
         class="card-list spinal-scrollbar"
-        :style="[{'overflow-y': 'auto' + ' !important'},]"
+        :style="[{ 'overflow-y': 'auto' + ' !important' }]"
         tag="div"
         v-bind:css="false"
         v-on:before-enter="beforeEnter"
@@ -86,12 +106,12 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import Velocity from 'velocity-animate';
-import { Vue, Component, Prop, VModel, Watch } from 'vue-property-decorator';
-import type { IZoneItem, IButton } from './interfaces/IBuildingItem';
-import type { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
-import SpaceSelectorItem from './SpaceSelectorItem.vue';
-import { convertZonesToISpaceSelectorItems } from './convertZonesToISpaceSelectorItems';
+import Velocity from "velocity-animate";
+import { Vue, Component, Prop, VModel, Watch } from "vue-property-decorator";
+import type { IZoneItem, IButton } from "./interfaces/IBuildingItem";
+import type { ISpaceSelectorItem } from "./interfaces/ISpaceSelectorItem";
+import SpaceSelectorItem from "./SpaceSelectorItem.vue";
+import { convertZonesToISpaceSelectorItems } from "./convertZonesToISpaceSelectorItems";
 
 @Component({
   components: {
@@ -99,7 +119,6 @@ import { convertZonesToISpaceSelectorItems } from './convertZonesToISpaceSelecto
   },
 })
 class SpaceSelector extends Vue {
-
   @Prop({ type: Array<IButton>, required: false, default: () => [] })
   spaceSelectorItemButtons!: IButton[];
 
@@ -107,9 +126,9 @@ class SpaceSelector extends Vue {
   viewButtonsType!: string;
 
   @Prop({ type: Function, required: false })
-  GetChildrenFct!: ( item?: ISpaceSelectorItem) => Promise<IZoneItem[]>;
+  GetChildrenFct!: (item?: ISpaceSelectorItem) => Promise<IZoneItem[]>;
 
-  @Prop({type: Number, required: false, default: -1, })
+  @Prop({ type: Number, required: false, default: -1 })
   maxDepth!: number;
 
   @VModel({ type: Object }) selectedZone!: ISpaceSelectorItem;
@@ -120,22 +139,20 @@ class SpaceSelector extends Vue {
   @Prop({ type: Boolean, required: false, default: true })
   edge!: boolean;
 
-
   @Prop({ type: String, required: true })
   label: string;
 
   selectorHeight = 0;
-  
 
   get selectedZoneName() {
-    return this.selectedZone?.name || 'Sélectionnez une zone';
+    return this.selectedZone?.name || "Sélectionnez une zone";
   }
-  
-  isFill = 'hidden';
+
+  isFill = "hidden";
 
   buildingStructure: ISpaceSelectorItem[] = [];
 
-  @Watch('selectedZone')
+  @Watch("selectedZone")
   async onSelectedChange() {
     for (let idx = 0; idx < this.buildingStructure.length; idx++) {
       const item = this.buildingStructure[idx];
@@ -146,15 +163,15 @@ class SpaceSelector extends Vue {
         item.staticId === this.selectedZone.staticId
       ) {
         found = true;
-        if (!item.isOpen) {
-          await this.openItem(item, idx);
-        }
+        // if (!item.isOpen) {
+        //   await this.openItem(item, idx);
+        // }
       } else {
         for (const parentId of this.selectedZone.parents) {
           if (
             parentId === item.staticId &&
             (this.selectedZone.platformId === item.platformId ||
-              item.type === 'patrimoine')
+              item.type === "patrimoine")
           ) {
             found = true;
             if (!item.isOpen) {
@@ -173,19 +190,19 @@ class SpaceSelector extends Vue {
   }
 
   select(item?: ISpaceSelectorItem) {
-    // this.$emit('update:open', !this.open);
-    this.$emit('input', item);
+    this.$emit("update:open", !this.open);
+    this.$emit("input", item);
   }
 
   private myDiv!: HTMLDivElement;
   checkingOverflow() {
-    const myDiv = document.getElementById('myDiv');
+    const myDiv = document.getElementById("myDiv");
     const windowHeight = window.innerHeight;
     const divHeight = myDiv!.offsetHeight;
     if (divHeight >= windowHeight - 421) {
-      this.isFill = 'auto';
+      this.isFill = "auto";
     } else {
-      this.isFill = 'hidden';
+      this.isFill = "hidden";
     }
   }
 
@@ -201,7 +218,6 @@ class SpaceSelector extends Vue {
 
   // on click the righht button open / close
   async expandCollapse(
-    
     item: ISpaceSelectorItem,
     index: number,
     forceOpen = false
@@ -212,10 +228,10 @@ class SpaceSelector extends Vue {
       await this.openItem(item, index);
     }
 
-    this.selectorHeight = (this.buildingStructure.length * 56) + 60 + 30;
+    this.selectorHeight = this.buildingStructure.length * 56 + 60 + 30;
     this.checkingOverflow();
   }
-  
+
   private async openItem(item: ISpaceSelectorItem, index: number) {
     item.isOpen = true;
     item.loading = true;
@@ -227,7 +243,7 @@ class SpaceSelector extends Vue {
         ...convertZonesToISpaceSelectorItems(children, item)
       );
     } catch (error) {
-      console.error('error fetch childrens.', error);
+      console.error("error fetch childrens.", error);
     }
     item.loading = false;
     this.checkingOverflow();
@@ -238,7 +254,7 @@ class SpaceSelector extends Vue {
     const toRm: typeof this.buildingStructure = [];
     for (const it of this.buildingStructure) {
       if (
-        (it.platformId === item.platformId || item.type === 'patrimoine') &&
+        (it.platformId === item.platformId || item.type === "patrimoine") &&
         it.parents.includes(item.staticId)
       ) {
         toRm.push(it);
@@ -275,27 +291,26 @@ class SpaceSelector extends Vue {
     }
   }
 
-  showSign(): void{
-    this.selectorHeight = (this.buildingStructure.length * 56) + 60 + 30;
+  showSign(): void {
+    this.selectorHeight = this.buildingStructure.length * 56 + 60 + 30;
   }
 
   // animation methods
-  beforeEnter(el: { style: { opacity: number; height: number; }; }) {
+  beforeEnter(el: { style: { opacity: number; height: number } }) {
     el.style.opacity = 0;
     el.style.height = 0;
   }
 
-  enter(el: { dataset: { index: number; }; }, done: any) {
+  enter(el: { dataset: { index: number } }, done: any) {
     var delay = el.dataset.index * 5;
     setTimeout(function () {
-      Velocity(el, { opacity: 1, height: '50px' }, { complete: done });
+      Velocity(el, { opacity: 1, height: "50px" }, { complete: done });
     }, delay);
   }
 
   onActionClick(data) {
-    this.$emit("onActionClick", data)
+    this.$emit("onActionClick", data);
   }
-
 }
 export default SpaceSelector;
 </script>
@@ -428,12 +443,12 @@ export default SpaceSelector;
 } */
 
 .legend {
-    color: #fff;
-    font-size: 9px;
-    position: absolute;
-    top: 3px;
-    left: 11px;
-    letter-spacing: 1.1px;
+  color: #fff;
+  font-size: 9px;
+  position: absolute;
+  top: 3px;
+  left: 11px;
+  letter-spacing: 1.1px;
 }
 </style>
 

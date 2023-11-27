@@ -24,14 +24,8 @@ with this file. If not, see
 <template>
   <v-list-item
     class="space-selector-list-item card-hover fade"
-    :class="{
-      ['space-selector-list-item-level-' + item.level]: true,
-      'space-selector-list-item-isopen': item.isOpen && item.haveChildren,
-      'space-selector-list-item-isSelected': isSelected,
-    }"
-    :style="{
-      'margin-left': '' + ((item.level - 1) * 20 + 30) + 'px',
-    }"
+    :class="{ ['space-selector-list-item-level-' + item.level]: true, 'space-selector-list-item-isopen': item.isOpen && item.haveChildren, 'space-selector-list-item-isSelected': isSelected }"
+    :style="{'margin-left': '' + ((item.level - 1) * 20 + 30) + 'px', }"
     @click.stop="onSelect"
   >
     <!-- link to parent template -->

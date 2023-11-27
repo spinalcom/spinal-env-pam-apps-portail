@@ -23,13 +23,11 @@ with this file. If not, see
 -->
 <template>
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
-
     <div class="selectors">
-
       <div class="DButton">
-        <ScDownloadButton  :fileName="'hello'" :data="[]"/>
-      </div> 
-      
+        <ScDownloadButton :fileName="'hello'" :data="[]" />
+      </div>
+
       <div class="temporality">
         <space-selector
           :edge="false"
@@ -39,9 +37,8 @@ with this file. If not, see
           :maxDepth="0"
           v-model="temporalitySelected"
           label="TEMPORALITÉ"
-        /> 
+        />
       </div>
-
 
       <div class="space">
         <space-selector
@@ -52,20 +49,28 @@ with this file. If not, see
           v-model="selectedZone"
           label="ESPACE"
           :spaceSelectorItemButtons="spaceSelectorButtons"
-          :viewButtonsType="config.viewButtons" 
+          :viewButtonsType="config.viewButtons"
           @onActionClick="onActionClick"
         />
       </div>
-      
     </div>
 
     <div class="dataBody">
       <viewerApp class="viewerContainer"></viewerApp>
-      <InsightApp class="appContainer" :config="config" :selectedZone="selectedZone" @clickOnDataView="onDataViewClicked"></InsightApp>
+      <InsightApp
+        class="appContainer"
+        :config="config"
+        :selectedZone="selectedZone"
+        @clickOnDataView="onDataViewClicked"
+      ></InsightApp>
     </div>
   </v-app>
 
-  <v-container class="loading" v-else-if="pageSate === PAGE_STATES.loading" fluid>
+  <v-container
+    class="loading"
+    v-else-if="pageSate === PAGE_STATES.loading"
+    fluid
+  >
     <v-progress-circular
       :size="70"
       :width="3"
@@ -73,26 +78,35 @@ with this file. If not, see
       indeterminate
     ></v-progress-circular>
   </v-container>
-
 </template>
 
 <script lang="ts">
-import { ISpaceSelectorItem, SpaceSelector } from './components/SpaceSelector/index';
-import { Vue } from 'vue-property-decorator';
-import { ActionTypes } from './interfaces/vuexStoreTypes';
-import Component from 'vue-class-component';
-import type { Store } from './services/store';
-import { MutationTypes } from './services/store/appDataStore/mutations';
-import type { IButton, IZoneItem, TGeoItem } from './components/SpaceSelector/interfaces/IBuildingItem';
-import { DataTable } from './components/data-table';
-import viewerApp from './components/viewer/viewer.vue';
-import ScDownloadButton from 'spinal-components/src/components/DownloadButton.vue';
-import { ViewerButtons } from './components/SpaceSelector/spaceSelectorButtons';
-import { config } from './config'
-import { IConfig } from './interfaces/IConfig';
-import  InsightApp  from './components/inshight_data/app.vue'
+import {
+  ISpaceSelectorItem,
+  SpaceSelector,
+} from "./components/SpaceSelector/index";
+import { Vue } from "vue-property-decorator";
+import { ActionTypes } from "./interfaces/vuexStoreTypes";
+import Component from "vue-class-component";
+import type { Store } from "./services/store";
+import { MutationTypes } from "./services/store/appDataStore/mutations";
+import type {
+  IButton,
+  IZoneItem,
+  TGeoItem,
+} from "./components/SpaceSelector/interfaces/IBuildingItem";
+import { DataTable } from "./components/data-table";
+import viewerApp from "./components/viewer/viewer.vue";
+import ScDownloadButton from "spinal-components/src/components/DownloadButton.vue";
+import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
+import { config } from "./config";
+import { IConfig } from "./interfaces/IConfig";
+import InsightApp from "./components/inshight_data/app.vue";
 import { PAGE_STATES } from "./interfaces/pageStates";
-import { EmitterViewerHandler, VIEWER_SPRITE_CLICK } from 'spinal-viewer-event-manager';
+import {
+  EmitterViewerHandler,
+  VIEWER_SPRITE_CLICK,
+} from "spinal-viewer-event-manager";
 
 interface IItemData {
   platformId: string;
@@ -110,10 +124,9 @@ interface IItemDatatmp {
     DataTable,
     viewerApp,
     ScDownloadButton,
-    InsightApp
+    InsightApp,
   },
 })
-
 class App extends Vue {
   PAGE_STATES: typeof PAGE_STATES = PAGE_STATES;
   pageSate: PAGE_STATES = PAGE_STATES.loading;
@@ -126,10 +139,8 @@ class App extends Vue {
   dataTable: IZoneItem[] = [];
   $refs: { spaceSelector };
 
-
   async mounted() {
     try {
-
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();
       // const buildingId = localStorage.getItem("idBuilding");
@@ -138,7 +149,6 @@ class App extends Vue {
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
- 
   }
 
   public get selectedZone(): ISpaceSelectorItem {
@@ -147,9 +157,7 @@ class App extends Vue {
 
   public set selectedZone(v: ISpaceSelectorItem) {
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
-    
-     
-    
+
     // if (v.type.includes("geographic")) {
     //   this.$store.dispatch(ActionTypes.OPEN_VIEWER, v);
     // }
@@ -162,7 +170,7 @@ class App extends Vue {
   public set temporalitySelected(v: ISpaceSelectorItem) {
     this.$store.commit(MutationTypes.SET_TEMPORALITY, v);
   }
-  
+
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<IZoneItem[]> {
     switch (item?.type) {
       case undefined:
@@ -170,12 +178,12 @@ class App extends Vue {
         const playload = {
           config,
           item: { buildingId, type: "building" },
-        }
+        };
 
         const promises = [
           this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }),
           // this.$store.dispatch(ActionTypes.GET_GROUPS_ITEMS_BY_GEOITEM, playload)
-        ]
+        ];
 
         const [building, items] = await Promise.all(promises);
 
@@ -185,16 +193,24 @@ class App extends Vue {
             name: building.name,
             staticId: building.id,
             categories: [],
-            color: '#35CAE5',
+            color: "#35CAE5",
             dynamicId: 0,
-            type: 'building',
-          }
-        ]
-      case 'building':
-        return await this.$store.dispatch(ActionTypes.GET_FLOORS, { buildingId: item.staticId,  patrimoineId: item.patrimoineId });
-      case 'geographicFloor':
+            type: "building",
+          },
+        ];
+      case "building":
+        return await this.$store.dispatch(ActionTypes.GET_FLOORS, {
+          buildingId: item.staticId,
+          patrimoineId: item.patrimoineId,
+        });
+      case "geographicFloor":
         //@ts-ignore
-        return await this.$store.dispatch(ActionTypes.GET_ROOMS, { floorId: item.dynamicId, buildingId: item.buildingId, patrimoineId: item.patrimoineId, id: item.dynamicId });
+        return await this.$store.dispatch(ActionTypes.GET_ROOMS, {
+          floorId: item.dynamicId,
+          buildingId: item.buildingId,
+          patrimoineId: item.patrimoineId,
+          id: item.dynamicId,
+        });
       // case 'geographicRoom':
       //   //@ts-ignore
       //   return await this.$store.dispatch(ActionTypes.GET_EQUIPMENTS, { floorId: item.floorId, roomId: item.staticId, buildingId: item.buildingId, patrimoineId: item.patrimoineId, id: item.dynamicId });
@@ -210,20 +226,20 @@ class App extends Vue {
         return ["Valeur courante"].map((temp, index) => ({
           name: temp,
           staticId: index,
-          dynamicId : index,
+          dynamicId: index,
           level: 0,
           isOpen: true,
           loading: false,
           parents: [],
           drawLink: [],
           haveChildren: false,
-          type: "time"
-        }))
-    
+          type: "time",
+        }));
+
       default:
         return [];
     }
-    
+
     // if (item) {
     //   if (item.name == 'Journée') {
     //     this.selectedTime.next = 'Jour suivant';
@@ -249,7 +265,7 @@ class App extends Vue {
   }
 
   onGoBack() {
-    const parent = this.$refs['space-selector'].getParentOfSelected();
+    const parent = this.$refs["space-selector"].getParentOfSelected();
     if (parent) this.selectedZone = parent;
   }
 
@@ -285,7 +301,7 @@ class App extends Vue {
   //   const it = this.getItemData(item);
   //   await this.$store.dispatch(ActionTypes.ISOLATE_ITEMS, it);
   // }
-  
+
   async onColor(item: TGeoItem | TGeoItem[]) {
     // TBD
   }
@@ -293,40 +309,46 @@ class App extends Vue {
   onActionClick({ button, item }) {
     const data = {
       buildingId: item.buildingId,
-      staticId : item.staticId,
+      staticId: item.staticId,
       id: item.dynamicId,
       dynamicId: item.dynamicId,
       floorId: item.floorId,
       roomId: item.roomId,
-      type: item.type
-    }
+      type: item.type,
+    };
 
     switch (button.onclickEvent) {
       case ActionTypes.OPEN_VIEWER:
-        this.$store.dispatch(button.onclickEvent, { onlyThisModel: true, config: this.config, item: data });
+        this.$store.dispatch(button.onclickEvent, {
+          onlyThisModel: true,
+          config: this.config,
+          item: data,
+        });
         break;
       case "OPEN_VIEWER_PLUS":
-        this.$store.dispatch(ActionTypes.OPEN_VIEWER, { onlyThisModel: false, config: this.config,  item: data });
+        this.$store.dispatch(ActionTypes.OPEN_VIEWER, {
+          onlyThisModel: false,
+          config: this.config,
+          item: data,
+        });
         break;
       default:
         this.$store.dispatch(button.onclickEvent, data);
         break;
     }
-
   }
 
   listenSpritesEvent() {
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
       this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
-      if(result.node.dynamicId){
+      if (result.node.dynamicId) {
         const a = document.createElement("a");
-        a.setAttribute("href",`#${result.node.dynamicId}`)
+        a.setAttribute("href", `#${result.node.dynamicId}`);
         a.click();
       }
-    })
+    });
   }
-
 }
 
 export default App;
@@ -334,15 +356,14 @@ export default App;
 
 
 <style scoped lang="scss">
-
 .app {
   width: 100%;
   height: 100%;
 
-  $selectorHeight : 60px;
-  
+  $selectorHeight: 60px;
+
   .selectors {
-    position:absolute;
+    position: absolute;
     display: flex;
     justify-content: flex-end;
     top: 5px;
@@ -369,37 +390,29 @@ export default App;
     }
   }
 
-  
   .dataBody {
-    height : calc(100% - #{ $selectorHeight + 30px});
+    height: calc(100% - #{$selectorHeight + 30px});
     margin: 80px 8px 0 8px;
-      .viewerContainer {
-        width: 60%;
-        height: 100%;
-        float: left;
-      }
+    .viewerContainer {
+      width: 60%;
+      height: 100%;
+      float: left;
+    }
 
-      .appContainer {
-        width: 40%;
-        height: 100%;
-        float: right;
-      }
+    .appContainer {
+      width: 40%;
+      height: 100%;
+      float: right;
+    }
   }
-
-  
-
-
 }
 
-  .loading {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-  }
-
-
+.loading {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 </style>
 
 <style>
@@ -456,7 +469,13 @@ body {
   border-radius: 5px;
 }
 
-.appContainer .dataContainer .calcul_content .calcul .select .v-text-field.v-text-field--solo .v-input__control {
+.appContainer
+  .dataContainer
+  .calcul_content
+  .calcul
+  .select
+  .v-text-field.v-text-field--solo
+  .v-input__control {
   min-height: unset !important;
 }
 </style>
