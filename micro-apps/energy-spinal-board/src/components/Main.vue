@@ -2,12 +2,14 @@
   <div class="RC" style="min-height: 480px">
     <sc-download-button style="position: absolute; top: 14px;left: 46%;" :file-name="'Occupation'"
       :data="combineData()"></sc-download-button>
-    <BarCard  @stack="updateValue" v-if="!showBarCard" style="width: 100%;height: 100%;" :title="config.config.titleDash1"
-      :labels="barLabels" :line-datasets="barLineDatas" :step="null" :datasets="barChartData" nav-enabled @nav="nav"
+    <BarCard :switchValue="showBarCard" :temporality="this.temporality.name" @update:selectedTimes="handleSelectedTimes" @stack="updateValue" v-if="!showBarCard"
+      style="width: 100%;height: 100%;" :title="config.config.titleDash1" :labels="barLabels"
+      :line-datasets="barLineDatas" :step="null" :datasets="barChartData" nav-enabled @nav="nav"
       :nav-text="modifierString()" :units="units" stacked></BarCard>
-    <BubbleCard :unitsy="config.config.cp2_batiment.units" :unitsx="config.config.cp1_batiment.units" @stack="updateValue" :bubbleColor="config.config.bubbleColor" :toggle="showBarCard"
-      :nav-text="modifierString()" @nav="nav" v-if="showBarCard" nav-enabled style="width: 100%;height: 100%;"
-      :data1="barLineDatas" :data2="barChartData" :title="config.config.titleDash2" />
+    <BubbleCard :regression="config.config.lineRegression" :isScatter="config.config.isScatter" :bubbleSize="config.config.bubbleSize" :seuilBubble="config.config.seuilBubble" :scatterdata="ScatterDatas" :unitsy="config.config.cp2_batiment.units" :unitsx="config.config.cp1_batiment.units" @stack="updateValue"
+      :bubbleColor="config.config.bubbleColor" :toggle="showBarCard" :nav-text="modifierString()" @nav="nav"
+      v-if="showBarCard" nav-enabled style="width: 100%;height: 100%;" :data1="barLineDatas" :data2="barChartData"
+      :title="config.config.titleDash2" />
   </div>
 </template>
 
@@ -15,6 +17,7 @@
 import Vue from 'vue';
 import { getData } from "../services/index.js";
 import { getDataBuilding } from "../services/index.js";
+import { getDataByTime } from "../services/index.js";
 import LineCard from "./nested/LineCard.vue";
 import BubbleCard from "./nested/BubbleCard.vue";
 import BarCard from "./nested/BarCard.vue";
@@ -23,7 +26,7 @@ import moment from 'moment';
 import config from "../config.js"
 export default {
   name: 'PatrimonyWaterDashboard',
-  props: ['temporality'],
+  props: ['temporality', 'space'],
   components: {
     BubbleCard,
     BarCard,
@@ -31,16 +34,18 @@ export default {
     LoadingCard
   },
   data: () => ({
+    selectedTimesInParent: [],
     config: config,
     showBarCard: false,
     lineChartData: [],
     barLabels: [],
     barChartData: [],
     barLineDatas: [],
+    ScatterDAtas : [],
     currentTimestamp: { stringTime: '', valueTime: 0 },
-    units : {
+    units: {
       bar: config.config.cp1_batiment.units,
-      line : config.config.cp1_batiment.units
+      line: config.config.cp2_batiment.units
     }
   }),
 
@@ -55,6 +60,12 @@ export default {
     else if (this.temporality.name == 'Décennie') {
       this.currentTimestamp = { stringTime: 'EN ' + moment().format('YYYY'), valueTime: this.currentTimestamp.valueTime = moment().valueOf() };
     }
+    else if (this.temporality.name == 'Jour') {
+      this.currentTimestamp = {
+        stringTime: 'LE ' + moment().format('DD MMMM YYYY'),
+        valueTime: moment().valueOf()
+      };
+    }
     else if (this.temporality.name == '3 mois') {
       this.currentTimestamp = {
         stringTime: `EN 
@@ -64,6 +75,13 @@ export default {
         valueTime: moment(this.currentTimestamp.valueTime).add(payload * 3, 'months').valueOf()
       };
     }
+    else if (this.temporality.name == 'Semaine') {
+      this.currentTimestamp = {
+        stringTime: ` ${moment().startOf('isoWeek').format('DD MMMM')} - ${moment().endOf('isoWeek').format('DD MMMM')}`,
+        valueTime: moment().valueOf()
+      };
+    }
+
     else this.currentTimestamp = { stringTime: '', valueTime: 0 };
     const patrimoine = localStorage.getItem("patrimoine");
     let patrimoineObject = JSON.parse(patrimoine);
@@ -72,6 +90,8 @@ export default {
     this.loaded = true;
   },
   computed: {
+
+
     // currentPeriod() {
     //   moment.locale("fr");
     //   if (this.temporality.name == 'Mois') {
@@ -100,9 +120,14 @@ export default {
       return 104 + fiveCheck * 48;
     }
   },
+  
   methods: {
+    handleSelectedTimes(updatedTimes) {
+      this.selectedTimesInParent = updatedTimes;
+      this.onRequest();
+    },
     modifierString() {
-      
+
       if (this.currentTimestamp.stringTime.startsWith('EN ')) {
         // Supprime 'En ' et retourne le reste
         return this.currentTimestamp.stringTime.substring(3);
@@ -116,13 +141,13 @@ export default {
     },
 
 
-    sortedData() {
-      console.log('maybe', this.barLineDatas[0].data);
-      console.log(this.barChartData);
-      console.log(this.barLabels);
+    // sortedData() {
+    //   console.log('maybe', this.barLineDatas[0].data);
+    //   console.log(this.barChartData);
+    //   console.log(this.barLabels);
 
-      return this.barLineDatas.data
-    },
+    //   return this.barLineDatas.data
+    // },
 
 
     combineData(labels, barLineDatas, barChartData) {
@@ -155,6 +180,12 @@ export default {
       if (this.temporality.name == 'Année') {
         this.currentTimestamp = { stringTime: 'EN ' + moment(this.currentTimestamp.valueTime).add(payload, 'years').format('YYYY'), valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf() };
       }
+      if (this.temporality.name == 'Jour') {
+        this.currentTimestamp = {
+          stringTime: 'LE ' + moment(this.currentTimestamp.valueTime).add(payload, 'days').format('DD MMMM YYYY'),
+          valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'days').valueOf()
+        };
+      }
       if (this.temporality.name == '3 mois') {
         if (payload < 0) {
           this.currentTimestamp = {
@@ -175,20 +206,28 @@ export default {
           };
         }
       }
+      if (this.temporality.name == 'Semaine') {
+        this.currentTimestamp = {
+          stringTime: `${moment(this.currentTimestamp.valueTime).add(payload, 'weeks').startOf('isoWeek').format('DD MMMM')} - ${moment(this.currentTimestamp.valueTime).add(payload, 'weeks').endOf('isoWeek').format('DD MMMM')}`,
+          valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'weeks').valueOf()
+        };
+      }
     },
     stack(payload) {
       this.stackState = payload;
     },
     async onRequest() {
+      // console.log(this.selectedTimesInParent);
       let res;
       this.loaded = false;
-      res = await getData(this.currentTimestamp.valueTime, this.temporality.name);
+      res = await getData(this.currentTimestamp.valueTime, this.temporality.name, this.space, this.selectedTimesInParent);
       this.barLabels = res[0];
       this.stats = res[2];
       this.tooltipinfo = res[3];
       this.patrimonyTable = res[1];
       this.barChartData = [];
       this.barLineDatas = [];
+      this.ScatterDatas = res[5];
       for (let i = 0; i < res[1].length; i++) {
         this.barChartData.push(
           {
@@ -226,25 +265,49 @@ export default {
     }
   },
   watch: {
+    space: {
+      handler() {
+        this.onRequest();
+      }
+    },
     currentTimestamp(value) {
       this.onRequest();
     },
     temporality(value) {
+      console.log('la temps');
       if (this.temporality.name == 'Mois') {
+        // this.showBarCard = true;
         this.currentTimestamp = { stringTime: 'EN ' + moment().format('MMMM YYYY'), valueTime: this.currentTimestamp.valueTime = moment().valueOf() };
       }
+      else if (this.temporality.name == 'Jour') {
+        this.showBarCard = false;
+        this.currentTimestamp = {
+          stringTime: 'LE ' + moment().format('DD MMMM YYYY'), // Affiche "LE" suivi de la date complète.
+          valueTime: moment().valueOf() // Timestamp actuel.
+        };
+      }
       else if (this.temporality.name == 'Année') {
+        
         this.currentTimestamp = { stringTime: 'EN ' + moment().format('YYYY'), valueTime: this.currentTimestamp.valueTime = moment().valueOf() };
       }
       else if (this.temporality.name == 'Décennie') {
+       
         this.currentTimestamp = { stringTime: `ENTRE ${moment().add(-9, 'years').format('YYYY')} et ${moment().format('YYYY')}`, valueTime: this.currentTimestamp.valueTime = moment().valueOf() };
       }
       else if (this.temporality.name == '3 mois') {
+        
         this.currentTimestamp = {
           stringTime: `EN 
           ${moment().add(-2, 'months').format('MMMM')}, 
           ${moment().add(-1, 'months').format('MMMM')}, 
           ${moment().add(0, 'months').format('MMMM')}`,
+          valueTime: moment().valueOf()
+        };
+      }
+      else if (this.temporality.name == 'Semaine') {
+        this.showBarCard = false;
+        this.currentTimestamp = {
+          stringTime: `${moment().startOf('isoWeek').format('DD MMMM')} - ${moment().endOf('isoWeek').format('DD MMMM')}`,
           valueTime: moment().valueOf()
         };
       }

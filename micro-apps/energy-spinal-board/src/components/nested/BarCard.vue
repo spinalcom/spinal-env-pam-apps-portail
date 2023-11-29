@@ -1,14 +1,26 @@
 <template>
   <v-card style="min-height: 220px !important" class="bar-card pa-1 rounded-lg d-flex flex-column" outlined>
-    <v-card-title style="font-size: 20px; height: 56px" class="card-title pa-3 text-uppercase justify-space-between">
+    <v-card-title style="font-size: 20px; height: 56px ;" class="card-title pa-3 text-uppercase justify-space-between">
       <p>{{ title }}</p>
-      <div class="d-flex align-center mln6"
+
+      <div v-if="isScatter" class="d-flex align-center mln6"
         style="position: absolute; right: calc(50% - 55px);transform: translate(0,20px);">
         <v-icon icon class="pr-3" size="default">mdi-chart-bar</v-icon>
-        <v-switch @click="$emit('stack', switchValue)" style="margin-top: 1px; padding: 0px;height: 24px;"
-          v-model="switchValue" inset color="blue-grey" dense />
+        <v-switch @click="$emit('stack', switchValuedata)" style="margin-top: 1px; padding: 0px;height: 24px;"
+          v-model="switchValuedata" inset color="blue-grey" dense />
         <v-icon icon size="default">mdi-chart-scatter-plot</v-icon>
       </div>
+
+
+      <div v-if="this.temporality == 'Semaine'" class="d-flex align-center mln6"
+        style=" right: calc(50% - 55px);transform: translate(0,20px);">
+        <v-icon icon class="pr-3" size="default">mdi-chart-bar</v-icon>
+        <v-switch style="margin-top: 1px; padding: 0px;height: 24px;" v-model="switchBarLine" inset color="blue-grey"
+          dense />
+        <v-icon icon size="default">mdi-chart-line</v-icon>
+      </div>
+
+
       <div v-if="navEnabled" style="height: 40px">
         <v-btn @click="$emit('nav', -1)" style="
             font-size: 14px !important;
@@ -29,12 +41,27 @@
         </v-btn>
       </div>
     </v-card-title>
-    <div style="height: calc(100% - 56px)" class="d-flex flex-column">
+    <!-- <div style="width: 20%;margin-left: 11px; position: absolute;margin-top: 40px;">
+      <div
+        style="color: rgb(43, 43, 43); position: absolute;left: 10px; transform: translate(0,30%);z-index: 99;background-color: rgba(255, 255, 255, 0.473);border-radius: 10px;height: 16px;">
+        Selection des heures
+      </div>
+      <v-select ref="selectedItem" v-model="selectedTimes" :items="timeIntervals" multiple>
+
+        <template v-slot:selection="{ item, index, disabled }">
+          <v-chip v-if="index < displayedSelection().length" :key="index">
+            {{ displayedSelection()[index] }}
+          </v-chip>
+        </template>
+      </v-select>
+    </div> -->
+
+    <div style="height: calc(100% - 56px) " class="d-flex flex-column">
       <slot name="extras" class="flex-shrink-1"></slot>
       <div id="bar-legend-container" class="d-flex flex-row justify-space-between"
         style="height: 81px ; transform: translate(0, 60%);"></div>
       <div style="height: calc(100% - 21px)">
-        <Bar :data="barChartData" :chart-id="'1'" :options="barChartOptions" />
+        <Bar :data="barChartData" :id="switchBarLine" :chart-id="'1'" :options="barChartOptions" />
       </div>
     </div>
   </v-card>
@@ -69,14 +96,20 @@ ChartJS.register(
   LinearScale,
   LogarithmicScale,
   customBackgroundPlugin,
-  customLegendPlugin
+  customLegendPlugin,
 );
 
 export default {
   name: "bar-card",
   data() {
     return {
-      switchValue: false,
+      switchValuedata: this.switchValue,
+      timeIntervals: ['00h00-01h00', '01h00-02h00', '02h00-03h00', '03h00-04h00', '04h00-05h00', '05h00-06h00', '06h00-07h00', '07h00-08h00', '08h00-09h00', '09h00-10h00', '10h00-11h00', '11h00-12h00', '12h00-13h00', '13h00-14h00', '14h00-15h00', '15h00-16h00', '16h00-17h00', , '17h00-18h00', '18h00-19h00', '19h00-20h00', , '20h00-21h00', '21h00-22h00', '22h00-23h00', '23h00-00h00'],
+      selectedTimes: [],
+      chartType1: "bar",
+      chartType2: "line",
+      isScatter: false,
+      switchBarLine: false
     };
   },
   props: {
@@ -84,7 +117,10 @@ export default {
       type: String,
       default: "Bar Card",
     },
-
+    switchValue: {
+      type: Boolean,
+      default: false
+    },
     navEnabled: {
       type: Boolean,
       default: false,
@@ -129,7 +165,10 @@ export default {
       type: Object,
       required: false,
     },
-
+    temporality: {
+      type: String,
+      default: "Semaine",
+    },
     linePoint: {
       type: Boolean,
       default: false,
@@ -140,7 +179,68 @@ export default {
     Bar,
   },
 
+  methods: {
+    editChartType() {
+      if (this.temporality == 'Jour') {
+        this.isScatter = false;
+        this.chartType1 = "line"
+      } else if (this.temporality == 'Semaine') {
+        this.isScatter = false;
+        this.chartType1 = "bar"
+      } else if (this.temporality == 'Mois') {
+        this.isScatter = true;
+        this.chartType1 = "bar"
+      } else if (this.temporality == '3 mois') {
+        console.log("3 mois");
+        this.isScatter = true;
+        this.chartType1 = "line"
+        console.log(this.chartType1);
+      } else if (this.switchBarLine = true) {
+        this.chartType1 = "bar"
+        this.chartType2 = "bar"
+      }
+      else if (this.switchBarLine = false) {
+        this.chartType1 = "line"
+        this.chartType2 = "line"
+      }
+      else {
+        this.isScatter = true;
+        this.chartType1 = "bar"
+      }
+
+    },
+
+    displayedSelection() {
+      if (this.selectedTimes.length === 0) {
+        return [];
+      }
+
+      let sortedTimes = [...this.selectedTimes].sort();
+      let newDisplay = [];
+
+      for (let i = 0; i < sortedTimes.length; i++) {
+        let current = sortedTimes[i];
+        let start = current.split('-')[0];
+        let end = current.split('-')[1];
+
+        // Tant que nous pouvons trouver un intervalle contigu, nous continuons à chercher.
+        while (i + 1 < sortedTimes.length && end === sortedTimes[i + 1].split('-')[0]) {
+          end = sortedTimes[i + 1].split('-')[1]; // mise à jour de la fin de l'intervalle
+          i++; // passez à l'entrée suivante
+        }
+
+        newDisplay.push(`${start}-${end}`);
+      }
+
+      return newDisplay;
+    }
+
+  },
+  mounted() {
+    this.editChartType();
+  },
   computed: {
+
     barChartData() {
       return {
         labels: this.labels,
@@ -285,7 +385,10 @@ export default {
     },
   },
 
+
   created() {
+    // this.editChartType();
+
     const radius = 4;
     const borderRadius = {
       topLeft: radius,
@@ -303,16 +406,23 @@ export default {
           }
         );
     this.datasets.forEach((set) => {
+      console.log('ici les props2');
+
+      console.log(this.chartType1);
       if (!set.backgroundColor) set.backgroundColor = colors.shift();
-      set.type = "bar";
+      if (this.temporality == '3 mois') {
+        this.isScatter = true;
+        this.chartType1 = "line"
+      }
+      set.type = this.chartType1;
       set.order = 2;
       set.borderSkipped = false;
       set.borderRadius = borderRadius;
       set.borderWidth = 1;
-      set.borderColor = "rgba(0,0,0,0)";
+      set.borderColor = set.borderColor || colors.shift();
     });
     this.lineDatasets.forEach((set) => {
-      set.type = "line";
+      set.type = this.chartType2;
       set.pointStyle = this.linePoint;
       set.tension = 0.3;
       set.order = 1;
@@ -325,6 +435,20 @@ export default {
   },
 
   watch: {
+    temporality(newValue, oldValue) {
+      this.editChartType();
+    },
+    selectedTimes: {
+      deep: true,
+      handler(newValue) {
+        this.$emit('update:selectedTimes', newValue);
+      }
+    },
+    switchBarLine(newValue, oldValue){
+      console.log(newValue);
+      this.editChartType();
+    }
+    ,
     datasets() {
       const radius = 4;
       const borderRadius = {
@@ -343,16 +467,17 @@ export default {
             }
           );
       this.datasets.forEach((set) => {
+        console.log('ici les props');
         if (!set.backgroundColor) set.backgroundColor = colors.shift();
-        set.type = "bar";
+        set.type = this.chartType1;
         set.order = 2;
         set.borderSkipped = false;
         set.borderRadius = borderRadius;
         set.borderWidth = 1;
-        set.borderColor = "rgba(0,0,0,0)";
+        set.borderColor = set.borderColor || colors.shift();
       });
       this.lineDatasets.forEach((set) => {
-        set.type = "line";
+        set.type = this.chartType2;
         set.pointStyle = this.linePoint;
         set.tension = 0.3;
         set.order = 1;
@@ -387,5 +512,23 @@ html {
   color: #214353;
   opacity: 1;
   font-size: 11px/13px;
+}
+
+
+::v-deep .v-select__slot {
+  height: 40px;
+  min-width: 300px;
+  background-color: rgb(231, 231, 231);
+  border-radius: 3px;
+  border: 1px solid rgb(216, 216, 216);
+  color: green !important;
+}
+
+::v-deep .theme--light.v-text-field>.v-input__control>.v-input__slot:before {
+  display: none;
+}
+
+::v-deep .v-application--is-ltr .v-text-field .v-label {
+  color: green !important;
 }
 </style>

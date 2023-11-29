@@ -24,10 +24,11 @@ with this file. If not, see
 
 <template>
   <v-app id="application">
+    <!-- <div @click="test()">testttttttttttttttttttttttttt</div> -->
     <div class="selectors">
       <div class="Hx1">
-        <space-selector v-if="defaultSelected.name && defaultSelected.name != ''" ref="space-selector" :open="false"
-          :maxDepth="-1" :GetChildrenFct="onSpaceSelectOpen" v-model="defaultSelected" />
+        <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="1"
+          :GetChildrenFct="onSpaceSelectOpen" v-model="defaultSelected" label="ESPACE" />
       </div>
       <div class="Hx2">
         <space-selector :edge="false" v-if="defaultSelectedTime.name && defaultSelectedTime.name != ''"
@@ -35,7 +36,7 @@ with this file. If not, see
           v-model="selectedTime" />
       </div>
     </div>
-    <MicroApp :temporality="selectedTime" />
+    <MicroApp :temporality="selectedTime" :space="defaultSelected" />
   </v-app>
 </template>
 
@@ -75,6 +76,7 @@ interface IItemDatatmp {
   },
 })
 class App extends Vue {
+  building !: any;
   time = { name: "SEMAINE", value: 'week' }
   selectedFloor = '';
   $store!: Store;
@@ -100,7 +102,7 @@ class App extends Vue {
     haveChildren: true,
   } as ISpaceSelectorItem;
   defaultSelectedTime = {
-    name: 'Mois',
+    name: 'Semaine',
     loading: false,
     parents: [],
     haveChildren: false
@@ -108,9 +110,9 @@ class App extends Vue {
 
   selectedTime = {
     platformId: '',
-    name: 'Mois',
-    next: 'Mois suivant',
-    prev: 'Mois précédent',
+    name: 'Semaine',
+    next: 'Semaine suivante',
+    prev: 'Semaine précédente',
     staticId: 'patrimoineId',
     color: '#FFFFFF',
     dynamicId: 0,
@@ -135,6 +137,9 @@ class App extends Vue {
   }
 
   async mounted() {
+    this.building = await getBuilding();
+    // console.log(this.building);
+
     const patrimoine = localStorage.getItem("patrimoine");
     let patrimoineObject = JSON.parse(patrimoine!);
     const idBuilding = localStorage.getItem("idBuilding");
@@ -169,15 +174,53 @@ class App extends Vue {
         this.selectedTime.next = 'Année suivante';
         this.selectedTime.prev = 'Année précédente';
       }
+      else if (item.name == 'Semaine') {
+        this.selectedTime.next = 'Semaine suivante';
+        this.selectedTime.prev = 'Semaine précédente';
+      }
+      else if (item.name == 'Jour') {
+        this.selectedTime.next = 'Jour suivant';
+        this.selectedTime.prev = 'Jour précédent';
+      }
       return [];
     }
     let timeOptions = [];
+    timeOptions.push({
+      name: 'Jour',
+      next: 'Jour suivant',
+      prev: 'Jour précédent',
+      staticId: 'Jour',
+      dynamicId: 0,
+      level: 0,
+      isOpen: true,
+      loading: false,
+      patrimoineId: 'Jour',
+      parents: [],
+      isLastInGrp: true,
+      drawLink: [],
+      haveChildren: false,
+    });
+    timeOptions.push({
+      name: 'Semaine',
+      next: 'Semaine suivante',
+      prev: 'Semaine précédente',
+      staticId: 'Semaine',
+      dynamicId: 1,
+      level: 1,
+      isOpen: true,
+      loading: false,
+      patrimoineId: 'Semaine',
+      parents: [],
+      isLastInGrp: true,
+      drawLink: [],
+      haveChildren: false,
+    });
     timeOptions.push({
       name: 'Mois',
       next: 'Mois suivant',
       prev: 'Mois précédent',
       staticId: 'Mois',
-      dynamicId: 1,
+      dynamicId: 2,
       level: 1,
       isOpen: true,
       loading: false,
@@ -190,7 +233,7 @@ class App extends Vue {
     timeOptions.push({
       name: '3 mois',
       staticId: '3derniersmois',
-      dynamicId: 2,
+      dynamicId: 3,
       level: 0,
       isOpen: true,
       loading: false,
@@ -205,7 +248,7 @@ class App extends Vue {
       next: 'Année suivante',
       prev: 'Année précédente',
       staticId: 'Annee',
-      dynamicId: 3,
+      dynamicId: 4,
       level: 0,
       isOpen: true,
       loading: false,
@@ -218,7 +261,7 @@ class App extends Vue {
     timeOptions.push({
       name: 'Décennie',
       staticId: 'Decennie',
-      dynamicId: 4,
+      dynamicId: 5,
       level: 0,
       isOpen: true,
       loading: false,
@@ -230,36 +273,53 @@ class App extends Vue {
     });
     return timeOptions;
   }
-  onSpaceSelectOpen(item?: ISpaceSelectorItem): any {
-    return [];
-    console.log(item?.type);
-    let d = {
-      platformId: '',
-      name: 'Patrimoine',
-      staticId: '',
-      color: '',
-      dynamicId: 0,
-      type: 'geographicBuilding',
-      level: 0,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'patrimoineId',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: true,
-    } as ISpaceSelectorItem;
+  async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<any> {
+    var source = [
+      {
+        title: 'Energie globale',
+        type: 'controlEndpoint', // [controlEndpoint, endpoint]
+        name: 'Energie globale',
+        profile: 'KPI',
+        capacity: 500,
+        max: 100,
+        min: null,
+        color: '#4287f5',
+      },
+    ];
+    var floorList: any[] = [];
     switch (item?.type) {
       case undefined:
-        const patrimoine = localStorage.getItem("patrimoine");
-        let patrimoineObject = JSON.parse(patrimoine!);
-        let buildings: any = [];
-        for (let b in patrimoineObject.buildings) {
-          buildings.push({
-            name: patrimoineObject.buildings[b].name,
-            staticId: patrimoineObject.buildings[b].id,
-            dynamicId: 0,
-            type: 'patrimoine',
+        this.building = await getBuilding();
+        const building = this.building;
+        // console.log('lebuilding',building);
+
+        return [{
+          name: building.name,
+          staticId: building.staticId,
+          dynamicId: building.dynamicId,
+          type: 'building',
+          level: 0,
+          isOpen: true,
+          loading: false,
+          patrimoineId: 'patrimoineId',
+          parents: [],
+          isLastInGrp: true,
+          drawLink: [],
+          haveChildren: false,
+          area: building.area,
+          cp: '',
+          source: building.source
+        }];
+      case 'building':
+        const floors = await getFloors();
+        // console.log('ici');
+
+        for (let floor of floors) {
+          floorList.push({
+            name: floor.name,
+            staticId: floor.staticId,
+            dynamicId: floor.dynamicId,
+            type: 'floor',
             level: 0,
             isOpen: true,
             loading: false,
@@ -268,14 +328,21 @@ class App extends Vue {
             isLastInGrp: true,
             drawLink: [],
             haveChildren: false,
+            area: floor.area,
+            cp: floor.cp,
+            source: floor.sources
           })
         }
-        return buildings;
+        // console.log(floorList);
+
+        return floorList;
       default:
         return [];
     }
   }
-
+  // test(){
+  //   console.log(this.defaultSelected);
+  // }
   onGoBack() {
     const parent = this.$refs['spaceSelector'].getParentOfSelected();
     if (parent) this.selectedZone = parent;
@@ -302,6 +369,8 @@ class App extends Vue {
   }
 
 }
+
+
 
 export default App;
 </script>
