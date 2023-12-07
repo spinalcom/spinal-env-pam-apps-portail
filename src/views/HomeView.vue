@@ -116,6 +116,7 @@ export default Vue.extend({
     this.debounceFilter = lodash.debounce(this.filterCategories, 400);
   },
   async mounted() {
+
     if (this.groups.length === 0) this.formatData(this.appsFormatted);
 
     this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, undefined);

@@ -22,19 +22,53 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import axios from "axios";
+import axios from 'axios';
 
-const endpoint = "/api/v1/pam";
-const host = (process.env.SPINAL_API_URL || "").replace(`/\/$/`, el => "");
+const endpoint = '/api/v1/pam';
+const host = (process.env.SPINAL_API_URL || '').replace(`/\/$/`, (el) => '');
 const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
 
-export const http = axios.create({ baseURL });
+export const http = axios.create({baseURL});
 http.interceptors.request.use((request: any) => {
-    const t = localStorage.getItem('token');
-    if (t) request.headers.common.Authorization = `Bearer ${t}`;
-    return request;
+  const t = localStorage.getItem('token');
+  if (t) request.headers.common.Authorization = `Bearer ${t}`;
+  return request;
 });
 
-export function getLogs() {
-    return http.get("/websocket/get_logs");
+export async function getWebsocketStateRequest(buildingId: string) {
+  return http.get(`/websocket/${buildingId}/get_websocket_state`);
+}
+
+export async function getWebsocketClientCountRequest(buildingId: string) {
+  return http.get(`/websocket/${buildingId}/get_client_connected_count`);
+}
+
+export async function readWebsocketLogsRequest(
+  buildingId: string,
+  begin: number = new Date().setHours(0, 0, 0, 0),
+  end: number = Date.now()
+) {
+  return http.get(`/websocket_log/${buildingId}/read/${begin}/${end}`);
+}
+
+export async function readCurrentWeekLogsRequest(buildingId: string) {
+  return http.get(`/websocket_log/${buildingId}/read_current_week`);
+}
+
+export async function readCurrentYearLogsRequest(buildingId: string) {
+  return http.get(`/websocket_log/${buildingId}/read_current_year`);
+}
+
+export async function readLast24hLogsRequest(buildingId: string) {
+  return http.get(`/websocket_log/${buildingId}/read_from_last_24h`);
+}
+
+export function getPortofoliosRequest(profileId: string | null) {
+  if (!profileId) throw new Error('no profileId found');
+
+  return http
+    .get(`${baseURL}/user_profile/get_authorized_portofolio/${profileId}`)
+    .then((result) => {
+      return result.data;
+    });
 }

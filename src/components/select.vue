@@ -23,24 +23,24 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="headerSelect"
-       v-if="portofolios">
-    <space-selector ref="space-selector"
-                    :open.sync="openSpaceSelector"
-                    :maxDepth="1"
-                    :GetChildrenFct="onSpaceSelectOpen"
-                    @input="getSelectedItem"
-                    :value="selectedZone"
-                    :isMobile="isMobile">
-
+  <div class="headerSelect" v-if="portofolios">
+    <space-selector
+      ref="space-selector"
+      :open.sync="openSpaceSelector"
+      :maxDepth="1"
+      :GetChildrenFct="onSpaceSelectOpen"
+      @input="getSelectedItem"
+      :value="selectedZone"
+      :isMobile="isMobile"
+    >
     </space-selector>
   </div>
 </template>
 
 <script>
-import { SELECT_PORTOFOLIO } from "../store/appDataStore";
-import { mapState } from "vuex";
-import { SpaceSelector } from "./SpaceSelector";
+import {SELECT_PORTOFOLIO} from '../store/appDataStore';
+import {mapState} from 'vuex';
+import {SpaceSelector} from '../../global-components';
 
 export default {
   components: {
@@ -59,8 +59,8 @@ export default {
     //   id: "patrimoine",
     // };
     this.TYPES = {
-      portofolio: "portofolio",
-      building: "building",
+      portofolio: 'portofolio',
+      building: 'building',
     };
     return {
       // data: [this.default],
@@ -72,42 +72,44 @@ export default {
       },
     };
   },
-  // mounted() {
-  //   this.selected = this.default.id;
-  // },
+  mounted() {
+    // this.selected = this.default.id;
+  },
   methods: {
     selectedChanged(val) {
       // console.log(val);
     },
 
     async onSpaceSelectOpen(item) {
-      if (item) {
-        if (item.type === this.TYPES.portofolio) {
-          return (item.categories || []).map((building) => {
-            return {
-              name: building.name,
-              id: building.id,
-              categories: [],
-              staticId: building.id,
-              dynamicId: 0,
-              type: this.TYPES.building,
-            };
-          });
-        }
-        return [];
-        // console.log(item.buildings);
-        // return item.buildings.map((building) => {});
+
+      if(!item) {
+        return this.portofolios.map((portofolio) => ({
+            name: portofolio.name,
+            categories: portofolio.buildings,
+            staticId: portofolio.id,
+            dynamicId: 0,
+            type: this.TYPES.portofolio,
+          })
+        )
+      }
+      
+      if (item.type === this.TYPES.portofolio) {
+        return (item.categories || []).map((building) => {
+          return {
+            name: building.name,
+            id: building.id,
+            categories: [],
+            staticId: building.id,
+            dynamicId: 0,
+            type: this.TYPES.building,
+          };
+        });
       }
 
-      return this.portofolios.map((portofolio) => {
-        return {
-          name: portofolio.name,
-          categories: portofolio.buildings,
-          staticId: portofolio.id,
-          dynamicId: 0,
-          type: this.TYPES.portofolio,
-        };
-      });
+      return [];
+      
+
+      
     },
 
     getSelectedItem(item) {
@@ -115,45 +117,72 @@ export default {
       this.selectedZone = item;
       let portofolioId;
       let buildingId;
-      if (item.type === this.TYPES.portofolio) {
-        localStorage.setItem("patrimoine", JSON.stringify({id: item.staticId, name: item.name,buildings: item.categories}));
-        portofolioId = item.staticId;
-      } else if (item.type === this.TYPES.building) {
-        localStorage.setItem("idBuilding", item.staticId);
-        portofolioId = item.parents[0];
-        buildingId = item.staticId;
+      const realItem = this.getInfos(item);
+
+      if (realItem.type === this.TYPES.portofolio) {
+        localStorage.setItem('patrimoine', JSON.stringify({id: realItem.staticId, name: realItem.name, buildings: realItem.categories }));
+        portofolioId = realItem.staticId;
+      } else if (realItem.type === this.TYPES.building) {
+        localStorage.setItem('idBuilding', realItem.staticId);
+        portofolioId = realItem.parents[0];
+        buildingId = realItem.staticId;
       }
 
-      this.$emit("selected", { portofolioId, buildingId });
+      this.$emit('selected', {portofolioId, buildingId});
     },
 
     close() {
       this.openSpaceSelector = false;
     },
+
+    getInfos(item) {
+      return this.portofolios.reduce((temp, portofolio) => {
+        if(portofolio.id === item.staticId) {
+          temp = {
+            name : portofolio.name,
+            type : this.TYPES.portofolio,
+            staticId: portofolio.id,
+            categories: portofolio.buildings
+          }
+        } else {
+          const found = portofolio.buildings.find(el => el.id === item.staticId);
+          if(found) {
+            temp = {
+              type: this.TYPES.building,
+              staticId: found.id,
+              name : found.name,
+              parents: [portofolio.id]
+            }
+          }
+        }
+
+        return temp;
+      }, undefined);
+    }
   },
   computed: {
-    ...mapState("appDataStore", ["selectedPortofolio"]),
+    ...mapState('appDataStore', ['selectedPortofolio']),
   },
   watch: {
     selected() {
-      this.$emit("selected", this.selected);
+      this.$emit('selected', this.selected);
     },
 
     portofolios() {
       const element = this.selectedPortofolio || this.portofolios[0];
       if (Object.keys(this.selectedZone).length === 1 && element) {
         this.selectedZone = {
-          platformId: "",
+          platformId: '',
           name: element.name,
           staticId: element.id || element.staticId,
           categories: [],
-          color: "#FFFFFF",
+          color: '#FFFFFF',
           dynamicId: 0,
           type: this.TYPES.portofolio,
           level: 0,
           isOpen: true,
           loading: false,
-          patrimoineId: "",
+          patrimoineId: '',
           parents: [],
           isLastInGrp: true,
           drawLink: [],
@@ -169,7 +198,7 @@ export default {
 <style lang="scss">
 .headerSelect {
   width: 100%;
-  height: 60px;
+  height: 70px;
   // display: flex;
   // align-items: center;
   // border-radius: 10px;

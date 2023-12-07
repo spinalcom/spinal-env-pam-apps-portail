@@ -128,6 +128,7 @@ export default ApplicationView;
 .appLoadContainer {
   width: 100%;
   height: 100%;
+  padding: 0px !important;
   // padding: 5px !important;
   display: flex;
 
@@ -135,7 +136,7 @@ export default ApplicationView;
     // width: 450px;
     // height: 60px;
     position: absolute;
-    top: 10px;
+    top: 5px;
     left: 0px;
   }
 

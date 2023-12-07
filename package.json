@@ -1,6 +1,6 @@
 {
   "name": "spinal-env-pam-apps-portail",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "scripts": {
     "watch": "rm -rf dist && parcel watch index.html micro-apps/*/index.html --dist-dir dist/",
@@ -14,9 +14,13 @@
     "dateformat": "^5.0.3",
     "html2canvas": "^1.4.1",
     "http-server": "^14.1.1",
+    "javascript-color-gradient": "^2.4.4",
     "moment": "^2.29.4",
+    "q": "^1.5.1",
     "spinal-components": "github:spinalcom/spinal-components",
+    "spinal-env-viewer-plugin-excel-manager-service": "git+https://github.com/spinalcom/spinal-env-viewer-plugin-excel-manager-service.git",
     "spinal-viewer-event-manager": "git+https://github.com/spinalcom/spinal-viewer-event-manager.git",
+    "uuid": "^9.0.1",
     "vue-chartjs": "^5.2.0",
     "vue-sweetalert2": "^5.0.5",
     "vuex-class": "^0.3.2"
@@ -41,6 +45,7 @@
     "buffer": "^6.0.3",
     "console-browserify": "^1.2.0",
     "core-js": "^3.25.0",
+    "crypto-browserify": "^3.12.0",
     "eslint": "^8.13.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-vue": "^8.6.0",
@@ -57,6 +62,7 @@
     "sass": "^1.51.0",
     "socket.io-client": "^4.5.1",
     "spinal-core-connectorjs": "git+https://github.com/spinalcom/spinal-core-connectorjs.git",
+    "stream-browserify": "^3.0.0",
     "sweetalert2": "^11.4.17",
     "typescript": "^4.4.3",
     "util": "^0.12.5",

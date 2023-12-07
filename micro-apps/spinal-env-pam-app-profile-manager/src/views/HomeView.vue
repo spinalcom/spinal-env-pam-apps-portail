@@ -23,44 +23,46 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="applicationContainer"
-               fluid>
+  <v-container class="applicationContainer" fluid>
+    <ProfileList
+      v-if="actualState === STATES.home"
+      @create="goToCreationPage"
+      @see="goToProfileDetail"
+      @edit="gotToEditPage"
+      @delete="deleteProfile"
+    />
 
-    <ProfileList v-if="actualState === STATES.home"
-                 @create="goToCreationPage"
-                 @see="goToProfileDetail"
-                 @edit="gotToEditPage"
-                 @delete="deleteProfile" />
+    <CreationComponent
+      v-else-if="[STATES.creation, STATES.edit].indexOf(actualState) !== -1"
+      :profileSelected="selectedProfile"
+      :edit="actualState === STATES.edit"
+      @create="createProfile"
+      @goBack="goToHomePage"
+      @edit="editProfile"
+    />
 
-    <CreationComponent v-else-if="[STATES.creation, STATES.edit].indexOf(actualState) !== -1"
-                       :profileSelected="selectedProfile"
-                       :edit="actualState === STATES.edit"
-                       @create="createProfile"
-                       @goBack="goToHomePage"
-                       @edit="editProfile" />
+    <ProfileDetail
+      v-else-if="actualState === STATES.view"
+      :profileSelected="selectedProfile"
+    />
 
-    <ProfileDetail v-else-if="actualState===STATES.view"
-                   :profileSelected="selectedProfile" />
-
-    <div class="loading"
-         v-else-if="actualState === STATES.loading">
-
-      <v-progress-circular :size="70"
-                           color="primary"
-                           indeterminate></v-progress-circular>
+    <div class="loading" v-else-if="actualState === STATES.loading">
+      <v-progress-circular
+        :size="70"
+        color="primary"
+        indeterminate
+      ></v-progress-circular>
     </div>
-
   </v-container>
 </template>
 
-
 <script lang="ts">
-import Vue from "vue";
-import { Component } from "vue-property-decorator";
-import ProfileList from "../components/profileList.vue";
-import CreationComponent from "../components/creation.vue";
-import ProfileDetail from "../components/profileDetail.vue";
-import { Action } from "vuex-class";
+import Vue from 'vue';
+import {Component} from 'vue-property-decorator';
+import ProfileList from '../components/profileList.vue';
+import CreationComponent from '../components/creation.vue';
+import ProfileDetail from '../components/profileDetail.vue';
+import {Action} from 'vuex-class';
 
 @Component({
   components: {
@@ -115,19 +117,19 @@ class HomeComponent extends Vue {
 
     this.$swal({
       toast: true,
-      position: "bottom-end",
+      position: 'bottom-end',
       showConfirmButton: false,
       timer: 3000,
-      icon: isSuccess ? "success" : "error",
-      text: isSuccess ? "profil ajouté" : "oups, une erreur s'est produite !",
+      icon: isSuccess ? 'success' : 'error',
+      text: isSuccess ? 'profil ajouté' : "oups, une erreur s'est produite !",
     });
   }
 
-  async editProfile({ data, profileId }: any) {
+  async editProfile({data, profileId}: any) {
     let isSuccess;
     try {
       this.goToLoadingPage();
-      await this.editAppProfile({ profileId, data });
+      await this.editAppProfile({profileId, data});
       isSuccess = true;
     } catch (error) {
       isSuccess = false;
@@ -135,11 +137,11 @@ class HomeComponent extends Vue {
     this.goToHomePage();
     this.$swal({
       toast: true,
-      position: "bottom-end",
+      position: 'bottom-end',
       showConfirmButton: false,
       timer: 3000,
-      icon: isSuccess ? "success" : "error",
-      text: isSuccess ? "profil modifié" : "oups, une erreur s'est produite !",
+      icon: isSuccess ? 'success' : 'error',
+      text: isSuccess ? 'profil modifié' : "oups, une erreur s'est produite !",
     });
   }
 
@@ -168,16 +170,16 @@ class HomeComponent extends Vue {
 
   deleteProfile(item: any) {
     return this.$swal({
-      title: "Supprimer",
+      title: 'Supprimer',
       text: `Êtes-vous sûre de vouloir supprimer ${item.name} ?`,
-      type: "warning",
+      type: 'warning',
       showCancelButton: true,
-      confirmButtonClass: "successBtn",
-      cancelButtonClass: "errorBtn",
-      confirmButtonText: "Oui",
-      cancelButtonText: "Annuler",
+      confirmButtonClass: 'successBtn',
+      cancelButtonClass: 'errorBtn',
+      confirmButtonText: 'Oui',
+      cancelButtonText: 'Annuler',
       buttonsStyling: false,
-      icon: "warning",
+      icon: 'warning',
     }).then(async (result) => {
       if (result.isConfirmed) {
         let isSuccess;
@@ -190,12 +192,12 @@ class HomeComponent extends Vue {
 
         this.$swal({
           toast: true,
-          position: "bottom-end",
+          position: 'bottom-end',
           showConfirmButton: false,
           timer: 3000,
-          icon: isSuccess ? "success" : "error",
+          icon: isSuccess ? 'success' : 'error',
           text: isSuccess
-            ? "profil supprimé"
+            ? 'profil supprimé'
             : "oups, une erreur s'est produite !",
         });
       }
@@ -206,14 +208,14 @@ class HomeComponent extends Vue {
 export default HomeComponent;
 </script>
 
-<style  lang="scss">
+<style lang="scss">
 $header-height: 60px;
 $header-margin-bottom: 10px;
 
 .applicationContainer {
   width: 100vw;
   height: 100vh;
-  padding-top: 0px !important;
+  padding-top: 5px !important;
   .loading {
     width: 100%;
     height: 100%;

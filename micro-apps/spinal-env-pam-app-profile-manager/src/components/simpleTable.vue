@@ -119,7 +119,7 @@ $title-background: #14202c;
   background: transparent !important;
   overflow: auto;
   margin: auto;
-  margin-top: 10px;
+  // margin-top: 10px;
 
   .my_title {
     width: 100%;

@@ -27,6 +27,7 @@ with this file. If not, see
 
     <v-tabs class="portofolioTabs"
             vertical
+            background-color="transparent"
             v-model="portofolioTab">
       <v-tab v-for="portofolio in portofolios"
              :key="portofolio.id">
@@ -34,9 +35,9 @@ with this file. If not, see
         {{portofolio.name}}
       </v-tab>
 
-      <v-tabs-items v-model="portofolioTab">
+      <v-tabs-items v-model="portofolioTab" class="porTabItems">
         <v-tab-item v-for="(portofolio,index) in portofolios"
-                    :key="index">
+                    :key="index" class="tabItems">
 
           <div class="content">
             <div class="empty"
@@ -73,12 +74,24 @@ with this file. If not, see
                 <v-tab-item>
                   <div class="buildingTabsDiv"
                        v-if="portofolio.buildings.length > 0">
+
+                    <v-tabs v-model="buildingTab"
+                            class="buildingTabs"
+                            background-color="#14202c"
+                            color="cyan"
+                            grow dark>
+                      <v-tab v-for="item in getPortofolioBuilding"
+                             :key="item">
+                        {{ item }}
+                      </v-tab>
+                    </v-tabs>
+
                     <v-tabs-items v-model="buildingTab"
                                   class="buildingTabItems">
                       <v-tab-item v-for="(building,index) in portofolio.buildings"
                                   :key="index">
                         <double-table-component :edit="edit"
-                                                :title="'selectionnez les routes de batiments à authoriser'"
+                                                :title="'selectionnez les routes de batiments à autoriser'"
                                                 :items="building.apis"
                                                 :headers="headers"
                                                 :childrenKey="'children'"
@@ -87,16 +100,7 @@ with this file. If not, see
                       </v-tab-item>
                     </v-tabs-items>
 
-                    <v-tabs v-model="buildingTab"
-                            class="buildingTabs"
-                            background-color="transparent"
-                            color="primary"
-                            grow>
-                      <v-tab v-for="item in getPortofolioBuilding"
-                             :key="item">
-                        {{ item }}
-                      </v-tab>
-                    </v-tabs>
+                    
                   </div>
 
                   <div class="buildingTabsDiv"
@@ -234,7 +238,7 @@ class TabsComponent {
   buildingTab = null;
 
   mounted() {
-    // if (this.edit) this.selectItems();
+    if (this.edit) this.selectItems();
   }
 
   selectItems() {
@@ -330,6 +334,10 @@ export default TabsComponent;
     height: 100%;
     background: transparent !important;
 
+    .porTabItems {
+      background: transparent;
+    }
+
     .content {
       width: 100%;
       height: 100%;
@@ -376,6 +384,7 @@ export default TabsComponent;
             .buildingTabItems {
               width: 100%;
               height: 100%;
+              background: transparent;
             }
             .buildingTabs {
               width: 100%;

@@ -1,19 +1,19 @@
 /*
  * Copyright 2023 SpinalCom - www.spinalcom.com
- * 
+ *
  * This file is part of SpinalCore.
- * 
+ *
  * Please read all of the following terms and conditions
  * of the Free Software license Agreement ("Agreement")
  * carefully.
- * 
+ *
  * This Agreement is a legally binding contract between
  * the Licensee (as defined below) and SpinalCom that
  * sets forth the terms and conditions that govern your
  * use of the Program. By installing and/or using the
  * Program, you agree to abide by all the terms and
  * conditions stated or referenced herein.
- * 
+ *
  * If you do not agree to abide by these terms and
  * conditions, do not demonstrate your acceptance and do
  * not install or use the Program.
@@ -22,9 +22,21 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-export const SET_LOGS = "SET_LOGS";
+// export const SET_LOGS = 'SET_LOGS';
 
 export enum logTypes {
-    Alarm = "Alarm",
-    Normal = "Normal"
+  Alarm = 'Alarm',
+  Normal = 'Normal',
 }
+
+export const SET_PORTOFOLIOS = 'SET_PORTOFOLIOS';
+export const SELECT_BUILDING = 'SELECT_BUILDING';
+
+export const SET_WEBSOCKET_STATE = 'SET_WEBSOCKET_STATE';
+
+export const SET_YEAR_LOGS = 'SET_YEAR_LOGS';
+export const SET_WEEK_LOGS = 'SET_WEEK_LOGS';
+export const SET_YESTERDAY_LOGS = 'SET_YESTERDAY_LOGS';
+export const SET_TODAY_LOGS = 'SET_TODAY_LOGS';
+
+export const SET_CLIENT_CONNECTED_COUNT = 'SET_CLIENT_CONNECTED_COUNT';
