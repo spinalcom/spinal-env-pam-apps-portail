@@ -4,7 +4,7 @@
     style="height: calc(100% - 40px)"
     class="d-flex flex-column"
   >
-    <div class="d-flex flex-column">
+    <div style="height: 100%; width: 100%" class="d-flex flex-column">
       <div
         v-if="false"
         style="background-color: #eaeef0; width: calc(50% - 16px)"
@@ -18,11 +18,14 @@
           <div class="font-weight-bold">TICKET DE MAINTENANCE</div>
         </div>
       </div>
-      <div class="d-flex flex-row justify-space-between mt-5 mx-2">
+      <div
+        style="width: calc(100% - 16px)"
+        class="d-flex flex-row justify-space-between mt-5 mx-2"
+      >
         <v-select
           color="#14202C"
           background-color="#eaeef0"
-          class="mr-2"
+          style="width: calc(50% - 8px)"
           solo
           flat
           @click.stop
@@ -64,7 +67,7 @@
         <v-select
           color="#14202C"
           background-color="#eaeef0"
-          class="ml-2"
+          style="width: calc(50% - 8px)"
           solo
           flat
           @click.stop
