@@ -25,7 +25,11 @@ with this file. If not, see
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
     <div class="selectors">
       <div class="DButton">
-        <ScDownloadButton :fileName="'hello'" :data="[]" />
+        <ScDownloadButton
+          :fileName="'insight_data'"
+          :csv="true"
+          :data="getDataFormatted()"
+        />
       </div>
 
       <div class="temporality">
@@ -61,6 +65,7 @@ with this file. If not, see
         class="appContainer"
         :config="config"
         :selectedZone="selectedZone"
+        :data="displayedData"
         @clickOnDataView="onDataViewClicked"
       ></InsightApp>
     </div>
@@ -107,6 +112,8 @@ import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
 } from "spinal-viewer-event-manager";
+
+import "spinal-components/dist/spinal-components.css";
 
 interface IItemData {
   platformId: string;
@@ -223,7 +230,7 @@ class App extends Vue {
     switch (item?.type) {
       case undefined:
         // return ['Journée', "Semaine", "Mois", "Trimestre", "Année", 'Décennie'].map((temp, index) => ({
-        return ["Valeur courante"].map((temp, index) => ({
+        return config.temporality.map((temp, index) => ({
           name: temp,
           staticId: index,
           dynamicId: index,
@@ -348,6 +355,43 @@ class App extends Vue {
         a.click();
       }
     });
+  }
+
+  public get displayedData() {
+    return this.$store.state.appDataStore.data;
+  }
+
+  public getDataFormatted() {
+    // color displayedValue name staticId type
+    const d = [this._getHeader(), ...this._getRows(this.displayedData)];
+    return d;
+  }
+
+  private _getHeader() {
+    return {
+      id: "id",
+      name: "name",
+      type: "type",
+      value: "value",
+    };
+    // return [
+    //   { key: "id", header: "id", width: 30 },
+    //   { key: "name", header: "name", width: 30 },
+    //   { key: "type", header: "type", width: 10 },
+    //   { key: "color", header: "color", width: 10 },
+    //   { key: "value", header: "value", width: 10 },
+    // ];
+  }
+
+  private _getRows(list: any[]) {
+    if (!list) return [];
+
+    return list.map(({ color, displayValue, name, staticId, type }) => ({
+      name,
+      type,
+      value: Number.parseFloat(displayValue).toFixed(2),
+      id: staticId,
+    }));
   }
 }
 

@@ -22,40 +22,36 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { IConfig, calculTypes } from "./interfaces/IConfig";
+import { IConfig, ITemporality, calculTypes } from "./interfaces/IConfig";
 
 export const config: IConfig = {
-  // entryPoint: { context: "Contexte équipement capteur", category: "Ubigreen", group: "All" },
-  // source: { name: "Ubigreen", profileName: "Ubigreen", type: "controlPoint", objectType: "equipments", unit : "" },
-  entryPoint: {
-    context: "Intégration équipements communicants",
-    category: "Multicapteurs",
-    group: "Avec convention de nommage",
-  },
-  source: {
-    name: "Température",
-    profileName: "KPI",
-    type: "controlPoint",
-    objectType: "equipments",
-    unit: "",
-  },
+	// entryPoint: { context: "Contexte équipement capteur", category: "Ubigreen", group: "All" },
+	// source: { name: "Ubigreen", profileName: "Ubigreen", type: "controlPoint", objectType: "equipments", unit : "" },
+	entryPoint: {
+		context: "Intégration équipements communicants",
+		category: "Multicapteurs",
+		group: "Avec convention de nommage",
+	},
+	source: {
+		name: "Température",
+		profileName: "KPI",
+		type: "controlPoint",
+		objectType: "equipments",
+		unit: "°C",
+	},
 
-  viewButtons: "base",
-  title: "Le titre de mon app",
-  calculs: [
-    calculTypes.Maximum,
-    calculTypes.Minimum,
-    calculTypes.Moyenne,
-    calculTypes.Somme,
-  ],
-  sprites: true,
-  viewerInfo: { roomRef: true, floorRef: true, equipments: "none" },
-  legend: {
-    min: { value: 0, color: "#0074FF" },
-    median: { value: 15, color: "#FFFF00" },
-    max: { value: 30, color: "#FF004B" },
-  },
-  regroupement: "rooms",
+	viewButtons: "base",
+	title: "Le titre de mon app",
+	calculs: [calculTypes.Maximum, calculTypes.Minimum, calculTypes.Moyenne, calculTypes.Somme, calculTypes.MoyennePercent],
+	sprites: true,
+	viewerInfo: { roomRef: true, floorRef: true, equipments: "none" },
+	legend: {
+		min: { value: 0, color: "#0074FF" },
+		median: { value: 15, color: "#FFFF00" },
+		max: { value: 30, color: "#FF004B" },
+	},
+	regroupement: ["rooms", "floors"],
+	temporality: [ITemporality.currentValue, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
 };
 
 // export const config: IConfig = {
@@ -68,6 +64,7 @@ export const config: IConfig = {
 //       median: { value: 27.5, color: "#FFFF00" },
 //       max: {value: 40, color: "#FF004B"}
 //    },
+// 	  temporality: [ITemporality.currentValue, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
 
 //    //////////////////////////////
 //    source: { name: "Température", profileName: "Multicapteurs", type: "controlPoint", objectType: "equipments", unit : "°C" },
@@ -78,4 +75,5 @@ export const config: IConfig = {
 //    // source: { name: "Température", profileName: "Control Point", type: "controlPoint", objectType: "equipments", unit : "°C" },
 //    // entryPoint: { context : "Gestion des espaces", category : "Typologie", group: "Bureaux" },
 //    // regroupement: {context: "Gestion des espaces", category : "Affectation par service"}
+
 // }
