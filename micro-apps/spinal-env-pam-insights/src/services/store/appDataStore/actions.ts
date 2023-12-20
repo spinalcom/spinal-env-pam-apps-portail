@@ -239,7 +239,6 @@ export const actions = {
 	async [ActionTypes.GET_VIEWER_INFO]({ commit, state }: AugmentedActionContextAppData, playload): Promise<IViewInfoItemRes[]> {
 		return ViewerManager.getInstance().getViewerInfoMerged(playload);
 	},
-
 	[ActionTypes.SELECT_ITEMS]({ commit, dispatch, state }, playload: any) {
 		ViewerManager.getInstance().select(playload);
 	},
@@ -277,4 +276,7 @@ export const actions = {
 	[ActionTypes.REMOVE_ALL_SPRITES]({ commit, dispatch, state }) {
 		return SpriteManager.getInstance().removeSprites();
 	},
+	[ActionTypes.SELECT_SPRITES]({ commit, dispatch, state }, dynamicIds: Array<number>) {
+		return SpriteManager.getInstance().selectSprites(dynamicIds);
+	}
 };

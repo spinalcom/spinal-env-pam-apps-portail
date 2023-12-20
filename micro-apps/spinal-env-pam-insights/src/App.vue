@@ -298,9 +298,11 @@ class App extends Vue {
   // }
 
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
+    console.log(item);
     if (!item) return;
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
-    this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
+    this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
+    // this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
   }
 
   // async onIsolate(item: TGeoItem | TGeoItem[]) {

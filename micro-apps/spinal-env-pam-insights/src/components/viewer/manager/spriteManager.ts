@@ -75,9 +75,9 @@ export class SpriteManager {
 	private _dataVizExtn: any;
 	private _viewableType;
 	private dbIdToViewable: { [key: number | string]: any } = {};
-	private labels = {};
+	private label3Ds = [];
 
-	private constructor() {}
+	private constructor() { }
 
 	public static getInstance(): SpriteManager {
 		if (!this._instance) this._instance = new SpriteManager();
@@ -108,13 +108,23 @@ export class SpriteManager {
 	public async addComponentAsSprite(viewer: Autodesk.Viewing.Viewer3D, data: ISpriteData | ISpriteData[]) {
 		data = Array.isArray(data) ? data : [data];
 
+
 		for (const d of data) {
 			if (!d.component) continue;
+			console.log(d);
 
 			const VueComponent = Vue.extend(d.component);
 			const vueInstance = new VueComponent({ propsData: d });
+			console.log(vueInstance)
 			const label = new Autodesk.Edit3D.Label3D(viewer, d.position, "");
 			label.container.appendChild(vueInstance.$mount().$el);
+			this.label3Ds.push(
+				{
+					dynamicId: d.data.dynamicId,
+					label: label,
+					component: vueInstance
+				}
+			);
 			// if (vueInstance.$el) {
 			// 	vueInstance.$el.parentNode?.replaceChild(vueInstance.$mount().$el, vueInstance.$el);
 			// 	const label = new Autodesk.Edit3D.Label3D(viewer, d.position, d.data.displayValue);
@@ -124,6 +134,26 @@ export class SpriteManager {
 			// }
 		}
 	}
+
+	public async selectSprites(dynamicIds: Array<number>) {
+		for(let label of this.label3Ds){
+			if(dynamicIds.includes(label.dynamicId)){
+				label.component._isSelected();
+			}
+			else{
+				label.component._isNotSelected();
+			}
+		}
+		
+		// let labels = this.label3Ds.filter(l => dynamicIds.includes(l.dynamicId));
+		// for (let label of labels) {
+		// 	label.component._isSelected();
+		// }
+	}
+
+	// public async removeAllComponentsAsSprite(/*viewer: Autodesk.Viewing.Viewer3D, */){
+	// 	console.log(this.labels);
+	// }
 
 	public async createSprite(viewer: Autodesk.Viewing.Viewer3D, data: ISpriteData | ISpriteData[]) {
 		const viewableData = new this.DataVizCore.ViewableData();
@@ -152,6 +182,9 @@ export class SpriteManager {
 
 	public removeSprites() {
 		if (this._dataVizExtn) this.dataVizExtn.removeAllViewables();
+		this.label3Ds.slice().forEach(l => l.label.dtor());
+		this.label3Ds = [];
+
 
 		// for (const key in this.labels) {
 		//    if (Object.prototype.hasOwnProperty.call(this.labels, key)) {
