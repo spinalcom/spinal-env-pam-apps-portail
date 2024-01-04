@@ -64,6 +64,7 @@
     "spinal-core-connectorjs": "git+https://github.com/spinalcom/spinal-core-connectorjs.git",
     "stream-browserify": "^3.0.0",
     "sweetalert2": "^11.4.17",
+    "typedoc": "^0.25.4",
     "typescript": "^4.4.3",
     "util": "^0.12.5",
     "velocity-animate": "^1.5.2",
