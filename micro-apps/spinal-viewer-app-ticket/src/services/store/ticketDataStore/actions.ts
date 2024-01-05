@@ -34,7 +34,9 @@ import {
   getProcessList,
   getStepList,
   getTicketDetails,
+  getTicketDetailsMultiple,
   getTicketList,
+  getTicketListMultiple,
   getWorkflowList,
 } from "../../spinalAPI/TicketContext";
 import { ticketConfig } from "../../../config";
@@ -70,7 +72,7 @@ async function setNodeTickets(
 
 export const ticketActions = {
   async [ActionTypes.LOAD_TICKETS]({ commit, state }): Promise<void> {
-    const promises = <Promise<void>[]>[];
+    const stepList = <any[]>[];
     try {
       const workflows = await getWorkflowList();
       for (const workflow of workflows.filter((w) =>
@@ -79,26 +81,22 @@ export const ticketActions = {
         const domains = await getProcessList(workflow.dynamicId);
         for (const domain of domains) {
           const steps = await getStepList(workflow.dynamicId, domain.dynamicId);
-          for (const step of steps.filter(
-            (s: any) => !closedSteps.includes(s.name)
-          )) {
-            const tickets = await getTicketList(step.dynamicId);
-            for (const t of tickets) {
-              promises.push(
-                getTicketDetails(t.dynamicId).catch((error) =>
-                  console.log(error)
-                )
-              );
-            }
-          }
+          stepList.push(
+            ...steps.filter((s: any) => !closedSteps.includes(s.name))
+          );
         }
       }
-      Promise.all(promises).then((ret) => {
-        commit(
-          TicketMutationTypes.SET_TICKETS,
-          ret.filter((t) => t)
-        );
-      });
+      const ticketList = (
+        await getTicketListMultiple(stepList.map((s) => s.dynamicId))
+      ).flatMap((result) => result.tickets);
+
+      const detailedTickets = await getTicketDetailsMultiple(
+        ticketList.map((t) => t.dynamicId)
+      );
+      commit(
+        TicketMutationTypes.SET_TICKETS,
+        detailedTickets.filter((t) => !t.error)
+      );
     } catch (error) {
       console.log(error);
     }

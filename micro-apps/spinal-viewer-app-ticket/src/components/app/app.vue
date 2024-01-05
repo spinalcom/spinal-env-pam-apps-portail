@@ -119,7 +119,6 @@ class InsightApp extends Vue {
     await this.$store.dispatch(ActionTypes.LOAD_TICKETS);
     this.pageSate = PAGE_STATES.loaded;
     await this.$store.dispatch(ActionTypes.SET_BUILDING_TICKETS);
-    console.log("tickets chargés");
   }
 
   retry() {}

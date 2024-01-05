@@ -25,11 +25,11 @@
 import { IConfig, ITemporality, calculTypes } from "./interfaces/IConfig";
 
 export const ticketConfig = {
-  buildingName: "Patrimoine IVV",
+  buildingName: "Patrimoine DEI",
   steps: {
-    closed: ["Archived", "Refusée", "Clôturée", "Fermé"],
+    closed: ["Archived", "Refusée", "Clôturée"],
   },
-  workflowList: ["Ticket Mission", "Ticket Mamady", "Workflow test"],
+  workflowList: ["Demande d'intervention"],
 };
 
 export const config: IConfig = {

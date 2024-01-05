@@ -25,39 +25,66 @@
 import { IConfig, ITemporality, calculTypes } from "./interfaces/IConfig";
 
 export const config: IConfig = {
-	// entryPoint: { context: "Contexte équipement capteur", category: "Ubigreen", group: "All" },
-	// source: { name: "Ubigreen", profileName: "Ubigreen", type: "controlPoint", objectType: "equipments", unit : "" },
-	// entryPoint: {
-	// 	context: "Intégration équipements communicants",
-	// 	category: "Multicapteurs",
-	// 	group: "Avec convention de nommage",
-	// },
-	// source: [{
-	// 	name: "Température",
-	// 	profileName: "KPI",
-	// 	type: "controlPoint",
-	// 	objectType: "equipments",
-	// 	unit: "°C",
-	// }],
+  // entryPoint: { context: "Contexte équipement capteur", category: "Ubigreen", group: "All" },
+  // source: { name: "Ubigreen", profileName: "Ubigreen", type: "controlPoint", objectType: "equipments", unit : "" },
+  // entryPoint: {
+  // 	context: "Intégration équipements communicants",
+  // 	category: "Multicapteurs",
+  // 	group: "Avec convention de nommage",
+  // },
+  // source: [{
+  // 	name: "Température",
+  // 	profileName: "KPI",
+  // 	type: "controlPoint",
+  // 	objectType: "equipments",
+  // 	unit: "°C",
+  // }],
 
-	entryPoint: {context: "Gestion des équipements", category: "Typologie", group: "Multicapteurs"},
-	source: [
-		{name: "Température", profileName: "Multicapteurs", type: "controlPoint", objectType: "equipments", unit: "°C"},
-		// {name: "Qualité de l'air", profileName: "Multicapteurs", type: "controlPoint", objectType: "equipments", unit: "ppm"}
-	],
+  /*entryPoint: {
+    context: "integration juin 2022",
+    category: "generation hardware context",
+    group: "valid items",
+  },*/
+  entryPoint: {
+    context: "Gestion des équipements",
+    category: "Typologie",
+    group: "Multicapteurs",
+  },
+  source: [
+    {
+      name: "Température",
+      profileName: "Multicapteurs",
+      type: "controlPoint",
+      objectType: "equipments",
+      unit: "°C",
+    },
+    // {name: "Qualité de l'air", profileName: "Multicapteurs", type: "controlPoint", objectType: "equipments", unit: "ppm"}
+  ],
 
-	viewButtons: "base",
-	title: "Insights sur les multicapteurs",
-	calculs: [calculTypes.Maximum, calculTypes.Minimum, calculTypes.Moyenne, calculTypes.Somme, calculTypes.MoyennePercent],
-	sprites: true,
-	viewerInfo: { roomRef: true, floorRef: true, equipments: "none" },
-	legend: {
-		min: { value: 0, color: "#0074FF" },
-		median: { value: 10, color: "#FFFF00" },
-		max: { value: 20, color: "#FF004B" },
-	},
-	regroupement: ["rooms"],
-	temporality: [ITemporality.currentValue, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
+  viewButtons: "base",
+  title: "Insights sur les multicapteurs",
+  calculs: [
+    calculTypes.Maximum,
+    calculTypes.Minimum,
+    calculTypes.Moyenne,
+    calculTypes.Somme,
+    calculTypes.MoyennePercent,
+  ],
+  sprites: true,
+  viewerInfo: { roomRef: true, floorRef: true, equipments: "none" },
+  legend: {
+    min: { value: 0, color: "#0074FF" },
+    median: { value: 10, color: "#FFFF00" },
+    max: { value: 20, color: "#FF004B" },
+  },
+  regroupement: ["rooms"],
+  temporality: [
+    ITemporality.currentValue,
+    ITemporality.day,
+    ITemporality.week,
+    ITemporality.month,
+    ITemporality.year,
+  ],
 };
 
 // export const config: IConfig = {
