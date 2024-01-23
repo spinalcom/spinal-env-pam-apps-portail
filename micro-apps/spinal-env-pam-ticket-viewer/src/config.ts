@@ -29,7 +29,12 @@ export const ticketConfig = {
   steps: {
     closed: ["Archived", "Refusée", "Clôturée", "Fermé"],
   },
-  workflowList: ["Ticket Mission", "Ticket Mamady", "Workflow test"],
+  workflowList: [
+    "Ticket Mission",
+    "Ticket Mamady",
+    "Workflow test",
+    "Demande d'intervention",
+  ],
 };
 
 export const config: IConfig = {

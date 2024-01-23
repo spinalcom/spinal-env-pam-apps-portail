@@ -28,17 +28,48 @@ with this file. If not, see
     <div style="display: flex" class="px-3 py-2">
       <div class="flex-col">
         <div style="width: 150px">
-          <div class="bar-title-section mb-1">{{ "P" + data.priority + " #" + data.gmaoId}}</div>
-          <div class="mb-4 bar-title-nom">{{ (new Date(data.creationDate)).toLocaleDateString('fr-FR', {timeZone: 'UTC'}) }}</div>
+          <div
+            class="bar-title-section mb-1 d-flex flex-row flex-shrink-1 align-center justify-start"
+          >
+            <div
+              class="colored-square mr-1"
+              :style="{
+                background: color[data.priority] + ' no-repeat padding-box',
+              }"
+            ></div>
+            <span>{{ "#" + data.gmaoId }}</span>
+          </div>
+          <div class="mb-4 bar-title-nom">
+            {{
+              new Date(data.creationDate).toLocaleDateString("fr-FR", {
+                timeZone: "UTC",
+              })
+            }}
+          </div>
         </div>
-        <div class="icon-bloc"></div>
+        <div
+          class="icon-bloc d-flex flex-row justify-space-around align-center"
+        >
+          <v-btn @click="$emit('display', data)">
+            <v-icon>mdi-eye</v-icon>
+          </v-btn>
+          <v-btn
+            dark
+            :disabled="!data.elementSelected"
+            @click="$emit('locate', data)"
+          >
+            <v-icon>mdi-map-marker</v-icon>
+          </v-btn>
+        </div>
       </div>
       <div class="px-3">
-        <div class="bar-title-section mb-1">{{ data.elementSelected.name }}</div>
-        <div class="mb-4 bar-title-nom">{{data.name}}</div>
+        <div class="bar-title-section mb-1">
+          {{ data.elementSelected.name }}
+        </div>
+        <div class="mb-4 bar-title-nom">{{ data.name }}</div>
         <div style="">
           <div class="flex-col">
-            {{data.process.name}}
+            {{ data.process.name }}
             <div class="text-description">
               {{ data.description }}
             </div>
@@ -50,8 +81,8 @@ with this file. If not, see
     </div>
   </v-card>
 </template>
-    
-    <script lang="ts">
+
+<script lang="ts">
 import { Prop, Vue, Watch } from "vue-property-decorator";
 import Component from "vue-class-component";
 
@@ -63,9 +94,9 @@ class TicketComponent extends Vue {
   // @State data!: any[];
 
   @Prop() data: any;
+  color = ["red", "yellow", "green", "blue"];
 
-  async mounted() {
-  }
+  async mounted() {}
 
   /**
    * Watch
@@ -75,10 +106,10 @@ class TicketComponent extends Vue {
 export { TicketComponent };
 export default TicketComponent;
 </script>
-    <style lang="scss">
-    .bar-bloc-left{
-        margin: 10px;
-    }
+<style lang="scss">
+.bar-bloc-left {
+  margin: 10px;
+}
 .status-label {
   position: absolute;
   top: 0px;
@@ -118,7 +149,7 @@ export default TicketComponent;
   font-size: 24px;
   // font-size: 15px;
   font-weight: 100;
-  
+
   color: #14202c;
 }
 
@@ -126,5 +157,11 @@ export default TicketComponent;
   color: #949da6;
   font: normal normal normal 11px/13px Charlevoix Pro;
   margin-bottom: 10px;
+}
+
+.colored-square {
+  width: 6px;
+  height: 15px;
+  border-radius: 2px;
 }
 </style>

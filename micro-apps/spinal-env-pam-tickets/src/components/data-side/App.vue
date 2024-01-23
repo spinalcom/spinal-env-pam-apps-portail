@@ -25,17 +25,118 @@ with this file. If not, see
 <template>
   <v-card elevation="4" class="cardContainer">
     <div
-      class="dataContainer"
+      class="dataContainer d-flex flex-column py-4"
+      style="height: 100%; width: 100%"
       v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected"
     >
-      <div class="detail_header">
-        <div class="title_date">
-          <div class="date" title="recharger"></div>
+      <div
+        style="background-color: #eaeef0; width: calc(50% - 16px)"
+        class="d-flex flex-row pa-2 mx-4 align-stretch rounded"
+      >
+        <v-btn elevation="0" style="background-color: #fff; height: 100%">
+          <v-icon>mdi-book-plus-outline</v-icon>
+        </v-btn>
+        <div class="d-flex flex-column ml-2">
+          <div>déclaration d'un</div>
+          <div class="font-weight-bold">TICKET DE MAINTENANCE</div>
         </div>
       </div>
+      <div
+        style="width: calc(100% - 32px)"
+        class="d-flex flex-row justify-space-between mt-5 mx-4"
+      >
+        <v-select
+          color="#14202C"
+          background-color="#eaeef0"
+          style="width: calc(50% - 8px)"
+          solo
+          flat
+          @click.stop
+          v-model="domain_filter"
+          label="Domaine"
+          placeholder="Domaine"
+          :items="domains()"
+          append-icon="mdi-chevron-down"
+          clearable
+          clear-icon="mdi-close-circle-outline"
+          multiple
+          menu-props="offset-y"
+        >
+          <template v-slot:selection="{ item, index }">
+            <v-chip
+              @click:close="
+                domain_filter = domain_filter.filter((d) => d !== item)
+              "
+              close
+              :close-icon="'mdi-close-circle'"
+              style="
+                font-size: 11px;
+                height: 24px;
+                max-width: calc(100% - 50px);
+              "
+              v-if="index < 1"
+            >
+              <span style="max-width: 90%; overflow: hidden">{{ item }}</span>
+            </v-chip>
+
+            <span
+              v-if="index === 1"
+              class="text-grey text-caption align-self-center"
+            >
+              (+{{ domain_filter.length - 1 }})
+            </span>
+          </template>
+        </v-select>
+        <v-select
+          color="#14202C"
+          background-color="#eaeef0"
+          style="width: calc(50% - 8px)"
+          solo
+          flat
+          @click.stop
+          v-model="step_filter"
+          label="Étape"
+          placeholder="Étape"
+          :items="steps()"
+          append-icon="mdi-chevron-down"
+          clearable
+          clear-icon="mdi-close-circle-outline"
+          multiple
+          menu-props="offset-y"
+        >
+          <template v-slot:selection="{ item, index }">
+            <v-chip
+              @click:close="step_filter = step_filter.filter((s) => s !== item)"
+              close
+              :close-icon="'mdi-close-circle'"
+              style="
+                font-size: 11px;
+                height: 24px;
+                max-width: calc(100% - 50px);
+              "
+              v-if="index < 1"
+            >
+              <span style="max-width: 90%; overflow: hidden">{{ item }}</span>
+            </v-chip>
+
+            <span
+              v-if="index === 1"
+              class="text-grey text-caption align-self-center"
+            >
+              (+{{ step_filter.length - 1 }})
+            </span>
+          </template>
+        </v-select>
+      </div>
       <!-- SAMPLE -->
-      <div :style="{ 'overflow-y': 'scroll', height: 'calc(100% - 200px)' }">
-        <TicketComponent v-for="(d, i) in data" :key="i" :data="d"/>
+      <div class="d-flex flex-column flex-fill overflow-y-auto mx-2">
+        <TicketComponent
+          v-for="(d, i) in sortedTickets()"
+          :key="i"
+          :data="d"
+          @locate="locateTicket"
+          @display="showDetails"
+        />
       </div>
       <!-- \SAMPLE -->
     </div>
@@ -69,8 +170,8 @@ with this file. If not, see
     </div>
   </v-card>
 </template>
-  
-  <script lang="ts">
+
+<script lang="ts">
 import { Prop, Vue, Watch } from "vue-property-decorator";
 import { PAGE_STATES } from "../../interfaces/pageStates";
 import Component from "vue-class-component";
@@ -83,12 +184,11 @@ import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import { mapState } from "vuex";
 import { regroupTicketByRoom } from "../../services/store/appDataStore/utils/ticketUtils";
 
-
 import SpriteComponent from "./SpriteComponent.vue";
 import TicketComponent from "./TicketComponent.vue";
 
 @Component({
-  components: {TicketComponent},
+  components: { TicketComponent },
   filters: {},
 })
 class dataSideApp extends Vue {
@@ -102,6 +202,35 @@ class dataSideApp extends Vue {
   pageSate: PAGE_STATES = PAGE_STATES.loading;
   isBuildingSelected: boolean = true;
   retry: Function;
+  domain_filter = <string[]>[];
+  step_filter = <string[]>[];
+
+  domains() {
+    return [...new Set(this.data.map((t) => t.process.name))];
+  }
+
+  domainFilteredTickets() {
+    if (this.domain_filter.length === 0 || this.data.length === 0)
+      return this.data;
+    return this.data.filter((d) => this.domain_filter.includes(d.process.name));
+  }
+  steps() {
+    return [...new Set(this.domainFilteredTickets().map((t) => t.step.name))];
+  }
+  stepFilteredTickets() {
+    if (this.step_filter.length === 0 || this.data.length === 0)
+      return this.domainFilteredTickets();
+    return this.domainFilteredTickets().filter((d) =>
+      this.step_filter.includes(d.step.name)
+    );
+  }
+
+  sortedTickets() {
+    this.$emit("download", this.stepFilteredTickets());
+    return [...this.stepFilteredTickets()].sort(
+      (a, b) => a.priority - b.priority || a.creationDate - b.creationDate
+    );
+  }
 
   async mounted() {
     await this.retriveData("building");
@@ -124,12 +253,11 @@ class dataSideApp extends Vue {
         ];
         const result = await Promise.all(promises);
         this.$store.commit(MutationTypes.SET_DATA, result[0]);
-      }
-      else if(type == "geographicFloor" || type == "geographicRoom"){
+      } else if (type == "geographicFloor" || type == "geographicRoom") {
         const promises = [
           this.$store.dispatch(ActionTypes.FILTER_TICKETS, {
             buildingId,
-            dynamicId: this.selectedZone.dynamicId
+            dynamicId: this.selectedZone.dynamicId,
           }),
         ];
         const result = await Promise.all(promises);
@@ -146,13 +274,27 @@ class dataSideApp extends Vue {
     this.$emit("clickOnDataView", item);
   }
 
+  showDetails(ticket) {
+    this.$emit("display", ticket);
+  }
+
+  locateTicket(ticket) {
+    const buildingId = localStorage.getItem("idBuilding");
+    this.$store.dispatch(ActionTypes.SELECT_ITEMS, {
+      ...ticket.elementSelected,
+      buildingId,
+    });
+  }
+
   /**
    * Watch
    */
 
   @Watch("selectedZone")
   watchSelectedZone() {
-    this.selectedZone.type == "building" ? this.isBuildingSelected = true : this.isBuildingSelected = false;
+    this.selectedZone.type == "building"
+      ? (this.isBuildingSelected = true)
+      : (this.isBuildingSelected = false);
     this.retriveData(this.selectedZone.type);
     // if (this.selectedZone.type === "building") {
     //   this.isBuildingSelected = true;
@@ -174,14 +316,14 @@ class dataSideApp extends Vue {
     if (this.config.sprites && !this.isBuildingSelected) {
       const regrouped_tickets = regroupTicketByRoom(this.data);
       const items = new Array();
-      for(const key of Object.keys(regrouped_tickets)){
-        const positionSplitted = regrouped_tickets[key]["XYZ center"].split(";");
+      for (const key of Object.keys(regrouped_tickets)) {
+        const [X, Y, Z] = regrouped_tickets[key]["XYZ center"].split(";");
         items.push({
           buildingId,
           dynamicId: key,
           data: regrouped_tickets[key].ticketList,
-          position: new THREE.Vector3(Number(positionSplitted[0]), Number(positionSplitted[1]), Number(positionSplitted[2]))
-        })
+          position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
+        });
       }
       this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
         items: items,
@@ -201,5 +343,4 @@ class dataSideApp extends Vue {
 export { dataSideApp };
 export default dataSideApp;
 </script>
-  <style lang="scss">
-</style>
+<style lang="scss"></style>

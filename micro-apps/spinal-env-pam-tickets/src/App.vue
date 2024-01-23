@@ -24,15 +24,14 @@ with this file. If not, see
 <template>
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
     <div class="selectors">
-      <div class="DButton">
-        <!-- <ScDownloadButton
-          :fileName="'insight_data'"
-          :csv="true"
-          :data="getDataFormatted()"
-        /> -->
-      </div>
+      <sc-download-button
+        fileName="insight_data"
+        csv
+        :data="to_download"
+        class="mr-2"
+      ></sc-download-button>
 
-      <div class="temporality">
+      <!--<div class="temporality">
         <space-selector
           :edge="false"
           ref="space-selector2"
@@ -42,7 +41,7 @@ with this file. If not, see
           v-model="temporalitySelected"
           label="TEMPORALITÉ"
         />
-      </div>
+      </div>-->
 
       <div class="space">
         <space-selector
@@ -67,8 +66,17 @@ with this file. If not, see
         :selectedZone="selectedZone"
         :data="displayedData"
         @clickOnDataView="onDataViewClicked"
+        @display="showDetails"
+        @download="downloadList"
       ></dataSideApp>
     </div>
+
+    <sc-ticket-detail
+      v-if="detailedTicket"
+      style="z-index: 999"
+      v-model="showDialog"
+      :detailed-ticket="detailedTicket"
+    ></sc-ticket-detail>
   </v-app>
 
   <v-container
@@ -101,7 +109,6 @@ import type {
   TGeoItem,
 } from "./components/SpaceSelector/interfaces/IBuildingItem";
 import viewerApp from "./components/viewer/viewer.vue";
-import ScDownloadButton from "spinal-components/src/components/DownloadButton.vue";
 import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
 import { IConfig } from "./interfaces/IConfig";
@@ -111,10 +118,7 @@ import {
   VIEWER_SPRITE_CLICK,
 } from "spinal-viewer-event-manager";
 
-import "spinal-components/dist/spinal-components.css";
-
 import dataSideApp from "./components/data-side/App.vue";
-
 
 interface IItemData {
   platformId: string;
@@ -130,8 +134,7 @@ interface IItemDatatmp {
   components: {
     SpaceSelector,
     viewerApp,
-    ScDownloadButton,
-    dataSideApp
+    dataSideApp,
   },
 })
 class App extends Vue {
@@ -145,6 +148,16 @@ class App extends Vue {
 
   dataTable: IZoneItem[] = [];
   $refs: { spaceSelector };
+
+  detailedTicket = null;
+  showDialog = false;
+
+  to_download = <any[]>[];
+
+  showDetails(ticket) {
+    this.detailedTicket = ticket;
+    this.showDialog = true;
+  }
 
   async mounted() {
     try {
@@ -176,6 +189,23 @@ class App extends Vue {
 
   public set temporalitySelected(v: ISpaceSelectorItem) {
     this.$store.commit(MutationTypes.SET_TEMPORALITY, v);
+  }
+
+  downloadList(tickets) {
+    this.to_download = tickets.map((t) => {
+      return {
+        Nom: t.name,
+        "Date de création": new Date(t.creationDate).toLocaleDateString("fr"),
+        Étape: t.step.name,
+        Domaine: t.process.name,
+        Déclarant: t.userName || "Unknown",
+        bosId: t.staticId,
+        gmaoId: t.gmaoId,
+        description: t.description,
+        targetName: t.elementSelected?.name || "",
+        targetId: t.elementSelected?.staticId || 0,
+      };
+    });
   }
 
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<IZoneItem[]> {
@@ -240,7 +270,6 @@ class App extends Vue {
       default:
         return [];
     }
-
   }
 
   onGoBack() {
@@ -263,13 +292,11 @@ class App extends Vue {
     };
   }
 
-
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
     if (!item) return;
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
   }
-
 
   async onColor(item: TGeoItem | TGeoItem[]) {
     // TBD
@@ -353,7 +380,6 @@ class App extends Vue {
 export default App;
 </script>
 
-
 <style scoped lang="scss">
 .app {
   width: 100%;
@@ -369,12 +395,6 @@ export default App;
     right: 5px;
     height: $selectorHeight;
     width: 100%;
-    border: 1px solid #f5f5f5;
-    border-radius: 12px;
-    .DButton {
-      width: 60px;
-      height: 60px;
-    }
 
     .temporality {
       position: relative;
