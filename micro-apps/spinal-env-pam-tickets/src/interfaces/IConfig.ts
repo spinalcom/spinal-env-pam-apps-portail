@@ -25,17 +25,21 @@
 import { ActionTypes } from "./vuexStoreTypes";
 
 export interface IConfig {
-	viewButtons: "base" | "advanced";
-	viewerInfo: { roomRef: boolean; floorRef: boolean; equipments: "all" | "groupItem" | "none" };
-	sprites: boolean;
-	temporality: ITemporality[];
-	workflowList: String[];
+  viewButtons: "base" | "advanced";
+  viewerInfo: {
+    roomRef: boolean;
+    floorRef: boolean;
+    equipments: "all" | "groupItem" | "ticket" | "none";
+  };
+  sprites: boolean;
+  temporality: ITemporality[];
+  workflowList: String[];
 }
 
 export const enum ITemporality {
-	currentValue = "Valeur courante",
-	day = "journée",
-	week = "Semaine",
-	month = "Mois",
-	year = "Année",
+  currentValue = "Valeur courante",
+  day = "journée",
+  week = "Semaine",
+  month = "Mois",
+  year = "Année",
 }

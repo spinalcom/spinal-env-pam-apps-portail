@@ -25,64 +25,72 @@
 import { ActionTypes } from "./vuexStoreTypes";
 
 export interface IConfig {
-	entryPoint: EntryPoint;
-	title: string;
-	viewButtons: "base" | "advanced";
-	calculs: calculTypes[];
-	viewerInfo: { roomRef: boolean; floorRef: boolean; equipments: "all" | "groupItem" | "none" };
-	source: ISource | ISource[];
-	sprites: boolean;
-	legend: ILegend;
-	regroupement: "floors" | "rooms" | IRegroupement | ("floors" | "rooms" | IRegroupement)[];
-	temporality: ITemporality[];
+  entryPoint: EntryPoint;
+  title: string;
+  viewButtons: "base" | "advanced";
+  calculs: calculTypes[];
+  viewerInfo: {
+    roomRef: boolean;
+    floorRef: boolean;
+    equipments: "all" | "groupItem" | "ticket" | "none";
+  };
+  source: ISource | ISource[];
+  sprites: boolean;
+  legend: ILegend;
+  regroupement:
+    | "floors"
+    | "rooms"
+    | IRegroupement
+    | ("floors" | "rooms" | IRegroupement)[];
+  temporality: ITemporality[];
 }
 
 export const enum ITemporality {
-	currentValue = "Valeur courante",
-	day = "journée",
-	week = "Semaine",
-	month = "Mois",
-	year = "Année",
+  currentValue = "Valeur courante",
+  day = "journée",
+  week = "Semaine",
+  month = "Mois",
+  year = "Année",
 }
 
 export interface IRegroupement {
-	context: string;
-	category: string;
+  context: string;
+  category: string;
 }
 
 export type EntryPoint = { context: string; group?: string; category?: string };
 
 export const enum calculTypes {
-	Maximum = "Maximum",
-	Minimum = "Minimum",
-	Moyenne = "Moyenne",
-	Somme = "Somme",
-	MoyennePercent = "Moyenne en Pourcentage",
+  Maximum = "Maximum",
+  Minimum = "Minimum",
+  Moyenne = "Moyenne",
+  Somme = "Somme",
+  MoyennePercent = "Moyenne en Pourcentage",
 }
 
 export interface ISource {
-	name: string;
-	profileName?: string;
-	type: "controlPoint" | "endpoint" | "attribute";
-	objectType: "equipments" | "rooms";
-	categoryName?: string;
-	unit?: string;
+  name: string;
+  profileName?: string;
+  type: "controlPoint" | "endpoint" | "attribute";
+  objectType: "equipments" | "rooms";
+  categoryName?: string;
+  unit?: string;
 }
 
 interface ILegendValue {
-	value: number;
-	color: string;
+  value: number;
+  color: string;
 }
 
 interface ILegend {
-	min: ILegendValue;
-	median?: ILegendValue;
-	max: ILegendValue;
+  min: ILegendValue;
+  median?: ILegendValue;
+  max: ILegendValue;
 }
 
 export interface IButton {
-	title: string;
-	icon: string;
-	isShownTypes?: string[];
-	onclickEvent?: ActionTypes;
+  title: string;
+  icon: string;
+  isShownTypes?: string[];
+  onclickEvent?: ActionTypes;
 }

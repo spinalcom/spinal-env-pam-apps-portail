@@ -55,8 +55,8 @@ export default {
   computed: {
     gradient() {
       const len = this.data.data.length;
-      const low = this.data.data.filter((d) => d.priority === 2).length;
-      const mid = this.data.data.filter((d) => d.priority === 1).length;
+      const low = this.data.data.filter((d) => d.priority == 2).length;
+      const mid = this.data.data.filter((d) => d.priority == 1).length;
       const first = Math.round(360 * (low / len));
       const last = first + Math.round(360 * (mid / len));
       return {

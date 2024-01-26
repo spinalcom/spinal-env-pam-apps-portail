@@ -120,6 +120,7 @@ import {
 
 import dataSideApp from "./components/data-side/App.vue";
 
+const COLORS = ["#FF0000", "#FFA500", "#008000"];
 interface IItemData {
   platformId: string;
   id: number | number[];
@@ -209,13 +210,10 @@ class App extends Vue {
   }
 
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<IZoneItem[]> {
+    const data = this.$store.state.appDataStore.data || [];
     switch (item?.type) {
       case undefined:
         const buildingId = localStorage.getItem("idBuilding");
-        const playload = {
-          config,
-          item: { buildingId, type: "building" },
-        };
 
         const promises = [
           this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }),
@@ -234,17 +232,54 @@ class App extends Vue {
           },
         ];
       case "building":
-        return await this.$store.dispatch(ActionTypes.GET_FLOORS, {
-          buildingId: item.staticId,
-          patrimoineId: item.patrimoineId,
+        return (
+          await this.$store.dispatch(ActionTypes.GET_FLOORS, {
+            buildingId: item.staticId,
+            patrimoineId: item.patrimoineId,
+          })
+        ).map((floor) => {
+          const ticket = data.filter(
+            (t) =>
+              t.elementSelected.position.floor.dynamicId === floor.dynamicId
+          );
+          return {
+            ...floor,
+            counts: ticket.length
+              ? [0, 1, 2].map((c) => {
+                  return {
+                    color: COLORS[c],
+                    value: ticket.filter((t) => t.priority == c).length,
+                  };
+                })
+              : [],
+          };
         });
       case "geographicFloor":
         //@ts-ignore
-        return await this.$store.dispatch(ActionTypes.GET_ROOMS, {
-          floorId: item.dynamicId,
-          buildingId: item.buildingId,
-          patrimoineId: item.patrimoineId,
-          id: item.dynamicId,
+        return (
+          await this.$store.dispatch(ActionTypes.GET_ROOMS, {
+            floorId: item.dynamicId,
+            buildingId: item.buildingId,
+            patrimoineId: item.patrimoineId,
+            id: item.dynamicId,
+          })
+        ).map((room) => {
+          const ticket = data.filter(
+            (t) =>
+              t.elementSelected.dynamicId === room.dynamicId ||
+              t.elementSelected.position?.room?.dynamicId === room.dynamicId
+          );
+          return {
+            ...room,
+            counts: ticket.length
+              ? [0, 1, 2].map((c) => {
+                  return {
+                    color: COLORS[c],
+                    value: ticket.filter((t) => t.priority == c).length,
+                  };
+                })
+              : [],
+          };
         });
       default:
         return [];

@@ -165,7 +165,9 @@ with this file. If not, see
       </div>
       <div color="red">
         Quelque chose s'est mal passé ! Veuillez
-        <v-btn small outlined color="red" @click="retry">réessayer </v-btn>
+        <v-btn small outlined color="red" @click="retriveData('building')"
+          >réessayer
+        </v-btn>
       </div>
     </div>
   </v-card>

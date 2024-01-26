@@ -24,12 +24,24 @@
 
 import { IConfig, ITemporality } from "./interfaces/IConfig";
 
+export const ticketConfig = {
+  buildingName: "Patrimoine DEI",
+  steps: {
+    closed: ["Archived", "Refusée"],
+  },
+  workflowList: ["Demande d'intervention"],
+};
+
 export const config: IConfig = {
-
-	viewButtons: "base",
-	sprites: true,
-	viewerInfo: { roomRef: true, floorRef: true, equipments: "none" },
-	temporality: [ITemporality.currentValue, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
-	workflowList: ["Demande d'intervention"]
-
+  viewButtons: "base",
+  sprites: true,
+  viewerInfo: { roomRef: true, floorRef: true, equipments: "ticket" },
+  temporality: [
+    ITemporality.currentValue,
+    ITemporality.day,
+    ITemporality.week,
+    ITemporality.month,
+    ITemporality.year,
+  ],
+  workflowList: ["Demande d'intervention"],
 };

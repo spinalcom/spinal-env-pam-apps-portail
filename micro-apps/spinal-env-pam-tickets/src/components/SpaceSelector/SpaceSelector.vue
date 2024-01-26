@@ -210,10 +210,10 @@ class SpaceSelector extends Vue {
     const children = await this.GetChildrenFct();
     this.buildingStructure = convertZonesToISpaceSelectorItems(children);
 
-    if (this.buildingStructure.length === 1) {
-      await this.expandCollapse(this.buildingStructure[0], 0);
-    }
-    this.onSelectedChange();
+    //if (this.buildingStructure.length === 1) {
+    //await this.expandCollapse(this.buildingStructure[0], 0);
+    //}
+    //this.onSelectedChange();
   }
 
   // on click the righht button open / close

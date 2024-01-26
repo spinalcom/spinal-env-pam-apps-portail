@@ -48,7 +48,7 @@ export const config: IConfig = {
   entryPoint: {
     context: "Gestion des équipements",
     category: "Typologie",
-    group: "Multicapteurs",
+    group: "CTA",
   },
   source: [
     {
@@ -71,7 +71,7 @@ export const config: IConfig = {
     calculTypes.MoyennePercent,
   ],
   sprites: true,
-  viewerInfo: { roomRef: true, floorRef: true, equipments: "none" },
+  viewerInfo: { roomRef: true, floorRef: true, equipments: "groupItem" },
   legend: {
     min: { value: 0, color: "#0074FF" },
     median: { value: 10, color: "#FFFF00" },
