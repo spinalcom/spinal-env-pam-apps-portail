@@ -23,7 +23,10 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card elevation="4" class="cardContainer">
+  <v-card
+    elevation="4"
+    class="cardContainer d-flex align-center justify-center"
+  >
     <div
       class="dataContainer d-flex flex-column py-4"
       style="height: 100%; width: 100%"
@@ -180,10 +183,7 @@ import Component from "vue-class-component";
 import { IConfig } from "../../interfaces/IConfig";
 import { ISpaceSelectorItem } from "global-components";
 import { ActionTypes } from "../../interfaces/vuexStoreTypes";
-import lodash from "lodash";
-import { State } from "vuex-class";
 import { MutationTypes } from "../../services/store/appDataStore/mutations";
-import { mapState } from "vuex";
 import { regroupTicketByRoom } from "../../services/store/appDataStore/utils/ticketUtils";
 
 import SpriteComponent from "./SpriteComponent.vue";
@@ -194,11 +194,10 @@ import TicketComponent from "./TicketComponent.vue";
   filters: {},
 })
 class dataSideApp extends Vue {
-  // @State data!: any[];
-
   @Prop() config!: IConfig;
   @Prop() selectedZone: ISpaceSelectorItem;
   @Prop() data: any[];
+  @Prop() selectedIds: number[];
 
   PAGE_STATES: typeof PAGE_STATES = PAGE_STATES;
   pageSate: PAGE_STATES = PAGE_STATES.loading;
@@ -207,14 +206,22 @@ class dataSideApp extends Vue {
   domain_filter = <string[]>[];
   step_filter = <string[]>[];
 
+  tickets() {
+    const ids = this.selectedIds;
+    return this.data.map((t) =>
+      ids.includes(t.dynamicId) ? { ...t, rank: 0 } : { ...t, rank: 1 }
+    );
+  }
   domains() {
-    return [...new Set(this.data.map((t) => t.process.name))];
+    return [...new Set(this.tickets().map((t) => t.process.name))];
   }
 
   domainFilteredTickets() {
-    if (this.domain_filter.length === 0 || this.data.length === 0)
-      return this.data;
-    return this.data.filter((d) => this.domain_filter.includes(d.process.name));
+    if (this.domain_filter.length === 0 || this.tickets().length === 0)
+      return this.tickets();
+    return this.tickets().filter((d) =>
+      this.domain_filter.includes(d.process.name)
+    );
   }
   steps() {
     return [...new Set(this.domainFilteredTickets().map((t) => t.step.name))];
@@ -229,17 +236,18 @@ class dataSideApp extends Vue {
 
   sortedTickets() {
     this.$emit("download", this.stepFilteredTickets());
+    this.$emit("floorData", this.stepFilteredTickets());
+    this.updateSprites(this.stepFilteredTickets());
     return [...this.stepFilteredTickets()].sort(
-      (a, b) => a.priority - b.priority || a.creationDate - b.creationDate
+      (a, b) =>
+        a.rank - b.rank ||
+        a.priority - b.priority ||
+        a.creationDate - b.creationDate
     );
   }
 
   async mounted() {
     await this.retriveData("building");
-    // this.pageSate = PAGE_STATES.loaded;
-    // this.isBuildingSelected = true;
-    // const buildingId = localStorage.getItem("idBuilding");
-    // await this.$store.dispatch(ActionTypes.LOAD_TICKETS, {buildingId, config: this.config});
   }
 
   async retriveData(type: "building" | "geographicFloor" | "geographicRoom") {
@@ -288,35 +296,16 @@ class dataSideApp extends Vue {
     });
   }
 
-  /**
-   * Watch
-   */
-
-  @Watch("selectedZone")
-  watchSelectedZone() {
-    this.selectedZone.type == "building"
-      ? (this.isBuildingSelected = true)
-      : (this.isBuildingSelected = false);
-    this.retriveData(this.selectedZone.type);
-    // if (this.selectedZone.type === "building") {
-    //   this.isBuildingSelected = true;
-    //   this.$store.commit(MutationTypes.SET_DATA, []);
-    //   return;
-    // }
-
-    // this.isBuildingSelected = false;
-    // this.retriveData();
-  }
-
-  @Watch("data")
-  watchData() {
+  updateSprites(to_update) {
     const buildingId = localStorage.getItem("idBuilding");
 
     if (this.config.sprites)
       this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+
     if (this.isBuildingSelected) return;
+
     if (this.config.sprites && !this.isBuildingSelected) {
-      const regrouped_tickets = regroupTicketByRoom(this.data);
+      const regrouped_tickets = regroupTicketByRoom(to_update);
       const items = new Array();
       for (const key of Object.keys(regrouped_tickets)) {
         const [X, Y, Z] = regrouped_tickets[key]["XYZ center"].split(";");
@@ -327,18 +316,28 @@ class dataSideApp extends Vue {
           position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
         });
       }
-      this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-        items: items,
-        buildingId: buildingId,
-        component: SpriteComponent,
-      });
+      setTimeout(() => {
+        this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+          items: items,
+          buildingId: buildingId,
+          component: SpriteComponent,
+        });
+      }, 1000);
       return;
     }
-    // const buildingId = localStorage.getItem("idBuilding");
-    // this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
-    //   items: [],
-    //   buildingId: buildingId || this.selectedZone.staticId,
-    // });
+  }
+
+  @Watch("selectedZone")
+  watchSelectedZone() {
+    this.selectedZone.type == "building"
+      ? (this.isBuildingSelected = true)
+      : (this.isBuildingSelected = false);
+    this.retriveData(this.selectedZone.type);
+  }
+
+  @Watch("data")
+  watchData(newData) {
+    this.updateSprites(newData);
   }
 }
 

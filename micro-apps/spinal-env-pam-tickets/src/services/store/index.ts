@@ -21,11 +21,11 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-import Vue from 'vue';
-import Vuex, { Store as VuexStore, CommitOptions, DispatchOptions } from 'vuex';
-import { StateAppData, state } from './appDataStore/state';
-import { MutationsAppData, mutations } from './appDataStore/mutations';
-import { Actions, actions } from './appDataStore/actions';
+import Vue from "vue";
+import Vuex, { Store as VuexStore, CommitOptions, DispatchOptions } from "vuex";
+import { StateAppData, state } from "./appDataStore/state";
+import { MutationsAppData, mutations } from "./appDataStore/mutations";
+import { Actions, actions } from "./appDataStore/actions";
 Vue.use(Vuex);
 
 export const store = new Vuex.Store({
@@ -44,7 +44,7 @@ export interface IStoreModules {
 }
 
 // export type Store =
-export type Store = Omit<VuexStore<IStoreModules>, 'commit' | 'dispatch'> & {
+export type Store = Omit<VuexStore<IStoreModules>, "commit" | "dispatch"> & {
   commit<
     K extends keyof MutationsAppData,
     P extends Parameters<MutationsAppData[K]>[1]

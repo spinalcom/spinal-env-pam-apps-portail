@@ -25,23 +25,11 @@ with this file. If not, see
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
     <div class="selectors">
       <sc-download-button
-        fileName="insight_data"
-        csv
+        fileName="ticket_data"
         :data="to_download"
+        csv
         class="mr-2"
       ></sc-download-button>
-
-      <!--<div class="temporality">
-        <space-selector
-          :edge="false"
-          ref="space-selector2"
-          :open.sync="openTemporalitySelector"
-          :GetChildrenFct="onTemporalitySelectOpen"
-          :maxDepth="0"
-          v-model="temporalitySelected"
-          label="TEMPORALITÉ"
-        />
-      </div>-->
 
       <div class="space">
         <space-selector
@@ -65,17 +53,33 @@ with this file. If not, see
         :config="config"
         :selectedZone="selectedZone"
         :data="displayedData"
+        :selectedIds="selectedIds"
         @clickOnDataView="onDataViewClicked"
         @display="showDetails"
         @download="downloadList"
+        @floorData="updateSpriteData"
       ></dataSideApp>
     </div>
+
+    <sprite-component
+      v-if="selectedZone && selectedZone.type === 'geographicFloor'"
+      :data="spriteData"
+      style="
+        position: absolute;
+        z-index: 99;
+        left: calc(60% - 99px);
+        top: 50%;
+        width: 35px;
+      "
+    ></sprite-component>
 
     <sc-ticket-detail
       v-if="detailedTicket"
       style="z-index: 999"
       v-model="showDialog"
       :detailed-ticket="detailedTicket"
+      :token="token"
+      :baseURL="baseUrl"
     ></sc-ticket-detail>
   </v-app>
 
@@ -119,23 +123,19 @@ import {
 } from "spinal-viewer-event-manager";
 
 import dataSideApp from "./components/data-side/App.vue";
+import SpriteComponent from "./components/data-side/FloorSpriteComponent.vue";
+import { SpinalAPI } from "./services/spinalAPI/SpinalAPI";
 
 const COLORS = ["#FF0000", "#FFA500", "#008000"];
-interface IItemData {
-  platformId: string;
-  id: number | number[];
-}
-
-interface IItemDatatmp {
-  platformId: string;
-  id: Set<number>;
-}
+const buildingId = localStorage.getItem("idBuilding") || "";
+const token = localStorage.getItem("token") || "";
 
 @Component({
   components: {
     SpaceSelector,
     viewerApp,
     dataSideApp,
+    SpriteComponent,
   },
 })
 class App extends Vue {
@@ -152,6 +152,10 @@ class App extends Vue {
 
   detailedTicket = null;
   showDialog = false;
+  token: String = token;
+  baseUrl: String = "";
+
+  spriteData: any = {};
 
   to_download = <any[]>[];
 
@@ -167,9 +171,17 @@ class App extends Vue {
       // const buildingId = localStorage.getItem("idBuilding");
       // await this.$store.dispatch(ActionTypes.GET_GROUPS_ITEMS, { config, buildingId });
       this.pageSate = PAGE_STATES.loaded;
+      this.baseUrl = SpinalAPI.getInstance().createUrlWithPlatformId(
+        buildingId,
+        "node"
+      );
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
+  }
+
+  public get selectedIds(): number[] {
+    return this.$store.state.appDataStore.itemSelected || [];
   }
 
   public get selectedZone(): ISpaceSelectorItem {
@@ -178,18 +190,9 @@ class App extends Vue {
 
   public set selectedZone(v: ISpaceSelectorItem) {
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
-
     // if (v.type.includes("geographic")) {
     //   this.$store.dispatch(ActionTypes.OPEN_VIEWER, v);
     // }
-  }
-
-  public get temporalitySelected(): ISpaceSelectorItem {
-    return this.$store.state.appDataStore.temporalitySelected;
-  }
-
-  public set temporalitySelected(v: ISpaceSelectorItem) {
-    this.$store.commit(MutationTypes.SET_TEMPORALITY, v);
   }
 
   downloadList(tickets) {
@@ -312,21 +315,6 @@ class App extends Vue {
     if (parent) this.selectedZone = parent;
   }
 
-  private getItemData(item: TGeoItem | TGeoItem[]): IItemData {
-    const res: IItemDatatmp = {
-      platformId: this.selectedZone.platformId,
-      id: new Set(),
-    };
-    const datas = Array.isArray(item) ? item : [item];
-    for (const data of datas) {
-      res.id.add(data.dynamicId!);
-    }
-    return {
-      platformId: res.platformId,
-      id: res.id.size > 0 ? Array.from(res.id) : res.id.values().next().value,
-    };
-  }
-
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
     if (!item) return;
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
@@ -385,6 +373,16 @@ class App extends Vue {
     return this.$store.state.appDataStore.data;
   }
 
+  updateSpriteData(data) {
+    this.spriteData = {
+      buildingId: this.selectedZone.buildingId,
+      dynamicId: this.selectedZone.dynamicId,
+      data: data.filter(
+        (d) => d.elementSelected.dynamicId === this.selectedZone.dynamicId
+      ),
+    };
+  }
+
   public getDataFormatted() {
     // color displayedValue name staticId type
     const d = [this._getHeader(), ...this._getRows(this.displayedData)];
@@ -430,12 +428,6 @@ export default App;
     right: 5px;
     height: $selectorHeight;
     width: 100%;
-
-    .temporality {
-      position: relative;
-      width: 200px;
-      height: $selectorHeight;
-    }
 
     .space {
       position: relative;

@@ -40,7 +40,7 @@ Vue.use(SpinalComponents, {});
 
 import "vuetify/dist/vuetify.min.css";
 
-Vue.use(FloatingVue);
+//Vue.use(FloatingVue);
 Vue.use(Vuetify);
 const vuetify = new Vuetify({
   theme: {

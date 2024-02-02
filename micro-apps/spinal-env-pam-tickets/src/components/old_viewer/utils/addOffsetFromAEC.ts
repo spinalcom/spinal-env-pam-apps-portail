@@ -44,8 +44,6 @@ export async function addOffsetFromAEC(
       // @ts-ignore
       return new THREE.Vector3().copy(refPoint);
     }
-
-    console.log("hello", distSqr, globalOffset, refPoint);
   }
 
   return globalOffset;

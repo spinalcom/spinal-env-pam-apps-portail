@@ -141,7 +141,6 @@ async function getFirstScene(spinalAPi: SpinalAPI, buildingId: string) {
 
 // export async function getAndFormatModels(res: IViewInfoTmpRes[]) {
 //   return res.map((it: IViewInfoTmpRes) => {
-//     console.log(it);
 //     return {
 //       id: it.bimFileId,
 //       dbIds: Array.from(it.dbIds),

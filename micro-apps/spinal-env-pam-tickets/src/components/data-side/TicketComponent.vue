@@ -62,9 +62,33 @@ with this file. If not, see
           </v-btn>
         </div>
       </div>
-      <div class="px-3">
-        <div class="bar-title-section mb-1">
-          {{ data.elementSelected.name }}
+      <div class="pl-3" style="width: calc(100% - 150px); height: 25px">
+        <div style="width: 100%" class="d-flex flex-row justify-space-between">
+          <div class="bar-title-section mb-1" style="width: calc(50% - 4px)">
+            <span
+              style="
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                display: block;
+              "
+            >
+              {{ data.elementSelected.name }}
+            </span>
+          </div>
+          <div
+            style="
+              width: calc(50% - 4px);
+              text-overflow: ellipsis;
+              text-align: end;
+              white-space: nowrap;
+              display: block;
+            "
+          >
+            {{ data.step.name }}
+            <v-icon v-if="data.file_list.length" style="color: green"
+              >mdi-paperclip</v-icon
+            >
+          </div>
         </div>
         <div class="mb-4 bar-title-nom">{{ data.name }}</div>
         <div style="">
@@ -77,7 +101,6 @@ with this file. If not, see
           </div>
         </div>
       </div>
-      <div class="status-label">{{ data.step.name }}</div>
     </div>
   </v-card>
 </template>
@@ -94,7 +117,7 @@ class TicketComponent extends Vue {
   // @State data!: any[];
 
   @Prop() data: any;
-  color = ["red", "yellow", "green", "blue"];
+  color = ["red", "yellow", "green"];
 
   async mounted() {}
 

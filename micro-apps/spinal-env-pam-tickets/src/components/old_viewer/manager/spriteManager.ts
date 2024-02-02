@@ -76,11 +76,9 @@ export class SpriteManager {
 
 		for (const d of data) {
 			if (!d.component) continue;
-			console.log(d);
 
 			const VueComponent = Vue.extend(d.component);
 			const vueInstance = new VueComponent({ propsData: d });
-			console.log(vueInstance)
 			const label = new Autodesk.Edit3D.Label3D(viewer, d.position, "");
 			label.container.appendChild(vueInstance.$mount().$el);
 			this.label3Ds.push(

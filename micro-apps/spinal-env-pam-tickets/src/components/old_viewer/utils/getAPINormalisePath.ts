@@ -29,7 +29,6 @@ export function getAPINormalisePath(
   let res = path;
   const orig = process.env.SPINAL_API_URL || "";
   if (!path.startsWith("/")) path = "/" + path;
-
   if (!/https?:\/\//.test(path)) {
     res = `${orig}${
       orig.endsWith("/") ? "" : "/"

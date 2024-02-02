@@ -82,6 +82,7 @@ export class ViewerUtils {
     return load1stThenAll(
       tasks,
       async (d: IloadModelTask): Promise<Autodesk.Viewing.Model> => {
+        console.log("load", d);
         // return this._loadBimFile(viewer, d.path, data.loadingType as any, d.id, d.dbids, d.aecPath, data.buildingId);
         return this._loadBimFile(
           viewer,
@@ -136,7 +137,7 @@ export class ViewerUtils {
   }
 
   public clearSelect(viewer: Autodesk.Viewing.Viewer3D): void {
-    viewer.clearSelection();
+    viewer?.clearSelection();
   }
 
   public viewerSelect(
@@ -313,21 +314,18 @@ export class ViewerUtils {
     await this._waitModelIsLoading();
 
     const promises = data.map(async (item) => {
-      const data = item.data.map(({ bimFileId, dbIds }) => ({
-        dbIds,
-        model: this._getModel(item.modelId, bimFileId),
-      }));
-      console.log("addComponentAsSprite", item);
+      const data = item.parent;
+      // const data = item.data.map(({ bimFileId, dbIds }) => ({ dbIds, model: this._getModel(item.modelId, bimFileId) }));
 
       return {
-        modelId: item.modelId,
-        color: item.color,
-        value: item.value,
-        models: data,
-        dbId: data[0]?.dbIds[0],
+        // modelId: item.modelId,
+        // color: item.color,
+        // value: item.value,
+        // models: data,
+        // dbId: data[0]?.dbIds[0],
         position: item.position || (await getPosition(data)),
         // position: await getPosition(data),
-        data: item.parent,
+        data: data,
         component: item.component,
       };
     });
@@ -460,7 +458,7 @@ export class ViewerUtils {
     });
   }
 
-  /*private _fireAggregateSelectionChangedEvent(
+  private _fireAggregateSelectionChangedEvent(
     viewer: Autodesk.Viewing.Viewer3D
   ) {
     var perModel: any[] = [];
@@ -530,7 +528,7 @@ export class ViewerUtils {
       if (found.length !== models.length) return false;
     }
     return true;
-  }*/
+  }
 
   private async _waitModelIsLoading(): Promise<boolean> {
     const _self = this;

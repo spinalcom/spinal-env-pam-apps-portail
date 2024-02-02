@@ -27,9 +27,9 @@ import { IConfig, ITemporality } from "./interfaces/IConfig";
 export const ticketConfig = {
   buildingName: "Patrimoine DEI",
   steps: {
-    closed: ["Archived", "Refusée"],
+    closed: ["Archived", "Refusée", "Clôturée"],
   },
-  workflowList: ["Demande d'intervention"],
+  workflowList: ["Ticket Mission", "Demande d'intervention"],
 };
 
 export const config: IConfig = {

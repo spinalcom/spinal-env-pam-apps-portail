@@ -1,13 +1,13 @@
 <template>
   <div
-    class="sprite_container pa-1"
+    class="sprite_container rounded-circle pa-1"
     :style="{
       background: `conic-gradient(green ${gradient.firstStep}deg, orange ${gradient.firstStep}deg ${gradient.lastStep}deg, red ${gradient.lastStep}deg)`,
     }"
     @click="onClick"
   >
     <div
-      class="sprite_color d-flex align-center justify-center"
+      class="sprite_color rounded-circle d-flex flex-grow-1 align-center justify-center"
       :style="{
         background: '#14202C',
         color: '#FFFFFF',
@@ -56,9 +56,9 @@ export default {
 
   computed: {
     gradient() {
-      const len = this.data.data.length;
-      const low = this.data.data.filter((d) => d.priority == 2).length;
-      const mid = this.data.data.filter((d) => d.priority == 1).length;
+      const len = this.data?.data?.length || 1;
+      const low = this.data?.data?.filter((d) => d.priority == 2)?.length || 0;
+      const mid = this.data?.data?.filter((d) => d.priority == 1)?.length || 0;
       const first = Math.round(360 * (low / len));
       const last = first + Math.round(360 * (mid / len));
       return {
@@ -74,7 +74,7 @@ export default {
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
       store.dispatch(ActionTypes.SELECT_ITEMS, { node: this.data });
-      //this._isSelected();
+      // this._isSelected();
     },
     _isSelected() {
       this.dynamicStyle = {
@@ -92,21 +92,21 @@ export default {
 
 <style scoped>
 .sprite_container {
-  width: "fit-content";
-  height: "fit-content";
+  aspect-ratio: 1/1;
+  /*width: "fit-content";
+  height: "fit-content";*/
   box-shadow: none;
   color: transparent;
   /* border-radius: 100%; */
   display: flex;
   flex-direction: row;
   align-items: center;
-  border-radius: 100%;
   /*z-index: 99999;*/
 }
 .sprite_color {
-  width: 20px;
-  height: 20px;
-  border-radius: 100%;
+  aspect-ratio: 1/1;
+  /*width: 30px;
+  height: 30px;*/
   /* border: 3px solid #F9F9F9; */
   /* border: 3px solid; */
   /*z-index: 2;*/
