@@ -23,9 +23,12 @@ with this file. If not, see
 -->
 
 <template>
-  <!-- <div>{{ data.name }}</div> -->
-  <v-card class="bar-bloc-left rounded-lg" elevation="2">
-    <div style="display: flex" class="px-3 py-2">
+  <v-card
+    class="bar-bloc-left"
+    :style="{ border: selected ? '2px solid #00A2FF' : '' }"
+    elevation="2"
+  >
+    <div style="display: flex" class="px-3 py-2 overflow-y-hidden">
       <div class="flex-col">
         <div style="width: 150px">
           <div
@@ -48,7 +51,7 @@ with this file. If not, see
           </div>
         </div>
         <div
-          class="icon-bloc d-flex flex-row justify-space-around align-center"
+          class="icon-bloc d-flex flex-row justify-space-around align-center py-1"
         >
           <v-btn @click="$emit('display', data)">
             <v-icon>mdi-eye</v-icon>
@@ -64,24 +67,40 @@ with this file. If not, see
       </div>
       <div class="pl-3" style="width: calc(100% - 150px); height: 25px">
         <div style="width: 100%" class="d-flex flex-row justify-space-between">
-          <div class="bar-title-section mb-1" style="width: calc(50% - 4px)">
+          <div
+            @mouseover="spaceHovered = true"
+            @mouseleave="spaceHovered = false"
+            class="bar-title-section mb-1"
+            style="width: calc(50% - 4px)"
+          >
             <span
-              style="
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                display: block;
+              :style="
+                spaceHovered
+                  ? { overflow: 'visible' }
+                  : {
+                      overflow: 'hidden',
+                      'text-overflow': 'ellipsis',
+                      'white-space': 'nowrap',
+                      display: 'block',
+                    }
               "
             >
               {{ data.elementSelected.name }}
             </span>
           </div>
           <div
-            style="
-              width: calc(50% - 4px);
-              text-overflow: ellipsis;
-              text-align: end;
-              white-space: nowrap;
-              display: block;
+            @mouseover="stepHovered = true"
+            @mouseleave="stepHovered = false"
+            style="width: calc(50% - 4px); text-align: end"
+            :style="
+              stepHovered
+                ? { overflow: 'visible' }
+                : {
+                    overflow: 'hidden',
+                    'text-overflow': 'ellipsis',
+                    'white-space': 'nowrap',
+                    display: 'block',
+                  }
             "
           >
             {{ data.step.name }}
@@ -90,15 +109,60 @@ with this file. If not, see
             >
           </div>
         </div>
-        <div class="mb-4 bar-title-nom">{{ data.name }}</div>
-        <div style="">
-          <div class="flex-col">
+        <div
+          @mouseover="titleHovered = true"
+          @mouseleave="titleHovered = false"
+          class="mb-4 bar-title-nom"
+          :style="
+            titleHovered
+              ? { overflow: 'visible' }
+              : {
+                  overflow: 'hidden',
+                  'text-overflow': 'ellipsis',
+                  'white-space': 'nowrap',
+                  display: 'block',
+                }
+          "
+        >
+          {{ data.name }}
+        </div>
+        <div
+          @mouseover="processHovered = true"
+          @mouseleave="processHovered = false"
+          class="flex-col"
+        >
+          <span
+            :style="
+              processHovered
+                ? { overflow: 'visible' }
+                : {
+                    overflow: 'hidden',
+                    'text-overflow': 'ellipsis',
+                    'white-space': 'nowrap',
+                    display: 'block',
+                  }
+            "
+          >
             {{ data.process.name }}
-            <div class="text-description">
-              {{ data.description }}
-            </div>
-            <!-- <div class="text-description">Le texte de description 2 ++</div> -->
+          </span>
+          <div
+            @mouseover="descriptionHovered = true"
+            @mouseleave="descriptionHovered = false"
+            :style="
+              descriptionHovered
+                ? { overflow: 'visible' }
+                : {
+                    overflow: 'hidden',
+                    'text-overflow': 'ellipsis',
+                    'white-space': 'nowrap',
+                    display: 'block',
+                  }
+            "
+            class="text-description"
+          >
+            {{ data.description }}
           </div>
+          <!-- <div class="text-description">Le texte de description 2 ++</div> -->
         </div>
       </div>
     </div>
@@ -117,7 +181,18 @@ class TicketComponent extends Vue {
   // @State data!: any[];
 
   @Prop() data: any;
-  color = ["red", "yellow", "green"];
+  color = ["red", "orange", "green"];
+  spaceHovered = false;
+  stepHovered = false;
+  titleHovered = false;
+  processHovered = false;
+  descriptionHovered = false;
+
+  public get selected() {
+    return this.$store.state.appDataStore.ticketsSelected.includes(
+      this.data.dynamicId
+    );
+  }
 
   async mounted() {}
 
@@ -170,9 +245,7 @@ export default TicketComponent;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   letter-spacing: 1.1px;
   font-size: 24px;
-  // font-size: 15px;
   font-weight: 100;
-
   color: #14202c;
 }
 

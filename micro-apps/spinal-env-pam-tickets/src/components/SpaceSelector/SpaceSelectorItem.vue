@@ -121,12 +121,7 @@ class SpaceSelectorItem extends Vue {
   @Prop({ type: String, required: false }) viewButtonsType!: string;
 
   public get isSelected(): boolean {
-    return (
-      this.item.patrimoineId === this.selected.patrimoineId &&
-      this.item.platformId === this.selected.platformId &&
-      (this.item.staticId === this.selected?.staticId ||
-        this.selected?.parents?.includes(this.item.staticId))
-    );
+    return this.item.dynamicId === this.selected.dynamicId;
   }
 
   public get color(): string {

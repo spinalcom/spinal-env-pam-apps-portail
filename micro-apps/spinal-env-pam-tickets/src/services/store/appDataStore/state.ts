@@ -22,23 +22,30 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import type { IEquipmentItem, IZoneItem } from "../../../components/SpaceSelector";
+import type {
+  IEquipmentItem,
+  IZoneItem,
+} from "../../../components/SpaceSelector";
 import type { IViewInfoItemRes } from "../../../services/spinalAPI/GeographicContext/getViewInfo";
 import type { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
-import { defaultTemporalitySelected, defaultZoneSelected } from "./utils/defaultZoneSelected";
+import {
+  defaultTemporalitySelected,
+  defaultZoneSelected,
+} from "./utils/defaultZoneSelected";
 import { INodeItemTree } from "../../../interfaces/INodeItem";
 
 export type StateAppData = typeof state;
 export const state = {
-	buildings: [] as IGetAllBuildingsRes[],
-	zoneSelected: defaultZoneSelected(),
-	temporalitySelected: defaultTemporalitySelected(),
-	floors: {} as Record<string, IZoneItem[]>,
-	rooms: {} as Record<number, IZoneItem[]>,
-	roomBimObj: {} as Record<number, IEquipmentItem[]>,
-	buildingInfo: {} as Record<number, IViewInfoItemRes[]>,
-	viewerStartedList: {} as { [key: string]: string },
-	itemSelected: undefined,
-	dataVizExtn: undefined,
-	data: undefined as any,
+  buildings: [] as IGetAllBuildingsRes[],
+  zoneSelected: defaultZoneSelected(),
+  temporalitySelected: defaultTemporalitySelected(),
+  floors: {} as Record<string, IZoneItem[]>,
+  rooms: {} as Record<number, IZoneItem[]>,
+  roomBimObj: {} as Record<number, IEquipmentItem[]>,
+  buildingInfo: {} as Record<number, IViewInfoItemRes[]>,
+  viewerStartedList: {} as { [key: string]: string },
+  itemSelected: undefined,
+  dataVizExtn: undefined,
+  data: undefined as any,
+  ticketsSelected: <number[]>[],
 };

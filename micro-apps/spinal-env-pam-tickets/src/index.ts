@@ -29,28 +29,40 @@ SpinalAPI.getInstance(process.env.SPINAL_API_URL);
 import Vue from "vue";
 import App from "./App.vue";
 import Vuetify from "vuetify";
+import "vuetify/dist/vuetify.min.css";
+
 import { store } from "./services/store";
 import FloatingVue from "floating-vue";
 import "floating-vue/dist/style.css";
+
+import colors from "vuetify/lib/util/colors";
+import "@mdi/font/css/materialdesignicons.css";
+
 import SpinalComponents from "spinal-components";
 import "spinal-components/dist/spinal-components.css";
 import "../../../assets/scss/style.scss";
 
 Vue.use(SpinalComponents, {});
 
-import "vuetify/dist/vuetify.min.css";
-
-//Vue.use(FloatingVue);
+Vue.use(FloatingVue);
 Vue.use(Vuetify);
 const vuetify = new Vuetify({
   theme: {
     themes: {
       light: {
-        primary: "#14202c", // #E53935
-        secondary: "#14202c", // #FFCDD2
-        accent: "#14202c", // #3F51B5
+        primary: colors.red.darken1, // #E53935
+        secondary: colors.red.lighten4, // #FFCDD2
+        accent: colors.blueGrey.darken1, // #3F51B5 blue-grey darken-1
+        good: colors.teal.accent3, // #1DE9B6
+        moderate: colors.yellow.lighten1, // #FFEE58
+        unhealthy: colors.orange.lighten1, // #FFA726
+        hazardous: colors.red.accent3, // #FF1744
+        semiTransparent: colors.red.accent3, // FF1744
       },
     },
+  },
+  icons: {
+    iconfont: "mdi",
   },
 });
 // import './css/basic/main.less';

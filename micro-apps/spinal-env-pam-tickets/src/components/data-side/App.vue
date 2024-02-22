@@ -32,32 +32,61 @@ with this file. If not, see
       style="height: 100%; width: 100%"
       v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected"
     >
-      <div
-        style="background-color: #eaeef0; width: calc(50% - 16px)"
-        class="d-flex flex-row pa-2 mx-4 align-stretch rounded"
-      >
-        <v-btn elevation="0" style="background-color: #fff; height: 100%">
-          <v-icon>mdi-book-plus-outline</v-icon>
-        </v-btn>
-        <div class="d-flex flex-column ml-2">
-          <div>déclaration d'un</div>
-          <div class="font-weight-bold">TICKET DE MAINTENANCE</div>
-        </div>
-      </div>
-      <div
-        style="width: calc(100% - 32px)"
-        class="d-flex flex-row justify-space-between mt-5 mx-4"
-      >
+      <div class="d-flex flex-row justify-space-between mt-5 mx-4">
         <v-select
           color="#14202C"
           background-color="#eaeef0"
-          style="width: calc(50% - 8px)"
+          style="width: calc(100%)"
+          solo
+          flat
+          @click.stop
+          v-model="workflow_filter"
+          label="Tous les workflows"
+          placeholder="Tous les workflows"
+          :items="workflows()"
+          append-icon="mdi-chevron-down"
+          clearable
+          clear-icon="mdi-close-circle-outline"
+          multiple
+          menu-props="offset-y"
+        >
+          <template v-slot:selection="{ item, index }">
+            <v-chip
+              @click:close="
+                domain_filter = workflow_filter.filter((w) => w !== item)
+              "
+              close
+              :close-icon="'mdi-close-circle'"
+              style="
+                font-size: 11px;
+                height: 24px;
+                max-width: calc(100% - 50px);
+              "
+              v-if="index < 1"
+            >
+              <span style="max-width: 90%; overflow: hidden">{{ item }}</span>
+            </v-chip>
+
+            <span
+              v-if="index === 1"
+              class="text-grey text-caption align-self-center"
+            >
+              (+{{ workflow_filter.length - 1 }})
+            </span>
+          </template>
+        </v-select>
+      </div>
+      <div class="d-flex flex-row justify-space-between mx-4">
+        <v-select
+          color="#14202C"
+          background-color="#eaeef0"
+          style="max-width: calc(50% - 4px)"
           solo
           flat
           @click.stop
           v-model="domain_filter"
-          label="Domaine"
-          placeholder="Domaine"
+          label="Tous les domaines"
+          placeholder="Tous les domaines"
           :items="domains()"
           append-icon="mdi-chevron-down"
           clearable
@@ -93,13 +122,13 @@ with this file. If not, see
         <v-select
           color="#14202C"
           background-color="#eaeef0"
-          style="width: calc(50% - 8px)"
+          style="max-width: calc(50% - 4px)"
           solo
           flat
           @click.stop
           v-model="step_filter"
-          label="Étape"
-          placeholder="Étape"
+          label="Toutes les étapes"
+          placeholder="Toutes les étapes"
           :items="steps()"
           append-icon="mdi-chevron-down"
           clearable
@@ -197,7 +226,7 @@ class dataSideApp extends Vue {
   @Prop() config!: IConfig;
   @Prop() selectedZone: ISpaceSelectorItem;
   @Prop() data: any[];
-  @Prop() selectedIds: number[];
+  @Prop() selectedId: number;
 
   PAGE_STATES: typeof PAGE_STATES = PAGE_STATES;
   pageSate: PAGE_STATES = PAGE_STATES.loading;
@@ -205,21 +234,38 @@ class dataSideApp extends Vue {
   retry: Function;
   domain_filter = <string[]>[];
   step_filter = <string[]>[];
+  workflow_filter = <string[]>[];
 
   tickets() {
-    const ids = this.selectedIds;
     return this.data.map((t) =>
-      ids.includes(t.dynamicId) ? { ...t, rank: 0 } : { ...t, rank: 1 }
+      this.selectedId == t.elementSelected.dynamicId
+        ? { ...t, rank: 0 }
+        : { ...t, rank: 1 }
     );
   }
+
+  workflows() {
+    return [...new Set(this.tickets().map((t) => t.workflowName))];
+  }
+
+  workflowsFilteredTickets() {
+    if (this.workflow_filter.length === 0 || this.tickets().length === 0)
+      return this.tickets();
+    return this.tickets().filter((t) =>
+      this.workflow_filter.includes(t.workflowName)
+    );
+  }
+
   domains() {
-    return [...new Set(this.tickets().map((t) => t.process.name))];
+    return [
+      ...new Set(this.workflowsFilteredTickets().map((t) => t.process.name)),
+    ];
   }
 
   domainFilteredTickets() {
-    if (this.domain_filter.length === 0 || this.tickets().length === 0)
-      return this.tickets();
-    return this.tickets().filter((d) =>
+    if (this.domain_filter.length === 0 || this.data.length === 0)
+      return this.workflowsFilteredTickets();
+    return this.workflowsFilteredTickets().filter((d) =>
       this.domain_filter.includes(d.process.name)
     );
   }
@@ -237,7 +283,6 @@ class dataSideApp extends Vue {
   sortedTickets() {
     this.$emit("download", this.stepFilteredTickets());
     this.$emit("floorData", this.stepFilteredTickets());
-    this.updateSprites(this.stepFilteredTickets());
     return [...this.stepFilteredTickets()].sort(
       (a, b) =>
         a.rank - b.rank ||
@@ -290,10 +335,16 @@ class dataSideApp extends Vue {
 
   locateTicket(ticket) {
     const buildingId = localStorage.getItem("idBuilding");
+    this.$store.commit(MutationTypes.SET_SELECTED_TICKETS, [ticket.dynamicId]);
     this.$store.dispatch(ActionTypes.SELECT_ITEMS, {
       ...ticket.elementSelected,
       buildingId,
     });
+    this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
+      String(ticket.elementSelected.dynamicId),
+    ]);
+    const floor = document.querySelector("#floor-sprite");
+    floor?.dispatchEvent(new Event("clickExteriorSprite"));
   }
 
   updateSprites(to_update) {
@@ -338,6 +389,21 @@ class dataSideApp extends Vue {
   @Watch("data")
   watchData(newData) {
     this.updateSprites(newData);
+  }
+
+  @Watch("workflow_filter")
+  watchWorkflow() {
+    this.updateSprites(this.stepFilteredTickets());
+  }
+
+  @Watch("domain_filter")
+  watchDomain() {
+    this.updateSprites(this.stepFilteredTickets());
+  }
+
+  @Watch("step_filter")
+  watchStep() {
+    this.updateSprites(this.stepFilteredTickets());
   }
 }
 

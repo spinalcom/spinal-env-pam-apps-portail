@@ -53,7 +53,7 @@ with this file. If not, see
         :config="config"
         :selectedZone="selectedZone"
         :data="displayedData"
-        :selectedIds="selectedIds"
+        :selectedId="selectedId"
         @clickOnDataView="onDataViewClicked"
         @display="showDetails"
         @download="downloadList"
@@ -66,7 +66,7 @@ with this file. If not, see
       :data="spriteData"
       style="
         position: absolute;
-        z-index: 99;
+        z-index: 9;
         left: calc(60% - 99px);
         top: 50%;
         width: 35px;
@@ -75,7 +75,7 @@ with this file. If not, see
 
     <sc-ticket-detail
       v-if="detailedTicket"
-      style="z-index: 999"
+      style="z-index: 99"
       v-model="showDialog"
       :detailed-ticket="detailedTicket"
       :token="token"
@@ -180,8 +180,8 @@ class App extends Vue {
     }
   }
 
-  public get selectedIds(): number[] {
-    return this.$store.state.appDataStore.itemSelected || [];
+  public get selectedId(): number {
+    return this.$store.state.appDataStore.itemSelected?.dynamicId || 0;
   }
 
   public get selectedZone(): ISpaceSelectorItem {
@@ -217,12 +217,10 @@ class App extends Vue {
     switch (item?.type) {
       case undefined:
         const buildingId = localStorage.getItem("idBuilding");
-
-        const promises = [
-          this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }),
-        ];
-
-        const [building, items] = await Promise.all(promises);
+        const building = await this.$store.dispatch(
+          ActionTypes.GET_BUILDING_BY_ID,
+          { buildingId }
+        );
 
         return [
           {
@@ -240,23 +238,25 @@ class App extends Vue {
             buildingId: item.staticId,
             patrimoineId: item.patrimoineId,
           })
-        ).map((floor) => {
-          const ticket = data.filter(
-            (t) =>
-              t.elementSelected.position.floor.dynamicId === floor.dynamicId
-          );
-          return {
-            ...floor,
-            counts: ticket.length
-              ? [0, 1, 2].map((c) => {
-                  return {
-                    color: COLORS[c],
-                    value: ticket.filter((t) => t.priority == c).length,
-                  };
-                })
-              : [],
-          };
-        });
+        )
+          .map((floor) => {
+            const ticket = data.filter(
+              (t) =>
+                t.elementSelected.position.floor.dynamicId === floor.dynamicId
+            );
+            return {
+              ...floor,
+              counts: ticket.length
+                ? [0, 1, 2].map((c) => {
+                    return {
+                      color: COLORS[c],
+                      value: ticket.filter((t) => t.priority == c).length,
+                    };
+                  })
+                : [],
+            };
+          })
+          .filter((r) => r.counts.length);
       case "geographicFloor":
         //@ts-ignore
         return (
@@ -266,24 +266,26 @@ class App extends Vue {
             patrimoineId: item.patrimoineId,
             id: item.dynamicId,
           })
-        ).map((room) => {
-          const ticket = data.filter(
-            (t) =>
-              t.elementSelected.dynamicId === room.dynamicId ||
-              t.elementSelected.position?.room?.dynamicId === room.dynamicId
-          );
-          return {
-            ...room,
-            counts: ticket.length
-              ? [0, 1, 2].map((c) => {
-                  return {
-                    color: COLORS[c],
-                    value: ticket.filter((t) => t.priority == c).length,
-                  };
-                })
-              : [],
-          };
-        });
+        )
+          .map((room) => {
+            const ticket = data.filter(
+              (t) =>
+                t.elementSelected.dynamicId === room.dynamicId ||
+                t.elementSelected.position?.room?.dynamicId === room.dynamicId
+            );
+            return {
+              ...room,
+              counts: ticket.length
+                ? [0, 1, 2].map((c) => {
+                    return {
+                      color: COLORS[c],
+                      value: ticket.filter((t) => t.priority == c).length,
+                    };
+                  })
+                : [],
+            };
+          })
+          .filter((r) => r.counts.length);
       default:
         return [];
     }
@@ -384,7 +386,6 @@ class App extends Vue {
   }
 
   public getDataFormatted() {
-    // color displayedValue name staticId type
     const d = [this._getHeader(), ...this._getRows(this.displayedData)];
     return d;
   }
@@ -414,6 +415,9 @@ export default App;
 </script>
 
 <style scoped lang="scss">
+::v-deep .card-colored {
+  background-color: #14202c !important;
+}
 .app {
   width: 100%;
   height: 100%;

@@ -136,7 +136,7 @@ export class ViewerUtils {
   }
 
   public clearSelect(viewer: Autodesk.Viewing.Viewer3D): void {
-    viewer.clearSelection();
+    viewer?.clearSelection();
   }
 
   public viewerSelect(
@@ -317,7 +317,7 @@ export class ViewerUtils {
         dbIds,
         model: this._getModel(item.modelId, bimFileId),
       }));
-      console.log("addComponentAsSprite", item);
+      //console.log("addComponentAsSprite", item);
 
       return {
         modelId: item.modelId,

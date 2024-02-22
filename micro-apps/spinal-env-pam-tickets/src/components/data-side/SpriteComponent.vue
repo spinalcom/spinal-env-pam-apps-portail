@@ -4,7 +4,7 @@
     :style="{
       background: `conic-gradient(green ${gradient.firstStep}deg, orange ${gradient.firstStep}deg ${gradient.lastStep}deg, red ${gradient.lastStep}deg)`,
     }"
-    @click="onClick"
+    @click.stop="onClick()"
   >
     <div
       class="sprite_color d-flex align-center justify-center"
@@ -26,6 +26,7 @@ import {
 } from "spinal-viewer-event-manager";
 import { store } from "../../services/store";
 import { ActionTypes } from "../../interfaces/vuexStoreTypes";
+import { MutationTypes } from "../../services/store/appDataStore/mutations";
 
 export default {
   props: {
@@ -73,8 +74,13 @@ export default {
     onClick() {
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
-      store.dispatch(ActionTypes.SELECT_ITEMS, { node: this.data });
-      //this._isSelected();
+      store.dispatch(ActionTypes.SELECT_SPRITES, [this.data.dynamicId]);
+      store.commit(
+        MutationTypes.SET_SELECTED_TICKETS,
+        this.data.data.map((d) => d.dynamicId)
+      );
+      const floor = document.querySelector("#floor-sprite");
+      floor.dispatchEvent(new Event("clickExteriorSprite"));
     },
     _isSelected() {
       this.dynamicStyle = {
@@ -96,37 +102,14 @@ export default {
   height: "fit-content";
   box-shadow: none;
   color: transparent;
-  /* border-radius: 100%; */
   display: flex;
   flex-direction: row;
   align-items: center;
   border-radius: 100%;
-  /*z-index: 99999;*/
 }
 .sprite_color {
   width: 20px;
   height: 20px;
   border-radius: 100%;
-  /* border: 3px solid #F9F9F9; */
-  /* border: 3px solid; */
-  /*z-index: 2;*/
 }
-.sprite_value_unit {
-  /* border: 2px solid #F9F9F9; */
-  /* border: 2px solid;  */
-  border-radius: 100px;
-  color: #14202c;
-  margin-left: -15px;
-  padding-left: 15px;
-  padding-right: 5px;
-  padding-bottom: 1px;
-  height: 15px;
-  font-size: 14px;
-  background: #f9f9f9;
-  /*z-index: 1;*/
-}
-/* 
-  .sprite_container:hover {
-    cursor: pointer;
-  } */
 </style>

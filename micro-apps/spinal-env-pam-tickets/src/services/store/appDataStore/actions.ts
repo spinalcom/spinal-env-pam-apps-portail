@@ -412,11 +412,6 @@ export const actions = {
     return ViewerManager.getInstance().getViewerInfoMerged(playload);
   },
   [ActionTypes.SELECT_ITEMS]({ commit, dispatch, state }, playload: any) {
-    const tickets = playload.node?.data || [];
-    commit(
-      MutationTypes.SET_ITEM_SELECTED,
-      tickets.map((t: any) => t.dynamicId)
-    );
     ViewerManager.getInstance().select(playload);
   },
 
