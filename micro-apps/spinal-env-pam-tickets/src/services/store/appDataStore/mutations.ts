@@ -31,7 +31,6 @@ import type { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRe
 import { IViewInfoItemRes } from "../../../services/spinalAPI/GeographicContext/getViewInfo";
 import type { MutationTree } from "vuex";
 import type { StateAppData } from "./state";
-import { stat } from "fs";
 import { INodeItemTree } from "../../../interfaces/INodeItem";
 
 export enum MutationTypes {

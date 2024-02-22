@@ -65,9 +65,6 @@ const vuetify = new Vuetify({
     iconfont: "mdi",
   },
 });
-// import './css/basic/main.less';
-// import './css/basic/reset.css';
-// import './css/component/navPickerApp.less';
 
 new Vue({
   vuetify,

@@ -168,8 +168,6 @@ class App extends Vue {
     try {
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();
-      // const buildingId = localStorage.getItem("idBuilding");
-      // await this.$store.dispatch(ActionTypes.GET_GROUPS_ITEMS, { config, buildingId });
       this.pageSate = PAGE_STATES.loaded;
       this.baseUrl = SpinalAPI.getInstance().createUrlWithPlatformId(
         buildingId,
@@ -190,9 +188,6 @@ class App extends Vue {
 
   public set selectedZone(v: ISpaceSelectorItem) {
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
-    // if (v.type.includes("geographic")) {
-    //   this.$store.dispatch(ActionTypes.OPEN_VIEWER, v);
-    // }
   }
 
   downloadList(tickets) {
@@ -258,7 +253,6 @@ class App extends Vue {
           })
           .filter((r) => r.counts.length);
       case "geographicFloor":
-        //@ts-ignore
         return (
           await this.$store.dispatch(ActionTypes.GET_ROOMS, {
             floorId: item.dynamicId,
@@ -291,40 +285,10 @@ class App extends Vue {
     }
   }
 
-  onTemporalitySelectOpen(item?: any) {
-    switch (item?.type) {
-      case undefined:
-        return config.temporality.map((temp, index) => ({
-          name: temp,
-          staticId: index,
-          dynamicId: index,
-          level: 0,
-          isOpen: true,
-          loading: false,
-          parents: [],
-          drawLink: [],
-          haveChildren: false,
-          type: "time",
-        }));
-
-      default:
-        return [];
-    }
-  }
-
-  onGoBack() {
-    const parent = this.$refs["space-selector"].getParentOfSelected();
-    if (parent) this.selectedZone = parent;
-  }
-
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
     if (!item) return;
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
-  }
-
-  async onColor(item: TGeoItem | TGeoItem[]) {
-    // TBD
   }
 
   onActionClick({ button, item }) {

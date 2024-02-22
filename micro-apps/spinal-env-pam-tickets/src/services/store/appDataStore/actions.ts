@@ -287,54 +287,7 @@ export const actions = {
       buildingId,
     });
     return filterTicketsOnPosition(ticketsToFilter, buildingId, dynamicId);
-    // const spinalAPI = SpinalAPI.getInstance();
-
-    // if (typeof ApiIteratorStore[ActionTypes.FILTER_TICKETS] === "undefined") {
-    // 	ApiIteratorStore[ActionTypes.FILTER_TICKETS] = {};
-    // }
-
-    // if (typeof ApiIteratorStore[ActionTypes.FILTER_TICKETS][buildingId] === "undefined") {
-    // 	ApiIteratorStore[ActionTypes.FILTER_TICKETS][buildingId] = spinalAPI.createIteratorCall(filterTicketsOnPosition, ticketsToFilter, buildingId, dynamicId);
-    // }
-
-    // const items = await ApiIteratorStore[ActionTypes.FILTER_TICKETS][buildingId].next();
-    // return items?.value;
   },
-  // async [ActionTypes.LOAD_TICKETS]({ commit, dispatch, state }): Promise<void> {
-  // 	const stepList = <any[]>[];
-  // 	const workflow_list = config.workflowList;
-  // 	// try {
-  // 	//   const workflows = await getWorkflowList();
-  // 	//   for (const workflow of workflows.filter((w) =>
-  // 	// 	workflow_list.includes(w.name)
-  // 	//   )) {
-  // 	// 	const domains = await getProcessList(workflow.dynamicId);
-  // 	// 	for (const domain of domains) {
-  // 	// 	  const steps = await getStepList(workflow.dynamicId, domain.dynamicId);
-  // 	// 	  stepList.push(
-  // 	// 		...steps.filter((s: any) => !closedSteps.includes(s.name))
-  // 	// 	  );
-  // 	// 	}
-  // 	//   }
-  // 	//   const ticketList = (
-  // 	// 	await getTicketListMultiple(stepList.map((s) => s.dynamicId))
-  // 	//   ).flatMap((result) => result.tickets);
-
-  // 	//   const detailedTickets = await getTicketDetailsMultiple(
-  // 	// 	ticketList.map((t) => t.dynamicId)
-  // 	//   );
-  // 	//   commit(
-  // 	// 	TicketMutationTypes.SET_TICKETS,
-  // 	// 	detailedTickets.filter((t) => !t.error)
-  // 	//   );
-  // 	// } catch (error) {
-  // 	//   console.log(error);
-  // 	// }
-  // },
-
-  ////////////////////////////////////////////////////////
-  //                VIEWER
-  ////////////////////////////////////////////////////////
 
   async [ActionTypes.OPEN_VIEWER](
     { commit, dispatch, state }: AugmentedActionContextAppData,

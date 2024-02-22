@@ -32,7 +32,6 @@ import {
   defaultTemporalitySelected,
   defaultZoneSelected,
 } from "./utils/defaultZoneSelected";
-import { INodeItemTree } from "../../../interfaces/INodeItem";
 
 export type StateAppData = typeof state;
 export const state = {

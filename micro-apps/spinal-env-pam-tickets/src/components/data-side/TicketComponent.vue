@@ -28,7 +28,7 @@ with this file. If not, see
     :style="{ border: selected ? '2px solid #00A2FF' : '' }"
     elevation="2"
   >
-    <div style="display: flex" class="px-3 py-2 overflow-y-hidden">
+    <div style="display: flex" class="px-3 py-2">
       <div class="flex-col">
         <div style="width: 150px">
           <div
@@ -50,14 +50,13 @@ with this file. If not, see
             }}
           </div>
         </div>
-        <div
-          class="icon-bloc d-flex flex-row justify-space-around align-center py-1"
-        >
-          <v-btn @click="$emit('display', data)">
+        <div class="d-flex flex-row justify-space-around align-center py-1">
+          <v-btn fab @click="$emit('display', data)">
             <v-icon>mdi-eye</v-icon>
           </v-btn>
           <v-btn
             dark
+            fab
             :disabled="!data.elementSelected"
             @click="$emit('locate', data)"
           >
@@ -65,7 +64,10 @@ with this file. If not, see
           </v-btn>
         </div>
       </div>
-      <div class="pl-3" style="width: calc(100% - 150px); height: 25px">
+      <div
+        class="pl-3 overflow-y-hidden"
+        style="width: calc(100% - 150px); height: 100%"
+      >
         <div style="width: 100%" class="d-flex flex-row justify-space-between">
           <div
             @mouseover="spaceHovered = true"
@@ -170,17 +172,15 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import { Prop, Vue, Watch } from "vue-property-decorator";
+import { Prop, Vue } from "vue-property-decorator";
 import Component from "vue-class-component";
 
 @Component({
-  components: {},
-  filters: {},
+  name: "TicketComponent",
 })
 class TicketComponent extends Vue {
-  // @State data!: any[];
-
   @Prop() data: any;
+
   color = ["red", "orange", "green"];
   spaceHovered = false;
   stepHovered = false;
@@ -193,17 +193,12 @@ class TicketComponent extends Vue {
       this.data.dynamicId
     );
   }
-
-  async mounted() {}
-
-  /**
-   * Watch
-   */
 }
 
 export { TicketComponent };
 export default TicketComponent;
 </script>
+
 <style lang="scss">
 .bar-bloc-left {
   margin: 10px;

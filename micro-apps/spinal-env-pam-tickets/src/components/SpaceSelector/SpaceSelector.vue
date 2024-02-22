@@ -209,14 +209,9 @@ class SpaceSelector extends Vue {
   async mounted() {
     const children = await this.GetChildrenFct();
     this.buildingStructure = convertZonesToISpaceSelectorItems(children);
-
-    //if (this.buildingStructure.length === 1) {
-    //await this.expandCollapse(this.buildingStructure[0], 0);
-    //}
-    //this.onSelectedChange();
   }
 
-  // on click the righht button open / close
+  // on click the right button open / close
   async expandCollapse(
     item: ISpaceSelectorItem,
     index: number,
@@ -339,7 +334,6 @@ export default SpaceSelector;
 .space-selector {
   z-index: 10;
   width: calc(100% - 0px);
-  /* max-width: 500px; */
   height: 59px;
   float: right;
   border-radius: 10px !important;
@@ -388,7 +382,6 @@ export default SpaceSelector;
   font-size: 20px;
 }
 .space-selector-open {
-  /* padding-bottom: 10px; */
   overflow-y: auto;
   max-height: calc(100vh - 20px);
 }
@@ -421,27 +414,9 @@ export default SpaceSelector;
   background: rgba(169, 169, 169, 0.9);
 }
 .spinal-scrollbar::-webkit-scrollbar-track {
-  /* -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
-  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3); */
   -webkit-border-radius: 5px;
   border-radius: 5px;
 }
-
-/* .backdrop-handler {
-  color: #bfbfbf;
-  position: absolute;
-  top: 0px;
-  width: 100vw;
-  left: 0px;
-  height: calc(100vh - 10px);
-  background-color: #fff;
-  z-index: 999;
-  background: rgba(215, 215, 215, 0.1);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(1px);
-  -webkit-backdrop-filter: blur(1px);
-} */
-
 .legend {
   color: #fff;
   font-size: 9px;

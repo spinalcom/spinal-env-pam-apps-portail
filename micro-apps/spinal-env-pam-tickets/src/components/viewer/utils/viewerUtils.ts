@@ -37,7 +37,6 @@ import { ModelManager } from "../manager/modelManager";
 import { IViewerColorData } from "../interfaces/IViewerColorData";
 import { getPosition } from "./getObjectPos";
 import SpriteManager from "../manager/spriteManager";
-import Vue from "vue";
 
 export class ViewerUtils {
   private static _instance: ViewerUtils;
@@ -82,7 +81,6 @@ export class ViewerUtils {
     return load1stThenAll(
       tasks,
       async (d: IloadModelTask): Promise<Autodesk.Viewing.Model> => {
-        // return this._loadBimFile(viewer, d.path, data.loadingType as any, d.id, d.dbids, d.aecPath, data.buildingId);
         return this._loadBimFile(
           viewer,
           d.path,
@@ -124,15 +122,6 @@ export class ViewerUtils {
         instance.deleteModel(id);
       }
     }
-
-    // const models = (viewer.impl as any).modelQueue()?.getModels() || [];
-    // for (let i = 0; i < models.length; i++) {
-    //   const model = models[i];
-    //   if (arg_modelIds.has(model.id)) {
-    //     (viewer.impl as any).unloadModel(model);
-    //     i--;
-    //   }
-    // }
   }
 
   public clearSelect(viewer: Autodesk.Viewing.Viewer3D): void {
@@ -150,30 +139,6 @@ export class ViewerUtils {
     for (const { model, dbIds } of datas) {
       model.selector.setSelection(dbIds, "selectOnly");
     }
-
-    // if (data.length === 1) {
-    //   const d = data[0];
-    //   const model = ModelManager.getInstance().getModelById(d.modelId)
-    //   model[0].selector.setSelection(d.dbIds, "selectOnly")
-    //   // viewer.select(d.dbIds, model[0]);
-    // } else {
-    //   for (const d of data) {
-    //     const models = ModelManager.getInstance().getModelById(d.modelId);
-    //     const ids = typeof d.dbIds === 'number' ? [d.dbIds] : d.dbIds;
-
-    //     for (const model of models) {
-    //       // @ts-ignore
-    //       model.selector.setSelection(ids,"selectOnly");
-    //     }
-    //   }
-    //   try {
-    //     this._fireAggregateSelectionChangedEvent(viewer);
-    //   } catch (e) {
-    //     console.error(
-    //       'error while trying to fire AggregateSelectionChanged Event'
-    //     );
-    //   }
-    // }
   }
 
   public viewerIsolation(
@@ -248,8 +213,6 @@ export class ViewerUtils {
 
     const viewcuiext = viewer.getExtension("Autodesk.ViewCubeUi");
     if (viewcuiext) viewcuiext.setViewCube(dataFormatted.join(", "));
-
-    // viewcuiext.setViewCube(display);
   }
 
   public async setObjColor(
@@ -295,7 +258,6 @@ export class ViewerUtils {
         models: data,
         dbId: data[0]?.dbIds[0],
         position: item.position || (await getPosition(data)),
-        // position: await getPosition(data),
         data: item.parent,
         component: item.component,
       };
@@ -317,7 +279,6 @@ export class ViewerUtils {
         dbIds,
         model: this._getModel(item.modelId, bimFileId),
       }));
-      //console.log("addComponentAsSprite", item);
 
       return {
         modelId: item.modelId,
@@ -326,7 +287,6 @@ export class ViewerUtils {
         models: data,
         dbId: data[0]?.dbIds[0],
         position: item.position || (await getPosition(data)),
-        // position: await getPosition(data),
         data: item.parent,
         component: item.component,
       };
@@ -336,24 +296,6 @@ export class ViewerUtils {
       SpriteManager.getInstance().addComponentAsSprite(viewer, result);
     });
   }
-
-  // public removeSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
-
-  // public removeAllSprites(viewer: Autodesk.Viewing.Viewer3D) { }
-
-  // public moveSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
-
-  // public addLine(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
-
-  // public removeLine(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
-
-  // public moveLine(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
-
-  // public addSphere(viewer: Autodesk.Viewing.Viewer3D, data: any) {   }
-
-  // public removeSphere(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
-
-  // public moveSphere(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
 
   ///////////////////////////////////////////////////////////////////
   //                            PRIVATE                            //
@@ -452,85 +394,12 @@ export class ViewerUtils {
       if (start) {
         viewer.loadExtension("Autodesk.ViewCubeUi", viewer.config);
         SpriteManager.getInstance().loadDataVisualizationExtension(viewer);
-        // change viewer background
         viewer.impl.renderer().setClearAlpha(0);
         viewer.impl.glrenderer().setClearColor(0xffffff, 0);
         viewer.impl.invalidate(true);
       }
     });
   }
-
-  /*private _fireAggregateSelectionChangedEvent(
-    viewer: Autodesk.Viewing.Viewer3D
-  ) {
-    var perModel: any[] = [];
-    for (const [, models] of ModelManager.getInstance().getModelList()) {
-      for (const model of models) {
-        var dbIdArray: number[] = [];
-        var fragIdsArray: any[] = [];
-        // @ts-ignore
-        var sset = model.selector.selectedObjectIds;
-        // @ts-ignore
-        var instanceTree = model.selector.getInstanceTree();
-        for (var p in sset) {
-          if (sset[p]) {
-            var dbId = parseInt(p);
-            if (dbId) {
-              dbIdArray.push(dbId);
-
-              if (instanceTree) {
-                instanceTree.enumNodeFragments(
-                  dbId,
-                  function (fragId) {
-                    fragIdsArray.push(fragId);
-                  },
-                  false
-                );
-              }
-            }
-          }
-        }
-
-        if (dbIdArray.length) {
-          perModel.push({
-            fragIdsArray: fragIdsArray,
-            dbIdArray: dbIdArray,
-            nodeArray: dbIdArray,
-            model: model,
-          });
-        }
-      }
-    }
-
-    var event = {
-      type: Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT,
-      selections: perModel,
-    };
-    // @ts-ignore
-    viewer.impl.api.dispatchEvent(event);
-  }
-
-  private _isSameData(
-    data1: IDbIdModelAggregate[],
-    data2: { ids: number[]; model: Autodesk.Viewing.Model }[]
-  ): boolean {
-    if (data1.length !== data2.length) return false;
-    for (const d1 of data1) {
-      const models = ModelManager.getInstance().getModelById(d1.modelId);
-      if (!models) return false;
-      let found: any = [];
-      for (const d2 of data2) {
-        if (models.find((el) => el.id === d2.model.id)) {
-          if (checkdbIds(d1.dbIds, d2.ids) === false) return false;
-          found.push(d2);
-          if (found.length === models.length) return true;
-          break;
-        }
-      }
-      if (found.length !== models.length) return false;
-    }
-    return true;
-  }*/
 
   private async _waitModelIsLoading(): Promise<boolean> {
     const _self = this;
@@ -553,17 +422,6 @@ export class ViewerUtils {
   private _classifyDbIdsByModel(
     data: (IDbIdModelAggregate & { bimFileId: string })[]
   ) {
-    // return data.reduce((list: {model: any, dbIds: number[]}[], el) => {
-    //   const models = ModelManager.getInstance().getModelById(el.modelId);
-    //   if (!models) return list;
-
-    //   const model = models.find(m => (m as any).bimFileId === el.bimFileId);
-    //   if (!model) return list;
-
-    //   list.push({model, dbIds: el.dbIds})
-    //   return list;
-    // }, [])
-
     const obj = data.reduce((o, { bimFileId, dbIds }) => {
       o[bimFileId] = dbIds;
       return o;

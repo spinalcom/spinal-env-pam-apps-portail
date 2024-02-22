@@ -103,40 +103,13 @@ export default {
 <style scoped>
 .sprite_container {
   aspect-ratio: 1/1;
-  /*width: "fit-content";
-  height: "fit-content";*/
   box-shadow: none;
   color: transparent;
-  /* border-radius: 100%; */
   display: flex;
   flex-direction: row;
   align-items: center;
-  /*z-index: 99999;*/
 }
 .sprite_color {
   aspect-ratio: 1/1;
-  /*width: 30px;
-  height: 30px;*/
-  /* border: 3px solid #F9F9F9; */
-  /* border: 3px solid; */
-  /*z-index: 2;*/
 }
-.sprite_value_unit {
-  /* border: 2px solid #F9F9F9; */
-  /* border: 2px solid;  */
-  border-radius: 100px;
-  color: #14202c;
-  margin-left: -15px;
-  padding-left: 15px;
-  padding-right: 5px;
-  padding-bottom: 1px;
-  height: 15px;
-  font-size: 14px;
-  background: #f9f9f9;
-  /*z-index: 1;*/
-}
-/* 
-  .sprite_container:hover {
-    cursor: pointer;
-  } */
 </style>
