@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
     <v-card style="min-height: 220px !important" class="bar-card pa-1 rounded-lg d-flex flex-column" outlined>
         <v-card-title style="font-size: 20px; height: 56px" class="card-title pa-3 text-uppercase justify-space-between">
             <p>{{ title }}</p>
@@ -664,4 +664,4 @@ html {
 .shifted:hover {
     cursor: grab;
 }
-</style>
+</style> -->
