@@ -25,11 +25,11 @@ with this file. If not, see
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
     <div class="selectors">
       <div class="DButton">
-        <ScDownloadButton
-          :fileName="'insight_data'"
-          :csv="true"
+        <sc-download-button
+          fileName="insight_data"
+          csv
           :data="getDataFormatted()"
-        />
+        ></sc-download-button>
       </div>
 
       <div class="temporality">
@@ -102,7 +102,6 @@ import type {
 } from "./components/SpaceSelector/interfaces/IBuildingItem";
 import { DataTable } from "./components/data-table";
 import viewerApp from "./components/viewer/viewer.vue";
-import ScDownloadButton from "spinal-components/src/components/DownloadButton.vue";
 import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
 import { IConfig } from "./interfaces/IConfig";
@@ -113,24 +112,11 @@ import {
   VIEWER_SPRITE_CLICK,
 } from "spinal-viewer-event-manager";
 
-import "spinal-components/dist/spinal-components.css";
-
-interface IItemData {
-  platformId: string;
-  id: number | number[];
-}
-
-interface IItemDatatmp {
-  platformId: string;
-  id: Set<number>;
-}
-
 @Component({
   components: {
     SpaceSelector,
     DataTable,
     viewerApp,
-    ScDownloadButton,
     InsightApp,
   },
 })
@@ -150,8 +136,6 @@ class App extends Vue {
     try {
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();
-      // const buildingId = localStorage.getItem("idBuilding");
-      // await this.$store.dispatch(ActionTypes.GET_GROUPS_ITEMS, { config, buildingId });
       this.pageSate = PAGE_STATES.loaded;
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
@@ -164,10 +148,6 @@ class App extends Vue {
 
   public set selectedZone(v: ISpaceSelectorItem) {
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
-
-    // if (v.type.includes("geographic")) {
-    //   this.$store.dispatch(ActionTypes.OPEN_VIEWER, v);
-    // }
   }
 
   public get temporalitySelected(): ISpaceSelectorItem {
@@ -182,19 +162,11 @@ class App extends Vue {
     switch (item?.type) {
       case undefined:
         const buildingId = localStorage.getItem("idBuilding");
-        const playload = {
-          config,
-          item: { buildingId, type: "building" },
-        };
+        const building = await this.$store.dispatch(
+          ActionTypes.GET_BUILDING_BY_ID,
+          { buildingId }
+        );
 
-        const promises = [
-          this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }),
-          // this.$store.dispatch(ActionTypes.GET_GROUPS_ITEMS_BY_GEOITEM, playload)
-        ];
-
-        const [building, items] = await Promise.all(promises);
-
-        // this.data = items;
         return [
           {
             name: building.name,
@@ -211,16 +183,12 @@ class App extends Vue {
           patrimoineId: item.patrimoineId,
         });
       case "geographicFloor":
-        //@ts-ignore
         return await this.$store.dispatch(ActionTypes.GET_ROOMS, {
           floorId: item.dynamicId,
           buildingId: item.buildingId,
           patrimoineId: item.patrimoineId,
           id: item.dynamicId,
         });
-      // case 'geographicRoom':
-      //   //@ts-ignore
-      //   return await this.$store.dispatch(ActionTypes.GET_EQUIPMENTS, { floorId: item.floorId, roomId: item.staticId, buildingId: item.buildingId, patrimoineId: item.patrimoineId, id: item.dynamicId });
       default:
         return [];
     }
@@ -276,40 +244,11 @@ class App extends Vue {
     if (parent) this.selectedZone = parent;
   }
 
-  private getItemData(item: TGeoItem | TGeoItem[]): IItemData {
-    const res: IItemDatatmp = {
-      platformId: this.selectedZone.platformId,
-      id: new Set(),
-    };
-    const datas = Array.isArray(item) ? item : [item];
-    for (const data of datas) {
-      res.id.add(data.dynamicId!);
-    }
-    return {
-      platformId: res.platformId,
-      id: res.id.size > 0 ? Array.from(res.id) : res.id.values().next().value,
-    };
-  }
-
-  // async onSelect(item: TGeoItem | TGeoItem[]) {
-  //   if (!item) return;
-  //   const it = this.getItemData(item);
-  //   await this.$store.dispatch(ActionTypes.SELECT_ITEMS, it);
-  // }
-
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
-    console.log(item);
     if (!item) return;
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
-    // this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
   }
-
-  // async onIsolate(item: TGeoItem | TGeoItem[]) {
-  //   if (!item) return;
-  //   const it = this.getItemData(item);
-  //   await this.$store.dispatch(ActionTypes.ISOLATE_ITEMS, it);
-  // }
 
   async onColor(item: TGeoItem | TGeoItem[]) {
     // TBD
@@ -400,8 +339,11 @@ class App extends Vue {
 export default App;
 </script>
 
-
 <style scoped lang="scss">
+::v-deep .card-colored {
+  background-color: #14202c !important;
+  border-radius: 10px !important;
+}
 .app {
   width: 100%;
   height: 100%;

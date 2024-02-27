@@ -1,36 +1,26 @@
 <template>
-  <div class="sprite_container" @click="onClick">
+  <div class="sprite_container" @click.stop="onClick">
     <div
       class="sprite_color"
       :style="{ background: data.color, ...dynamicStyle }"
     ></div>
     <div class="sprite_value_unit" :style="dynamicStyle">
-      {{ (data.displayValue | round) + " °C" }}
+      {{ roundedValue }}
     </div>
   </div>
-</template> 
+</template>
 <script>
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
 } from "spinal-viewer-event-manager";
+import { store } from "../../services/store";
+import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 
 export default {
+  name: "SpriteComponent",
   props: {
     data: {},
-  },
-  filters: {
-    round(value) {
-      try {
-        if (typeof value === "string" && value.length === 0) return "";
-        var num = Number(value);
-        var rounded = num.toFixed(2);
-        return Number(rounded);
-      } catch (error) {
-        console.error(error);
-        return "";
-      }
-    },
   },
   data: () => ({
     fav: true,
@@ -42,16 +32,24 @@ export default {
       boxShadow: "none",
     },
   }),
+  computed: {
+    roundedValue() {
+      const value = Number(this.data.displayValue);
+      return value ? `${Number(value.toFixed(2))} ${this.data.unit}` : "";
+    },
+  },
   mounted() {},
   methods: {
     onClick() {
-      // console.log(this.data);
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
-      // this._isSelected();
+      store.dispatch(ActionTypes.SELECT_SPRITES, [this.data.dynamicId]);
+      const el = document.querySelector(".dataContainer");
+      el.dispatchEvent(
+        new CustomEvent("onSpriteClick", { detail: { ...this.data } })
+      );
     },
     _isSelected() {
-      console.log(this.data.name);
       this.dynamicStyle = {
         border: "3px solid #00A2FF",
         boxShadow: "0px 0px 10px 2px #00A2FF",

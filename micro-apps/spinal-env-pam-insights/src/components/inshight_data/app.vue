@@ -26,6 +26,7 @@ with this file. If not, see
   <v-card elevation="4" class="cardContainer">
     <div
       class="dataContainer"
+      @onSpriteClick="updateSelected"
       v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected"
     >
       <div class="detail_header">
@@ -46,9 +47,8 @@ with this file. If not, see
 
         <v-row class="source_regroupement_select">
           <v-col>
-            <v-select
-              v-model="sourceSelected"
-              @change="onSourceSelectedChange"
+            <v-autocomplete
+              v-model="sourceSelectedName"
               item-text="name"
               outlined
               dense
@@ -57,13 +57,12 @@ with this file. If not, see
               :hide-details="true"
               :items="sources"
               label="Source"
-            ></v-select>
+            ></v-autocomplete>
           </v-col>
 
           <v-col>
-            <v-select
+            <v-autocomplete
               v-model="regroupementSelected"
-              @change="onRegroupementSelectedChange"
               item-text="name"
               item-value="value"
               outlined
@@ -73,7 +72,7 @@ with this file. If not, see
               :hide-details="true"
               :items="regroupements"
               label="Regroupement"
-            ></v-select>
+            ></v-autocomplete>
           </v-col>
         </v-row>
 
@@ -148,7 +147,6 @@ with this file. If not, see
         <GroupDataView
           v-for="(d, i) in data"
           :key="i"
-          v-if="viewGroup(d)"
           :data="d"
           :config="config"
           :calculMode="calculMode"
@@ -206,11 +204,14 @@ import {
   calculateValue,
   getColor,
 } from "../../services/calcul/calculItems";
-import TestComponent from "./test.vue";
+import SpriteComponent from "./SpriteComponent.vue";
 import lodash from "lodash";
-import { State } from "vuex-class";
 import { MutationTypes } from "../../services/store/appDataStore/mutations";
-import { mapState } from "vuex";
+import {
+  EmitterViewerHandler,
+  VIEWER_SPRITE_CLICK,
+} from "spinal-viewer-event-manager";
+import { it } from "node:test";
 
 @Component({
   components: {
@@ -234,10 +235,15 @@ class InsightApp extends Vue {
 
   @Prop() config!: IConfig;
   @Prop() selectedZone: ISpaceSelectorItem;
+  @Prop() selectedTime: ISpaceSelectorItem;
   @Prop() data: any[];
 
-  sourceSelected: ISource;
-  regroupementSelected: "floors" | "rooms" | IRegroupement;
+  sourceSelectedName: string = "Température";
+  regroupementSelected: "floors" | "rooms" | IRegroupement = "rooms";
+
+  initiated: boolean = false;
+
+  selectedItem: any = null;
 
   regroupItemsAndCalculateDebounced: any = lodash.debounce(
     this.regroupItemsAndCalculate.bind(this),
@@ -251,15 +257,12 @@ class InsightApp extends Vue {
   total: number = 0;
   retry: Function;
 
-  async mounted() {
-    this.sourceSelected = this.getFirstSource();
-    this.regroupementSelected = this.getFirstRegroupement();
-    await this.retriveData();
+  public get sourceSelected() {
+    return this.config.source.find((el) => el.name === this.sourceSelectedName);
   }
 
-  viewGroup(d) {
-    //  return (d?.children || []).length > 0
-    return true;
+  async mounted() {
+    await this.retriveData();
   }
 
   getFirstSource() {
@@ -297,7 +300,7 @@ class InsightApp extends Vue {
         );
       }
 
-      const result = await Promise.all(promises);
+      await Promise.all(promises);
       this.pageSate = PAGE_STATES.loaded;
     } catch (err) {
       console.error(err);
@@ -308,9 +311,11 @@ class InsightApp extends Vue {
 
   async regroupItemsAndCalculate(forceUpdate: boolean = false) {
     try {
-      const config_copy = Object.assign({}, this.config);
-      config_copy.regroupement = this.regroupementSelected;
-      config_copy.source = this.sourceSelected;
+      const config_copy = {
+        ...this.config,
+        regroupement: this.regroupementSelected,
+        source: this.sourceSelected,
+      };
 
       const playload = {
         config: config_copy,
@@ -323,7 +328,6 @@ class InsightApp extends Vue {
         ActionTypes.REGROUP_ITEMS,
         playload
       );
-      // this.data = calculItemsValue(regrouped, this.calculMode);
       const calculated = calculItemsValue(regrouped, this.calculMode);
 
       this.$store.commit(MutationTypes.SET_DATA, calculated);
@@ -336,31 +340,23 @@ class InsightApp extends Vue {
     }
   }
 
+  updateSelected(item) {
+    this.selectedItem = item.detail || item;
+  }
+
   selectDataView(item) {
+    this.updateSelected(item);
     this.$emit("clickOnDataView", item);
   }
-
-  onSourceSelectedChange() {
-    this.regroupItemsAndCalculateDebounced();
-  }
-
-  onRegroupementSelectedChange() {
-    this.regroupItemsAndCalculateDebounced();
-  }
-
-  /**
-   * Watch
-   */
 
   @Watch("selectedZone")
   watchSelectedZone() {
     if (this.selectedZone.type === "building") {
       this.isBuildingSelected = true;
-      // this.data = [];
       this.$store.commit(MutationTypes.SET_DATA, []);
       return;
     }
-
+    this.initiated = false;
     this.isBuildingSelected = false;
 
     this.regroupItemsAndCalculateDebounced();
@@ -368,7 +364,6 @@ class InsightApp extends Vue {
 
   @Watch("calculMode")
   watchCaculMode() {
-    // this.data = calculItemsValue(this.data, this.calculMode);
     const calculated = calculItemsValue(this.data, this.calculMode);
 
     this.$store.commit(MutationTypes.SET_DATA, calculated);
@@ -376,29 +371,49 @@ class InsightApp extends Vue {
 
   @Watch("data")
   watchData() {
-    if (this.config.sprites)
-      this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-
     if (this.isBuildingSelected) return;
 
     const values = this.data.map((el) => el.displayValue);
     this.total = calculateValue(values, this.calculMode);
-    const itemsToColor = this.data.map((el) => el.children || []).flat();
 
-    if (this.config.sprites) {
-      // this.$store.dispatch(ActionTypes.ADD_SPRITES, { items: itemsToColor, buildingId: this.selectedZone.buildingId || this.selectedZone.staticId });
+    if (!this.initiated) {
+      const itemsToColor = this.data.flatMap((el) => el.children || []);
+      itemsToColor.forEach((el) => (el.unit = this.sourceSelected.unit));
       this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
         items: itemsToColor,
         buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
-        component: TestComponent,
+        component: SpriteComponent,
       });
-      return;
+      this.initiated = true;
     }
+  }
 
-    this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+  @Watch("sourceSelectedName")
+  async watchSource(newVal) {
+    if (!newVal) return;
+    await this.regroupItemsAndCalculate(true);
+    await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+
+    const itemsToColor = this.data.flatMap((el) => el.children || []);
+    itemsToColor.forEach((el) => (el.unit = this.sourceSelected.unit));
+    await this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
       items: itemsToColor,
       buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
+      component: SpriteComponent,
     });
+    if (!this.selectedItem) return;
+    const emitterHandler = EmitterViewerHandler.getInstance();
+    emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.selectedItem });
+    setTimeout(() => {
+      this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
+        this.selectedItem.dynamicId,
+      ]);
+    }, 500);
+  }
+
+  @Watch("regroupementSelected")
+  watchRegroupement() {
+    this.regroupItemsAndCalculateDebounced();
   }
 
   /**

@@ -48,7 +48,7 @@ export const config: IConfig = {
   entryPoint: {
     context: "Gestion des équipements",
     category: "Typologie",
-    group: "CTA",
+    group: "Multicapteurs",
   },
   source: [
     {
@@ -58,7 +58,13 @@ export const config: IConfig = {
       objectType: "equipments",
       unit: "°C",
     },
-    // {name: "Qualité de l'air", profileName: "Multicapteurs", type: "controlPoint", objectType: "equipments", unit: "ppm"}
+    {
+      name: "Qualité de l'air",
+      profileName: "Multicapteurs",
+      type: "controlPoint",
+      objectType: "equipments",
+      unit: "ppm",
+    },
   ],
 
   viewButtons: "base",
@@ -77,7 +83,7 @@ export const config: IConfig = {
     median: { value: 10, color: "#FFFF00" },
     max: { value: 20, color: "#FF004B" },
   },
-  regroupement: ["rooms"],
+  regroupement: ["rooms", "floors"],
   temporality: [
     ITemporality.currentValue,
     ITemporality.day,

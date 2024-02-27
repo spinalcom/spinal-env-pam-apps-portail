@@ -381,6 +381,7 @@ export default App;
 <style scoped lang="scss">
 ::v-deep .card-colored {
   background-color: #14202c !important;
+  border-radius: 10px !important;
 }
 .app {
   width: 100%;
