@@ -151,6 +151,7 @@ with this file. If not, see
           :config="config"
           :calculMode="calculMode"
           :unit="unit"
+          :legend="sourceSelected.legend"
           @onClick="selectDataView"
         />
       </div>
@@ -196,6 +197,7 @@ import {
   calculTypes,
   ISource,
   IRegroupement,
+  ITemporality,
 } from "../../interfaces/IConfig";
 import { ISpaceSelectorItem } from "global-components";
 import { ActionTypes } from "../../interfaces/vuexStoreTypes";
@@ -212,6 +214,7 @@ import {
   VIEWER_SPRITE_CLICK,
 } from "spinal-viewer-event-manager";
 import { it } from "node:test";
+import moment from "moment";
 
 @Component({
   components: {
@@ -238,8 +241,10 @@ class InsightApp extends Vue {
   @Prop() selectedTime: ISpaceSelectorItem;
   @Prop() data: any[];
 
-  sourceSelectedName: string = "Température";
-  regroupementSelected: "floors" | "rooms" | IRegroupement = "rooms";
+  time: any = null;
+  sourceSelectedName: string = this.config.source[0].name;
+  regroupementSelected: "floors" | "rooms" | IRegroupement =
+    this.config.regroupement[0];
 
   initiated: boolean = false;
 
@@ -288,9 +293,7 @@ class InsightApp extends Vue {
           forceUpdate: true,
         }),
       ];
-      if (
-        ["rooms", "equipments"].indexOf(this.regroupementSelected as any) === -1
-      ) {
+      if (!["rooms", "equipments"].includes(this.regroupementSelected as any)) {
         promises.push(
           this.$store.dispatch(ActionTypes.GET_CATEGORIES_TREE, {
             buildingId,
@@ -328,7 +331,11 @@ class InsightApp extends Vue {
         ActionTypes.REGROUP_ITEMS,
         playload
       );
-      const calculated = calculItemsValue(regrouped, this.calculMode);
+      const calculated = await calculItemsValue(
+        regrouped,
+        this.calculMode,
+        this.time
+      );
 
       this.$store.commit(MutationTypes.SET_DATA, calculated);
 
@@ -363,10 +370,33 @@ class InsightApp extends Vue {
   }
 
   @Watch("calculMode")
-  watchCaculMode() {
-    const calculated = calculItemsValue(this.data, this.calculMode);
+  async watchCaculMode() {
+    const calculated = await calculItemsValue(
+      this.data,
+      this.calculMode,
+      this.time
+    );
 
     this.$store.commit(MutationTypes.SET_DATA, calculated);
+
+    if (this.selectedTime.name === ITemporality.currentValue) return;
+    await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+    const itemsToColor = this.data.flatMap((el) => el.children || []);
+    itemsToColor.forEach((el) => (el.unit = this.sourceSelected.unit));
+    this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+      items: itemsToColor,
+      buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
+      component: SpriteComponent,
+    });
+
+    if (!this.selectedItem) return;
+    const emitterHandler = EmitterViewerHandler.getInstance();
+    emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.selectedItem });
+    setTimeout(() => {
+      this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
+        this.selectedItem.dynamicId,
+      ]);
+    }, 500);
   }
 
   @Watch("data")
@@ -416,14 +446,77 @@ class InsightApp extends Vue {
     this.regroupItemsAndCalculateDebounced();
   }
 
+  @Watch("selectedTime")
+  async watchSelectedTime(newVal) {
+    if (this.isBuildingSelected) return;
+    const end = moment()
+      .hour(23)
+      .minutes(59)
+      .seconds(59)
+      .format("DD-MM-YYYY HH:mm:ss");
+    switch (newVal.name) {
+      case ITemporality.day:
+        this.time = {
+          begin: moment().subtract(1, "days").format("DD-MM-YYYY HH:mm:ss"),
+          end,
+        };
+        break;
+      case ITemporality.week:
+        this.time = {
+          begin: moment().subtract(1, "weeks").format("DD-MM-YYYY HH:mm:ss"),
+          end,
+        };
+        break;
+      case ITemporality.month:
+        this.time = {
+          begin: moment().subtract(1, "months").format("DD-MM-YYYY HH:mm:ss"),
+          end,
+        };
+      case ITemporality.year:
+        this.time = {
+          begin: moment().subtract(1, "years").format("DD-MM-YYYY HH:mm:ss"),
+          end,
+        };
+        break;
+      case "Personnalisé":
+        this.time = newVal.range;
+        break;
+      default:
+        this.time = null;
+        break;
+    }
+    await this.regroupItemsAndCalculate();
+    await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+
+    const itemsToColor = this.data.flatMap((el) => el.children || []);
+    itemsToColor.forEach((el) => (el.unit = this.sourceSelected.unit));
+    await this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+      items: itemsToColor,
+      buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
+      component: SpriteComponent,
+    });
+    if (!this.selectedItem) return;
+    const emitterHandler = EmitterViewerHandler.getInstance();
+    emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.selectedItem });
+    setTimeout(() => {
+      this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
+        this.selectedItem.dynamicId,
+      ]);
+    }, 500);
+  }
+
   /**
    * Getters
    */
 
+  public get legend() {
+    return this.sourceSelected.legend;
+  }
+
   public get gradientColor(): string {
-    const maxColor = this.config.legend.max.color;
-    const minColor = this.config.legend.min.color;
-    const medianColor = this.config.legend.median?.color;
+    const maxColor = this.legend.max.color;
+    const minColor = this.legend.min.color;
+    const medianColor = this.legend.median?.color;
 
     if (!medianColor) {
       return `linear-gradient(to right, ${minColor},  ${maxColor})`;
@@ -433,11 +526,11 @@ class InsightApp extends Vue {
   }
 
   public get min(): number {
-    return this.config.legend.min.value;
+    return this.legend.min.value;
   }
 
   public get max(): number {
-    return this.config.legend.max.value;
+    return this.legend.max.value;
   }
 
   public get calculItems() {
@@ -449,7 +542,7 @@ class InsightApp extends Vue {
   }
 
   public get toltalColor() {
-    return getColor({ displayValue: this.total }, this.config.legend);
+    return getColor({ displayValue: this.total }, this.legend);
   }
 
   public get sources(): ISource[] {

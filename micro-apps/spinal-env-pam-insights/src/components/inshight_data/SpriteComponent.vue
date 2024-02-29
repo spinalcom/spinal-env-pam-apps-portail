@@ -35,7 +35,9 @@ export default {
   computed: {
     roundedValue() {
       const value = Number(this.data.displayValue);
-      return value ? `${Number(value.toFixed(2))} ${this.data.unit}` : "";
+      return value || value === 0
+        ? `${Number(value.toFixed(2))} ${this.data.unit}`
+        : "";
     },
   },
   mounted() {},

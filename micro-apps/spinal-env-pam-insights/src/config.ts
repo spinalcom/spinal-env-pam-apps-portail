@@ -45,7 +45,9 @@ export const config: IConfig = {
     category: "generation hardware context",
     group: "valid items",
   },*/
-  entryPoint: {
+
+  // Config DEI
+  /*entryPoint: {
     context: "Gestion des équipements",
     category: "Typologie",
     group: "Multicapteurs",
@@ -66,6 +68,53 @@ export const config: IConfig = {
       unit: "ppm",
     },
   ],
+  regroupement: ["rooms", "floors"],*/
+  // FIN Config DEI
+
+  // Config Gienah
+  entryPoint: {
+    context: "Contexte de pièces intégration",
+    category: "Toutes les pièces",
+    group: "Toutes les pièces",
+  },
+  source: [
+    {
+      name: "T° ambiante",
+      type: "endpoint",
+      objectType: "rooms",
+      unit: "°C",
+      legend: {
+        min: { value: 15, color: "#0074FF" },
+        median: { value: 20, color: "#FFFF00" },
+        max: { value: 25, color: "#FF004B" },
+      },
+    },
+    {
+      name: "Marche/arrêt",
+      type: "endpoint",
+      objectType: "rooms",
+      unit: "",
+      legend: {
+        min: { value: 0, color: "#FF0000" },
+        median: { value: 0.5, color: "#FFFF00" },
+        max: { value: 1, color: "#00FF00" },
+      },
+    },
+    {
+      name: "Consigne de température identifiée",
+      profileName: "Nobatek - Cassette CVC",
+      type: "controlPoint",
+      objectType: "rooms",
+      unit: "°C",
+      legend: {
+        min: { value: 0, color: "#0074FF" },
+        median: { value: 10, color: "#FFFF00" },
+        max: { value: 20, color: "#FF004B" },
+      },
+    },
+  ],
+  regroupement: ["floors"],
+  // FIN Config Gienah
 
   viewButtons: "base",
   title: "Insights sur les multicapteurs",
@@ -78,12 +127,6 @@ export const config: IConfig = {
   ],
   sprites: true,
   viewerInfo: { roomRef: true, floorRef: true, equipments: "groupItem" },
-  legend: {
-    min: { value: 0, color: "#0074FF" },
-    median: { value: 10, color: "#FFFF00" },
-    max: { value: 20, color: "#FF004B" },
-  },
-  regroupement: ["rooms", "floors"],
   temporality: [
     ITemporality.currentValue,
     ITemporality.day,

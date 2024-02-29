@@ -22,86 +22,118 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
+import { it } from "node:test";
 import { calculTypes } from "../../interfaces/IConfig";
 import { INodeItemTree } from "../../interfaces/INodeItem";
+import { getTimeSeriesAsync } from "../spinalAPI/endpoints/getEndpoints";
 
-export function calculItemsValue(data: INodeItemTree[], calculMode: calculTypes): INodeItemTree[] {
-	return data.reduce((arr: INodeItemTree[], item) => {
-		const values = item.children.map((el) => getValue(el));
-		const value = calculateValue(values, calculMode);
+export async function calculItemsValue(
+  data: INodeItemTree[],
+  calculMode: calculTypes,
+  time?: any
+): Promise<INodeItemTree[]> {
+  return await Promise.all(
+    data.flatMap(async (item) => {
+      const values = await Promise.all(
+        item.children.map(async (el) => await getValue(el, calculMode, time))
+      );
+      const value = calculateValue(values, calculMode);
 
-		item.displayValue = isFinite(value) ? value : "-";
-		arr.push(item);
-		return arr;
-	}, []);
+      item.displayValue = isFinite(value) ? value : "-";
+      return item;
+    })
+  );
 }
 
 export function getColor(item, legend) {
-	const value = item.displayValue;
+  const value = item.displayValue;
 
-	if (isNaN(value)) return legend.min.color;
+  if (isNaN(value)) return legend.min.color;
 
-	if (!isFinite(value)) return value < 0 ? legend.min.color : legend.max.color;
+  if (!isFinite(value)) return value < 0 ? legend.min.color : legend.max.color;
 
-	if (value == legend.min.value) return legend.min.color;
-	if (legend.median && value == legend.median.value) return legend.median.color;
-	if (value == legend.max.value) return legend.max.color;
+  if (legend.median) {
+    const third = legend.min.value + (legend.max.value - legend.min.value) / 3;
+    const two_third =
+      legend.min.value + ((legend.max.value - legend.min.value) * 2) / 3;
 
-	const percent25 = (legend.min.value + legend.median.value) / 2;
-	if (value <= percent25) return legend.min.color;
+    if (value <= third) return legend.min.color;
+    if (value <= two_third) return legend.median.color;
+    return legend.max.color;
+  }
 
-	const percent75 = (legend.max.value + legend.median.value) / 2;
-	if (value <= percent75) return legend.median.color;
-
-	return legend.max.color;
+  return value <= legend.max.value / 2 ? legend.min.color : legend.max.color;
 }
 
-function getValue(item: INodeItemTree) {
-	item.displayValue = item.endpoint?.value?.toString() || item.endpoint?.currentValue?.toString() || "-";
-	return item.displayValue;
+async function getValue(
+  item: INodeItemTree,
+  calculMode: calculTypes,
+  time?: any
+) {
+  if (!time) {
+    item.displayValue =
+      item.endpoint?.value?.toString() ||
+      item.endpoint?.currentValue?.toString() ||
+      "-";
+    return item.displayValue;
+  }
+  const buildingId = localStorage.getItem("idBuilding") || "";
+  const values = (
+    await getTimeSeriesAsync(
+      buildingId,
+      item.endpoint.dynamicId,
+      time.begin,
+      time.end
+    )
+  ).map((el) => el.value);
+  item.displayValue = calculateValue(values, calculMode);
+  return item.displayValue;
 }
 
-export function calculateValue(arr: (string | number)[], calculMode: calculTypes): number {
-	const nums = _filterAndconvertDataToNumber(arr);
+export function calculateValue(
+  arr: (string | number)[],
+  calculMode: calculTypes
+): number {
+  const nums = _filterAndconvertDataToNumber(arr);
 
-	switch (calculMode) {
-		case calculTypes.Maximum:
-			return getMax(nums);
-		case calculTypes.Minimum:
-			return getMin(nums);
-		case calculTypes.Somme:
-			return getSum(nums);
-		case calculTypes.Moyenne:
-			return getMoyenne(nums);
-		case calculTypes.MoyennePercent:
-			return getMoyenne(nums) * 100;
-	}
+  switch (calculMode) {
+    case calculTypes.Maximum:
+      return getMax(nums);
+    case calculTypes.Minimum:
+      return getMin(nums);
+    case calculTypes.Somme:
+      return getSum(nums);
+    case calculTypes.Moyenne:
+      return getMoyenne(nums);
+    case calculTypes.MoyennePercent:
+      return getMoyenne(nums) * 100;
+  }
 }
 
 function getMax(arr: number[]) {
-	return Math.max(...arr);
+  return Math.max(...arr);
 }
 
 function getMin(arr: number[]) {
-	return Math.min(...arr);
+  return Math.min(...arr);
 }
 
 function getSum(arr: number[]) {
-	return arr.reduce((sum, i) => {
-		sum += i;
-		return sum;
-	}, 0);
+  return arr.reduce((sum, i) => {
+    sum += i;
+    return sum;
+  }, 0);
 }
 
 function getMoyenne(arr: number[]) {
-	const sum = getSum(arr);
-	return sum / arr.length;
+  const sum = getSum(arr);
+  return sum / arr.length;
 }
 
 function _filterAndconvertDataToNumber(arr: (string | number)[]): number[] {
-	return arr.reduce((list, i) => {
-		//@ts-ignore
-		if (!isNaN(i as any)) list.push(Number(i as any));
-		return list;
-	}, []);
+  return arr.reduce((list, i) => {
+    //@ts-ignore
+    if (!isNaN(i as any)) list.push(Number(i as any));
+    return list;
+  }, []);
 }

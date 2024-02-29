@@ -270,6 +270,7 @@ export const actions = {
     );
 
     const regroupement = playload.config.regroupement;
+    itemsToRegroup = itemsToRegroup.filter((el) => el.endpoint);
 
     if (regroupement === "floors")
       return regroupByGeographicItem(map, "geographicFloor", itemsToRegroup);
