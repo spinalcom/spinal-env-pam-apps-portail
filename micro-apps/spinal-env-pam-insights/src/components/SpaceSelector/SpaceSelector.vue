@@ -101,27 +101,52 @@ with this file. If not, see
     </div>
     <v-dialog v-model="pickDate" width="80%" persistent>
       <v-card>
-        <v-card-title class="headline">Choisissez une date</v-card-title>
         <v-card-text class="d-flex flex-row justify-space-between">
-          <v-date-picker
-            v-model="dates"
-            scrollable
-            range
-            locale="fr"
-            :first-day-of-week="1"
-          ></v-date-picker>
-          <v-time-picker
-            v-model="timeBegin"
-            scrollable
-            format="24hr"
-            use-seconds
-          ></v-time-picker>
-          <v-time-picker
-            v-model="timeEnd"
-            scrollable
-            format="24hr"
-            use-seconds
-          ></v-time-picker>
+          <div style="width: calc(50% - 4px)">
+            <v-card-title class="headline justify-center">
+              Date de début
+            </v-card-title>
+            <div class="d-flex flex-row justify-space-around">
+              <v-date-picker
+                v-model="dateBegin"
+                scrollable
+                locale="fr"
+                :first-day-of-week="1"
+                color="orange"
+                header-color="primary"
+              ></v-date-picker>
+              <v-time-picker
+                v-model="timeBegin"
+                scrollable
+                format="24hr"
+                color="orange"
+                header-color="primary"
+              ></v-time-picker>
+            </div>
+          </div>
+          <v-divider vertical inset></v-divider>
+          <div style="width: calc(50% - 4px)">
+            <v-card-title class="headline justify-center">
+              Date de fin
+            </v-card-title>
+            <div class="d-flex flex-row justify-space-around">
+              <v-date-picker
+                v-model="dateEnd"
+                scrollable
+                locale="fr"
+                :first-day-of-week="1"
+                color="orange"
+                header-color="primary"
+              ></v-date-picker>
+              <v-time-picker
+                v-model="timeEnd"
+                scrollable
+                format="24hr"
+                color="orange"
+                header-color="primary"
+              ></v-time-picker>
+            </div>
+          </div>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -175,8 +200,9 @@ class SpaceSelector extends Vue {
 
   selectorHeight = 0;
   pickDate = false;
-  dates: string[] = [];
+  dateBegin: string = "";
   timeBegin: string = "";
+  dateEnd: string = "";
   timeEnd: string = "";
 
   get selectedZoneName() {
@@ -188,7 +214,7 @@ class SpaceSelector extends Vue {
   buildingStructure: ISpaceSelectorItem[] = [];
 
   get validatePicker() {
-    return this.dates.length === 2 && this.timeBegin && this.timeEnd;
+    return this.dateBegin && this.dateEnd && this.timeBegin && this.timeEnd;
   }
 
   @Watch("selectedZone")
@@ -232,15 +258,16 @@ class SpaceSelector extends Vue {
   onDateChange() {
     const item = this.buildingStructure.find((b) => b.name === "Personnalisé");
     const [begin, end] = [
-      this.dates[0] + " " + this.timeBegin,
-      this.dates[1] + " " + this.timeEnd,
+      this.dateBegin + " " + this.timeBegin,
+      this.dateEnd + " " + this.timeEnd,
     ].sort();
     item.range = {
       begin: moment(begin).format("DD-MM-YYYY HH:mm:ss"),
       end: moment(end).format("DD-MM-YYYY HH:mm:ss"),
     };
 
-    this.dates = [];
+    this.dateBegin = "";
+    this.dateEnd = "";
     this.timeBegin = "";
     this.timeEnd = "";
 
