@@ -23,174 +23,195 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card elevation="4" class="cardContainer">
-    <div
-      class="dataContainer"
-      @onSpriteClick="updateSelected"
-      v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected"
-    >
-      <div class="detail_header">
-        <div class="title_date">
-          <div class="_title">{{ config.title }}</div>
-          <div class="date" title="recharger">
-            <!-- <v-btn
-              rounded
-              outlined
-              color="primary"
-              dark
-              @click="regroupItemsAndCalculate(true)"
-            >
-              <v-icon>mdi-reload</v-icon>
-            </v-btn> -->
-          </div>
-        </div>
-
-        <v-row class="source_regroupement_select">
-          <v-col>
-            <v-autocomplete
-              v-model="sourceSelectedName"
-              item-text="name"
-              outlined
-              dense
-              rounded
-              flat
-              :hide-details="true"
-              :items="sources"
-              label="Source"
-            ></v-autocomplete>
-          </v-col>
-
-          <v-col>
-            <v-autocomplete
-              v-model="regroupementSelected"
-              item-text="name"
-              item-value="value"
-              outlined
-              dense
-              rounded
-              flat
-              :hide-details="true"
-              :items="regroupements"
-              label="Regroupement"
-            ></v-autocomplete>
-          </v-col>
-        </v-row>
-
-        <div class="gradient_content">
-          <div class="indicators">
-            <div class="indicator">{{ min }}</div>
-            <div class="indicator">{{ max }}</div>
+  <div>
+    <v-card elevation="4" class="cardContainer">
+      <div class="dataContainer" @onSpriteClick="updateSelected">
+        <div class="detail_header">
+          <div class="title_date">
+            <div class="_title">{{ config.title }}</div>
+            <div class="date" title="recharger">
+              <v-btn
+                v-if="navigable"
+                elevation="0"
+                fab
+                small
+                @click="t_index--"
+              >
+                <v-icon>mdi-chevron-left</v-icon>
+              </v-btn>
+              {{ displayDate }}
+              <v-btn
+                v-if="navigable"
+                elevation="0"
+                fab
+                small
+                :disabled="!t_index"
+                @click="t_index++"
+              >
+                <v-icon>mdi-chevron-right</v-icon>
+              </v-btn>
+            </div>
           </div>
 
-          <div
-            class="gradient_bar"
-            :style="{ background: gradientColor }"
-          ></div>
-        </div>
-
-        <div class="calcul_content">
-          <div class="calcul">
-            <div class="select">
-              <v-select
-                v-model="calculMode"
-                :items="calculItems"
-                height="30"
-                background-color="#eaeef0"
+          <v-row class="source_regroupement_select">
+            <v-col>
+              <v-autocomplete
+                v-model="sourceSelectedName"
+                item-text="name"
+                outlined
                 dense
-                append-icon=""
-                solo
+                rounded
                 flat
                 :hide-details="true"
-              >
-                <template v-slot:item="{ item, index }">
-                  <div style="display: flex; align-items: center">
-                    <div
-                      class="color"
-                      :style="{
-                        background: '#14202c',
-                        width: '8px',
-                        height: '15px',
-                        marginRight: '5px',
-                      }"
-                    ></div>
-                    <div style="font-size: 13px">{{ item }}</div>
-                  </div>
-                </template>
+                :items="sources"
+                label="Source"
+              ></v-autocomplete>
+            </v-col>
 
-                <template v-slot:selection="{ item, index }">
-                  <div style="display: flex; align-items: center">
-                    <div
-                      class="color"
-                      :style="{
-                        height: '15px',
-                        background: '#14202c',
-                        borderRadius: '3px',
-                      }"
-                    ></div>
-                    <div style="font-size: 13px">{{ item }}</div>
-                  </div>
-                </template>
-              </v-select>
+            <v-col>
+              <v-autocomplete
+                v-model="regroupementSelected"
+                item-text="name"
+                item-value="value"
+                outlined
+                dense
+                rounded
+                flat
+                :hide-details="true"
+                :items="regroupements"
+                label="Regroupement"
+              ></v-autocomplete>
+            </v-col>
+          </v-row>
+
+          <div class="d-flex">
+            <div class="gradient_content">
+              <div class="indicators">
+                <div class="indicator">{{ min }}</div>
+                <div class="indicator">{{ max }}</div>
+              </div>
+
+              <div
+                class="gradient_bar"
+                :style="{ background: gradientColor }"
+              ></div>
             </div>
+            <v-btn icon @click="dialog = true"><v-icon>mdi-cog</v-icon></v-btn>
+          </div>
 
-            <div class="calculResult">
-              <div class="color" :style="{ background: toltalColor }"></div>
-              <div class="value">{{ total | round }}</div>
-              <div class="value">{{ unit }}</div>
-              <div class="text">Pour l'étage {{ selectedZone.name }}</div>
+          <div class="calcul_content">
+            <div class="calcul">
+              <div class="select">
+                <v-select
+                  v-model="calculMode"
+                  :items="calculItems"
+                  height="30"
+                  background-color="#eaeef0"
+                  dense
+                  append-icon=""
+                  solo
+                  flat
+                  :hide-details="true"
+                >
+                  <template v-slot:item="{ item, index }">
+                    <div style="display: flex; align-items: center">
+                      <div
+                        class="color"
+                        :style="{
+                          background: '#14202c',
+                          width: '8px',
+                          height: '15px',
+                          marginRight: '5px',
+                        }"
+                      ></div>
+                      <div style="font-size: 13px">{{ item }}</div>
+                    </div>
+                  </template>
+
+                  <template v-slot:selection="{ item, index }">
+                    <div style="display: flex; align-items: center">
+                      <div
+                        class="color"
+                        :style="{
+                          height: '15px',
+                          background: '#14202c',
+                          borderRadius: '3px',
+                        }"
+                      ></div>
+                      <div style="font-size: 13px">{{ item }}</div>
+                    </div>
+                  </template>
+                </v-select>
+              </div>
+
+              <div class="calculResult">
+                <div class="color" :style="{ background: toltalColor }"></div>
+                <div class="value">{{ total | round }}</div>
+                <div class="value">{{ unit }}</div>
+                <div class="text">Pour l'étage {{ selectedZone.name }}</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="detail_container">
-        <GroupDataView
-          v-for="(d, i) in data"
-          :key="i"
-          :data="d"
-          :config="config"
-          :calculMode="calculMode"
-          :unit="unit"
-          :legend="sourceSelected.legend"
-          @onClick="selectDataView"
-        />
-      </div>
-    </div>
-
-    <div
-      class="centered"
-      v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected"
-    >
-      Aucune donnée à afficher ! veuillez selectionner un étage ou une pièce.
-    </div>
-
-    <div class="centered" v-else-if="pageSate === PAGE_STATES.loading">
-      <v-progress-circular
-        :size="70"
-        :width="3"
-        color="purple"
-        indeterminate
-      ></v-progress-circular>
-    </div>
-
-    <div class="centered" v-else-if="pageSate === PAGE_STATES.error">
-      <div>
-        <v-icon color="red" style="font-size: 5em"
-          >mdi-alert-circle-outline</v-icon
+        <div
+          v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected"
+          class="detail_container"
         >
+          <GroupDataView
+            v-for="(d, i) in data"
+            :key="i"
+            :data="d"
+            :config="config"
+            :calculMode="calculMode"
+            :unit="unit"
+            :legend="legend"
+            @onClick="selectDataView"
+          />
+        </div>
+
+        <div
+          class="centered"
+          v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected"
+        >
+          Aucune donnée à afficher ! veuillez selectionner un étage ou une
+          pièce.
+        </div>
+
+        <div class="centered" v-else-if="pageSate === PAGE_STATES.loading">
+          <v-progress-circular
+            :size="70"
+            :width="3"
+            color="purple"
+            indeterminate
+          ></v-progress-circular>
+        </div>
+
+        <div class="centered" v-else-if="pageSate === PAGE_STATES.error">
+          <div>
+            <v-icon color="red" style="font-size: 5em"
+              >mdi-alert-circle-outline</v-icon
+            >
+          </div>
+          <div color="red">
+            Quelque chose s'est mal passé ! Veuillez
+            <v-btn small outlined color="red" @click="retry">réessayer </v-btn>
+          </div>
+        </div>
       </div>
-      <div color="red">
-        Quelque chose s'est mal passé ! Veuillez
-        <v-btn small outlined color="red" @click="retry">réessayer </v-btn>
-      </div>
-    </div>
-  </v-card>
+    </v-card>
+    <v-dialog v-model="dialog" width="80%">
+      <config-legend v-if="dialog" v-model="legend" @close="dialog = false">
+      </config-legend>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">
 import { Prop, Vue, Watch } from "vue-property-decorator";
 import { PAGE_STATES } from "../../interfaces/pageStates";
 import GroupDataView from "./groupDataView.vue";
+import ConfigLegend from "./configLegend.vue";
 import Component from "vue-class-component";
 import {
   IConfig,
@@ -205,6 +226,7 @@ import {
   calculItemsValue,
   calculateValue,
   getColor,
+  calculateTotal,
 } from "../../services/calcul/calculItems";
 import SpriteComponent from "./SpriteComponent.vue";
 import lodash from "lodash";
@@ -213,12 +235,30 @@ import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
 } from "spinal-viewer-event-manager";
-import { it } from "node:test";
 import moment from "moment";
+import "moment/locale/fr";
+
+moment.updateLocale("fr", {
+  months: [
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
+  ],
+});
 
 @Component({
   components: {
     GroupDataView,
+    ConfigLegend,
   },
   filters: {
     round(value) {
@@ -242,9 +282,12 @@ class InsightApp extends Vue {
   @Prop() data: any[];
 
   time: any = null;
+  t_index: number = 0;
   sourceSelectedName: string = this.config.source[0].name;
   regroupementSelected: "floors" | "rooms" | IRegroupement =
     this.config.regroupement[0];
+  legend: any = this.config.source[0].legend;
+  dialog: boolean = false;
 
   initiated: boolean = false;
 
@@ -261,6 +304,7 @@ class InsightApp extends Vue {
   calculMode: calculTypes = this.calculItems[0];
   total: number = 0;
   retry: Function;
+  timeoutId: any;
 
   public get sourceSelected() {
     return this.config.source.find((el) => el.name === this.sourceSelectedName);
@@ -268,6 +312,53 @@ class InsightApp extends Vue {
 
   async mounted() {
     await this.retriveData();
+  }
+
+  get navigable() {
+    return ![ITemporality.currentValue, ITemporality.custom].includes(
+      this.selectedTime.name
+    );
+  }
+
+  get displayDate() {
+    const currentDay = moment();
+    let end;
+    switch (this.selectedTime.name) {
+      case ITemporality.currentValue:
+        return "En ce moment";
+      case ITemporality.custom:
+        return `${moment(this.selectedTime.range.begin).format(
+          "DD/MM/YYYY HH:mm"
+        )} - ${moment(this.selectedTime.range.end).format("DD/MM/YYYY HH:mm")}`;
+      case ITemporality.hour:
+        if (!this.t_index) return "Dernière heure";
+        currentDay.add(this.t_index, "hours");
+        end = moment(currentDay).add(1, "hours");
+        return (
+          currentDay.format("DD/MM/YY HH[h]") + " - " + end.format("HH[h]")
+        );
+      case ITemporality.day:
+        if (!this.t_index) return "Aujourd'hui";
+        currentDay.add(this.t_index, "days");
+        return currentDay.format("DD/MM/YYYY");
+      case ITemporality.week:
+        if (!this.t_index) return "Cette semaine";
+        currentDay.add(this.t_index, "week");
+        end = moment(currentDay).endOf("week");
+        return `${moment(end).add(-6, "days").format("DD MMMM")} - ${end.format(
+          "DD MMMM"
+        )}`;
+      case ITemporality.month:
+        if (!this.t_index) return "Ce mois";
+        currentDay.add(this.t_index, "months");
+        return currentDay.format("MMMM YYYY");
+      case ITemporality.year:
+        if (!this.t_index) return "Cette année";
+        currentDay.add(this.t_index, "years");
+        return currentDay.format("YYYY");
+      default:
+        return "";
+    }
   }
 
   getFirstSource() {
@@ -351,6 +442,73 @@ class InsightApp extends Vue {
     this.selectedItem = item.detail || item;
   }
 
+  async updateDataOnTimeChanged() {
+    const end = moment().minutes(59).seconds(59);
+    switch (this.selectedTime.name) {
+      case ITemporality.currentValue:
+        this.time = null;
+        break;
+      case ITemporality.hour:
+        end.add(this.t_index, "hours");
+        this.time = {
+          begin: moment().subtract(1, "hours").format("DD-MM-YYYY HH:mm:ss"),
+          end: end.format("DD-MM-YYYY HH:mm:ss"),
+        };
+        break;
+      case ITemporality.day:
+        end.endOf("day").add(this.t_index, "days");
+        this.time = {
+          begin: moment().subtract(1, "days").format("DD-MM-YYYY HH:mm:ss"),
+          end: end.format("DD-MM-YYYY HH:mm:ss"),
+        };
+        break;
+      case ITemporality.week:
+        end.endOf("week").add(this.t_index, "weeks");
+        this.time = {
+          begin: moment().subtract(1, "weeks").format("DD-MM-YYYY HH:mm:ss"),
+          end: end.format("DD-MM-YYYY HH:mm:ss"),
+        };
+        break;
+      case ITemporality.month:
+        end.endOf("month").add(this.t_index, "months");
+        this.time = {
+          begin: moment().subtract(1, "months").format("DD-MM-YYYY HH:mm:ss"),
+          end: end.format("DD-MM-YYYY HH:mm:ss"),
+        };
+      case ITemporality.year:
+        end.endOf("year").add(this.t_index, "years");
+        this.time = {
+          begin: moment().subtract(1, "years").format("DD-MM-YYYY HH:mm:ss"),
+          end: end.format("DD-MM-YYYY HH:mm:ss"),
+        };
+        break;
+      case ITemporality.custom:
+        this.time = this.selectedTime.range;
+        break;
+      default:
+        this.time = null;
+        break;
+    }
+    await this.regroupItemsAndCalculate();
+    await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+
+    const itemsToColor = this.data.flatMap((el) => el.children || []);
+    itemsToColor.forEach((el) => (el.unit = this.sourceSelected.unit));
+    await this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+      items: itemsToColor,
+      buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
+      component: SpriteComponent,
+    });
+    if (!this.selectedItem) return;
+    const emitterHandler = EmitterViewerHandler.getInstance();
+    emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.selectedItem });
+    setTimeout(() => {
+      this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
+        this.selectedItem.dynamicId,
+      ]);
+    }, 500);
+  }
+
   selectDataView(item) {
     this.updateSelected(item);
     this.$emit("clickOnDataView", item);
@@ -366,11 +524,13 @@ class InsightApp extends Vue {
     this.initiated = false;
     this.isBuildingSelected = false;
 
-    this.regroupItemsAndCalculateDebounced();
+    this.updateDataOnTimeChanged();
   }
 
   @Watch("calculMode")
   async watchCaculMode() {
+    if (this.isBuildingSelected) return;
+
     const calculated = await calculItemsValue(
       this.data,
       this.calculMode,
@@ -404,7 +564,7 @@ class InsightApp extends Vue {
     if (this.isBuildingSelected) return;
 
     const values = this.data.map((el) => el.displayValue);
-    this.total = calculateValue(values, this.calculMode);
+    this.total = calculateTotal(values, this.calculMode);
 
     if (!this.initiated) {
       const itemsToColor = this.data.flatMap((el) => el.children || []);
@@ -421,6 +581,10 @@ class InsightApp extends Vue {
   @Watch("sourceSelectedName")
   async watchSource(newVal) {
     if (!newVal) return;
+    this.legend = this.config.source.find((el) => el.name === newVal).legend;
+
+    if (this.isBuildingSelected) return;
+
     await this.regroupItemsAndCalculate(true);
     await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
 
@@ -443,49 +607,29 @@ class InsightApp extends Vue {
 
   @Watch("regroupementSelected")
   watchRegroupement() {
+    if (this.isBuildingSelected) return;
     this.regroupItemsAndCalculateDebounced();
   }
 
   @Watch("selectedTime")
-  async watchSelectedTime(newVal) {
+  async watchSelectedTime() {
     if (this.isBuildingSelected) return;
-    const end = moment()
-      .hour(23)
-      .minutes(59)
-      .seconds(59)
-      .format("DD-MM-YYYY HH:mm:ss");
-    switch (newVal.name) {
-      case ITemporality.day:
-        this.time = {
-          begin: moment().subtract(1, "days").format("DD-MM-YYYY HH:mm:ss"),
-          end,
-        };
-        break;
-      case ITemporality.week:
-        this.time = {
-          begin: moment().subtract(1, "weeks").format("DD-MM-YYYY HH:mm:ss"),
-          end,
-        };
-        break;
-      case ITemporality.month:
-        this.time = {
-          begin: moment().subtract(1, "months").format("DD-MM-YYYY HH:mm:ss"),
-          end,
-        };
-      case ITemporality.year:
-        this.time = {
-          begin: moment().subtract(1, "years").format("DD-MM-YYYY HH:mm:ss"),
-          end,
-        };
-        break;
-      case "Personnalisé":
-        this.time = newVal.range;
-        break;
-      default:
-        this.time = null;
-        break;
-    }
-    await this.regroupItemsAndCalculate();
+    if (!this.t_index) await this.updateDataOnTimeChanged();
+    else this.t_index = 0;
+  }
+
+  @Watch("t_index")
+  async watchTIndex() {
+    if (this.isBuildingSelected) return;
+    clearTimeout(this.timeoutId);
+    this.timeoutId = setTimeout(async () => {
+      await this.updateDataOnTimeChanged();
+    }, 500);
+  }
+
+  @Watch("legend")
+  async watchLegend(legend) {
+    if (this.isBuildingSelected) return;
     await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
 
     const itemsToColor = this.data.flatMap((el) => el.children || []);
@@ -508,10 +652,6 @@ class InsightApp extends Vue {
   /**
    * Getters
    */
-
-  public get legend() {
-    return this.sourceSelected.legend;
-  }
 
   public get gradientColor(): string {
     const maxColor = this.legend.max.color;
@@ -692,7 +832,7 @@ export default InsightApp;
 
   .centered {
     width: 100%;
-    height: 100%;
+    height: calc(100% - 190px);
     display: flex;
     flex-direction: column;
     align-items: center;

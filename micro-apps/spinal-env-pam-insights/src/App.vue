@@ -196,36 +196,21 @@ class App extends Vue {
   }
 
   onTemporalitySelectOpen(item?: any) {
-    const custom = {
-      name: "Personnalisé",
-      staticId: 5,
-      dynamicId: 5,
-      level: 0,
-      isOpen: true,
-      loading: false,
-      parents: [],
-      drawLink: [],
-      haveChildren: false,
-      type: "time",
-    };
     switch (item?.type) {
       case undefined:
         // return ['Journée', "Semaine", "Mois", "Trimestre", "Année", 'Décennie'].map((temp, index) => ({
-        return [
-          ...config.temporality.map((temp, index) => ({
-            name: temp,
-            staticId: index,
-            dynamicId: index,
-            level: 0,
-            isOpen: true,
-            loading: false,
-            parents: [],
-            drawLink: [],
-            haveChildren: false,
-            type: "time",
-          })),
-          custom,
-        ];
+        return config.temporality.map((temp, index) => ({
+          name: temp,
+          staticId: index,
+          dynamicId: index,
+          level: 0,
+          isOpen: true,
+          loading: false,
+          parents: [],
+          drawLink: [],
+          haveChildren: false,
+          type: "time",
+        }));
 
       default:
         return [];

@@ -129,10 +129,12 @@ export const config: IConfig = {
   viewerInfo: { roomRef: true, floorRef: true, equipments: "groupItem" },
   temporality: [
     ITemporality.currentValue,
+    ITemporality.hour,
     ITemporality.day,
     ITemporality.week,
     ITemporality.month,
     ITemporality.year,
+    ITemporality.custom,
   ],
 };
 

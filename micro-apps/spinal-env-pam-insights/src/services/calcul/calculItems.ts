@@ -21,8 +21,6 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-
-import { it } from "node:test";
 import { calculTypes } from "../../interfaces/IConfig";
 import { INodeItemTree } from "../../interfaces/INodeItem";
 import { getTimeSeriesAsync } from "../spinalAPI/endpoints/getEndpoints";
@@ -62,7 +60,8 @@ export function getColor(item, legend) {
     return legend.max.color;
   }
 
-  return value <= legend.max.value / 2 ? legend.min.color : legend.max.color;
+  const mid = (legend.max.value + legend.min.value) / 2;
+  return value <= mid ? legend.min.color : legend.max.color;
 }
 
 async function getValue(
@@ -107,6 +106,25 @@ export function calculateValue(
       return getMoyenne(nums);
     case calculTypes.MoyennePercent:
       return getMoyenne(nums) * 100;
+  }
+}
+
+export function calculateTotal(
+  arr: (string | number)[],
+  calculMode: calculTypes
+): number {
+  const nums = _filterAndconvertDataToNumber(arr);
+
+  switch (calculMode) {
+    case calculTypes.Maximum:
+      return getMax(nums);
+    case calculTypes.Minimum:
+      return getMin(nums);
+    case calculTypes.Somme:
+      return getSum(nums);
+    case calculTypes.Moyenne:
+    case calculTypes.MoyennePercent:
+      return getMoyenne(nums);
   }
 }
 

@@ -47,10 +47,12 @@ export interface IConfig {
 
 export const enum ITemporality {
   currentValue = "Valeur courante",
-  day = "journée",
+  hour = "Heure",
+  day = "Journée",
   week = "Semaine",
   month = "Mois",
   year = "Année",
+  custom = "Personnalisé",
 }
 
 export interface IRegroupement {
