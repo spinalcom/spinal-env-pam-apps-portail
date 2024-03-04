@@ -25,7 +25,22 @@ with this file. If not, see
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
     <div class="selectors">
       <div class="DButton">
-        <ScDownloadButton  :fileName="'insight_data'" :xls="true" :data="getDataFormatted()" />
+        <div @click="showDlOption = !showDlOption"
+          style="position: absolute; background-color: rgb(20, 32, 44);transform: translate(-74%);border-top-left-radius: 10px;border-bottom-left-radius: 10px;height:  38px;display: flex;justify-content: center;align-items: center;margin-top: 10px;padding-right: 6px;padding-left: 4px;">
+          <v-icon style="border: 0px solid white;border-radius: 5px;padding: 4px;" size="18"
+            color="white">mdi-cog</v-icon>
+        </div>
+        <ScDownloadButton :fileName="'insight_data'" :xls="true" :data="getDataFormatted()" />
+      </div>
+
+      <div @click="showDlOption = !showDlOption"
+        style="z-index: 9999;display: flex;justify-content: center;align-items: center;position: fixed;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.156);top: 0;left:0"
+        v-if="showDlOption">
+
+        <div style="background-color: white;" @click.stop>
+          <input type="checkbox" id="checkbox" v-model="dataFromTab" />
+          <label for="checkbox">Séléctionner les données parametré dans le tableau </label>
+        </div>
       </div>
 
       <!-- <div class="temporality">
@@ -43,8 +58,9 @@ with this file. If not, see
 
     <div class="dataBody">
       <viewerApp class="viewerContainer"></viewerApp>
-      <dataSideApp :selected_attr="$store.state.appDataStore.attr" class="appContainer" :element_clicked="el_clicked" :config="config" :selectedZone="selectedZone"
-        :data="displayedData" @clickOnDataView="onDataViewClicked"></dataSideApp>
+      <dataSideApp :selected_attr="$store.state.appDataStore.attr" class="appContainer" :element_clicked="el_clicked"
+        :config="config" :selectedZone="selectedZone" :data="displayedData" @clickOnDataView="onDataViewClicked">
+      </dataSideApp>
 
     </div>
   </v-app>
@@ -55,11 +71,12 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
+
 import {
   ISpaceSelectorItem,
   SpaceSelector,
 } from "./components/SpaceSelector/index";
-import { Vue } from "vue-property-decorator";
+import { Vue, Watch } from "vue-property-decorator";
 import { ActionTypes } from "./interfaces/vuexStoreTypes";
 import Component from "vue-class-component";
 import type { Store } from "./services/store";
@@ -96,6 +113,7 @@ interface IItemDatatmp {
   id: Set<number>;
 }
 
+
 @Component({
   components: {
     SpaceSelector,
@@ -115,6 +133,8 @@ class App extends Vue {
   dataTable: IZoneItem[] = [];
   $refs: { spaceSelector };
   el_clicked: any = "toto";
+  showDlOption: boolean = false;
+  dataFromTab: any = false;
 
   async mounted() {
     try {
@@ -333,7 +353,18 @@ class App extends Vue {
       id: staticId,
     }));
   }
+
+
+  @Watch("dataFromTab")
+  watchSelecteddataFromTab() {
+    console.log('toto');
+    const value = this.dataFromTab;
+    this.$store.commit(MutationTypes.SET_DL_DATA_OPTIONS, value);
+  }
+
 }
+
+
 
 export default App;
 </script>
@@ -394,7 +425,11 @@ export default App;
   }
 }
 
-::v-deep .card-colored{
+.DButton {
+  display: flex;
+}
+
+::v-deep .card-colored {
   background-color: #14202c !important;
   border-radius: 8px !important;
 }

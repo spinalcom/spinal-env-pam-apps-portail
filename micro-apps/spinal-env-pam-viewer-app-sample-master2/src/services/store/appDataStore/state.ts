@@ -41,6 +41,14 @@ export const state = {
 	itemSelected: undefined,
 	dataVizExtn: undefined,
 	data: undefined as any,
-	dlData : undefined as any,
-	attr : undefined as any,
+	dlData: undefined as any,
+	attr: undefined as any,
+	dl_data_option: undefined as any,
+	user_selection_list: {} as any,
+	user_selected: {
+		cat: null,
+		ctx: null,
+		grp: [] // Changez ceci pour un tableau
+	}
+
 };

@@ -24,7 +24,7 @@ with this file. If not, see
 
 <template>
   <v-card elevation="4" class="cardContainer">
-    <div class="dataContainer" v-if="pageSate === PAGE_STATES.loaded">
+    <div class="dataContainer" v-if="1 === 1">
       <!-- <div class="detail_header">
         <div class="title_date">
           <div class="date" title="recharger"></div>
@@ -34,9 +34,11 @@ with this file. If not, see
       <!-- <capacityTable  :headers="[{text:'Nom', value: 'name'},{text:'test', value: 'name'},]" :tab="[]"></capacityTable> -->
 
       <SpinalTable :selectedItemTab="element_clicked" @item-selected="selectDataView"
-        @update:selectedItem="handleAttributeChange" @update:selectedAttribute="handleAttributeChange"
-        @typeSelected="selectitem"  :headers="[]" :id="0" :label="'test'" :reference="''" :unit="''"
-        :contexts="data" :temporality="''" />
+        @update:selectedItem="handleAttributeChange" @update:selectedAttribute="handleAttributeChange" :headers="[]"
+        :id="0" :label="'test'" :reference="''" :unit="''" :contexts="data" :temporality="''"
+        :ctx_list="$store.state.appDataStore.user_selection_list.ctx"
+        :cat_list="$store.state.appDataStore.user_selection_list.cat"
+        :grp_list="$store.state.appDataStore.user_selection_list.grp" @itemSelected="handleItemSelected" />
 
       <!-- <div :style="{ 'overflow-y': 'scroll', 'height': 'calc(100% - 200px)' }">
         <div v-for="(d, i) in data" :key="i">{{ d.name }}</div>
@@ -47,15 +49,15 @@ with this file. If not, see
       <!-- \SAMPLE -->
     </div>
 
-    <div class="centered" v-else-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected">
+    <!-- <div class="centered" v-else-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected">
       Aucune donnée à afficher ! veuillez selectionner un étage ou une pièce.
-    </div>
+    </div> -->
 
     <!-- <div class="centered" v-else-if="pageSate === PAGE_STATES.loading">
       <v-progress-circular :size="70" :width="3" color="purple" indeterminate></v-progress-circular>
     </div> -->
 
-    <div class="centered" v-else-if="pageSate === PAGE_STATES.error">
+    <!-- <div class="centered" v-else-if="pageSate === PAGE_STATES.error">
       <div>
         <v-icon color="red" style="font-size: 5em">mdi-alert-circle-outline</v-icon>
       </div>
@@ -63,7 +65,7 @@ with this file. If not, see
         Quelque chose s'est mal passé ! Veuillez
         <v-btn small outlined color="red" @click="retry">réessayer </v-btn>
       </div>
-    </div>
+    </div> -->
   </v-card>
 </template>
   
@@ -115,7 +117,21 @@ class dataSideApp extends Vue {
     console.log('ddddddddddd', this.selected_attr);
   }
 
+  async handleItemSelected(payload) {
+    console.log('Élément sélectionné:', payload.value.name);
+
+    if (payload.listType == "ctx")
+      this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "ctx", value: payload.value.name });
+    if (payload.listType == "cat")
+      this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "cat", value: payload.value.name });
+    if (payload.listType == "grp")
+      this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: payload.value.name });
+
+    await this.retriveData();
+  }
+
   async retriveData() {
+    console.log('RETRIEVEDATA');
 
     // try {
     //   this.pageSate = PAGE_STATES.loading;
@@ -154,7 +170,7 @@ class dataSideApp extends Vue {
     dispatchObject.forceUpdate = true;
 
     try {
-      this.pageSate = PAGE_STATES.loading;
+      // this.pageSate = PAGE_STATES.loading;
       const buildingId = localStorage.getItem("idBuilding");
       const patrimoineId = JSON.parse(localStorage.getItem("patrimoine")).id;
       const promises = [
@@ -181,10 +197,7 @@ class dataSideApp extends Vue {
   }
 
   updateComponentProp(updatedValue) {
-    console.log('avant', this.selectedItem2);
-
     this.selectedItem2 = updatedValue;
-    console.log('aprés', this.selectedItem2);
   }
 
   handleAttributeChange(emitedInfo) {
@@ -203,16 +216,13 @@ class dataSideApp extends Vue {
       let position;
       let attrpos
       if (spatial) {
-        // Trouver l'attribut de position XYZ
         let xyz = spatial.attributs.find(attr => attr.label === "XYZ center");
         if (xyz) {
-          // Extraire les valeurs X, Y, Z
           let [x, y, z] = xyz.value.split(';').map(Number);
           position = { x, y, z };
         }
       }
       if (cate) {
-        // Trouver l'attribut de position XYZ
         attrpos = cate.attributs.find(attr => attr.label === emitedInfo.attr);
         console.log(attrpos);
       }
@@ -232,8 +242,6 @@ class dataSideApp extends Vue {
       });
       return;
     }
-    // const buildingId = localStorage.getItem("idBuilding");
-
     this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
       items: newArray,
       buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
@@ -244,38 +252,38 @@ class dataSideApp extends Vue {
   }
 
 
-  async selectitem(item) {
-    console.log('il load au debut ?');
+  // async selectitem(item) {
+  //   console.warn('il load au debut ?');
 
-    let actionType = ActionTypes.GET_GROUP_CONTEXT
-    let dispatchObject = {
-      buildingId: localStorage.getItem("idBuilding"),
-      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
-      position_type: this.selectedZone,
-      // Inclure d'autres propriétés communes si nécessaire
-    } as any;
-    dispatchObject.forceUpdate = true;
+  //   let actionType = ActionTypes.GET_GROUP_CONTEXT
+  //   let dispatchObject = {
+  //     buildingId: localStorage.getItem("idBuilding"),
+  //     patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+  //     position_type: this.selectedZone,
+  //     // Inclure d'autres propriétés communes si nécessaire
+  //   } as any;
+  //   dispatchObject.forceUpdate = true;
 
-    try {
-      this.pageSate = PAGE_STATES.loading;
-      const buildingId = localStorage.getItem("idBuilding");
-      const patrimoineId = JSON.parse(localStorage.getItem("patrimoine")).id;
-      const promises = [
-        this.$store.dispatch(actionType, dispatchObject),
+  //   try {
+  //     this.pageSate = PAGE_STATES.loading;
+  //     const buildingId = localStorage.getItem("idBuilding");
+  //     const patrimoineId = JSON.parse(localStorage.getItem("patrimoine")).id;
+  //     const promises = [
+  //       this.$store.dispatch(actionType, dispatchObject),
 
-      ];
-      const result = await Promise.all(promises);
-      this.$store.commit(MutationTypes.SET_DATA, result);
+  //     ];
+  //     const result = await Promise.all(promises);
+  //     this.$store.commit(MutationTypes.SET_DATA, result);
 
 
-      this.pageSate = PAGE_STATES.loaded;
+  //     this.pageSate = PAGE_STATES.loaded;
 
-    } catch (err) {
-      console.log(err);
-      this.retry = this.retriveData;
-      this.pageSate = PAGE_STATES.error;
-    }
-  }
+  //   } catch (err) {
+  //     console.log(err);
+  //     this.retry = this.retriveData;
+  //     this.pageSate = PAGE_STATES.error;
+  //   }
+  // }
 
 
   /**
@@ -312,7 +320,7 @@ class dataSideApp extends Vue {
     let originalArray = this.data[0].data;
     let newArray = originalArray.map(item => {
 
-      // Trouver l'attribut 'Spatial'
+      // Trouver l'attribut 'Spat,staticIdial'
       let spatial = item.categoryAttributes.find(cat => cat.name === "Spatial");
       let position;
       if (spatial) {
@@ -325,7 +333,7 @@ class dataSideApp extends Vue {
         }
       }
       // Retourner le nouvel objet avec position et color
-      return { ...item, position: position || null, color: "#0074FF", displayValue: "-", toto: position , attr : this.selected_attr};
+      return { ...item, position: position || null, color: "#0074FF", displayValue: "-", toto: position, attr: this.selected_attr };
     });
 
     if (this.config.sprites) {

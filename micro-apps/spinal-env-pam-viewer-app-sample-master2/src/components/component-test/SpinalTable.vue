@@ -2,17 +2,69 @@
   <div class="main-tab"
     style=" width: 100%; font-size: 14px !important;background-color: rgb(255, 255, 255);border-radius: 10px !important;border-color: black !important;">
 
-    <div style="width: 100%;display: flex;justify-content: center;margin-top: 10px;">
-      <div class="hauteur"
-        style="padding: 10px;z-index: 10;width: 97.5%; position: absolute;border-radius: 5px;background-color: rgb(255, 255, 255);box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;border: 1px solid rgb(206, 206, 206);">
+    <div style="cursor: pointer;" @click="showSelection = true">
+      <v-breadcrumbs
+        :items="[{ text: selected_ctx, disabled: false }, { text: selected_cat, disabled: false }, { text: selected_grp, disabled: false }]"></v-breadcrumbs>
+    </div>
+    <!-- <div @click="showSelection = true">afficher la selection :</div> -->
+
+    <div v-if="showSelection" @click="showSelection = !showSelection"
+      style="width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.412);position:fixed;z-index: 99;top: 0px;left : 0px;display: flex;justify-content: center;align-items: center;flex-direction: column;">
+      <div @click.stop style="display: flex;background-color: white;border-radius: 8px;">
+        <div
+          style="border-right: 2px solid rgb(166, 166, 166);margin: 10px;width: 25vw;background-color: white;min-height: 400px;padding: 10px;">
+          <div
+            style="padding: 5px;border-radius: 5px;background-color: rgba(211, 211, 211, 0.733);width: 100%;font-weight: bold;">
+            Select a Context:</div>
+          <ul>
+            <div :class="{ 'selected': selected_ctx === ctx.name }" class="choose_li" style="cursor: pointer;"
+              v-for="ctx in ctx_list" :key="ctx.name" @click="emitValue('ctx', ctx); selected_ctx = ctx.name">{{
+                ctx.name }}</div>
+          </ul>
+        </div>
+        <div
+          style="border-right: 2px solid rgb(166, 166, 166);margin: 10px;width: 25vw;background-color: white;min-height: 400px;padding: 10px;">
+          <div
+            style="padding: 5px;border-radius: 5px;background-color: rgba(211, 211, 211, 0.733);width: 100%;font-weight: bold;">
+            Select a Category:</div>
+          <ul>
+            <div :class="{ 'selected': selected_cat === cat.name }" class="choose_li" style="cursor: pointer;"
+              v-for="cat in cat_list" :key="cat.name" @click="emitValue('cat', cat); selected_cat = cat.name">{{
+                cat.name }}</div>
+          </ul>
+        </div>
+        <div style="margin: 10px;width: 25vw;background-color: white;min-height: 400px;padding: 10px;">
+          <div
+            style="padding: 5px;border-radius: 5px;background-color: rgba(211, 211, 211, 0.733);width: 100%;font-weight: bold;">
+            Select a Group:</div>
+          <ul>
+
+            <div :class="{ 'selected': selected_grp.includes(grp.name) }" class="choose_li" style="cursor: pointer;"
+              v-for="grp in grp_list" :key="grp.name"><label @click="emitValue('grp', grp); toggleSelection(grp.name)"
+                :for="grp.name">{{ grp.name }}</label></div>
+
+            <!-- <v-checkbox v-for="grp in grp_list" :key="grp.name" style="cursor: pointer;height: 30px;color: black;" color="" class="choose_li"
+              :label="grp.name"></v-checkbox> -->
+          </ul>
+        </div>
+
+      </div>
+      <div style="width: 75vw;">
+        <div @click="validate"
+          style="cursor: pointer;border-radius: 5px;display: flex;justify-content: center;align-items: center;background-color: rgb(67, 146, 67);position: relative;left: 92%;width: 100px;height: 40px;transform: translate(0,-150%);color: white;">
+          VALIDER</div>
+      </div>
+    </div>
+
+    <div style="width: 100%;display: flex;margin-top: 10px;">
+      <div
+        style="padding: 10px;z-index: 10;width:85%; position: absolute;border-radius: 5px;background-color: rgb(255, 255, 255);box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;border: 1px solid rgb(206, 206, 206);">
+
         <div class="mouse" @click="showattribut = !showattribut" style="">
           <v-icon v-if="!showattribut" color="black" style="font-size: 2em">mdi-chevron-down</v-icon>
           <v-icon v-else color="black" style="font-size: 2em">mdi-chevron-up</v-icon>
           Attribut
-          <!-- <div @click.stop="importAttr = !importAttr"
-            style="position: absolute; right :20px;border: 1px solid black;border-radius: 5px;">
-            <v-icon title="import" color="black" style="font-size: 2em">mdi-file-upload</v-icon>
-          </div> -->
+
         </div>
 
         <div>
@@ -21,23 +73,25 @@
             item-disabled="locked" :items="treeviewItems"></v-treeview>
         </div>
       </div>
+      <div @click.stop="importAttr = !importAttr"
+        style="cursor: pointer;background:rgba(213, 213, 213, 0.381);position: absolute; right :15px;border: 1px solid rgb(141, 141, 141);border-radius: 5px;padding:13px;">
+        <v-icon title="import" color="black" style="font-size: 3em;">mdi-file-upload</v-icon>
+      </div>
     </div>
-    <div style="padding: 10px;" class="scrollable-table-container">
+
+    <div style="padding: 2px;" class="scrollable-table-container">
       <v-data-table id="my-data-table" ref="table" @click="selectDataView" class="fixed-first-column"
-        style="box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;height: 90%;margin-top: 80px ;overflow: auto;max-height: 80vh; background: transparent !important;"
+        style="box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;margin-top: 80px ;overflow: auto;max-height: 75vh; background: transparent !important;overflow: hidden;"
         mobile-breakpoint="0" no-data-text="Pas de données disponibles" :headers="dynamicHeaders()"
-        :items="filteredContexts" :items-per-page="8000" height="78vh" fixed-header>
+        :items="filteredContexts" :items-per-page="8000" height="75vh" fixed-header>
 
         <template v-slot:item="{ item }">
           <tr @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave" :ref="`row-${item.dynamicId}`"
             @click="selectDataView(item)">
-            <td :class="selected_id == item.dynamicId ? 'colortd' : ''">{{ item.name }}
-            </td>
-            <td style="
-                white-space: nowrap;
-                " :class="selected_id == item.dynamicId ? 'colortd' : ''" v-for="(header, index) in dynamicHeaders()"
-              :key="`td-${index}-${item.id}`" v-if="header.value !== 'name'">
-              {{ getAttributeValue(item, header.text) }}
+            <td :class="selected_id == item.dynamicId ? 'colortd' : ''">{{ item.name }}</td>
+            <td style="white-space: nowrap;" :class="selected_id == item.dynamicId ? 'colortd' : ''"
+              v-for="(header, index) in dynamicHeaders()" :key="`td-${index}-${item.id}`" v-if="header.value !== 'name'">
+              {{ getAttributeValue(item, header.value) }}
             </td>
           </tr>
         </template>
@@ -82,7 +136,7 @@ export default {
   components: {
     SmallLegend,
   },
-  props: ['contexts', 'temporality', 'unit', 'label', 'reference', 'selectedItemTab'],
+  props: ['contexts', 'temporality', 'unit', 'label', 'reference', 'selectedItemTab', 'ctx_list', 'cat_list', 'grp_list'],
   data: () => ({
     tableData: [],
     // selectedFloors: [],
@@ -98,7 +152,10 @@ export default {
     importAttr: false,
     fileIsLoaded: false,
     checked: false,
-
+    selected_ctx: "",
+    selected_grp: [],
+    selected_cat: "",
+    showSelection: true,
   }),
   mounted() {
     this.extractData();
@@ -148,6 +205,30 @@ export default {
   },
   methods: {
 
+    breadcrumbsItems() {
+      return [
+        { text: this.selected_ctx, disabled: false },
+        { text: this.selected_cat, disabled: false },
+        { text: this.selected_grp, disabled: false },
+      ];
+    },
+
+    validate() {
+      this.showSelection = false;
+    },
+
+    emitValue(listType, value) {
+      this.$emit('itemSelected', { listType, value });
+    },
+    toggleSelection(groupName) {
+      const index = this.selected_grp.indexOf(groupName);
+      if (index === -1) {
+        this.selected_grp.push(groupName);
+      } else {
+        this.selected_grp.splice(index, 1);
+      }
+      this.emitValue('grp', this.selected_grp);
+    },
 
     // compareObjects(obj1, obj2) {
     //   const keys1 = Object.keys(obj1);
@@ -191,7 +272,7 @@ export default {
             }
           });
           if (Object.keys(diff).length > 0) {
-            differences.push({ staticId: a1.staticId, differences: diff });
+            differences.push({ staticId: a1.staticId, name: a1.name, differences: diff });
           }
         }
       });
@@ -205,18 +286,43 @@ export default {
         this.fileIsLoaded = true;
         const loaded = (await SpinalExcelManager.convertExcelToJson(file))['sheet 1'];
 
-        const dldata = this.$store.state.appDataStore.dlData
 
-        console.log(this.$store.state.appDataStore.dlData);
+
+        // console.log('dl data', this.$store.state.appDataStore.dlData);
         console.log('file', loaded);
 
         // console.log(this.checked, 'aaaaaaaaaaaaaaaaaaaaaa');
         if (this.checked == true) {
-          console.log(this.contexts[0].data , 'aaaaaaaaaaaaaaa');
+          console.log(this.contexts[0].data, 'aaaaaaaaaaaaaaa');
+
+          this.tableData = this.contexts[0].data?.map(item => {
+            const dataForRow = {
+              dynamicId: item.dynamicId,
+              staticId: item.staticId,
+              Nom: item.name, // Assumant que 'Nom' est un champ standard
+            };
+
+            item.categoryAttributes.forEach(category => {
+              category.attributs.forEach(attr => {
+                const attrKey = `${attr.label}/${category.name}`; // Format "attribut/categoryAttribut"
+                dataForRow[attrKey] = attr.value;
+              });
+            });
+
+            return dataForRow;
+          });
+          console.log('this.tableData', this.tableData);
+          this.$store.commit(MutationTypes.SET_DLDATA, this.tableData);
+          // console.log('çachange datatable', dldata);
 
         }
 
-        console.log(this.findDifferencesByStaticId(loaded, dldata));
+        const dldata = this.$store.state.appDataStore.dlData
+        console.log('compare', this.findDifferencesByStaticId(loaded, dldata));
+
+
+
+
         // compareArrays(loaded , dldata)
         // this.uploadFile(file);
       }
@@ -249,22 +355,55 @@ export default {
     extractData() {
       const dynamicHeaders = this.dynamicHeaders()?.map(header => header.text);
       const { filteredContexts } = this;
-      this.tableData = filteredContexts?.map(item => {
-        const dataForRow = {};
-        dynamicHeaders.forEach(header => {
-          if (header === 'Nom') {
-            dataForRow[header] = item.name;
-          } else {
-            dataForRow[header] = this.getAttributeValue(item, header) || item[header];
-          }
+      if (this.$store.state.appDataStore.dl_data_option == false || this.checked == true) {
+        this.tableData = filteredContexts?.map(item => {
+          const dataForRow = {};
+          dynamicHeaders.forEach(header => {
+            dataForRow['dynamicId'] = item.dynamicId;
+            dataForRow['staticId'] = item.staticId;
+            if (header.includes('Nom')) {
+              dataForRow['Nom'] = item.name;
+            } else {
+              const attributeValue = this.getAttributeValueDL(item, header);
+              dataForRow[header] = attributeValue;
+            }
+          });
+          return dataForRow;
         });
+      } else {
+        // Modifier ici pour ajouter les attributs directement avec "attribut/categoryAttribut"
+        this.tableData = filteredContexts?.map(item => {
+          const dataForRow = {
+            dynamicId: item.dynamicId,
+            staticId: item.staticId,
+            Nom: item.name, // Assumant que 'Nom' est un champ standard
+          };
 
-        dataForRow['dynamicId'] = item.dynamicId
-        dataForRow['staticId'] = item.staticId
-        return dataForRow;
-      });
+          item.categoryAttributes.forEach(category => {
+            category.attributs.forEach(attr => {
+              const attrKey = `${attr.label}/${category.name}`; // Format "attribut/categoryAttribut"
+              dataForRow[attrKey] = attr.value;
+            });
+          });
+
+          return dataForRow;
+        });
+      }
+
+
       this.$store.commit(MutationTypes.SET_DLDATA, this.tableData);
+    },
 
+    getAttributeValueDL(item, attrLabel) {
+      const [childName, parentName] = attrLabel.split('/');
+      const category = item.categoryAttributes.find(cat => cat.name === parentName);
+      if (category) {
+        const attribute = category.attributs.find(a => a.label === childName);
+        if (attribute) {
+          return attribute.value;
+        }
+      }
+      return '';
     },
 
     getAttributeValue(item, attrLabel) {
@@ -275,8 +414,7 @@ export default {
         }
       }
       return '';
-    }
-    ,
+    },
 
     selectDataView(item) {
       this.selected_id = item.dynamicId
@@ -287,29 +425,61 @@ export default {
       const headers = [
         { text: 'Nom', value: 'name', sortable: true },
       ];
-
-      const selectedNames = this.selectedKeys?.map(key => {
+      const selectedItems = this.selectedKeys?.map(key => {
         const foundItem = this.treeviewItems.find(item =>
           item.children && item.children.find(child => child.id === key)
         );
-        return foundItem ? foundItem.children.find(child => child.id === key).name : null;
-      }).filter(name => name !== null); // Filtrer les éventuels null
-
-      selectedNames.forEach(name => {
-        headers.push({ text: name, value: name, sortable: true });
+        if (foundItem) {
+          const foundChild = foundItem.children.find(child => child.id === key);
+          return {
+            parentName: foundItem.name, // Nom de l'item parent
+            childName: foundChild ? foundChild.name : null // Nom de l'enfant
+          };
+        }
+        return null;
+      }).filter(item => item && item.childName !== null);
+      selectedItems.forEach(({ parentName, childName }) => {
+        headers.push({ text: `${childName}/${parentName}`, value: childName, sortable: true });
       });
       return headers;
     },
+    // dynamicHeaders() {
+    //   const headers = [
+    //     { text: 'Nom', value: 'name', sortable: true },
+    //   ];
+    //   console.log(this.selectedKeys);
+
+    //   const selectedNames = this.selectedKeys?.map(key => {
+    //     const foundItem = this.treeviewItems.find(item =>
+    //       item.children && item.children.find(child => child.id === key)
+    //     );
+    //     console.log(foundItem , 'aaaaaaaaaaa');
+    //     return foundItem ? foundItem.children.find(child => child.id === key).name : null;
+    //   }).filter(name => name !== null);
+
+    //   selectedNames.forEach(name => {
+    //     headers.push({ text: name, value: name, sortable: true });
+    //   });
+    //   return headers;
+    // },
   },
   watch: {
 
-    selectedItemTab(newVal, oldVal) {
+    '$store.state.appDataStore.dl_data_option': {
+      handler(newValue, oldValue) {
+        console.log('dlData a changé', newValue);
+        this.extractData();
+      },
+      deep: true, // Utilisez `deep` pour surveiller les changements à l'intérieur des objets/arrays
+      immediate: true, // Exécute le gestionnaire immédiatement avec la valeur actuelle lors du montage du composant
+    },
 
+
+    selectedItemTab(newVal, oldVal) {
       this.selected_id = newVal
       if (this.$refs[`row-${newVal}`]) {
         this.$refs[`row-${newVal}`].scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-
     },
 
     selectedKeys(newVal, oldVal) {
@@ -365,6 +535,22 @@ export default {
 </script>
 
 <style scoped>
+.selected {
+  /* Style pour l'élément sélectionné */
+  background-color: #e9e9e98f;
+  border-radius: 5px;
+}
+
+.choose_li {
+  margin: 5px;
+  padding: 5px;
+}
+
+.choose_li:hover {
+  background-color: rgb(229, 229, 229);
+  border-radius: 5px;
+}
+
 ::v-deep .v-data-table__wrapper>table>thead>tr>th:nth-child(1) {
   position: sticky;
   left: 0;
@@ -395,6 +581,10 @@ tr .colortd.custom-hover-color {
   background-color: rgb(100, 206, 255) !important;
 }
 
+::v-deep .v-breadcrumbs {
+  padding: 2px !important;
+}
+
 .colortd {
   background-color: rgb(201, 232, 255);
 }
@@ -404,7 +594,7 @@ tr .colortd.custom-hover-color {
 } */
 
 td {
-  min-width: 150px;
+  min-width: 200px;
 }
 
 .fixed-first-column table {

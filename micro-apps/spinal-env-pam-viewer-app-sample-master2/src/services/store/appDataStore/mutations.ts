@@ -43,7 +43,10 @@ export enum MutationTypes {
 	SET_ITEM_SELECTED = "SET_ITEM_SELECTED",
 	SET_DATA = "SET_DATA",
 	SET_DLDATA = "SET_DLDATA",
-	SET_ATTR = "SET_ATTR"
+	SET_ATTR = "SET_ATTR",
+	SET_DL_DATA_OPTION = "SET_DL_DATA_OPTION",
+	SET_USER_SELECTION = "SET_USER_SELECTION",
+	SET_USER_SELECTED = "SET_USER_SELECTED",
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -57,6 +60,7 @@ export type MutationsAppData<S = StateAppData> = {
 	[MutationTypes.REMOVE_VIEWER_LOADED](state: StateAppData, payload: { id: string }): void;
 	[MutationTypes.SET_ITEM_SELECTED](state: StateAppData, item): void;
 	[MutationTypes.SET_DATA](state: StateAppData, data: INodeItemTree[]): void;
+	[MutationTypes.SET_DL_DATA_OPTION](state: StateAppData, data: INodeItemTree[]): void;
 };
 
 export const mutations: MutationTree<StateAppData> & MutationsAppData = {
@@ -111,4 +115,28 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 	[MutationTypes.SET_ATTR](state: StateAppData, data: INodeItemTree[]): void {
 		state.attr = data;
 	},
+	[MutationTypes.SET_DL_DATA_OPTION](state: StateAppData, data: INodeItemTree[]): void {
+		state.dl_data_option = data;
+	},
+	[MutationTypes.SET_USER_SELECTION](state: StateAppData, data: INodeItemTree[]): void {
+		state.user_selection_list = data;
+	},
+	[MutationTypes.SET_USER_SELECTED](state: StateAppData, payload: { key: 'cat' | 'grp' | 'ctx'; value: any }): void {
+		if (typeof state.user_selected !== 'object') state.user_selected = {};
+		if (payload.key === 'grp') {
+			// Gérer le cas où 'grp' est un tableau
+			const currentIndex = state.user_selected.grp.indexOf(payload.value);
+			if (currentIndex === -1) {
+				// Ajouter le groupe s'il n'est pas déjà dans le tableau
+				state.user_selected.grp.push(payload.value);
+			} else {
+				// Supprimer le groupe s'il est déjà dans le tableau
+				state.user_selected.grp.splice(currentIndex, 1);
+			}
+		} else {
+			// Pour 'cat' et 'ctx', garder le comportement existant
+			state.user_selected = { ...state.user_selected, [payload.key]: payload.value };
+		}
+	}
 };
+

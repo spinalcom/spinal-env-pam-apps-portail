@@ -27,6 +27,9 @@ import { SpinalAPI } from '../SpinalAPI';
 import { IConfig, EntryPoint } from "../../../interfaces/IConfig";
 import * as lodash from "lodash";
 import { config } from '../../../config';
+import { store } from '../../store/index';
+import { INodeItemTree } from "../../interfaces/INodeItem";
+import { MutationTypes } from '../../store/appDataStore/mutations';
 
 import type {
     IEquipmentItem,
@@ -39,54 +42,80 @@ import { log } from 'console';
 
 
 export async function getGroupContext(patrimoineId: string, buildingId: string, position_type: any,): Promise<any | null> {
+
     const spinalAPI = SpinalAPI.getInstance();
     const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/groupContext/list`);
+    //insérer la selection de groupe
     let result = await spinalAPI.get<IZoneItem[]>(url);
-    const matchedContext = result.data.find(context => context.name === config.entryPoint.context);
+    // console.warn(result);
+
+    let resultCopy = JSON.parse(JSON.stringify(result));
+
+    // Filtrez `result.data` et mettez à jour `resultCopy.data` avec les éléments filtrés
+    resultCopy.data = resultCopy.data.filter(item =>
+      item.type === 'BIMObjectGroupContext' || item.type === 'geographicRoomGroupContext'
+    );
+    // console.log(resultCopy);
+    
+    store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy.data });
+
+
+
+    const matchedContext = resultCopy.data.find(context => context.name === store.state.appDataStore.user_selected.ctx);
     let type;
     let List: IZoneItem[] | null = null;
 
     if (matchedContext) {
         let tree = await getGroupContextCategoryList(patrimoineId, buildingId, matchedContext.dynamicId);
-        const matchedCategory = tree.find(context => context.name === config.entryPoint.category);
+        console.log(tree, 'le treee');
+        store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy.data, "cat": tree });
+        const matchedCategory = tree.find(context => context.name === store.state.appDataStore.user_selected.cat);
         if (matchedCategory) {
             let grpList = await getGroupContextGroupList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId);
-            const matchedGrpList = grpList.find(context => context.name === config.entryPoint.group);
-            type = matchedGrpList?.type
-            if (matchedGrpList && matchedGrpList.type === "BIMObjectGroup") {
-                List = await getequipementList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, matchedGrpList.dynamicId);
-            } else if (matchedGrpList && matchedGrpList.type === "geographicRoomGroup") {
-                List = await getroomList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, matchedGrpList.dynamicId);
+            store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy.data, "cat": tree, "grp": grpList });
+
+            let allLists = [];
+            for (const selectedGroupName of store.state.appDataStore.user_selected.grp) {
+                const matchedGrpList = grpList.find(context => context.name === selectedGroupName);
+                if (matchedGrpList) {
+                    let list;
+                    if (matchedGrpList.type === "BIMObjectGroup") {
+                        list = await getequipementList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, matchedGrpList.dynamicId);
+                    } else if (matchedGrpList.type === "geographicRoomGroup") {
+                        list = await getroomList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, matchedGrpList.dynamicId);
+                    }
+                    if (list) {
+                        allLists.push(...list); 
+                    }
+                }
+            }
+
+            if (position_type.type === 'building') {
+                return allLists;
+            } else if (position_type.type === 'geographicFloor') {
+                const roomIds = allLists.map(room => room.dynamicId.toString());
+                let position;
+                if (type === "geographicRoomGroup") {
+                    position = await getRoomPositions(buildingId, roomIds);
+                } else {
+                    position = await getEquipementPositions(buildingId, roomIds);
+                }
+                const List_floor = get_element_floor(position);
+                const roomsOnFloor = getRoomsByFloor(position_type.dynamicId, allLists, List_floor);
+                const attribut = await getAttributeListMultiple(buildingId, roomIds);
+                const nomenclature = createUnifiedNomenclature(attribut);
+                let alldataBimObject = {
+                    data: enrichBIMObjects(roomsOnFloor, attribut),
+                    nomenclature: nomenclature
+                };
+
+                return alldataBimObject;
+            } else {
+                return allLists;
             }
         }
     }
-    if (position_type.type === 'building') {
-        return List;
-    } else if (position_type.type === 'geographicFloor') {
-        const roomIds = List!.map(room => room.dynamicId.toString());
-        let position
-        if (type === "geographicRoomGroup") {
-            position = await getRoomPositions(buildingId, roomIds)
-        } else {
-            position = await getEquipementPositions(buildingId, roomIds)
-        }
-        const List_floor = get_element_floor(position);
-        const roomsOnFloor = getRoomsByFloor(position_type.dynamicId, List, List_floor);
-        const attribut = await getAttributeListMultiple(buildingId, roomIds)        
-        const nomenclature = createUnifiedNomenclature(attribut);
 
-
-       let alldataBimObject =  {}
-
-        // console.log(test,'TEET');
-        alldataBimObject = {
-           data : enrichBIMObjects(roomsOnFloor,attribut),
-           nomenclature : nomenclature
-        }
-
-        return alldataBimObject; // Retour de equipementList
-    } else
-        return List;
 }
 
 function enrichBIMObjects(bimObjects: any[], dataObjects: any[]): any[] {
