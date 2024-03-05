@@ -249,10 +249,7 @@ class App extends Vue {
     if (!item) return;
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
-  }
-
-  async onColor(item: TGeoItem | TGeoItem[]) {
-    // TBD
+    this.$store.dispatch(ActionTypes.SELECT_ITEMS, item);
   }
 
   onActionClick({ button, item }) {

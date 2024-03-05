@@ -46,9 +46,7 @@ export async function calculItemsValue(
 export function getColor(item, legend) {
   const value = item.displayValue;
 
-  if (isNaN(value)) return legend.min.color;
-
-  if (!isFinite(value)) return value < 0 ? legend.min.color : legend.max.color;
+  if (isNaN(value) || !isFinite(value)) return "#808080";
 
   if (legend.median) {
     const third = legend.min.value + (legend.max.value - legend.min.value) / 3;
@@ -93,6 +91,7 @@ export function calculateValue(
   arr: (string | number)[],
   calculMode: calculTypes
 ): number {
+  if (!arr.length) return NaN;
   const nums = _filterAndconvertDataToNumber(arr);
 
   switch (calculMode) {

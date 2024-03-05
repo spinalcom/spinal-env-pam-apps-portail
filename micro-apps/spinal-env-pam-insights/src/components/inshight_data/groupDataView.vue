@@ -57,6 +57,7 @@ import DataView from "./dataView.vue";
 import { calculTypes } from "../../interfaces/IConfig";
 import Gradient from "javascript-color-gradient";
 import { getColor } from "../../services/calcul/calculItems";
+import { VIEWER_EVENTS } from "micro-apps/spinal-env-pam-dataapp/src/components/viewer/events";
 
 @Component({
   components: { DataView },
@@ -68,23 +69,10 @@ class GroupDataView extends Vue {
   @Prop({}) legend;
 
   noDataItem = { name: "Aucune donnée", displayValue: "" };
-  // colors = this.getGraduationColor();
-
   getColor(item) {
     const color = getColor(item, this.legend);
     item.color = color;
     return color;
-  }
-
-  getGraduationColor(): string[] {
-    const colors = this.getColorsViaConfig();
-    return new Gradient().setColorGradient(...colors).getColors();
-  }
-
-  getColorsViaConfig() {
-    return Object.values(this.config.legend).map((el: any) => {
-      return el.color;
-    });
   }
 
   selectDataView(item) {

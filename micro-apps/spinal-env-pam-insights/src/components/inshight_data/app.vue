@@ -490,6 +490,10 @@ class InsightApp extends Vue {
         break;
     }
     await this.regroupItemsAndCalculate();
+    await this.updateSprites();
+  }
+
+  async updateSprites() {
     await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
 
     const itemsToColor = this.data.flatMap((el) => el.children || []);
@@ -511,6 +515,7 @@ class InsightApp extends Vue {
 
   selectDataView(item) {
     this.updateSelected(item);
+    this.$store.dispatch(ActionTypes.SELECT_ITEMS, item);
     this.$emit("clickOnDataView", item);
   }
 
@@ -540,23 +545,7 @@ class InsightApp extends Vue {
     this.$store.commit(MutationTypes.SET_DATA, calculated);
 
     if (this.selectedTime.name === ITemporality.currentValue) return;
-    await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-    const itemsToColor = this.data.flatMap((el) => el.children || []);
-    itemsToColor.forEach((el) => (el.unit = this.sourceSelected.unit));
-    this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-      items: itemsToColor,
-      buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
-      component: SpriteComponent,
-    });
-
-    if (!this.selectedItem) return;
-    const emitterHandler = EmitterViewerHandler.getInstance();
-    emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.selectedItem });
-    setTimeout(() => {
-      this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
-        this.selectedItem.dynamicId,
-      ]);
-    }, 500);
+    await this.updateSprites();
   }
 
   @Watch("data")
@@ -586,23 +575,7 @@ class InsightApp extends Vue {
     if (this.isBuildingSelected) return;
 
     await this.regroupItemsAndCalculate(true);
-    await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-
-    const itemsToColor = this.data.flatMap((el) => el.children || []);
-    itemsToColor.forEach((el) => (el.unit = this.sourceSelected.unit));
-    await this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-      items: itemsToColor,
-      buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
-      component: SpriteComponent,
-    });
-    if (!this.selectedItem) return;
-    const emitterHandler = EmitterViewerHandler.getInstance();
-    emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.selectedItem });
-    setTimeout(() => {
-      this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
-        this.selectedItem.dynamicId,
-      ]);
-    }, 500);
+    await this.updateSprites();
   }
 
   @Watch("regroupementSelected")
@@ -628,25 +601,9 @@ class InsightApp extends Vue {
   }
 
   @Watch("legend")
-  async watchLegend(legend) {
+  async watchLegend() {
     if (this.isBuildingSelected) return;
-    await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-
-    const itemsToColor = this.data.flatMap((el) => el.children || []);
-    itemsToColor.forEach((el) => (el.unit = this.sourceSelected.unit));
-    await this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-      items: itemsToColor,
-      buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
-      component: SpriteComponent,
-    });
-    if (!this.selectedItem) return;
-    const emitterHandler = EmitterViewerHandler.getInstance();
-    emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.selectedItem });
-    setTimeout(() => {
-      this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
-        this.selectedItem.dynamicId,
-      ]);
-    }, 500);
+    await this.updateSprites();
   }
 
   /**

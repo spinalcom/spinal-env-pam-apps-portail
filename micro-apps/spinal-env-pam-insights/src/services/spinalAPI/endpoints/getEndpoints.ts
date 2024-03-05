@@ -22,7 +22,6 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { convertZonesToISpaceSelectorItems } from "../../../components/SpaceSelector";
 import { ISource } from "../../../interfaces/IConfig";
 import { SpinalAPI } from "../SpinalAPI";
 import * as lodash from "lodash";
@@ -82,7 +81,10 @@ export async function getTimeSeriesAsync(
     buildingId,
     `/api/v1/endpoint/${endpointId}/timeSeries/read/${begin}/${end}`
   );
-  return (await spinalAPI.get(url)).data;
+  return spinalAPI
+    .get(url)
+    .then((res: any) => res.data)
+    .catch(() => []);
 }
 
 async function sendListMultipleRequest(

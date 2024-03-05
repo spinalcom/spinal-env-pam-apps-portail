@@ -47,7 +47,8 @@ export const config: IConfig = {
   },*/
 
   // Config DEI
-  /*entryPoint: {
+  /*
+  entryPoint: {
     context: "Gestion des équipements",
     category: "Typologie",
     group: "Multicapteurs",
@@ -59,6 +60,11 @@ export const config: IConfig = {
       type: "controlPoint",
       objectType: "equipments",
       unit: "°C",
+      legend: {
+        min: { value: 15, color: "#0074FF" },
+        median: { value: 20, color: "#FFFF00" },
+        max: { value: 25, color: "#FF004B" },
+      },
     },
     {
       name: "Qualité de l'air",
@@ -66,12 +72,19 @@ export const config: IConfig = {
       type: "controlPoint",
       objectType: "equipments",
       unit: "ppm",
+      legend: {
+        min: { value: 15, color: "#0074FF" },
+        median: { value: 20, color: "#FFFF00" },
+        max: { value: 25, color: "#FF004B" },
+      },
     },
   ],
-  regroupement: ["rooms", "floors"],*/
+  regroupement: ["rooms", "floors"],
+  */
   // FIN Config DEI
 
   // Config Gienah
+
   entryPoint: {
     context: "Contexte de pièces intégration",
     category: "Toutes les pièces",
@@ -114,6 +127,7 @@ export const config: IConfig = {
     },
   ],
   regroupement: ["floors"],
+
   // FIN Config Gienah
 
   viewButtons: "base",

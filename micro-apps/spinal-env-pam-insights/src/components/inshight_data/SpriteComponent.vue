@@ -46,6 +46,7 @@ export default {
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
       store.dispatch(ActionTypes.SELECT_SPRITES, [this.data.dynamicId]);
+      store.dispatch(ActionTypes.SELECT_ITEMS, this.data);
       const el = document.querySelector(".dataContainer");
       el.dispatchEvent(
         new CustomEvent("onSpriteClick", { detail: { ...this.data } })
