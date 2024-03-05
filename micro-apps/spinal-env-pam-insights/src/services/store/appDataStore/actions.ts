@@ -342,7 +342,6 @@ export const actions = {
     return ViewerManager.getInstance().getViewerInfoMerged(playload);
   },
   [ActionTypes.SELECT_ITEMS]({ commit, dispatch, state }, playload: any) {
-    console.log("SELECT_ITEMS", playload);
     ViewerManager.getInstance().select(playload);
   },
 

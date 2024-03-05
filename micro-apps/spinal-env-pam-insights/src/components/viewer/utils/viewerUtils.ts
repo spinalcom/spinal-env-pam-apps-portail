@@ -131,7 +131,7 @@ export class ViewerUtils {
     viewer: Autodesk.Viewing.Viewer3D,
     data: IDbIdModelAggregate[]
   ): void {
-    this.clearSelect(viewer);
+    if (viewer) this.clearSelect(viewer);
 
     const datas = this._classifyDbIdsByModel(data);
 

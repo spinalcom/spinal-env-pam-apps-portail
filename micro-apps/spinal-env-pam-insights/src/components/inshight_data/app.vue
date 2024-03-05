@@ -494,23 +494,31 @@ class InsightApp extends Vue {
   }
 
   async updateSprites() {
-    await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-
+    const buildingId = localStorage.getItem("idBuilding");
     const itemsToColor = this.data.flatMap((el) => el.children || []);
     itemsToColor.forEach((el) => (el.unit = this.sourceSelected.unit));
-    await this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-      items: itemsToColor,
-      buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
-      component: SpriteComponent,
-    });
-    if (!this.selectedItem) return;
-    const emitterHandler = EmitterViewerHandler.getInstance();
-    emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.selectedItem });
-    setTimeout(() => {
-      this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
-        this.selectedItem.dynamicId,
-      ]);
-    }, 500);
+
+    if (this.config.sprites) {
+      await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+
+      await this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+        items: itemsToColor,
+        buildingId,
+        component: SpriteComponent,
+      });
+      if (!this.selectedItem) return;
+      const emitterHandler = EmitterViewerHandler.getInstance();
+      emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.selectedItem });
+      setTimeout(() => {
+        this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
+          this.selectedItem.dynamicId,
+        ]);
+      }, 500);
+    } else
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId,
+      });
   }
 
   selectDataView(item) {
@@ -556,13 +564,7 @@ class InsightApp extends Vue {
     this.total = calculateTotal(values, this.calculMode);
 
     if (!this.initiated) {
-      const itemsToColor = this.data.flatMap((el) => el.children || []);
-      itemsToColor.forEach((el) => (el.unit = this.sourceSelected.unit));
-      this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-        items: itemsToColor,
-        buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
-        component: SpriteComponent,
-      });
+      this.updateSprites();
       this.initiated = true;
     }
   }

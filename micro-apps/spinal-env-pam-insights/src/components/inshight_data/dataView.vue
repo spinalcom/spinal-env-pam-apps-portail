@@ -90,12 +90,7 @@ export default {
     const emitterHandler = EmitterViewerHandler.getInstance();
     const vm = this;
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
-      if (data[0]) {
-        if (data[0].dbIds.includes(vm.item.dbid)) {
-          console.log("data", vm.item.dbid);
-          vm.$emit("onClick");
-        }
-      }
+      if (data[0] && data[0].dbIds.includes(vm.item.dbid)) vm.$emit("onClick");
     });
   },
 };
