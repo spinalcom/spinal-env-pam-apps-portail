@@ -22,53 +22,82 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { SpinalAPI } from '../SpinalAPI';
+import { SpinalAPI } from "../SpinalAPI";
 import type {
   IBuildingItem,
   IZoneItem,
   IEquipmentItem,
   IRefItem,
-} from '../../../components/SpaceSelector/interfaces/IBuildingItem';
+} from "../../../components/SpaceSelector/interfaces/IBuildingItem";
 
 export async function getBuilding(platformId: string) {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(
     platformId,
-    'api/v1/building/read'
+    "api/v1/building/read"
   );
   let result = await spinalAPI.get<IBuildingItem>(url);
-  Object.assign(result.data, { color: '#2693ff' });
+  Object.assign(result.data, { color: "#2693ff" });
   return result.data;
 }
 
-export async function getFloors(patrimoineId: string, buildingId: string): Promise<IZoneItem[]> {
+export async function getFloors(
+  patrimoineId: string,
+  buildingId: string
+): Promise<IZoneItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrlWithPlatformId(buildingId, 'api/v1/floor/list');
+  const url = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    "api/v1/floor/list"
+  );
   let result = await spinalAPI.get<IZoneItem[]>(url);
   const res = result.data.map((obj) => {
-    Object.assign(obj, {buildingId, patrimoineId, color: '#D138DE' });
+    Object.assign(obj, { buildingId, patrimoineId, color: "#D138DE" });
     return obj;
   });
   return res;
 }
 
-export async function getRooms(patrimoineId: string, buildingId: string, floorId: string, floorDynId: number): Promise<IZoneItem[]> {
+export async function getRooms(
+  patrimoineId: string,
+  buildingId: string,
+  floorId: string,
+  floorDynId: number
+): Promise<IZoneItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/floor/${floorDynId}/room_list`);
+  const url = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    `api/v1/floor/${floorDynId}/room_list`
+  );
   let result = await spinalAPI.get<IZoneItem[]>(url);
   const res = result.data.map((obj) => {
-    Object.assign(obj, { patrimoineId, buildingId, floorId, color: '#ded638' });
+    Object.assign(obj, { patrimoineId, buildingId, floorId, color: "#ded638" });
     return obj;
   });
   return res;
 }
 
-export async function getEquipments(patrimoineId: string, buildingId: string,floorId: string, roomId : string, roomDynId: number): Promise<IEquipmentItem[]> {
+export async function getEquipments(
+  patrimoineId: string,
+  buildingId: string,
+  floorId: string,
+  roomId: string,
+  roomDynId: number
+): Promise<IEquipmentItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/room/${roomDynId}/equipement_list`);
+  const url = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    `api/v1/room/${roomDynId}/equipement_list`
+  );
   let result = await spinalAPI.get<IEquipmentItem[]>(url);
   const res = result.data.map((obj) => {
-    Object.assign(obj, {patrimoineId, buildingId,floorId, roomId, color: '#2693ff' });
+    Object.assign(obj, {
+      patrimoineId,
+      buildingId,
+      floorId,
+      roomId,
+      color: "#2693ff",
+    });
     return obj;
   });
   return res;
@@ -98,4 +127,17 @@ export async function getRoomsRef(
   );
   let result = await spinalAPI.get<IRefItem>(url);
   return result.data.infoReferencesObjects;
+}
+
+export async function getRoomsRefMultiple(
+  platformId: string,
+  roomDynIds: number[]
+): Promise<IEquipmentItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    platformId,
+    `api/v1/room/reference_object_list_multiple`
+  );
+  const refs = await spinalAPI.post(url, roomDynIds);
+  return refs.data;
 }

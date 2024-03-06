@@ -244,8 +244,6 @@ export class ViewerUtils {
   public async addSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) {
     await this._waitModelIsLoading();
 
-    console.log("inside addSprite");
-
     const promises = data.map(async (item) => {
       const data = item.data.map(({ bimFileId, dbIds }) => ({
         dbIds,
@@ -323,7 +321,6 @@ export class ViewerUtils {
       if (modelData.dbids) {
         option.ids = modelData.dbids;
       }
-      console.log("modelData.offset", modelData.offset);
 
       if (modelData.offset) {
         if (sceneAlignMethod === SceneAlignMethod.ShareCoordinates)

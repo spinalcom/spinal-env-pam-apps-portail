@@ -41,6 +41,7 @@ with this file. If not, see
 </template>
 
 <script>
+import { isArray } from "lodash";
 import {
   EmitterViewerHandler,
   VIEWER_AGGREGATE_SELECTION_CHANGED,
@@ -77,12 +78,10 @@ export default {
       return itemSelected && itemSelected.dynamicId == this.item.dynamicId;
     },
 
-    selectFromViewer(data) {
-      if (data[0]) {
-        if (data[0].dbIds.includes(this.item.dbid)) {
-          this.clickEvent();
-        }
-      }
+    inDbids(data, to_search) {
+      to_search = isArray(to_search) ? to_search : [to_search];
+      for (const id of to_search) if (data.dbIds.includes(id)) return true;
+      return false;
     },
   },
 
@@ -90,7 +89,7 @@ export default {
     const emitterHandler = EmitterViewerHandler.getInstance();
     const vm = this;
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
-      if (data[0] && data[0].dbIds.includes(vm.item.dbid)) vm.$emit("onClick");
+      if (data[0] && this.inDbids(data[0], vm.item.dbid)) vm.$emit("onClick");
     });
   },
 };

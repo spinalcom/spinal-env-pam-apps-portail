@@ -33,6 +33,7 @@ import {
   getEquipments,
   getFloors,
   getRooms,
+  getRoomsRefMultiple,
 } from "../../spinalAPI/GeographicContext/geographicContext";
 import type {
   IEquipmentItem,
@@ -272,11 +273,30 @@ export const actions = {
     const regroupement = playload.config.regroupement;
     itemsToRegroup = itemsToRegroup.filter((el) => el.endpoint);
 
-    if (regroupement === "floors")
-      return regroupByGeographicItem(map, "geographicFloor", itemsToRegroup);
+    if (regroupement === "floors") {
+      const refs = await getRoomsRefMultiple(
+        playload.item.buildingId,
+        itemsToRegroup.map((el) => el.dynamicId)
+      );
+      const ids = refs.reduce(
+        (acc, el: any) => ({
+          ...acc,
+          [el.dynamicId]: el.infoReferencesObjects.map((el) => el.dbid),
+        }),
+        {}
+      );
+      itemsToRegroup.forEach((el: any) => {
+        el.dbid = ids[el.dynamicId];
+      });
+      const items = regroupByGeographicItem(
+        map,
+        "geographicFloor",
+        itemsToRegroup
+      );
+      return items;
+    }
     if (regroupement === "rooms")
       return regroupByGeographicItem(map, "geographicRoom", itemsToRegroup);
-
     const obj = await dispatch(ActionTypes.GET_CATEGORIES_TREE, {
       buildingId: playload.item.buildingId,
       context: regroupement.context,
@@ -313,7 +333,6 @@ export const actions = {
           config: playload.config,
           buildingId: playload.item.buildingId,
         });
-        console.log("map", map);
         body.dbIdsToAdd = classifyItemByBimFileId(
           map,
           playload.item.dynamicId,
