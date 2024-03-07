@@ -9,6 +9,9 @@
           <v-text-field
             type="number"
             v-model="minValue"
+            :rules="[
+              (v) => v < maxValue || 'Doit être inférieur à la valeur maximale',
+            ]"
             outlined
           ></v-text-field>
           <div class="d-flex justify-center">
@@ -46,6 +49,9 @@
           <v-text-field
             type="number"
             v-model="maxValue"
+            :rules="[
+              (v) => v > minValue || 'Doit être supérieur à la valeur minimale',
+            ]"
             outlined
           ></v-text-field>
           <div class="d-flex justify-center">
@@ -57,7 +63,9 @@
     <v-card-actions>
       <v-spacer></v-spacer>
       <v-btn text @click="$emit('close')">Annuler</v-btn>
-      <v-btn text @click="selectConfig">OK</v-btn>
+      <v-btn text :disabled="minValue >= maxValue" @click="selectConfig"
+        >OK</v-btn
+      >
     </v-card-actions>
   </v-card>
 </template>

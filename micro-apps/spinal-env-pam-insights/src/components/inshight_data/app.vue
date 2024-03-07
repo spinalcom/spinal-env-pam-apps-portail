@@ -29,19 +29,12 @@ with this file. If not, see
         <div class="detail_header">
           <div class="title_date">
             <div class="_title">{{ config.title }}</div>
-            <div class="date" title="recharger">
-              <v-btn
-                v-if="navigable"
-                elevation="0"
-                fab
-                small
-                @click="t_index--"
-              >
+            <div v-if="navigable">
+              <v-btn elevation="0" fab small @click="t_index--">
                 <v-icon>mdi-chevron-left</v-icon>
               </v-btn>
               {{ displayDate }}
               <v-btn
-                v-if="navigable"
                 elevation="0"
                 fab
                 small
@@ -49,6 +42,11 @@ with this file. If not, see
                 @click="t_index++"
               >
                 <v-icon>mdi-chevron-right</v-icon>
+              </v-btn>
+            </div>
+            <div v-else class="">
+              <v-btn outlined icon @click="reload()">
+                <v-icon>mdi-reload</v-icon>
               </v-btn>
             </div>
           </div>
@@ -166,6 +164,7 @@ with this file. If not, see
             :calculMode="calculMode"
             :unit="unit"
             :legend="legend"
+            :percent="percent"
             @onClick="selectDataView"
           />
         </div>
@@ -288,6 +287,7 @@ class InsightApp extends Vue {
     this.config.regroupement[0];
   legend: any = this.config.source[0].legend;
   dialog: boolean = false;
+  reload = function () {};
 
   initiated: boolean = false;
 
@@ -302,6 +302,7 @@ class InsightApp extends Vue {
   pageSate: PAGE_STATES = PAGE_STATES.loading;
   isBuildingSelected: boolean = true;
   calculMode: calculTypes = this.calculItems[0];
+  percent: boolean = false;
   total: number = 0;
   retry: Function;
   timeoutId: any;
@@ -324,8 +325,6 @@ class InsightApp extends Vue {
     const currentDay = moment();
     let end;
     switch (this.selectedTime.name) {
-      case ITemporality.currentValue:
-        return "En ce moment";
       case ITemporality.custom:
         return `${moment(this.selectedTime.range.begin).format(
           "DD/MM/YYYY HH:mm"
@@ -425,7 +424,9 @@ class InsightApp extends Vue {
       const calculated = await calculItemsValue(
         regrouped,
         this.calculMode,
-        this.time
+        this.time,
+        this.legend.min.value,
+        this.legend.max.value
       );
 
       this.$store.commit(MutationTypes.SET_DATA, calculated);
@@ -527,27 +528,36 @@ class InsightApp extends Vue {
     this.$emit("clickOnDataView", item);
   }
 
+  /**
+   * Watchers
+   */
+
   @Watch("selectedZone")
   watchSelectedZone() {
     if (this.selectedZone.type === "building") {
       this.isBuildingSelected = true;
       this.$store.commit(MutationTypes.SET_DATA, []);
+      this.reload = function () {};
       return;
     }
     this.initiated = false;
     this.isBuildingSelected = false;
+    this.reload = this.updateDataOnTimeChanged;
 
     this.updateDataOnTimeChanged();
   }
 
   @Watch("calculMode")
-  async watchCaculMode() {
+  async watchCaculMode(mode) {
+    this.percent = mode === calculTypes.MoyennePercent;
     if (this.isBuildingSelected) return;
 
     const calculated = await calculItemsValue(
       this.data,
       this.calculMode,
-      this.time
+      this.time,
+      this.legend.min.value,
+      this.legend.max.value
     );
 
     this.$store.commit(MutationTypes.SET_DATA, calculated);
@@ -641,7 +651,7 @@ class InsightApp extends Vue {
   }
 
   public get toltalColor() {
-    return getColor({ displayValue: this.total }, this.legend);
+    return getColor({ displayValue: this.total }, this.legend, this.percent);
   }
 
   public get sources(): ISource[] {
@@ -717,7 +727,7 @@ export default InsightApp;
       }
 
       .source_regroupement_select {
-        width: 100%;
+        /*width: 100%;*/
         height: $selectionHeight;
         display: flex;
         align-items: center;

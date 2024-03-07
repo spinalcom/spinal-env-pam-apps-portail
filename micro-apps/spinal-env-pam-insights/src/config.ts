@@ -138,8 +138,9 @@ export const config: IConfig = {
     calculTypes.Moyenne,
     calculTypes.Somme,
     calculTypes.MoyennePercent,
+    calculTypes.MeanTime,
   ],
-  sprites: false,
+  sprites: true,
   viewerInfo: { roomRef: true, floorRef: true, equipments: "groupItem" },
   temporality: [
     ITemporality.currentValue,

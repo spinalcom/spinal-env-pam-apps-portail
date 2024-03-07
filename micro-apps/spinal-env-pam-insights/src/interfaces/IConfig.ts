@@ -68,6 +68,7 @@ export const enum calculTypes {
   Moyenne = "Moyenne",
   Somme = "Somme",
   MoyennePercent = "Moyenne en Pourcentage",
+  MeanTime = "Moyenne temporelle",
 }
 
 export interface ISource {

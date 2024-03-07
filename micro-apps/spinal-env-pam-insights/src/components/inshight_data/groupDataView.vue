@@ -26,7 +26,7 @@ with this file. If not, see
   <div class="div_container">
     <div class="_title">
       <DataView
-        :color="getColor(data)"
+        :color="getItemColor(data)"
         :item="data"
         :isTitle="true"
         :unit="unit"
@@ -38,7 +38,7 @@ with this file. If not, see
         v-for="(item, index) of data.children"
         :key="index"
         :item="item"
-        :color="getColor(item)"
+        :color="getItemColor(item)"
         :unit="unit"
         @onClick="() => selectDataView(item)"
       />
@@ -54,10 +54,7 @@ with this file. If not, see
 import { Vue, Prop } from "vue-property-decorator";
 import Component from "vue-class-component";
 import DataView from "./dataView.vue";
-import { calculTypes } from "../../interfaces/IConfig";
-import Gradient from "javascript-color-gradient";
 import { getColor } from "../../services/calcul/calculItems";
-import { VIEWER_EVENTS } from "micro-apps/spinal-env-pam-dataapp/src/components/viewer/events";
 
 @Component({
   components: { DataView },
@@ -67,10 +64,11 @@ class GroupDataView extends Vue {
   @Prop({}) config;
   @Prop({}) unit;
   @Prop({}) legend;
+  @Prop({ default: false }) percent;
 
   noDataItem = { name: "Aucune donnée", displayValue: "" };
-  getColor(item) {
-    const color = getColor(item, this.legend);
+  getItemColor(item) {
+    const color = getColor(item, this.legend, this.percent);
     item.color = color;
     return color;
   }

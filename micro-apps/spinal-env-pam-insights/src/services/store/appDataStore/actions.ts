@@ -258,7 +258,7 @@ export const actions = {
       config: playload.config,
       buildingId: playload.item.buildingId,
     });
-    let itemsToRegroup = getItemsToRegroup(map, playload.item);
+    const itemsToRegroup = getItemsToRegroup(map, playload.item);
     if (!itemsToRegroup || itemsToRegroup.length === 0) {
       return Object.assign([], [{ ...playload.item, children: [] }]);
     }
@@ -271,7 +271,6 @@ export const actions = {
     );
 
     const regroupement = playload.config.regroupement;
-    itemsToRegroup = itemsToRegroup.filter((el) => el.endpoint);
 
     if (regroupement === "floors") {
       const refs = await getRoomsRefMultiple(

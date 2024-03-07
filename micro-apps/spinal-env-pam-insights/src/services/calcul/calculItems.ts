@@ -21,6 +21,7 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
+import moment, { min } from "moment";
 import { calculTypes } from "../../interfaces/IConfig";
 import { INodeItemTree } from "../../interfaces/INodeItem";
 import { getTimeSeriesAsync } from "../spinalAPI/endpoints/getEndpoints";
@@ -28,14 +29,18 @@ import { getTimeSeriesAsync } from "../spinalAPI/endpoints/getEndpoints";
 export async function calculItemsValue(
   data: INodeItemTree[],
   calculMode: calculTypes,
-  time?: any
+  time?: any,
+  min?: number,
+  max?: number
 ): Promise<INodeItemTree[]> {
   return await Promise.all(
     data.flatMap(async (item) => {
       const values = await Promise.all(
-        item.children.map(async (el) => await getValue(el, calculMode, time))
+        item.children.map(
+          async (el) => await getValue(el, calculMode, time, min, max)
+        )
       );
-      const value = calculateValue(values, calculMode);
+      const value = calculateTotal(values, calculMode);
 
       item.displayValue = isFinite(value) ? value : "-";
       return item;
@@ -43,56 +48,80 @@ export async function calculItemsValue(
   );
 }
 
-export function getColor(item, legend) {
+export function getColor(item, legend, percent = false) {
   const value = item.displayValue;
 
   if (isNaN(value) || !isFinite(value)) return "#808080";
 
+  const { min, max } = percent
+    ? { min: 0, max: 100 }
+    : { min: legend.min.value, max: legend.max.value };
+
   if (legend.median) {
-    const third = legend.min.value + (legend.max.value - legend.min.value) / 3;
-    const two_third =
-      legend.min.value + ((legend.max.value - legend.min.value) * 2) / 3;
+    const third = min + (max - min) / 3;
+    const two_third = min + ((max - min) * 2) / 3;
 
     if (value <= third) return legend.min.color;
     if (value <= two_third) return legend.median.color;
     return legend.max.color;
   }
 
-  const mid = (legend.max.value + legend.min.value) / 2;
+  const mid = (min + max) / 2;
   return value <= mid ? legend.min.color : legend.max.color;
 }
 
 async function getValue(
   item: INodeItemTree,
   calculMode: calculTypes,
-  time?: any
+  time?: any,
+  min?: number,
+  max?: number
 ) {
+  let values;
   if (!time) {
-    item.displayValue =
-      item.endpoint?.value?.toString() ||
-      item.endpoint?.currentValue?.toString() ||
-      "-";
-    return item.displayValue;
+    values = [item.endpoint?.value] || [item.endpoint?.currentValue] || [];
+  } else {
+    const buildingId = localStorage.getItem("idBuilding") || "";
+    const series = item.endpoint
+      ? await getTimeSeriesAsync(
+          buildingId,
+          item.endpoint?.dynamicId,
+          time.begin,
+          time.end
+        )
+      : [];
+    item.series = series;
+    if (calculMode === calculTypes.MeanTime) {
+      const { begin, end } = series.length
+        ? {
+            begin: series[0].date,
+            end: series[series.length - 1].date,
+          }
+        : { begin: moment(time.begin), end: moment(time.end) };
+      values = series.map((el, ind, arr) =>
+        ind < arr.length - 1
+          ? el.value * (arr[ind + 1].date - el.date)
+          : el.value *
+            (moment(el.date).hour(23).minutes(59).second(59).valueOf() -
+              el.date)
+      );
+      item.displayValue = getSum(values) / (end.valueOf() - begin.valueOf());
+      return item.displayValue;
+    } else values = series.map((el) => el.value);
   }
-  const buildingId = localStorage.getItem("idBuilding") || "";
-  const values = (
-    await getTimeSeriesAsync(
-      buildingId,
-      item.endpoint.dynamicId,
-      time.begin,
-      time.end
-    )
-  ).map((el) => el.value);
-  item.displayValue = calculateValue(values, calculMode);
+  item.displayValue = calculateValue(values, calculMode, min, max);
   return item.displayValue;
 }
 
 export function calculateValue(
   arr: (string | number)[],
-  calculMode: calculTypes
+  calculMode: calculTypes,
+  min: number = 0,
+  max: number = 100
 ): number {
   if (!arr.length) return NaN;
   const nums = _filterAndconvertDataToNumber(arr);
+  if (!nums.length) return NaN;
 
   switch (calculMode) {
     case calculTypes.Maximum:
@@ -104,7 +133,8 @@ export function calculateValue(
     case calculTypes.Moyenne:
       return getMoyenne(nums);
     case calculTypes.MoyennePercent:
-      return getMoyenne(nums) * 100;
+      const moy = getMoyenne(nums);
+      return ((moy - min) / (max - min)) * 100;
   }
 }
 
@@ -123,6 +153,7 @@ export function calculateTotal(
       return getSum(nums);
     case calculTypes.Moyenne:
     case calculTypes.MoyennePercent:
+    case calculTypes.MeanTime:
       return getMoyenne(nums);
   }
 }
