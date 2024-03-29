@@ -24,23 +24,39 @@ with this file. If not, see
 <template>
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
     <div class="selectors">
-      <div class="DButton">
-        <div @click="showDlOption = !showDlOption"
-          style="position: absolute; background-color: rgb(20, 32, 44);transform: translate(-74%);border-top-left-radius: 10px;border-bottom-left-radius: 10px;height:  38px;display: flex;justify-content: center;align-items: center;margin-top: 10px;padding-right: 6px;padding-left: 4px;">
-          <v-icon style="border: 0px solid white;border-radius: 5px;padding: 4px;" size="18"
-            color="white">mdi-cog</v-icon>
+      <div class="mr-2">
+        <div @click.prevent="showDlOption = !showDlOption"
+          style="width: 59px;height: 59px;position: absolute;z-index: 1;">
         </div>
-        <ScDownloadButton :fileName="'insight_data'" :xls="true" :data="getDataFormatted()" />
+        <ScDownloadButton ref="ThedownloadButton" :fileName="'insight_data'" :xls="true" :data="getDataFormatted()" />
       </div>
-
-      <div @click="showDlOption = !showDlOption"
+      <div @click="showDlOption = !showDlOption" DButton
         style="z-index: 9999;display: flex;justify-content: center;align-items: center;position: fixed;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.156);top: 0;left:0"
         v-if="showDlOption">
 
-        <div style="background-color: white;" @click.stop>
-          <input type="checkbox" id="checkbox" v-model="dataFromTab" />
-          <label for="checkbox">Séléctionner les données parametré dans le tableau </label>
+        <div class="Dlmenu" style="" @click.stop>
+          <span class="titleDl">Type de données</span>
+          <div class="">
+            <!-- <input type="checkbox" id="checkbox" v-model="dataFromTab" />
+            <label for="checkbox"></label> -->
+
+            <!-- <v-checkbox v-model="dataFromTab" label="Séléctionner les données avec tout les attributs"></v-checkbox> -->
+            <v-radio-group  class="ml-4" v-model="dataFromTab">
+              <v-radio label="Télécharger les données sans filtres" value="all"></v-radio>
+              <v-radio class="mb-1" label="Télécharger les données filtrées dans le tableau" value="tab"></v-radio>
+            </v-radio-group>
+
+          </div>
+
+          <span class="titleDl">Choisir une extension</span>
+          <v-radio-group class="ml-4" v-model="DownloadCsv">
+            <v-radio label="XLSX" value="XLS"></v-radio>
+            <v-radio class="mb-2 ml-8" label="CSV" value="CSV"></v-radio>
+          </v-radio-group>
+
+          <button class="validateBtn" @click="downloadData">Téléchager</button>
         </div>
+
       </div>
 
       <!-- <div class="temporality">
@@ -57,11 +73,12 @@ with this file. If not, see
     </div>
 
     <div class="dataBody">
-      <viewerApp class="viewerContainer"></viewerApp>
-      <dataSideApp :selected_attr="$store.state.appDataStore.attr" class="appContainer" :element_clicked="el_clicked"
-        :config="config" :selectedZone="selectedZone" :data="displayedData" @clickOnDataView="onDataViewClicked">
+      <viewerApp :class="{ 'active3D': isActive3D }" class="viewerContainer"></viewerApp>
+      <dataSideApp :DActive="isActive3D" :ActiveData="isActive" :class="{ 'active': isActive, 'inactive': isActive3D }"
+        :selected_attr="$store.state.appDataStore.attr" class="appContainer" :element_clicked="el_clicked"
+        :config="config" :selectedZone="selectedZone" :data="displayedData" @clickOnDataView="onDataViewClicked"
+        @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D">
       </dataSideApp>
-
     </div>
   </v-app>
 
@@ -92,6 +109,7 @@ import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
 import { IConfig } from "./interfaces/IConfig";
 import { PAGE_STATES } from "./interfaces/pageStates";
+import myImage from '@/assets/spinalcore.png';
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
@@ -134,7 +152,10 @@ class App extends Vue {
   $refs: { spaceSelector };
   el_clicked: any = "toto";
   showDlOption: boolean = false;
-  dataFromTab: any = false;
+  dataFromTab: string = 'all';
+  isActive: boolean = false;
+  isActive3D: boolean = false;
+  DownloadCsv: string = "XLS";
 
   async mounted() {
     try {
@@ -146,6 +167,14 @@ class App extends Vue {
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
+  }
+
+  downloadData() {
+    console.log(this.$refs.ThedownloadButton);
+    if (this.DownloadCsv == "CSV") {
+      this.$refs.ThedownloadButton.downloadCSV();
+    } else
+      this.$refs.ThedownloadButton.download()
   }
 
   public get selectedZone(): ISpaceSelectorItem {
@@ -166,6 +195,19 @@ class App extends Vue {
 
   public set temporalitySelected(v: ISpaceSelectorItem) {
     this.$store.commit(MutationTypes.SET_TEMPORALITY, v);
+  }
+
+  toggleActive() {
+    if (this.isActive3D)
+      this.isActive3D = false
+    this.isActive = !this.isActive;
+  }
+
+
+  toggleActive3D() {
+    if (this.isActive)
+      this.isActive = false
+    this.isActive3D = !this.isActive3D;
   }
 
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<IZoneItem[]> {
@@ -199,7 +241,6 @@ class App extends Vue {
           patrimoineId: item.patrimoineId,
         });
       case "geographicFloor":
-        //@ts-ignore
         return await this.$store.dispatch(ActionTypes.GET_ROOMS, {
           floorId: item.dynamicId,
           buildingId: item.buildingId,
@@ -259,25 +300,17 @@ class App extends Vue {
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
-
-
-    // console.log('tototo');
-    // if (!item) return;
-    // const it = this.getItemData(item);
-    // await this.$store.dispatch(ActionTypes.ISOLATE_ITEMS, it);
-
   }
 
-  // async onIsolate(item: TGeoItem | TGeoItem[]) {
-  //   if (!item) return;
-  //   const it = this.getItemData(item);
-  //   await this.$store.dispatch(ActionTypes.ISOLATE_ITEMS, it);
-  // }
 
 
   async onColor(item: TGeoItem | TGeoItem[]) {
     // TBD
   }
+
+
+
+
 
   onActionClick({ button, item }) {
     const data = {
@@ -297,6 +330,7 @@ class App extends Vue {
           config: this.config,
           item: data,
         });
+
         break;
       case "OPEN_VIEWER_PLUS":
         this.$store.dispatch(ActionTypes.OPEN_VIEWER, {
@@ -329,9 +363,11 @@ class App extends Vue {
   }
 
   public getDataFormatted() {
-    //le retour des datas
     const d = [this._getHeader(), ...this._getRows(this.$store.state.appDataStore.dlData)];
+    console.log('test');
     return this.$store.state.appDataStore.dlData || [];
+   
+    
   }
 
   private _getHeader() {
@@ -357,24 +393,63 @@ class App extends Vue {
 
   @Watch("dataFromTab")
   watchSelecteddataFromTab() {
-    console.log('toto');
-    const value = this.dataFromTab;
-    this.$store.commit(MutationTypes.SET_DL_DATA_OPTIONS, value);
+    let value = true;
+    if (this.dataFromTab == 'tab') {
+      value = false
+    } else
+      value = true
+    this.$store.commit(MutationTypes.SET_DL_DATA_OPTION, value);
   }
 
-}
+  // @Watch('isActive3D')
+  // resizeCanvas() {
 
+  //   window.dispatchEvent(new Event('resize'));
+  //   console.log('Redimensionnement déclenché');
+  // }
+}
 
 
 export default App;
 </script>
 
-
 <style scoped lang="scss">
+.v-application {
+  font-family: Charlevoix Pro !important;
+}
+
+// LES MODIFICATION POUR LE CANVAS FULL SCREEN
+// #app > div > div.dataBody > div > div > div.canvas-wrap > canvas{
+// width: 100% !important;
+// height: 100% !important;
+// background-color: red !important;
+// }
+
+
+// #app > div > div.dataBody > div{
+//   width: 100%;
+//   height: 100%;
+// }
+
+
+// .dataBody{
+//   width: 100%;
+//   height: 100%;
+// }
+
+
+
+// ::v-deep .v-input--radio-group--column .v-input--radio-group__input 
+
+::v-deep > div > div.selectors > div:nth-child(2) > div > div.v-input.ml-4.v-input--is-label-active.v-input--is-dirty.theme--light.v-input--selection-controls.v-input--radio-group.v-input--radio-group--column > div > div.v-input__slot > div{
+  flex-direction: row;
+}
+
+
 .app {
   width: 100%;
   height: 100%;
-
+  overflow: hidden;
   $selectorHeight: 60px;
 
   .selectors {
@@ -385,7 +460,7 @@ export default App;
     right: 5px;
     height: $selectorHeight;
     width: 100%;
-    border: 1px solid #f5f5f5;
+    border: 1px solid #f5f5f500;
     border-radius: 12px;
 
     .DButton {
@@ -405,7 +480,42 @@ export default App;
       height: $selectorHeight;
       z-index: 99;
     }
+
+    .Dlmenu {
+      border-radius: 5px;
+      background-color: white;
+      width: 25%;
+      // height: 25%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .titleDl {
+      padding-left: 10px;
+      width: 100%;
+      height: 35px;
+      background-color: rgb(230, 230, 230);
+      border-bottom: 1px solid rgb(212, 212, 212);
+      margin-bottom: 0px;
+      padding-top: 5px;
+
+    }
+
+    .validateBtn {
+      position: relative;
+      background-color: #14202c;
+      color: white;
+      width: 100px;
+      height: 30px;
+      border-radius: 5px;
+      transform: translate(0,-10px);
+      // bottom: ;
+      right: 10px;
+      align-self: flex-end;
+    }
+
   }
+
 
   .dataBody {
     height: calc(100% - #{$selectorHeight + 30px});
@@ -417,11 +527,45 @@ export default App;
       float: left;
     }
 
+
+
     .appContainer {
       width: 40%;
-      height: 100%;
+      z-index: 7;
       float: right;
+      transition: 0.5s;
+      position: absolute;
+      margin-right: 6px;
+      height: 91%;
+      right: 0px;
     }
+
+    .active {
+      width: 98.5%;
+      // height: 100%;
+      position: absolute;
+      z-index: 7;
+      right: 0px;
+      margin-right: 6px;
+      height: 91%;
+    }
+
+    .inactive {
+      // display: none;
+      position: absolute;
+      width: 0%;
+      height: 91%;
+      right: 0px;
+      transition: 0.1;
+    }
+
+    .active3D {
+      width: 99vw;
+      height: 100%;
+      float: left;
+      position: absolute;
+    }
+
   }
 }
 
@@ -451,6 +595,25 @@ export default App;
   background: transparent;
   height: 100%;
   width: 100%;
+}
+
+.forge-spinner {
+  /* background-color: rgba(146, 70, 70, 0.63) !important; */
+  width: 800px;
+}
+
+.forge-spinner img {
+  display: none;
+}
+
+#app>div>div.dataBody>div.viewer-div-container.viewerContainer>div>div.forge-spinner {
+  width: 800px !important;
+}
+
+.forge-spinner {
+  background: url('./assets/spinalcore.png') center/contain no-repeat;
+  width: 1500px;
+  height: 800px;
 }
 
 html {

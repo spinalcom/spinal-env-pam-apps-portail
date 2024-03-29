@@ -1,15 +1,18 @@
 <template>
   <div @click="onClick" ref="container" class="sprite_container">
-    <div class="sprite_color" :style="{ background: data.color, ...dynamicStyle }"></div>
-    <div  v-if="data.attr"  style="border-radius: 10px;top: 4px;left: 23px;text-overflow: ellipsis;max-width: 130px;white-space: nowrap;overflow: hidden;position: absolute;border-radius: 2px !important;min-width: 20px;height: 20px;background-color: rgb(255, 255, 255);color: black;"  :title="findValueByLabel()">{{this.findValueByLabel()}}</div>
+    <div class="sprite_color" :style="{ ...dynamicStyle }"></div>
+    <div v-if="data.attr"
+      style="border-radius: 10px;top: 2px;left: 15px;text-overflow: ellipsis;max-width: 130px;white-space: nowrap;overflow: hidden;position: absolute;border-radius: 10px !important;min-width: 20px;height: 12px;background-color: rgb(255, 255, 255);color: black;padding-bottom: 4px;padding-left: 5px;font-size: 12px;padding-right:5px ;"
+      :title="findValueByLabel()">{{ this.findValueByLabel() }}</div>
+      
     <div class="card-menu" v-if="isClicked">
       <ul class="cards">
         <div style="z-index:99 ;" href="" class="card">
           <div style="display: flex;flex-direction: column;padding-right: 5px;" class="mt-4 ml-4">
             <span @click.stop="onClose"
-              style=";font-size:15px; color: rgb(0, 0, 0);position: absolute;right: 15px;top:12px; font-weight:bold;">X</span>
-            <span style="font-size:13px; color: rgb(114, 114, 114);">{{ data.type }}</span>
-            <span style="font-size: 16px; margin-top: 5px;font-weight: bold;">{{ data.name }}</span>
+              style="font-size:15px; color: rgb(0, 0, 0);position: absolute;right: 15px;top:12px; font-weight:bold;">X</span>
+
+            <span style="font-size: 16px;font-weight: bold;">{{ data.name }}</span>
           </div>
           <div v-if="!showAttr" @click="showAttr = !showAttr"
             style="color: rgb(47, 129, 14);width: 84px;position: absolute;left: 66%; bottom: 10px;border:1px solid rgb(72, 187, 27) ; padding-left : 5px ; border-radius : 4px ; cursor : pointer">
@@ -29,7 +32,7 @@
         </div>
       </ul>
       <div @click="showAttr = !showAttr" v-if="showAttr"
-        style="font-weight: bol d;border: 1px solid rgb(255, 255, 255);color blue ; font-size: 16px;justify-content: center;align-items: center;display: flex;z-index: 99;width: 30px;height: 30px;border-radius: 30px;background-color: rgb(246, 246, 246);position: relative;top: 53%;left: 100%;transform: translate(-50%,-50%);">
+        style="font-weight: bold;border: 1px solid rgb(255, 255, 255);font-size: 16px;justify-content: center;align-items: center;display: flex;z-index: 99;width: 30px;height: 30px;border-radius: 30px;background-color: rgb(246, 246, 246);position: relative;top: 53%;left: 100%;transform: translate(-50%,-50%);">
         ></div>
     </div>
     <div class="dropleft" v-if="showAttr"
@@ -44,7 +47,7 @@
       </div>
     </div>
   </div>
-</template> 
+</template>
 <script>
 
 import {
@@ -78,6 +81,7 @@ export default {
     dynamicStyle: {
       border: "3px solid #F9F9F9",
       boxShadow: "none",
+      background: '#13A9E0'
     },
     isClicked: false,
   }),
@@ -98,12 +102,17 @@ export default {
 
   },
   methods: {
+    extrairePrefixe(str) {
+      const dernierSlashIndex = str.lastIndexOf('/');
+      if (dernierSlashIndex !== -1) {
+        return str.substring(0, dernierSlashIndex);
+      }
+      return str;
+    },
     findValueByLabel() {
-      console.log("toto", this.data.categoryAttributes , this.data.attr);
       for (const category of this.data.categoryAttributes) {
         for (const attribute of category.attributs) {
-          if (attribute.label === this.data.attr) {
-            console.log(attribute.value);
+          if (attribute.label === this.extrairePrefixe(this.data.attr)) {
             return attribute.value;
           }
           else if (this.data.attr === "Nom") {
@@ -114,9 +123,6 @@ export default {
       return undefined;
     },
 
-wayne() {
-      console.log(this.data);
-    },
 
     shouldDisplayAttribute(attr) {
       // Liste des labels à exclure
@@ -170,8 +176,8 @@ wayne() {
 };
 
 </script>
-  
-<style lang="scss" >
+
+<style lang="scss">
 .category {
   background-color: rgb(245, 245, 245);
   margin-top: 8px;
@@ -238,7 +244,7 @@ wayne() {
   position: absolute;
   background-color: white;
   width: 310px;
-  height: 104px;
+  height: 80px;
   -webkit-animation: scale-in-tl 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
   animation: scale-in-tl 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
   z-index: 99999 !important;
@@ -304,9 +310,9 @@ wayne() {
 }
 
 .sprite_color {
-  background-color: red;
-  width: 20px;
-  height: 20px;
+  background-color: #13A9E0;
+  width: 13px;
+  height: 13px;
   border-radius: 100%;
   z-index: 0 !important;
 

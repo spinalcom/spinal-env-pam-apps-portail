@@ -50,7 +50,6 @@ export async function getGlobalOffset(viewer: Autodesk.Viewing.Viewer3D, buildin
 		const tf = aecModelData && aecModelData.refPointTransformation;
 		globalOffset = tf ? new THREE.Vector3(tf[9], tf[10], 0) : new THREE.Vector3(0, 0, 0);
 	}
-
 	
 	return globalOffset;
 }

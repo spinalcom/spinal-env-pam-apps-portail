@@ -60,7 +60,7 @@ export type MutationsAppData<S = StateAppData> = {
 	[MutationTypes.REMOVE_VIEWER_LOADED](state: StateAppData, payload: { id: string }): void;
 	[MutationTypes.SET_ITEM_SELECTED](state: StateAppData, item): void;
 	[MutationTypes.SET_DATA](state: StateAppData, data: INodeItemTree[]): void;
-	[MutationTypes.SET_DL_DATA_OPTION](state: StateAppData, data: INodeItemTree[]): void;
+	[MutationTypes.SET_DL_DATA_OPTION](state: StateAppData, data: boolean): void;
 };
 
 export const mutations: MutationTree<StateAppData> & MutationsAppData = {
@@ -115,7 +115,7 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 	[MutationTypes.SET_ATTR](state: StateAppData, data: INodeItemTree[]): void {
 		state.attr = data;
 	},
-	[MutationTypes.SET_DL_DATA_OPTION](state: StateAppData, data: INodeItemTree[]): void {
+	[MutationTypes.SET_DL_DATA_OPTION](state: StateAppData, data: boolean): void {
 		state.dl_data_option = data;
 	},
 	[MutationTypes.SET_USER_SELECTION](state: StateAppData, data: INodeItemTree[]): void {
@@ -124,16 +124,26 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 	[MutationTypes.SET_USER_SELECTED](state: StateAppData, payload: { key: 'cat' | 'grp' | 'ctx'; value: any }): void {
 		if (typeof state.user_selected !== 'object') state.user_selected = {};
 		if (payload.key === 'grp') {
-			// Gérer le cas où 'grp' est un tableau
-			const currentIndex = state.user_selected.grp.indexOf(payload.value);
-			if (currentIndex === -1) {
-				// Ajouter le groupe s'il n'est pas déjà dans le tableau
-				state.user_selected.grp.push(payload.value);
-			} else {
-				// Supprimer le groupe s'il est déjà dans le tableau
-				state.user_selected.grp.splice(currentIndex, 1);
+			if (!Array.isArray(state.user_selected.grp)) {
+			  state.user_selected.grp = [];
 			}
-		} else {
+			let updatedGrp = [];
+			payload.value.forEach(value => {
+			  if (state.user_selected.grp.indexOf(value) === -1) {
+				updatedGrp.push(value);
+			  }
+			});
+
+			state.user_selected.grp.forEach(value => {
+			  if (payload.value.indexOf(value) !== -1) {
+				updatedGrp.push(value);
+			  }
+			});
+		
+			updatedGrp = [...new Set(updatedGrp)];
+		
+			state.user_selected.grp = updatedGrp;
+		  }else {
 			// Pour 'cat' et 'ctx', garder le comportement existant
 			state.user_selected = { ...state.user_selected, [payload.key]: payload.value };
 		}

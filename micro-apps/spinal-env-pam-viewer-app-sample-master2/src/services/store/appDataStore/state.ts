@@ -43,7 +43,7 @@ export const state = {
 	data: undefined as any,
 	dlData: undefined as any,
 	attr: undefined as any,
-	dl_data_option: undefined as any,
+	dl_data_option: true as boolean,
 	user_selection_list: {} as any,
 	user_selected: {
 		cat: null,

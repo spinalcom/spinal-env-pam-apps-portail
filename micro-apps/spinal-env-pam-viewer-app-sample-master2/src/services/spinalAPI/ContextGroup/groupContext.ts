@@ -38,7 +38,8 @@ import type {
     IRoomPositionRes,
 
 } from '../../../components/SpaceSelector/interfaces/IBuildingItem';
-import { log } from 'console';
+import { error, log, warn } from 'console';
+import { logTypes } from "micro-apps/spinal-env-pam-websocket-state/src/store/constants";
 
 
 export async function getGroupContext(patrimoineId: string, buildingId: string, position_type: any,): Promise<any | null> {
@@ -67,18 +68,17 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
 
     if (matchedContext) {
         let tree = await getGroupContextCategoryList(patrimoineId, buildingId, matchedContext.dynamicId);
-        console.log(tree, 'le treee');
         store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy.data, "cat": tree });
         const matchedCategory = tree.find(context => context.name === store.state.appDataStore.user_selected.cat);
         if (matchedCategory) {
             let grpList = await getGroupContextGroupList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId);
             store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy.data, "cat": tree, "grp": grpList });
-
             let allLists = [];
             for (const selectedGroupName of store.state.appDataStore.user_selected.grp) {
                 const matchedGrpList = grpList.find(context => context.name === selectedGroupName);
                 if (matchedGrpList) {
                     let list;
+                    type = matchedGrpList.type;
                     if (matchedGrpList.type === "BIMObjectGroup") {
                         list = await getequipementList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, matchedGrpList.dynamicId);
                     } else if (matchedGrpList.type === "geographicRoomGroup") {
@@ -108,9 +108,9 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
                     data: enrichBIMObjects(roomsOnFloor, attribut),
                     nomenclature: nomenclature
                 };
-
                 return alldataBimObject;
             } else {
+                console.warn('RESTE');
                 return allLists;
             }
         }
@@ -122,7 +122,7 @@ function enrichBIMObjects(bimObjects: any[], dataObjects: any[]): any[] {
     // Créer un dictionnaire avec dynamicId comme clé et les attributs comme valeur
     const attributesDictionary: { [dynamicId: number]: any[] } = {};
 
-    dataObjects.forEach(obj => {
+    dataObjects?.forEach(obj => {
         attributesDictionary[obj.dynamicId] = obj.categoryAttributes;
     });
 
@@ -137,8 +137,6 @@ function enrichBIMObjects(bimObjects: any[], dataObjects: any[]): any[] {
 
 export async function getAttributeListMultiple(buildingId: string, roomIds: string[]): Promise<IRoomPositionRes[]> {
     const spinalAPI = SpinalAPI.getInstance();
-    console.log('aa');
-
     const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/node/attribute_list_multiple');
     try {
         const response = await spinalAPI.post<IRoomPositionRes[]>(url, roomIds); // Envoyer le tableau d'identifiants
@@ -153,14 +151,13 @@ export async function getAttributeListMultiple(buildingId: string, roomIds: stri
 
 function createUnifiedNomenclature(dataArray: any[]): any {
     const unifiedNomenclature = {};
-
-    dataArray.forEach(data => {
-        data.categoryAttributes.forEach(category => {
+    dataArray?.forEach(data => {
+        data.categoryAttributes?.forEach(category => {
             if (!unifiedNomenclature[category.name]) {
                 unifiedNomenclature[category.name] = [];
             }
 
-            category.attributs.forEach(attribut => {
+            category?.attributs?.forEach(attribut => {
                 if (!unifiedNomenclature[category.name].includes(attribut.label)) {
                     unifiedNomenclature[category.name].push(attribut.label);
                 }
@@ -227,7 +224,6 @@ export async function getequipementList(patrimoineId: string, buildingId: string
 
 
 export async function getroomList(patrimoineId: string, buildingId: string, contextDynId: number, categoryDynId: number, groupDynId: number): Promise<IZoneItem[]> {
-
     const spinalAPI = SpinalAPI.getInstance();
     const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/roomsGroup/${contextDynId}/category/${categoryDynId}/group/${groupDynId}/roomList`);
     let result = await spinalAPI.get<IZoneItem[]>(url);
@@ -235,6 +231,7 @@ export async function getroomList(patrimoineId: string, buildingId: string, cont
         Object.assign(obj, { patrimoineId, buildingId });
         return obj;
     });
+
     return res;
 }
 
@@ -252,10 +249,8 @@ export async function getroomList(patrimoineId: string, buildingId: string, cont
 // }
 
 export async function getGroupContextCategoryList(patrimoineId: string, buildingId: string, contextDynId: number): Promise<IZoneItem[]> {
-    console.log('Je vais check si ma requtes fonctionne');
     const spinalAPI = SpinalAPI.getInstance();
     const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/groupeContext/${contextDynId}/category_list`);
-    console.log(url);
     let result = await spinalAPI.get<IZoneItem[]>(url);
     const res = result.data.map((obj) => {
         Object.assign(obj, { patrimoineId, buildingId, req: 'CategoryList' });
@@ -277,7 +272,6 @@ export async function getGroupContextGroupList(patrimoineId: string, buildingId:
 
 
 export async function getGroupContextread(patrimoineId: string, buildingId: string, contextDynId: number, categoryDynId: number, groupDynId: number): Promise<IZoneItem[]> {
-    console.log('LA FONCTION EST APPELLE ,,,,');
     const spinalAPI = SpinalAPI.getInstance();
     const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/groupContext/${contextDynId}/category/${categoryDynId}/group/${groupDynId}/read`);
     let result = await spinalAPI.get<IZoneItem[]>(url);

@@ -29,6 +29,7 @@ export function getAPINormalisePath(path: string, buildingId: string = ''): stri
 
   if (!/https?:\/\//.test(path)) {
     res = `${orig}${orig.endsWith('/') ? '' : '/'}api/v2/building/${buildingId}/BIM/file${path}`;
+    console.log(path);
   }
   return res;
 }
