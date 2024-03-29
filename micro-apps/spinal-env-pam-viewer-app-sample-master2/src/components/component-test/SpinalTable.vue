@@ -647,10 +647,8 @@ export default {
       for (const parentName in parentCounts) {
         const parentInfo = parentCounts[parentName];
         if (nomenclature[parentName] && nomenclature[parentName].length === parentInfo.count && nomenclature[parentName].every(child => parentInfo.children.includes(child))) {
-          // Si tous les enfants sont présents, ajouter {parentName, childName: parentName}
           optimizedItems.push({ parentName, childName: parentName });
         } else {
-          // Sinon, ajouter les enfants individuels
           parentInfo.children.forEach(childName => optimizedItems.push({ parentName, childName }));
         }
       }
@@ -659,7 +657,7 @@ export default {
     },
 
     dynamicHeaders() {
-      // Commencez par initialiser headers avec 'Nom' pour s'assurer qu'il est toujours inclus
+    
       let headers = [{ text: 'Nom', value: 'name', sortable: true }];
 
       const selectedItems = this.selectedKeys?.map(key => {
