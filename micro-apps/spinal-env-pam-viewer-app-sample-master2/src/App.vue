@@ -118,7 +118,7 @@ import {
 import "spinal-components/dist/spinal-components.css";
 
 import dataSideApp from "./components/data-side/App.vue";
-import test from "node:test";
+// import test from "node:test";
 
 
 interface IItemData {
@@ -364,7 +364,6 @@ class App extends Vue {
 
   public getDataFormatted() {
     const d = [this._getHeader(), ...this._getRows(this.$store.state.appDataStore.dlData)];
-    console.log('test');
     return this.$store.state.appDataStore.dlData || [];
    
     

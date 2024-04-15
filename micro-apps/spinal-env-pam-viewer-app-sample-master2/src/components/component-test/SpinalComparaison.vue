@@ -4,7 +4,7 @@
         <thead>
             <tr>
                 <th>ID Statique</th>
-                <th>Nom</th>
+                <th class="header">Nom</th>
                 <th>Clé</th>
                 <th>De</th>
                 <th>À</th>
@@ -32,7 +32,7 @@ export default {
     methods: {
         flattenedDifferences(tab) {
             let results = [];
-            this.tab?.forEach((item) => {
+            tab?.forEach((item) => {
                 Object.entries(item.differences).forEach(([key, value]) => {
                     results.push({
                         staticId: item.staticId,
@@ -51,12 +51,16 @@ export default {
 
     watch: {
         dataTab(newVal, oldVal) {
-            console.log('laslalsalslalslaslaslaslals');
-            flattenedDifferences(newVal)
+            console.log('laslalsalslalslaslaslaslals', newVal);
+            // this.flattenedDifferences(newVal)
         },
     }
 }
 
 
 </script>
-<style scoped></style>
+<style scoped>
+.header{
+    /* margin-left: 50px; */
+}
+</style>

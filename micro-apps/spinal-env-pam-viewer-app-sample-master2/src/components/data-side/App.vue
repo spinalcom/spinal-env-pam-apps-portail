@@ -30,7 +30,7 @@ with this file. If not, see
       <div v-else-if="ActiveData">></div>
       <div v-else><</div>
     </button>
-        <button @click="() => { $emit('buttonClicked3D'); test(); }"
+        <button @click="() => { $emit('buttonClicked3D'); resize(); }"
           style="position: absolute;top: 52.5%;left:-20px;background-color: white;border-radius: 10px;width: 30px;height: 30px;display: flex;justify-content: center;align-items: center;padding-right: 5px;border-left: 2px solid gainsboro;">
           <div v-if="ActiveData">>></div>
           <div v-else-if="DActive"><</div>
@@ -43,7 +43,7 @@ with this file. If not, see
         </div>
       </div> -->
           <!-- SAMPLE -->
-          <!-- <capacityTable  :headers="[{text:'Nom', value: 'name'},{text:'test', value: 'name'},]" :tab="[]"></capacityTable> -->
+          <!-- <capacityTable  :headers="[{text:'Nom', value: 'name'},{text:'', value: 'name'},]" :tab="[]"></capacityTable> -->
 
           <SpinalTable class="entrence" :class="{ 'inactiveTable': DActive , 'displaydataCss' : displaydata}" :selectedItemTab="element_clicked" @item-selected="selectDataView"
             @allFiltredData="putAllFiltredData" @update:selectedItem="handleAttributeChange"
@@ -85,7 +85,6 @@ with this file. If not, see
 import { Prop, Vue, Watch } from "vue-property-decorator";
 import { PAGE_STATES } from "../../interfaces/pageStates";
 import Component from "vue-class-component";
-// import CapacityTable from "../../components/component-test/CapacityTable.vue";
 import SpinalTable from "../../components/component-test/SpinalTable.vue"
 import { IConfig } from "../../interfaces/IConfig";
 import { ISpaceSelectorItem } from "global-components";
@@ -124,7 +123,7 @@ class dataSideApp extends Vue {
   CurrentLoading: boolean;
   displaydata : boolean = false
 
-  test(){
+  resize(){
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
     }, 1); 
@@ -139,10 +138,18 @@ class dataSideApp extends Vue {
 
   async handleItemSelected(payload) {
 
-    if (payload.listType == "ctx")
+   
+    if (payload.listType == "ctx"){
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "ctx", value: payload.value.name });
-    if (payload.listType == "cat")
+      this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "cat", value: null });
+      this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: [] });
+    }
+     
+    if (payload.listType == "cat"){
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "cat", value: payload.value.name });
+      this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: [] });
+    }
+      
     if (payload.listType == "grp")
       // payload.value.forEach(element => {
       //   this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: element});

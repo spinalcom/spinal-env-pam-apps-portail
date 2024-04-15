@@ -128,13 +128,13 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 			  state.user_selected.grp = [];
 			}
 			let updatedGrp = [];
-			payload.value.forEach(value => {
+			payload?.value?.forEach(value => {
 			  if (state.user_selected.grp.indexOf(value) === -1) {
 				updatedGrp.push(value);
 			  }
 			});
 
-			state.user_selected.grp.forEach(value => {
+			state.user_selected?.grp?.forEach(value => {
 			  if (payload.value.indexOf(value) !== -1) {
 				updatedGrp.push(value);
 			  }

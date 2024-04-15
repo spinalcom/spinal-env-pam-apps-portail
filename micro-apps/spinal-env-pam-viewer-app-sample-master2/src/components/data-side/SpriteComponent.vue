@@ -2,9 +2,8 @@
   <div @click="onClick" ref="container" class="sprite_container">
     <div class="sprite_color" :style="{ ...dynamicStyle }"></div>
     <div v-if="data.attr"
-      style="border-radius: 10px;top: 2px;left: 15px;text-overflow: ellipsis;max-width: 130px;white-space: nowrap;overflow: hidden;position: absolute;border-radius: 10px !important;min-width: 20px;height: 12px;background-color: rgb(255, 255, 255);color: black;padding-bottom: 4px;padding-left: 5px;font-size: 12px;padding-right:5px ;"
+      style="border-radius: 10px;top: 2px;left: 5px;text-overflow: ellipsis;max-width: 140px;white-space: nowrap;overflow: hidden;position: absolute;border-radius: 10px !important;min-width: 20px;height: 12px;background-color: rgb(255, 255, 255);color: black;padding-bottom: 4px;padding-left: 15px;font-size: 12px;padding-right:5px ;z-index: -1;"
       :title="findValueByLabel()">{{ this.findValueByLabel() }}</div>
-      
     <div class="card-menu" v-if="isClicked">
       <ul class="cards">
         <div style="z-index:99 ;" href="" class="card">

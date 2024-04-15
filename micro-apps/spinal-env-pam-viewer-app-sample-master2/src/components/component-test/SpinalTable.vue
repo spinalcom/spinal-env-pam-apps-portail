@@ -53,8 +53,9 @@
             Selectionner un groupe:</div>
           <ul>
 
-            <div :class="{ 'selected': selected_grp.includes(grp.name) }" class="choose_li" v-for="grp in grp_list"
-              :key="grp.name"><label style="cursor: pointer;" @click="toggleSelection(grp.name)" :for="grp.name">{{
+            <div @click="toggleSelection(grp.name)" :class="{ 'selected': selected_grp.includes(grp.name) }"
+              class="choose_li" v-for="grp in grp_list" :key="grp.name"><label style="cursor: pointer;"
+                :for="grp.name">{{
       grp.name }}</label></div>
 
             <!-- <v-checkbox v-for="grp in grp_list" :key="grp.name" style="cursor: pointer;height: 30px;color: black;" color="" class="choose_li"
@@ -133,7 +134,7 @@
                 >
                 <template v-slot:selection="{ item, index }">
                   <div v-if="index == 0"
-                    style="position: absolute;background-color: #14202c;color: white;border-radius: 10px;width: 16px;height: 16px;font-size: 11px;display: flex;justify-content: center;align-items: center;transform: translate(20px,-10px);">
+                    style="position: absolute;background-color: #14202c;color: white;border-radius: 10px;width: 14px;height: 14px;font-size: 11px;display: flex;justify-content: center;align-items: center;transform: translate(20px,-8px);">
                     {{ selections[header.text].length }} </div>
                 </template>
 
@@ -166,7 +167,7 @@
     </div>
     <div class="blur-background" @click="importAttr = !importAttr" v-if="importAttr">
       <div @click.stop
-        style="background-color: white;width: auto;height: 400px;left: 50%;top:50%;position: relative;transform: translate(-50%,-50%);border-radius: 5px;">
+        style="background-color: white;width: 60%;height: 50%;left: 50%;top:50%;position: relative;transform: translate(-50%,-50%);border-radius: 5px;">
         <div style="background-color: rgb(228, 228, 228);width: 100%;height: 50px;"></div>
         <input type="checkbox" id="checkbox" v-model="checked" />
         <label for="checkbox">Comparer avec la totalités les attribut du tableau </label>
@@ -277,7 +278,6 @@ export default {
       }
     },
     filteredContextsV() {
-      console.log('LOG ??? NBR ------');
       if (this.contexts && this.contexts[0]?.data) {
         Object.keys(this.selections).forEach(key => {
           if (Array.isArray(this.selections[key]) && this.selections[key].length === 0) {
@@ -293,9 +293,13 @@ export default {
 
           if (this.currentfilter) {
             console.warn('PAssage 1');
+            this.$store.commit(MutationTypes.SET_DLDATA, this.sortDataByAttribute(this.currentfilter, [...allFilteredData]));
             return this.sortDataByAttribute(this.currentfilter, [...allFilteredData])
-          } else
+          } else{
+            this.$store.commit(MutationTypes.SET_DLDATA, this.contexts[0]?.data);
             return this.contexts[0]?.data;
+          }
+         
         }
 
         const criteria = Object.entries(this.selections).map(([key, values]) => {
@@ -331,9 +335,13 @@ export default {
 
         if (this.currentfilter && allFilteredData != []) {
           console.warn('PAssage 2');
+          this.$store.commit(MutationTypes.SET_DLDATA, this.sortDataByAttribute(this.currentfilter, [...allFilteredData]));
           return this.sortDataByAttribute(this.currentfilter, [...allFilteredData])
-        } else
+        } else{
+          this.$store.commit(MutationTypes.SET_DLDATA, allFilteredData);
           return allFilteredData;
+        }
+       
       }
     }
 
@@ -367,7 +375,6 @@ export default {
         return aValue.localeCompare(bValue);
       });
 
-      console.warn(dataArray);
       return dataArray;
     },
 
@@ -412,7 +419,7 @@ export default {
       if (attributeNotFound) {
         uniqueValues.add("<empty>");
       }
-
+      console.log('toto');
       return uniqueValues.size >= 10 ? [] : [...uniqueValues];
     }
     ,
@@ -449,6 +456,12 @@ export default {
     },
 
     emitValue(listType, value) {
+      if (listType == 'ctx' || listType == 'cat') {
+        this.selected_grp = []
+      }
+      if (listType == 'ctx') {
+        this.selected_cat = ""
+      }
       this.$emit('itemSelected', { listType, value });
     },
     toggleSelection(groupName) {
@@ -657,7 +670,7 @@ export default {
     },
 
     dynamicHeaders() {
-    
+
       let headers = [{ text: 'Nom', value: 'name', sortable: true }];
 
       const selectedItems = this.selectedKeys?.map(key => {
@@ -687,6 +700,7 @@ export default {
 
   },
   watch: {
+
 
     allFilteredData(newVal, oldVal) {
       this.$emit('allFiltredData', newVal);
@@ -808,6 +822,7 @@ export default {
 .choose_li {
   margin: 5px;
   padding: 5px;
+  cursor: pointer;
 }
 
 .choose_li:hover {
@@ -874,7 +889,7 @@ td {
 
 
 .mouse {
-  width: 102.5%;
+  width: 101%;
   height: 50px;
   background-color: rgb(255, 255, 255);
   border-radius: 5px;
