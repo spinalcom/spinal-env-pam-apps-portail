@@ -23,7 +23,7 @@ export async function loadTickets(): Promise<Array<any>> {
     await ticketAPI.getTicketListMultiple(stepList.map((s) => s.dynamicId))
   ).flatMap((result) => result.tickets);
   const detailedTickets = await ticketAPI.getTicketDetailsMultiple(
-    ticketList.map((t) => t.dynamicId)
+    ticketList.map((t) => t?.dynamicId)
   );
   // const detailedTickets_withoutError_only_BIMOBJ = detailedTickets.filter((t) => (!t.error && t.elementSelected.type == "BIMObject"));
   const detailedTickets_reduced = detailedTickets.reduce(
