@@ -45,9 +45,16 @@ with this file. If not, see
               </v-btn>
             </div>
             <div v-else class="">
-              <v-btn outlined icon @click="reload()">
+              <v-progress-circular
+                :rotate="-90"
+                :size="40"
+                :width="2"
+                color="purple"
+                :value="reload_countdown"
+                @click="reload()"
+              >
                 <v-icon>mdi-reload</v-icon>
-              </v-btn>
+              </v-progress-circular>
             </div>
           </div>
 
@@ -281,6 +288,7 @@ class InsightApp extends Vue {
   @Prop() data: any[];
 
   time: any = null;
+  reload_countdown: number = 0;
   t_index: number = 0;
   sourceSelectedName: string = this.config.source[0].name;
   regroupementSelected: "floors" | "rooms" | IRegroupement =
@@ -292,6 +300,8 @@ class InsightApp extends Vue {
   initiated: boolean = false;
 
   selectedItem: any = null;
+
+  intervalId: any;
 
   regroupItemsAndCalculateDebounced: any = lodash.debounce(
     this.regroupItemsAndCalculate.bind(this),
@@ -432,6 +442,7 @@ class InsightApp extends Vue {
       this.$store.commit(MutationTypes.SET_DATA, calculated);
 
       this.pageSate = PAGE_STATES.loaded;
+      this.reload_countdown = 0;
     } catch (error) {
       console.error(error);
       this.retry = this.regroupItemsAndCalculateDebounced;
@@ -547,6 +558,11 @@ class InsightApp extends Vue {
     this.updateDataOnTimeChanged();
   }
 
+  @Watch("reload_countdown")
+  watchReloadCountdown() {
+    if (this.reload_countdown > 100) this.reload();
+  }
+
   @Watch("calculMode")
   async watchCaculMode(mode) {
     this.percent = mode === calculTypes.MoyennePercent;
@@ -575,6 +591,9 @@ class InsightApp extends Vue {
 
     if (!this.initiated) {
       this.updateSprites();
+      this.intervalId = setInterval(() => {
+        this.reload_countdown += 1 / 6;
+      }, 100);
       this.initiated = true;
     }
   }
@@ -597,10 +616,17 @@ class InsightApp extends Vue {
   }
 
   @Watch("selectedTime")
-  async watchSelectedTime() {
+  async watchSelectedTime(newVal) {
     if (this.isBuildingSelected) return;
     if (!this.t_index) await this.updateDataOnTimeChanged();
     else this.t_index = 0;
+    if (newVal.name === ITemporality.currentValue) {
+      this.intervalId = setInterval(() => {
+        this.reload_countdown += 1 / 6;
+      }, 100);
+    } else {
+      clearInterval(this.intervalId);
+    }
   }
 
   @Watch("t_index")

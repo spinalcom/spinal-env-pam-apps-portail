@@ -2,9 +2,13 @@
   <div class="sprite_container" ref="container" @click.stop="onClick">
     <div
       class="sprite_color"
-      :style="{ background: data.color, ...dynamicStyle }"
+      :style="{ background: data.color, ...dynamicStyle, zIndex: 1 }"
     ></div>
-    <div v-if="roundedValue" class="sprite_value_unit" :style="dynamicStyle">
+    <div
+      v-if="roundedValue"
+      class="sprite_value_unit"
+      :style="{ ...dynamicStyle, zIndex: 0 }"
+    >
       {{ roundedValue }}
     </div>
     <div class="card-menu" v-if="isClicked">
