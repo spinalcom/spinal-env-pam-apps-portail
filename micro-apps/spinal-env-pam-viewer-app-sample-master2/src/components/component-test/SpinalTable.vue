@@ -58,8 +58,6 @@
                 :for="grp.name">{{
       grp.name }}</label></div>
 
-            <!-- <v-checkbox v-for="grp in grp_list" :key="grp.name" style="cursor: pointer;height: 30px;color: black;" color="" class="choose_li"
-              :label="grp.name"></v-checkbox> -->
           </ul>
         </div>
         <div @click="showSelection = !showSelection"
@@ -167,17 +165,30 @@
     </div>
     <div class="blur-background" @click="importAttr = !importAttr" v-if="importAttr">
       <div @click.stop
-        style="background-color: white;width: 60%;height: 50%;left: 50%;top:50%;position: relative;transform: translate(-50%,-50%);border-radius: 5px;">
-        <div style="background-color: rgb(228, 228, 228);width: 100%;height: 50px;"></div>
-        <input type="checkbox" id="checkbox" v-model="checked" />
-        <label for="checkbox">Comparer avec la totalités les attribut du tableau </label>
-        <div v-if="this.keyselected.length == undefined">{{ this.difference_data }}</div>
+        style="background-color: white;width: 65%;height: 65%;left: 50%;top:50%;position: relative;transform: translate(-50%,-50%);border-radius: 5px; overflow-x: hidden;">
+        <div
+          style="background-color: rgb(228, 228, 228);width: 100%;height: 50px;padding: 10px;font-size: 25px; color: #14202c;font-weight: bold;padding-bottom: 50px;">
+          Import des données
+        </div>
+
+        <div
+          style="width: 100%;padding-left :10px;height: 40px;display: flex;flex-direction: row;justify-self: center;align-self: center;margin-bottom: 16px;">
+          <!-- <input type="checkbox" id="checkbox" v-model="checked" />
+            <label for="checkbox">Comparer avec la totalités des attributs du tableau </label> -->
+
+          <v-checkbox v-model="checked" label="Comparer avec la totalités des attributs du tableau "></v-checkbox>
+
+          <label style="margin-top: 16px;" class="custom-file-upload">
+            <input type="file" @change="handleFileUpload" style="display: none;" />
+            <!-- <button type="button">Choisir un fichier</button> -->
+            <span style="border: 1px solid black; padding: 6px ;border-radius: 5px; color: white;background: #14202c;"
+              id="file-chosen">Choisir un fichier </span>
+            <v-icon color="green" v-if="fileIsLoaded">mdi-check</v-icon>
+          </label>
+        </div>
         <SpinalComparaison :dataTab="difference_data"></SpinalComparaison>
-        <v-icon color="green" v-if="fileIsLoaded">mdi-check</v-icon>
-        <input type="file" @change="handleFileUpload">
       </div>
     </div>
-
   </div>
 </template>
 
@@ -185,17 +196,8 @@
 <script>
 import SpinalExcelManager from 'spinal-env-viewer-plugin-excel-manager-service'
 import SmallLegend from './SmallLegend.vue';
-import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 import { MutationTypes } from "../../services/store/appDataStore/mutations";
-import { Prop, Vue, Watch } from "vue-property-decorator";
-import { PAGE_STATES } from "../../interfaces/pageStates";
-import Component from "vue-class-component";
-import { IConfig } from "../../interfaces/IConfig";
-import lodash from "lodash";
-import { State } from "vuex-class";
-import { mapState } from "vuex";
 import SpinalComparaison from './SpinalComparaison.vue';
-import { exit } from 'process';
 export default {
   components: {
     SmallLegend,
@@ -239,23 +241,6 @@ export default {
   },
   computed: {
 
-    elementsToShow() {
-      return this.keyselected.map(obj => obj.childName);
-    },
-
-    objToArray() {
-      let data = this.contexts[0].nomenclature
-      if (data) {
-        for (const key in data) {
-          if (data.hasOwnProperty(key)) {
-            array = array.concat(data[key]);
-          }
-        }
-        this.treeData = array
-      }
-      else
-        this.treeData = []
-    },
     treeviewItems() {
       const nomenclatureObj = this.contexts[0].nomenclature;
       const items = Object.entries(nomenclatureObj)?.map(([key, value], index) => {
@@ -287,19 +272,12 @@ export default {
 
         if (Object.keys(this.selections).length === 0) {
           let allFilteredData = this.contexts[0]?.data;
-
-
           this.$emit('allFiltredData', allFilteredData);
-
           if (this.currentfilter) {
-            console.warn('PAssage 1');
-            this.$store.commit(MutationTypes.SET_DLDATA, this.sortDataByAttribute(this.currentfilter, [...allFilteredData]));
             return this.sortDataByAttribute(this.currentfilter, [...allFilteredData])
-          } else{
-            this.$store.commit(MutationTypes.SET_DLDATA, this.contexts[0]?.data);
+          } else {
             return this.contexts[0]?.data;
           }
-         
         }
 
         const criteria = Object.entries(this.selections).map(([key, values]) => {
@@ -330,22 +308,16 @@ export default {
             allFilteredData = allFilteredData.filter(item => filteredDataForCriterion.includes(item));
           }
         });
-
         this.$emit('allFiltredData', allFilteredData);
-
         if (this.currentfilter && allFilteredData != []) {
-          console.warn('PAssage 2');
-          this.$store.commit(MutationTypes.SET_DLDATA, this.sortDataByAttribute(this.currentfilter, [...allFilteredData]));
           return this.sortDataByAttribute(this.currentfilter, [...allFilteredData])
-        } else{
-          this.$store.commit(MutationTypes.SET_DLDATA, allFilteredData);
+        } else {
           return allFilteredData;
         }
-       
       }
     }
-
   },
+
   methods: {
     filtercolumn(item) {
       console.log(item.text);
@@ -354,8 +326,6 @@ export default {
 
     sortDataByAttribute(categoryAttributePair, dataArray) {
       const [attributeName, categoryName] = categoryAttributePair.split('/');
-      console.log(categoryName, attributeName);
-
       dataArray.sort((a, b) => {
         const findAttributeValue = (item) => {
           const category = item.categoryAttributes.find(cat => cat.name === categoryName);
@@ -366,15 +336,11 @@ export default {
         const aValue = findAttributeValue(a);
         const bValue = findAttributeValue(b);
 
-        // Comparaison numérique si les deux valeurs sont des nombres
         if (!isNaN(aValue) && !isNaN(bValue)) {
           return Number(aValue) - Number(bValue);
         }
-
-        // Tri alphabétique dans les autres cas
         return aValue.localeCompare(bValue);
       });
-
       return dataArray;
     },
 
@@ -395,10 +361,8 @@ export default {
       const [attributeName, categoryName] = columnName.split('/');
       const uniqueValues = new Set();
       let attributeNotFound = false;
-
       context.forEach(item => {
         let foundInItem = false;
-
         item.categoryAttributes.forEach(category => {
           if (category.name === categoryName) {
             category.attributs.forEach(attribute => {
@@ -411,7 +375,6 @@ export default {
         });
 
         if (!foundInItem) {
-
           attributeNotFound = true;
         }
       });
@@ -419,20 +382,9 @@ export default {
       if (attributeNotFound) {
         uniqueValues.add("<empty>");
       }
-      console.log('toto');
       return uniqueValues.size >= 10 ? [] : [...uniqueValues];
-    }
-    ,
-
-    applyFilters() {
-      this.filteredContexts = this.contexts.filter(item => {
-        return Object.keys(this.filters).every(filterKey => {
-          const filterValue = this.filters[filterKey];
-          if (!filterValue) return true;
-          return item[filterKey] === filterValue;
-        });
-      });
     },
+
     tarrr(i) {
       this.selected_grp.splice(i, 1);
       this.validate();
@@ -440,14 +392,6 @@ export default {
 
     showelement() {
       return this.keyselected.map(obj => obj.childName);
-    },
-
-    breadcrumbsItems() {
-      return [
-        { text: this.selected_ctx, disabled: false },
-        { text: this.selected_cat, disabled: false },
-        { text: this.selected_grp, disabled: false },
-      ];
     },
 
     validate() {
@@ -473,7 +417,6 @@ export default {
       }
     },
 
-
     findDifferencesByStaticId(array1, array2) {
       let differences = [];
       array1.forEach(a1 => {
@@ -482,8 +425,8 @@ export default {
           let diff = {};
           let keys = new Set([...Object.keys(a1), ...Object.keys(a2)]);
           keys.forEach(key => {
-            if (a1[key] !== a2[key]) {
-              diff[key] = { from: a1[key], to: a2[key] };
+            if (([null, undefined].includes(a1[key]) ? "" : a1[key]) !== ([null, undefined].includes(a2[key]) ? "" : a2[key])) {
+              diff[key] = { from: a2[key], to: a1[key] };
             }
           });
           if (Object.keys(diff).length > 0) {
@@ -525,7 +468,6 @@ export default {
       }
     },
 
-
     handleMouseEnter(event) {
       const children = event.target.querySelectorAll('.colortd');
       children.forEach(child => {
@@ -540,7 +482,6 @@ export default {
     },
 
     onHeaderClick(headerName) {
-      // console.log(headerName.length, 'toto');
       if (headerName.length > 0)
         this.$store.commit(MutationTypes.SET_ATTR, headerName);
     },
@@ -549,7 +490,6 @@ export default {
       const dynamicHeaders = this.dynamicHeaders()?.map(header => header.text);
       const { filteredContexts } = this;
       if (this.$store.state.appDataStore.dl_data_option == false || this.checked == true) {
-
         this.tableData = filteredContexts?.map(item => {
           const dataForRow = {};
           dynamicHeaders.forEach(header => {
@@ -586,6 +526,7 @@ export default {
       }
       this.ChipKeySlected();
       this.$store.commit(MutationTypes.SET_DLDATA, this.tableData);
+      console.log('dl data5');
     },
 
     getAttributeValueDL(item, attrLabel) {
@@ -611,10 +552,10 @@ export default {
     },
 
     selectDataView(item) {
-      console.log('dzada  dzza');
       this.selected_id = item.dynamicId
       this.$emit('item-selected', item);
     },
+
     ChipKeySlected() {
       const headers = [
         { text: 'Nom', value: 'name', sortable: true, filtrable: true, filtrable: true },
@@ -632,7 +573,6 @@ export default {
             childName: foundChild ? foundChild.name : null
           };
         }
-
         return null;
       }).filter(item => item && item.childName !== null);
       selectedItems.forEach(({ parentName, childName }) => {
@@ -666,13 +606,10 @@ export default {
         }
       }
       this.keyselected = optimizedItems;
-
     },
 
     dynamicHeaders() {
-
       let headers = [{ text: 'Nom', value: 'name', sortable: true }];
-
       const selectedItems = this.selectedKeys?.map(key => {
         const foundItem = this.treeviewItems.find(item =>
           item.children && item.children.find(child => child.id === key)
@@ -688,27 +625,18 @@ export default {
       }).filter(item => item && item.childName !== null);
 
       selectedItems.forEach(({ parentName, childName }) => {
-        // Assurez-vous de ne pas ajouter un en-tête pour 'Nom' s'il existe déjà comme childName
         if (childName !== 'name') {
           headers.push({ text: `${childName}/${parentName}`, value: childName, filterable: true });
         }
       });
-
       return headers;
     }
-
-
   },
   watch: {
-
 
     allFilteredData(newVal, oldVal) {
       this.$emit('allFiltredData', newVal);
     },
-
-    // contexts(newVal, oldVal){
-    //   console.log('modification ?');
-    // },
 
     '$store.state.appDataStore.dl_data_option': {
       handler(newValue, oldValue) {
@@ -717,7 +645,6 @@ export default {
       deep: true,
       immediate: false,
     },
-
 
     selectedItemTab(newVal, oldVal) {
       this.selected_id = newVal
@@ -778,10 +705,24 @@ export default {
   color: white !important;
 }
 
+.custom-file-upload {
+  display: inline-block;
+  cursor: pointer;
+}
 
-/* #my-data-table > div.v-data-table__wrapper > table > thead > tr {
-  background-color: red !important;
-} */
+.custom-file-upload button {
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.custom-file-upload #file-chosen {
+  margin-left: 10px;
+  font-family: Arial, sans-serif;
+}
+
 
 ::v-deep .v-text-field.v-input--is-focused>.v-input__control>.v-input__slot:after {
   color: rgba(255, 255, 255, 0) !important;
@@ -873,20 +814,15 @@ td {
 
 .fixed-first-column table {
   position: relative;
-
 }
 
 ::v-deep .v-data-footer {
   display: none;
 }
 
-/* ::v-deep div.v-data-table__wrapper > table > thead > tr > th:nth-child(2) > i{
-  display: none;
-} */
 ::v-deep div.v-data-table__wrapper>table>thead>tr>th>i {
   display: none;
 }
-
 
 .mouse {
   width: 101%;
@@ -945,32 +881,7 @@ td {
   }
 }
 
-
-::v-deep v-treeview-node v-treeview-node--leaf {
-  background-color: red !important;
-}
-
-::v-deep [data-v-716848] v-treeview-node v-treeview-node--leaf,
-[data-v-716848] .v-treeview-node__children {
-  background-color: red !important;
-}
-
-.my-custom-treeview .v-treeview-node__children {
-  background-color: #b90202;
-  padding-left: 20px;
-}
-
-#app .v-treeview-node__children {
-  background-color: #b82c2c;
-}
-
-/* Ou en répétant la classe pour augmenter la spécificité */
-.v-treeview-node__children.v-treeview-node__children {
-  background-color: #ae1a1a;
-}
-
 ::v-deep .v-treeview-node__children {
-  /* Vos styles ici */
   padding-left: 20px
 }
 
@@ -988,10 +899,6 @@ td {
   border: 1px solid rgb(83, 83, 83);
 }
 
-.v-data-table__wrapper>table>thead>tr>th:nth-child(1) {
-  background-color: red !important;
-}
-
 .fixed-first-column tbody td:first-child {
   position: sticky;
   left: 0;
@@ -1004,17 +911,10 @@ td {
   z-index: 1;
 }
 
-
 .scrollable-table-container {
   overflow-x: auto;
 
 }
-
-.fixed-first-column thead th:first-child,
-.fixed-first-column tbody td:first-child {
-  /* width: 150px; */
-}
-
 
 .fixed-first-column thead th:first-child {
   position: sticky;
@@ -1022,8 +922,6 @@ td {
   z-index: 2;
   background-color: white;
 }
-
-
 .select-attr {
   -webkit-animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
   animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
@@ -1049,7 +947,6 @@ td {
   }
 }
 
-
 .line {
   position: relative;
   width: 0;
@@ -1074,20 +971,6 @@ td {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-.text-success {
-  color: rgb(14, 165, 14);
-}
-
-.text-danger {
-  color: red;
-}
-
-.hover-magnify {
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .hover-magnify:hover {
@@ -1176,16 +1059,11 @@ td {
   color: #214353;
   opacity: 1;
   font-size: 14px;
-
 }
-
-
 
 .theme--light.v-data-table .v-data-footer {
   background: #7b5151 !important;
 }
-
-
 
 ::v-deep .v-data-footer {
   width: 100%;
@@ -1209,7 +1087,6 @@ td {
 
 }
 
-
 ::v-deep .v-data-table__wrapper::-webkit-scrollbar-thumb {
   background: #e8e8e8;
   border-top-right-radius: 5px;
@@ -1217,19 +1094,16 @@ td {
   border: 1px solid rgb(195, 195, 195);
   transition: 1s;
 }
-
 
 ::v-deep .v-data-table__wrapper::-webkit-scrollbar {
   width: 10px;
 }
 
-/* Track */
 ::v-deep .v-data-table__wrapper::-webkit-scrollbar-track {
   background: #ffffff;
 
 }
 
-/* Handle */
 ::v-deep .v-data-table__wrapper::-webkit-scrollbar-thumb {
   background: #e8e8e8;
   border-top-right-radius: 5px;
@@ -1238,14 +1112,9 @@ td {
   transition: 1s;
 }
 
-/* Handle on hover */
 ::v-deep .v-data-table__wrapper::-webkit-scrollbar-thumb:hover {
   background: #dedede;
 }
-
-
-
-
 
 .breadcrumbs {
   border: 1px solid #cbd2d9;
