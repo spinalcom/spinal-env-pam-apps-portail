@@ -25,7 +25,61 @@ with this file. If not, see
 <template>
   <div>
     <v-card elevation="4" class="cardContainer">
-      <div class="dataContainer" @onSpriteClick="updateSelected">
+      <button
+        @click="$emit('buttonClicked')"
+        style="
+          position: absolute;
+          top: 47.5%;
+          left: -20px;
+          background-color: white;
+          border-radius: 10px;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding-right: 5px;
+          border-left: 2px solid gainsboro;
+          z-index: 2;
+        "
+        :style="{ left: DActive ? '-35px' : '-20px' }"
+      >
+        <v-icon v-if="DActive"> mdi-chevron-double-left </v-icon>
+        <v-icon v-else-if="ActiveData">mdi-chevron-right</v-icon>
+        <v-icon v-else>mdi-chevron-left</v-icon>
+      </button>
+      <button
+        @click="
+          () => {
+            $emit('buttonClicked3D');
+            resize();
+          }
+        "
+        style="
+          position: absolute;
+          top: 52.5%;
+          background-color: white;
+          border-radius: 10px;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding-right: 5px;
+          border-left: 2px solid gainsboro;
+          z-index: 2;
+        "
+        :style="{ left: DActive ? '-35px' : '-20px' }"
+      >
+        <v-icon v-if="ActiveData">mdi-chevron-double-right</v-icon>
+        <v-icon v-else-if="DActive">mdi-chevron-left</v-icon>
+        <v-icon v-else>mdi-chevron-right</v-icon>
+      </button>
+      <div
+        class="dataContainer"
+        @onSpriteClick="updateSelected"
+        v-show="ActiveData || !DActive"
+      >
         <div class="detail_header">
           <div class="title_date">
             <div class="_title">{{ config.title }}</div>
@@ -180,8 +234,10 @@ with this file. If not, see
           class="centered"
           v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected"
         >
-          Aucune donnée à afficher ! veuillez selectionner un étage ou une
-          pièce.
+          <p>
+            Aucune donnée à afficher ! veuillez selectionner un étage ou une
+            pièce.
+          </p>
         </div>
 
         <div class="centered" v-else-if="pageSate === PAGE_STATES.loading">
@@ -230,11 +286,11 @@ import { ISpaceSelectorItem } from "global-components";
 import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 import {
   calculItemsValue,
-  calculateValue,
   getColor,
   calculateTotal,
 } from "../../services/calcul/calculItems";
 import SpriteComponent from "./SpriteComponent.vue";
+import ChartSpriteComponent from "./ChartSpriteComponent.vue";
 import lodash from "lodash";
 import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import {
@@ -286,6 +342,8 @@ class InsightApp extends Vue {
   @Prop() selectedZone: ISpaceSelectorItem;
   @Prop() selectedTime: ISpaceSelectorItem;
   @Prop() data: any[];
+  @Prop() DActive: boolean;
+  @Prop() ActiveData: boolean;
 
   time: any = null;
   reload_countdown: number = 0;
@@ -368,6 +426,12 @@ class InsightApp extends Vue {
       default:
         return "";
     }
+  }
+
+  resize() {
+    setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, 1);
   }
 
   getFirstSource() {
@@ -526,11 +590,27 @@ class InsightApp extends Vue {
           this.selectedItem.dynamicId,
         ]);
       }, 500);
-    } else
+    } else {
       this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
         items: itemsToColor,
         buildingId,
       });
+    }
+  }
+
+  updateChartSprite() {
+    if (
+      !this.selectedItem ||
+      this.config.sprites ||
+      this.selectedTime.name === ITemporality.currentValue
+    )
+      return;
+    this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+    this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+      items: [this.selectedItem],
+      buildingId: localStorage.getItem("idBuilding"),
+      component: ChartSpriteComponent,
+    });
   }
 
   selectDataView(item) {
@@ -554,8 +634,19 @@ class InsightApp extends Vue {
     this.initiated = false;
     this.isBuildingSelected = false;
     this.reload = this.updateDataOnTimeChanged;
+    if (this.selectedTime.name === ITemporality.currentValue) {
+      this.intervalId = setInterval(() => {
+        this.reload_countdown += 1 / 6;
+      }, 100);
+    }
 
     this.updateDataOnTimeChanged();
+  }
+
+  // waych selectedItem
+  @Watch("selectedItem")
+  watchSelectedItem() {
+    this.updateChartSprite();
   }
 
   @Watch("reload_countdown")
@@ -578,7 +669,6 @@ class InsightApp extends Vue {
 
     this.$store.commit(MutationTypes.SET_DATA, calculated);
 
-    if (this.selectedTime.name === ITemporality.currentValue) return;
     await this.updateSprites();
   }
 
@@ -591,9 +681,6 @@ class InsightApp extends Vue {
 
     if (!this.initiated) {
       this.updateSprites();
-      this.intervalId = setInterval(() => {
-        this.reload_countdown += 1 / 6;
-      }, 100);
       this.initiated = true;
     }
   }
@@ -607,12 +694,14 @@ class InsightApp extends Vue {
 
     await this.regroupItemsAndCalculate(true);
     await this.updateSprites();
+    this.updateChartSprite();
   }
 
   @Watch("regroupementSelected")
   watchRegroupement() {
     if (this.isBuildingSelected) return;
     this.regroupItemsAndCalculateDebounced();
+    this.updateChartSprite();
   }
 
   @Watch("selectedTime")
@@ -627,6 +716,7 @@ class InsightApp extends Vue {
     } else {
       clearInterval(this.intervalId);
     }
+    this.updateChartSprite();
   }
 
   @Watch("t_index")
@@ -635,6 +725,7 @@ class InsightApp extends Vue {
     clearTimeout(this.timeoutId);
     this.timeoutId = setTimeout(async () => {
       await this.updateDataOnTimeChanged();
+      this.updateChartSprite();
     }, 500);
   }
 
@@ -746,9 +837,6 @@ export default InsightApp;
           text-overflow: ellipsis;
           text-transform: uppercase;
           font-size: 0.8em;
-        }
-
-        .date {
         }
       }
 

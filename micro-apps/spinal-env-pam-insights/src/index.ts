@@ -41,6 +41,29 @@ Vue.use(FloatingVue);
 Vue.use(Vuetify);
 Vue.use(SpinalComponents, {});
 
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  LineElement,
+  LinearScale,
+  CategoryScale,
+  PointElement,
+  Filler,
+} from "chart.js";
+
+ChartJS.register(
+  Title,
+  Tooltip,
+  Legend,
+  LineElement,
+  LinearScale,
+  CategoryScale,
+  PointElement,
+  Filler
+);
+
 const vuetify = new Vuetify({
   theme: {
     themes: {

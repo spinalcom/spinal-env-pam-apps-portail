@@ -11,9 +11,9 @@
     >
       {{ roundedValue }}
     </div>
-    <div class="card-menu" v-if="isClicked">
+    <div class="card-menu" v-if="displayChart">
       <ul class="cards">
-        <div style="z-index: 99" class="card">
+        <div style="z-index: 2" class="card">
           <div
             style="display: flex; flex-direction: column; padding-right: 5px"
             class="mt-4 ml-4"
@@ -27,11 +27,12 @@
                 right: 15px;
                 font-weight: bold;
               "
-              >X</span
             >
-            <span style="font-size: 13px; color: rgb(20, 32, 44)">{{
-              data.name
-            }}</span>
+              X
+            </span>
+            <span style="font-size: 13px; color: rgb(20, 32, 44)">
+              {{ data.name }}
+            </span>
           </div>
           <LineChart
             class="mx-2"
@@ -72,28 +73,7 @@ import {
 import { store } from "../../services/store";
 import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 import { Line as LineChart } from "vue-chartjs";
-import {
-  Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
-  LineElement,
-  LinearScale,
-  CategoryScale,
-  PointElement,
-  Filler,
-} from "chart.js";
-
-ChartJS.register(
-  Title,
-  Tooltip,
-  Legend,
-  LineElement,
-  LinearScale,
-  CategoryScale,
-  PointElement,
-  Filler
-);
+import { ITemporality } from "../../interfaces/IConfig";
 
 export default {
   name: "SpriteComponent",
@@ -121,6 +101,13 @@ export default {
         ? `${Number(value.toFixed(2))} ${this.data.unit}`
         : "";
     },
+    displayChart() {
+      return (
+        this.isClicked &&
+        store.state.appDataStore.temporalitySelected.name !==
+          ITemporality.currentValue
+      );
+    },
   },
   mounted() {},
   methods: {
@@ -129,7 +116,6 @@ export default {
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
       store.dispatch(ActionTypes.SELECT_SPRITES, [this.data.dynamicId]);
       store.dispatch(ActionTypes.SELECT_ITEMS, this.data);
-      this.isClicked = !this.isClicked;
       const el = document.querySelector(".dataContainer");
       el.dispatchEvent(
         new CustomEvent("onSpriteClick", { detail: { ...this.data } })

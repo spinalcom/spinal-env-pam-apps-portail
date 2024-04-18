@@ -60,14 +60,22 @@ with this file. If not, see
     </div>
 
     <div class="dataBody">
-      <viewerApp class="viewerContainer"></viewerApp>
+      <viewerApp
+        class="viewerContainer"
+        :class="{ active3D: isActive3D }"
+      ></viewerApp>
       <InsightApp
         class="appContainer"
+        :DActive="isActive3D"
+        :ActiveData="isActive"
+        :class="{ active: isActive, inactive: isActive3D }"
         :config="config"
         :selectedZone="selectedZone"
         :selectedTime="temporalitySelected"
         :data="displayedData"
         @clickOnDataView="onDataViewClicked"
+        @buttonClicked="toggleActive"
+        @buttonClicked3D="toggleActive3D"
       ></InsightApp>
     </div>
   </v-app>
@@ -129,9 +137,21 @@ class App extends Vue {
   openTemporalitySelector: boolean = false;
   config: IConfig = config;
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
+  isActive: boolean = false;
+  isActive3D: boolean = false;
 
   dataTable: IZoneItem[] = [];
   $refs: { spaceSelector };
+
+  toggleActive() {
+    if (this.isActive3D) this.isActive3D = false;
+    this.isActive = !this.isActive;
+  }
+
+  toggleActive3D() {
+    if (this.isActive) this.isActive = false;
+    this.isActive3D = !this.isActive3D;
+  }
 
   async mounted() {
     try {
@@ -389,6 +409,32 @@ export default App;
       width: 40%;
       height: 100%;
       float: right;
+    }
+
+    .active {
+      width: 98.5%;
+      // height: 100%;
+      position: absolute;
+      z-index: 7;
+      right: 0px;
+      margin-right: 6px;
+      height: 91%;
+    }
+
+    .inactive {
+      // display: none;
+      position: absolute;
+      width: 0%;
+      height: 91%;
+      right: 0px;
+      transition: 0.1;
+    }
+
+    .active3D {
+      width: 99vw;
+      height: 100%;
+      float: left;
+      position: absolute;
     }
   }
 }
