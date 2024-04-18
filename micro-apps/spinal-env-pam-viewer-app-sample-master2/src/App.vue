@@ -42,8 +42,8 @@ with this file. If not, see
 
             <!-- <v-checkbox v-model="dataFromTab" label="Séléctionner les données avec tout les attributs"></v-checkbox> -->
             <v-radio-group  class="ml-4" v-model="dataFromTab">
-              <v-radio label="Télécharger les données sans filtres" value="all"></v-radio>
-              <v-radio class="mb-1" label="Télécharger les données filtrées dans le tableau" value="tab"></v-radio>
+              <v-radio label="Télécharger les données du tableau, sans appliquer les filtres d'attributs." value="all"></v-radio>
+              <v-radio class="mb-1" label="Télécharger les données du tableau en appliquant les filtres d'attributs." value="tab"></v-radio>
             </v-radio-group>
 
           </div>

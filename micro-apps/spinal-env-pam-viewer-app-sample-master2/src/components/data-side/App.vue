@@ -24,7 +24,7 @@ with this file. If not, see
 
 <template>
   <v-card elevation="4" class="cardContainer">
-    <button @click="$emit('buttonClicked')"
+    <button @click="() => {$emit('buttonClicked');resize(); }"
       style="position: absolute;top: 47.5%;left:-20px;background-color: white;border-radius: 10px;width: 30px;height: 30px;display: flex;justify-content: center;align-items: center;padding-right: 5px;border-left: 2px solid gainsboro;">
       <div v-if="DActive">
         << </div>

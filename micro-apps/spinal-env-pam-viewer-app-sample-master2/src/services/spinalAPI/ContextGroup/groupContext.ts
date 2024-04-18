@@ -145,8 +145,6 @@ export async function getAttributeListMultiple(buildingId: string, roomIds: stri
         console.error('Erreur lors de la récupération des positions des pièces:', error);
         throw error;
     }
-
-
 }
 
 function createUnifiedNomenclature(dataArray: any[]): any {

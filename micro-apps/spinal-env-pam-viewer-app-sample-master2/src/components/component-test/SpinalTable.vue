@@ -83,8 +83,6 @@
           <v-icon v-if="!showattribut" color="black" style="font-size: 2em">mdi-chevron-down</v-icon>
           <v-icon v-else color="black" style="font-size: 2em">mdi-chevron-up</v-icon>
           <div v-if="!keyselected[0]">Selectionner des attributs.</div>
-          <!-- <div>{{ showelement() }}</div> -->
-          <!-- {{ showelement(this.keyselected) }} -->
           <div style="padding-top: 5px;">
             <v-chip style="margin: 2px " v-for="(element, index) in keyselected" :key="index" :class="{
       'blue-background': element.parentName === element.childName,
@@ -120,7 +118,6 @@
         mobile-breakpoint="0" no-data-text="Pas de données disponibles" :headers="dynamicHeaders()"
         :items="filteredContextsV" :items-per-page="8000" height="74vh" fixed-header>
 
-        <!-- ajout du mode select -->
         <template v-for="header in dynamicHeaders()" v-slot:[`header.${header.value}`]="{ header }">
           <div
             style="display: flex;flex-direction: row;justify-content: space-between; align-items: center ; height: 40px;">
@@ -173,14 +170,9 @@
 
         <div
           style="width: 100%;padding-left :10px;height: 40px;display: flex;flex-direction: row;justify-self: center;align-self: center;margin-bottom: 16px;">
-          <!-- <input type="checkbox" id="checkbox" v-model="checked" />
-            <label for="checkbox">Comparer avec la totalités des attributs du tableau </label> -->
-
           <v-checkbox v-model="checked" label="Comparer avec la totalités des attributs du tableau "></v-checkbox>
-
           <label style="margin-top: 16px;" class="custom-file-upload">
             <input type="file" @change="handleFileUpload" style="display: none;" />
-            <!-- <button type="button">Choisir un fichier</button> -->
             <span style="border: 1px solid black; padding: 6px ;border-radius: 5px; color: white;background: #14202c;"
               id="file-chosen">Choisir un fichier </span>
             <v-icon color="green" v-if="fileIsLoaded">mdi-check</v-icon>
@@ -274,8 +266,10 @@ export default {
           let allFilteredData = this.contexts[0]?.data;
           this.$emit('allFiltredData', allFilteredData);
           if (this.currentfilter) {
+            this.$store.commit(MutationTypes.SET_DLDATA, this.sortDataByAttribute(this.currentfilter, [...allFilteredData]));
             return this.sortDataByAttribute(this.currentfilter, [...allFilteredData])
           } else {
+            this.extractData()
             return this.contexts[0]?.data;
           }
         }
@@ -310,8 +304,32 @@ export default {
         });
         this.$emit('allFiltredData', allFilteredData);
         if (this.currentfilter && allFilteredData != []) {
+          this.$store.commit(MutationTypes.SET_DLDATA, this.sortDataByAttribute(this.currentfilter, [...allFilteredData]));
           return this.sortDataByAttribute(this.currentfilter, [...allFilteredData])
         } else {
+          //ici ajoute des que des filtre sont actif 
+          // const dynamicHeaders = this.dynamicHeaders()?.map(header => header.text);
+          // this.tableData = allFilteredData?.map(item => {
+          //   //ajouter une condition si le checked ou pas 
+          //   const dataForRow = {};
+          //   dynamicHeaders.forEach(header => {
+          //     dataForRow['dynamicId'] = item.dynamicId;
+          //     dataForRow['staticId'] = item.staticId;
+          //     if (header.includes('Nom')) {
+          //       dataForRow['Nom'] = item.name;
+          //     } else {
+          //       const attributeValue = this.getAttributeValueDL(item, header);
+          //       dataForRow[header] = attributeValue;
+          //     }
+          //   });
+          //   return dataForRow;
+          // });
+
+          // this.$store.commit(MutationTypes.SET_DLDATA, this.tableData);
+
+
+          this.extractData(allFilteredData)
+
           return allFilteredData;
         }
       }
@@ -430,7 +448,7 @@ export default {
             }
           });
           if (Object.keys(diff).length > 0) {
-            differences.push({ staticId: a1.staticId, name: a1.Nom, differences: diff });
+            differences.push({ staticId: a1.staticId, name: a1.Nom,dynamicId : a2.dynamicId, differences: diff });
           }
         }
       });
@@ -486,9 +504,11 @@ export default {
         this.$store.commit(MutationTypes.SET_ATTR, headerName);
     },
 
-    extractData() {
+    extractData(givendata = this.filteredContexts) {
       const dynamicHeaders = this.dynamicHeaders()?.map(header => header.text);
-      const { filteredContexts } = this;
+      const filteredContexts = givendata;
+
+      // const { filteredContexts } = this;
       if (this.$store.state.appDataStore.dl_data_option == false || this.checked == true) {
         this.tableData = filteredContexts?.map(item => {
           const dataForRow = {};
@@ -526,7 +546,6 @@ export default {
       }
       this.ChipKeySlected();
       this.$store.commit(MutationTypes.SET_DLDATA, this.tableData);
-      console.log('dl data5');
     },
 
     getAttributeValueDL(item, attrLabel) {
@@ -922,6 +941,7 @@ td {
   z-index: 2;
   background-color: white;
 }
+
 .select-attr {
   -webkit-animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
   animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;

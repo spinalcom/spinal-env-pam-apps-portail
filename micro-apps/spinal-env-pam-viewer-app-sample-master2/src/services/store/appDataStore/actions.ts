@@ -30,6 +30,7 @@ import { getEquipments, getFloors, getRooms } from "../../spinalAPI/GeographicCo
 
 import { getGroupContext, getGroupContextCategoryList, getGroupContextGroupList, getGroupContextread } from "../../spinalAPI/ContextGroup/groupContext";
 
+import {updateMultipleAttributes } from "../../spinalAPI/NodeAttributs/nodeAttributs";
 
 import { getEquipmentGroup, getCategoryList, getGroupList, getequipementList } from "../../spinalAPI/EquipementsGroup/equipementsGroup";
 import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../components/SpaceSelector";
@@ -45,7 +46,18 @@ import { classifyItemByBimFileId } from "./utils/openViewer";
 const ApiIteratorStore: ApiIteratorStoreType & ApiIteratorStoreRecordStringType & ApiIteratorStoreRecordNumberType = {};
 
 export const actions = {
-	
+	async [ActionTypes.UPDATE_MULTIPLE_ATTRIBUTES]({ commit }: AugmentedActionContextAppData, { buildingId, formattedData }: { buildingId: string; formattedData: any[] }): Promise<any> {
+		console.log('arrivé dans l actio');
+		const spinalAPI = SpinalAPI.getInstance();
+        try {
+            const result = await updateMultipleAttributes(buildingId, formattedData);
+            console.log('Mise à jour des attributs réussie:', result);
+            return result;
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour des attributs:', error);
+            throw error;
+        }
+    },
 
 	async [ActionTypes.GET_GROUP_CONTEXT_GROUP_LIST]({ commit }: AugmentedActionContextAppData, { buildingId, patrimoineId, contextDynId, categoryDynId, id, forceUpdate }: any): Promise<IZoneItem[]> {
 		const spinalAPI = SpinalAPI.getInstance();
