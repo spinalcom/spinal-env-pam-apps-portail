@@ -45,6 +45,7 @@ import { isArray } from "lodash";
 import {
   EmitterViewerHandler,
   VIEWER_AGGREGATE_SELECTION_CHANGED,
+  VIEWER_SPRITE_CLICK,
 } from "spinal-viewer-event-manager";
 
 export default {
@@ -89,7 +90,10 @@ export default {
     const emitterHandler = EmitterViewerHandler.getInstance();
     const vm = this;
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
-      if (data[0] && this.inDbids(data[0], vm.item.dbid)) vm.$emit("onClick");
+      if (data[0] && this.inDbids(data[0], vm.item.dbid)) {
+        vm.$emit("onClick");
+        emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: vm.item });
+      }
     });
   },
 };

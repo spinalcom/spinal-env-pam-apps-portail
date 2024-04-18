@@ -26,7 +26,12 @@ with this file. If not, see
   <div>
     <v-card elevation="4" class="cardContainer">
       <button
-        @click="$emit('buttonClicked')"
+        @click="
+          () => {
+            $emit('buttonClicked');
+            resize();
+          }
+        "
         style="
           position: absolute;
           top: 47.5%;
@@ -599,13 +604,14 @@ class InsightApp extends Vue {
   }
 
   updateChartSprite() {
+    if (!this.config.sprites)
+      this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
     if (
       !this.selectedItem ||
       this.config.sprites ||
       this.selectedTime.name === ITemporality.currentValue
     )
       return;
-    this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
     this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
       items: [this.selectedItem],
       buildingId: localStorage.getItem("idBuilding"),
@@ -638,6 +644,8 @@ class InsightApp extends Vue {
       this.intervalId = setInterval(() => {
         this.reload_countdown += 1 / 6;
       }, 100);
+    } else {
+      clearInterval(this.intervalId);
     }
 
     this.updateDataOnTimeChanged();
