@@ -322,35 +322,24 @@ class App extends Vue {
 
   public getDataFormatted() {
     // color displayedValue name staticId type
-    const d = [this._getHeader(), ...this._getRows(this.displayedData)];
+    const d = this._getRows(this.displayedData);
     return d;
-  }
-
-  private _getHeader() {
-    return {
-      id: "id",
-      name: "name",
-      type: "type",
-      value: "value",
-    };
-    // return [
-    //   { key: "id", header: "id", width: 30 },
-    //   { key: "name", header: "name", width: 30 },
-    //   { key: "type", header: "type", width: 10 },
-    //   { key: "color", header: "color", width: 10 },
-    //   { key: "value", header: "value", width: 10 },
-    // ];
   }
 
   private _getRows(list: any[]) {
     if (!list) return [];
 
-    return list.map(({ color, displayValue, name, staticId, type }) => ({
-      name,
-      type,
-      value: Number.parseFloat(displayValue).toFixed(2),
-      id: staticId,
-    }));
+    return list.flatMap((el) => {
+      return [
+        {
+          name: el.name,
+          type: el.type,
+          value: Number.parseFloat(el.displayValue).toFixed(2),
+          id: el.staticId,
+        },
+        ...this._getRows(el.children),
+      ];
+    });
   }
 }
 

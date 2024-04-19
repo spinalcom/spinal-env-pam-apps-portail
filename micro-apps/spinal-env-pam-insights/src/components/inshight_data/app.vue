@@ -25,6 +25,51 @@ with this file. If not, see
 <template>
   <div>
     <v-card elevation="4" class="cardContainer">
+      <v-card
+        class="d-flex flex-column justify-space-around align-center"
+        style="
+          position: absolute;
+          left: -75px;
+          width: 70px;
+          height: 150px;
+          z-index: 2;
+        "
+      >
+        <v-switch dense v-model="sprites"></v-switch>
+        <div style="display: flex; align-items: center">
+          <div
+            class="rounded mr-2"
+            :style="{
+              background: legend.min.color,
+              width: '9px',
+              height: '18px',
+            }"
+          ></div>
+          <div style="font-size: 13px">{{ legend.min.value }}</div>
+        </div>
+        <div v-if="legend.median" style="display: flex; align-items: center">
+          <div
+            class="rounded mr-2"
+            :style="{
+              background: legend.median.color,
+              width: '9px',
+              height: '18px',
+            }"
+          ></div>
+          <div style="font-size: 13px">{{ legend.median.value }}</div>
+        </div>
+        <div style="display: flex; align-items: center">
+          <div
+            class="rounded mr-2"
+            :style="{
+              background: legend.max.color,
+              width: '9px',
+              height: '18px',
+            }"
+          ></div>
+          <div style="font-size: 13px">{{ legend.max.value }}</div>
+        </div>
+      </v-card>
       <button
         @click="
           () => {
@@ -103,7 +148,7 @@ with this file. If not, see
                 <v-icon>mdi-chevron-right</v-icon>
               </v-btn>
             </div>
-            <div v-else class="">
+            <div v-else>
               <v-progress-circular
                 :rotate="-90"
                 :size="40"
@@ -351,6 +396,7 @@ class InsightApp extends Vue {
   @Prop() ActiveData: boolean;
 
   time: any = null;
+  sprites: boolean = true;
   reload_countdown: number = 0;
   t_index: number = 0;
   sourceSelectedName: string = this.config.source[0].name;
@@ -579,7 +625,7 @@ class InsightApp extends Vue {
     const itemsToColor = this.data.flatMap((el) => el.children || []);
     itemsToColor.forEach((el) => (el.unit = this.sourceSelected.unit));
 
-    if (this.config.sprites) {
+    if (this.sprites) {
       await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
 
       await this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
@@ -595,6 +641,10 @@ class InsightApp extends Vue {
           this.selectedItem.dynamicId,
         ]);
       }, 500);
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor.map((el) => ({ ...el, color: null })),
+        buildingId,
+      });
     } else {
       this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
         items: itemsToColor,
@@ -604,11 +654,10 @@ class InsightApp extends Vue {
   }
 
   updateChartSprite() {
-    if (!this.config.sprites)
-      this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+    if (!this.sprites) this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
     if (
       !this.selectedItem ||
-      this.config.sprites ||
+      this.sprites ||
       this.selectedTime.name === ITemporality.currentValue
     )
       return;
@@ -628,6 +677,21 @@ class InsightApp extends Vue {
   /**
    * Watchers
    */
+
+  @Watch("pageSate")
+  watchPageState(state) {
+    if (state === PAGE_STATES.error) {
+      clearInterval(this.intervalId);
+      this.reload_countdown = 0;
+    }
+  }
+
+  // watch sprites
+  @Watch("sprites")
+  watchSprites() {
+    this.updateSprites();
+    this.updateChartSprite();
+  }
 
   @Watch("selectedZone")
   watchSelectedZone() {

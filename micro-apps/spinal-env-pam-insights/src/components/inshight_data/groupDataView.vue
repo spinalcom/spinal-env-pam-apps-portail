@@ -76,28 +76,6 @@ class GroupDataView extends Vue {
   selectDataView(item) {
     this.$emit("onClick", item);
   }
-  /*
-   @Prop({}) calculMode;
-
-
-   getValue(item) {
-      return item?.endpoint?.currentValue?.toString() || "-";
-   }
-
-   calculateValue(item, calculMode) {
-      const children = item.children || [];
-      switch (this.calculMode) {
-         case calculTypes.Maximum:
-         case calculTypes.Minimum:
-         case calculTypes.Moyenne:
-         case calculTypes.Somme:
-      }
-   }
-
-
-   
-
-   */
 }
 
 export default GroupDataView;

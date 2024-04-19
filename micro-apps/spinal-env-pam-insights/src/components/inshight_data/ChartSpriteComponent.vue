@@ -79,6 +79,9 @@ export default {
     _isSelected() {},
     _isNotSelected() {},
   },
+  mounted() {
+    console.log(this.data);
+  },
 };
 </script>
 
