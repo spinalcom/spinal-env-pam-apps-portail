@@ -45,7 +45,7 @@
     <!-- LE DATA TABLE -->
     <!-- items = filtred items / headers = headers / contexts = global items / selection = items du select / -->
     <div style="padding: 2px;margin-top: 65px;" class="scrollable-table-container">
-      <DataTable :height="'74vh'" :items="filteredContextsV" :headers="dynamicHeaders()" :contexts="contexts" :selections="selections"
+      <DataTable  :selectedItemTab="selectedItemTab" :height="'74vh'" :items="filteredContextsV" :headers="dynamicHeaders()" :contexts="contexts" :selections="selections"
         @item-selected="selectDataView($event)" @filter="filtercolumn($event)" />
     </div>
 
@@ -406,12 +406,12 @@ export default {
       immediate: false,
     },
 
-    selectedItemTab(newVal, oldVal) {
-      this.selected_id = newVal
-      if (this.$refs[`row-${newVal}`]) {
-        this.$refs[`row-${newVal}`].scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    },
+    // selectedItemTab(newVal, oldVal) {
+    //   this.selected_id = newVal
+    //   if (this.$refs[`row-${newVal}`]) {
+    //     this.$refs[`row-${newVal}`].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    //   }
+    // },
 
     selectedKeys(newVal, oldVal) {
       this.extractData();

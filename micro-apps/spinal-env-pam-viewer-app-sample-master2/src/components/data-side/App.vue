@@ -478,9 +478,14 @@ export { dataSideApp };
 export default dataSideApp;
 </script>
 <style lang="scss">
+
+
 .dataContainer {
   overflow: hidden;
 
+}
+.displaydataCss {
+  display: none;
 }
 
 .entrence {
@@ -510,12 +515,7 @@ export default dataSideApp;
 }
 
 
-.displaydataCss {
-  display: none;
-}
-
 .inactiveTable {
-
   -webkit-animation: fade-out 0.3s ease-out both;
   animation: fade-out 0.3s ease-out both;
 }

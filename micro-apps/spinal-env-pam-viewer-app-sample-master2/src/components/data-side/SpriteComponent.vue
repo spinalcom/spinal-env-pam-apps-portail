@@ -5,46 +5,47 @@
       style="border-radius: 10px;top: 2px;left: 5px;text-overflow: ellipsis;max-width: 140px;white-space: nowrap;overflow: hidden;position: absolute;border-radius: 10px !important;min-width: 20px;height: 12px;background-color: rgb(255, 255, 255);color: black;padding-bottom: 4px;padding-left: 15px;font-size: 12px;padding-right:5px ;z-index: -1;"
       :title="findValueByLabel()">{{ this.findValueByLabel() }}</div>
     <div class="card-menu" v-if="isClicked">
-      <ul class="cards">
-        <div style="z-index:99 ;" href="" class="card">
-          <div style="display: flex;flex-direction: column;padding-right: 5px;" class="mt-4 ml-4">
-            <span @click.stop="onClose"
-              style="font-size:15px; color: rgb(0, 0, 0);position: absolute;right: 15px;top:12px; font-weight:bold;">X</span>
-
-            <span style="font-size: 16px;font-weight: bold;">{{ data.name }}</span>
-          </div>
-          <div v-if="!showAttr" @click="showAttr = !showAttr"
-            style="color: rgb(47, 129, 14);width: 84px;position: absolute;left: 66%; bottom: 10px;border:1px solid rgb(72, 187, 27) ; padding-left : 5px ; border-radius : 4px ; cursor : pointer">
-            Voir les attributs</div>
-          <div v-else @click="showAttr = !showAttr"
-            style="color: rgb(129, 14, 14);width: 105px;position: absolute;left: 59%; bottom: 10px;border:1px solid rgb(187, 27, 27) ; padding-left : 5px ; border-radius : 4px ; cursor : pointer">
-            Masquer les attributs</div>
-          <div @click="showAttr = !showAttr" class="card__overlay">
-            <!-- <div class="card__header">
-              <div class="card__header-text">
-                <h3 v-if="!showAttr" class="card__title">Afficher Les Attributs</h3>
-                <h3 v-if="showAttr" class="card__title">Masquer Les Attributs</h3>
-                <span class="card__status">Bulding ID : {{ data.buildingId }}</span>
-              </div>
-            </div> -->
-          </div>
-        </div>
-      </ul>
+      <!-- <ul class="cards"> -->
+      <p style="" href="" class="card">
       <div @click="showAttr = !showAttr" v-if="showAttr"
+        style="background-color: white;position: absolute;right:0px;top: 50%;transform: translate(80%,-50%);width: 28px;display: flex;justify-content: center;align-items: center;border-radius: 30px;font-size: 18px;">
+        > </div>
+      <div style="display: flex;flex-direction: column;padding-right: 5px;" class="mt-4 ml-4">
+        <span @click.stop="onClose"
+          style="font-size:15px; color: rgb(0, 0, 0);position: absolute;right: 15px;top:12px; font-weight:bold;">X</span>
+
+        <span style="font-size: 16px;font-weight: bold;padding-bottom: 20px;">{{ data.name }}</span>
+      </div>
+      <div v-if="!showAttr" @click="showAttr = !showAttr"
+        style="color: rgb(47, 129, 14);width: 84px;position: absolute;left: 66%; bottom: 10px;border:1px solid rgb(72, 187, 27) ; padding-left : 5px ; border-radius : 4px ; cursor : pointer;">
+        Voir les attributs</div>
+      <div v-else @click="showAttr = !showAttr"
+        style="color: rgb(129, 14, 14);width: 105px;position: absolute;left: 59%; bottom: 10px;border:1px solid rgb(187, 27, 27) ; padding-left : 5px ; border-radius : 4px ; cursor : pointer">
+        Masquer les attributs</div>
+      <!-- <div @click="showAttr = !showAttr" class="card__overlay">
+            
+          </div> -->
+      </p>
+      <!-- </ul> -->
+      <!-- <div @click="showAttr = !showAttr" v-if="showAttr"
         style="font-weight: bold;border: 1px solid rgb(255, 255, 255);font-size: 16px;justify-content: center;align-items: center;display: flex;z-index: 99;width: 30px;height: 30px;border-radius: 30px;background-color: rgb(246, 246, 246);position: relative;top: 53%;left: 100%;transform: translate(-50%,-50%);">
-        ></div>
-    </div>
-    <div class="dropleft" v-if="showAttr"
-      style="color: black;width: 300px;background-color: rgb(255, 255, 255);left: 340px;top: -80px;position: absolute;border-radius: 10px;padding-left: 7px;padding-right: 7px;padding-bottom: 7px;">
-      <div v-for="category in data.categoryAttributes" :key="category.dynamicId" class="category">
-        <h3
-          style="background-color: rgb(220, 220, 220);border-top-right-radius: 3px;border-top-left-radius: 3px;padding-left: 3px;">
-          {{ category.name }}</h3>
-        <div v-for="attribute in category.attributs" :key="attribute.date" class="attribute">
-          <strong style="font-size: 14px;">{{ attribute.label }}:</strong> {{ attribute.value }}
+        ></div> -->
+
+      <div class="dropleft" v-if="showAttr"
+        style="color: black;width: 300px;background-color: rgb(255, 255, 255);left: 340px;position: absolute;border-radius: 10px;padding-left: 7px;padding-right: 7px;padding-bottom: 7px;transform: translate(0, -100%) !important;">
+        <div v-for="category in data.categoryAttributes" :key="category.dynamicId" class="category">
+          <h3
+            style="background-color: rgb(220, 220, 220);border-top-right-radius: 3px;border-top-left-radius: 3px;padding-left: 3px;">
+            {{ category.name }}</h3>
+          <div v-for="attribute in category.attributs" :key="attribute.date" class="attribute">
+            <strong style="font-size: 14px;">{{ attribute.label }}:</strong> {{ attribute.value }}
+          </div>
         </div>
       </div>
+
     </div>
+
+
   </div>
 </template>
 <script>
@@ -192,6 +193,7 @@ export default {
 }
 
 .dropleft {
+  position: absolute;
   box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
   left: 200px;
   -webkit-animation: scale-in-hor-left 0.2s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
@@ -243,14 +245,22 @@ export default {
   position: absolute;
   background-color: white;
   width: 310px;
-  height: 80px;
-  -webkit-animation: scale-in-tl 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-  animation: scale-in-tl 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  min-height: 20px;
+  height: auto;
+  // -webkit-animation: scale-in-tl 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  // animation: scale-in-tl 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
   z-index: 99999 !important;
   box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
   color: black;
   font-size: 10px;
+  overflow: visible;
 }
+
+
+
+
+
+
 
 @-webkit-keyframes scale-in-tl {
   0% {
@@ -337,11 +347,12 @@ export default {
 
 .card {
   position: relative;
-  display: block;
-  height: 100%;
+  // display: block;
+  // height: 100%;
   border-radius: calc(var(--curve) * 1px);
-  overflow: hidden;
-  text-decoration: none;
+  // background-color: white;
+  // overflow: hidden;
+  // text-decoration: none;
 
 }
 

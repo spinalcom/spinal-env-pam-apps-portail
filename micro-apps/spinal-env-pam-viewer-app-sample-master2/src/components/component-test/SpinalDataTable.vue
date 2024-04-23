@@ -45,8 +45,10 @@
 </template>
 
 <script>
+import { watch } from 'fs';
+
 export default {
-  props: ['items', 'headers', 'noDataText', 'itemsPerPage', 'tableHeight', 'shadow', 'selections', 'contexts', 'height'],
+  props: ['items', 'headers', 'noDataText', 'itemsPerPage', 'tableHeight', 'shadow', 'selections', 'contexts', 'height' , 'selectedItemTab'],
 
   data() {
     return {
@@ -71,6 +73,8 @@ export default {
     }
   },
   methods: {
+
+
 
     selectDataView(item) {
       this.selected_id = item.dynamicId
@@ -142,7 +146,19 @@ export default {
         child.classList.remove('custom-hover-color');
       });
     },
-  }
+
+
+    
+
+  },
+  watch: {
+      selectedItemTab(newVal, oldVal) {
+        this.selected_id = newVal
+        if (this.$refs[`row-${newVal}`]) {
+          this.$refs[`row-${newVal}`].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      },
+    }
 }
 </script>
 
@@ -319,7 +335,6 @@ td {
 
 .scrollable-table-container {
   overflow-x: auto;
-
 }
 
 .fixed-first-column thead th:first-child {

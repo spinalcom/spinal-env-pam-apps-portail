@@ -102,12 +102,27 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
                 }
                 const List_floor = get_element_floor(position);
                 const roomsOnFloor = getRoomsByFloor(position_type.dynamicId, allLists, List_floor);
-                const attribut = await getAttributeListMultiple(buildingId, roomIds);
+
+
+                // const attribut = await getAttributeListMultiple(buildingId, roomIds);
+
+                const chunkedRoomIds = lodash.chunk(roomIds, 500);
+                const promises = chunkedRoomIds.map(ids => getAttributeListMultiple(buildingId, ids));
+                const results = await Promise.allSettled(promises);
+
+                const attribut = results.reduce((acc, result) => {
+                  if (result.status === "fulfilled") {
+                    acc.push(...result.value);
+                  }
+                  return acc;
+                }, []);
+
                 const nomenclature = createUnifiedNomenclature(attribut);
                 let alldataBimObject = {
                     data: enrichBIMObjects(roomsOnFloor, attribut),
                     nomenclature: nomenclature
                 };
+            
                 return alldataBimObject;
             } else {
                 console.warn('RESTE');
@@ -119,14 +134,16 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
 }
 
 function enrichBIMObjects(bimObjects: any[], dataObjects: any[]): any[] {
-    // Créer un dictionnaire avec dynamicId comme clé et les attributs comme valeur
+
+    console.log(bimObjects , 'toto');
+    console.log(dataObjects , 'tata');
+    
     const attributesDictionary: { [dynamicId: number]: any[] } = {};
 
     dataObjects?.forEach(obj => {
         attributesDictionary[obj.dynamicId] = obj.categoryAttributes;
     });
 
-    // Enrichir chaque objet BIM avec les attributs correspondants
     return bimObjects.map(bimObject => {
         if (attributesDictionary[bimObject.dynamicId]) {
             return { ...bimObject, categoryAttributes: attributesDictionary[bimObject.dynamicId] };

@@ -24,45 +24,14 @@ with this file. If not, see
 <template>
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
     <div class="selectors">
-      <div class="mr-2">
-        <div @click.prevent="showDlOption = !showDlOption"
-          style="width: 59px;height: 59px;position: absolute;z-index: 1;">
-        </div>
-        <ScDownloadButton ref="ThedownloadButton" :fileName="'insight_data'" :xls="true" :data="getDataFormatted()" />
-      </div>
-      <div @click="showDlOption = !showDlOption" DButton
-        style="z-index: 9999;display: flex;justify-content: center;align-items: center;position: fixed;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.156);top: 0;left:0"
-        v-if="showDlOption">
-
-        <div class="Dlmenu" style="" @click.stop>
-          <span class="titleDl">Type de données</span>
-          <div class="">
-            <!-- <input type="checkbox" id="checkbox" v-model="dataFromTab" />
-            <label for="checkbox"></label> -->
-
-            <!-- <v-checkbox v-model="dataFromTab" label="Séléctionner les données avec tout les attributs"></v-checkbox> -->
-            <v-radio-group  class="ml-4" v-model="dataFromTab">
-              <v-radio label="Télécharger les données du tableau, sans appliquer les filtres d'attributs." value="all"></v-radio>
-              <v-radio class="mb-1" label="Télécharger les données du tableau en appliquant les filtres d'attributs." value="tab"></v-radio>
-            </v-radio-group>
-
-          </div>
-
-          <span class="titleDl">Choisir une extension</span>
-          <v-radio-group class="ml-4" v-model="DownloadCsv">
-            <v-radio label="XLSX" value="XLS"></v-radio>
-            <v-radio class="mb-2 ml-8" label="CSV" value="CSV"></v-radio>
-          </v-radio-group>
-
-          <button class="validateBtn" @click="downloadData">Téléchager</button>
-        </div>
-
+      <div class="DButton">
+        <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()" />
       </div>
 
-      <!-- <div class="temporality">
+      <div class="temporality">
         <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
           :GetChildrenFct="onTemporalitySelectOpen" :maxDepth="0" v-model="temporalitySelected" label="TEMPORALITÉ" />
-      </div> -->
+      </div>
 
       <div class="space">
         <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"
@@ -75,9 +44,8 @@ with this file. If not, see
     <div class="dataBody">
       <viewerApp :class="{ 'active3D': isActive3D }" class="viewerContainer"></viewerApp>
       <dataSideApp :DActive="isActive3D" :ActiveData="isActive" :class="{ 'active': isActive, 'inactive': isActive3D }"
-        :selected_attr="$store.state.appDataStore.attr" class="appContainer" :element_clicked="el_clicked"
-        :config="config" :selectedZone="selectedZone" :data="displayedData" @clickOnDataView="onDataViewClicked"
-        @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D">
+        class="appContainer" :config="config" :selectedZone="selectedZone" :data="displayedData"
+        @clickOnDataView="onDataViewClicked" @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D">
       </dataSideApp>
     </div>
   </v-app>
@@ -88,12 +56,11 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-
 import {
   ISpaceSelectorItem,
   SpaceSelector,
 } from "./components/SpaceSelector/index";
-import { Vue, Watch } from "vue-property-decorator";
+import { Vue } from "vue-property-decorator";
 import { ActionTypes } from "./interfaces/vuexStoreTypes";
 import Component from "vue-class-component";
 import type { Store } from "./services/store";
@@ -109,7 +76,6 @@ import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
 import { IConfig } from "./interfaces/IConfig";
 import { PAGE_STATES } from "./interfaces/pageStates";
-import myImage from '@/assets/spinalcore.png';
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
@@ -118,7 +84,6 @@ import {
 import "spinal-components/dist/spinal-components.css";
 
 import dataSideApp from "./components/data-side/App.vue";
-// import test from "node:test";
 
 
 interface IItemData {
@@ -130,7 +95,6 @@ interface IItemDatatmp {
   platformId: string;
   id: Set<number>;
 }
-
 
 @Component({
   components: {
@@ -148,14 +112,10 @@ class App extends Vue {
   openTemporalitySelector: boolean = false;
   config: IConfig = config;
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
-  dataTable: IZoneItem[] = [];
-  $refs: { spaceSelector };
-  el_clicked: any = "toto";
-  showDlOption: boolean = false;
-  dataFromTab: string = 'all';
   isActive: boolean = false;
   isActive3D: boolean = false;
-  DownloadCsv: string = "XLS";
+  dataTable: IZoneItem[] = [];
+  $refs: { spaceSelector };
 
   async mounted() {
     try {
@@ -167,14 +127,6 @@ class App extends Vue {
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
-  }
-
-  downloadData() {
-    console.log(this.$refs.ThedownloadButton);
-    if (this.DownloadCsv == "CSV") {
-      this.$refs.ThedownloadButton.downloadCSV();
-    } else
-      this.$refs.ThedownloadButton.download()
   }
 
   public get selectedZone(): ISpaceSelectorItem {
@@ -224,7 +176,7 @@ class App extends Vue {
         ];
 
         const [building, items] = await Promise.all(promises);
-        
+
         return [
           {
             name: building.name,
@@ -241,6 +193,7 @@ class App extends Vue {
           patrimoineId: item.patrimoineId,
         });
       case "geographicFloor":
+        //@ts-ignore
         return await this.$store.dispatch(ActionTypes.GET_ROOMS, {
           floorId: item.dynamicId,
           buildingId: item.buildingId,
@@ -296,21 +249,16 @@ class App extends Vue {
 
 
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
+    console.log(item);
     if (!item) return;
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
-    this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
   }
-
 
 
   async onColor(item: TGeoItem | TGeoItem[]) {
     // TBD
   }
-
-
-
-
 
   onActionClick({ button, item }) {
     const data = {
@@ -330,7 +278,6 @@ class App extends Vue {
           config: this.config,
           item: data,
         });
-
         break;
       case "OPEN_VIEWER_PLUS":
         this.$store.dispatch(ActionTypes.OPEN_VIEWER, {
@@ -348,7 +295,6 @@ class App extends Vue {
   listenSpritesEvent() {
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
-      this.el_clicked = result.node.dynamicId;
       this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
       if (result.node.dynamicId) {
         const a = document.createElement("a");
@@ -363,10 +309,9 @@ class App extends Vue {
   }
 
   public getDataFormatted() {
-    const d = [this._getHeader(), ...this._getRows(this.$store.state.appDataStore.dlData)];
-    return this.$store.state.appDataStore.dlData || [];
-   
-    
+    // color displayedValue name staticId type
+    const d = [this._getHeader(), ...this._getRows(this.displayedData)];
+    return d;
   }
 
   private _getHeader() {
@@ -388,68 +333,25 @@ class App extends Vue {
       id: staticId,
     }));
   }
-
-
-  @Watch("dataFromTab")
-  watchSelecteddataFromTab() {
-    let value = true;
-    if (this.dataFromTab == 'tab') {
-      value = false
-    } else
-      value = true
-    this.$store.commit(MutationTypes.SET_DL_DATA_OPTION, value);
-  }
-
-  // @Watch('isActive3D')
-  // resizeCanvas() {
-
-  //   window.dispatchEvent(new Event('resize'));
-  //   console.log('Redimensionnement déclenché');
-  // }
 }
-
 
 export default App;
 </script>
 
+
 <style scoped lang="scss">
-.v-application {
-  font-family: Charlevoix Pro !important;
-}
-
-// LES MODIFICATION POUR LE CANVAS FULL SCREEN
-// #app > div > div.dataBody > div > div > div.canvas-wrap > canvas{
-// width: 100% !important;
-// height: 100% !important;
-// background-color: red !important;
-// }
-
-
-// #app > div > div.dataBody > div{
-//   width: 100%;
-//   height: 100%;
-// }
-
-
-// .dataBody{
-//   width: 100%;
-//   height: 100%;
-// }
-
-
-
-// ::v-deep .v-input--radio-group--column .v-input--radio-group__input 
-
-::v-deep > div > div.selectors > div:nth-child(2) > div > div.v-input.ml-4.v-input--is-label-active.v-input--is-dirty.theme--light.v-input--selection-controls.v-input--radio-group.v-input--radio-group--column > div > div.v-input__slot > div{
-  flex-direction: row;
-}
-
-
 .app {
   width: 100%;
   height: 100%;
-  overflow: hidden;
+
   $selectorHeight: 60px;
+
+
+
+  ::v-deep .card-colored {
+    background-color: #14202c !important;
+    border-radius: 8px !important;
+  }
 
   .selectors {
     position: absolute;
@@ -459,7 +361,7 @@ export default App;
     right: 5px;
     height: $selectorHeight;
     width: 100%;
-    border: 1px solid #f5f5f500;
+    border: 1px solid #f5f5f5;
     border-radius: 12px;
 
     .DButton {
@@ -477,43 +379,9 @@ export default App;
       position: relative;
       width: 40%;
       height: $selectorHeight;
-      z-index: 99;
     }
-
-    .Dlmenu {
-      border-radius: 5px;
-      background-color: white;
-      width: 25%;
-      // height: 25%;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .titleDl {
-      padding-left: 10px;
-      width: 100%;
-      height: 35px;
-      background-color: rgb(230, 230, 230);
-      border-bottom: 1px solid rgb(212, 212, 212);
-      margin-bottom: 0px;
-      padding-top: 5px;
-
-    }
-
-    .validateBtn {
-      position: relative;
-      background-color: #14202c;
-      color: white;
-      width: 100px;
-      height: 30px;
-      border-radius: 5px;
-      transform: translate(0,-10px);
-      // bottom: ;
-      right: 10px;
-      align-self: flex-end;
-    }
-
   }
+
 
 
   .dataBody {
@@ -568,15 +436,6 @@ export default App;
   }
 }
 
-.DButton {
-  display: flex;
-}
-
-::v-deep .card-colored {
-  background-color: #14202c !important;
-  border-radius: 8px !important;
-}
-
 .loading {
   height: 100%;
   display: flex;
@@ -586,6 +445,25 @@ export default App;
 </style>
 
 <style>
+.forge-spinner {
+  /* background-color: rgba(146, 70, 70, 0.63) !important; */
+  width: 800px !important;
+}
+
+.forge-spinner img {
+  display: none !important;
+}
+
+#app>div>div.dataBody>div.viewer-div-container.viewerContainer>div>div.forge-spinner {
+  width: 800px !important;
+}
+
+.forge-spinner {
+  background: url('./assets/spinalcore.png') center/contain no-repeat !important;
+  width: 1500px;
+  height: 800px;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -594,25 +472,6 @@ export default App;
   background: transparent;
   height: 100%;
   width: 100%;
-}
-
-.forge-spinner {
-  /* background-color: rgba(146, 70, 70, 0.63) !important; */
-  width: 800px;
-}
-
-.forge-spinner img {
-  display: none;
-}
-
-#app>div>div.dataBody>div.viewer-div-container.viewerContainer>div>div.forge-spinner {
-  width: 800px !important;
-}
-
-.forge-spinner {
-  background: url('./assets/spinalcore.png') center/contain no-repeat;
-  width: 1500px;
-  height: 800px;
 }
 
 html {
@@ -627,7 +486,6 @@ body {
   overflow-y: hidden;
   background: transparent;
 }
-
 
 .app-content {
   width: calc(100% - 16px);
