@@ -22,7 +22,7 @@ with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
 <template>
-  <v-list-item
+  <v-list-item tabindex="-1"
     class="space-selector-list-item card-hover fade"
     :class="{ ['space-selector-list-item-level-' + item.level]: true, 'space-selector-list-item-isopen': item.isOpen && item.haveChildren, 'space-selector-list-item-isSelected': isSelected }"
     :style="{'margin-left': '' + ((item.level - 1) * 20 + 30) + 'px', }"
@@ -50,7 +50,8 @@ with this file. If not, see
 
     <v-list-item-action class="actionsDiv">
 
-      <v-btn v-if="viewButtonsType === 'advanced'" 
+      <v-btn
+      tabindex="-1" v-if="viewButtonsType === 'advanced'" 
         v-for="(button,index) in spaceSelectorItemButtons" 
         :key="index"
         x-small
@@ -67,6 +68,7 @@ with this file. If not, see
       </v-btn>
 
       <v-btn
+      tabindex="-1"
         elevation="0"
         fab
         icon

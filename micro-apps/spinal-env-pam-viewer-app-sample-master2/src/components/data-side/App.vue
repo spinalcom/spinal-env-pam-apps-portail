@@ -24,21 +24,61 @@ with this file. If not, see
 
 <template>
   <v-card elevation="4" class="cardContainer">
-    <button @click="() => {$emit('buttonClicked');resize(); }"
-      style="position: absolute;top: 47.5%;left:-20px;background-color: white;border-radius: 10px;width: 30px;height: 30px;display: flex;justify-content: center;align-items: center;padding-right: 5px;border-left: 2px solid gainsboro;">
-      <div v-if="DActive">
-        << </div>
-          <div v-else-if="ActiveData"> > </div>
-          <div v-else>
-            < </div>
-    </button>
-    <button @click="() => { $emit('buttonClicked3D'); resize(); }"
-      style="position: absolute;top: 52.5%;left:-20px;background-color: white;border-radius: 10px;width: 30px;height: 30px;display: flex;justify-content: center;align-items: center;padding-right: 5px;border-left: 2px solid gainsboro;">
-      <div v-if="ActiveData"> >> </div>
-      <div v-else-if="DActive">
-        < </div>
-          <div v-else>></div>
-    </button>
+    <button
+        @click="
+          () => {
+            $emit('buttonClicked');
+            resize();
+          }
+        "
+        style="
+          position: absolute;
+          top: 47.5%;
+          left: -20px;
+          background-color: white;
+          border-radius: 10px;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding-right: 5px;
+          border-left: 2px solid gainsboro;
+          
+        "
+        :style="{ left: DActive ? '-35px' : '-20px' }"
+      >
+        <v-icon v-if="DActive"> mdi-chevron-double-left </v-icon>
+        <v-icon v-else-if="ActiveData">mdi-chevron-right</v-icon>
+        <v-icon v-else>mdi-chevron-left</v-icon>
+      </button>
+      <button
+        @click="
+          () => {
+            $emit('buttonClicked3D');
+            resize();
+          }
+        "
+        style="
+          position: absolute;
+          top: 52.5%;
+          background-color: white;
+          border-radius: 10px;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding-right: 5px;
+          border-left: 2px solid gainsboro;
+          
+        "
+        :style="{ left: DActive ? '-35px' : '-20px' }"
+      >
+        <v-icon v-if="ActiveData">mdi-chevron-double-right</v-icon>
+        <v-icon v-else-if="DActive">mdi-chevron-left</v-icon>
+        <v-icon v-else>mdi-chevron-right</v-icon>
+      </button>
     <div class="dataContainer" v-if="1 === 1">
       <!-- <div class="detail_header">
         <div class="title_date">
@@ -50,7 +90,7 @@ with this file. If not, see
 
       <SpinalTable class="entrence" :class="{ 'inactiveTable': DActive, 'displaydataCss': displaydata }"
         :selectedItemTab="element_clicked" @item-selected="selectDataView" @allFiltredData="putAllFiltredData"
-        @update:selectedItem="handleAttributeChange" @update:selectedAttribute="handleAttributeChange" :headers="[]"
+        @update:selectedItem="handleAttributeChange"  @updateSuccess="updateData" @update:selectedAttribute="handleAttributeChange" :headers="[]"
         :id="0" :label="'test'" :reference="''" :unit="''" :contexts="data" :temporality="''"
         :ctx_list="$store.state.appDataStore.user_selection_list.ctx"
         :cat_list="$store.state.appDataStore.user_selection_list.cat"
@@ -166,8 +206,16 @@ class dataSideApp extends Vue {
     await this.retriveData();
   }
 
-  async retriveData() {
+  async updateData() {
+    console.log('upload ??');
+    
+    await this.retriveData();
+  }
 
+
+  async retriveData() {
+    // console.log('retrouve des data');
+    
 
     // try {
     //   this.pageSate = PAGE_STATES.loading;
@@ -409,6 +457,7 @@ class dataSideApp extends Vue {
     });
 
     if (this.config.sprites) {
+      
       this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
         items: newArray,
         buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
