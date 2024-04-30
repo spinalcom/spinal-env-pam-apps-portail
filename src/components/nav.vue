@@ -215,6 +215,7 @@ export default {
       }
 
       if (event.ctrlKey) {
+        console.log('test??');
         let routeData = this.$router.resolve({
           name: "App",
           query: { app: btoa(JSON.stringify(item)) },

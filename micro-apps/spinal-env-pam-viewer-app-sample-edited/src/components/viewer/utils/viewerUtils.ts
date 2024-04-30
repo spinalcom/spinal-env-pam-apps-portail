@@ -118,6 +118,8 @@ export class ViewerUtils {
 	}
 
 	public viewerSelect(viewer: Autodesk.Viewing.Viewer3D, data: IDbIdModelAggregate[]): void {
+		console.log('tototot ???');
+		
 		this.clearSelect(viewer);
 
 		const datas = this._classifyDbIdsByModel(data);

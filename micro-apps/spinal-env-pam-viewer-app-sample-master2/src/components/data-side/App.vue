@@ -457,6 +457,7 @@ class dataSideApp extends Vue {
     });
 
     if (this.config.sprites) {
+      console.log(newArray);
       
       this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
         items: newArray,

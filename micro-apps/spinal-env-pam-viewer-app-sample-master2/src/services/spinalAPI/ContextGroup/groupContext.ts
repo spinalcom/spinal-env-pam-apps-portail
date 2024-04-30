@@ -134,9 +134,6 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
 }
 
 function enrichBIMObjects(bimObjects: any[], dataObjects: any[]): any[] {
-
-    console.log(bimObjects , 'toto');
-    console.log(dataObjects , 'tata');
     
     const attributesDictionary: { [dynamicId: number]: any[] } = {};
 

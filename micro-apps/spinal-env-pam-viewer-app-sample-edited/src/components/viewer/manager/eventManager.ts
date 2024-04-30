@@ -131,6 +131,7 @@ export class EventManager {
 			///////////////////////////////////////////////////////////////////////
 
 			function viewerGetSelectionChange(data: any) {
+				
 				const eventData: IDbIdModelAggregate[] = [];
 				for (const selection of data.selections) {
 					eventData.push({

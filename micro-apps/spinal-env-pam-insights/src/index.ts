@@ -22,38 +22,62 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import './polyfills';
-import { SpinalAPI } from './services/spinalAPI/SpinalAPI';
+import "./polyfills";
+import { SpinalAPI } from "./services/spinalAPI/SpinalAPI";
 // setup SpinalAPI
 SpinalAPI.getInstance(process.env.SPINAL_API_URL);
-import Vue from 'vue';
-import App from './App.vue';
-import Vuetify from 'vuetify';
-import { store } from './services/store';
-import FloatingVue from 'floating-vue';
-import 'floating-vue/dist/style.css';
+import Vue from "vue";
+import App from "./App.vue";
+import Vuetify from "vuetify";
+import { store } from "./services/store";
+import SpinalComponents from "spinal-components";
+import "spinal-components/dist/spinal-components.css";
+import FloatingVue from "floating-vue";
+import "floating-vue/dist/style.css";
 
-import 'vuetify/dist/vuetify.min.css';
+import "vuetify/dist/vuetify.min.css";
 
 Vue.use(FloatingVue);
 Vue.use(Vuetify);
+Vue.use(SpinalComponents, {});
+
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  LineElement,
+  LinearScale,
+  CategoryScale,
+  PointElement,
+  Filler,
+} from "chart.js";
+
+ChartJS.register(
+  Title,
+  Tooltip,
+  Legend,
+  LineElement,
+  LinearScale,
+  CategoryScale,
+  PointElement,
+  Filler
+);
+
 const vuetify = new Vuetify({
   theme: {
     themes: {
       light: {
-        primary: '#14202c', // #E53935
-        secondary: '#14202c', // #FFCDD2
-        accent: '#14202c', // #3F51B5
+        primary: "#14202c", // #E53935
+        secondary: "#14202c", // #FFCDD2
+        accent: "#14202c", // #3F51B5
       },
     },
   },
 });
-// import './css/basic/main.less';
-// import './css/basic/reset.css';
-// import './css/component/navPickerApp.less';
 
 new Vue({
   vuetify,
   store,
   render: (h) => h(App),
-}).$mount('#app');
+}).$mount("#app");

@@ -22,11 +22,9 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import Axios from 'axios';
-import { IAecData } from '../interfaces/IAECData';
+import Axios from "axios";
+import { IAecData } from "../interfaces/IAECData";
 
-export function getAecModelData(aecPath: string): Promise<IAecData> {
-  return Axios.get(aecPath).then(function (a) {
-    return a.data;
-  });
+export async function getAecModelData(aecPath: string): Promise<IAecData> {
+  return (await Axios.get(aecPath)).data;
 }

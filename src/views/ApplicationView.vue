@@ -70,6 +70,7 @@ class ApplicationView extends Vue {
   inDrag = false;
 
   async mounted() {
+    window.router = this.$route;
     await this.initApp();
   }
 

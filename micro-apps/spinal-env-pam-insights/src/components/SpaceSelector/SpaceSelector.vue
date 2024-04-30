@@ -23,75 +23,151 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="space-selector-container" :class="{ isopen: open }">
-    <!-- <div
-      class="backdrop-handler"
-      v-show="open"
-      @click="$emit('update:open', !open)"
-    ></div> -->
-    <v-card
-      color="#14202C"
-      :class="{ 'space-selector-open': open }"
-      class="space-selector"
-      style="border: 1px solid #f5f5f5; border-left: 2px solid #f5f5f5; border-bottom: none !important; overflow: hidden;"
-      :style="[{height: open ? selectorHeight+'px !important' : '59px'},
-      {'overflow-y': !isFill},
-      { 'border-right': edge ? '' : 'none' },
-      { 'border-top-right-radius': edge ? '' : '0 !important' },
-      { 'border-bottom-right-radius': (edge || (!edge && open)) ? '' : '0 !important' }]"
-    >
-      <div ref="SpaceSelectorTitleContainer" @click.stop="$emit('update:open', !open); showSign()"
-        class="space-selector-header"
-        :style="{'cursor': maxDepth !== -1 ? 'pointer' : 'default'}">
-        <span class="legend">{{ label }}</span>
-        <p class="space-selector-header-title">
-          <v-icon  
-            :style="[{color: maxDepth !== -1 ? '#f5f5f5' : '#14202c'}, {width: maxDepth !== -1 ? 'auto' : '0 !important'}, {color: maxDepth !== -1 ? '#f5f5f5' : '#14202c'}]"
-            class="rotate-disabled space-selector-header-title-icon"
-            :class="{ 'rotate-enabled': open }">
-            mdi-chevron-down
-          </v-icon>
-            
-            {{ selectedZoneName.toUpperCase() }}
-          
-        </p>
-      </div>
-      <transition-group
-        id="myDiv"
-        name="staggered-fade"
-        class="card-list spinal-scrollbar"
-        :style="[{'overflow-y': 'auto' + ' !important'},]"
-        tag="div"
-        v-bind:css="false"
-        v-on:before-enter="beforeEnter"
-        v-on:enter="enter"
+  <div>
+    <div class="space-selector-container" :class="{ isopen: open }">
+      <v-card
+        color="#14202C"
+        :class="{ 'space-selector-open': open }"
+        class="space-selector"
+        style="
+          border: 1px solid #f5f5f5;
+          border-left: 2px solid #f5f5f5;
+          border-bottom: none !important;
+          overflow: hidden;
+        "
+        :style="[
+          { height: open ? selectorHeight + 'px !important' : '59px' },
+          { 'overflow-y': !isFill },
+          { 'border-right': edge ? '' : 'none' },
+          { 'border-top-right-radius': edge ? '' : '0 !important' },
+          {
+            'border-bottom-right-radius':
+              edge || (!edge && open) ? '' : '0 !important',
+          },
+        ]"
       >
-        <SpaceSelectorItem
-          class="staggered-fade-item"
-          v-for="(item, index) in buildingStructure"
-          :key="`${index}-${item.staticId}-${item.platformId}-${item.patrimoineId}`"
-          :item="item"
-          v-bind:data-index="index"
-          :maxDepth="maxDepth"
-          @onSelect="select(item)"
-          :selected="selectedZone"
-          @onOpenClose="expandCollapse(item, index)"
-          :spaceSelectorItemButtons="spaceSelectorItemButtons"
-          :viewButtonsType="viewButtonsType"
-          @onActionClick="onActionClick"
-        ></SpaceSelectorItem>
-      </transition-group>
-    </v-card>
+        <div
+          ref="SpaceSelectorTitleContainer"
+          @click.stop="
+            $emit('update:open', !open);
+            showSign();
+          "
+          class="space-selector-header"
+          :style="{ cursor: maxDepth !== -1 ? 'pointer' : 'default' }"
+        >
+          <span class="legend">{{ label }}</span>
+          <p class="space-selector-header-title">
+            <v-icon
+              :style="[
+                { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
+                { width: maxDepth !== -1 ? 'auto' : '0 !important' },
+                { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
+              ]"
+              class="rotate-disabled space-selector-header-title-icon"
+              :class="{ 'rotate-enabled': open }"
+            >
+              mdi-chevron-down
+            </v-icon>
+
+            {{ selectedZoneName.toUpperCase() }}
+          </p>
+        </div>
+        <transition-group
+          id="myDiv"
+          name="staggered-fade"
+          class="card-list spinal-scrollbar"
+          :style="[{ 'overflow-y': 'auto' + ' !important' }]"
+          tag="div"
+          v-bind:css="false"
+          v-on:before-enter="beforeEnter"
+          v-on:enter="enter"
+        >
+          <SpaceSelectorItem
+            class="staggered-fade-item"
+            v-for="(item, index) in buildingStructure"
+            :key="`${index}-${item.staticId}-${item.platformId}-${item.patrimoineId}`"
+            :item="item"
+            v-bind:data-index="index"
+            :maxDepth="maxDepth"
+            @onSelect="select(item)"
+            :selected="selectedZone"
+            @onOpenClose="expandCollapse(item, index)"
+            :spaceSelectorItemButtons="spaceSelectorItemButtons"
+            :viewButtonsType="viewButtonsType"
+            @onActionClick="onActionClick"
+          ></SpaceSelectorItem>
+        </transition-group>
+      </v-card>
+    </div>
+    <v-dialog v-model="pickDate" width="80%" persistent>
+      <v-card>
+        <v-card-text class="d-flex flex-row justify-space-between">
+          <div style="width: calc(50% - 4px)">
+            <v-card-title class="headline justify-center">
+              Date de début
+            </v-card-title>
+            <div class="d-flex flex-row justify-space-around">
+              <v-date-picker
+                v-model="dateBegin"
+                scrollable
+                locale="fr"
+                :first-day-of-week="1"
+                color="orange"
+                header-color="primary"
+              ></v-date-picker>
+              <v-time-picker
+                v-model="timeBegin"
+                scrollable
+                format="24hr"
+                color="orange"
+                header-color="primary"
+              ></v-time-picker>
+            </div>
+          </div>
+          <v-divider vertical inset></v-divider>
+          <div style="width: calc(50% - 4px)">
+            <v-card-title class="headline justify-center">
+              Date de fin
+            </v-card-title>
+            <div class="d-flex flex-row justify-space-around">
+              <v-date-picker
+                v-model="dateEnd"
+                scrollable
+                locale="fr"
+                :first-day-of-week="1"
+                color="orange"
+                header-color="primary"
+              ></v-date-picker>
+              <v-time-picker
+                v-model="timeEnd"
+                scrollable
+                format="24hr"
+                color="orange"
+                header-color="primary"
+              ></v-time-picker>
+            </div>
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text @click="pickDate = false">Annuler</v-btn>
+          <v-btn text @click="onDateChange" :disabled="!validatePicker"
+            >OK</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script lang="ts">
-import Velocity from 'velocity-animate';
-import { Vue, Component, Prop, VModel, Watch } from 'vue-property-decorator';
-import type { IZoneItem, IButton } from './interfaces/IBuildingItem';
-import type { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
-import SpaceSelectorItem from './SpaceSelectorItem.vue';
-import { convertZonesToISpaceSelectorItems } from './convertZonesToISpaceSelectorItems';
+import Velocity from "velocity-animate";
+import { Vue, Component, Prop, VModel, Watch } from "vue-property-decorator";
+import type { IZoneItem, IButton } from "./interfaces/IBuildingItem";
+import type { ISpaceSelectorItem } from "./interfaces/ISpaceSelectorItem";
+import SpaceSelectorItem from "./SpaceSelectorItem.vue";
+import { convertZonesToISpaceSelectorItems } from "./convertZonesToISpaceSelectorItems";
+import moment from "moment";
 
 @Component({
   components: {
@@ -99,7 +175,6 @@ import { convertZonesToISpaceSelectorItems } from './convertZonesToISpaceSelecto
   },
 })
 class SpaceSelector extends Vue {
-
   @Prop({ type: Array<IButton>, required: false, default: () => [] })
   spaceSelectorItemButtons!: IButton[];
 
@@ -107,9 +182,9 @@ class SpaceSelector extends Vue {
   viewButtonsType!: string;
 
   @Prop({ type: Function, required: false })
-  GetChildrenFct!: ( item?: ISpaceSelectorItem) => Promise<IZoneItem[]>;
+  GetChildrenFct!: (item?: ISpaceSelectorItem) => Promise<IZoneItem[]>;
 
-  @Prop({type: Number, required: false, default: -1, })
+  @Prop({ type: Number, required: false, default: -1 })
   maxDepth!: number;
 
   @VModel({ type: Object }) selectedZone!: ISpaceSelectorItem;
@@ -120,22 +195,29 @@ class SpaceSelector extends Vue {
   @Prop({ type: Boolean, required: false, default: true })
   edge!: boolean;
 
-
   @Prop({ type: String, required: true })
   label: string;
 
   selectorHeight = 0;
-  
+  pickDate = false;
+  dateBegin: string = "";
+  timeBegin: string = "";
+  dateEnd: string = "";
+  timeEnd: string = "";
 
   get selectedZoneName() {
-    return this.selectedZone?.name || 'Sélectionnez une zone';
+    return this.selectedZone?.name || "Sélectionnez une zone";
   }
-  
-  isFill = 'hidden';
+
+  isFill = "hidden";
 
   buildingStructure: ISpaceSelectorItem[] = [];
 
-  @Watch('selectedZone')
+  get validatePicker() {
+    return this.dateBegin && this.dateEnd && this.timeBegin && this.timeEnd;
+  }
+
+  @Watch("selectedZone")
   async onSelectedChange() {
     for (let idx = 0; idx < this.buildingStructure.length; idx++) {
       const item = this.buildingStructure[idx];
@@ -146,15 +228,15 @@ class SpaceSelector extends Vue {
         item.staticId === this.selectedZone.staticId
       ) {
         found = true;
-        if (!item.isOpen) {
-          await this.openItem(item, idx);
-        }
+        // if (!item.isOpen) {
+        //   await this.openItem(item, idx);
+        // }
       } else {
         for (const parentId of this.selectedZone.parents) {
           if (
             parentId === item.staticId &&
             (this.selectedZone.platformId === item.platformId ||
-              item.type === 'patrimoine')
+              item.type === "patrimoine")
           ) {
             found = true;
             if (!item.isOpen) {
@@ -172,20 +254,46 @@ class SpaceSelector extends Vue {
     this.checkingOverflow();
   }
 
+  @Watch("date")
+  onDateChange() {
+    const item = this.buildingStructure.find((b) => b.name === "Personnalisé");
+    const [begin, end] = [
+      this.dateBegin + " " + this.timeBegin,
+      this.dateEnd + " " + this.timeEnd,
+    ].sort();
+    item.range = {
+      begin: moment(begin).format("DD-MM-YYYY HH:mm:ss"),
+      end: moment(end).format("DD-MM-YYYY HH:mm:ss"),
+    };
+
+    this.dateBegin = "";
+    this.dateEnd = "";
+    this.timeBegin = "";
+    this.timeEnd = "";
+
+    this.pickDate = false;
+    this.$emit("update:open", !this.open);
+    this.$emit("input", item);
+  }
+
   select(item?: ISpaceSelectorItem) {
-    // this.$emit('update:open', !this.open);
-    this.$emit('input', item);
+    if (item.name !== "Personnalisé") {
+      this.$emit("update:open", !this.open);
+      this.$emit("input", item);
+      return;
+    }
+    this.pickDate = true;
   }
 
   private myDiv!: HTMLDivElement;
   checkingOverflow() {
-    const myDiv = document.getElementById('myDiv');
+    const myDiv = document.getElementById("myDiv");
     const windowHeight = window.innerHeight;
     const divHeight = myDiv!.offsetHeight;
     if (divHeight >= windowHeight - 421) {
-      this.isFill = 'auto';
+      this.isFill = "auto";
     } else {
-      this.isFill = 'hidden';
+      this.isFill = "hidden";
     }
   }
 
@@ -201,7 +309,6 @@ class SpaceSelector extends Vue {
 
   // on click the righht button open / close
   async expandCollapse(
-    
     item: ISpaceSelectorItem,
     index: number,
     forceOpen = false
@@ -212,10 +319,10 @@ class SpaceSelector extends Vue {
       await this.openItem(item, index);
     }
 
-    this.selectorHeight = (this.buildingStructure.length * 56) + 60 + 30;
+    this.selectorHeight = this.buildingStructure.length * 56 + 60 + 30;
     this.checkingOverflow();
   }
-  
+
   private async openItem(item: ISpaceSelectorItem, index: number) {
     item.isOpen = true;
     item.loading = true;
@@ -227,7 +334,7 @@ class SpaceSelector extends Vue {
         ...convertZonesToISpaceSelectorItems(children, item)
       );
     } catch (error) {
-      console.error('error fetch childrens.', error);
+      console.error("error fetch childrens.", error);
     }
     item.loading = false;
     this.checkingOverflow();
@@ -238,7 +345,7 @@ class SpaceSelector extends Vue {
     const toRm: typeof this.buildingStructure = [];
     for (const it of this.buildingStructure) {
       if (
-        (it.platformId === item.platformId || item.type === 'patrimoine') &&
+        (it.platformId === item.platformId || item.type === "patrimoine") &&
         it.parents.includes(item.staticId)
       ) {
         toRm.push(it);
@@ -275,27 +382,26 @@ class SpaceSelector extends Vue {
     }
   }
 
-  showSign(): void{
-    this.selectorHeight = (this.buildingStructure.length * 56) + 60 + 30;
+  showSign(): void {
+    this.selectorHeight = this.buildingStructure.length * 56 + 60 + 30;
   }
 
   // animation methods
-  beforeEnter(el: { style: { opacity: number; height: number; }; }) {
+  beforeEnter(el: { style: { opacity: number; height: number } }) {
     el.style.opacity = 0;
     el.style.height = 0;
   }
 
-  enter(el: { dataset: { index: number; }; }, done: any) {
+  enter(el: { dataset: { index: number } }, done: any) {
     var delay = el.dataset.index * 5;
     setTimeout(function () {
-      Velocity(el, { opacity: 1, height: '50px' }, { complete: done });
+      Velocity(el, { opacity: 1, height: "50px" }, { complete: done });
     }, delay);
   }
 
   onActionClick(data) {
-    this.$emit("onActionClick", data)
+    this.$emit("onActionClick", data);
   }
-
 }
 export default SpaceSelector;
 </script>
@@ -428,12 +534,12 @@ export default SpaceSelector;
 } */
 
 .legend {
-    color: #fff;
-    font-size: 9px;
-    position: absolute;
-    top: 3px;
-    left: 11px;
-    letter-spacing: 1.1px;
+  color: #fff;
+  font-size: 9px;
+  position: absolute;
+  top: 3px;
+  left: 11px;
+  letter-spacing: 1.1px;
 }
 </style>
 

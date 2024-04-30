@@ -72,7 +72,6 @@ with this file. If not, see
     <div class="entrence" :class="{ 'inactiveTable': DActive, 'displaydataCss': displaydata }">
       <div class="dataContainer" v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected">
 
-
         <!-- SAMPLE -->
         <div :style="{ 'height': 'calc(100% - 200px)' }">
           <div v-for="(d, i) in data" :key="i">{{ d.name }}</div>

@@ -22,11 +22,16 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import type { IEquipmentItem, IZoneItem } from '../../../components/SpaceSelector';
-import type { IViewInfoItemRes } from '../../../services/spinalAPI/GeographicContext/getViewInfo';
-import type { IGetAllBuildingsRes } from '../../../interfaces/IGetAllBuildingsRes';
-import { defaultTemporalitySelected, defaultZoneSelected } from './utils/defaultZoneSelected';
-
+import type {
+  IEquipmentItem,
+  IZoneItem,
+} from "../../../components/SpaceSelector";
+import type { IViewInfoItemRes } from "../../../services/spinalAPI/GeographicContext/getViewInfo";
+import type { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
+import {
+  defaultTemporalitySelected,
+  defaultZoneSelected,
+} from "./utils/defaultZoneSelected";
 
 export type StateAppData = typeof state;
 export const state = {
@@ -39,5 +44,6 @@ export const state = {
   buildingInfo: {} as Record<number, IViewInfoItemRes[]>,
   viewerStartedList: {} as { [key: string]: string },
   itemSelected: undefined,
-  dataVizExtn : undefined
+  dataVizExtn: undefined,
+  data: undefined as any,
 };
