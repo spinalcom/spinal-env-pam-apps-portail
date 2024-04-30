@@ -80,6 +80,7 @@ import { PAGE_STATES } from "./interfaces/pageStates";
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
+  VIEWER_AGGREGATE_SELECTION_CHANGED,
 } from "spinal-viewer-event-manager";
 
 import "spinal-components/dist/spinal-components.css";
@@ -125,6 +126,7 @@ class App extends Vue {
     buildingId: ''
   };
   async mounted() {
+    
 
     try {
       this.pageSate = PAGE_STATES.loading;
@@ -135,7 +137,7 @@ class App extends Vue {
     }
 
     this.$nextTick(() => {
-      this.query.app = "eyJuYW1lIjoiRGVzY3JpcHRpb24iLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImRhZGUtYTljYi1lMzc5LTE4ZjBmZGExZTI1IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxMzk1NzkyMTg4NiwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzEzOTU3OTAzOTA5LCJpY29uIjoibWRpLWJvb2staW5mb3JtYXRpb24tdmFyaWFudCIsImRlc2NyaXB0aW9uIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC1kZXNjcmlwdGlvbiIsInRhZ3MiOlsiRGVzY3JpcHRpb24iXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLWRlc2NyaXB0aW9uIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19"        
+      this.query.app = "eyJuYW1lIjoiRGVzY3JpcHRpb24iLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImRhZGUtYTljYi1lMzc5LTE4ZjBmZGExZTI1IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxMzk1NzkyMTg4NiwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzEzOTU3OTAzOTA5LCJpY29uIjoibWRpLWJvb2staW5mb3JtYXRpb24tdmFyaWFudCIsImRlc2NyaXB0aW9uIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC1kZXNjcmlwdGlvbiIsInRhZ3MiOlsiRGVzY3JpcHRpb24iXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLWRlc2NyaXB0aW9uIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19"
       const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
       this.applyURLParam(currentQuery);
     });
@@ -333,6 +335,8 @@ class App extends Vue {
 
 
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
+    console.log('test', item);
+
     if (!item) return;
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
@@ -342,6 +346,8 @@ class App extends Vue {
   async onColor(item: TGeoItem | TGeoItem[]) {
     // TBD
   }
+
+
 
   onActionClick({ button, item }) {
     const data = {
@@ -412,6 +418,9 @@ class App extends Vue {
       value: "value",
     };
   }
+
+  
+
 
   private _getRows(list: any[]) {
     if (!list) return [];

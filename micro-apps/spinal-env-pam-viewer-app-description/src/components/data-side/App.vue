@@ -87,7 +87,11 @@ with this file. If not, see
         </div>
         <!-- \SAMPLE -->
       </div>
-
+      <!-- 
+      <div v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected" class="detail_container">
+          <GroupDataView v-for="(d, i) in data" :key="i" :data="d" :config="config" 
+             @onClick="selectDataView" />
+        </div> -->
 
       <div class="centered" v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected">
         Aucune donnée à afficher ! veuillez selectionner un étage ou une pièce.
@@ -122,9 +126,16 @@ import { State } from "vuex-class";
 import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import { mapState } from "vuex";
 import SpriteComponent from "./SpriteComponent.vue"
+import GroupDataView from "./groupDataView.vue";
+import {
+  EmitterViewerHandler,
+  VIEWER_AGGREGATE_SELECTION_CHANGED,
+} from "spinal-viewer-event-manager";
 
 @Component({
-  components: {},
+  components: {
+    GroupDataView,
+  },
   filters: {},
 })
 class dataSideApp extends Vue {
@@ -140,6 +151,7 @@ class dataSideApp extends Vue {
   pageSate: PAGE_STATES = PAGE_STATES.loading;
   isBuildingSelected: boolean = true;
   retry: Function;
+  referenceObjects: any[];
   insights = "eyJuYW1lIjoiSW5zaWdodHMiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImIwZTEtNzI3NS02YWNhLTE4ZjJlMjE1NmE4IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxNDQ2NTk0NzM4MCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0NDY1ODg3OTEyLCJpY29uIjoibWRpLWN1cnRhaW5zLWNsb3NlZCIsImRlc2NyaXB0aW9uIjoiSU5zaWdodHMiLCJ0YWdzIjpbIkluc2lnaHRzIl0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0taW5zaWdodHMiLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiMzdkZS0wMmI4LWUxOGItMTg1MDY0M2I2OGEiLCJidWlsZGluZ0lkIjoiNTkzMi02MDg2LTllMWEtMTg1MDY0Nzg0NjAifX0"
   tickets = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiZWI0ZC1hM2MxLWVmMTEtMThmMjBkZGM5YzciLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0MjQzMzcyMzcxLCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTQyNDMzNTcxMjcsImljb24iOiJtZGktdGlja2V0LWFjY291bnQiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOlsidGlja2V0Il0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
   // tickets = "eyJuYW1lIjoiRGVzY3JpcHRpb24iLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImRhZGUtYTljYi1lMzc5LTE4ZjBmZGExZTI1IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxMzk1NzkyMTg4NiwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzEzOTU3OTAzOTA5LCJpY29uIjoibWRpLWJvb2staW5mb3JtYXRpb24tdmFyaWFudCIsImRlc2NyaXB0aW9uIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC1kZXNjcmlwdGlvbiIsInRhZ3MiOlsiRGVzY3JpcHRpb24iXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLWRlc2NyaXB0aW9uIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19"
@@ -150,10 +162,54 @@ class dataSideApp extends Vue {
   }
 
   async mounted() {
+
+    const emitterHandler = EmitterViewerHandler.getInstance();
+    //modifier le VIEWER_AGGREGATE_SELECTION_CHANGED
+    emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
+      if (data)
+        this.findDynamicIdByDbid(data[0].dbIds[0]);
+
+    });
+
+
+
     // await this.retriveData();
     this.pageSate = PAGE_STATES.loaded;
     this.isBuildingSelected = true;
   }
+
+  // findDynamicIdByDbid(dbidToFind) {
+  //   const objects = this.referenceObjectList
+  //   for (const obj of objects) {
+  //     console.log('toto');
+  //     for (const ref of obj.infoReferencesObjects) {
+  //       console.log(ref.dbid);
+  //       if (ref.dbid === dbidToFind) {
+  //         return { dynamicId: obj.dynamicId };
+  //       }
+  //     }
+  //   }
+  //   return null;
+  // }
+
+  findDynamicIdByDbid(dbidToFind) {
+
+    const objects = this.referenceObjects 
+    for (const obj of objects[0]) {
+      if (Array.isArray(obj.infoReferencesObjects)) {
+        for (const ref of obj.infoReferencesObjects) {
+          if (ref.dbid === dbidToFind) {
+            console.log({ dynamicId: obj.dynamicId , name : obj.name});
+            
+            return { dynamicId: obj.dynamicId };
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+
 
   async retriveData() {
     try {
@@ -179,7 +235,33 @@ class dataSideApp extends Vue {
   }
 
   selectDataView(item) {
+    console.log('toto ?');
+
     this.$emit("clickOnDataView", item);
+  }
+
+  getDataDynamicIdtab() {
+    // console.log(this.data , 'sssssssssssssssss');
+    const dynamicIds = this.data.map(obj => obj.dynamicId);
+    // console.log(dynamicIds);
+    this.fetchReferenceObjects(dynamicIds)
+  }
+  async fetchReferenceObjects(referenceIds) {
+    const buildingId = localStorage.getItem("idBuilding");
+    // Les IDs que vous voulez récupérer
+
+    const promises = [
+      this.$store.dispatch(ActionTypes.GET_REFERENCE_OBJECT_LIST_MULTIPLE, {
+        buildingId,
+        referenceIds
+      }),
+    ];
+    const result = await Promise.all(promises);
+
+    console.log(result);
+    // this.referenceObjects = result[0];
+    this.referenceObjects = [...result];
+    
   }
 
   /**
@@ -200,7 +282,8 @@ class dataSideApp extends Vue {
 
   @Watch("data")
   watchData() {
-    console.log(this.data);
+    // console.log(this.data , 'toto');
+    this.getDataDynamicIdtab()
     console.log("AFFICHAGE SPRITES");
     // if (this.config.sprites)
     //   this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);

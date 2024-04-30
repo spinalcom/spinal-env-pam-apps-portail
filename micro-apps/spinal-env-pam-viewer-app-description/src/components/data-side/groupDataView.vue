@@ -26,10 +26,8 @@ with this file. If not, see
   <div class="div_container">
     <div class="_title">
       <DataView
-        :color="getItemColor(data)"
         :item="data"
         :isTitle="true"
-        :unit="unit"
       />
     </div>
 
@@ -38,8 +36,6 @@ with this file. If not, see
         v-for="(item, index) of data.children"
         :key="index"
         :item="item"
-        :color="getItemColor(item)"
-        :unit="unit"
         @onClick="() => selectDataView(item)"
       />
       <DataView
@@ -61,17 +57,13 @@ import { getColor } from "../../services/calcul/calculItems";
 })
 class GroupDataView extends Vue {
   @Prop({}) data;
-  @Prop({}) config;
-  @Prop({}) unit;
-  @Prop({}) legend;
+  // @Prop({}) config;
+  // @Prop({}) unit;
+  // @Prop({}) legend;
   @Prop({ default: false }) percent;
 
   noDataItem = { name: "Aucune donnée", displayValue: "" };
-  getItemColor(item) {
-    const color = getColor(item, this.legend, this.percent);
-    item.color = color;
-    return color;
-  }
+
 
   selectDataView(item) {
     console.log('stape3',item , this.data);

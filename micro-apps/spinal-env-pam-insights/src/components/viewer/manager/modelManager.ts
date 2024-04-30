@@ -61,6 +61,7 @@ export class ModelManager {
 
    public getSpinalModelID(model: number | Autodesk.Viewing.Model ): string | void {
       const modelId = typeof model === 'number' ? model : model.id;
+      console.log(this._modelDico);
       for (const [id, mo] of this._modelDico) {
          const found = mo.find(m => m.id == modelId);
          if (found) return id;

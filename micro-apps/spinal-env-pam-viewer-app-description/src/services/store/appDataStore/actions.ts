@@ -29,6 +29,7 @@ import { MutationTypes } from "./mutations";
 import { getEquipments, getFloors, getRooms } from "../../spinalAPI/GeographicContext/geographicContext";
 import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
+import { getMultipleReferenceObjects } from "../../spinalAPI/GeographicContext/getObjectList";
 import { IViewInfoBody, IViewInfoItemRes } from "../../spinalAPI/GeographicContext/getViewInfo";
 import { ActionTypes, ApiIteratorStoreRecordNumberType, ApiIteratorStoreRecordStringType, ApiIteratorStoreType, AugmentedActionContextAppData } from "../../../interfaces/vuexStoreTypes";
 import { getGroupsItems, getAllCategoriesTree } from "../../spinalAPI/GeographicContext/groupsItems";
@@ -39,7 +40,26 @@ import { classifyItemByBimFileId } from "./utils/openViewer";
 
 const ApiIteratorStore: ApiIteratorStoreType & ApiIteratorStoreRecordStringType & ApiIteratorStoreRecordNumberType = {};
 
+
+
 export const actions = {
+
+	async [ActionTypes.GET_REFERENCE_OBJECT_LIST_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }): Promise<any> {
+		console.log('Début de l\'action GET_REFERENCE_OBJECT_LIST_MULTIPLE',buildingId , referenceIds);
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			// const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
+			const result = await getMultipleReferenceObjects(buildingId, referenceIds);
+			console.log('Récupération des objets de référence réussie:', result);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+	
+
+
 	async [ActionTypes.GET_BUILDINGS]({ commit, state }: AugmentedActionContextAppData, { patrimoineId, forceUpdate }): Promise<IGetAllBuildingsRes[]> {
 		const spinalAPI = SpinalAPI.getInstance();
 		if (typeof ApiIteratorStore[ActionTypes.GET_BUILDINGS] === "undefined") {
