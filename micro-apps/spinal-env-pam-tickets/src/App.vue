@@ -24,76 +24,36 @@ with this file. If not, see
 <template>
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
     <div class="selectors">
-      <sc-download-button
-        fileName="ticket_data"
-        :data="to_download"
-        csv
-        class="mr-2"
-      ></sc-download-button>
-
+      <sc-download-button fileName="ticket_data" :data="to_download" csv class="mr-2"></sc-download-button>
       <div class="space">
-        <space-selector
-          ref="space-selector"
-          :open.sync="openSpaceSelector"
-          :maxDepth="2"
-          :GetChildrenFct="onSpaceSelectOpen"
-          v-model="selectedZone"
-          label="ESPACE"
-          :spaceSelectorItemButtons="spaceSelectorButtons"
-          :viewButtonsType="config.viewButtons"
-          @onActionClick="onActionClick"
-        />
+        <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"
+          :GetChildrenFct="onSpaceSelectOpen" v-model="selectedZone" label="ESPACE"
+          :spaceSelectorItemButtons="spaceSelectorButtons" :viewButtonsType="config.viewButtons"
+          @onActionClick="onActionClick" />
       </div>
     </div>
-
+    
     <div class="dataBody">
       <viewerApp class="viewerContainer"></viewerApp>
-      <dataSideApp
-        class="appContainer"
-        :config="config"
-        :selectedZone="selectedZone"
-        :data="displayedData"
-        :selectedId="selectedId"
-        @clickOnDataView="onDataViewClicked"
-        @display="showDetails"
-        @download="downloadList"
-        @floorData="updateSpriteData"
-      ></dataSideApp>
+      <dataSideApp class="appContainer" :config="config" :selectedZone="selectedZone" :data="displayedData"
+        :selectedId="selectedId" @clickOnDataView="onDataViewClicked" @display="showDetails" @download="downloadList"
+        @floorData="updateSpriteData"></dataSideApp>
     </div>
 
-    <sprite-component
-      v-if="selectedZone && selectedZone.type === 'geographicFloor'"
-      :data="spriteData"
-      style="
+    <sprite-component v-if="selectedZone && selectedZone.type === 'geographicFloor'" :data="spriteData" style="
         position: absolute;
         z-index: 9;
         left: calc(60% - 99px);
         top: 50%;
         width: 35px;
-      "
-    ></sprite-component>
+      "></sprite-component>
 
-    <sc-ticket-detail
-      v-if="detailedTicket"
-      style="z-index: 99"
-      v-model="showDialog"
-      :detailed-ticket="detailedTicket"
-      :token="token"
-      :baseURL="baseUrl"
-    ></sc-ticket-detail>
+    <ticketDetails v-if="detailedTicket" style="z-index: 99" v-model="showDialog" @changeRoute="handleRouteChange" :detailed-ticket="detailedTicket"
+      :token="token" :baseURL="baseUrl"></ticketDetails>
   </v-app>
 
-  <v-container
-    class="loading"
-    v-else-if="pageSate === PAGE_STATES.loading"
-    fluid
-  >
-    <v-progress-circular
-      :size="70"
-      :width="3"
-      color="purple"
-      indeterminate
-    ></v-progress-circular>
+  <v-container class="loading" v-else-if="pageSate === PAGE_STATES.loading" fluid>
+    <v-progress-circular :size="70" :width="3" color="purple" indeterminate></v-progress-circular>
   </v-container>
 </template>
 
@@ -123,8 +83,10 @@ import {
 } from "spinal-viewer-event-manager";
 
 import dataSideApp from "./components/data-side/App.vue";
+import ticketDetails from "./components/data-side/TicketDetails.vue";
 import SpriteComponent from "./components/data-side/FloorSpriteComponent.vue";
 import { SpinalAPI } from "./services/spinalAPI/SpinalAPI";
+import { log } from "console";
 
 const COLORS = ["#FF0000", "#FFA500", "#008000"];
 const buildingId = localStorage.getItem("idBuilding") || "";
@@ -136,6 +98,7 @@ const token = localStorage.getItem("token") || "";
     viewerApp,
     dataSideApp,
     SpriteComponent,
+    ticketDetails
   },
 })
 class App extends Vue {
@@ -154,12 +117,22 @@ class App extends Vue {
   showDialog = false;
   token: String = token;
   baseUrl: String = "";
-
   spriteData: any = {};
-
   to_download = <any[]>[];
+  query: { app: string; mode: string; name: string; spaceSelectedId: string; buildingId: string } = {
+    app: '',
+    mode: 'null',
+    name: '',
+    spaceSelectedId: '',
+    buildingId: ''
+  };
+
+
+ 
 
   showDetails(ticket) {
+    console.log(ticket);
+    
     this.detailedTicket = ticket;
     this.showDialog = true;
   }
@@ -176,6 +149,66 @@ class App extends Vue {
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
+
+    this.$nextTick(() => {
+      const currentQuery = window.parent.routerFontion.apps[0]._route.query
+      this.applyURLParam(currentQuery);
+    });
+
+  }
+
+  applyURLParam(query) {
+    this.query.mode = query.mode
+    this.query.buildingId = query.buildingId
+    this.query.spaceSelectedId = query.spaceSelectedId
+    this.query.name = query.name
+    this.query.app = query.app
+
+    // if (query.mode == "3d") {
+    //   this.isActive3D = true
+    // } else if (query.mode == "data") {
+    //   this.isActive = true
+    // }
+    console.warn(query.spaceSelectedId);
+
+
+    if (query.spaceSelectedId) {
+
+      const item = {
+        buildingId: query.buildingId,
+        dynamicId: query.spaceSelectedId,
+      };
+      const button = {
+        "title": "charger",
+        "icon": "mdi-video-3d",
+        "onclickEvent": "OPEN_VIEWER",
+        "isShownTypes": [
+          "geographicFloor"
+        ]
+      }
+      this.onActionClick({ button, item })
+
+
+      const itemToSelect = {
+        "isOpen": false,
+        "loading": false,
+        "dynamicId": parseInt(query.spaceSelectedId),
+        "name": query.name,
+        "buildingId": query.buildingId,
+        "parents": [
+          "5932-6086-9e1a-18506478460"
+        ],
+        "type": "geographicFloor",
+        "staticId": "SpinalNode-6cd64ff8-a126-1aa3-80b7-f9d4fc5690bf-186df7cd2a5"//nan
+
+      }
+
+
+      if (this.$refs['space-selector']) {
+        this.$refs['space-selector'].select(itemToSelect);
+      }
+    }
+
   }
 
   public get selectedId(): number {
@@ -189,6 +222,19 @@ class App extends Vue {
   public set selectedZone(v: ISpaceSelectorItem) {
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
   }
+
+  
+  handleRouteChange(route){
+    this.query.spaceSelectedId = route.dynamicId
+    this.query.name = route.name
+    this.query.app = "eyJuYW1lIjoiRGVzY3JpcHRpb24iLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImRhZGUtYTljYi1lMzc5LTE4ZjBmZGExZTI1IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxMzk1NzkyMTg4NiwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzEzOTU3OTAzOTA5LCJpY29uIjoibWRpLWJvb2staW5mb3JtYXRpb24tdmFyaWFudCIsImRlc2NyaXB0aW9uIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC1kZXNjcmlwdGlvbiIsInRhZ3MiOlsiRGVzY3JpcHRpb24iXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLWRlc2NyaXB0aW9uIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19"
+    this.changeRoute()
+  }
+
+  changeRoute() {
+    window.parent.routerFontion.customPush(window.parent.router.path, this.query);
+  }
+
 
   downloadList(tickets) {
     this.to_download = tickets.map((t) => {
@@ -243,11 +289,11 @@ class App extends Vue {
               ...floor,
               counts: ticket.length
                 ? [0, 1, 2].map((c) => {
-                    return {
-                      color: COLORS[c],
-                      value: ticket.filter((t) => t.priority == c).length,
-                    };
-                  })
+                  return {
+                    color: COLORS[c],
+                    value: ticket.filter((t) => t.priority == c).length,
+                  };
+                })
                 : [],
             };
           })
@@ -271,11 +317,11 @@ class App extends Vue {
               ...room,
               counts: ticket.length
                 ? [0, 1, 2].map((c) => {
-                    return {
-                      color: COLORS[c],
-                      value: ticket.filter((t) => t.priority == c).length,
-                    };
-                  })
+                  return {
+                    color: COLORS[c],
+                    value: ticket.filter((t) => t.priority == c).length,
+                  };
+                })
                 : [],
             };
           })
@@ -292,18 +338,27 @@ class App extends Vue {
   }
 
   onActionClick({ button, item }) {
+    console.log('pioupiou', button, item);
+
     const data = {
-      buildingId: item.buildingId,
-      staticId: item.staticId,
-      id: item.dynamicId,
-      dynamicId: item.dynamicId,
-      floorId: item.floorId,
-      roomId: item.roomId,
-      type: item.type,
+      buildingId: item.buildingId, //important viewer
+      // staticId: item.staticId,//can
+      // id: item.dynamicId,
+      dynamicId: item.dynamicId,//important viewer
+      // floorId: item.floorId,//can
+      // roomId: item.roomId,//can
+      // type: item.type,//can
     };
 
     switch (button.onclickEvent) {
       case ActionTypes.OPEN_VIEWER:
+        this.$store.dispatch(button.onclickEvent, {
+          onlyThisModel: true,
+          config: this.config,
+          item: data,
+        });
+        break;
+      case ActionTypes.ISOLATE_ITEMS:
         this.$store.dispatch(button.onclickEvent, {
           onlyThisModel: true,
           config: this.config,
@@ -484,13 +539,7 @@ body {
   border-radius: 5px;
 }
 
-.appContainer
-  .dataContainer
-  .calcul_content
-  .calcul
-  .select
-  .v-text-field.v-text-field--solo
-  .v-input__control {
+.appContainer .dataContainer .calcul_content .calcul .select .v-text-field.v-text-field--solo .v-input__control {
   min-height: unset !important;
 }
 </style>

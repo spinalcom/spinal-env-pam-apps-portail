@@ -158,6 +158,8 @@ export class ViewerManager {
 	}
 
 	public select(item: IPlayload) {
+		console.log('totototot');
+		
 		return this._fctViewerIteract(VIEWER_OBJ_SELECT, item);
 	}
 

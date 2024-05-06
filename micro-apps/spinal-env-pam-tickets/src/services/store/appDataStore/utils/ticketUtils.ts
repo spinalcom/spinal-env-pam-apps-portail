@@ -111,8 +111,16 @@ function mapTicketAndXYZPosition(ticketTab, XYZTab) {
 }
 
 export function regroupTicketByRoom(ticketTab) {
+  console.log(ticketTab);
+  
   const returnTab = new Object();
+  let i = 0;
   for (const ticket of ticketTab) {
+    console.log(ticket.elementSelected["XYZ center"]);
+    // if (ticket.elementSelected.hasOwnProperty("XYZ center")) {
+    //   console.log(ticket.elementSelected["XYZ center"]);
+    // }
+    i++;
     if (
       ticket.elementSelected.type == "geographicRoom" ||
       ticket.elementSelected.type == "BIMObject"

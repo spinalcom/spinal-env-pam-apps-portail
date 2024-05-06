@@ -23,138 +23,64 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card
-    elevation="4"
-    class="cardContainer d-flex align-center justify-center"
-  >
-    <div
-      class="dataContainer d-flex flex-column py-4"
-      style="height: 100%; width: 100%"
-      v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected"
-    >
+  <v-card elevation="4" class="cardContainer d-flex align-center justify-center">
+    <div class="dataContainer d-flex flex-column py-4" style="height: 100%; width: 100%"
+      v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected">
       <div class="d-flex flex-row justify-space-between mt-5 mx-4">
-        <v-select
-          color="#14202C"
-          background-color="#eaeef0"
-          style="width: calc(100%)"
-          solo
-          flat
-          @click.stop
-          v-model="workflow_filter"
-          label="Tous les workflows"
-          placeholder="Tous les workflows"
-          :items="workflows()"
-          append-icon="mdi-chevron-down"
-          clearable
-          clear-icon="mdi-close-circle-outline"
-          multiple
-          menu-props="offset-y"
-        >
+        <v-select color="#14202C" background-color="#eaeef0" style="width: calc(100%)" solo flat @click.stop
+          v-model="workflow_filter" label="Tous les workflows" placeholder="Tous les workflows" :items="workflows()"
+          append-icon="mdi-chevron-down" clearable clear-icon="mdi-close-circle-outline" multiple menu-props="offset-y">
           <template v-slot:selection="{ item, index }">
-            <v-chip
-              @click:close="
-                domain_filter = workflow_filter.filter((w) => w !== item)
-              "
-              close
-              :close-icon="'mdi-close-circle'"
-              style="
+            <v-chip @click:close="
+        domain_filter = workflow_filter.filter((w) => w !== item)
+        " close :close-icon="'mdi-close-circle'" style="
                 font-size: 11px;
                 height: 24px;
                 max-width: calc(100% - 50px);
-              "
-              v-if="index < 1"
-            >
+              " v-if="index < 1">
               <span style="max-width: 90%; overflow: hidden">{{ item }}</span>
             </v-chip>
 
-            <span
-              v-if="index === 1"
-              class="text-grey text-caption align-self-center"
-            >
+            <span v-if="index === 1" class="text-grey text-caption align-self-center">
               (+{{ workflow_filter.length - 1 }})
             </span>
           </template>
         </v-select>
       </div>
       <div class="d-flex flex-row justify-space-between mx-4">
-        <v-select
-          color="#14202C"
-          background-color="#eaeef0"
-          style="max-width: calc(50% - 4px)"
-          solo
-          flat
-          @click.stop
-          v-model="domain_filter"
-          label="Tous les domaines"
-          placeholder="Tous les domaines"
-          :items="domains()"
-          append-icon="mdi-chevron-down"
-          clearable
-          clear-icon="mdi-close-circle-outline"
-          multiple
-          menu-props="offset-y"
-        >
+        <v-select color="#14202C" background-color="#eaeef0" style="max-width: calc(50% - 4px)" solo flat @click.stop
+          v-model="domain_filter" label="Tous les domaines" placeholder="Tous les domaines" :items="domains()"
+          append-icon="mdi-chevron-down" clearable clear-icon="mdi-close-circle-outline" multiple menu-props="offset-y">
           <template v-slot:selection="{ item, index }">
-            <v-chip
-              @click:close="
-                domain_filter = domain_filter.filter((d) => d !== item)
-              "
-              close
-              :close-icon="'mdi-close-circle'"
-              style="
+            <v-chip @click:close="
+        domain_filter = domain_filter.filter((d) => d !== item)
+        " close :close-icon="'mdi-close-circle'" style="
                 font-size: 11px;
                 height: 24px;
                 max-width: calc(100% - 50px);
-              "
-              v-if="index < 1"
-            >
+              " v-if="index < 1">
               <span style="max-width: 90%; overflow: hidden">{{ item }}</span>
             </v-chip>
 
-            <span
-              v-if="index === 1"
-              class="text-grey text-caption align-self-center"
-            >
+            <span v-if="index === 1" class="text-grey text-caption align-self-center">
               (+{{ domain_filter.length - 1 }})
             </span>
           </template>
         </v-select>
-        <v-select
-          color="#14202C"
-          background-color="#eaeef0"
-          style="max-width: calc(50% - 4px)"
-          solo
-          flat
-          @click.stop
-          v-model="step_filter"
-          label="Toutes les étapes"
-          placeholder="Toutes les étapes"
-          :items="steps()"
-          append-icon="mdi-chevron-down"
-          clearable
-          clear-icon="mdi-close-circle-outline"
-          multiple
-          menu-props="offset-y"
-        >
+        <v-select color="#14202C" background-color="#eaeef0" style="max-width: calc(50% - 4px)" solo flat @click.stop
+          v-model="step_filter" label="Toutes les étapes" placeholder="Toutes les étapes" :items="steps()"
+          append-icon="mdi-chevron-down" clearable clear-icon="mdi-close-circle-outline" multiple menu-props="offset-y">
           <template v-slot:selection="{ item, index }">
-            <v-chip
-              @click:close="step_filter = step_filter.filter((s) => s !== item)"
-              close
-              :close-icon="'mdi-close-circle'"
-              style="
+            <v-chip @click:close="step_filter = step_filter.filter((s) => s !== item)" close
+              :close-icon="'mdi-close-circle'" style="
                 font-size: 11px;
                 height: 24px;
                 max-width: calc(100% - 50px);
-              "
-              v-if="index < 1"
-            >
+              " v-if="index < 1">
               <span style="max-width: 90%; overflow: hidden">{{ item }}</span>
             </v-chip>
 
-            <span
-              v-if="index === 1"
-              class="text-grey text-caption align-self-center"
-            >
+            <span v-if="index === 1" class="text-grey text-caption align-self-center">
               (+{{ step_filter.length - 1 }})
             </span>
           </template>
@@ -162,43 +88,27 @@ with this file. If not, see
       </div>
       <!-- SAMPLE -->
       <div class="d-flex flex-column flex-fill overflow-y-auto mx-2">
-        <TicketComponent
-          v-for="(d, i) in sortedTickets()"
-          :key="i"
-          :data="d"
-          @locate="locateTicket"
-          @display="showDetails"
-        />
+        <TicketComponent v-for="(d, i) in sortedTickets()" :key="i" :data="d" @locate="locateTicket"
+          @display="showDetails" />
       </div>
       <!-- \SAMPLE -->
     </div>
 
-    <div
-      class="centered"
-      v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected"
-    >
+    <div class="centered" v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected">
       Aucune donnée à afficher ! veuillez selectionner un étage ou une pièce.
     </div>
 
     <div class="centered" v-else-if="pageSate === PAGE_STATES.loading">
-      <v-progress-circular
-        :size="70"
-        :width="3"
-        color="purple"
-        indeterminate
-      ></v-progress-circular>
+      <v-progress-circular :size="70" :width="3" color="purple" indeterminate></v-progress-circular>
     </div>
 
     <div class="centered" v-else-if="pageSate === PAGE_STATES.error">
       <div>
-        <v-icon color="red" style="font-size: 5em"
-          >mdi-alert-circle-outline</v-icon
-        >
+        <v-icon color="red" style="font-size: 5em">mdi-alert-circle-outline</v-icon>
       </div>
       <div color="red">
         Quelque chose s'est mal passé ! Veuillez
-        <v-btn small outlined color="red" @click="retriveData('building')"
-          >réessayer
+        <v-btn small outlined color="red" @click="retriveData('building')">réessayer
         </v-btn>
       </div>
     </div>
@@ -359,13 +269,22 @@ class dataSideApp extends Vue {
       const regrouped_tickets = regroupTicketByRoom(to_update);
       const items = new Array();
       for (const key of Object.keys(regrouped_tickets)) {
-        const [X, Y, Z] = regrouped_tickets[key]["XYZ center"].split(";");
-        items.push({
-          buildingId,
-          dynamicId: key,
-          data: regrouped_tickets[key].ticketList,
-          position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
-        });
+        if (regrouped_tickets[key]["XYZ center"]) { // Vérifie si "XYZ center" existe
+          const [X, Y, Z] = regrouped_tickets[key]["XYZ center"].split(";");
+          items.push({
+            buildingId,
+            dynamicId: key,
+            data: regrouped_tickets[key].ticketList,
+            position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
+          });
+        } else {
+          items.push({
+            buildingId,
+            dynamicId: key,
+            data: regrouped_tickets[key].ticketList,
+            position: new THREE.Vector3(0, 0, 0),
+          });
+        }
       }
       setTimeout(() => {
         this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {

@@ -64,9 +64,17 @@ const routes: Array<RouteConfig> = [
 
 const router = new VueRouter({
   mode: 'history',
-  // base: process.env.BASE_URL,
   routes,
 });
+
+router.customPush = function(path, query) {
+  this.push({ path, query });
+};
+
+router.customReplace = function(path, query) {
+  this.replace({ path, query });
+};
+
 
 router.beforeEach(async (to, from, next) => {
   const auth = await isAuthenticate();
@@ -75,4 +83,5 @@ router.beforeEach(async (to, from, next) => {
   return next();
 });
 
+window.routerFontion = router;
 export { router };

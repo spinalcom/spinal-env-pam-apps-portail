@@ -340,6 +340,7 @@ export default SpaceSelector;
   overflow: hidden;
   transition: height 0.2s ease-in;
   box-shadow: none !important;
+  min-height: 59px;
 }
 .space-selector-container {
   position: absolute;

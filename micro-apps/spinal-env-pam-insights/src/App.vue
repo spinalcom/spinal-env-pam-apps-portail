@@ -139,9 +139,15 @@ class App extends Vue {
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
   isActive: boolean = false;
   isActive3D: boolean = false;
-
   dataTable: IZoneItem[] = [];
   $refs: { spaceSelector };
+  query: { app: string; mode: string; name: string; spaceSelectedId: string; buildingId: string } = {
+    app: '',
+    mode: 'null',
+    name: '',
+    spaceSelectedId: '',
+    buildingId: ''
+  };
 
   toggleActive() {
     if (this.isActive3D) this.isActive3D = false;
@@ -161,6 +167,66 @@ class App extends Vue {
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
+
+
+    this.$nextTick(() => {
+      const currentQuery = window.parent.routerFontion.apps[0]._route.query
+      this.applyURLParam(currentQuery);
+    });
+  }
+
+  applyURLParam(query) {
+    this.query.mode = query.mode
+    this.query.buildingId = query.buildingId
+    this.query.spaceSelectedId = query.spaceSelectedId
+    this.query.name = query.name
+    this.query.app = query.app
+
+    if (query.mode == "3d") {
+      this.isActive3D = true
+    } else if (query.mode == "data") {
+      this.isActive = true
+    }
+    console.warn(query.spaceSelectedId);
+
+
+    if (query.spaceSelectedId) {
+
+      const item = {
+        buildingId: query.buildingId,
+        dynamicId: query.spaceSelectedId,
+      };
+      const button = {
+        "title": "charger",
+        "icon": "mdi-video-3d",
+        "onclickEvent": "OPEN_VIEWER",
+        "isShownTypes": [
+          "geographicFloor"
+        ]
+      }
+      this.onActionClick({ button, item })
+
+
+      const itemToSelect = {
+        "isOpen": false,
+        "loading": false,
+        "dynamicId": parseInt(query.spaceSelectedId),
+        "name": query.name,
+        "buildingId": query.buildingId,
+        "parents": [
+          "5932-6086-9e1a-18506478460"
+        ],
+        "type": "geographicFloor",
+        "staticId": "SpinalNode-6cd64ff8-a126-1aa3-80b7-f9d4fc5690bf-186df7cd2a5"//nan
+
+      }
+
+
+      if (this.$refs['space-selector']) {
+        this.$refs['space-selector'].select(itemToSelect);
+      }
+    }
+    this.openSpaceSelector = false
   }
 
   public get selectedZone(): ISpaceSelectorItem {
@@ -266,6 +332,8 @@ class App extends Vue {
   }
 
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
+    console.log('test ???', item);
+    
     if (!item) return;
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
