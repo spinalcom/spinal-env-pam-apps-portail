@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
+    "outDir": "./dist/",
     "target": "esnext",
     "module": "esnext",
-    "strict": true,
+    "strict": false,
     "jsx": "preserve",
     "importHelpers": true,
     "moduleResolution": "node",
@@ -19,7 +20,19 @@
       "dom.iterable",
       "scripthost"
     ],
+    "types": [
+      "webpack-env",
+      "cypress"
+    ],
     "strictPropertyInitialization": false,
-    "noImplicitAny": false
-  }
+    "noImplicitReturns": false,
+    "noImplicitAny": false,
+    "allowJs": true,
+  },
+    "include": [
+        "./src/**/*",
+        "./micro-apps/**/src/**/*", 
+        "micro-apps/spinal-context-group/src/components/data-side/Modales/EditGroupModale.cy.ts",
+        "./cypress/**/*",
+      ]
 }

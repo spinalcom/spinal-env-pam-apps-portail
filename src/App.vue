@@ -45,9 +45,7 @@ export default App;
   background: #f0f4f5 !important;
   overflow-y: auto;
 }
-</style>
 
-<style>
 html {
   overflow-y: hidden !important;
 }

@@ -35,9 +35,9 @@ HTTP.interceptors.request.use((request: any) => {
   return request;
 });
 
-// export const BOS_HTTP_REQUEST = axios.create({
-  // baseURL: `${host}/api/v1/building`,
-// });
+export const BOS_HTTP_REQUEST = axios.create({
+  baseURL: `${host}/api/v1/building`,
+});
 
 // if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
 //   baseURL = "http://localhost:8064/api/v1/pam";

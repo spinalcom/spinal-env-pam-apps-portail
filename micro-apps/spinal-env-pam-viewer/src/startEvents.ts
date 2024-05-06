@@ -55,9 +55,11 @@ export function startEvents(
       load3DModels(viewer, data);
     });
     emitterHandler.on(VIEWER_OBJ_ISOLATE, (data) => {
+      console.log('Isolate')
       viewerIsolation(viewer, data);
     });
     emitterHandler.on(VIEWER_OBJ_SELECT, (data) => {
+      console.log("Select")
       viewerSelect(viewer, data);
     });
     emitterHandler.on(VIEWER_OBJ_FIT_TO_VIEW, (data) => {

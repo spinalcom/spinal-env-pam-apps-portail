@@ -1,33 +1,15 @@
-# spinal-apps-portail
+# 🚀 Welcome to your new awesome project!
 
-# setup evn file
-
-copy the .env file to .env.local and edit it
-
-## Project setup
-
-```
-npm install
-```
-
-### Compiles and hot-reloads for development
-
-```
-npm run serve
-```
-
-### Compiles and minifies for production
+This project has been created using **webpack-cli**, you can now run
 
 ```
 npm run build
 ```
 
-### Lints and fixes files
+or
 
 ```
-npm run lint
+yarn build
 ```
 
-### Customize configuration
-
-See [Configuration Reference](https://cli.vuejs.org/config/).
+to bundle your application

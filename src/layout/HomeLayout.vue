@@ -23,18 +23,14 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="homeContainer"
-               fluid
-               @click.stop="closeSelect">
+  <v-container class="homeContainer" fluid @click.stop="closeSelect">
     <div class="header">
       <div class="nav">
         <NavBar />
       </div>
 
       <div class="select">
-        <select-component ref="select-component"
-                          @selected="changeApps"
-                          :portofolios="portofolios"></select-component>
+        <select-component ref="select-component" @selected="changeApps" :portofolios="portofolios"></select-component>
       </div>
     </div>
 
@@ -43,33 +39,38 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import { mapActions, mapState } from "vuex";
-import NavBar from "../components/nav.vue";
-import SelectComponent from "../components/select.vue";
-export default {
+import { mapActions, mapState } from 'vuex';
+import NavBar from '../components/nav.vue';
+import SelectComponent from '../components/select.vue';
+import Vue from 'vue'
+
+export default Vue.extend({
   components: {
     NavBar,
     SelectComponent,
   },
   async mounted() {
-    await this.init();
+    await this.initData();
   },
   methods: {
-    ...mapActions("appDataStore", [
-      "getPortofolios",
-      "getApps",
-      "getBos",
-      "getUserInfo",
-      "selectSpace",
+    ...mapActions('appDataStore', [
+      'getPortofolios',
+      'getApps',
+      'getBos',
+      'getUserInfo',
+      'selectSpace',
     ]),
 
-    init() {
+    async initData(): Promise<any> {
       return Promise.all([this.getPortofolios(), this.getUserInfo()]);
     },
 
     closeSelect() {
-      const ref = this.$refs["select-component"];
-      if (ref) ref.close();
+      const ref = this.$refs['select-component'];
+      if (ref) {
+        //@ts-ignore
+        ref.close();
+      }
     },
 
     changeApps(data) {
@@ -77,9 +78,9 @@ export default {
     },
   },
   computed: {
-    ...mapState("appDataStore", ["appsDisplayed", "userInfo", "portofolios"]),
+    ...mapState('appDataStore', ['appsDisplayed', 'userInfo', 'portofolios']),
   },
-};
+});
 </script>
 
 <style lang="scss">

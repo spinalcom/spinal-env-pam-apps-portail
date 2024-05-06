@@ -466,7 +466,7 @@ with this file. If not, see
 <script>
 import { getFloors, getRooms, getEquipments } from "./functions/getBuilding";
 import SpaceSelector from "./components/minicomponents/space_selector/SpaceSelector.vue";
-import { Pie, Doughnut } from "vue-chartjs/legacy";
+//import { Pie, Doughnut } from "vue-chartjs/legacy";
 import {
   Chart as ChartJS,
   Title,
@@ -493,8 +493,8 @@ import ButtonIcon from "./components/ButtonIcon.vue";
 export default {
   name: "HelloWorld",
   components: {
-    Pie,
-    Doughnut,
+  //  Pie,
+  //  Doughnut,
     StatBar,
     SpaceSelector,
     ButtonIcon,

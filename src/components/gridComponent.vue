@@ -79,96 +79,96 @@ with this file. If not, see
 </template>
 
 <script>
-import ApplicationCard from "./applicationCard.vue";
+import ApplicationCard from './applicationCard.vue';
 
 export default {
-  name: "GridComponent",
-  components: {
-    ApplicationCard,
-  },
-  props: {
-    groups: { default: () => [] },
-    categories: { default: () => [] },
-  },
-  data() {
-    return {
-      headers: [],
-    };
-  },
-  mounted() {
-    this.headers = this.formatHeaders(this.groups);
-  },
-  methods: {
-    formatHeaders(headers) {
-      return [{ text: "", value: "name" }, ...headers].map((el, index) => ({
-        // width: index === 0 ? "100px" : "25% !important",
-        text: el.text || el.name,
-        value: el.id || el.value || el.name,
-        sortable: false,
-      }));
-    },
+	name: 'GridComponent',
+	components: {
+		ApplicationCard,
+	},
+	props: {
+		groups: {default: () => []},
+		categories: {default: () => []},
+	},
+	data() {
+		return {
+			headers: [],
+		};
+	},
+	mounted() {
+		this.headers = this.formatHeaders(this.groups);
+	},
+	methods: {
+		formatHeaders(headers) {
+			return [{text: '', value: 'name'}, ...headers].map((el, index) => ({
+				// Width: index === 0 ? "100px" : "25% !important",
+				text: el.text || el.name,
+				value: el.id || el.value || el.name,
+				sortable: false,
+			}));
+		},
 
-    exploreApp(item) {
-      this.$emit("exploreApp", item);
-    },
+		exploreApp(item) {
+			this.$emit('exploreApp', item);
+		},
 
-    addAppToFavoris(item) {
-      this.$emit("addAppToFavoris", item);
-    },
+		addAppToFavoris(item) {
+			this.$emit('addAppToFavoris', item);
+		},
 
-    goToApp(data) {
-      this.$emit("goToApp", data);
-    },
+		goToApp(data) {
+			this.$emit('goToApp', data);
+		},
 
-    isMobile() {
-      if (
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-          navigator.userAgent
-        )
-      ) {
-        return true;
-      } else {
-        return false;
-      }
-    },
-  },
-  computed: {
-    getWidth() {
-      const headerLength = this.groups.length + 1;
+		isMobile() {
+			if (
+				/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+					navigator.userAgent,
+				)
+			) {
+				return true;
+			}
 
-      return {
-        width: "100%",
-        // width: headerLength <= 4 ? 20 * headerLength + "vw" : "100%",
-      };
-    },
+			return false;
+		},
+	},
+	computed: {
+		getWidth() {
+			const headerLength = this.groups.length + 1;
 
-    cardStyle() {
-      const headerLength = this.groups.length;
-      const width = headerLength < 2 && !this.isMobile() ? 32 : 100;
+			return {
+				width: '100%',
+				// Width: headerLength <= 4 ? 20 * headerLength + "vw" : "100%",
+			};
+		},
 
-      return {
-        width: `${width}%`,
-        "margin-right": "10px",
-      };
-    },
-    // firstColumnStyle() {
-    //   return {
-    //     width: "150px",
-    //     background: "yellow",
-    //   };
-    // },
-    // cardStyle() {
-    //   return {
-    //     width: `calc(${100 / this.groups.length}% - 100px)`,
-    //     background: "yellow !important",
-    //   };
-    // },
-  },
-  watch: {
-    groups() {
-      this.headers = this.formatHeaders(this.groups);
-    },
-  },
+		cardStyle() {
+			const headerLength = this.groups.length;
+			const width = headerLength < 2 && !this.isMobile() ? 32 : 100;
+
+			return {
+				width: `${width}%`,
+				'margin-right': '10px',
+			};
+		},
+		// FirstColumnStyle() {
+		//   return {
+		//     width: "150px",
+		//     background: "yellow",
+		//   };
+		// },
+		// cardStyle() {
+		//   return {
+		//     width: `calc(${100 / this.groups.length}% - 100px)`,
+		//     background: "yellow !important",
+		//   };
+		// },
+	},
+	watch: {
+		groups() {
+			this.headers = this.formatHeaders(this.groups);
+		},
+	},
 };
 </script>
 

@@ -23,26 +23,19 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="appLoadContainer"
-               fluid>
+  <v-container class="appLoadContainer" fluid>
     <div class="navbar">
       <NavBar />
     </div>
 
-    <!-- <iframe viewer  -->
-    <ViewerIFrame v-if="showViewer"
-                  class="iframeViewerContainer"
-                  :inDrag="inDrag"
-                  v-on:update:inDrag="inDrag = $event"></ViewerIFrame>
+    <!-- <iframe viewer 
+    <ViewerIFrame v-if="showViewer" class="iframeViewerContainer" :inDrag="inDrag" v-on:update:inDrag="inDrag = $event">
+    </ViewerIFrame> -->
 
     <!-- <iframe  -->
-    <iframe v-if="appPath"
-            class="iframeContainer"
-            :class="{ 'disabled-event': inDrag }"
-            :src="appPath"></iframe>
+    <iframe v-if="appPath" class="iframeContainer" :class="{ 'disabled-event': inDrag }" :src="appPath"></iframe>
 
-    <div v-else
-         class="iframeContainer notFoundDiv">
+    <div v-else class="iframeContainer notFoundDiv">
       <h1 class="code">404</h1>
       <h1>No app found</h1>
     </div>
@@ -63,7 +56,7 @@ import { IApp } from "micro-apps/spinal-env-pam-apps-manager/src/types/interface
   },
 })
 class ApplicationView extends Vue {
-  appSelected: IApp = null;
+  appSelected: IApp | null = null;
   showViewer = false;
   appPath: any = null;
   inDrag = false;
@@ -88,12 +81,13 @@ class ApplicationView extends Vue {
   getAppInfo() {
     try {
       const { query } = this.$route;
+      console.log("Query = ", query);
       const appId: any = query.app;
       if (!appId) return;
 
       const application: any = JSON.parse(atob(appId));
       return application;
-    } catch (error) {}
+    } catch (error) { }
   }
 
   getAppPath() {
@@ -103,6 +97,7 @@ class ApplicationView extends Vue {
       this.showViewer = true;
       return `/micro-apps/spinal-env-pam-dataview`;
     }
+    console.log(`path = /micro-apps/${this.appSelected.packageName}`)
     return `/micro-apps/${this.appSelected.packageName}`;
   }
 
@@ -129,20 +124,24 @@ export default ApplicationView;
     top: 5px;
     left: 0px;
   }
+
   .iframeViewerContainer {
     width: 100%;
     height: 100%;
   }
+
   .iframeContainer {
     width: 100%;
     height: 100%;
   }
-  .iframeViewerContainer + .iframeContainer {
+
+  .iframeViewerContainer+.iframeContainer {
     position: absolute;
     right: 0;
     width: 33%;
     height: 100%;
   }
+
   .disabled-event {
     pointer-events: none;
   }
@@ -152,6 +151,7 @@ export default ApplicationView;
     align-items: center;
     justify-content: center;
     flex-direction: column;
+
     .code {
       font-size: 5em;
     }
