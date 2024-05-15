@@ -30,6 +30,7 @@ with this file. If not, see
         :item="data"
         :isTitle="true"
         :unit="unit"
+        @onClick="() => selectDataView(data)"
       />
     </div>
 

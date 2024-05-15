@@ -47,7 +47,7 @@ export const config: IConfig = {
   },*/
 
   // Config DEI
-  
+  /*
   entryPoint: {
     context: "Gestion des équipements",
     category: "Typologie",
@@ -80,11 +80,11 @@ export const config: IConfig = {
     },
   ],
   regroupement: ["rooms", "floors"],
-  
+  */
   // FIN Config DEI
 
   // Config Gienah
-/*
+
   entryPoint: {
     context: "Contexte de pièces intégration",
     category: "Toutes les pièces",
@@ -127,7 +127,7 @@ export const config: IConfig = {
     },
   ],
   regroupement: ["floors"],
-*/
+
   // FIN Config Gienah
 
   viewButtons: "base",

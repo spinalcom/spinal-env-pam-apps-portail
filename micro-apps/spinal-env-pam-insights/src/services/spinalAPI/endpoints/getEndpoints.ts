@@ -100,7 +100,10 @@ async function sendListMultipleRequest(
   const promises = chunked.map((ids) => spinalAPI.post<any>(url, ids));
   return Promise.allSettled(promises).then((result) => {
     return result.reduce((list, { status, value }) => {
-      if (status === "fulfilled" && value.status == 200)
+      if (
+        status === "fulfilled" &&
+        (value.status == 200 || value.status == 206)
+      )
         list.push(...value.data);
       return list;
     }, []);

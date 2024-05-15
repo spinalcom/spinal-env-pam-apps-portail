@@ -37,6 +37,9 @@ with this file. If not, see
       <div>{{ unit }}</div>
     </div>
     <div class="name">{{ item.name }}</div>
+    <div v-if="!isTitle && isChartPossible">
+      <v-btn icon x-small @click.stop=""><v-icon>mdi-chart-line</v-icon></v-btn>
+    </div>
   </div>
 </template>
 
@@ -47,6 +50,7 @@ import {
   VIEWER_AGGREGATE_SELECTION_CHANGED,
   VIEWER_SPRITE_CLICK,
 } from "spinal-viewer-event-manager";
+import { ITemporality } from "../../interfaces/IConfig";
 
 export default {
   name: "dataView",
@@ -67,6 +71,14 @@ export default {
         console.error(error);
         return "";
       }
+    },
+  },
+  computed: {
+    isChartPossible() {
+      return (
+        this.$store.state.appDataStore.temporalitySelected.name !==
+        ITemporality.currentValue
+      );
     },
   },
   methods: {

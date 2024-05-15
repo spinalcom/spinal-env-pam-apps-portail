@@ -18,18 +18,25 @@
           >
             X
           </span>
-          <span style="font-size: 13px; color: rgb(20, 32, 44)">
-            {{ data.name }}
-          </span>
+          <div style="width: calc(100% - 25px)">
+            <div
+              class="color"
+              :style="{ background: data.color }"
+              style="display: inline-block"
+            ></div>
+            <span style="font-size: 13px; color: rgb(20, 32, 44)">
+              {{ data.name }} : {{ roundedValue }}
+            </span>
+          </div>
         </div>
         <LineChart
           class="mx-2"
           :data="{
-            labels: data.series.map(() => ''),
+            labels: labels,
             datasets: [
               {
                 label: '',
-                data: data.series.map((el) => el.value),
+                data: values,
                 borderColor: '#00A2FF',
                 backgroundColor: data.color,
                 fill: false,
@@ -38,12 +45,36 @@
           }"
           :options="{
             pointStyle: false,
+            spanGaps: true,
             plugins: {
               title: {
                 display: false,
               },
               legend: {
                 display: false,
+              },
+            },
+            scales: {
+              x: {
+                ticks: {
+                  callback: function (_, i, x) {
+                    if (i % Math.round(labels.length / 4)) return '';
+                    return toDate(labels[i]);
+                  },
+                },
+              },
+            },
+            interaction: {
+              mode: 'nearest',
+              axis: 'xy',
+              intersect: false,
+              callbacks: {
+                title: (context) => {
+                  return this.toTooltipDate(context[0].raw.x);
+                },
+                label: (tooltipItem) => {
+                  return `${tooltipItem.parsed.y.toFixed(2)} ${data.unit}`;
+                },
               },
             },
           }"
@@ -57,9 +88,55 @@
 import { store } from "../../services/store";
 import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 import { Line as LineChart } from "vue-chartjs";
+import { getLabels, getValues } from "../../services/calcul/computeChart";
+import { ITemporality } from "../../interfaces/IConfig";
+import moment from "moment";
+import "moment/locale/fr";
+
+moment.locale("fr", {
+  months: [
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
+  ],
+  monthsShort: [
+    "Jan",
+    "Fév",
+    "Mar",
+    "Avr",
+    "Mai",
+    "Juin",
+    "Juil",
+    "Août",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Déc",
+  ],
+  weekdays: [
+    "Dimanche",
+    "Lundi",
+    "Mardi",
+    "Mercredi",
+    "Jeudi",
+    "Vendredi",
+    "Samedi",
+  ],
+  weekdaysShort: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+  weekdaysMin: ["Di", "Lu", "Ma", "Me", "Je", "Ve", "Sa"],
+});
 
 export default {
-  name: "SpriteComponent",
+  name: "ChartSpriteComponent",
   components: {
     LineChart,
   },
@@ -72,20 +149,75 @@ export default {
       boxShadow: "none",
     },
   }),
+  computed: {
+    roundedValue() {
+      return `${this.data.displayValue.toFixed(2)} ${this.data.unit}`;
+    },
+    labels() {
+      return getLabels(
+        store.state.appDataStore.temporalitySelected,
+        this.data.navIndex
+      );
+    },
+    values() {
+      const vals = getValues(this.data.series);
+      return this.labels.map((label) => ({
+        x: label,
+        y: vals[label] || undefined,
+      }));
+    },
+  },
   methods: {
     onClick() {
       store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
     },
     _isSelected() {},
     _isNotSelected() {},
+    toDate(date) {
+      switch (store.state.appDataStore.temporalitySelected.name) {
+        case ITemporality.hour:
+          return moment(date).format("HH:mm");
+        case ITemporality.day:
+          return moment(date).format("HH[h]");
+        case ITemporality.week:
+          return moment(date).format("dd");
+        case ITemporality.month:
+          return moment(date).format("D/M/YY");
+        case ITemporality.year:
+          return moment(date).format("MMM");
+        case ITemporality.custom:
+          const { begin, end } =
+            store.state.appDataStore.temporalitySelected.range;
+          const duration = moment.duration(
+            moment(end, "DD-MM-YYYY HH:mm:ss").diff(
+              moment(begin, "DD-MM-YYYY HH:mm:ss")
+            )
+          );
+          console.log(moment(end, "DD-MM-YYYY HH:mm:ss"), duration);
+          if (duration.asMonths() > 2) return moment(date).format("MMM");
+          if (duration.asDays() > 1) return moment(date).format("D/M/YY");
+          if (duration.asHours() > 1) return moment(date).format("HH[h]");
+          return moment(date).format("HH:mm");
+        default:
+          return moment(date).format("D/M/YY");
+      }
+    },
+    toTooltipDate(date) {
+      return moment(date).format("DD/MM/YYYY HH:mm");
+    },
   },
-  mounted() {
-    console.log(this.data);
-  },
+  mounted() {},
 };
 </script>
 
 <style scoped>
+.color {
+  width: 7px;
+  height: 12px;
+  margin-right: 4px;
+  border-radius: 3px;
+}
+
 .card-menu {
   top: 50%;
   border-radius: 0px 12px 12px 12px !important;
