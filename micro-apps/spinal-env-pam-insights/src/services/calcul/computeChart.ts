@@ -1,6 +1,16 @@
 import { ITemporality } from "../../interfaces/IConfig";
 import moment from "moment";
 
+/***
+ * @function getLabels
+ * @param temporality {ITemporality}
+ * @param index {number}
+ * @returns {Array<number>}
+ * @description renvoie un tableau de timestamp à intervalle régulier de 5 minutes
+ * @example getLabels("four", -2)
+ * @summary getLabels
+ * @typedef {Array} getLabels
+ */
 export function getLabels(temporality: any, index: number = 0) {
   let begin;
   switch (temporality.name) {
@@ -65,6 +75,18 @@ export function getLabels(temporality: any, index: number = 0) {
   }
 }
 
+/***
+ * @function getValues
+ * @param series {Array<{date: number, value: number}>}
+ * @returns {Object}
+ * @description renvoie un objet avec les valeurs des séries sous la forme {
+ * timestamp1: value1,
+ * timestamp2: value2,
+ * ...}
+ * @example getValues([{date: 1620000000000, value: 10}, {date: 1620000000000, value: 20}])
+ * @summary getValues
+ * @typedef {Object} getValues
+ */
 export function getValues(series: any[]) {
   const ret = {};
   series.forEach((s) => {

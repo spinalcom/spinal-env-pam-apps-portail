@@ -25,6 +25,7 @@ with this file. If not, see
 <template>
   <div>
     <v-card elevation="4" class="cardContainer">
+      <!-- configuration de la légende (affichage et couleur des sprites)-->
       <v-card
         v-if="!chartViewDisplay"
         class="d-flex flex-column justify-space-around align-center"
@@ -72,6 +73,8 @@ with this file. If not, see
         </div>
         <v-btn icon @click="dialog = true"><v-icon>mdi-cog</v-icon></v-btn>
       </v-card>
+
+      <!-- affichage scindé ou coùmplet (dataapp viewer)-->
       <button
         @click="
           () => {
@@ -127,6 +130,8 @@ with this file. If not, see
         <v-icon v-else-if="DActive">mdi-chevron-left</v-icon>
         <v-icon v-else>mdi-chevron-right</v-icon>
       </button>
+
+      <!-- affichage des données -->
       <div
         class="dataContainer"
         @onSpriteClick="updateSelected"
@@ -135,6 +140,7 @@ with this file. If not, see
         <div class="detail_header">
           <div class="title_date">
             <div class="_title">{{ config.title }}</div>
+            <!-- navigation temporelle-->
             <div v-if="navigable">
               <v-btn elevation="0" fab small @click="t_index--">
                 <v-icon>mdi-chevron-left</v-icon>
@@ -150,6 +156,7 @@ with this file. If not, see
                 <v-icon>mdi-chevron-right</v-icon>
               </v-btn>
             </div>
+            <!-- rafraichissement des données -->
             <div v-else>
               <v-progress-circular
                 :rotate="-90"
@@ -164,6 +171,7 @@ with this file. If not, see
             </div>
           </div>
 
+          <!-- selection de la source et du regroupement -->
           <v-row class="source_regroupement_select">
             <v-col>
               <v-autocomplete
@@ -195,6 +203,7 @@ with this file. If not, see
             </v-col>
           </v-row>
 
+          <!-- selection du type de calcul -->
           <div class="calcul_content">
             <div class="calcul">
               <div class="select">
@@ -250,6 +259,7 @@ with this file. If not, see
           </div>
         </div>
 
+        <!-- affichage des données -->
         <div
           v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected"
           class="detail_container"
@@ -268,6 +278,7 @@ with this file. If not, see
           />
         </div>
 
+        <!-- page chargée avec succès (zone non selectionnée) -->
         <div
           class="centered"
           v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected"
@@ -278,6 +289,7 @@ with this file. If not, see
           </p>
         </div>
 
+        <!-- animation de rafraichissement -->
         <div class="centered" v-else-if="pageSate === PAGE_STATES.loading">
           <v-progress-circular
             :size="70"
@@ -287,6 +299,7 @@ with this file. If not, see
           ></v-progress-circular>
         </div>
 
+        <!-- bouton de relance en cas d'erreur -->
         <div class="centered" v-else-if="pageSate === PAGE_STATES.error">
           <div>
             <v-icon color="red" style="font-size: 5em"
@@ -300,6 +313,8 @@ with this file. If not, see
         </div>
       </div>
     </v-card>
+
+    <!-- boite de dialogue de configuration de la légende -->
     <v-dialog v-model="dialog" width="80%">
       <config-legend v-if="dialog" v-model="legend" @close="dialog = false">
       </config-legend>
@@ -436,6 +451,7 @@ class InsightApp extends Vue {
     );
   }
 
+  // date à afficher dans le header (navigation temporelle)
   get displayDate() {
     const currentDay = moment();
     let end;
@@ -570,6 +586,7 @@ class InsightApp extends Vue {
     this.selectedItem = item.detail || item;
   }
 
+  // MAJ des données en fonction de la temporalité de la navigation temporelle
   async updateDataOnTimeChanged() {
     const end = moment().minutes(59).seconds(59);
     switch (this.selectedTime.name) {
@@ -631,6 +648,8 @@ class InsightApp extends Vue {
       return;
     }
     const buildingId = localStorage.getItem("idBuilding");
+
+    // recuperation des zones à afficher dans le viewer + données utiles
     const itemsToColor = this.data.flatMap((el) => el.children || []);
     itemsToColor.forEach((el) => {
       el.unit = this.sourceSelected.unit;
@@ -646,19 +665,26 @@ class InsightApp extends Vue {
         component: SpriteComponent,
       });
       if (!this.selectedItem) return;
+
+      // envoi de l'evenement de click sur le sprite selectionné
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.selectedItem });
+
+      // selection des items dans le viewer (regroupement pas complet)
       const selectedIds = this.selectedItem.children?.map(
         (el) => el.dynamicId
       ) || [this.selectedItem.dynamicId];
       setTimeout(() => {
         this.$store.dispatch(ActionTypes.SELECT_SPRITES, selectedIds);
       }, 500);
+
+      // si on afficher les sprites, on ne colorie pas les espaces
       this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
         items: itemsToColor.map((el) => ({ ...el, color: null })),
         buildingId,
       });
     } else {
+      // coloration des espaces si on n'affiche pas les sprites
       this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
         items: itemsToColor,
         buildingId,
@@ -666,6 +692,7 @@ class InsightApp extends Vue {
     }
   }
 
+  // affichage du diagramme sans les sprites
   updateChartSprite() {
     if (!this.sprites) this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
     if (
@@ -681,6 +708,7 @@ class InsightApp extends Vue {
     });
   }
 
+  // selection d'un element dans la vue de données au click
   selectDataView(item) {
     console.log(item, "etape 1");
     this.updateSelected(item);
@@ -719,6 +747,7 @@ class InsightApp extends Vue {
     this.isBuildingSelected = false;
     this.reload = this.updateDataOnTimeChanged;
     if (this.selectedTime.name === ITemporality.currentValue) {
+      // rafraichissement automatique
       this.intervalId = setInterval(() => {
         this.reload_countdown += 1 / 6;
       }, 100);
@@ -794,6 +823,7 @@ class InsightApp extends Vue {
   async watchSelectedTime(newVal) {
     if (this.isBuildingSelected) return;
     if (!this.t_index) await this.updateDataOnTimeChanged();
+    // remise de la navigation temporelle à 0 au changement de temporalité
     else this.t_index = 0;
     if (newVal.name === ITemporality.currentValue) {
       this.intervalId = setInterval(() => {
@@ -823,27 +853,9 @@ class InsightApp extends Vue {
 
   /**
    * Getters
+   *
+   * Récupération des données de configuration
    */
-
-  public get gradientColor(): string {
-    const maxColor = this.legend.max.color;
-    const minColor = this.legend.min.color;
-    const medianColor = this.legend.median?.color;
-
-    if (!medianColor) {
-      return `linear-gradient(to right, ${minColor},  ${maxColor})`;
-    }
-
-    return `linear-gradient(to right, ${minColor} 25%, ${medianColor} 50%, ${maxColor} 75%)`;
-  }
-
-  public get min(): number {
-    return this.legend.min.value;
-  }
-
-  public get max(): number {
-    return this.legend.max.value;
-  }
 
   public get calculItems() {
     return this.config.calculs || [];

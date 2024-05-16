@@ -99,6 +99,8 @@ with this file. If not, see
         </transition-group>
       </v-card>
     </div>
+
+    <!-- Boite de dialogue pour la selection personnalisée de la temporalité -->
     <v-dialog v-model="pickDate" width="80%" persistent>
       <v-card>
         <v-card-text class="d-flex flex-row justify-space-between">
@@ -151,6 +153,7 @@ with this file. If not, see
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn text @click="pickDate = false">Annuler</v-btn>
+          <!-- validation possible que si tous les champs sont remplis -->
           <v-btn text @click="onDateChange" :disabled="!validatePicker"
             >OK</v-btn
           >
@@ -256,6 +259,7 @@ class SpaceSelector extends Vue {
 
   @Watch("date")
   onDateChange() {
+    // formattage de la plage de date pour les requetes
     const item = this.buildingStructure.find((b) => b.name === "Personnalisé");
     const [begin, end] = [
       this.dateBegin + " " + this.timeBegin,
@@ -266,6 +270,7 @@ class SpaceSelector extends Vue {
       end: moment(end).format("DD-MM-YYYY HH:mm:ss"),
     };
 
+    // reinitialisation des champs
     this.dateBegin = "";
     this.dateEnd = "";
     this.timeBegin = "";

@@ -261,10 +261,6 @@ class App extends Vue {
     this.isActive3D = !this.isActive3D;
   }
 
-  display(val) {
-    console.log(val);
-  }
-
   toDate(date) {
     switch (this.$store.state.appDataStore.temporalitySelected.name) {
       case ITemporality.hour:

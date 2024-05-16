@@ -22,17 +22,17 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import axios from 'axios';
+import axios from "axios";
 
 export class SpinalAPI {
   axiosInstance = axios.create({ baseURL: this.apiUrl });
   get apiUrl() {
-    return `${this._apiUrl}${this._apiUrl.endsWith('/') ? '' : '/'}`;
+    return `${this._apiUrl}${this._apiUrl.endsWith("/") ? "" : "/"}`;
   }
 
-  private constructor(public readonly _apiUrl: string = '') {
+  private constructor(public readonly _apiUrl: string = "") {
     this.axiosInstance.interceptors.request.use((request) => {
-      const t = localStorage.getItem('token');
+      const t = localStorage.getItem("token");
       // @ts-ignore
       if (t) request.headers.common.Authorization = `Bearer ${t}`;
       return request;
@@ -54,12 +54,12 @@ export class SpinalAPI {
   }
 
   public createUrl(ApiRoute: string): string {
-    if (ApiRoute.startsWith('/')) ApiRoute = ApiRoute.substring(1);
+    if (ApiRoute.startsWith("/")) ApiRoute = ApiRoute.substring(1);
     return this.apiUrl + ApiRoute;
   }
 
   public createUrlWithPlatformId(buildingId: string, ApiRoute: string): string {
-    if (!ApiRoute.startsWith('/')) ApiRoute = '/' + ApiRoute;
+    if (!ApiRoute.startsWith("/")) ApiRoute = "/" + ApiRoute;
     return `${this.apiUrl}api/v2/building/${buildingId}${ApiRoute}`;
   }
 
