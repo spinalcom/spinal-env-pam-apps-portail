@@ -38,7 +38,9 @@ with this file. If not, see
     </div>
     <div class="name">{{ item.name }}</div>
     <div v-if="!isTitle && isChartPossible">
-      <v-btn icon x-small @click.stop=""><v-icon>mdi-chart-line</v-icon></v-btn>
+      <v-btn icon x-small @click.stop="changeSelectedItem"
+        ><v-icon>mdi-chart-line</v-icon></v-btn
+      >
     </div>
   </div>
 </template>
@@ -51,9 +53,11 @@ import {
   VIEWER_SPRITE_CLICK,
 } from "spinal-viewer-event-manager";
 import { ITemporality } from "../../interfaces/IConfig";
+import { MutationTypes } from "../../services/store/appDataStore/mutations";
 
 export default {
   name: "dataView",
+  displayChart: true,
   props: {
     item: {},
     isTitle: { type: Boolean, default: () => false },
@@ -95,6 +99,21 @@ export default {
       to_search = isArray(to_search) ? to_search : [to_search];
       for (const id of to_search) if (data.dbIds.includes(id)) return true;
       return false;
+    },
+
+    changeSelectedItem() {
+      if (
+        this.$store.state.appDataStore.itemSelected &&
+        this.item.dynamicId ===
+          this.$store.state.appDataStore.itemSelected.dynamicId
+      ) {
+        this.displayChart = !this.displayChart;
+        this.$emit("chartView", this.displayChart);
+        return;
+      }
+      this.displayChart = true;
+      this.$store.commit(MutationTypes.SET_ITEM_SELECTED, this.item);
+      this.$emit("chartView", this.displayChart);
     },
   },
 

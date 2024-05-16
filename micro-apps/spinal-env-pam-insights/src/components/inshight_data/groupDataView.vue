@@ -42,6 +42,7 @@ with this file. If not, see
         :color="getItemColor(item)"
         :unit="unit"
         @onClick="() => selectDataView(item)"
+        @chartView="(val) => $emit('chartView', val)"
       />
       <DataView
         v-if="!data.children || data.children.length === 0"

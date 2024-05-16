@@ -65,7 +65,20 @@ with this file. If not, see
         class="viewerContainer"
         :class="{ active3D: isActive3D }"
       ></viewerApp>
-      <sc-line-card v-else></sc-line-card>
+      <sc-line-card
+        v-else
+        class="viewerContainer"
+        :class="{ active3D: isActive3D }"
+        :title="title"
+        :labels="labelDisplay"
+        :datasets="chartData"
+        :step="labels.length / 4"
+        :tooltipCallbacks="{
+          title: (context) => toTooltipDate(context[0].raw.x),
+          label: (tooltipItem) =>
+            `${tooltipItem.parsed.y.toFixed(2)} ${selectedItem.unit}`,
+        }"
+      ></sc-line-card>
       <InsightApp
         class="appContainer"
         :DActive="isActive3D"
@@ -78,6 +91,7 @@ with this file. If not, see
         @clickOnDataView="onDataViewClicked"
         @buttonClicked="toggleActive"
         @buttonClicked3D="toggleActive3D"
+        @chartView="switchView"
       ></InsightApp>
     </div>
   </v-app>
@@ -115,13 +129,57 @@ import { DataTable } from "./components/data-table";
 import viewerApp from "./components/viewer/viewer.vue";
 import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
-import { IConfig } from "./interfaces/IConfig";
+import { IConfig, ITemporality } from "./interfaces/IConfig";
 import InsightApp from "./components/inshight_data/app.vue";
 import { PAGE_STATES } from "./interfaces/pageStates";
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
 } from "spinal-viewer-event-manager";
+import { getLabels, getValues } from "./services/calcul/computeChart";
+import moment from "moment";
+
+moment.locale("fr", {
+  months: [
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
+  ],
+  monthsShort: [
+    "Jan",
+    "Fév",
+    "Mar",
+    "Avr",
+    "Mai",
+    "Juin",
+    "Juil",
+    "Août",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Déc",
+  ],
+  weekdays: [
+    "Dimanche",
+    "Lundi",
+    "Mardi",
+    "Mercredi",
+    "Jeudi",
+    "Vendredi",
+    "Samedi",
+  ],
+  weekdaysShort: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+  weekdaysMin: ["Di", "Lu", "Ma", "Me", "Je", "Ve", "Sa"],
+});
 
 @Component({
   components: {
@@ -157,6 +215,41 @@ class App extends Vue {
     buildingId: "",
   };
   vueChart: boolean = false;
+  chartLabel = "";
+
+  switchView(item) {
+    this.vueChart = item.display;
+    this.chartLabel = item.source;
+  }
+
+  public get selectedItem() {
+    return this.$store.state.appDataStore.itemSelected;
+  }
+
+  public get title() {
+    return this.selectedItem.name;
+  }
+
+  public get labels() {
+    return getLabels(
+      this.$store.state.appDataStore.temporalitySelected,
+      this.selectedItem?.navIndex
+    );
+  }
+
+  public get labelDisplay() {
+    return this.labels.map((label) => this.toDate(label));
+  }
+
+  public get chartData() {
+    const vals = getValues(this.selectedItem?.series || []);
+    const data = this.labels.map((label) => ({
+      x: label,
+      y: vals[label] || undefined,
+    }));
+    const color = this.selectedItem?.color;
+    return [{ label: this.chartLabel, data, color }];
+  }
 
   toggleActive() {
     if (this.isActive3D) this.isActive3D = false;
@@ -166,6 +259,44 @@ class App extends Vue {
   toggleActive3D() {
     if (this.isActive) this.isActive = false;
     this.isActive3D = !this.isActive3D;
+  }
+
+  display(val) {
+    console.log(val);
+  }
+
+  toDate(date) {
+    switch (this.$store.state.appDataStore.temporalitySelected.name) {
+      case ITemporality.hour:
+        return moment(date).format("HH:mm");
+      case ITemporality.day:
+        return moment(date).format("HH[h]");
+      case ITemporality.week:
+        return moment(date).format("dd");
+      case ITemporality.month:
+        return moment(date).format("D/M/YY");
+      case ITemporality.year:
+        return moment(date).format("MMM");
+      case ITemporality.custom:
+        const { begin, end } =
+          this.$store.state.appDataStore.temporalitySelected.range;
+        const duration = moment.duration(
+          moment(end, "DD-MM-YYYY HH:mm:ss").diff(
+            moment(begin, "DD-MM-YYYY HH:mm:ss")
+          )
+        );
+        console.log(moment(end, "DD-MM-YYYY HH:mm:ss"), duration);
+        if (duration.asMonths() > 2) return moment(date).format("MMM");
+        if (duration.asDays() > 1) return moment(date).format("D/M/YY");
+        if (duration.asHours() > 1) return moment(date).format("HH[h]");
+        return moment(date).format("HH:mm");
+      default:
+        return moment(date).format("D/M/YY");
+    }
+  }
+
+  toTooltipDate(date) {
+    return moment(date).format("DD/MM/YYYY HH:mm");
   }
 
   async mounted() {
@@ -456,7 +587,7 @@ export default App;
     height: calc(100% - #{$selectorHeight + 30px});
     margin: 80px 8px 0 8px;
     .viewerContainer {
-      width: 60%;
+      width: calc(60% - 4px);
       height: 100%;
       float: left;
     }

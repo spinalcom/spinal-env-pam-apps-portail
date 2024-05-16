@@ -26,12 +26,13 @@ with this file. If not, see
   <div>
     <v-card elevation="4" class="cardContainer">
       <v-card
+        v-if="!chartViewDisplay"
         class="d-flex flex-column justify-space-around align-center"
         style="
           position: absolute;
           left: -75px;
           width: 70px;
-          height: 150px;
+          height: 175px;
           z-index: 2;
         "
       >
@@ -56,7 +57,7 @@ with this file. If not, see
               height: '18px',
             }"
           ></div>
-          <div style="font-size: 13px">{{ legend.median.value }}</div>
+          <div style="font-size: 13px">{{ medianValue }}</div>
         </div>
         <div style="display: flex; align-items: center">
           <div
@@ -69,6 +70,7 @@ with this file. If not, see
           ></div>
           <div style="font-size: 13px">{{ legend.max.value }}</div>
         </div>
+        <v-btn icon @click="dialog = true"><v-icon>mdi-cog</v-icon></v-btn>
       </v-card>
       <button
         @click="
@@ -193,21 +195,6 @@ with this file. If not, see
             </v-col>
           </v-row>
 
-          <div class="d-flex">
-            <div class="gradient_content">
-              <div class="indicators">
-                <div class="indicator">{{ min }}</div>
-                <div class="indicator">{{ max }}</div>
-              </div>
-
-              <div
-                class="gradient_bar"
-                :style="{ background: gradientColor }"
-              ></div>
-            </div>
-            <v-btn icon @click="dialog = true"><v-icon>mdi-cog</v-icon></v-btn>
-          </div>
-
           <div class="calcul_content">
             <div class="calcul">
               <div class="select">
@@ -277,6 +264,7 @@ with this file. If not, see
             :legend="legend"
             :percent="percent"
             @onClick="selectDataView"
+            @chartView="chartView"
           />
         </div>
 
@@ -404,6 +392,7 @@ class InsightApp extends Vue {
     this.config.regroupement[0];
   legend: any = this.config.source[0].legend;
   dialog: boolean = false;
+  chartViewDisplay: boolean = false;
   reload = function () {};
 
   initiated: boolean = false;
@@ -428,6 +417,13 @@ class InsightApp extends Vue {
 
   public get sourceSelected() {
     return this.config.source.find((el) => el.name === this.sourceSelectedName);
+  }
+
+  public get medianValue() {
+    return (
+      this.legend.median?.value ||
+      (this.legend.max.value + this.legend.min.value) / 2
+    );
   }
 
   async mounted() {
@@ -477,6 +473,11 @@ class InsightApp extends Vue {
       default:
         return "";
     }
+  }
+
+  chartView(val) {
+    this.chartViewDisplay = val;
+    this.$emit("chartView", { display: val, source: this.sourceSelectedName });
   }
 
   resize() {
@@ -622,6 +623,13 @@ class InsightApp extends Vue {
   }
 
   async updateSprites() {
+    if (this.chartViewDisplay) {
+      this.$emit("chartView", {
+        display: true,
+        source: this.sourceSelectedName,
+      });
+      return;
+    }
     const buildingId = localStorage.getItem("idBuilding");
     const itemsToColor = this.data.flatMap((el) => el.children || []);
     itemsToColor.forEach((el) => {

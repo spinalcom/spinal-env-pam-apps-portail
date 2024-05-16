@@ -58,6 +58,7 @@
             :options="{
               pointStyle: false,
               spanGaps: true,
+              tension: 0.3,
               plugins: {
                 title: {
                   display: false,
