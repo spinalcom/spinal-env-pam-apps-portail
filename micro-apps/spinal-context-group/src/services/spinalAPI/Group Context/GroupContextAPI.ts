@@ -1,5 +1,5 @@
 // * Classes
-import { GrpContextTranslator } from "../../GroupeWithChildren/Translator";
+import { GroupContextPayloadGenerator } from "./PayloadGenerator";
 import { type SpinalAPI } from "../SpinalAPI";
 import { AAPI } from "../AAPI";
 
@@ -7,18 +7,19 @@ import { AAPI } from "../AAPI";
 import {
   type IApiGroupContext,
   type IGroupItem,
-} from "../../GroupeWithChildren/Interfaces";
-
-// * Enums
-import { EAPIVerb, EGroupType } from "../../GroupeWithChildren/Interfaces";
-
-// * Factory
-import { GroupItemFactory } from "../../GroupeWithChildren/Factory";
+} from "../../../interfaces/GroupWithChildren";
 
 // * DTO
 import { type GroupContext } from "./DTO";
-import { resolve } from "path";
-import { reject } from "cypress/types/bluebird";
+
+// * Enums
+import { EAPIVerb, EGroupType } from "../../../interfaces/GroupWithChildren";
+
+// * Factory
+import { GroupItemFactory } from "../../../interfaces/GroupWithChildren";
+
+
+
 /**
  * This class contain every endpoint that we can use in order to communicate with the API
  * @class SpinalAPIConnector
@@ -36,7 +37,7 @@ class GroupContextApi extends AAPI implements IApiGroupContext {
 
   private readonly _genericError: string;
 
-  private readonly _grpCtxTranslator: GrpContextTranslator | undefined =
+  private readonly _grpCtxPayloadGenerator: GroupContextPayloadGenerator | undefined =
     undefined;
 
   private _lexicon: string[][] = [];
@@ -45,7 +46,7 @@ class GroupContextApi extends AAPI implements IApiGroupContext {
     super();
     try {
       this._apiInstance = apiInstance;
-      this._grpCtxTranslator = new GrpContextTranslator();
+      this._grpCtxPayloadGenerator = new GroupContextPayloadGenerator();
       this._genericError = "Une erreur est survenue !";
       this.initLexicon();
     } catch (error) {
@@ -87,7 +88,7 @@ class GroupContextApi extends AAPI implements IApiGroupContext {
           this.getIdCurrentBuilding(),
           this.fillUrlTemplate(this._lexicon[verb][item.type], path)
         ) ?? "";
-      data = this._grpCtxTranslator?.translate(item, verb);
+      data = this._grpCtxPayloadGenerator?.translate(item, verb);
       switch (verb) {
         case EAPIVerb.API_CREATION:
           resolve(this._apiInstance.post(url, data));

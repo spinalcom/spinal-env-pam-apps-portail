@@ -1,21 +1,21 @@
 // * Classes
-import { type GroupContextApi } from "../../spinalAPI/Group Context";
-import { GroupWithChildren } from "./GroupWithChildren";
+import { GroupContextApi } from "../../../services/spinalAPI";
+import { GroupWithChildren } from "./Generic/GroupWithChildren";
 
 // * Enums
-import { EAPIVerb, EGroupType } from "../Interfaces";
+import { EAPIVerb, EGroupType } from "../../../interfaces/GroupWithChildren";
 
 // * Factory
-import { GroupItemFactory } from "../Factory";
+import { GroupItemFactory } from "../../../interfaces/GroupWithChildren/Factory";
 
 // * Interfaces
-import { type IGroupItem } from "../Interfaces";
+import { type IGroupItem } from "../../../interfaces/GroupWithChildren";
 
 // * Types
 import { type TGroupOperation } from "..";
-import { type IGroupDisplayable } from "../Interfaces";
+import { type IGroupDisplayable } from "../../../interfaces/GroupWithChildren";
 
-class GrpCgcWithChildren
+class GroupCgcWithChildrenController
   extends GroupWithChildren<IGroupItem>
   implements IGroupDisplayable<IGroupItem, TGroupOperation, Error>
 {
@@ -461,4 +461,4 @@ class GrpCgcWithChildren
   }
 }
 
-export { GrpCgcWithChildren };
+export { GroupCgcWithChildrenController };

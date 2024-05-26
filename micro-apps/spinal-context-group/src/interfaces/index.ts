@@ -31,6 +31,7 @@ import { iListObjFactory } from "./ListAndObj";
 // * Types
 import { ExpansionMode } from "./IExpansionMode";
 import { MinMaxRange } from "./IMinMaxRange";
+import { Legend } from "./GroupWithChildren";
 
 export {
   type DynamicIndexable,
@@ -58,5 +59,6 @@ export {
   type ApiIteratorStoreRecordStringType,
   type ApiIteratorStoreRecordNumberType,
   type MinMaxRange,
+  Legend,
   iListObjFactory,
 };

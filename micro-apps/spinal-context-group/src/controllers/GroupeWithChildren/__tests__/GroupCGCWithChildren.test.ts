@@ -8,7 +8,7 @@ import {
   afterAll,
 } from "@jest/globals";
 import { GroupWithChildren } from "..";
-import { EGroupType, type IGroupItem } from "../Interfaces";
+import { EGroupType, type IGroupItem } from "../../../interfaces/GroupWithChildren";
 
 let grpWithChildren: GroupWithChildren<IGroupItem> =
   new GroupWithChildren<IGroupItem>();

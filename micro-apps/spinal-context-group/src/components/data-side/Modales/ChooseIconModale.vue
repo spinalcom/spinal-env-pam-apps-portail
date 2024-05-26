@@ -22,7 +22,6 @@
 </template>
 
 <script lang="ts">
-
 // Components
 import SimpleModale from './SimpleModale.vue'
 import {

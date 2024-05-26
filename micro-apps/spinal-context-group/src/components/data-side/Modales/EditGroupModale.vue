@@ -29,12 +29,8 @@ m <template>
 </template>
 
 <script lang="ts">
-
-// Classes
-import { GrpCgcWithChildren } from '../../../services/GroupeWithChildren'
-import { SpinalAPI } from '../../../services/spinalAPI/SpinalAPI';
-import { GroupContextApi } from '../../../services/spinalAPI';
-import { RoomsGroupAPI } from '../../../services/spinalAPI';
+// Controllers
+import { GroupCgcWithChildrenController } from '../../../controllers'
 
 // Components
 import ListV1 from '../ListV1.vue'
@@ -43,13 +39,17 @@ import ChooseIconModale from './ChooseIconModale.vue';
 import ChooseColorModale from './ChooseColorModale.vue'
 
 // Enum
-import { EAPIVerb, EGroupType } from '../../../services/GroupeWithChildren';
+import { EAPIVerb, EGroupType } from '../../../controllers'
 
 // Factory
-import { GroupItemFactory } from '../../../services/GroupeWithChildren/Factory';
+import { GroupItemFactory } from '../../../interfaces/GroupWithChildren';
 
 // Interfaces
-import { IGroupItem } from '../../../services/GroupeWithChildren';
+import { IGroupItem } from '../../../controllers/';
+
+// Services
+import { GroupContextApi } from '../../../services';
+import { SpinalAPI } from '../../../services';
 
 // Vuetify
 import { VContainer } from 'vuetify/lib';
@@ -80,7 +80,7 @@ export default {
         let APIGrpContext: GroupContextApi | undefined = undefined;
         let animationsClass: string[] = ["animated fadeInLeft0", "animated fadeInLeft1", "animated fadeInLeft2"]
         let errorMessage: string = ""
-        let grpCGCWithChildren: GrpCgcWithChildren | undefined = undefined;
+        let grpCGCWithChildrenController: GroupCgcWithChildrenController | undefined = undefined;
         const GRP_NUMBER: number = 3
         const groupsToDisplay: IGroupItem[][] = Array(GRP_NUMBER).fill([])
         let isLoading: Array<boolean> = Array(GRP_NUMBER).fill(false);
@@ -95,7 +95,7 @@ export default {
         try {
             spinalAPI = SpinalAPI.getInstance(process.env.SPINAL_API_URL)
             APIGrpContext = new GroupContextApi(spinalAPI)
-            grpCGCWithChildren = new GrpCgcWithChildren(APIGrpContext, GRP_NUMBER)
+            grpCGCWithChildrenController = new GroupCgcWithChildrenController(APIGrpContext, GRP_NUMBER)
         } catch {
             console.error('[Error]: Internal error !')
         }
@@ -108,7 +108,7 @@ export default {
             extraMenuContents,
             errorMessage,
             groupsToDisplay,
-            grpCGCWithChildren,
+            grpCGCWithChildrenController,
             infoTmp,
             isLoading,
             itemTmp,
@@ -133,8 +133,8 @@ export default {
                 if (this.infoTmp.type === undefined) {
                     throw new Error('Des informations sont manquantes');
                 }
-                this.grpCGCWithChildren?.addNewItem(GroupItemFactory.build({ ...this.infoTmp })).then(() => {
-                    this.groupsToDisplay = this.grpCGCWithChildren?.reloadGroupToDisplay() ?? [[], [], []]
+                this.grpCGCWithChildrenController?.addNewItem(GroupItemFactory.build({ ...this.infoTmp })).then(() => {
+                    this.groupsToDisplay = this.grpCGCWithChildrenController?.reloadGroupToDisplay() ?? [[], [], []]
                 }).catch((e: any) => {
                     this.printError(e);
                 })
@@ -148,8 +148,8 @@ export default {
         deleteItem(item: IGroupItem | undefined) {
             if (!item) return
             try {
-                this.grpCGCWithChildren?.deleteItem(item).then(() => {
-                    this.groupsToDisplay = this.grpCGCWithChildren?.reloadGroupToDisplay() ?? [[], [], []]
+                this.grpCGCWithChildrenController?.deleteItem(item).then(() => {
+                    this.groupsToDisplay = this.grpCGCWithChildrenController?.reloadGroupToDisplay() ?? [[], [], []]
                 }).catch((e: any) => {
                     this.printError(e)
                 })
@@ -158,10 +158,10 @@ export default {
             }
         },
         extraMenuClick(item, index, globalIndex) {
-            if (index === 0 && globalIndex === 1) { // Assignation des espaces
+            if (index === 0 && globalIndex === 1) {
                 console.log("Assignation des espaces ...", item);
                 this.$emit('activateSpaceAssignation', item);
-            } else if (index === 0 && globalIndex === 2) { // Assignation des espaces
+            } else if (index === 0 && globalIndex === 2) {
                 console.log("Nomenclature ...", item);
                 this.$emit('activateNomenclatureModale', item);
             }
@@ -218,9 +218,9 @@ export default {
         },
         loadData() {
             this.isLoading[EGroupType.GRP_CONTEXT] = true;
-            this.grpCGCWithChildren?.loadData().then(() => {
+            this.grpCGCWithChildrenController?.loadData().then(() => {
                 this.isLoading[EGroupType.GRP_CONTEXT] = false;
-                this.groupsToDisplay = this.grpCGCWithChildren?.reloadGroupToDisplay() ?? [[], [], []]
+                this.groupsToDisplay = this.grpCGCWithChildrenController?.reloadGroupToDisplay() ?? [[], [], []]
             }).catch((e: any) => {
                 console.error("Error in mounted function")
                 this.isLoading[EGroupType.GRP_CONTEXT] = false;
@@ -235,9 +235,9 @@ export default {
         },
         selectItem(item: IGroupItem | null | undefined): void {
             if (!item) return
-            this.grpCGCWithChildren?.selectItem(item)
-            this.groupsToDisplay = this.grpCGCWithChildren?.reloadGroupToDisplay() ?? [[], [], []]
-            this.selectedItems = this.grpCGCWithChildren?.getSelected() ?? [undefined, undefined, undefined]
+            this.grpCGCWithChildrenController?.selectItem(item)
+            this.groupsToDisplay = this.grpCGCWithChildrenController?.reloadGroupToDisplay() ?? [[], [], []]
+            this.selectedItems = this.grpCGCWithChildrenController?.getSelected() ?? [undefined, undefined, undefined]
         },
         toggleDialogModale(dialog: 'icon' | 'color', value: boolean) {
             switch (dialog) {
@@ -255,8 +255,8 @@ export default {
         updateItem(item: IGroupItem | undefined) {
             if (!item) return
             try {
-                this.grpCGCWithChildren?.editItem(this.infoTmp, item).then(() => {
-                    this.groupsToDisplay = this.grpCGCWithChildren?.reloadGroupToDisplay() ?? [[], [], []]
+                this.grpCGCWithChildrenController?.editItem(this.infoTmp, item).then(() => {
+                    this.groupsToDisplay = this.grpCGCWithChildrenController?.reloadGroupToDisplay() ?? [[], [], []]
                 }).catch((e) => {
                     this.errorMessage = String(e);
                     this.printError(e)

@@ -1,5 +1,5 @@
 // * Classes
-import { AGroupeWithChildren } from "./AGroupeWithChildren";
+import { AGroupeWithChildren } from "../Abstraction/AGroupeWithChildren";
 
 // * Types
 import {
@@ -10,7 +10,7 @@ import {
   type IOperation,
   type IPregnant,
   type IStatable,
-} from "../Interfaces";
+} from "../../../../interfaces/GroupWithChildren";
 import { type IItemV1 } from "@/interfaces";
 
 class GroupWithChildren<T> extends AGroupeWithChildren<T, TGroupOperation> {

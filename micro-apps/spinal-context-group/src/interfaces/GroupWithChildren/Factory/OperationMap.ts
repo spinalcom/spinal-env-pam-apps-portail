@@ -1,5 +1,5 @@
 import * as Factory from 'factory.ts'
-import {type OperationMap, type OperationMapWithId} from '../Interfaces'
+import {type OperationMap, type OperationMapWithId} from '..'
 
 const OperationMapFactory = Factory.Sync.makeFactory<OperationMap>({
 	create: 0,

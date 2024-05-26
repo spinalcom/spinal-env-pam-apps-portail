@@ -1,31 +1,26 @@
-// * Classes
-import { GroupContextApi, SpinalAPI } from "../../../services/spinalAPI";
-import { GroupWithChildren } from "./GroupWithChildren";
-import { RoomManager } from "../../../services/RoomsManager";
-import { RoomsGroupAPI } from "../../../services/spinalAPI";
-
 // * Enums
-import { EGroupType } from "../Interfaces";
+import { EGroupType } from "../../../interfaces/GroupWithChildren";
 
-// * Interfaces
-import {
-  IGroupDisplayable,
-  IGroupItem,
-  IPregnant,
-  iDynamicFilterFactory,
-} from "../Interfaces";
+// * Generic
+import { GroupWithChildren } from "./Generic/GroupWithChildren";
+
+// * Factory
+import { iDynamicFilterFactory } from "../../../interfaces/GroupWithChildren/Factory";
+
+// * Services
+import { GroupContextApi, SpinalAPI } from "../../../services";
+import { RoomManager } from "../../../services";
+import { RoomsGroupAPI } from "../../../services";
 
 // * Types
-import { DynamicFilter } from "../Interfaces";
+import { DynamicFilter } from "../../../interfaces/GroupWithChildren";
+import { IGroupItem, IPregnant, IGroupDisplayable } from "../../../interfaces/GroupWithChildren";
 import { Room } from "@/interfaces/API/Geographic Context/DTO/Request/Room";
 import { ListAndObj } from "@/interfaces";
-import { TGroupOperation } from "../Interfaces";
-import {
-  Attribute,
-  AttributeCategory,
-} from "@/services/spinalAPI/Node Attributs";
+import { TGroupOperation } from "../../../interfaces/GroupWithChildren";
+import { Attribute } from "@/services/spinalAPI/Node Attributs";
 
-class Nomenclature
+class NomenclatureController
   extends GroupWithChildren<IGroupItem>
   implements IGroupDisplayable<IGroupItem, TGroupOperation, Error>
 {
@@ -140,6 +135,7 @@ class Nomenclature
   }
 
   // TODO Implement boolean as well
+  // TODO Refacto
   public async reloadRoomToDisplay(filters: DynamicFilter[]): Promise<Room[]> {
     const rooms: Room[] = [];
     let attrTmp: string;
@@ -190,9 +186,9 @@ class Nomenclature
       console.log("groupe selected = ", groupeObj);
       pms.push(
         this._roomGroupApiInstance.addRoomToRoomGroup(
-          path[0].id,
-          path[1].id,
-          path[2].id,
+          path[0]?.id,
+          path[1]?.id,
+          path[2]?.id,
           rooms.map((x: Room) => x.dynamicId)
         )
       );
@@ -293,12 +289,12 @@ class Nomenclature
                   continue;
                 }
 
-                if (filterLexicon[attr.label].min > valueNbrTmp) {
-                  filterLexicon[attr.label].min = valueNbrTmp;
+                if (parseFloat(filterLexicon[attr.label].min) > valueNbrTmp) {
+                  filterLexicon[attr.label].min = valueNbrTmp.toString();
                 }
 
-                if (filterLexicon[attr.label].max < valueNbrTmp) {
-                  filterLexicon[attr.label].max = valueNbrTmp;
+                if (parseFloat(filterLexicon[attr.label].max) < valueNbrTmp) {
+                  filterLexicon[attr.label].max = valueNbrTmp.toString();
                 }
               }
               typeTmp = "";
@@ -322,7 +318,7 @@ class Nomenclature
     category: string
   ): string {
     let attrs: Attribute[] = room.categoryAttributes?.find(
-      (el) => el.name === "Spatial"
+      (el) => el.name === category
     )?.attributs;
     let attr: Attribute;
 
@@ -330,11 +326,8 @@ class Nomenclature
       return "";
     }
 
-    console.log("Attrs = ", attrs);
-    console.log("Name Search=", name);
     attr = attrs?.find((attr: Attribute) => attr.label === name);
     if (attr) {
-      console.log("Attr Found  = ", attr);
       return attr.value;
     }
 
@@ -376,7 +369,6 @@ class Nomenclature
       !this.findItemInTree(selectedItem, this._groupTree) ||
       !this.isValidRelationSelectedItems()
     ) {
-      console.error("L'item selectione n'est pas correct");
       this.resetSelectedItem(...resetCodes);
       return "Error";
     }
@@ -456,4 +448,4 @@ class Nomenclature
   }
 }
 
-export { Nomenclature };
+export { NomenclatureController };

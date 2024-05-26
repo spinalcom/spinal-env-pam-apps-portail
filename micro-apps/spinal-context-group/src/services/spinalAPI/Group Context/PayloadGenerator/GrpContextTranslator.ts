@@ -1,18 +1,15 @@
-// * Implementation Simple
-// TODO Faire en sort que cette classe implement/extends d'une interfaces
-// TODO Refacto this en qqchose d'un peu plus clean
 // Interfaces
-import { IGroupItem, Translator } from "../Interfaces";
+import { IGroupItem, Translator } from "../../../../interfaces/GroupWithChildren";
 
 // Enums
-import { EAPIVerb } from "../Interfaces";
+import { EAPIVerb } from "@/controllers";
 
 /**
  * This class generate payload
  * @class GrpContextTranslator
  * @implements {Translator<IGroupItem, EAPIVerb>}
  */
-class GrpContextTranslator implements Translator<IGroupItem, EAPIVerb> {
+class GroupContextPayloadGenerator implements Translator<IGroupItem, EAPIVerb> {
   private _lexicon: Array<Array<(item: IGroupItem) => any>> = [];
 
   constructor() {
@@ -88,4 +85,4 @@ class GrpContextTranslator implements Translator<IGroupItem, EAPIVerb> {
   }
 }
 
-export { GrpContextTranslator };
+export { GroupContextPayloadGenerator };

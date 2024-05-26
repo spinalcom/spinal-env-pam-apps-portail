@@ -11,7 +11,7 @@
 
 <script lang="ts">
 import { ref } from 'vue';
-import { type Legend } from '../../services/GroupeWithChildren/Interfaces';
+import { type Legend } from '../../interfaces';
 
 export default {
 	props: {

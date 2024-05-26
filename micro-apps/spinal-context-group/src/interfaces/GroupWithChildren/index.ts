@@ -6,7 +6,6 @@ import { type TGroupOperation } from "./TGroupOperation";
 // * Interfaces
 import { type IApiGroupContext } from "./IApiGroupContext";
 import { type IDisplayable } from "./IDisplayable";
-import { type IGroupItem } from "./IGroupItem";
 import { type IIdentifiable } from "./IIdentifiable";
 import { type IIndexableFromRoot } from "./IIndexableFroomRoot";
 import { type IGroupDisplayable } from "./IGroupDisplayable";
@@ -24,12 +23,16 @@ import {
 import { type KpiBase } from "./IKpiBase";
 import { type TypeLegend } from "./ILegend";
 import { type Comparaison, type DynamicFilter } from "./IDynamicFilter";
+import { type IGroupItem } from "./IGroupItem";
+import { type IGroupRoomItem } from "./IGroupRoomItem";
 
 // * Factory
-import { iDynamicFilterFactory } from "../Factory/DynamicFilter";
+import { iDynamicFilterFactory } from "./Factory/DynamicFilter";
 import { iKpiBaseFactory } from "./IKpiBase";
-import { OperationMapWithIdFactory, OperationMapFactory } from "../Factory";
+import { OperationMapWithIdFactory, OperationMapFactory } from "./Factory";
 import { iLegendFactory, type Legend } from "./ILegend";
+import { GroupItemFactory } from "./Factory";
+import { iGroupRoomItemFactory } from "./Factory";
 
 export {
   EAPIVerb,
@@ -42,6 +45,7 @@ export {
   type IIdentifiable,
   type IIndexableFromRoot,
   type IGroupItem,
+  type IGroupRoomItem,
   type IGroupDisplayable,
   type IOperation,
   type IPregnant,
@@ -54,9 +58,11 @@ export {
   type TGroupOperation,
   type Translator,
   type TypeLegend,
+  GroupItemFactory,
   OperationMapFactory,
   OperationMapWithIdFactory,
   iDynamicFilterFactory,
+  iGroupRoomItemFactory,
   iKpiBaseFactory,
   iLegendFactory,
 };

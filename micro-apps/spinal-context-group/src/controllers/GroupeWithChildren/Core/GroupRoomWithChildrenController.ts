@@ -1,11 +1,3 @@
-// * API
-import { RoomsGroupAPI } from "../../../services/spinalAPI";
-import { GroupContextApi } from "../../../services/spinalAPI/Group Context/";
-
-// * Classes
-import { GroupWithChildren } from "./GroupWithChildren";
-import { RoomManager } from "../../RoomsManager";
-
 // * DTO
 import { Room } from "@/interfaces/API/Geographic Context/DTO/Request/Room";
 import { Floor } from "@/interfaces/API/Geographic Context/DTO/Request/floor/floor";
@@ -15,44 +7,49 @@ import {
   VIEWER_AGGREGATE_SELECTION_CHANGED,
   VIEWER_START_LOAD_MODEL,
 } from "spinal-viewer-event-manager";
+import { EGroupType } from "../../../interfaces/GroupWithChildren";
 
 // * Event
 import { EmitterViewerHandler } from "spinal-viewer-event-manager";
 
 // * Factory
-import { iGroupRoomItemFactory } from "../Interfaces/IGroupRoomItem";
-import { EAPIVerb, OperationState, iKpiBaseFactory } from "../Interfaces";
+import { iGroupRoomItemFactory } from "../../../interfaces/GroupWithChildren/Factory";
+import { EAPIVerb, OperationState, iKpiBaseFactory } from "../../../interfaces/GroupWithChildren";
 import { iListObjFactory } from "../../../interfaces";
-import { iLegendFactory } from "../Interfaces";
+import { iLegendFactory } from "../../../interfaces/GroupWithChildren";
+
+// * Generic
+import { GroupWithChildren } from "./Generic/GroupWithChildren";
 
 // * Interfaces
 import { type IPlayload } from "../interfaces/IPlayload";
+import { IGroupRoomItem } from "../../../interfaces/GroupWithChildren/IGroupRoomItem";
+
+// * Services
+import { NodeAttributsAPI } from "../../../services";
+import { RoomManager } from "../../../services/";
+import { RoomsGroupAPI } from "../../../services";
+import { GroupContextApi } from "../../../services";
 
 // * Singleton
 import { ViewerManager } from "../../../components/viewer/manager/viewerManager";
 
 // * Type
-import {
-  type IGroupDisplayable,
-  type IIndexableFromRoot,
-  EGroupType,
-} from "../Interfaces";
-import { type Legend } from "../Interfaces";
-import { type TypeLegend } from "../Interfaces";
-import { type TGroupOperation } from "../Interfaces";
-import { type IGroupRoomItem } from "../Interfaces/IGroupRoomItem";
-import { type GroupRoomFocus } from "../Interfaces/IGroupRoomItem";
-import { type KpiBase } from "../Interfaces";
+import { type IGroupDisplayable, type IIndexableFromRoot } from "../../../interfaces/GroupWithChildren";
+import { type Legend } from "../../../interfaces/GroupWithChildren";
+import { type TypeLegend } from "../../../interfaces/GroupWithChildren";
+import { type TGroupOperation } from "../../../interfaces/GroupWithChildren";
+import { type GroupRoomFocus } from "../../../interfaces/GroupWithChildren/IGroupRoomItem";
+import { type KpiBase } from "../../../interfaces/GroupWithChildren";
 import {
   type AttributeCategory,
-  type NodeAttributsAPI,
   type Attribute,
   type NodeAttributs,
 } from "../../../services/spinalAPI/Node Attributs";
 import { type ListAndObj } from "../../../interfaces";
 
 // TODO Fait du trie dans tes imports
-class GroupRoomWithChildren
+class GroupRoomWithChildrenController
   extends GroupWithChildren<IGroupRoomItem>
   implements IGroupDisplayable<IGroupRoomItem, TGroupOperation, Error>
 {
@@ -94,7 +91,6 @@ class GroupRoomWithChildren
   private _allRooms: ListAndObj<Room>;
   private _selectedGrpRooms: IGroupRoomItem | undefined = undefined;
   private _groupRoomTree: IGroupRoomItem[] = [];
-  private _alreadyTransformed = false;
   private _grpFocus: GroupRoomFocus = "GrpRoomList";
   private _lexiconGrpRoomTree: { [key: string]: IGroupRoomItem };
   private _lexiconAttributes: { [key: string]: AttributeCategory };
@@ -133,7 +129,6 @@ class GroupRoomWithChildren
     this._currentCategorie = undefined;
     this._groupToDisplay = [];
     this._globalArea = 0;
-    this._alreadyTransformed = false;
     this._genericErrMsg = "Une erreur est survenue";
     this._grpFocus = "GrpRoomList";
     this._roomManager = new RoomManager();
@@ -213,12 +208,14 @@ class GroupRoomWithChildren
   }
 
   public static guessItemColor(ops: TypeLegend) {
-    const legendTmp: Legend = GroupRoomWithChildren.legendSpaceAssignation.find(
-      (leg: Legend) => leg.type === ops
-    );
-    const defaultColor = GroupRoomWithChildren.legendSpaceAssignation.find(
-      (leg: Legend) => leg.type === "Not-assigned"
-    );
+    const legendTmp: Legend =
+      GroupRoomWithChildrenController.legendSpaceAssignation.find(
+        (leg: Legend) => leg.type === ops
+      );
+    const defaultColor =
+      GroupRoomWithChildrenController.legendSpaceAssignation.find(
+        (leg: Legend) => leg.type === "Not-assigned"
+      );
 
     return legendTmp?.color ?? defaultColor.color;
   }
@@ -241,7 +238,9 @@ class GroupRoomWithChildren
             itemTmp.operations === "Assigned"
               ? "AssignedToAnother"
               : itemTmp.operations;
-          color = GroupRoomWithChildren.guessItemColor(itemTmp.operations);
+          color = GroupRoomWithChildrenController.guessItemColor(
+            itemTmp.operations
+          );
           return {
             ...room,
             color: lexiconRoom[room.dynamicId] ? color : defaultColor.color,
@@ -264,7 +263,9 @@ class GroupRoomWithChildren
       secondPass = this._selectedGrpRooms.children
         .filter((x) => lexiconRoom[x.id])
         .map((room) => {
-          color = GroupRoomWithChildren.guessItemColor(room.operations);
+          color = GroupRoomWithChildrenController.guessItemColor(
+            room.operations
+          );
           return {
             ...this._allRooms.obj[room.id],
             color,
@@ -319,9 +320,10 @@ class GroupRoomWithChildren
 
   // TODO Split the payload intro n-type LegendType chunk then color the viewer by color
   public async colorizeViewer() {
-    const defaultColor = GroupRoomWithChildren.legendSpaceAssignation.find(
-      (leg: Legend) => leg.type === "Not-assigned"
-    );
+    const defaultColor =
+      GroupRoomWithChildrenController.legendSpaceAssignation.find(
+        (leg: Legend) => leg.type === "Not-assigned"
+      );
     let idBuilding = this._roomManager.getIdCurrentBuilding();
     let lexicon = this._lexiconGrpRoomTree;
 
@@ -354,13 +356,13 @@ class GroupRoomWithChildren
   private async addNewItemErrorManagement(item: IGroupRoomItem): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!item) {
-        reject(new Error("Aucun pieces n'est selectione"));
+        reject(new Error("Aucun pièces n'a été selectioné"));
       }
 
       if (this._grpFocus === "GrpRoomList") {
         reject(
           new Error(
-            "Il est seulement possible d'ajouter une piece si un groupe est selectione"
+            "Il est seulement possible d'ajouter une piéce si un groupe est selectioné"
           )
         );
       }
@@ -374,7 +376,7 @@ class GroupRoomWithChildren
           (el: IGroupRoomItem) => el.title === item.title
         )
       ) {
-        reject("Cette item existe deja");
+        reject("Cette item éxiste déja");
       }
       resolve();
     });
@@ -563,13 +565,7 @@ class GroupRoomWithChildren
         .then((pmsDeleteReq) => Promise.all(pmsDeleteReq))
         .then(() => Promise.all(pmsAdd))
         .then((roomsToAdd) => roomsToAdd.filter((el) => el))
-        .then((roomsToAddFilt) => {
-          return roomsToAddFilt;
-        })
         .then((roomsToAddFilt) => this.operationOnRoom(roomsToAddFilt, 0))
-        .then((roomsToAddReq) => {
-          return roomsToAddReq;
-        })
         .then((pmsAddReq) => Promise.all(pmsAddReq))
         .then(() => this.rebuildSelectedGrpRoom())
         .then(() => this.colorizeViewer())
@@ -601,11 +597,11 @@ class GroupRoomWithChildren
       ) {
         itemOrigin = this._allRooms.obj[item.id];
         if (!itemOrigin) {
-          throw new Error("La piece selectione n'existe pas");
+          throw new Error("La pièce selectioné n'éxiste pas");
         }
 
         this._viewerManager
-          .select(itemOrigin)
+          .select(itemOrigin as IPlayload)
           .then()
           .catch((err: any) => {
             console.error(err);
@@ -1417,4 +1413,4 @@ class GroupRoomWithChildren
   }
 }
 
-export { GroupRoomWithChildren };
+export { GroupRoomWithChildrenController };
