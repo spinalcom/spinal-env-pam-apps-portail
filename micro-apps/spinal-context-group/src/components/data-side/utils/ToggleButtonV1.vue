@@ -2,8 +2,14 @@
     <div class="con" ref="btn" @click="toggleButton()">
         <div class="ball" ref="ball">
             <span class="text" ref="text">
-                <v-icon v-if="state === '1'">{{ symbolLeft }}</v-icon>
-                <v-icon v-else>{{ symbolRight }}</v-icon>
+                <v-tooltip bottom>
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-icon v-if="state === '1'" v-bind="attrs" v-on="on">{{ symbolLeft }}</v-icon>
+                        <v-icon v-else v-bind="attrs" v-on="on">{{ symbolRight }}</v-icon>
+                    </template>
+                    <span v-if="state === '1'">{{ tooltipLeft }}</span>
+                    <span v-else>{{ tooltipRight }}</span>
+                </v-tooltip>
             </span>
         </div>
     </div>
@@ -13,10 +19,12 @@
 import { onMounted, ref, Ref, toRefs } from 'vue';
 import { defineProps } from 'vue';
 import { VIcon } from 'vuetify/lib'
+import { VTooltip } from 'vuetify/lib';
 
 export default {
     components: {
         VIcon,
+        VTooltip
     },
     props: {
         color1: {
@@ -47,6 +55,20 @@ export default {
                 return 'Op2'
             }
         },
+        tooltipLeft: {
+            type: String,
+            required: false,
+            default: () => {
+                return 'Left'
+            }
+        },
+        tooltipRight: {
+            type: String,
+            required: false,
+            default: () => {
+                return 'Right'
+            }
+        }
     },
     setup(props) {
         let state: "1" | "2" = ref("1");

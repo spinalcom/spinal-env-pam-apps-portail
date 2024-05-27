@@ -14,7 +14,11 @@ import { EmitterViewerHandler } from "spinal-viewer-event-manager";
 
 // * Factory
 import { iGroupRoomItemFactory } from "../../../interfaces/GroupWithChildren/Factory";
-import { EAPIVerb, OperationState, iKpiBaseFactory } from "../../../interfaces/GroupWithChildren";
+import {
+  EAPIVerb,
+  OperationState,
+  iKpiBaseFactory,
+} from "../../../interfaces/GroupWithChildren";
 import { iListObjFactory } from "../../../interfaces";
 import { iLegendFactory } from "../../../interfaces/GroupWithChildren";
 
@@ -35,7 +39,10 @@ import { GroupContextApi } from "../../../services";
 import { ViewerManager } from "../../../components/viewer/manager/viewerManager";
 
 // * Type
-import { type IGroupDisplayable, type IIndexableFromRoot } from "../../../interfaces/GroupWithChildren";
+import {
+  type IGroupDisplayable,
+  type IIndexableFromRoot,
+} from "../../../interfaces/GroupWithChildren";
 import { type Legend } from "../../../interfaces/GroupWithChildren";
 import { type TypeLegend } from "../../../interfaces/GroupWithChildren";
 import { type TGroupOperation } from "../../../interfaces/GroupWithChildren";
@@ -94,7 +101,7 @@ class GroupRoomWithChildrenController
   private _grpFocus: GroupRoomFocus = "GrpRoomList";
   private _lexiconGrpRoomTree: { [key: string]: IGroupRoomItem };
   private _lexiconAttributes: { [key: string]: AttributeCategory };
-  private _currentCategorie: IGroupRoomItem;
+  private _currentCategory: IGroupRoomItem;
   private _categories: IGroupRoomItem[];
 
   private readonly _roomManager: RoomManager;
@@ -126,7 +133,7 @@ class GroupRoomWithChildrenController
     this._totalGainListGrpRoom = iKpiBaseFactory.build({}) ?? undefined;
     this._totalAreaGrpRoom = iKpiBaseFactory.build({}) ?? undefined;
     this._totalAreaListGrpRoom = iKpiBaseFactory.build({}) ?? undefined;
-    this._currentCategorie = undefined;
+    this._currentCategory = undefined;
     this._groupToDisplay = [];
     this._globalArea = 0;
     this._genericErrMsg = "Une erreur est survenue";
@@ -328,7 +335,7 @@ class GroupRoomWithChildrenController
     let lexicon = this._lexiconGrpRoomTree;
 
     return new Promise<void>((resolve, reject) => {
-      this.buildLexiconGRTByCat(this._currentCategorie.id)
+      this.buildLexiconGRTByCat(this._currentCategory.id)
         .then((lex) => (lexicon = lex))
         .then(() => this.buildViewerFirstPass(lexicon, defaultColor))
         .then((pass) => this._viewerManager.colorItems(pass, idBuilding))
@@ -629,12 +636,16 @@ class GroupRoomWithChildrenController
     return this._groupToDisplay;
   }
 
+  public get groupRoomTree(): IGroupRoomItem[] {
+    return this._groupRoomTree;
+  }
+
   public get rooms(): ListAndObj<Room> {
     return this._allRooms;
   }
 
   public get currentCategory(): IGroupRoomItem {
-    return this._currentCategorie;
+    return this._currentCategory;
   }
 
   public get categories(): IGroupRoomItem[] {
@@ -649,7 +660,7 @@ class GroupRoomWithChildrenController
     this.recomputeKpi();
     if (this._grpFocus === "GrpRoomList") {
       this._groupToDisplay = this._groupRoomTree.filter((x) => {
-        return this._currentCategorie.id === x.parentId;
+        return this._currentCategory.id === x.parentId;
       });
     } else if (this._grpFocus === "GrpRoom" && this._selectedGrpRooms) {
       this._groupToDisplay = this._selectedGrpRooms.children;
@@ -848,11 +859,11 @@ class GroupRoomWithChildrenController
 
   public selectCategory(catId: number): Promise<IGroupRoomItem> {
     return new Promise<IGroupRoomItem>((resolve, reject) => {
-      this._currentCategorie = this.categories.find((y) => y.id === catId);
-      if (!this._currentCategorie) {
+      this._currentCategory = this.categories.find((y) => y.id === catId);
+      if (!this._currentCategory) {
         reject(new Error("Aucune categorie n'a ete selectione"));
       }
-      resolve(this._currentCategorie);
+      resolve(this._currentCategory);
     });
   }
 
@@ -861,11 +872,11 @@ class GroupRoomWithChildrenController
       this.reset()
         .then(() => this.selectCategory(catId))
         .then((cat) => this.fillAreaGrpRoomByCat(this._groupRoomTree, cat))
-        .then(() => this.buildLexiconGRTByCat(this._currentCategorie.id))
+        .then(() => this.buildLexiconGRTByCat(this._currentCategory.id))
         .then((lex) => (this._lexiconGrpRoomTree = lex))
         .then(() => this.recomputeEveryGrpArea())
         .then(() => this.recomputeKpi())
-        .then(() => resolve(this._currentCategorie))
+        .then(() => resolve(this._currentCategory))
         .catch((err: any) => {
           console.error(err);
         });
@@ -922,7 +933,7 @@ class GroupRoomWithChildrenController
     let grps: Array<IGroupRoomItem> = [];
 
     for (const grpRoom of this._groupRoomTree) {
-      if (grpRoom.parentId !== this._currentCategorie.id) {
+      if (grpRoom.parentId !== this._currentCategory.id) {
         continue;
       }
       for (const roomGrp of grpRoom.children) {
@@ -971,7 +982,7 @@ class GroupRoomWithChildrenController
   private recomputeEveryGrpArea(grp?: IGroupRoomItem) {
     for (const grp of this._groupRoomTree) {
       grp.area = grp.children.reduce((acc: number, curr: IGroupRoomItem) => {
-        if (grp.parentId === this._currentCategorie.id) {
+        if (grp.parentId === this._currentCategory.id) {
           return acc + curr.area;
         }
         return acc;
@@ -1010,14 +1021,14 @@ class GroupRoomWithChildrenController
     }
 
     for (const grp of this._groupRoomTree) {
-      if (grp.parentId === this._currentCategorie.id) {
+      if (grp.parentId === this._currentCategory.id) {
         this.recomputeSelectedGrp(grp);
       }
     }
 
     newArea = this._groupRoomTree.reduce(
       (acc: number, curr: IGroupRoomItem) => {
-        if (curr.parentId === this._currentCategorie.id) {
+        if (curr.parentId === this._currentCategory.id) {
           return acc + curr.newArea;
         }
         return acc;
@@ -1178,7 +1189,7 @@ class GroupRoomWithChildrenController
     item.previousOpsItems = [];
     return new Promise<TGroupOperation>((resolve, reject) => {
       this.deleteRoomAssignedToOtherGrpErrMng(path, this._selectedGrpRooms)
-        .then(() => this.checkRoomAlreadyExist(item, this._currentCategorie))
+        .then(() => this.checkRoomAlreadyExist(item, this._currentCategory))
         .then((pms) => Promise.all(pms))
         .then(() => resolve("Success"))
         .catch((err: any) => {

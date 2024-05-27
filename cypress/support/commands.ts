@@ -30,6 +30,9 @@ declare global {
 Cypress.Commands.add("mount", (component, options = {}) => {
   options.vuetify = vuetify;
   options.store = options.store || store;
+
+  options.extensions = options.extensions || {};
+  options.extensions.plugins = options.extensions.plugins || [];
   options.extensions.plugins.push(Vuex);
   return mount(
     { render: (h) => h(VApp, [h(component as Component, options)]) },

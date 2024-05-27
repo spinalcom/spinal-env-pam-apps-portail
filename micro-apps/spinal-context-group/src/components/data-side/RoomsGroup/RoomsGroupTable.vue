@@ -8,26 +8,36 @@
               <div class="title">
                 <div class="title-content">Radar</div>
               </div>
-              <div class="subtitle-wrapper" v-if="grpRoomFocus === 'GrpRoom'">
+              <!-- <div class="subtitle-wrapper" v-if="grpRoomFocus === 'GrpRoom'">
                 <div class="subtitle">
                   contient
                   <span class="bold-element">{{
-                    grpRoomWithChildrenController.groupToDisplay.filter(
-                      (room) => room.display
-                    ).length
-                  }}</span>
+      grpRoomWithChildrenController.groupToDisplay.filter(
+        (room) => room.display
+      ).length
+    }}</span>
                   pièce<span>s</span>
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
-        <div class="radar-wrapper big-radar">
-          <Radar
-            id="radar-chart-chart"
-            :options="radarOptions"
-            :data="dataRadar"
-          ></Radar>
+        <div class="body-wrapper">
+          <div v-if="radarGridMode === 'radar'" class="radar-wrapper big-radar">
+            <Radar id="radar-chart-chart" :options="radarOptions" :data="dataRadar"></Radar>
+          </div>
+          <div v-else-if="radarGridMode === 'nomenclature'">
+          </div>
+        </div>
+        <div class="footer-wrapper">
+          <div class="footer">
+            <div class="toggle-group">
+              <ToggleButtonV1 color1="black" color2="white" symbol-left="mdi-radar" symbol-right="mdi-dots-grid"
+                ref="toggleRadarNomenclature" v-on:toggled="switchRadarNomenclature()" tooltip-left="Radar"
+                tooltip-right="Nomenclature">
+              </ToggleButtonV1>
+            </div>
+          </div>
         </div>
       </div>
       <div class="component-wrapper">
@@ -45,32 +55,22 @@
           <div class="header">
             <div class="title-wrapper">
               <div class="title">
-                <div
-                  class="title-content"
-                  v-if="grpRoomFocus === 'GrpRoomList'"
-                >
+                <div class="title-content" v-if="grpRoomFocus === 'GrpRoomList'">
                   Assignation <br />
                   des espaces
                 </div>
-                <div
-                  class="title-content"
-                  v-else-if="grpRoomFocus === 'GrpRoom' && currentGrpRoom"
-                >
+                <div class="title-content" v-else-if="grpRoomFocus === 'GrpRoom' && currentGrpRoom">
                   {{ currentGrpRoom.title ?? "" }}
                   <!-- Grp Piece 1 -->
                 </div>
-                <div
-                  class="sub-title"
-                  v-if="
-                    currentGrpRoom &&
-                    currentGrpRoom.parentTitle &&
-                    grpRoomFocus === 'GrpRoomList'
-                  "
-                >
+                <div class="sub-title" v-if="currentGrpRoom &&
+      currentGrpRoom.parentTitle &&
+      grpRoomFocus === 'GrpRoomList'
+      ">
                   <span class="sub-title-content">categorie :</span>
                   <span class="name-category">{{
-                    currentGrpRoom.parentTitle
-                  }}</span>
+      currentGrpRoom.parentTitle
+    }}</span>
                 </div>
                 <div class="tooltip">
                   <v-tooltip top>
@@ -81,18 +81,15 @@
                     </template>
                     <span v-if="grpRoomFocus === 'GrpRoom'">
                       <span class="bold-element">{{
-                        currentGrpRoom.title
-                      }}</span>
+      currentGrpRoom.title
+    }}</span>
                       est un
                       <span class="bold-element">groupe de pièce</span> qui
-                      appartient à la categorie ...</span
-                    >
-                    <span v-if="grpRoomFocus === 'GrpRoomList'"
-                      >Le composant Assignation des espaces permet de: <br />
+                      appartient à la categorie ...</span>
+                    <span v-if="grpRoomFocus === 'GrpRoomList'">Le composant Assignation des espaces permet de: <br />
                       - visualiser des groupes de pièces appartenant à la même
                       catégorie <br />
-                      - assigner des pièces à des groupes de pièces</span
-                    >
+                      - assigner des pièces à des groupes de pièces</span>
                   </v-tooltip>
                 </div>
               </div>
@@ -100,10 +97,10 @@
                 <div class="subtitle">
                   contient
                   <span class="bold-element">{{
-                    grpRoomWithChildrenController.groupToDisplay.filter(
-                      (room) => room.display
-                    ).length
-                  }}</span>
+      grpRoomWithChildrenController.groupToDisplay.filter(
+        (room) => room.display
+      ).length
+    }}</span>
                   pièce<span>s</span>
                 </div>
               </div>
@@ -113,23 +110,17 @@
                 <div class="initial-area area" :class="globalKpiClass">
                   <div class="value">
                     {{
-                      grpRoomFocus === "GrpRoomList"
-                        ? grpRoomWithChildrenController.globalArea.toFixed(2)
-                        : currentGrpRoom.area.toFixed(2)
-                    }}
+      grpRoomFocus === "GrpRoomList"
+        ? grpRoomWithChildrenController.globalArea.toFixed(2)
+        : currentGrpRoom.area.toFixed(2)
+    }}
                   </div>
                   <div class="unit">m2</div>
                 </div>
-                <div
-                  class="separator-wrapper"
-                  v-if="grpRoomWithChildrenController.totalGain.value !== 0"
-                >
+                <div class="separator-wrapper" v-if="grpRoomWithChildrenController.totalGain.value !== 0">
                   <div class="separator"></div>
                 </div>
-                <div
-                  class="new-area area"
-                  v-if="grpRoomWithChildrenController.totalGain.value !== 0"
-                >
+                <div class="new-area area" v-if="grpRoomWithChildrenController.totalGain.value !== 0">
                   <div class="value">
                     {{ grpRoomWithChildrenController.totalArea.value.toFixed(2) }}
                   </div>
@@ -138,24 +129,14 @@
               </div>
               <div class="gain-wrapper">
                 <div class="arrow">
-                  <v-icon
-                    color="green"
-                    v-if="grpRoomWithChildrenController.totalGain.percentage > 0"
-                    >mdi-arrow-up-thick</v-icon
-                  >
-                  <v-icon
-                    color="red"
-                    v-else-if="grpRoomWithChildrenController.totalGain.percentage < 0"
-                    >mdi-arrow-down-thick</v-icon
-                  >
+                  <v-icon color="green"
+                    v-if="grpRoomWithChildrenController.totalGain.percentage > 0">mdi-arrow-up-thick</v-icon>
+                  <v-icon color="red"
+                    v-else-if="grpRoomWithChildrenController.totalGain.percentage < 0">mdi-arrow-down-thick</v-icon>
                 </div>
-                <div
-                  class="text"
-                  v-if="
-                    grpRoomWithChildrenController.totalGain.percentage > 0 ||
-                    grpRoomWithChildrenController.totalGain.percentage < 0
-                  "
-                >
+                <div class="text" v-if="grpRoomWithChildrenController.totalGain.percentage > 0 ||
+      grpRoomWithChildrenController.totalGain.percentage < 0
+      ">
                   <span v-if="unitMode === 'm2'">
                     {{ grpRoomWithChildrenController.totalGain.value.toFixed(2) }} m2
                   </span>
@@ -171,20 +152,9 @@
           <div class="component-actions-wrapper" v-if="!showRadar">
             <div class="actions">
               <div class="search-wrapper">
-                <v-autocomplete
-                  multiple
-                  v-if="grpRoomFocus === 'GrpRoom'"
-                  :label="searchBarPlaceholder"
-                  :items="availableRooms"
-                  item-text="name"
-                  item-value="dynamicId"
-                  single-line
-                  hide-details="true"
-                  outlined
-                  dense
-                  v-model="searchModel"
-                  :loading="isLoading"
-                >
+                <v-autocomplete multiple v-if="grpRoomFocus === 'GrpRoom'" :label="searchBarPlaceholder"
+                  :items="availableRooms" item-text="name" item-value="dynamicId" single-line hide-details="true"
+                  outlined dense v-model="searchModel" :loading="isLoading">
                   <template #prepend-inner>
                     <v-tooltip top>
                       <template v-slot:activator="{ on, attrs }">
@@ -200,45 +170,23 @@
                       </v-list-item-title>
                     </v-list-item>
                   </template>
-                  <template
-                    v-slot:selection="{ attr, on, item, selected, index }"
-                  >
-                    <v-chip
-                      v-if="index < 3"
-                      v-bind="attr"
-                      :input-value="selected"
-                      label
-                      :color="createColorPropChipsBefore(item)"
-                      :text-color="createColorPropChipsBefore(item, 'text')"
-                      deletable-chips
-                      class="white--text ma-1"
-                      close
-                      v-on="on"
-                      @click:close="deleteChipFromRoomSelection(item)"
-                    >
+                  <template v-slot:selection="{ attr, on, item, selected, index }">
+                    <v-chip v-if="index < 3" v-bind="attr" :input-value="selected" label
+                      :color="createColorPropChipsBefore(item)" :text-color="createColorPropChipsBefore(item, 'text')"
+                      deletable-chips class="white--text ma-1" close v-on="on"
+                      @click:close="deleteChipFromRoomSelection(item)">
                       <span v-text="item.name"></span>
                     </v-chip>
                     <span v-if="index === 3" class="grey--text text-caption">
-                      (+{{ searchModel.length - 3 }} autre<span
-                        v-if="searchModel.length - 3 > 1"
-                        >s</span
-                      >)
+                      (+{{ searchModel.length - 3 }} autre<span v-if="searchModel.length - 3 > 1">s</span>)
                     </span>
                   </template>
                   <template v-slot:item="{ item }">
-                    <v-list-item-content
-                      class="d-flex inline chips-legend-container"
-                    >
-                      <span
-                        v-if="grpRoomFocus === 'GrpRoom'"
-                        :style="createStyleTitleSelectBefore(item)"
-                        class="chip-legend-item"
-                      >
+                    <v-list-item-content class="d-flex inline chips-legend-container">
+                      <span v-if="grpRoomFocus === 'GrpRoom'" :style="createStyleTitleSelectBefore(item)"
+                        class="chip-legend-item">
                       </span>
-                      <v-list-item-title
-                        class="ml-4"
-                        v-text="item.name"
-                      ></v-list-item-title>
+                      <v-list-item-title class="ml-4" v-text="item.name"></v-list-item-title>
                     </v-list-item-content>
                     <v-list-item-icon>
                       <v-icon :color="getFutureOperation(item)">
@@ -250,107 +198,50 @@
 
                 <v-row>
                   <v-col lg="8" md="8" sm="8">
-                    <v-text-field
-                      v-if="grpRoomFocus === 'GrpRoomList'"
-                      class=""
-                      dense
-                      v-model="searchModelGrp"
-                      label="Rechercher un groupe de pièce"
-                      placeholder=""
-                      outlined
-                      hide-details="true"
-                      single-line
-                    ></v-text-field>
+                    <v-text-field v-if="grpRoomFocus === 'GrpRoomList'" class="" dense v-model="searchModelGrp"
+                      label="Rechercher un groupe de pièce" placeholder="" outlined hide-details="true"
+                      single-line></v-text-field>
                   </v-col>
                 </v-row>
               </div>
               <div class="button-wrapper" v-if="grpRoomFocus === 'GrpRoom'">
-                <v-btn
-                  :disabled="searchModel === null"
-                  width="80%"
-                  max-width="80%"
-                  color="primary"
-                  @click="addRoom('search')"
-                  >Ajouter</v-btn
-                >
+                <v-btn :disabled="searchModel === null" width="80%" max-width="80%" color="primary"
+                  @click="addRoom('search')">Ajouter</v-btn>
               </div>
             </div>
           </div>
           <div class="radar-wrapper" v-if="showRadar && viewMode === 'grid'">
-            <Radar
-              id="radar-chart"
-              :options="radarOptions"
-              :data="dataRadar"
-            ></Radar>
+            <Radar id="radar-chart" :options="radarOptions" :data="dataRadar"></Radar>
           </div>
-          <RoomGroupDataTable
-            ref="roomGroupDataTable"
-            :data="dataFiltered"
-            :showRadar="showRadar"
-            :is-loading-data="isLoadingData"
-            :grpRoomFocus="grpRoomFocus"
-            :headersTable="headersTable"
-            :dataTableHeight="dataTableHeight"
-            :unitMode="unitMode"
-            @selectItem="selectItem"
-            @getOperationsItem="getOperationsItem"
-            @guessItemColor="guessItemColor"
-            @restore="restore"
-            @deleteEntity="deleteEntity"
-            :showSelect="false"
-          >
+          <RoomGroupDataTable ref="roomGroupDataTable" :data="dataFiltered" :showRadar="showRadar"
+            :is-loading-data="isLoadingData" :grpRoomFocus="grpRoomFocus" :headersTable="headersTable"
+            :dataTableHeight="dataTableHeight" :unitMode="unitMode" @selectItem="selectItem"
+            @getOperationsItem="getOperationsItem" @guessItemColor="guessItemColor" @restore="restore"
+            @deleteEntity="deleteEntity" :showSelect="false">
           </RoomGroupDataTable>
         </div>
         <div class="footer-wrapper">
           <div class="footer">
             <div class="toggle-group">
-              <ToggleButtonV1
-                color1="black"
-                color2="white"
-                symbol-left="mdi-tape-measure"
-                symbol-right="mdi-percent"
-                v-on:toggled="toggleUnitMode"
-              >
+              <ToggleButtonV1 color1="black" color2="white" symbol-left="mdi-tape-measure" symbol-right="mdi-percent"
+                tooltip-left="M2" tooltip-right="Pourcentage" v-on:toggled="toggleUnitMode">
               </ToggleButtonV1>
-              <ToggleButtonV1
-                color1="black"
-                color2="white"
-                symbol-left="mdi-grid"
-                v-if="viewMode === 'grid'"
-                symbol-right="mdi-radar"
-                ref="radar"
-                v-on:toggled="toggleRadarVisibility"
-              >
+              <ToggleButtonV1 color1="black" color2="white" symbol-left="mdi-grid" v-if="viewMode === 'grid'"
+                symbol-right="mdi-radar" ref="radar" v-on:toggled="toggleRadarVisibility" tooltip-left="Grid"
+                tooltip-right="Radar">
               </ToggleButtonV1>
             </div>
             <div class="actions">
-              <v-btn
-                color="primary"
-                text
-                outlined
-                @click="updateDataTableHeight()"
-                v-show="grpRoomFocus === 'GrpRoomList'"
-                >Fermer</v-btn
-              >
-              <v-btn
-                color="primary"
-                @click="goBack()"
-                v-show="grpRoomFocus === 'GrpRoom'"
-                >Retour</v-btn
-              >
+              <v-btn color="primary" text outlined @click="updateDataTableHeight()"
+                v-show="grpRoomFocus === 'GrpRoomList'">Fermer</v-btn>
+              <v-btn color="primary" @click="goBack()" v-show="grpRoomFocus === 'GrpRoom'">Retour</v-btn>
               <!-- <v-btn color="primary" @click="saveGrpRoom()"
                                 v-show="grpRoomFocus === 'GrpRoom' && !showRadar">Valider</v-btn> -->
-              <v-btn
-                color="primary"
-                @click="commitChange()"
-                v-show="grpRoomFocus === 'GrpRoomList' && !showRadar"
-                >Valider
+              <v-btn color="primary" @click="commitChange()"
+                v-show="grpRoomFocus === 'GrpRoomList' && !showRadar">Valider
               </v-btn>
-              <v-btn
-                color="primary"
-                @click="commitChangeGrpRoom()"
-                v-show="grpRoomFocus === 'GrpRoom' && !showRadar"
-                >Valider
+              <v-btn color="primary" @click="commitChangeGrpRoom()"
+                v-show="grpRoomFocus === 'GrpRoom' && !showRadar">Valider
               </v-btn>
             </div>
           </div>
@@ -411,6 +302,7 @@ import { VAutocomplete } from "vuetify/lib";
 import { VBtn } from "vuetify/lib";
 import { VCard } from "vuetify/lib";
 import { VChip } from "vuetify/lib";
+import { VCol } from "vuetify/lib";
 import { VDataTable } from "vuetify/lib";
 import { VIcon } from "vuetify/lib";
 import { VList } from "vuetify/lib";
@@ -423,6 +315,7 @@ import { VMenu } from "vuetify/lib";
 import { VSelect } from "vuetify/lib";
 import { VTextField } from "vuetify/lib";
 import { VTooltip } from "vuetify/lib/components";
+import { VRow } from "vuetify/lib";
 
 ChartJs.register(
   Filler,
@@ -482,6 +375,7 @@ export default {
     const currentGrpRoom: Ref<IGroupRoomItem | undefined> = ref(undefined);
     const grpRoomWithChildrenController = new GroupRoomWithChildrenController(apiGrpContext, apiNodeAttributs, apiRoomGroup);
     const viewMode: ViewMode = "grid";
+    const radarGridMode: 'radar' | 'nomenclature' = 'radar';
 
     const assignationSpaceHeaders: Array<any> = [
       {
@@ -531,6 +425,7 @@ export default {
       showDataTableGrpRoomList,
       radarOptions,
       radar,
+      radarGridMode,
       isLoadingData,
       dataTableHeight,
       dataTableWrapper,
@@ -589,7 +484,14 @@ export default {
         console.error(err);
       }
     },
-    saveGrpRoom() {},
+    saveGrpRoom() { },
+    switchRadarNomenclature() {
+      if (this.radarGridMode === 'nomenclature') {
+        this.radarGridMode = 'radar';
+      } else {
+        this.radarGridMode = 'nomenclature';
+      }
+    },
     commitChangeGrpRoom() {
       this.grpRoomWithChildrenController
         .commitChangeGrpRoom()
@@ -744,7 +646,7 @@ export default {
     restore(item: IGroupRoomItem) {
       this.grpRoomWithChildrenController
         .restoreItem(item)
-        .then(() => {})
+        .then(() => { })
         .catch((err: any) => {
           console.error(err);
         });
@@ -811,7 +713,7 @@ export default {
         )
       ) {
         styleObj["background"] =
-        GroupRoomWithChildrenController.guessItemColor("Assigned");
+          GroupRoomWithChildrenController.guessItemColor("Assigned");
         return styleObj;
       }
       switch (futureOp) {
@@ -904,7 +806,7 @@ export default {
         //     return false;
         // })
         return filteredRooms;
-      } catch (err: any) {}
+      } catch (err: any) { }
       return [];
     },
     searchBarPlaceholder() {
@@ -945,6 +847,7 @@ export default {
       let labelRadar: string[] = [];
       let areaBefore: number[] = [];
       let areaAfter: number[] = [];
+      let grpCurrentCategory: IGroupRoomItem = [];
 
       const obj: any = {};
 
@@ -954,13 +857,19 @@ export default {
         return obj;
       }
 
-      labelRadar = this.data.map((grpGroup: IGroupRoomItem) => grpGroup.title);
-      if (this.grpRoomFocus === "GrpRoomList") {
-        areaAfter = this.data.map(
+      console.log("ViewMode = ", this.viewMode)
+      if (this.viewMode === 'radar-grid') {
+        console.log("View Mode === radar-grid")
+      }
+      if (this.viewMode === 'radar-grid' || this.grpRoomFocus === "GrpRoomList") {
+        grpCurrentCategory = this.grpRoomWithChildrenController?.groupRoomTree?.filter((x: IGroupRoomItem) => x.parentId === this.categoriesModel.id);
+        areaAfter = grpCurrentCategory.map(
           (grpGroup: IGroupRoomItem) => grpGroup.newArea
         );
-        areaBefore = this.data.map((grpGroup: IGroupRoomItem) => grpGroup.area);
+        labelRadar = grpCurrentCategory.map((grpGroup: IGroupRoomItem) => grpGroup.title);
+        areaBefore = grpCurrentCategory.map((grpGroup: IGroupRoomItem) => grpGroup.area);
       } else if (this.grpRoomFocus === "GrpRoom") {
+        labelRadar = this.data.map((grpGroup: IGroupRoomItem) => grpGroup.title);
         areaAfter = this.buildAreaAfterGrpRoom();
         areaBefore = this.buildAreaBeforeGrpRoom();
       }
@@ -1147,8 +1056,7 @@ export default {
             }
           }
 
-          .initial-area {
-          }
+          .initial-area {}
 
           .separator-wrapper {
             display: flex;
@@ -1268,7 +1176,7 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
-    max-height: 60vh;
+    max-height: 100%;
     height: 90%;
     width: 100%;
   }

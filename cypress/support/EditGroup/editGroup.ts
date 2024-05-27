@@ -10,7 +10,7 @@ import { h } from "vue";
 import { type Component } from "vue";
 
 // * Enums
-import { EGroupType } from "../../../micro-apps/spinal-context-group/src/services/GroupeWithChildren";
+import { EGroupType } from "../../../micro-apps/spinal-context-group/src/controllers";
 
 declare global {
   namespace Cypress {

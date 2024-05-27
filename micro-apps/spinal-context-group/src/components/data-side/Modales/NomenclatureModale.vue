@@ -1,297 +1,9 @@
 <template>
-  <SimpleModale
-    modaleTitle="Nomenclature"
-    :show-dialog="showModal"
-    width="50%"
-    persistent
-    :error-message="errorMessage"
-    v-on:save="next"
-    v-on:close="close"
-    :validateButtonText="validateButtonText"
-  >
+  <SimpleModale modaleTitle="Nomenclature" :show-dialog="showModal" width="50%" persistent :error-message="errorMessage"
+    v-on:save="next" v-on:close="close" :validateButtonText="validateButtonText">
     <template v-slot:body>
       <v-row class="content-wrapper" ref="firstView">
-        <div class="first-view px-8" v-show="currentMode === 'one'">
-          <div class="action-wrapper">
-            <div class="d-flex flex-row justify-space-between">
-              <v-menu
-                offset-x
-                transition="slide-y-transition"
-                :close-on-content-click="!showMenuConfFilter"
-                :close-on-click="!showMenuConfFilter"
-                dense
-              >
-                <template #activator="{ on: menu, attrs }">
-                  <v-tooltip top>
-                    <template v-slot:activator="{ on: tooltip }">
-                      <v-btn
-                        color="primary"
-                        width="10em"
-                        v-bind="attrs"
-                        v-on="{ ...tooltip, ...menu }"
-                      >
-                        <v-icon>mdi-plus</v-icon>
-                        <!-- Ajouter un filtre -->
-                        Filtre
-                      </v-btn>
-                    </template>
-                    <span>Ajouter un filtre</span>
-                  </v-tooltip>
-                </template>
-                <v-list
-                  class="pa-4"
-                  v-if="!showMenuConfFilter"
-                  v-for="value in categories"
-                >
-                  <v-subheader>{{ value }}</v-subheader>
-                  <v-list-item-group color="primary">
-                    <v-list-item
-                      v-for="filter in customFilter"
-                      v-if="filter.category === value"
-                    >
-                      <!-- <v-list-item-icon> <v-icon>mdi-pencil</v-icon></v-list-item-icon> -->
-                      <v-list-item-content>
-                        <v-list-item-title
-                          @click="updateNewSelectedFilter(filter)"
-                          >{{ filter.displayName }}</v-list-item-title
-                        >
-                      </v-list-item-content>
-                    </v-list-item>
-                  </v-list-item-group>
-                </v-list>
-                <v-list class="pa-4" v-if="showMenuConfFilter" dense flat>
-                  <div
-                    text-uppercase
-                    class="text-h5 font-weight-bold text-uppercase"
-                    color="primary"
-                  >
-                    {{ newSelectedFilterItem.displayName }}
-                  </div>
-                  <v-list-item-group
-                    color="primary"
-                    v-model="selectedFilterType"
-                  >
-                    <v-list-item v-if="newSelectedFilterItem.type === 'number'">
-                      <template v-slot:default="{ active }">
-                        <div class="d-flex flex-column">
-                          <div class="d-flex flex-row justify-space-around">
-                            <v-list-item-action>
-                              <v-checkbox
-                                :input-value="active"
-                                color="deep-purple accent-4"
-                              ></v-checkbox>
-                            </v-list-item-action>
-
-                            <v-list-item-content>
-                              <v-list-item-title class="body-2"
-                                >Plus grand que</v-list-item-title
-                              >
-                            </v-list-item-content>
-                          </div>
-                          <div
-                            class="d-flex flex-row justify-end align-end"
-                            v-if="active"
-                          >
-                            <v-text-field
-                              @click.stop=""
-                              class="mx-2"
-                              v-model="newSelectedFilterItem.value"
-                              type="number"
-                              label="Valeur"
-                              outlined
-                              :style="{ width: '8em' }"
-                            ></v-text-field>
-                          </div>
-                        </div>
-                      </template>
-                    </v-list-item>
-                    <v-list-item v-if="newSelectedFilterItem.type === 'number'">
-                      <template v-slot:default="{ active }">
-                        <div class="d-flex flex-column">
-                          <div class="d-flex flex-row">
-                            <v-list-item-action>
-                              <v-checkbox
-                                :input-value="active"
-                                color="deep-purple accent-4"
-                              ></v-checkbox>
-                            </v-list-item-action>
-
-                            <v-list-item-content>
-                              <v-list-item-title class="body-2"
-                                >Moins grand que</v-list-item-title
-                              >
-                            </v-list-item-content>
-                          </div>
-                          <div
-                            class="d-flex flex-row justify-end align-end"
-                            v-if="active"
-                          >
-                            <v-text-field
-                              @click.stop=""
-                              class="mx-2"
-                              v-model="newSelectedFilterItem.value"
-                              type="number"
-                              label="Valeur"
-                              outlined
-                              :style="{ width: '8em' }"
-                            ></v-text-field>
-                          </div>
-                        </div>
-                      </template>
-                    </v-list-item>
-                    <v-list-item v-if="newSelectedFilterItem.type === 'number'">
-                      <template v-slot:default="{ active }">
-                        <div class="d-flex flex-column">
-                          <div class="d-flex flex-row">
-                            <v-list-item-action>
-                              <v-checkbox
-                                :input-value="active"
-                                color="deep-purple accent-4"
-                              ></v-checkbox>
-                            </v-list-item-action>
-
-                            <v-list-item-content>
-                              <v-list-item-title class="body-2"
-                                >Entre
-                              </v-list-item-title>
-                            </v-list-item-content>
-                          </div>
-                          <div
-                            class="d-flex flex-row justify-end align-end"
-                            v-if="active"
-                          >
-                            <v-text-field
-                              @click.stop=""
-                              class="mx-2"
-                              type="number"
-                              label="Min"
-                              outlined
-                              :style="{ width: '8em' }"
-                              v-model="newSelectedFilterItem.min"
-                            ></v-text-field>
-                            <v-text-field
-                              @click.stop=""
-                              class="mx-2"
-                              type="number"
-                              label="Max"
-                              outlined
-                              :style="{ width: '8em' }"
-                              v-model="newSelectedFilterItem.max"
-                            ></v-text-field>
-                          </div>
-                        </div>
-                      </template>
-                    </v-list-item>
-                    <v-list-item>
-                      <template v-slot:default="{ active }">
-                        <div class="d-flex flex-column">
-                          <div class="d-flex flex-row">
-                            <v-list-item-action>
-                              <v-checkbox
-                                :input-value="active"
-                                color="deep-purple accent-4"
-                              ></v-checkbox>
-                            </v-list-item-action>
-
-                            <v-list-item-content>
-                              <v-list-item-title class="body-2"
-                                >Egal à
-                              </v-list-item-title>
-                            </v-list-item-content>
-                          </div>
-                          <div
-                            class="d-flex flex-row justify-end align-end"
-                            v-if="active"
-                          >
-                            <v-text-field
-                              @click.stop=""
-                              class="mx-2"
-                              v-model="newSelectedFilterItem.value"
-                              type="text"
-                              label="Valeur"
-                              outlined
-                              :style="{ width: '8em' }"
-                            ></v-text-field>
-                          </div>
-                        </div>
-                      </template>
-                    </v-list-item>
-                    <!-- <v-list-item-icon> <v-icon>mdi-pencil</v-icon></v-list-item-icon> -->
-                  </v-list-item-group>
-                </v-list>
-                <div
-                  class="d-flex flex-row pa-4"
-                  :style="{ backgroundColor: 'white' }"
-                >
-                  <v-btn
-                    data-cy="simpleModaleCloseBtn"
-                    color="primary"
-                    outlined
-                    text
-                    @click="closeFilterMenu()"
-                    >Fermer</v-btn
-                  >
-                  <v-btn
-                    data-cy="simpleModaleSubmitBtn"
-                    color="primary"
-                    @click="saveFilter()"
-                  >
-                    Enregistrer
-                  </v-btn>
-                </div>
-              </v-menu>
-              <div class="search-wrapper">
-                <v-text-field
-                  @input="debounceUpdateSelected"
-                  width="40em"
-                  filled
-                  solo
-                  hide-details
-                  dense
-                  v-model="searchModel"
-                  placeholder="Rechercher"
-                >
-                  <template v-slot:prepend-inner>
-                    <v-tooltip bottom>
-                      <template v-slot:activator="{ on }">
-                        <v-btn icon v-on="on" @click="searchByFilter()">
-                          <v-icon> mdi-magnify </v-icon>
-                        </v-btn>
-                      </template>
-                      Rechercher
-                    </v-tooltip>
-                  </template>
-                </v-text-field>
-              </div>
-            </div>
-            <div
-              class="d-flex flex-row justify-start align-start my-4 flex-wrap"
-            >
-              <v-chip
-                class="mr-4 mb-2 elevation-2"
-                close
-                v-for="filter in searchFilter"
-                label
-                @click:close="deleteFilterSearch(filter)"
-                @click="updateFilter(filter)"
-              >
-                <v-icon left> mdi-filter-variant </v-icon>
-                {{ generateFilterOutput(filter) }}</v-chip
-              >
-            </div>
-          </div>
-          <div class="body-wrapper" ref="bodyWrapper">
-            <SpinalTable
-              ref="spinalTable"
-              :items="filteredRooms"
-              :headers="headersTable"
-              :height="dataTableHeight"
-              :selectedItems.sync="selectedItems"
-              :show-select="true"
-            >
-            </SpinalTable>
-          </div>
-        </div>
+        <Nomenclature :headersTable="headersTable" :selectedItems="selectedItems"></Nomenclature>
         <div class="second-view px-4" v-if="currentMode === 'two'">
           <div class="recap pa-8">
             <div class="header text-uppercase text-h6 font-weight-bold">
@@ -301,169 +13,59 @@
               <div class="body-1">
                 Assignation de
                 <span class="bg-black">
-                  <span> {{ selectedItems?.length ?? 0 }} </span>pièce<span
-                    v-if="selectedItems?.length > 1"
-                    >s</span
-                  >
+                  <span> {{ selectedItems?.length ?? 0 }} </span>pièce<span v-if="selectedItems?.length > 1">s</span>
                 </span>
               </div>
               <div class="assignation mt-2">
                 <div class="assignation-table">
                   <div class="text-wrapper">
-                    <span
-                      >Au groupe de <span class="underlined">contexte</span>:
+                    <span>Au groupe de <span class="underlined">contexte</span>:
                     </span>
                   </div>
                   <div class="select-wrapper">
-                    <v-select
-                      :items="grpToDisplay[0]"
-                      dense
-                      width="100%"
-                      @change="updateSelection(0)"
-                      v-model="selectedGrp[0]"
-                      return-object
-                      item-text="title"
-                      label="Groupe de contexte"
-                      outlined
-                      hide-details
-                    ></v-select>
+                    <v-select :items="grpToDisplay[0]" dense width="100%" @change="updateSelection(0)"
+                      v-model="selectedGrp[0]" return-object item-text="title" label="Groupe de contexte" outlined
+                      hide-details></v-select>
                   </div>
                   <div class="text-wrapper">
-                    <span
-                      >Au groupe de <span class="underlined"> catégorie</span>:
+                    <span>Au groupe de <span class="underlined"> catégorie</span>:
                     </span>
                   </div>
                   <div class="select-wrapper">
-                    <v-select
-                      v-if="selectedGrp[0]"
-                      :items="grpToDisplay[1]"
-                      @change="updateSelection(1)"
-                      dense
-                      v-model="selectedGrp[1]"
-                      return-object
-                      item-text="title"
-                      label="Groupe de catégorie"
-                      outlined
-                      hide-details
-                    ></v-select>
+                    <v-select v-if="selectedGrp[0]" :items="grpToDisplay[1]" @change="updateSelection(1)" dense
+                      v-model="selectedGrp[1]" return-object item-text="title" label="Groupe de catégorie" outlined
+                      hide-details></v-select>
                   </div>
                   <div class="text-wrapper">
-                    <span
-                      >Au groupe de <span class="underlined">groupe</span>:
+                    <span>Au groupe de <span class="underlined">groupe</span>:
                     </span>
                   </div>
                   <div class="select-wrapper">
-                    <v-select
-                      v-if="selectedGrp[1]"
-                      :items="grpToDisplay[2]"
-                      @change="updateSelection(2)"
-                      dense
-                      v-model="selectedGrp[2]"
-                      return-object
-                      item-text="title"
-                      label="Groupe de groupe"
-                      outlined
-                      hide-details
-                    ></v-select>
+                    <v-select v-if="selectedGrp[1]" :items="grpToDisplay[2]" @change="updateSelection(2)" dense
+                      v-model="selectedGrp[2]" return-object item-text="title" label="Groupe de groupe" outlined
+                      hide-details></v-select>
                   </div>
                 </div>
                 <ul>
-                  <!-- <li>
-                    <div class="d-flex flex-row align-baseline mt-4">
-                      <span
-                        >Au groupe de <span class="underlined">groupe</span>:
-                      </span>
-                      <div class="select-wrapper">
-                        <v-select
-                          :items="grpToDisplay[0]"
-                          dense
-                          width="100%"
-                          @change="updateSelection(0)"
-                          v-model="selectedGrp[0]"
-                          return-object
-                          item-text="title"
-                          label="Groupe de contexte"
-                          outlined
-                          hide-details
-                        ></v-select>
-                      </div>
-                    </div>
-                  </li> -->
-                  <!-- <li>
-                    <div class="d-flex flex-row align-end mt-4">
-                      <span
-                        >Au groupe de
-                        <span class="underlined"> categorie</span>:
-                      </span>
-                      <div class="select-wrapper">
-                        <v-select
-                          v-if="selectedGrp[0]"
-                          :items="grpToDisplay[1]"
-                          @change="updateSelection(1)"
-                          dense
-                          v-model="selectedGrp[1]"
-                          return-object
-                          item-text="title"
-                          label="Groupe de contexte"
-                          outlined
-                          hide-details
-                        ></v-select>
-                      </div>
-                    </div>
-                  </li> -->
-                  <!-- <li>
-                    <div class="d-flex flex-row align-center mt-4">
-                      <span
-                        >Au groupe de <span class="underlined">contexte</span>:
-                      </span>
-                      <div class="select-wrapper">
-                        <v-select
-                          v-if="selectedGrp[1]"
-                          :items="grpToDisplay[2]"
-                          @change="updateSelection(2)"
-                          dense
-                          v-model="selectedGrp[2]"
-                          return-object
-                          item-text="title"
-                          label="Groupe de contexte"
-                          outlined
-                          hide-details
-                        ></v-select>
-                      </div>
-                    </div>
-                  </li> -->
                 </ul>
               </div>
               <div class="body-1 mt-4">
                 Application de
                 <span class="bg-black">
-                  <span> {{ searchFilter?.length ?? 0 }} </span>filtre<span
-                    v-if="searchFilter?.length > 1"
-                    >s</span
-                  >
+                  <span> {{ searchFilter?.length ?? 0 }} </span>filtre<span v-if="searchFilter?.length > 1">s</span>
                 </span>
                 <div class="application">
-                  <v-chip
-                    class="mr-4 mb-2 mt-2 elevation-2"
-                    v-for="filter in searchFilter"
-                    label
-                    >{{ generateFilterOutput(filter) }}</v-chip
-                  >
+                  <v-chip class="mr-4 mb-2 mt-2 elevation-2" v-for="filter in searchFilter" label>{{
+    generateFilterOutput(filter) }}</v-chip>
                 </div>
               </div>
             </div>
             <div class="footer d-flex justify-end align-end">
-              <v-btn
-                class="primary"
-                v-if="
-                  selectedGrp[0] &&
-                  selectedGrp[1] &&
-                  selectedGrp[2] &&
-                  selectedItems.length > 0
-                "
-                @click="addRoomsToGroup()"
-                width="inherit"
-              >
+              <v-btn class="primary" v-if="selectedGrp[0] &&
+    selectedGrp[1] &&
+    selectedGrp[2] &&
+    selectedItems.length > 0
+    " @click="addRoomsToGroup()" width="inherit">
                 Assigner
                 <v-icon> mdi-check </v-icon>
               </v-btn>
@@ -480,6 +82,7 @@
 import { NomenclatureController } from "../../../controllers/";
 
 // * Components
+import Nomenclature from "../Nomenclature/Nomenclature.vue"
 import SimpleModale from "./SimpleModale.vue";
 import SpinalTable from "../../Table/SpinalTable.vue";
 
@@ -499,10 +102,24 @@ import {
 import _ from "lodash";
 
 // * Vuetify
+import { VBtn } from "vuetify/lib";
+import { VChip } from "vuetify/lib";
+import { VCheckbox } from "vuetify/lib";
+import { VIcon } from "vuetify/lib";
+import { VListItemAction } from "vuetify/lib";
+import { VListItemContent } from "vuetify/lib";
+import { VListItem } from "vuetify/lib";
+import { VlistItemGroup } from "vuetify/lib";
+import { VListItemTitle } from "vuetify/lib";
+import { VMenu } from "vuetify/lib";
+import { VSelect } from "vuetify/lib";
+import { VSubheader } from "vuetify/lib";
 import { VTextField } from "vuetify/lib";
+import { VTooltip } from "vuetify/lib";
 
 export default {
   components: {
+    Nomenclature,
     SimpleModale,
     SpinalTable,
   },
@@ -515,7 +132,6 @@ export default {
       },
     },
   },
-
   data() {
     const nomenclatureController = new NomenclatureController();
     const modelFilter: { [key: string]: boolean } = {};
@@ -572,7 +188,6 @@ export default {
     };
   },
   mounted() {
-    this.initTableHeight();
     this.loadData();
     this.animSwitchMode();
   },
@@ -695,9 +310,6 @@ export default {
         return `${displayName} contient ${value}`;
       }
       return "[Error] Une erreur est survenue ...";
-    },
-    initTableHeight() {
-      this.dataTableHeight = this.$refs.bodyWrapper.clientHeight;
     },
     initCustomFilters() {
       for (const filter of this.nomenclatureController.filters) {
@@ -872,8 +484,7 @@ export default {
       }
     }
 
-    .footer-wrapper {
-    }
+    .footer-wrapper {}
   }
 
   .bg-red {
@@ -907,8 +518,7 @@ export default {
       display: grid;
       grid-template-rows: 1fr 4fr 1fr;
 
-      .header {
-      }
+      .header {}
 
       .body {
         font-family: "Charlevoix";
@@ -949,8 +559,7 @@ export default {
         }
       }
 
-      .footer {
-      }
+      .footer {}
     }
   }
 }
@@ -978,7 +587,6 @@ export default {
   }
 }
 
-.filter-wrapper {
-}
+.filter-wrapper {}
 </style>
 ../../../interfaces/GroupWithChildren

@@ -23,31 +23,16 @@ with this file. If not, see
 -->
 <template>
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
-    <NomenclatureModale
-      ref="nomenclatureModale"
-      v-if="showNomenclatureModale"
-      :showModal="showNomenclatureModale"
-      v-on:close="closeModaleNomenclature"
-    ></NomenclatureModale>
-    <ModaleEditGroup
-      ref="editGroupModale"
-      v-if="showModalEditGroup"
-      @activateSpaceAssignation="activateSpaceAssignation"
-      @activateNomenclatureModale="activateNomenclatureModale"
-      v-on:close="closeModaleEditGroup"
-      :showModal="showModalEditGroup"
-    >
+    <NomenclatureModale ref="nomenclatureModale" v-if="showNomenclatureModale" :showModal="showNomenclatureModale"
+      v-on:close="closeModaleNomenclature"></NomenclatureModale>
+    <ModaleEditGroup ref="editGroupModale" v-if="showModalEditGroup"
+      @activateSpaceAssignation="activateSpaceAssignation" @activateNomenclatureModale="activateNomenclatureModale"
+      v-on:close="closeModaleEditGroup" :showModal="showModalEditGroup">
     </ModaleEditGroup>
-    <v-overlay
-      :value="showModalEditGroup || showNomenclatureModale"
-    ></v-overlay>
+    <v-overlay :value="showModalEditGroup || showNomenclatureModale"></v-overlay>
     <div class="selectors">
       <div class="DButton">
-        <ScDownloadButton
-          :fileName="'insight_data'"
-          :csv="true"
-          :data="getDataFormatted()"
-        />
+        <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()" />
       </div>
 
       <!-- <div class="temporality">
@@ -56,60 +41,32 @@ with this file. If not, see
       </div> -->
 
       <div class="space">
-        <space-selector
-          ref="space-selector"
-          :open.sync="openSpaceSelector"
-          :maxDepth="2"
-          :GetChildrenFct="onSpaceSelectOpen"
-          v-model="selectedZone"
-          label="ESPACE"
-          :spaceSelectorItemButtons="spaceSelectorButtons"
-          :viewButtonsType="config.viewButtons"
-          @onActionClick="onActionClick"
-        />
+        <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"
+          :GetChildrenFct="onSpaceSelectOpen" v-model="selectedZone" label="ESPACE"
+          :spaceSelectorItemButtons="spaceSelectorButtons" :viewButtonsType="config.viewButtons"
+          @onActionClick="onActionClick" />
       </div>
     </div>
 
     <div class="dataBody">
-      <viewerApp
-        class="viewerContainer"
-        :class="classViewerContainer"
-      ></viewerApp>
+      <viewerApp class="viewerContainer" :class="classViewerContainer"></viewerApp>
       <div class="bottom-container">
         <div class="legend-wrapper">
-          <LegendVue
-            v-if="currentExpansionMode !== 'full'"
-            :listItem="legendSpaceAssignation"
-            v-show="currentExpansionMode !== 'zero'"
-          ></LegendVue>
+          <LegendVue v-if="currentExpansionMode !== 'full'" :listItem="legendSpaceAssignation"
+            v-show="currentExpansionMode !== 'zero'"></LegendVue>
         </div>
         <div class="menu-wrapper">
-          <MenuV1
-            v-if="currentExpansionMode !== 'full'"
-            @clickFirstCell="openModaleEditGroup"
-            @clickSecondCell="openNomenclatureModale"
-            @clickMainCell="toggleHomeMode"
-          >
+          <MenuV1 v-if="currentExpansionMode !== 'full'" @clickFirstCell="openModaleEditGroup"
+            @clickSecondCell="openNomenclatureModale" @clickMainCell="toggleHomeMode">
           </MenuV1>
         </div>
 
-        <dataSideApp
-          class="appContainer"
-          ref="dataSideApp"
-          :class="classDataSide"
-          :config="config"
-          :selectedZone="selectedZone"
-          :data="displayedData"
-          @clickOnDataView="onDataViewClicked"
-          :selectedEntities="selectedEntities"
-          :selectEntity="selectRoom"
-        >
+        <dataSideApp class="appContainer" ref="dataSideApp" :class="classDataSide" :config="config"
+          :selectedZone="selectedZone" :data="displayedData" @clickOnDataView="onDataViewClicked"
+          :selectedEntities="selectedEntities" :selectEntity="selectRoom">
           <template #expander>
-            <Expansion
-              @updateExpansion="updateExpansion"
-              iconLeft="mdi-chevron-left"
-              iconRight="mdi-chevron-right"
-            >
+            <Expansion @updateExpansion="updateExpansion" ref="expansion" iconLeft="mdi-chevron-left"
+              iconRight="mdi-chevron-right">
             </Expansion>
           </template>
           <template #body>
@@ -127,17 +84,8 @@ with this file. If not, see
     </div> -->
   </v-app>
 
-  <v-container
-    class="loading"
-    v-else-if="pageSate === PAGE_STATES.loading"
-    fluid
-  >
-    <v-progress-circular
-      :size="70"
-      :width="3"
-      color="purple"
-      indeterminate
-    ></v-progress-circular>
+  <v-container class="loading" v-else-if="pageSate === PAGE_STATES.loading" fluid>
+    <v-progress-circular :size="70" :width="3" color="purple" indeterminate></v-progress-circular>
   </v-container>
 </template>
 
@@ -267,7 +215,7 @@ class App extends Vue {
   showNomenclatureModale: boolean = false;
   selectedRoom: IRoom[];
   legendSpaceAssignation: Legend[] =
-  GroupRoomWithChildrenController.legendSpaceAssignation;
+    GroupRoomWithChildrenController.legendSpaceAssignation;
   currentExpansionMode: ExpansionMode = "one-tier";
   expsEventAttached: boolean = false;
 
@@ -581,6 +529,7 @@ class App extends Vue {
   toggleHomeMode() {
     this.showModalEditGroup = false;
     this.currentExpansionMode = "zero";
+    this.$refs.expansion.resetToZero()
   }
 
   private _getHeader() {
@@ -757,18 +706,11 @@ body {
   border-radius: 5px;
 }
 
-.appContainer
-  .dataContainer
-  .calcul_content
-  .calcul
-  .select
-  .v-text-field.v-text-field--solo
-  .v-input__control {
+.appContainer .dataContainer .calcul_content .calcul .select .v-text-field.v-text-field--solo .v-input__control {
   min-height: unset !important;
 }
 
-.legend-wrapper {
-}
+.legend-wrapper {}
 
 .menu-wrapper {
   display: flex;

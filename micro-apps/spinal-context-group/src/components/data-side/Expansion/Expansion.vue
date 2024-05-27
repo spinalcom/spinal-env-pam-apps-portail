@@ -63,7 +63,7 @@ export default {
           this.$emit("updateExpansion", this.currentExpansion);
           break;
         case "one-tier":
-          this.currentExpansion = "half";
+          this.currentExpansion = "full";
           this.$emit("updateExpansion", this.currentExpansion);
           break;
         case "half":
@@ -88,12 +88,16 @@ export default {
           this.$emit("updateExpansion", this.currentExpansion);
           break;
         case "full":
-          this.currentExpansion = "half";
+          this.currentExpansion = "one-tier";
           this.$emit("updateExpansion", this.currentExpansion);
           break;
         default:
       }
     },
+    resetToZero() {
+      this.currentExpansion = "zero";
+      this.$emit("updateExpansion", this.currentExpansion);
+    }
   },
 };
 </script>

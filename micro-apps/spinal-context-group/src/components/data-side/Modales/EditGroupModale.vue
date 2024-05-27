@@ -79,9 +79,9 @@ export default {
     data() {
         let APIGrpContext: GroupContextApi | undefined = undefined;
         let animationsClass: string[] = ["animated fadeInLeft0", "animated fadeInLeft1", "animated fadeInLeft2"]
-        let errorMessage: string = ""
+        let errorMessage: string = "";
         let grpCGCWithChildrenController: GroupCgcWithChildrenController | undefined = undefined;
-        const GRP_NUMBER: number = 3
+        const GRP_NUMBER: number = 3;
         const groupsToDisplay: IGroupItem[][] = Array(GRP_NUMBER).fill([])
         let isLoading: Array<boolean> = Array(GRP_NUMBER).fill(false);
         let infoTmp: Partial<IGroupItem> | undefined = { title: "", icon: "", color: "", type: EGroupType.GRP_NONE, verb: EAPIVerb.API_CREATION };
