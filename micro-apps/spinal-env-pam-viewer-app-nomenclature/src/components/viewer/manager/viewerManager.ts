@@ -90,7 +90,7 @@ export class ViewerManager {
 		emitter.once(VIEWER_INITIALIZED, async () => {
 			const buildingId = item.buildingId;
 			const dynamicId = item.dynamicId;
-			if (!body) body = { dynamicId: [dynamicId], floorRef: true, roomRef: true, equipements: false };
+			if (!body) body = { dynamicId: [dynamicId], floorRef: true, roomRef: true, equipements: true };
 
 			const res = await this.getViewerInfoMerged(item, body);
 
@@ -139,7 +139,7 @@ export class ViewerManager {
 		}
 
 		if (nodeTofetech.length > 0) {
-			if (!body) body = { dynamicId: nodeTofetech, floorRef: true, roomRef: true, equipements: false };
+			if (!body) body = { dynamicId: nodeTofetech, floorRef: true, roomRef: true, equipements: true };
 			const datas = await getViewInfo(buildingId, body);
 
 			for (const _item of datas) {

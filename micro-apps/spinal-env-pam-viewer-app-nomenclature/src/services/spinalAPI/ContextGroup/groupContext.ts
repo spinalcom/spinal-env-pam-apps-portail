@@ -54,10 +54,10 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
 
     // Filtrez `result.data` et mettez à jour `resultCopy.data` avec les éléments filtrés
     resultCopy.data = resultCopy.data.filter(item =>
-      item.type === 'BIMObjectGroupContext' || item.type === 'geographicRoomGroupContext'
+        item.type === 'BIMObjectGroupContext' || item.type === 'geographicRoomGroupContext'
     );
     // console.log(resultCopy);
-    
+
     store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy.data });
 
 
@@ -85,7 +85,7 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
                         list = await getroomList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, matchedGrpList.dynamicId);
                     }
                     if (list) {
-                        allLists.push(...list); 
+                        allLists.push(...list);
                     }
                 }
             }
@@ -93,6 +93,8 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
             if (position_type.type === 'building') {
                 return allLists;
             } else if (position_type.type === 'geographicFloor') {
+                // console.log('ça rentre');
+
                 const roomIds = allLists.map(room => room.dynamicId.toString());
                 let position;
                 if (type === "geographicRoomGroup") {
@@ -101,6 +103,8 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
                     position = await getEquipementPositions(buildingId, roomIds);
                 }
                 const List_floor = get_element_floor(position);
+
+
                 const roomsOnFloor = getRoomsByFloor(position_type.dynamicId, allLists, List_floor);
 
 
@@ -111,10 +115,10 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
                 const results = await Promise.allSettled(promises);
 
                 const attribut = results.reduce((acc, result) => {
-                  if (result.status === "fulfilled") {
-                    acc.push(...result.value);
-                  }
-                  return acc;
+                    if (result.status === "fulfilled") {
+                        acc.push(...result.value);
+                    }
+                    return acc;
                 }, []);
 
                 const nomenclature = createUnifiedNomenclature(attribut);
@@ -122,10 +126,56 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
                     data: enrichBIMObjects(roomsOnFloor, attribut),
                     nomenclature: nomenclature
                 };
-            
+
                 return alldataBimObject;
-            } else {
-                console.warn('RESTE');
+            } else if (position_type.type === "geographicRoom") {
+
+                // console.log('ça rentre dans la 222222222222222222223*');
+
+                const roomIds = allLists.map(room => room.dynamicId.toString());
+                let position;
+                if (type === "geographicRoomGroup") {
+                    position = await getRoomPositions(buildingId, roomIds);
+                } else {
+                    position = await getEquipementPositions(buildingId, roomIds);
+                }
+                const List_floor = get_element_floor(position);
+                // console.log(List_floor);
+
+
+                const roomsOnFloor = getElByFloor(position_type.dynamicId, allLists, List_floor);
+                const toto = [{
+                    roomDynamicId: position_type.dynamicId
+                }]
+
+                // console.warn(List_floor, 'dzdzdzdz///////////////////////////////////');
+                // console.warn(roomsOnFloor, 'dzdzdzdz///////////////////////////////////');
+                // console.warn(position_type, 'dzdzdzdz//////////////////////////////////');
+                // const attribut = await getAttributeListMultiple(buildingId, roomIds);
+
+                const chunkedRoomIds = lodash.chunk(roomIds, 500);
+                const promises = chunkedRoomIds.map(ids => getAttributeListMultiple(buildingId, ids));
+                const results = await Promise.allSettled(promises);
+
+                const attribut = results.reduce((acc, result) => {
+                    if (result.status === "fulfilled") {
+                        acc.push(...result.value);
+                    }
+                    return acc;
+                }, []);
+
+                const nomenclature = createUnifiedNomenclature(attribut);
+                let alldataBimObject = {
+                    data: enrichBIMObjects(roomsOnFloor, attribut),
+                    nomenclature: nomenclature
+                };
+
+                return alldataBimObject;
+
+            }
+            else {
+
+                // console.warn('RESTE', position_type);
                 return allLists;
             }
         }
@@ -134,8 +184,10 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
 }
 
 function enrichBIMObjects(bimObjects: any[], dataObjects: any[]): any[] {
-    
+
     const attributesDictionary: { [dynamicId: number]: any[] } = {};
+
+    // console.log(dataObjects);
 
     dataObjects?.forEach(obj => {
         attributesDictionary[obj.dynamicId] = obj.categoryAttributes;
@@ -182,6 +234,7 @@ function createUnifiedNomenclature(dataArray: any[]): any {
 
 
 function getRoomsByFloor(floorId: number, rooms: any, roomFloorInfos: any): any[] {
+
     // Filtrer les informations de l'étage pour obtenir uniquement les ID de pièces de l'étage spécifique
     const roomIdsOnFloor = roomFloorInfos
         .filter(info => info.floorDynamicId === floorId)
@@ -191,10 +244,22 @@ function getRoomsByFloor(floorId: number, rooms: any, roomFloorInfos: any): any[
     return rooms.filter(room => roomIdsOnFloor.includes(room.dynamicId));
 }
 
+function getElByFloor(floorId: number, rooms: any, roomFloorInfos: any): any[] {
+
+    // Filtrer les informations de l'étage pour obtenir uniquement les ID de pièces de l'étage spécifique
+    const roomIdsOnFloor = roomFloorInfos
+        .filter(info => info.RDynamicId === floorId)
+        .map(info => info.roomDynamicId);
+    // Filtrer la liste des pièces pour retourner celles qui sont sur l'étage spécifié
+    return rooms.filter(room => roomIdsOnFloor.includes(room.dynamicId));
+}
+
 function get_element_floor(results: any[]): IRoomFloorInfo[] {
+
     return results.filter(a => !a.error).map(result => ({
         roomDynamicId: result.dynamicId,
-        floorDynamicId: result?.info?.floor?.dynamicId
+        floorDynamicId: result?.info?.floor?.dynamicId,
+        RDynamicId: result?.info?.room?.dynamicId
     }));
 }
 
@@ -247,18 +312,6 @@ export async function getroomList(patrimoineId: string, buildingId: string, cont
     return res;
 }
 
-
-// export async function getGroupContext(patrimoineId: string, buildingId: string, floorId: string): Promise<IZoneItem[]> {
-//     const spinalAPI = SpinalAPI.getInstance();
-//     const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/groupContext/list`);
-//     let result = await spinalAPI.get<IZoneItem[]>(url);
-//     const res = result.data.map((obj) => {
-//         Object.assign(obj, { patrimoineId, buildingId, floorId, color: '#ded638', req: 'EquipmentGroup' });
-//         return obj;
-//     });
-//     console.log(res,'erteterer');
-//     return res;
-// }
 
 export async function getGroupContextCategoryList(patrimoineId: string, buildingId: string, contextDynId: number): Promise<IZoneItem[]> {
     const spinalAPI = SpinalAPI.getInstance();

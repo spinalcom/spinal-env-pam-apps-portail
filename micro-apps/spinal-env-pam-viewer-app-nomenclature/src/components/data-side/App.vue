@@ -175,7 +175,7 @@ class dataSideApp extends Vue {
   }
 
   async updateData() {
-    console.log('upload ??');
+    // console.log('upload ??');
     
     await this.retriveData();
   }
@@ -209,6 +209,8 @@ class dataSideApp extends Vue {
 
   async putAllFiltredData(allFilteredData) {
     this.allFilteredData = allFilteredData
+    // console.log('TEST ,,');
+    
     setTimeout(() => {
       this.watchData(allFilteredData, 'AllFiltredData');
     }, 1);
@@ -295,7 +297,7 @@ class dataSideApp extends Vue {
 
   @Watch('selected_attr')
   onSelectedAttrChange(newVal, oldVal) {
-    console.log('selected attr ???');
+    // console.log('selected attr ???');
     if (this.allFilteredData) {
       this.watchData(this.allFilteredData, 'AllFiltredData');
     } else
@@ -328,7 +330,8 @@ class dataSideApp extends Vue {
 
 
   async watchData(newVal, changedProperty) {
-
+    // console.log('toto?' , newVal);
+    
     if (this.config.sprites)
       this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
     if (this.isBuildingSelected) return;

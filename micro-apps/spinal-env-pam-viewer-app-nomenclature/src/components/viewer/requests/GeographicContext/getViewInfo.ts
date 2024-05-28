@@ -84,10 +84,7 @@ export function mergeIViewInfoTmpRes(
   }
 }
 
-export function mergeIViewInfo(
-  resBody: IViewInfoTmpRes[],
-  sources: IViewInfoItemRes[]
-): void {
+export function mergeIViewInfo(resBody: IViewInfoTmpRes[], sources: IViewInfoItemRes[] ): void {
   for (const source of sources) {
     for (const dbIds of source.dbIds) {
       mergeIViewInfoTmpRes(resBody, source.bimFileId, dbIds);
