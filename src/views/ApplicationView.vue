@@ -75,7 +75,14 @@ class ApplicationView extends Vue {
       `appDataStore/selectSpace`,
       (<any>this.appSelected).parent
     );
-    this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, this.appSelected);
+
+    // * Reverse proxy
+    // * Multiple micro service under a single domain name
+    // * Traefik => Docker implentation
+    if (this.appSelected.name === 'spinal-context-group') {
+      window.location.href = "http://portail-pam.docker.localhost/groupContext"
+    }
+    // this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, this.appSelected);
   }
 
   getAppInfo() {

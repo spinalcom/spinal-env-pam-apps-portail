@@ -14,12 +14,12 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "[name].[contenthash].js",
+    filename: "[name].js",
   },
   plugins: [
     new HtmlWebpackPlugin({
       title: "GroupeContext",
-      template: "./index.html",
+      template: "./app.html.ejs",
       filename: "./index.html",
       chunks: ["groupContext"],
     }),
@@ -29,18 +29,18 @@ module.exports = {
     new Dotenv(),
     new CleanWebpackPlugin(),
   ],
-  optimization: {
-    runtimeChunk: "single",
-    splitChunks: {
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: "vendors",
-          chunks: "all",
-        },
-      },
-    },
-  },
+  // optimization: {
+  //   runtimeChunk: "single",
+  //   splitChunks: {
+  //     cacheGroups: {
+  //       vendor: {
+  //         test: /[\\/]node_modules[\\/]/,
+  //         name: "vendors",
+  //         chunks: "all",
+  //       },
+  //     },
+  //   },
+  // },
   module: {
     rules: [
       {
@@ -49,11 +49,29 @@ module.exports = {
       },
       {
         test: /\.vue\.(s?[ac]ss)$/,
-        use: ["vue-style-loader", "css-loader", "sass-loader"],
+        use: [
+          "vue-style-loader",
+          "css-loader",
+          {
+            loader: "sass-loader",
+            options: {
+              implementation: require("sass"),
+            },
+          },
+        ],
       },
       {
         test: /(?<!\.vue)\.(s?[ac]ss)$/,
-        use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
+        use: [
+          MiniCssExtractPlugin.loader,
+          "css-loader",
+          {
+            loader: "sass-loader",
+            options: {
+              implementation: require("sass"),
+            },
+          },
+        ],
         exclude: ["/node_modules/"],
       },
       {
@@ -79,4 +97,3 @@ module.exports = {
   },
   stats: { warnings: false },
 };
-

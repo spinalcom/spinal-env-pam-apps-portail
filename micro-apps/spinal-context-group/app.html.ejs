@@ -1,31 +1,36 @@
-<!doctype html>
-<html lang="fr">
+<!DOCTYPE html>
+<html>
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css"
+        type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+        type="text/css" />
+    <link href=" https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet" />
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.4/vue.js"></script>
-    <title>pam-dataview</title>
-    <script defer="defer" src="runtime.6dd160fc8488dd19a3a9.js"></script>
-    <script defer="defer" src="vendors.ba707db0c56b58d745f3.js"></script>
-    <script defer="defer" src="groupContext.0ae54e7efb85c4ad90bb.js"></script>
-    <link href="vendors.css" rel="stylesheet">
-    <link href="groupContext.css" rel="stylesheet">
+    <title>PAM | GroupContext</title>
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+        <script type="text/javascript" src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>" defer></script>
+        <% } %>
 </head>
 
 <body>
     <div id="app"></div>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
         integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
+
     <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.js"></script>
+
 </body>
 
 </html>
