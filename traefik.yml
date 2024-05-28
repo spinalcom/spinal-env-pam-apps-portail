@@ -1,0 +1,24 @@
+# providers:
+#   docker:
+#     endpoint: "unix:///var/run/docker.sock"
+#     exposedByDefault: false
+    # network: traefik-spinalcom
+#   file:
+#     directory: /path/to/dynamic/conf
+
+api:
+  dashboard: true
+  insecure: true
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    watch: true
+    exposedByDefault: false
+
+## Static configuration
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"

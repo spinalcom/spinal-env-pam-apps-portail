@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+  reverse-proxy:
+    image: traefik:v3.0
+    command: --api.insecure=true --providers.docker
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # Only in dev mode
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+    networks:
+      - traefik-spinalcom
+
+  whoami:
+      image: traefik/whoami
+      labels:
+        - traefik.http.routers.whoami.rule=Host(`whoami.docker.localhost`)
+      networks:
+        - traefik-spinalcom
+  portail-pam:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      ssh:
+        - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.portail-pam-service.loadbalancer.server.port=1234"
+      - traefik.http.routers.portail-pam.rule=Host(`portail-pam.docker.localhost`)
+      - traefik.http.routers.portail-pam.service=portail-pam-service
+      - "traefik.http.routers.portail-pam.entrypoints=web"
+      - "traefik.http.routers.portail-pam.priority=1"
+      - "traefik.docker.network=traefik-spinalcom"
+    networks:
+      - traefik-spinalcom
+  group-context:
+    build:
+      context: ./micro-apps/spinal-context-group
+      dockerfile: Dockerfile.dev
+      ssh:
+        - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.group-context-service.loadbalancer.server.port=1235"
+      - "traefik.http.routers.group-context.rule=Host(`portail-pam.docker.localhost`) && PathPrefix(`/groupContext`)"
+      - traefik.http.routers.group-context.service=group-context-service
+      - "traefik.http.routers.group-context.entrypoints=web"
+      - "traefik.http.routers.group-context.priority=2"
+      - "traefik.docker.network=traefik-spinalcom"
+    networks:
+      - traefik-spinalcom
+
+networks:
+  traefik-spinalcom:

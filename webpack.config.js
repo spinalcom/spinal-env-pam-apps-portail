@@ -15,7 +15,7 @@ const stylesHandler = MiniCssExtractPlugin.loader;
 const config = {
   entry: {
     app: "./src/main.ts",
-    groupContext: "./micro-apps/spinal-context-group/src/main.ts",
+    // groupContext: "./micro-apps/spinal-context-group/src/main.ts",
     // insights: "./micro-apps/spinal-env-pam-insights/src/index.ts",
     // description:
     //   "./micro-apps/spinal-env-pam-viewer-app-description/src/index.ts",
@@ -31,7 +31,7 @@ const config = {
   },
   devServer: {
     open: true,
-    host: "localhost",
+    host: "0.0.0.0",
     port: 1234,
     static: {
       directory: path.join(__dirname, "public"),
@@ -50,12 +50,12 @@ const config = {
       filename: "./index.html",
       chunks: ["app"],
     }),
-    new HtmlWebpackPlugin({
-      title: "GroupeContext",
-      template: "./micro-apps/spinal-context-group/index.html",
-      filename: "./micro-apps/spinal-context-group/index.html",
-      chunks: ["groupContext"],
-    }),
+    // new HtmlWebpackPlugin({
+    //   title: "GroupeContext",
+    //   template: "./micro-apps/spinal-context-group/index.html",
+    //   filename: "./micro-apps/spinal-context-group/index.html",
+    //   chunks: ["groupContext"],
+    // }),
     new HtmlWebpackPlugin({
       title: "ProfileManager",
       template: "./micro-apps/spinal-env-pam-app-profile-manager/index.html",
