@@ -66,23 +66,28 @@ export class SpriteManager {
 			this._viewableType = this.DataVizCore.ViewableType.SPRITE;
 		}
 
-		viewer.addEventListener(this.DataVizCore.MOUSE_CLICK, this._onSpriteClicked.bind(this));
+		viewer.addEventListener(this.DataVizCore.MOUSE_CLICK, () =>{/*viewer.clearSelection();*/ this._onSpriteClicked.bind(this); });
 		viewer.addEventListener(this.DataVizCore.MOUSE_HOVERING, this._onSpriteHovering.bind(this));
 	}
 
 	public async addComponentAsSprite(viewer: Autodesk.Viewing.Viewer3D, data: ISpriteData | ISpriteData[]) {
 		data = Array.isArray(data) ? data : [data];
-
+		// console.warn(data);
+		
 
 		for (const d of data) {
 			if (!d.component) continue;
-			console.log(d);
-
+			// console.log(d.comp);
 			const VueComponent = Vue.extend(d.component);
 			const vueInstance = new VueComponent({ propsData: d });
-			console.log(vueInstance)
+			console.warn(vueInstance,'///////////////////////');
+			
 			const label = new Autodesk.Edit3D.Label3D(viewer, d.position, "");
+			label.viewer.container.appendChild(label.container);
+			// récupérer label.viewer.container avec un getElementByClassName() + un insertBefore
+			label.container.style.pointerEvents = "auto";
 			label.container.appendChild(vueInstance.$mount().$el);
+			// label.container.addEventListener('click', (res) => {viewer.clearSelection();});
 			this.label3Ds.push(
 				{
 					dynamicId: d.data.dynamicId,
@@ -90,6 +95,7 @@ export class SpriteManager {
 					component: vueInstance
 				}
 			);
+			console.warn('6');
 		}
 	}
 

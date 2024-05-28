@@ -135,7 +135,7 @@ export class EventManager {
 				for (const selection of data.selections) {
 					eventData.push({
 						dbIds: selection.dbIdArray,
-						modelId: ModelManager.getInstance().getSpinalModelID(selection.model.id) as any,
+						modelId: selection.model,
 					});
 				}
 				this.lastSelection = eventData;

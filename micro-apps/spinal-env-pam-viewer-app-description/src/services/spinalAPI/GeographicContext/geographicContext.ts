@@ -52,6 +52,29 @@ export async function getFloors(patrimoineId: string, buildingId: string): Promi
   return res;
 }
 
+export async function getStaticDetails( buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/room/${roomDynId}/read_static_details`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+export async function getMultipleInventory(buildingId: string, referenceIds: number[]): Promise<any> {
+  console.log(referenceIds , 'sssssssssssssssssssssssssssssssssssssssssssssssssssssssss');
+  
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/room/inventory_multiple');
+  try {
+      const response = await spinalAPI.post<any>(url, referenceIds);
+      return response.data; 
+  } catch (error) {
+      console.error('Erreur lors de la récupération des objets de référence:', error);
+      throw error;
+  }
+}
+
+
+
 export async function getRooms(patrimoineId: string, buildingId: string, floorId: string, floorDynId: number): Promise<IZoneItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/floor/${floorDynId}/room_list`);

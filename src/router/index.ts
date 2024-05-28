@@ -67,6 +67,14 @@ const router = new VueRouter({
   routes,
 });
 
+
+router.beforeEach(async (to, from, next) => {
+  const auth = await isAuthenticate();
+  if (to.name === 'Login' && auth) return next({ name: 'Home' });
+  if (!auth && to.name !== 'Login') return next({ name: 'Login' });
+  return next();
+});
+
 router.customPush = function(path, query) {
   this.push({ path, query });
 };
@@ -75,13 +83,6 @@ router.customReplace = function(path, query) {
   this.replace({ path, query });
 };
 
-
-router.beforeEach(async (to, from, next) => {
-  const auth = await isAuthenticate();
-  if (to.name === 'Login' && auth) return next({ name: 'Home' });
-  if (!auth && to.name !== 'Login') return next({ name: 'Login' });
-  return next();
-});
 
 window.routerFontion = router;
 export { router };

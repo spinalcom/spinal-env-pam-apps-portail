@@ -159,7 +159,7 @@ class SpaceSelector extends Vue {
   }
 
   select(item?: ISpaceSelectorItem) {
-    // this.$emit("update:open", !this.open);
+    this.$emit("update:open", !this.open);
     this.$emit("input", item);
   }
 

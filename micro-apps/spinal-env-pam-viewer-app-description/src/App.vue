@@ -208,14 +208,8 @@ class App extends Vue {
         "dynamicId": parseInt(query.spaceSelectedId),
         "name": query.name,
         "buildingId": query.buildingId,
-        "parents": [
-          "5932-6086-9e1a-18506478460"
-        ],
         "type": "geographicFloor",
-        "staticId": "SpinalNode-6cd64ff8-a126-1aa3-80b7-f9d4fc5690bf-186df7cd2a5"//nan
-
       }
-
 
       if (this.$refs['space-selector']) {
         this.$refs['space-selector'].select(itemToSelect);
@@ -335,8 +329,6 @@ class App extends Vue {
 
 
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
-    console.log('test', item);
-
     if (!item) return;
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
@@ -350,6 +342,7 @@ class App extends Vue {
 
 
   onActionClick({ button, item }) {
+    
     const data = {
       buildingId: item.buildingId, //important viewer
       // staticId: item.staticId,//can
