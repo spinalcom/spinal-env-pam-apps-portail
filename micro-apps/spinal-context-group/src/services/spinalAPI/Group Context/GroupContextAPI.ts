@@ -18,11 +18,10 @@ import { EAPIVerb, EGroupType } from "../../../interfaces/GroupWithChildren";
 // * Factory
 import { GroupItemFactory } from "../../../interfaces/GroupWithChildren";
 
-
-
 /**
- * This class contain every endpoint that we can use in order to communicate with the API
- * @class SpinalAPIConnector
+ * **API Classes**
+ * @description  This class contain every endpoint that we can use in order to communicate with the API
+ * @class
  * @implements {IApiGroupContext}
  */
 class GroupContextApi extends AAPI implements IApiGroupContext {
@@ -37,8 +36,9 @@ class GroupContextApi extends AAPI implements IApiGroupContext {
 
   private readonly _genericError: string;
 
-  private readonly _grpCtxPayloadGenerator: GroupContextPayloadGenerator | undefined =
-    undefined;
+  private readonly _grpCtxPayloadGenerator:
+    | GroupContextPayloadGenerator
+    | undefined = undefined;
 
   private _lexicon: string[][] = [];
 

@@ -1,5 +1,5 @@
 type IAPI = {
-	getIdCurrentBuilding(): string;
+  getIdCurrentBuilding(): string;
 };
 
-export type {IAPI};
+export type { IAPI };

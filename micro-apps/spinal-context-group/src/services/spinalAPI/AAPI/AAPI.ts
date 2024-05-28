@@ -1,12 +1,17 @@
 // * Interfaces
-import {type IAPI} from '@/interfaces';
+import { type IAPI } from "@/interfaces";
 
+/**
+ * @description Classes that provide the required methods for AAPI implementation.
+ * @class
+ */
 class AAPI implements IAPI {
-	protected getIdCurrentBuilding(): string {
-		const idCurrentBuilding: string | undefined = window.localStorage.getItem('idBuilding');
+  getIdCurrentBuilding(): string {
+    const idCurrentBuilding: string | undefined =
+      window.localStorage.getItem("idBuilding");
 
-		return idCurrentBuilding ? idCurrentBuilding : '';
-	}
+    return idCurrentBuilding ? idCurrentBuilding : "";
+  }
 }
 
-export {AAPI};
+export { AAPI };

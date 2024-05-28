@@ -8,12 +8,14 @@ import { Room } from "../../../interfaces/API/Geographic Context/DTO/Request/Roo
 // * Factory
 import { GeographicContextFactory } from "../../../interfaces/API";
 
-// * Function
-import { listComprehension } from "@/utils";
-
 // * Type
 import { AAPI } from "../AAPI";
 
+/**
+ * **API Classes**
+ * @description This class is responsible for making API calls to the GeographicContext part.
+ * @class
+ */
 class GeographicContextApi extends AAPI {
   private readonly _apiInstance: SpinalAPI | undefined = undefined;
   private readonly _genericError: string;

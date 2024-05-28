@@ -1,13 +1,20 @@
 // * Classes
-import {NodeAttributsAPI} from './API/NodeAttributsAPI';
-
-// * Interfaces
-import {type Attribute, type AttributeCategory, type NodeAttributs} from './DTO';
-
+import { NodeAttributsAPI } from "./NodeAttributsAPI";
 
 // * Factory
-import {NodeAttributsFactory} from './Factory'
+import { NodeAttributsFactory } from "./Factory";
+
+// * Types
+import {
+  type Attribute,
+  type AttributeCategory,
+  type NodeAttributs,
+} from "./DTO";
 
 export {
-	NodeAttributsAPI, type Attribute, type AttributeCategory, type NodeAttributs, NodeAttributsFactory
+  NodeAttributsAPI,
+  type Attribute,
+  type AttributeCategory,
+  type NodeAttributs,
+  NodeAttributsFactory,
 };
