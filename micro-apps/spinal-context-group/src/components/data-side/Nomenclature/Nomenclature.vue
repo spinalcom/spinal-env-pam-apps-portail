@@ -1,5 +1,5 @@
 <template>
-    <div class="first-view px-8">
+    <div class="first-view ">
         <div class="action-wrapper">
             <div class="d-flex flex-row justify-space-between">
                 <v-menu offset-x transition="slide-y-transition" :close-on-content-click="!showMenuConfFilter"
@@ -125,7 +125,7 @@
                             <!-- <v-list-item-icon> <v-icon>mdi-pencil</v-icon></v-list-item-icon> -->
                         </v-list-item-group>
                     </v-list>
-                    <div class="d-flex flex-row pa-4" :style="{ backgroundColor: 'white' }">
+                    <div class="d-flex flex-row pa-4 " :style="{ backgroundColor: 'white' }">
                         <v-btn data-cy="simpleModaleCloseBtn" color="primary" outlined text
                             @click="closeFilterMenu()">Fermer</v-btn>
                         <v-btn data-cy="simpleModaleSubmitBtn" color="primary" @click="saveFilter()">
@@ -134,17 +134,20 @@
                     </div>
                 </v-menu>
                 <div class="search-wrapper">
-                    <v-text-field @input="debounceUpdateSelected" width="40em" filled solo hide-details dense
-                        v-model="searchModel" placeholder="Rechercher">
+                    <v-text-field @input="debounceUpdateSelected" width="40em" hide-details dense v-model="searchModel"
+                        placeholder="Rechercher" outlined>
                         <template v-slot:prepend-inner>
-                            <v-tooltip bottom>
-                                <template v-slot:activator="{ on }">
-                                    <v-btn icon v-on="on" @click="searchByFilter()">
-                                        <v-icon> mdi-magnify </v-icon>
-                                    </v-btn>
-                                </template>
-                                Rechercher
-                            </v-tooltip>
+                            <div class="d-flex justify-center align-center h-100">
+                                <v-tooltip bottom>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn class="fixTextField" small icon v-on="on" v-bind="attrs"
+                                            @click="searchByFilter()">
+                                            <v-icon> mdi-magnify </v-icon>
+                                        </v-btn>
+                                    </template>
+                                    Rechercher
+                                </v-tooltip>
+                            </div>
                         </template>
                     </v-text-field>
                 </div>
@@ -321,7 +324,7 @@ export default {
             console.log("This ref = ", this.$refs)
 
             this.$nextTick(function () {
-                this.dataTableHeight = this.$refs.bodyWrapper.clientHeight;
+                this.dataTableHeight = this.$refs.bodyWrapper.clientHeight - 40;
             })
         },
         initCustomFilters() {
@@ -461,6 +464,7 @@ export default {
     grid-template-columns: 1fr;
     row-gap: 0em;
     column-gap: 0em;
+    height: 100%;
 
     .body-wrapper {
         height: 100%;
@@ -474,5 +478,9 @@ export default {
     }
 
     .footer-wrapper {}
+}
+
+.fixTextField {
+    transform: translateY(-2px);
 }
 </style>

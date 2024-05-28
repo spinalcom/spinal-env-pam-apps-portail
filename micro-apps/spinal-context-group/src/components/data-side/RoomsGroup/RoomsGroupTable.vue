@@ -1,12 +1,13 @@
 <template>
   <v-card elevation="2" class="extend" height="100%">
     <div class="grid-cont" :class="gridClass">
-      <div class="component-wrapper" v-if="viewMode === 'radar-grid'">
-        <div class="header-wrapper">
+      <div class="component-wrapper cw-left" v-if="viewMode === 'radar-grid'">
+        <div class="header-wrapper hw-left">
           <div class="header">
             <div class="title-wrapper">
               <div class="title">
-                <div class="title-content">Radar</div>
+                <div class="title-content" v-if="radarGridMode === 'radar'">Radar</div>
+                <div class="title-content" v-else-if="radarGridMode === 'nomenclature'">Nomenclature</div>
               </div>
               <!-- <div class="subtitle-wrapper" v-if="grpRoomFocus === 'GrpRoom'">
                 <div class="subtitle">
@@ -26,16 +27,19 @@
           <div v-if="radarGridMode === 'radar'" class="radar-wrapper big-radar">
             <Radar id="radar-chart-chart" :options="radarOptions" :data="dataRadar"></Radar>
           </div>
-          <div v-else-if="radarGridMode === 'nomenclature'">
+          <div v-else-if="radarGridMode === 'nomenclature'" :style="{ height: '100%' }">
+            <Nomenclature :selectedItems.sync="selectedRoomsNomenclature" :style="{ height: '100%' }">
+            </Nomenclature>
           </div>
         </div>
-        <div class="footer-wrapper">
+        <div class=" footer-wrapper">
           <div class="footer">
-            <div class="toggle-group">
+            <div class="toggle-group tg-left">
               <ToggleButtonV1 color1="black" color2="white" symbol-left="mdi-radar" symbol-right="mdi-dots-grid"
                 ref="toggleRadarNomenclature" v-on:toggled="switchRadarNomenclature()" tooltip-left="Radar"
                 tooltip-right="Nomenclature">
               </ToggleButtonV1>
+              <v-btn color="primary" @click="assignRoomFromNomenclature()">Assigner</v-btn>
             </div>
           </div>
         </div>
@@ -259,9 +263,13 @@ import { RoomsGroupAPI } from "../../../services/spinalAPI/Rooms Group";
 import { GroupRoomWithChildrenController } from "../../../controllers";
 
 // * Components
+import Nomenclature from "../Nomenclature/Nomenclature.vue";
 import ToggleButtonV1 from "../utils/ToggleButtonV1.vue";
 import ToggleButtonV2 from "../utils/ToggleButtonV2.vue";
 import RoomGroupDataTable from "./DataTable/RoomGroupDataTable.vue";
+
+// * DTO
+import { Room } from "../../../interfaces/API/Geographic Context/DTO/Request/Room";
 
 // * Factory
 import { iGroupRoomItemFactory } from "../../../controllers/GroupeWithChildren";
@@ -336,6 +344,7 @@ export default {
     VMenu,
     ToggleButtonV1,
     ToggleButtonV2,
+    Nomenclature,
     Radar,
     VBtn,
     VIcon,
@@ -405,6 +414,7 @@ export default {
     let headersTable: Ref<any> = ref(assignationSpaceHeaders);
     const data: Ref<any> = ref();
     const roomListAndObj = ref(iListObjFactory.build());
+    const selectedRoomsNomenclature: Room[] = []
 
     return {
       searchModel,
@@ -431,6 +441,7 @@ export default {
       dataTableWrapper,
       categoriesModel,
       viewMode,
+      selectedRoomsNomenclature
     };
   },
   mounted() {
@@ -438,6 +449,18 @@ export default {
     this.loadData();
   },
   methods: {
+    assignRoomFromNomenclature() {
+      let mapIds = this.selectedRoomsNomenclature.map((x: Room) => x.dynamicId);
+
+
+      if (Array.isArray(this.searchModel)) {
+        mapIds = mapIds.filter((x) => !this.searchModel.includes(x));
+        this.searchModel.splice(this.searchModel.length, 0, ...mapIds)
+      } else {
+        this.searchModel = mapIds
+      }
+      this.selectedRoomsNomenclature.splice(0, this.selectedRoomsNomenclature.length)
+    },
     assignNewHeader() {
       if (this.grpRoomFocus === "GrpRoom") {
         this.headersTable = [...this.grpRoomHeader];
@@ -548,6 +571,7 @@ export default {
         .reset()
         .then(() => {
           this.reloadData();
+          this.searchModel.splice(0, this.searchModel.length)
         })
         .catch((err: any) => {
           console.error(err);
@@ -605,7 +629,6 @@ export default {
       }
 
       Promise.all(pms)
-        .then()
         .then(() => {
           this.reloadData();
         })
@@ -966,6 +989,10 @@ export default {
   }
 }
 
+.cw-left {
+  grid-template-rows: 0.2fr 4fr 0.3fr !important;
+}
+
 .component-wrapper {
   display: grid;
   grid-template-columns: 1fr;
@@ -987,6 +1014,10 @@ export default {
         font-size: 2em !important;
       }
     }
+  }
+
+  .hw-left {
+    height: 6em !important;
   }
 
   .header-wrapper {
@@ -1083,6 +1114,8 @@ export default {
   }
 
   .body-wrapper {
+    overflow-y: hidden;
+
     .component-actions-wrapper {
       display: flex;
       flex-direction: column;
@@ -1183,6 +1216,11 @@ export default {
 
   .big-radar {
     height: 100%;
+  }
+
+  .tg-left {
+    width: 100% !important;
+    justify-content: space-between !important;
   }
 
   .toggle-group {

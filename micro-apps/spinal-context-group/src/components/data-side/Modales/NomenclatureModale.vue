@@ -2,8 +2,9 @@
   <SimpleModale modaleTitle="Nomenclature" :show-dialog="showModal" width="50%" persistent :error-message="errorMessage"
     v-on:save="next" v-on:close="close" :validateButtonText="validateButtonText">
     <template v-slot:body>
-      <v-row class="content-wrapper" ref="firstView">
-        <Nomenclature :headersTable="headersTable" :selectedItems="selectedItems"></Nomenclature>
+      <v-row class="content-wrapper px-8" ref="firstView">
+        <Nomenclature :headersTable="headersTable" :selectedItems="selectedItems" v-if="currentMode === 'one'">
+        </Nomenclature>
         <div class="second-view px-4" v-if="currentMode === 'two'">
           <div class="recap pa-8">
             <div class="header text-uppercase text-h6 font-weight-bold">
@@ -104,18 +105,8 @@ import _ from "lodash";
 // * Vuetify
 import { VBtn } from "vuetify/lib";
 import { VChip } from "vuetify/lib";
-import { VCheckbox } from "vuetify/lib";
 import { VIcon } from "vuetify/lib";
-import { VListItemAction } from "vuetify/lib";
-import { VListItemContent } from "vuetify/lib";
-import { VListItem } from "vuetify/lib";
-import { VlistItemGroup } from "vuetify/lib";
-import { VListItemTitle } from "vuetify/lib";
-import { VMenu } from "vuetify/lib";
 import { VSelect } from "vuetify/lib";
-import { VSubheader } from "vuetify/lib";
-import { VTextField } from "vuetify/lib";
-import { VTooltip } from "vuetify/lib";
 
 export default {
   components: {
@@ -188,7 +179,6 @@ export default {
     };
   },
   mounted() {
-    this.loadData();
     this.animSwitchMode();
   },
   methods: {
@@ -263,172 +253,9 @@ export default {
       this.updateFilterMode = false;
       this.searchByFilter();
     },
-    debounceUpdateSelected: _.debounce(
-      function () {
-        this.updateSelected();
-      },
-      0.6 * 1000,
-      {
-        leading: true,
-      }
-    ),
-    updateFilter(filter: DynamicFilter) {
-      this.newSelectedFilterItem = filter;
-      this.updateFilterMode = true;
-    },
-    updateSelected() {
-      if (this.$refs.spinalTable) {
-        this.$refs.spinalTable.recomputeSelectedItems("dynamicId");
-      } else {
-        console.log("Spinal Table refs not defined", this.$refs);
-      }
-    },
-    deleteFilterSearch(filter: DynamicFilter) {
-      this.searchFilter = this.searchFilter.filter(
-        (el) => el.name !== filter.name
-      );
-      this.searchByFilter();
-    },
-    // TODO Refacto
-    generateFilterOutput(filter: DynamicFilter): string {
-      const displayName: string = filter.displayName;
-      const value: string = filter.value;
-
-      if (filter.type === "number") {
-        switch (filter.comparaison) {
-          case "gt":
-            return `${displayName} au dessus de ${value}`;
-          case "lt":
-            return `${displayName} en dessous de ${value}`;
-          case "btw":
-            return `${displayName} entre ${filter.min} et ${filter.max}`;
-          case "eq":
-            return `${displayName} égale à ${value}`;
-          default:
-        }
-      } else if (filter.type === "string") {
-        return `${displayName} contient ${value}`;
-      }
-      return "[Error] Une erreur est survenue ...";
-    },
-    initCustomFilters() {
-      for (const filter of this.nomenclatureController.filters) {
-        if (!this.customFilter[filter.name] && filter.type === "number") {
-          this.customFilter[filter.name] = filter;
-        } else if (
-          !this.customFilter[filter.name] &&
-          filter.type === "string"
-        ) {
-          this.customFilter[filter.name] = filter;
-        }
-      }
-      this.categories = [
-        ...new Set(this.nomenclatureController.filters.map((el) => el.category)),
-      ];
-    },
-    loadData() {
-      this.nomenclatureController
-        .loadData()
-        .then((data) => {
-          this.initCustomFilters();
-          this.searchByFilter();
-        })
-        .then(() => this.nomenclatureController.reloadGroupToDisplay())
-        .then((grp) => (this.grpToDisplay = grp))
-        .then(() => (this.itemsTree = this.grpToDisplay?.[0]))
-        .catch((err: any) => {
-          console.error(err);
-        });
-    },
-    updateNewSelectedFilter(filter: DynamicFilter) {
-      this.newSelectedFilterItem = filter;
-      this.showMenuConfFilter = true;
-    },
-    updateSelection(index) {
-      let newGrps: IGroupItem[][] = [];
-
-      this.nomenclatureController.selectItem(this.selectedGrp[index]);
-      newGrps = this.nomenclatureController.reloadGroupToDisplay();
-      this.grpToDisplay.splice(-1 * this.grpToDisplay.length);
-      this.grpToDisplay.splice(0, newGrps.length, ...newGrps);
-      if (this.grpToDisplay[0].length === 0) {
-        this.selectedGrp[0] = undefined;
-      }
-      if (this.grpToDisplay[1].length === 0) {
-        this.selectedGrp[1] = undefined;
-      }
-      if (this.grpToDisplay[2].length === 0) {
-        this.selectedGrp[2] = undefined;
-      }
-    },
-    saveFilter() {
-      let indexTmp: number = 0;
-
-      switch (this.selectedFilterType) {
-        case 0:
-          this.newSelectedFilterItem.comparaison = "gt";
-          break;
-        case 1:
-          this.newSelectedFilterItem.comparaison = "lt";
-          break;
-        case 2:
-          this.newSelectedFilterItem.comparaison = "btw";
-          break;
-        case 3:
-          this.newSelectedFilterItem.comparaison = "eq";
-          break;
-        default:
-      }
-      if (this.updateFilterMode) {
-        indexTmp = this.searchFilter.find(
-          (el) => el.id === this.newSelectedFilterItem.id
-        );
-        this.searchFilter[indexTmp] = this.newSelectedFilterItem;
-      } else {
-        this.searchFilter.push({ ...this.newSelectedFilterItem });
-      }
-      this.closeFilterMenu();
-    },
-    searchByFilter() {
-      let filters: DynamicFilter[] = [];
-
-      for (const properties in this.customFilter) {
-        if (this.modelFilter[properties]) {
-          filters.push(this.customFilter[properties]);
-        }
-      }
-      this.nomenclatureController
-        .reloadRoomToDisplay(this.searchFilter)
-        .then((data) => {
-          this.roomsAvailable = data;
-          this.$nextTick()
-            .then(() => {
-              this.updateSelected();
-            })
-            .catch((err: any) => {
-              console.error(err);
-            });
-        })
-        .catch((err: any) => {
-          console.error(err);
-        });
-    },
     next() {
       this.switchMode();
       this.animSwitchMode();
-    },
-    addRoomsToGroup() {
-      if (!this.selectedGrp[2]) {
-        return;
-      }
-      this.nomenclatureController
-        .commitChange(this.selectedItems, this.selectedGrp[2])
-        .then(() => {
-          console.log("Commited");
-        })
-        .catch((err: any) => {
-          console.error(err);
-        });
     },
   },
   computed: {

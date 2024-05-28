@@ -1,12 +1,18 @@
 <template>
   <div class="button-wrapper">
     <div class="buttons">
-      <v-btn @click="expandLeft()" color="primary" fab small>
-        <v-icon dark medium>{{ iconLeft }}</v-icon>
-      </v-btn>
-      <v-btn class="mt-2" @click="schrinkRight()" color="primary" fab small>
-        <v-icon dark medium>{{ iconRight }}</v-icon>
-      </v-btn>
+      <button @click="actionTopButton()" class="buttons-expand" fab small>
+        <v-icon v-if="currentExpansion === 'one-tier'">mdi-chevron-right
+        </v-icon>
+        <v-icon v-else-if="currentExpansion === 'zero'">mdi-chevron-double-left</v-icon>
+        <v-icon v-else="currentExpansion === 'full'">mdi-chevron-right</v-icon>
+      </button>
+      <button @click="actionBottomButton()" class="buttons-expand mt-8" color="primary" fab small>
+        <v-icon v-if="currentExpansion === 'one-tier'">mdi-chevron-left
+        </v-icon>
+        <v-icon v-else-if="currentExpansion === 'zero'">mdi-chevron-left</v-icon>
+        <v-icon v-else="currentExpansion === 'full'">mdi-chevron-double-right</v-icon>
+      </button>
     </div>
   </div>
 </template>
@@ -23,20 +29,20 @@ export default {
     VIcon,
   },
   props: {
-    iconLeft: {
-      type: String,
-      default: function () {
-        return "mdi-arrow-left-bold";
-      },
-      required: false,
-    },
-    iconRight: {
-      type: String,
-      default: function () {
-        return "mdi-arrow-right-bold";
-      },
-      required: false,
-    },
+    // iconLeft: {
+    //   type: String,
+    //   default: function () {
+    //     return "mdi-arrow-left-bold";
+    //   },
+    //   required: false,
+    // },
+    // iconRight: {
+    //   type: String,
+    //   default: function () {
+    //     return "mdi-arrow-right-bold";
+    //   },
+    //   required: false,
+    // },
     defaultExpansion: {
       type: String,
       default: function () {
@@ -55,40 +61,36 @@ export default {
     this.currentExpansion = this.defaultExpansion;
   },
   methods: {
-    expandLeft() {
+    actionTopButton() {
       this.defaultExpansion;
       switch (this.currentExpansion) {
         case "zero":
-          this.currentExpansion = "one-tier";
-          this.$emit("updateExpansion", this.currentExpansion);
-          break;
-        case "one-tier":
           this.currentExpansion = "full";
           this.$emit("updateExpansion", this.currentExpansion);
-          break;
-        case "half":
-          this.currentExpansion = "full";
-          this.$emit("updateExpansion", this.currentExpansion);
-          break;
-        case "full":
-          break;
-        default:
-      }
-    },
-    schrinkRight() {
-      switch (this.currentExpansion) {
-        case "zero":
           break;
         case "one-tier":
           this.currentExpansion = "zero";
           this.$emit("updateExpansion", this.currentExpansion);
           break;
-        case "half":
+        case "full":
           this.currentExpansion = "one-tier";
           this.$emit("updateExpansion", this.currentExpansion);
           break;
-        case "full":
+        default:
+      }
+    },
+    actionBottomButton() {
+      switch (this.currentExpansion) {
+        case "zero":
           this.currentExpansion = "one-tier";
+          this.$emit("updateExpansion", this.currentExpansion);
+          break;
+        case "one-tier":
+          this.currentExpansion = "full";
+          this.$emit("updateExpansion", this.currentExpansion);
+          break;
+        case "full":
+          this.currentExpansion = "zero";
           this.$emit("updateExpansion", this.currentExpansion);
           break;
         default:
@@ -112,5 +114,18 @@ export default {
     justify-content: space-between;
     align-items: center;
   }
+}
+
+
+.buttons-expand {
+  background-color: white;
+  border-radius: 10px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-right: 5px;
+  border-left: 2px solid gainsboro;
 }
 </style>
