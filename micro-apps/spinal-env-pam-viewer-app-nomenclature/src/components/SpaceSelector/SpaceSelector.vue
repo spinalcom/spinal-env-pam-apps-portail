@@ -29,77 +29,46 @@ with this file. If not, see
       v-show="open"
       @click="$emit('update:open', !open)"
     ></div> -->
-    <v-card
-      color="#14202C"
-      :class="{ 'space-selector-open': open }"
-      class="space-selector"
-      style="
+    <v-card color="#14202C" :class="{ 'space-selector-open': open }" class="space-selector" style="
         border: 1px solid #f5f5f5;
         border-left: 2px solid #f5f5f5;
         border-bottom: none !important;
         overflow: hidden;
-      "
-      :style="[
-        { height: open ? selectorHeight + 'px !important' : '59px' },
-        { 'overflow-y': !isFill },
-        { 'border-right': edge ? '' : 'none' },
-        { 'border-top-right-radius': edge ? '' : '0 !important' },
-        {
-          'border-bottom-right-radius':
-            edge || (!edge && open) ? '' : '0 !important',
-        },
-      ]"
-    >
-      <div
-        ref="SpaceSelectorTitleContainer"
-        @click.stop="
-          $emit('update:open', !open);
-          showSign();
-        "
-        class="space-selector-header"
-        :style="{ cursor: maxDepth !== -1 ? 'pointer' : 'default' }"
-      >
+      " :style="[
+    { height: open ? selectorHeight + 'px !important' : '59px' },
+    { 'overflow-y': !isFill },
+    { 'border-right': edge ? '' : 'none' },
+    { 'border-top-right-radius': edge ? '' : '0 !important' },
+    {
+      'border-bottom-right-radius':
+        edge || (!edge && open) ? '' : '0 !important',
+    },
+  ]">
+      <div ref="SpaceSelectorTitleContainer" @click.stop="
+    $emit('update:open', !open);
+  showSign();
+  " class="space-selector-header" :style="{ cursor: maxDepth !== -1 ? 'pointer' : 'default' }">
         <span class="legend">{{ label }}</span>
         <p class="space-selector-header-title">
-          <v-icon
-            :style="[
-              { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
-              { width: maxDepth !== -1 ? 'auto' : '0 !important' },
-              { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
-            ]"
-            class="rotate-disabled space-selector-header-title-icon"
-            :class="{ 'rotate-enabled': open }"
-          >
+          <v-icon :style="[
+    { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
+    { width: maxDepth !== -1 ? 'auto' : '0 !important' },
+    { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
+  ]" class="rotate-disabled space-selector-header-title-icon" :class="{ 'rotate-enabled': open }">
             mdi-chevron-down
           </v-icon>
 
           {{ selectedZoneName.toUpperCase() }}
         </p>
       </div>
-      <transition-group
-        id="myDiv"
-        name="staggered-fade"
-        class="card-list spinal-scrollbar"
-        :style="[{ 'overflow-y': 'auto' + ' !important' }]"
-        tag="div"
-        v-bind:css="false"
-        v-on:before-enter="beforeEnter"
-        v-on:enter="enter"
-      >
-        <SpaceSelectorItem
-          class="staggered-fade-item"
-          v-for="(item, index) in buildingStructure"
-          :key="`${index}-${item.staticId}-${item.platformId}-${item.patrimoineId}`"
-          :item="item"
-          v-bind:data-index="index"
-          :maxDepth="maxDepth"
-          @onSelect="select(item)"
-          :selected="selectedZone"
-          @onOpenClose="expandCollapse(item, index)"
-          :spaceSelectorItemButtons="spaceSelectorItemButtons"
-          :viewButtonsType="viewButtonsType"
-          @onActionClick="onActionClick"
-        ></SpaceSelectorItem>
+      <transition-group id="myDiv" name="staggered-fade" class="card-list spinal-scrollbar"
+        :style="[{ 'overflow-y': 'auto' + ' !important' }]" tag="div" v-bind:css="false" v-on:before-enter="beforeEnter"
+        v-on:enter="enter">
+        <SpaceSelectorItem class="staggered-fade-item" v-for="(item, index) in buildingStructure"
+          :key="`${index}-${item.dynamicId}-${item.platformId}-${item.patrimoineId}`" :item="item"
+          v-bind:data-index="index" :maxDepth="maxDepth" @onSelect="select(item)" :selected="selectedZone"
+          @onOpenClose="expandCollapse(item, index)" :spaceSelectorItemButtons="spaceSelectorItemButtons"
+          :viewButtonsType="viewButtonsType" @onActionClick="onActionClick"></SpaceSelectorItem>
       </transition-group>
     </v-card>
   </div>
@@ -214,6 +183,8 @@ class SpaceSelector extends Vue {
       await this.expandCollapse(this.buildingStructure[0], 0);
     }
     this.onSelectedChange();
+
+
   }
 
   // on click the righht button open / close
@@ -227,7 +198,6 @@ class SpaceSelector extends Vue {
     } else {
       await this.openItem(item, index);
     }
-
     this.selectorHeight = this.buildingStructure.length * 56 + 60 + 30;
     this.checkingOverflow();
   }
@@ -249,13 +219,14 @@ class SpaceSelector extends Vue {
     this.checkingOverflow();
   }
 
+ 
   private closeItem(item: ISpaceSelectorItem) {
     item.isOpen = false;
     const toRm: typeof this.buildingStructure = [];
     for (const it of this.buildingStructure) {
       if (
         (it.platformId === item.platformId || item.type === "patrimoine") &&
-        it.parents.includes(item.staticId)
+        it.parents.includes(item.dynamicId)
       ) {
         toRm.push(it);
       }
@@ -265,7 +236,7 @@ class SpaceSelector extends Vue {
         return (
           struct.patrimoineId === it.patrimoineId &&
           struct.platformId === it.platformId &&
-          struct.staticId === it.staticId
+          struct.dynamicId === it.dynamicId
         );
       });
       this.buildingStructure.splice(idx, 1);
@@ -347,6 +318,7 @@ export default SpaceSelector;
   transition: height 0.2s ease-in;
   box-shadow: none !important;
 }
+
 .space-selector-container {
   position: absolute;
   max-height: calc(100vh - 10px);
@@ -354,6 +326,7 @@ export default SpaceSelector;
   right: 0;
   overflow: hidden;
 }
+
 .space-selector-container.isopen {
   width: 100%;
 }
@@ -387,6 +360,7 @@ export default SpaceSelector;
   padding: 0 10px;
   font-size: 20px;
 }
+
 .space-selector-open {
   /* padding-bottom: 10px; */
   overflow-y: auto;
@@ -415,11 +389,13 @@ export default SpaceSelector;
   width: 0;
   height: 1px;
 }
+
 .spinal-scrollbar::-webkit-scrollbar-thumb {
   -webkit-border-radius: 5px;
   border-radius: 5px;
   background: rgba(169, 169, 169, 0.9);
 }
+
 .spinal-scrollbar::-webkit-scrollbar-track {
   /* -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
   box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3); */

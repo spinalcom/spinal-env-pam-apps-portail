@@ -29,7 +29,7 @@ export interface ISpaceSelectorItem extends IZoneItem {
   loading?: boolean;
   buildingId: string;
   patrimoineId: string;
-  parents: string[];
+  parents: any[];
   isLastInGrp: boolean;
   drawLink: number[];
   haveChildren: boolean;

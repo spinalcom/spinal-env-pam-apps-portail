@@ -29,6 +29,7 @@ export interface IConfig {
 	viewerInfo: { roomRef: boolean; floorRef: boolean; equipments: "all" | "groupItem" | "none" };
 	sprites: boolean;
 	temporality: ITemporality[];
+	application?: IApplication[]; 
 }
 
 export const enum ITemporality {
@@ -38,3 +39,12 @@ export const enum ITemporality {
 	month = "Mois",
 	year = "Année",
 }
+
+export interface IApplication {
+	name: string;
+	id: string;
+	type: string;
+	targetValue?: any; 
+	profileName? : string;
+	unit? : string
+  }

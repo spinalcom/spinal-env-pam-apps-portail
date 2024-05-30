@@ -23,8 +23,7 @@ with this file. If not, see
 -->
 
 <template>
-
-  <div class="appli">
+  <v-card elevation="4" class="cardContainer">
     <button @click="() => {
           $emit('buttonClicked');
           resize();
@@ -70,79 +69,124 @@ with this file. If not, see
       <v-icon v-else-if="DActive">mdi-chevron-left</v-icon>
       <v-icon v-else>mdi-chevron-right</v-icon>
     </button>
-    <div class="container">
-      <div class="title">
-        <div style="font-size: 22px;font-weight: bold;font-family: Arial, Helvetica, sans-serif;">
-          Rez-de-chaussée</div>
-        <!-- <div style=" font-weight: bold; font-family: Arial, Helvetica, sans-serif; height: 50px; background-color: rgb(240, 240, 240); margin-top: -10px; margin-bottom: -10px; margin-right: 94px;
-                            width: 3px;
-                            -webkit-transform:skew(-30deg);
-                            -moz-transform:skew(-30deg);
-                            -o-transform:skew(-30deg);
-                            tranform:skew(-30deg);"> 
-                            </div> -->
+    <div class="entrence" :class="{ 'inactiveTable': DActive, }">
+      <div class="dataContainer" v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected">
 
-        <div
-          style="position: relative; font-family: Arial, Helvetica, sans-serif; height: 50px; width: 98px;margin-top: -10px; margin-bottom: -10px;">
-          <!-- Votre div incliné -->
-          <div
-            style="position: absolute; left: 0; height: 154%; background-color: rgb(240, 240, 240); width: 3px; transform: skew(-30deg) translateY(-12px);">
+
+        <div>
+
+          <div class="Spinal_card">
+            <div class="text">
+              <span>Tickets App</span>
+              <p class="subtitle">Gestion des tickets de maintenance</p>
+            </div>
+
+            <div class="icons">
+              <!-- <a class="btn" href="#">
+
+            </a> -->
+              <a class="btn" href="#">
+                <!-- <svg class="svg-icon" viewBox="0 0 20 20">
+                <path
+                  d="M4.317,16.411c-1.423-1.423-1.423-3.737,0-5.16l8.075-7.984c0.994-0.996,2.613-0.996,3.611,0.001C17,4.264,17,5.884,16.004,6.88l-8.075,7.984c-0.568,0.568-1.493,0.569-2.063-0.001c-0.569-0.569-0.569-1.495,0-2.064L9.93,8.828c0.145-0.141,0.376-0.139,0.517,0.005c0.141,0.144,0.139,0.375-0.006,0.516l-4.062,3.968c-0.282,0.282-0.282,0.745,0.003,1.03c0.285,0.284,0.747,0.284,1.032,0l8.074-7.985c0.711-0.71,0.711-1.868-0.002-2.579c-0.711-0.712-1.867-0.712-2.58,0l-8.074,7.984c-1.137,1.137-1.137,2.988,0.001,4.127c1.14,1.14,2.989,1.14,4.129,0l6.989-6.896c0.143-0.142,0.375-0.14,0.516,0.003c0.143,0.143,0.141,0.374-0.002,0.516l-6.988,6.895C8.054,17.836,5.743,17.836,4.317,16.411">
+                </path>
+              </svg> -->
+                <v-icon style="color: #14202c;font-size: 1.5em">mdi-arrow-right-top-bold</v-icon>
+              </a>
+              <!-- <a class="btn" href="#">
+              <svg y="0" xmlns="http://www.w3.org/2000/svg" x="0" width="100" viewBox="0 0 100 100"
+                preserveAspectRatio="xMidYMid meet" height="100" class="svg-icon">
+                <path stroke-width="8" stroke-linejoin="round" stroke-linecap="round" fill="none"
+                  d="M21.9,50h0M50,50h0m28.1,0h0M25.9,50a4,4,0,1,1-4-4A4,4,0,0,1,25.9,50ZM54,50a4,4,0,1,1-4-4A4,4,0,0,1,54,50Zm28.1,0a4,4,0,1,1-4-4A4,4,0,0,1,82.1,50Z">
+                </path>
+              </svg>
+            </a> -->
+            </div>
           </div>
-          <!-- Zone de texte -->
-          <div
-            style="margin-left: 25px; height: 100%; display: flex; align-items: center;font-size: 20px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;white-space: nowrap;">
-            1250 m²
+
+
+          <div class="Spinal_card">
+            <div class="text">
+              <span>Insights App</span>
+              <p class="subtitle">Voir les données insights</p>
+            </div>
+
+            <div class="icons">
+              <!-- <a class="btn" href="#">
+
+            </a> -->
+              <a class="btn" href="#">
+                <!-- <svg class="svg-icon" viewBox="0 0 20 20">
+                <path
+                  d="M4.317,16.411c-1.423-1.423-1.423-3.737,0-5.16l8.075-7.984c0.994-0.996,2.613-0.996,3.611,0.001C17,4.264,17,5.884,16.004,6.88l-8.075,7.984c-0.568,0.568-1.493,0.569-2.063-0.001c-0.569-0.569-0.569-1.495,0-2.064L9.93,8.828c0.145-0.141,0.376-0.139,0.517,0.005c0.141,0.144,0.139,0.375-0.006,0.516l-4.062,3.968c-0.282,0.282-0.282,0.745,0.003,1.03c0.285,0.284,0.747,0.284,1.032,0l8.074-7.985c0.711-0.71,0.711-1.868-0.002-2.579c-0.711-0.712-1.867-0.712-2.58,0l-8.074,7.984c-1.137,1.137-1.137,2.988,0.001,4.127c1.14,1.14,2.989,1.14,4.129,0l6.989-6.896c0.143-0.142,0.375-0.14,0.516,0.003c0.143,0.143,0.141,0.374-0.002,0.516l-6.988,6.895C8.054,17.836,5.743,17.836,4.317,16.411">
+                </path>
+              </svg> -->
+                <v-icon style="color: black;font-size: 1.5em">mdi-arrow-right-top-bold</v-icon>
+              </a>
+              <!-- <a class="btn" href="#">
+              <svg y="0" xmlns="http://www.w3.org/2000/svg" x="0" width="100" viewBox="0 0 100 100"
+                preserveAspectRatio="xMidYMid meet" height="100" class="svg-icon">
+                <path stroke-width="8" stroke-linejoin="round" stroke-linecap="round" fill="none"
+                  d="M21.9,50h0M50,50h0m28.1,0h0M25.9,50a4,4,0,1,1-4-4A4,4,0,0,1,25.9,50ZM54,50a4,4,0,1,1-4-4A4,4,0,0,1,54,50Zm28.1,0a4,4,0,1,1-4-4A4,4,0,0,1,82.1,50Z">
+                </path>
+              </svg>
+            </a> -->
+            </div>
           </div>
+
+        </div>
+
+
+
+        <button @click="() => {
+          $emit('changeRoute', tickets);
+        }" style="border: 1px solid black;padding: 5px;">go to tickets
+          apps</button>
+        <button @click="() => {
+          $emit('changeRoute', insights);
+        }" style="border: 1px solid black;padding: 5px;">go to insights
+          apps</button>
+        <button @click="() => {
+          $emit('changeRoute', conso);
+        }" style="border: 1px solid black;padding: 5px;">go to consomation
+          apps</button>
+
+        <!-- SAMPLE -->
+        <div :style="{ 'height': 'calc(100% - 200px)' }">
+          <div v-for="(d, i) in data" :key="i">{{ d.name }}</div>
+        </div>
+
+
+
+
+
+        <!-- \SAMPLE -->
+      </div>
+      <!-- 
+      <div v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected" class="detail_container">
+          <GroupDataView v-for="(d, i) in data" :key="i" :data="d" :config="config" 
+             @onClick="selectDataView" />
+        </div> -->
+
+      <div class="centered" v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected">
+        Aucune donnée à afficher ! veuillez selectionner un étage ou une pièce.
+      </div>
+
+      <div class="centered" v-else-if="pageSate === PAGE_STATES.loading">
+        <v-progress-circular :size="70" :width="3" color="purple" indeterminate></v-progress-circular>
+      </div>
+
+      <div class="centered" v-else-if="pageSate === PAGE_STATES.error">
+        <div>
+          <v-icon color="red" style="font-size: 5em">mdi-alert-circle-outline</v-icon>
+        </div>
+        <div color="red">
+          Quelque chose s'est mal passé ! Veuillez
+          <v-btn small outlined color="red" @click="retry">réessayer </v-btn>
         </div>
       </div>
     </div>
-
-    <div class="inventory">
-
-      <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Inventaire
-        de la piece</span>
-      <div>
-        
-      </div>
-      <div></div>
-    </div>
-
-    <div class="description">
-      <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Vue
-        d'ensemble et accès aux applications</span>
-
-
-      <div class="container_cards">
-
-
-        <div v-for="item in appTab" :key="item.id" class="cardDescription">
-          <div @click="() => {
-          $emit('changeRoute', item.id);
-        }" class="data_cardDescription">
-            <div class="nombre_data_cardDescription">
-              {{ formatValue(item.value) }}<div class="microinfo">{{ item.unit }}</div>
-            </div>
-            <div class="description_data_cardDescription">
-              {{ item.name }}
-            </div>
-          </div>
-          <div class="gotoApp">
-            <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" fill="#14202c" class="bi bi-chevron-right"
-              viewBox="0 0 16 16">
-              <path fill-rule="evenodd"
-                d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708" />
-            </svg>
-          </div>
-        </div>
-
-
-
-      </div>
-    </div>
-
-
-  </div>
-
+  </v-card>
 </template>
 
 <script lang="ts">
@@ -176,7 +220,6 @@ class dataSideApp extends Vue {
   @Prop() config!: IConfig;
   @Prop() selectedZone: ISpaceSelectorItem;
   @Prop() data: any[];
-  @Prop() floor: any;
   @Prop() DActive: boolean;
   @Prop() ActiveData: boolean;
 
@@ -186,7 +229,6 @@ class dataSideApp extends Vue {
   retry: Function;
   referenceObjects: any[];
   inventory: any;
-  appTab: any[];
   conso = "eyJuYW1lIjoic3BpbmFsLXR3aW4tc3RhbmRhcmQtZW5lcmd5LWZsdWlkcyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiYmFlZi0yYmRhLTk0ZjktMThmYTQ3YjIxMGIiLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE2NDUxNTAxMDE1LCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTY0NTE0ODM5MTUsImljb24iOiJtZGktY2FyLWJyYWtlLWZsdWlkLWxldmVsIiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtdHdpbi1zdGFuZGFyZC1lbmVyZ3ktZmx1aWRzIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19"
   insights = "eyJuYW1lIjoiSW5zaWdodHMiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImIwZTEtNzI3NS02YWNhLTE4ZjJlMjE1NmE4IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxNDQ2NTk0NzM4MCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0NDY1ODg3OTEyLCJpY29uIjoibWRpLWN1cnRhaW5zLWNsb3NlZCIsImRlc2NyaXB0aW9uIjoiSU5zaWdodHMiLCJ0YWdzIjpbIkluc2lnaHRzIl0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0taW5zaWdodHMiLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiMzdkZS0wMmI4LWUxOGItMTg1MDY0M2I2OGEiLCJidWlsZGluZ0lkIjoiNTkzMi02MDg2LTllMWEtMTg1MDY0Nzg0NjAifX0"
   tickets = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiZWI0ZC1hM2MxLWVmMTEtMThmMjBkZGM5YzciLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0MjQzMzcyMzcxLCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTQyNDMzNTcxMjcsImljb24iOiJtZGktdGlja2V0LWFjY291bnQiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOlsidGlja2V0Il0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
@@ -212,19 +254,11 @@ class dataSideApp extends Vue {
     this.pageSate = PAGE_STATES.loaded;
     this.isBuildingSelected = true;
   }
-  formatValue(value) {
-    // On vérifie si la valeur est entière
-    if (Number.isInteger(value)) {
-      return value; // Si c'est un entier, on retourne la valeur sans modification
-    }
-    // Sinon, on utilise toFixed(2) pour limiter à deux décimales et parseFloat pour enlever les zéros inutiles
-    return parseFloat(value.toFixed(2));
-  }
 
 
   async findDynamicIdByDbid(dbidToFind, data) {
     const buildingId = localStorage.getItem("idBuilding");
-    const objects = this.referenceObjects;
+    const objects = this.referenceObjects
     for (const obj of objects[0]) {
       if (Array.isArray(obj.infoReferencesObjects)) {
         for (const ref of obj.infoReferencesObjects) {
@@ -249,96 +283,6 @@ class dataSideApp extends Vue {
     }
     return null;
   }
-
-  async getfloorstaticdetails(id) {
-    const buildingId = localStorage.getItem("idBuilding");
-    console.log('ENTRÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉ');
-
-    const promises = [
-      this.$store.dispatch(ActionTypes.GET_FLOOR_STATIC_DETAILS, {
-        buildingId,
-        referenceIds: id
-      }),
-    ];
-    console.log('FINNNNNNNNNNNNNNNNN');
-
-    const result = await Promise.all(promises);
-    console.warn('les static details de mon floor sont', result);
-    console.log('RETURN');
-    // console.log(this.createApp(result), ')
-    this.createApp(result)
-    this.$forceUpdate();
-    // return;
-  }
-
-  createApp(tab) {
-    let objetApp = [];  // Le tableau qui sera retourné avec les résultats
-
-    // Assurer que this.config et this.config.application sont bien définis
-    if (!this.config || !this.config.application) {
-      console.log("Configuration manquante");
-      return [];
-    }
-
-    this.config.application.forEach(application => {
-      const { name, id, type, targetValue, profileName, unit } = application;
-
-      let appObject = { name, id, value: null, unit: unit };
-
-      if (type === "controlEndpoint") {
-        const matchedProfile = tab[0].controlEndpoint.find(profile => profile.profileName === profileName);
-        if (matchedProfile) {
-          if (targetValue) {
-            const targetEndpoint = matchedProfile.endpoints.find(endpoint => endpoint.name === targetValue);
-            if (targetEndpoint) {
-              appObject.value = targetEndpoint.value;
-              if (targetEndpoint.unit) {
-                appObject.unit = targetEndpoint.unit;
-              }
-            } else {
-              console.log("Aucun endpoint correspondant trouvé pour la targetValue donnée.");
-            }
-          } else {
-            appObject.value = matchedProfile.endpoints.length;
-          }
-        } else {
-          console.log('Pas de profil qui match');
-        }
-      } else if (type === "tickets") {
-        // Traitement pour les tickets
-        if (!targetValue) {
-          console.log(tab);
-
-          appObject.value = tab[0].tickets.length;
-        } else {
-          console.log('Pas de donnée disponible pour les tickets avec targetValue.');
-        }
-      } else {
-        console.log('Type non supporté, valeur non définie');
-      }
-
-      // Ajouter l'objet configuré à la liste de retour
-      objetApp.push(appObject);
-    });
-    this.appTab = [...objetApp];
-    return objetApp;
-  }
-
-
-
-  // findProfileData(config, data) {
-  //   if (endpoints.profileName === config.profileName) {
-  //     const targetEndpoint = endpoints.endpoints.find(endpoint => endpoint.name === config.targetValue);
-  //     if (targetEndpoint) {
-  //       return targetEndpoint.value;
-  //     } else {
-  //       console.log("Aucun endpoint correspondant trouvé pour la targetValue donnée.");
-  //     }
-  //   } else {
-  //     console.log("Le profileName de la configuration ne correspond pas aux données.");
-  //   }
-
-  // }
 
   forgeItem(result, buildingId, dbid, bimFileId) {
     // console.log(result);
@@ -380,19 +324,19 @@ class dataSideApp extends Vue {
   }
 
   extractUniqueInventoryNames() {
-    let uniqueNames = new Set();
+    let uniqueNames = new Set(); 
     const dataArray = this.inventory[0]
     dataArray.forEach(data => {
       if (data.inventories) {
         data.inventories.forEach(inventory => {
           if (inventory.name) {
-            uniqueNames.add(inventory.name);
+            uniqueNames.add(inventory.name); 
           }
         });
       }
     });
     console.log(uniqueNames);
-    return Array.from(uniqueNames);
+    return Array.from(uniqueNames); 
   }
 
   async retriveData() {
@@ -423,8 +367,7 @@ class dataSideApp extends Vue {
   }
 
   getDataDynamicIdtab() {
-    console.log(this.data, 'sssssssssssssssss');
-
+    // console.log(this.data , 'sssssssssssssssss');
     const dynamicIds = this.data.map(obj => obj.dynamicId);
     // console.log(dynamicIds);
     this.fetchReferenceObjects(dynamicIds)
@@ -463,7 +406,7 @@ class dataSideApp extends Vue {
     // this.referenceObjects = result[0];
     this.inventory = [...result];
     this.extractUniqueInventoryNames()
-    console.warn(this.inventory);
+    // console.warn(this.inventory);
 
   }
 
@@ -481,12 +424,6 @@ class dataSideApp extends Vue {
 
     this.isBuildingSelected = false;
     this.retriveData();
-  }
-
-  @Watch("floor")
-  watchfloor() {
-    console.log('LE FLORR SELECTIONNÉ EST :', this.floor);
-    this.getfloorstaticdetails(this.floor)
   }
 
   @Watch("data")
@@ -691,178 +628,5 @@ a {
 
 .btn:hover {
   background-color: rgb(199, 199, 199);
-}
-
-
-
-
-.appli {
-  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-  background-color: white;
-  width: 100%;
-  height: 100%;
-  border-radius: 5px;
-  display: flex;
-  flex-direction: column;
-}
-
-.container {}
-
-.title {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px;
-}
-
-.inventory {
-  position: relative;
-  padding: 10px;
-  height: 60%;
-  /* border-top: 2px solid rgb(235, 234, 234); */
-}
-
-.inventory:before {
-  content: "";
-  /* Nécessaire pour que le pseudo-élément soit généré */
-  position: absolute;
-  left: 0;
-  top: 0;
-  /* Aligné au top de .inventory */
-  right: 135px;
-  border-top: 2px solid rgb(235, 234, 234);
-  /* Le même style de bordure que voulu initialement */
-  width: auto;
-  /* Prendra la largeur nécessaire */
-}
-
-.description {
-  padding: 10px;
-  padding-top: 15px;
-  background-color: rgb(255, 255, 255);
-  /* box-shadow: rgb(217, 226, 235) 3px 3px 6px 0px inset, rgba(255, 255, 255, 0.596) -3px -3px 6px 1px inset; */
-  border-top: 2px solid rgb(235, 234, 234);
-  // height: 31vh;
-  overflow: auto;
-}
-
-.container_cards {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  margin-top: 10px;
-  /* Cette propriété ajuste l'espacement entre les cartes */
-}
-
-.cardDescription {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  background-color: white;
-  width: 49%;
-  height: 112px;
-  /* border: 1px solid rgb(199, 199, 199); */
-  border-radius: 5px;
-  box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
-  cursor: pointer;
-  transition: 0.2s;
-  position: relative;
-  display: flex;
-  overflow: hidden;
-}
-
-
-@media (max-width: 1270px) {
-  .cardDescription {
-    width: 40vw;
-  }
-}
-
-
-
-.cardDescription:hover {
-  background-color: rgb(245, 245, 245);
-}
-
-.cardDescription:hover .gotoApp {
-  background-color: rgb(218, 218, 218);
-}
-
-.data_cardDescription {
-  border-right: 1px solid rgb(202, 202, 202);
-  width: 87%;
-  height: 100%;
-  display: flex;
-  padding-left: 30px;
-}
-
-.gotoApp {
-  justify-content: center;
-  align-items: center;
-  display: flex;
-  width: 13%;
-  background-color: rgb(243, 243, 243);
-  transition: 0.2s;
-  z-index: 1;
-}
-
-
-.nombre_data_cardDescription {
-  /* background-color: red; */
-  width: 40%;
-  display: flex;
-  // justify-content: center;
-  align-items: center;
-  font-size: 40px;
-  height: 100%;
-
-}
-
-.description_data_cardDescription {
-  width: 47%;
-  justify-content: center;
-  align-items: center;
-  display: flex;
-  color: #14202c;
-  padding-right: 5px;
-  // border-left: 1px solid black;
-
-}
-
-
-
-.microinfo {
-  margin-bottom: 40px;
-  font-size: 9px;
-  transform: translate(-20px);
-  white-space: nowrap;
-  font-weight: bold;
-}
-
-.cardDescription::before {
-  content: "";
-  height: 100px;
-  width: 100px;
-  position: absolute;
-  top: -100%;
-  left: 100%;
-  background: url('../../assets/tets.svg') no-repeat center center;
-  background-size: contain;
-  transition: all .4s ease;
-  filter: invert(1) saturate(5) hue-rotate(200deg) opacity(0.1);
-  filter: blur(.5rem);
-}
-
-.cardDescription:hover::before {
-  top: 50%;
-  left: 50%;
-  transform: translate(30%, -0%);
-  filter: blur(0rem);
-}
-
-.cardDescription:hover::before {
-  width: 140px;
-  height: 140px;
-  top: -10%;
-  left: 50%;
-  filter: blur(0.05rem);
 }
 </style>

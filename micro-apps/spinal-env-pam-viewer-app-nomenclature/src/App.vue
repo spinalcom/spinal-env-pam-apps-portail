@@ -311,28 +311,41 @@ class App extends Vue {
 
 
 
-
   onActionClick({ button, item }) {
+    
+    console.warn("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", item);
+    // button.onclickEvent = "OPEN_VIEWER"
+    
     const data = {
-      buildingId: item.buildingId,
-      staticId: item.staticId,
-      id: item.dynamicId,
-      dynamicId: item.dynamicId,
-      floorId: item.floorId,
-      roomId: item.roomId,
-      type: item.type,
+      buildingId: item.buildingId, //important viewer
+      // staticId: item.staticId,//can
+      // id: item.dynamicId,
+      dynamicId: item.dynamicId,//important viewer
+      parents:item.parents
+      // floorId: item.floorId,//can
+      // roomId: item.roomId,//can
+      // type: item.type,//can
     };
 
     switch (button.onclickEvent) {
       case ActionTypes.OPEN_VIEWER:
+      console.log('laaaaaaaaaaaalalaalallalalalalalalalala');
         this.$store.dispatch(button.onclickEvent, {
           onlyThisModel: true,
           config: this.config,
           item: data,
         });
-
+        break;
+      case ActionTypes.ISOLATE_ITEMS:
+        console.log('totototototototototototoototototot');
+        this.$store.dispatch(button.onclickEvent, {
+          onlyThisModel: true,
+          config: this.config,
+          item: data,
+        });
         break;
       case "OPEN_VIEWER_PLUS":
+      console.log('uvuvuvuvvuuvvuvuvuvuvuuvvuvuvuvuvuvuvuuvv');
         this.$store.dispatch(ActionTypes.OPEN_VIEWER, {
           onlyThisModel: false,
           config: this.config,

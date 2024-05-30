@@ -219,13 +219,17 @@ class SpaceSelector extends Vue {
     this.checkingOverflow();
   }
 
-  private closeItem(item: ISpaceSelectorItem) {      
+  private closeItem(item: ISpaceSelectorItem) {
+    console.log('OPEN CLOSE ???');
+    
     item.isOpen = false;
+    console.log(item.isOpen);
+    
     const toRm: typeof this.buildingStructure = [];
     for (const it of this.buildingStructure) {
       if (
         (it.platformId === item.platformId || item.type === "patrimoine") &&
-        it.parents.includes(item.staticId)
+        it.parents.includes(item.dynamicId)
       ) {
         toRm.push(it);
       }
@@ -235,7 +239,7 @@ class SpaceSelector extends Vue {
         return (
           struct.patrimoineId === it.patrimoineId &&
           struct.platformId === it.platformId &&
-          struct.staticId === it.staticId
+          struct.dynamicId === it.dynamicId
         );
       });
       this.buildingStructure.splice(idx, 1);

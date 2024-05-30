@@ -54,7 +54,8 @@ export enum ActionTypes {
 	SELECT_SPRITES = "SELECT_SPRITES",
 	GET_REFERENCE_OBJECT_LIST_MULTIPLE = "GET_REFERENCE_OBJECT_LIST_MULTIPLE",
 	GET_STATIC_DETAILS = "GET_STATIC_DETAILS",
-	GET_INVENTORY_MULTIPLE = "GET_INVENTORY_MULTIPLE"
+	GET_INVENTORY_MULTIPLE = "GET_INVENTORY_MULTIPLE",
+	GET_FLOOR_STATIC_DETAILS = "GET_FLOOR_STATIC_DETAILS"
 }
 
 export type TFctViewerIteract = (stateContext: AugmentedActionContextAppData, payload: { buildingId: string; id: number | number[] }) => Promise<void>;

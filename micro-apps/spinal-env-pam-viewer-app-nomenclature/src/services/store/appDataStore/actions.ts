@@ -316,7 +316,30 @@ export const actions = {
 	},
 
 	[ActionTypes.ISOLATE_ITEMS]({ commit, dispatch, state }, playload: any) {
-		ViewerManager.getInstance().isolate(playload);
+		console.log(ViewerManager.getInstance(), 'Linstance : le payload : ', playload);
+		
+		let isKeyPresent = false;
+		for (let id of playload.item.parents) {
+			const instance = ViewerManager.getInstance();
+			if (instance._viewerStartedList.hasOwnProperty(id.toString())) {
+				console.log('ça a marchééééééééééééééééééééé');
+				isKeyPresent = true;
+				break;
+			}
+		}
+	
+		if (isKeyPresent) {
+			ViewerManager.getInstance().isolate(playload);
+		} else {
+
+			console.log(playload.config , playload.item , playload.onlyThisModel , 'toto');
+			
+			dispatch(ActionTypes.OPEN_VIEWER, {
+				onlyThisModel: playload.onlyThisModel,
+				config: playload.config,
+				item: playload.item
+			});
+		}
 	},
 
 	[ActionTypes.FIT_TO_VIEW_ITEMS]({ commit, dispatch, state }, playload: any) {

@@ -50,8 +50,7 @@ with this file. If not, see
 
     <v-list-item-action class="actionsDiv">
 
-      <v-btn
-      tabindex="-1" v-if="viewButtonsType === 'advanced'" 
+      <v-btn tabindex="-1" v-if="viewButtonsType === 'advanced'" 
         v-for="(button,index) in spaceSelectorItemButtons" 
         :key="index"
         x-small
@@ -67,8 +66,7 @@ with this file. If not, see
         <v-icon>{{ button.icon }}</v-icon>
       </v-btn>
 
-      <v-btn
-      tabindex="-1"
+      <v-btn tabindex="-1"
         elevation="0"
         fab
         icon

@@ -59,9 +59,17 @@ export async function getStaticDetails( buildingId: string, roomDynId: number): 
   return result.data;
 }
 
+
+export async function getFloorStaticDetails( buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/floor/${roomDynId}/read_static_details`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+
+
 export async function getMultipleInventory(buildingId: string, referenceIds: number[]): Promise<any> {
-  console.log(referenceIds , 'sssssssssssssssssssssssssssssssssssssssssssssssssssssssss');
-  
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/room/inventory_multiple');
   try {

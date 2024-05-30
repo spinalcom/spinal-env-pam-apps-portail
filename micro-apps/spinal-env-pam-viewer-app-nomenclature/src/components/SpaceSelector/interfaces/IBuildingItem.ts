@@ -34,21 +34,6 @@ export interface IZoneItem extends INodeItem {
   categories?: ICategoriesItem[];
 }
 
-export interface EnrichedData {
-  data: any[];
-  nomenclature: any;
-}
-
-export interface IRoomFloorInfo {
-  roomDynamicId: number;
-  floorDynamicId: number;
-}
-
-export interface IRoomPositionRes {
-  roomId: string;
-  position: any;
-}
-
 export interface IBuildingItem extends INodeItem {
   color?: string;
   area: number;
