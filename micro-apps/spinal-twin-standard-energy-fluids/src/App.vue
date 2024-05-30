@@ -250,10 +250,13 @@ class App extends Vue {
       return timeOptions;
   }
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<any> {
+    console.log('il select ??',item );
+    
     var floorList: any[] = [];
     switch (item?.type) {
       case undefined:
         const building = await getBuilding(this.controlEndpoints);
+        console.log('case undefined ??');
         return[{
               name: building.name,
               staticId: building.staticId,
@@ -272,11 +275,13 @@ class App extends Vue {
             }];
       case 'building':
         const floors = await getFloors(this.controlEndpoints);
+        console.log('case building ??');
+        
         for (let floor of floors) {
           
           floorList.push({
               name: floor.name,
-              staticId: floor.staticId,
+              staticId: floor.staticId, 
               dynamicId: floor.dynamicId,
               type: 'floor',
               level: 0,

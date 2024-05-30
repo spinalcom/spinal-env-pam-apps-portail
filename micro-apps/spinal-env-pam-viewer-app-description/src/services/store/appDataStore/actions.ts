@@ -26,7 +26,7 @@ import { getBuildings, getBuildingById } from "../../spinalAPI/GeographicContext
 import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
-import { getEquipments, getFloors, getRooms } from "../../spinalAPI/GeographicContext/geographicContext";
+import { getEquipments, getFloors, getRooms, getStaticDetails, getMultipleInventory, getFloorStaticDetails } from "../../spinalAPI/GeographicContext/geographicContext";
 import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
 import { getMultipleReferenceObjects } from "../../spinalAPI/GeographicContext/getObjectList";
@@ -37,6 +37,7 @@ import SpriteManager from "../../../components/viewer/manager/spriteManager";
 import ViewerManager from "../../../components/viewer/manager/viewerManager";
 import { IConfig } from "../../../interfaces/IConfig";
 import { classifyItemByBimFileId } from "./utils/openViewer";
+import { log } from "console";
 
 const ApiIteratorStore: ApiIteratorStoreType & ApiIteratorStoreRecordStringType & ApiIteratorStoreRecordNumberType = {};
 
@@ -44,20 +45,56 @@ const ApiIteratorStore: ApiIteratorStoreType & ApiIteratorStoreRecordStringType 
 
 export const actions = {
 
-	async [ActionTypes.GET_REFERENCE_OBJECT_LIST_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }): Promise<any> {
-		console.log('Début de l\'action GET_REFERENCE_OBJECT_LIST_MULTIPLE',buildingId , referenceIds);
-		const spinalAPI = SpinalAPI.getInstance();
+
+
+	async [ActionTypes.GET_INVENTORY_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }): Promise<any> {
 		try {
-			// const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
-			const result = await getMultipleReferenceObjects(buildingId, referenceIds);
-			console.log('Récupération des objets de référence réussie:', result);
+			const result = await getMultipleInventory(buildingId, referenceIds);
 			return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des objets de référence:', error);
 			throw error;
 		}
 	},
-	
+
+	async [ActionTypes.GET_REFERENCE_OBJECT_LIST_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }): Promise<any> {
+		// console.log('Début de l\'action GET_REFERENCE_OBJECT_LIST_MULTIPLE',buildingId , referenceIds);
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			// const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
+			const result = await getMultipleReferenceObjects(buildingId, referenceIds);
+			// console.log('Récupération des objets de référence réussie:', result);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
+	async [ActionTypes.GET_STATIC_DETAILS]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+		// console.log('Début de l\'action GET_REFERENCE_OBJECT_LIST_MULTIPLE',buildingId , referenceIds);
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			// const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
+			const result = await getStaticDetails(buildingId, referenceIds);
+			// console.log('Récupération de l objet de référence réussie:', result);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_FLOOR_STATIC_DETAILS]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getFloorStaticDetails(buildingId, referenceIds);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
 
 
 	async [ActionTypes.GET_BUILDINGS]({ commit, state }: AugmentedActionContextAppData, { patrimoineId, forceUpdate }): Promise<IGetAllBuildingsRes[]> {
@@ -209,7 +246,30 @@ export const actions = {
 	},
 
 	[ActionTypes.ISOLATE_ITEMS]({ commit, dispatch, state }, playload: any) {
-		ViewerManager.getInstance().isolate(playload);
+		console.log(ViewerManager.getInstance(), 'Linstance : le payload : ', playload);
+		
+		let isKeyPresent = false;
+		for (let id of playload.item.parents) {
+			const instance = ViewerManager.getInstance();
+			if (instance._viewerStartedList.hasOwnProperty(id.toString())) {
+				console.log('ça a marchééééééééééééééééééééé');
+				isKeyPresent = true;
+				break;
+			}
+		}
+	
+		if (isKeyPresent) {
+			ViewerManager.getInstance().isolate(playload);
+		} else {
+
+			console.log(playload.config , playload.item , playload.onlyThisModel , 'toto');
+			
+			dispatch(ActionTypes.OPEN_VIEWER, {
+				onlyThisModel: playload.onlyThisModel,
+				config: playload.config,
+				item: playload.item
+			});
+		}
 	},
 
 	[ActionTypes.FIT_TO_VIEW_ITEMS]({ commit, dispatch, state }, playload: any) {

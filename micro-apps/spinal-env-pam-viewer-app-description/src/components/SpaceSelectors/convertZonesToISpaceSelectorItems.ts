@@ -31,7 +31,7 @@ export function convertZonesToISpaceSelectorItems(arr: TGeoItem[], parent?: ISpa
   const res = arr.map((item) => {
     let buildingId, patrimoineId;
     const level = parent ? parent.level + 1 : 0;
-    const parents = parent ? parent.parents.concat(parent?.staticId) : [];
+    const parents = parent ? parent.parents.concat(parent?.dynamicId) : [];
     if (item.type === 'patrimoine') {
       patrimoineId = parent?.staticId || '';
       buildingId = '';

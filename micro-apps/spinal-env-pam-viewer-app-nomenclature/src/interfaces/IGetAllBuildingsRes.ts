@@ -22,15 +22,27 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { IZoneItem } from './IBuildingItem';
-export interface ISpaceSelectorItem extends IZoneItem {
-  level: number;
-  isOpen: boolean;
-  loading?: boolean;
-  buildingId: string;
-  patrimoineId: string;
-  parents: string[];
-  isLastInGrp: boolean;
-  drawLink: number[];
-  haveChildren: boolean;
+export interface IGetAllBuildingsRes {
+  name: string;
+  aliasName: string;
+  urlBos: string;
+  apiUrl: string;
+  clientId: string;
+  clientSecret: string;
+  address: string;
+  description: string;
+  picture_base64: string;
+  location: ILocation;
+  type: string;
+  id: string;
+  directModificationDate: number;
+  details: IDetails;
+  [key: string]: any;
+}
+interface ILocation {
+  lat: string;
+  lng: string;
+}
+interface IDetails {
+  area: number;
 }

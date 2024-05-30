@@ -43,10 +43,10 @@ with this file. If not, see
 
     <div class="dataBody">
       <viewerApp :class="{ 'active3D': isActive3D }" class="viewerContainer"></viewerApp>
-      <dataSideApp :DActive="isActive3D" :ActiveData="isActive" :class="{ 'active': isActive, 'inactive': isActive3D }"
-        class="appContainer" :config="config" :selectedZone="selectedZone" :data="displayedData"
-        @changeRoute="changeApp" @clickOnDataView="onDataViewClicked" @buttonClicked="toggleActive"
-        @buttonClicked3D="toggleActive3D">
+      <dataSideApp :floor="floor" :DActive="isActive3D" :ActiveData="isActive"
+        :class="{ 'active': isActive, 'inactive': isActive3D }" class="appContainer" :config="config"
+        :selectedZone="selectedZone" :data="displayedData" @changeRoute="changeApp" @clickOnDataView="onDataViewClicked"
+        @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D">
       </dataSideApp>
     </div>
   </v-app>
@@ -125,8 +125,9 @@ class App extends Vue {
     spaceSelectedId: '',
     buildingId: ''
   };
+  floor: any
   async mounted() {
-    
+
 
     try {
       this.pageSate = PAGE_STATES.loading;
@@ -159,6 +160,11 @@ class App extends Vue {
       this.query.spaceSelectedId = v.dynamicId.toString()
       this.replaceRoute();
     }
+
+    if (v.type == "geographicFloor")
+      this.floor = this.query.spaceSelectedId
+    console.log('TOTO' , this.floor);
+
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
   }
 
@@ -208,14 +214,8 @@ class App extends Vue {
         "dynamicId": parseInt(query.spaceSelectedId),
         "name": query.name,
         "buildingId": query.buildingId,
-        "parents": [
-          "5932-6086-9e1a-18506478460"
-        ],
         "type": "geographicFloor",
-        "staticId": "SpinalNode-6cd64ff8-a126-1aa3-80b7-f9d4fc5690bf-186df7cd2a5"//nan
-
       }
-
 
       if (this.$refs['space-selector']) {
         this.$refs['space-selector'].select(itemToSelect);
@@ -335,8 +335,6 @@ class App extends Vue {
 
 
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
-    console.log('test', item);
-
     if (!item) return;
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
@@ -350,11 +348,16 @@ class App extends Vue {
 
 
   onActionClick({ button, item }) {
+
+    console.warn("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", item);
+    // button.onclickEvent = "OPEN_VIEWER"
+
     const data = {
       buildingId: item.buildingId, //important viewer
       // staticId: item.staticId,//can
       // id: item.dynamicId,
       dynamicId: item.dynamicId,//important viewer
+      parents: item.parents
       // floorId: item.floorId,//can
       // roomId: item.roomId,//can
       // type: item.type,//can
@@ -362,6 +365,7 @@ class App extends Vue {
 
     switch (button.onclickEvent) {
       case ActionTypes.OPEN_VIEWER:
+        console.log('laaaaaaaaaaaalalaalallalalalalalalalala');
         this.$store.dispatch(button.onclickEvent, {
           onlyThisModel: true,
           config: this.config,
@@ -369,6 +373,7 @@ class App extends Vue {
         });
         break;
       case ActionTypes.ISOLATE_ITEMS:
+        console.log('totototototototototototoototototot');
         this.$store.dispatch(button.onclickEvent, {
           onlyThisModel: true,
           config: this.config,
@@ -376,6 +381,7 @@ class App extends Vue {
         });
         break;
       case "OPEN_VIEWER_PLUS":
+        console.log('uvuvuvuvvuuvvuvuvuvuvuuvvuvuvuvuvuvuvuuvv');
         this.$store.dispatch(ActionTypes.OPEN_VIEWER, {
           onlyThisModel: false,
           config: this.config,
@@ -419,7 +425,7 @@ class App extends Vue {
     };
   }
 
-  
+
 
 
   private _getRows(list: any[]) {
@@ -514,7 +520,7 @@ export default App;
       transition: 0.5s;
       position: absolute;
       margin-right: 6px;
-      height: 91%;
+      height: 92%;
       right: 0px;
     }
 
@@ -525,14 +531,14 @@ export default App;
       z-index: 7;
       right: 0px;
       margin-right: 6px;
-      height: 91%;
+      height: 92%;
     }
 
     .inactive {
       // display: none;
       position: absolute;
       width: 0%;
-      height: 91%;
+      height: 92%;
       right: 0px;
       transition: 0.1;
     }

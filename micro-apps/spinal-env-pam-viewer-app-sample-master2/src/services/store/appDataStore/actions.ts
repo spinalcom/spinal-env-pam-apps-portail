@@ -47,11 +47,11 @@ const ApiIteratorStore: ApiIteratorStoreType & ApiIteratorStoreRecordStringType 
 
 export const actions = {
 	async [ActionTypes.UPDATE_MULTIPLE_ATTRIBUTES]({ commit }: AugmentedActionContextAppData, { buildingId, formattedData }: { buildingId: string; formattedData: any[] }): Promise<any> {
-		console.log('arrivé dans l actio');
+		// console.log('arrivé dans l actio');
 		const spinalAPI = SpinalAPI.getInstance();
         try {
             const result = await updateMultipleAttributes(buildingId, formattedData);
-            console.log('Mise à jour des attributs réussie:', result);
+            // console.log('Mise à jour des attributs réussie:', result);
             return result;
         } catch (error) {
             console.error('Erreur lors de la mise à jour des attributs:', error);

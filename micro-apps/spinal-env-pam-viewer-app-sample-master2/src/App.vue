@@ -170,7 +170,7 @@ class App extends Vue {
   }
 
   downloadData() {
-    console.log(this.$refs.ThedownloadButton);
+    // console.log(this.$refs.ThedownloadButton);
     if (this.DownloadCsv == "CSV") {
       this.$refs.ThedownloadButton.downloadCSV();
     } else

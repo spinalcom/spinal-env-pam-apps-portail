@@ -80,14 +80,6 @@ with this file. If not, see
         <v-icon v-else>mdi-chevron-right</v-icon>
       </button>
     <div class="dataContainer" v-if="1 === 1">
-      <!-- <div class="detail_header">
-        <div class="title_date">
-          <div class="date" title="recharger"></div>
-        </div>
-      </div> -->
-      <!-- SAMPLE -->
-      <!-- <capacityTable  :headers="[{text:'Nom', value: 'name'},{text:'', value: 'name'},]" :tab="[]"></capacityTable> -->
-
       <SpinalTable class="entrence" :class="{ 'inactiveTable': DActive, 'displaydataCss': displaydata }"
         :selectedItemTab="element_clicked" @item-selected="selectDataView" @allFiltredData="putAllFiltredData"
         @update:selectedItem="handleAttributeChange"  @updateSuccess="updateData" @update:selectedAttribute="handleAttributeChange" :headers="[]"
@@ -96,32 +88,8 @@ with this file. If not, see
         :cat_list="$store.state.appDataStore.user_selection_list.cat"
         :grp_list="$store.state.appDataStore.user_selection_list.grp" @itemSelected="handleItemSelected" />
 
-      <!-- <div :style="{ 'overflow-y': 'scroll', 'height': 'calc(100% - 200px)' }">
-        <div v-for="(d, i) in data" :key="i">{{ d.name }}</div>
-        aaa
-      </div> -->
-
-
-      <!-- \SAMPLE -->
     </div>
 
-    <!-- <div class="centered" v-else-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected">
-      Aucune donnée à afficher ! veuillez selectionner un étage ou une pièce.
-    </div> -->
-
-    <!-- <div class="centered" v-else-if="pageSate === PAGE_STATES.loading">
-      <v-progress-circular :size="70" :width="3" color="purple" indeterminate></v-progress-circular>
-    </div> -->
-
-    <!-- <div class="centered" v-else-if="pageSate === PAGE_STATES.error">
-      <div>
-        <v-icon color="red" style="font-size: 5em">mdi-alert-circle-outline</v-icon>
-      </div>
-      <div color="red">
-        Quelque chose s'est mal passé ! Veuillez
-        <v-btn small outlined color="red" @click="retry">réessayer </v-btn>
-      </div>
-    </div> -->
   </v-card>
 </template>
 
@@ -214,47 +182,16 @@ class dataSideApp extends Vue {
 
 
   async retriveData() {
-    // console.log('retrouve des data');
-    
-
-    // try {
-    //   this.pageSate = PAGE_STATES.loading;
-
-    //   const buildingId = localStorage.getItem("idBuilding");
-    //   const patrimoineId = JSON.parse(localStorage.getItem("patrimoine")).id;
-    //   const promises = [
-    //     this.$store.dispatch(ActionTypes.GET_ROOMS, {
-    //       buildingId,
-    //       patrimoineId,
-    //       floorId: this.selectedZone.staticId,
-    //       id: this.selectedZone.dynamicId,
-    //     }),
-    //   ];
-    //   const result = await Promise.all(promises);
-
-    //   this.$store.commit(MutationTypes.SET_DATA, result[0]);
-    //   this.pageSate = PAGE_STATES.loaded;
-    // } catch (err) {
-    //   console.log(err);
-    //   this.retry = this.retriveData;
-    //   this.pageSate = PAGE_STATES.error;
-    // }
-
-
-
-    //Test equipement grp
 
     let actionType = ActionTypes.GET_GROUP_CONTEXT
     let dispatchObject = {
       buildingId: localStorage.getItem("idBuilding"),
       patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
       position_type: this.selectedZone,
-      // Inclure d'autres propriétés communes si nécessaire
     } as any;
     dispatchObject.forceUpdate = true;
 
     try {
-      // this.pageSate = PAGE_STATES.loading;
       const buildingId = localStorage.getItem("idBuilding");
       const patrimoineId = JSON.parse(localStorage.getItem("patrimoine")).id;
       const promises = [
@@ -282,10 +219,6 @@ class dataSideApp extends Vue {
     this.$emit("clickOnDataView", item);
   }
 
-  onItemSelected(item) {
-    // console.log("Item selected:", item);
-    // Traiter l'élément sélectionné comme nécessaire
-  }
 
   updateComponentProp(updatedValue) {
     this.selectedItem2 = updatedValue;
@@ -338,48 +271,15 @@ class dataSideApp extends Vue {
     });
 
 
-    // Traiter la nouvelle valeur de l'attribut ici/
   }
 
 
-  // async selectitem(item) {
-  //   console.warn('il load au debut ?');
 
-  //   let actionType = ActionTypes.GET_GROUP_CONTEXT
-  //   let dispatchObject = {
-  //     buildingId: localStorage.getItem("idBuilding"),
-  //     patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
-  //     position_type: this.selectedZone,
-  //     // Inclure d'autres propriétés communes si nécessaire
-  //   } as any;
-  //   dispatchObject.forceUpdate = true;
-
-  //   try {
-  //     this.pageSate = PAGE_STATES.loading;
-  //     const buildingId = localStorage.getItem("idBuilding");
-  //     const patrimoineId = JSON.parse(localStorage.getItem("patrimoine")).id;
-  //     const promises = [
-  //       this.$store.dispatch(actionType, dispatchObject),
-
-  //     ];
-  //     const result = await Promise.all(promises);
-  //     this.$store.commit(MutationTypes.SET_DATA, result);
-
-
-  //     this.pageSate = PAGE_STATES.loaded;
-
-  //   } catch (err) {
-  //     console.log(err);
-  //     this.retry = this.retriveData;
-  //     this.pageSate = PAGE_STATES.error;
-  //   }
-  // }
 
 
   /**
    * Watch
    */
-  //watch les click d'attr
 
 
   @Watch('DActive')
@@ -457,8 +357,6 @@ class dataSideApp extends Vue {
     });
 
     if (this.config.sprites) {
-      console.log(newArray);
-      
       this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
         items: newArray,
         buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
@@ -480,7 +378,9 @@ export default dataSideApp;
 </script>
 <style lang="scss">
 
-
+.cardContainer{
+  padding: 10px;
+}
 .dataContainer {
   overflow: hidden;
 
