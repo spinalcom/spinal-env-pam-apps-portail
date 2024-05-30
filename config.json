@@ -8,6 +8,12 @@
     "heating": "Chauffage"
   },
   "steps": {
-    "closed": ["Archived", "Refusée", "Clôturée"]
+    "closed": ["Archived", "Refusée", "Clôturée", "Fermé"]
+  },
+  "workflowList": ["Ticket Mission", "Ticket Mamady", "Workflow test"],
+  "ocs-parking": {
+    "affluence": false,
+    "context": "Gestion du parking",
+    "category": "Parking P8"
   }
 }

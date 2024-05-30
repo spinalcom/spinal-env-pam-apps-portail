@@ -337,6 +337,7 @@ export default App;
 html {
   font-family: 'charlevoixpro' !important;
   overflow: hidden !important;
+  user-select: none;
 }
 
 @font-face{font-family:'charlevoix';src:url('./assets/font/CharlevoixPro-Regular.woff2') format('woff2'),url('./assets/font/CharlevoixPro-Regular.woff') format('woff'),url('./assets/font/CharlevoixPro-Regular.ttf') format('truetype');font-weight:normal;font-style:normal}

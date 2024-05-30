@@ -25,11 +25,11 @@ with this file. If not, see
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
     <div class="selectors">
       <div class="DButton">
-        <ScDownloadButton
-          :fileName="'insight_data'"
-          :csv="true"
+        <sc-download-button
+          fileName="insight_data"
+          csv
           :data="getDataFormatted()"
-        />
+        ></sc-download-button>
       </div>
 
       <div class="temporality">
@@ -60,13 +60,38 @@ with this file. If not, see
     </div>
 
     <div class="dataBody">
-      <viewerApp class="viewerContainer"></viewerApp>
+      <viewerApp
+        v-if="!vueChart"
+        class="viewerContainer"
+        :class="{ active3D: isActive3D }"
+      ></viewerApp>
+      <sc-line-card
+        v-else
+        class="viewerContainer"
+        :class="{ active3D: isActive3D }"
+        :title="title"
+        :labels="labelDisplay"
+        :datasets="chartData"
+        :step="labels.length / 4"
+        :tooltipCallbacks="{
+          title: (context) => toTooltipDate(context[0].raw.x),
+          label: (tooltipItem) =>
+            `${tooltipItem.parsed.y.toFixed(2)} ${selectedItem.unit}`,
+        }"
+      ></sc-line-card>
       <InsightApp
         class="appContainer"
+        :DActive="isActive3D"
+        :ActiveData="isActive"
+        :class="{ active: isActive, inactive: isActive3D }"
         :config="config"
         :selectedZone="selectedZone"
+        :selectedTime="temporalitySelected"
         :data="displayedData"
         @clickOnDataView="onDataViewClicked"
+        @buttonClicked="toggleActive"
+        @buttonClicked3D="toggleActive3D"
+        @chartView="switchView"
       ></InsightApp>
     </div>
   </v-app>
@@ -102,35 +127,65 @@ import type {
 } from "./components/SpaceSelector/interfaces/IBuildingItem";
 import { DataTable } from "./components/data-table";
 import viewerApp from "./components/viewer/viewer.vue";
-import ScDownloadButton from "spinal-components/src/components/DownloadButton.vue";
 import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
-import { IConfig } from "./interfaces/IConfig";
+import { IConfig, ITemporality } from "./interfaces/IConfig";
 import InsightApp from "./components/inshight_data/app.vue";
 import { PAGE_STATES } from "./interfaces/pageStates";
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
 } from "spinal-viewer-event-manager";
+import { getLabels, getValues } from "./services/calcul/computeChart";
+import moment from "moment";
 
-import "spinal-components/dist/spinal-components.css";
-
-interface IItemData {
-  platformId: string;
-  id: number | number[];
-}
-
-interface IItemDatatmp {
-  platformId: string;
-  id: Set<number>;
-}
+moment.locale("fr", {
+  months: [
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
+  ],
+  monthsShort: [
+    "Jan",
+    "Fév",
+    "Mar",
+    "Avr",
+    "Mai",
+    "Juin",
+    "Juil",
+    "Août",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Déc",
+  ],
+  weekdays: [
+    "Dimanche",
+    "Lundi",
+    "Mardi",
+    "Mercredi",
+    "Jeudi",
+    "Vendredi",
+    "Samedi",
+  ],
+  weekdaysShort: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+  weekdaysMin: ["Di", "Lu", "Ma", "Me", "Je", "Ve", "Sa"],
+});
 
 @Component({
   components: {
     SpaceSelector,
     DataTable,
     viewerApp,
-    ScDownloadButton,
     InsightApp,
   },
 })
@@ -142,20 +197,162 @@ class App extends Vue {
   openTemporalitySelector: boolean = false;
   config: IConfig = config;
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
-
+  isActive: boolean = false;
+  isActive3D: boolean = false;
   dataTable: IZoneItem[] = [];
   $refs: { spaceSelector };
+  query: {
+    app: string;
+    mode: string;
+    name: string;
+    spaceSelectedId: string;
+    buildingId: string;
+  } = {
+    app: "",
+    mode: "null",
+    name: "",
+    spaceSelectedId: "",
+    buildingId: "",
+  };
+  vueChart: boolean = false;
+  chartLabel = "";
+
+  switchView(item) {
+    this.vueChart = item.display;
+    this.chartLabel = item.source;
+  }
+
+  public get selectedItem() {
+    return this.$store.state.appDataStore.itemSelected;
+  }
+
+  public get title() {
+    return this.selectedItem.name;
+  }
+
+  public get labels() {
+    return getLabels(
+      this.$store.state.appDataStore.temporalitySelected,
+      this.selectedItem?.navIndex
+    );
+  }
+
+  public get labelDisplay() {
+    return this.labels.map((label) => this.toDate(label));
+  }
+
+  public get chartData() {
+    const vals = getValues(this.selectedItem?.series || []);
+    const data = this.labels.map((label) => ({
+      x: label,
+      y: vals[label] || undefined,
+    }));
+    const color = this.selectedItem?.color;
+    return [{ label: this.chartLabel, data, color }];
+  }
+
+  toggleActive() {
+    if (this.isActive3D) this.isActive3D = false;
+    this.isActive = !this.isActive;
+  }
+
+  toggleActive3D() {
+    if (this.isActive) this.isActive = false;
+    this.isActive3D = !this.isActive3D;
+  }
+
+  toDate(date) {
+    switch (this.$store.state.appDataStore.temporalitySelected.name) {
+      case ITemporality.hour:
+        return moment(date).format("HH:mm");
+      case ITemporality.day:
+        return moment(date).format("HH[h]");
+      case ITemporality.week:
+        return moment(date).format("dd");
+      case ITemporality.month:
+        return moment(date).format("D/M/YY");
+      case ITemporality.year:
+        return moment(date).format("MMM");
+      case ITemporality.custom:
+        const { begin, end } =
+          this.$store.state.appDataStore.temporalitySelected.range;
+        const duration = moment.duration(
+          moment(end, "DD-MM-YYYY HH:mm:ss").diff(
+            moment(begin, "DD-MM-YYYY HH:mm:ss")
+          )
+        );
+        console.log(moment(end, "DD-MM-YYYY HH:mm:ss"), duration);
+        if (duration.asMonths() > 2) return moment(date).format("MMM");
+        if (duration.asDays() > 1) return moment(date).format("D/M/YY");
+        if (duration.asHours() > 1) return moment(date).format("HH[h]");
+        return moment(date).format("HH:mm");
+      default:
+        return moment(date).format("D/M/YY");
+    }
+  }
+
+  toTooltipDate(date) {
+    return moment(date).format("DD/MM/YYYY HH:mm");
+  }
 
   async mounted() {
     try {
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();
-      // const buildingId = localStorage.getItem("idBuilding");
-      // await this.$store.dispatch(ActionTypes.GET_GROUPS_ITEMS, { config, buildingId });
       this.pageSate = PAGE_STATES.loaded;
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
+
+    this.$nextTick(() => {
+      const currentQuery = window.parent.routerFontion.apps[0]._route.query;
+      this.applyURLParam(currentQuery);
+    });
+  }
+
+  applyURLParam(query) {
+    this.query.mode = query.mode;
+    this.query.buildingId = query.buildingId;
+    this.query.spaceSelectedId = query.spaceSelectedId;
+    this.query.name = query.name;
+    this.query.app = query.app;
+
+    if (query.mode == "3d") {
+      this.isActive3D = true;
+    } else if (query.mode == "data") {
+      this.isActive = true;
+    }
+    console.warn(query.spaceSelectedId);
+
+    if (query.spaceSelectedId) {
+      const item = {
+        buildingId: query.buildingId,
+        dynamicId: query.spaceSelectedId,
+      };
+      const button = {
+        title: "charger",
+        icon: "mdi-video-3d",
+        onclickEvent: "OPEN_VIEWER",
+        isShownTypes: ["geographicFloor"],
+      };
+      this.onActionClick({ button, item });
+
+      const itemToSelect = {
+        isOpen: false,
+        loading: false,
+        dynamicId: parseInt(query.spaceSelectedId),
+        name: query.name,
+        buildingId: query.buildingId,
+        parents: ["5932-6086-9e1a-18506478460"],
+        type: "geographicFloor",
+        staticId: "SpinalNode-6cd64ff8-a126-1aa3-80b7-f9d4fc5690bf-186df7cd2a5", //nan
+      };
+
+      if (this.$refs["space-selector"]) {
+        this.$refs["space-selector"].select(itemToSelect);
+      }
+    }
+    this.openSpaceSelector = false;
   }
 
   public get selectedZone(): ISpaceSelectorItem {
@@ -164,10 +361,6 @@ class App extends Vue {
 
   public set selectedZone(v: ISpaceSelectorItem) {
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
-
-    // if (v.type.includes("geographic")) {
-    //   this.$store.dispatch(ActionTypes.OPEN_VIEWER, v);
-    // }
   }
 
   public get temporalitySelected(): ISpaceSelectorItem {
@@ -182,19 +375,11 @@ class App extends Vue {
     switch (item?.type) {
       case undefined:
         const buildingId = localStorage.getItem("idBuilding");
-        const playload = {
-          config,
-          item: { buildingId, type: "building" },
-        };
+        const building = await this.$store.dispatch(
+          ActionTypes.GET_BUILDING_BY_ID,
+          { buildingId }
+        );
 
-        const promises = [
-          this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }),
-          // this.$store.dispatch(ActionTypes.GET_GROUPS_ITEMS_BY_GEOITEM, playload)
-        ];
-
-        const [building, items] = await Promise.all(promises);
-
-        // this.data = items;
         return [
           {
             name: building.name,
@@ -211,16 +396,12 @@ class App extends Vue {
           patrimoineId: item.patrimoineId,
         });
       case "geographicFloor":
-        //@ts-ignore
         return await this.$store.dispatch(ActionTypes.GET_ROOMS, {
           floorId: item.dynamicId,
           buildingId: item.buildingId,
           patrimoineId: item.patrimoineId,
           id: item.dynamicId,
         });
-      // case 'geographicRoom':
-      //   //@ts-ignore
-      //   return await this.$store.dispatch(ActionTypes.GET_EQUIPMENTS, { floorId: item.floorId, roomId: item.staticId, buildingId: item.buildingId, patrimoineId: item.patrimoineId, id: item.dynamicId });
       default:
         return [];
     }
@@ -276,41 +457,13 @@ class App extends Vue {
     if (parent) this.selectedZone = parent;
   }
 
-  private getItemData(item: TGeoItem | TGeoItem[]): IItemData {
-    const res: IItemDatatmp = {
-      platformId: this.selectedZone.platformId,
-      id: new Set(),
-    };
-    const datas = Array.isArray(item) ? item : [item];
-    for (const data of datas) {
-      res.id.add(data.dynamicId!);
-    }
-    return {
-      platformId: res.platformId,
-      id: res.id.size > 0 ? Array.from(res.id) : res.id.values().next().value,
-    };
-  }
-
-  // async onSelect(item: TGeoItem | TGeoItem[]) {
-  //   if (!item) return;
-  //   const it = this.getItemData(item);
-  //   await this.$store.dispatch(ActionTypes.SELECT_ITEMS, it);
-  // }
-
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
+    console.log("test ???", item);
+
     if (!item) return;
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
-    this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
-  }
-
-  // async onIsolate(item: TGeoItem | TGeoItem[]) {
-  //   if (!item) return;
-  //   const it = this.getItemData(item);
-  //   await this.$store.dispatch(ActionTypes.ISOLATE_ITEMS, it);
-  // }
-
-  async onColor(item: TGeoItem | TGeoItem[]) {
-    // TBD
+    this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
+    this.$store.dispatch(ActionTypes.SELECT_ITEMS, item);
   }
 
   onActionClick({ button, item }) {
@@ -363,43 +516,35 @@ class App extends Vue {
 
   public getDataFormatted() {
     // color displayedValue name staticId type
-    const d = [this._getHeader(), ...this._getRows(this.displayedData)];
+    const d = this._getRows(this.displayedData);
     return d;
-  }
-
-  private _getHeader() {
-    return {
-      id: "id",
-      name: "name",
-      type: "type",
-      value: "value",
-    };
-    // return [
-    //   { key: "id", header: "id", width: 30 },
-    //   { key: "name", header: "name", width: 30 },
-    //   { key: "type", header: "type", width: 10 },
-    //   { key: "color", header: "color", width: 10 },
-    //   { key: "value", header: "value", width: 10 },
-    // ];
   }
 
   private _getRows(list: any[]) {
     if (!list) return [];
 
-    return list.map(({ color, displayValue, name, staticId, type }) => ({
-      name,
-      type,
-      value: Number.parseFloat(displayValue).toFixed(2),
-      id: staticId,
-    }));
+    return list.flatMap((el) => {
+      return [
+        {
+          name: el.name,
+          type: el.type,
+          value: Number.parseFloat(el.displayValue).toFixed(2),
+          id: el.staticId,
+        },
+        ...this._getRows(el.children),
+      ];
+    });
   }
 }
 
 export default App;
 </script>
 
-
 <style scoped lang="scss">
+::v-deep .card-colored {
+  background-color: #14202c !important;
+  border-radius: 10px !important;
+}
 .app {
   width: 100%;
   height: 100%;
@@ -438,7 +583,7 @@ export default App;
     height: calc(100% - #{$selectorHeight + 30px});
     margin: 80px 8px 0 8px;
     .viewerContainer {
-      width: 60%;
+      width: calc(60% - 4px);
       height: 100%;
       float: left;
     }
@@ -447,6 +592,32 @@ export default App;
       width: 40%;
       height: 100%;
       float: right;
+    }
+
+    .active {
+      width: 98.5%;
+      // height: 100%;
+      position: absolute;
+      z-index: 7;
+      right: 0px;
+      margin-right: 6px;
+      height: 91%;
+    }
+
+    .inactive {
+      // display: none;
+      position: absolute;
+      width: 0%;
+      height: 91%;
+      right: 0px;
+      transition: 0.1;
+    }
+
+    .active3D {
+      width: 99vw;
+      height: 100%;
+      float: left;
+      position: absolute;
     }
   }
 }

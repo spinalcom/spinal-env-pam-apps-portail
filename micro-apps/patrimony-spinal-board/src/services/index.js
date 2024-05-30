@@ -2,8 +2,6 @@ import { HTTP } from "./http-constants";
 import moment from 'moment';
 import fr from 'moment/locale/fr'
 
-
-
 function getPeriodArray(timestamp, period) {
   if (period === 'Mois') {
     var startOfMonth = moment(timestamp).startOf('month');
@@ -70,15 +68,7 @@ export async function getData(timestamp, period, buildings, cp) {
     row['dynamicId'] = building.data.dynamicId;
     row['staticId'] = buildings[i].id;
     cpList = await HTTP.get(`/building/${row['staticId']}/node/${row['dynamicId']}/control_endpoint_list`);
-    // console.log(cpList.data)
-    // cpDynamicId = cpList.data[0].endpoints.find(e => e.name == cp).dynamicId;
-    for (let j = 0; j < cpList.data.length; j++) {
-      for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
-        if (cpList.data[j].endpoints[i].name === cp) {
-          cpDynamicId = cpList.data[j].endpoints[i].dynamicId;
-        }
-      }
-    }
+    cpDynamicId = cpList.data[0].endpoints.find(e => e.name == cp).dynamicId;
     timeSeries = await HTTP.get(`/building/${row['staticId']}/endpoint/${cpDynamicId}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`);
     row['timeSeries'] = timeSeries.data;
 

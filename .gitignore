@@ -5,3 +5,4 @@ dist/
 .env
 .env.*
 .parcel-cache
+package-lock.json

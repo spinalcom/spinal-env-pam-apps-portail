@@ -23,100 +23,75 @@ with this file. If not, see
 -->
 
 <template>
-   <div class="div_container">
-      <div class="_title">
-         <DataView :color="getColor(data)" :item="data" :isTitle="true" :unit="unit"/>
-      </div>
+  <div class="div_container">
+    <div class="_title">
+      <DataView
+        :color="getItemColor(data)"
+        :item="data"
+        :isTitle="true"
+        :unit="unit"
+        @onClick="() => selectDataView(data)"
+      />
+    </div>
 
-      <div class="_container">
-         <DataView v-for="(item, index) of data.children" :key="index" :item="item" :color="getColor(item)" :unit="unit" @onClick="() => selectDataView(item)" />
-         <DataView v-if="!data.children || data.children.length === 0" :item="noDataItem" />
-      </div>
-
-   </div>
+    <div class="_container">
+      <DataView
+        v-for="(item, index) of data.children"
+        :key="index"
+        :item="item"
+        :color="getItemColor(item)"
+        :unit="unit"
+        @onClick="() => selectDataView(item)"
+        @chartView="(val) => $emit('chartView', val)"
+      />
+      <DataView
+        v-if="!data.children || data.children.length === 0"
+        :item="noDataItem"
+      />
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
-import { Vue, Prop } from 'vue-property-decorator';
-import Component from 'vue-class-component';
+import { Vue, Prop } from "vue-property-decorator";
+import Component from "vue-class-component";
 import DataView from "./dataView.vue";
-import { calculTypes } from '../../interfaces/IConfig';
-import Gradient  from "javascript-color-gradient";
 import { getColor } from "../../services/calcul/calculItems";
 
 @Component({
-   components : { DataView }
+  components: { DataView },
 })
 class GroupDataView extends Vue {
-   @Prop({}) data;
-   @Prop({}) config;
-   @Prop({}) unit;
+  @Prop({}) data;
+  @Prop({}) config;
+  @Prop({}) unit;
+  @Prop({}) legend;
+  @Prop({ default: false }) percent;
 
+  noDataItem = { name: "Aucune donnée", displayValue: "" };
+  getItemColor(item) {
+    const color = getColor(item, this.legend, this.percent);
+    item.color = color;
+    return color;
+  }
 
-   noDataItem = {name : "Aucune donnée", displayValue: "", }
-   // colors = this.getGraduationColor();
-
-   getColor(item) {
-      const color = getColor(item, this.config.legend);
-      item.color = color;
-      return color;
-   }  
-
-
-   getGraduationColor(): string[] {
-      const colors = this.getColorsViaConfig();
-      return new Gradient()
-         .setColorGradient(...colors)
-         .getColors();
-   }
-
-   getColorsViaConfig() {
-      return Object.values(this.config.legend).map((el: any) => {
-         return el.color;
-      })
-   }
-
-   selectDataView(item) {
-      this.$emit("onClick", item);
-   }
-   /*
-   @Prop({}) calculMode;
-
-
-   getValue(item) {
-      return item?.endpoint?.currentValue?.toString() || "-";
-   }
-
-   calculateValue(item, calculMode) {
-      const children = item.children || [];
-      switch (this.calculMode) {
-         case calculTypes.Maximum:
-         case calculTypes.Minimum:
-         case calculTypes.Moyenne:
-         case calculTypes.Somme:
-      }
-   }
-
-
-   
-
-   */
-
+  selectDataView(item) {
+    this.$emit("onClick", item);
+  }
 }
 
 export default GroupDataView;
-export { GroupDataView }
-
+export { GroupDataView };
 </script>
 
 <style>
 .div_container {
-   width: calc(100% - 10px);
-   min-height: 50px;
-   border: 3px dashed #dbe7ed;
-   border-radius: 10px;
-   padding: 10px;
-   margin: auto;
-   margin-bottom: 10px;
-}   
+  width: calc(100% - 10px);
+  min-height: 50px;
+  border: 3px dashed #dbe7ed;
+  border-radius: 10px;
+  padding: 10px;
+  margin: auto;
+  margin-bottom: 10px;
+}
 </style>

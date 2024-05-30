@@ -4,13 +4,13 @@
       <LineCard :title="config.config.title" :titleDetails="currentTimestamp.stringTime" :hidden="hiddenelement" :labels="barLabels" :datasets="barChartData" :optional="lineOptions" :next="temporality.next" :prev="temporality.prev" @nav="nav" @stack="stack" :stacked="stackState" :tooltipdate="tooltipinfo" @update:hidden="hiddenelement = $event" class="BR"/>
       <!-- <div class="BR"><div class="flex-grow-1">a</div></div> -->
       <div class="d-flex cards">
-        <StatCard :value="stats.totalArea" :unit="'m²'" :title="`Superficie totale (${stats.buildings} Bâtiments)`" class="flex-grow-1 pa-4"/>
-        <StatCard :value="stats.totalConsumption" :unit="config.config.unit" :title="config.config.labelIndicators+' par le patrimoine'" class="flex-grow-1 pa-4"/>
-        <StatCard :value="stats.totalConsumptionSquareMeter" :unit="config.config.unit"  :title="config.config.labelIndicators+' consommé au m²'" class="flex-grow-1 pa-4"/>
+        <sc-stat-card :value="stats.totalArea" :unit="'m²'" :title="`Superficie totale (${stats.buildings} Bâtiments)`" class="flex-grow-1 pa-4"/>
+        <sc-stat-card :value="stats.totalConsumption" :unit="config.config.unit" :title="config.config.labelIndicators+' par le patrimoine'" class="flex-grow-1 pa-4"/>
+        <sc-stat-card :value="stats.totalConsumptionSquareMeter" :unit="config.config.unit"  :title="config.config.labelIndicators+' consommé au m²'" class="flex-grow-1 pa-4"/>
       </div>
       <SpinalTable :label="config.config.label" :unit="config.config.unit" :context="patrimonyTable" :temporality="temporality"/>
     </div>
-    <div class="MC" v-else-if="!loaded">
+    <div class="MC" v-else>
       <LoadingCard class="flex-grow-1 pa-4 br" style="width: 100%;"/>
       <div class="d-flex cards">
           <LoadingCard class="flex-grow-1 pa-4"  style="height: 106px"/><LoadingCard class="flex-grow-1 pa-4"  style="height: 106px"/><LoadingCard class="flex-grow-1 pa-4"  style="height: 106px"/>
@@ -21,11 +21,10 @@
 </template>
 
 <script>
-import StatCard from './StatsCard.vue';
 import SpinalTable from "./nested/SpinalTable.vue";
 import { getData } from "../services/index.js";
 import LineCard from "./nested/LineCard.vue";
-// import StatCard from "spinal-components/src/components/StatsCard.vue";
+import StatCard from "./nested/StatsCard.vue";
 import LoadingCard from "spinal-components/src/components/LoadingCard.vue";
 import moment from 'moment';
 import config from "../config.js"
@@ -35,8 +34,7 @@ export default {
   components: {
     SpinalTable,
     LineCard,
-    // "sc-stat-card": StatCard,
-    StatCard,
+    "sc-stat-card": StatCard,
     LoadingCard
   },
   data: () => ({

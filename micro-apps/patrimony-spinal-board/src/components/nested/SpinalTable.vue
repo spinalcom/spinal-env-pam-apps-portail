@@ -1,12 +1,12 @@
 <template>
-  <div style="width: 100%; max-height: 295px;min-height: 295px; font-size: 14px !important;background-color: white;border-radius: 10px !important;">
+  <div style="width: 100%; max-height: 295px;min-height: 295px; font-size: 14px !important;background-color: white;border-radius: 10px !important; ">
     <v-progress-circular style="z-index: 99;position: absolute;left: 50%; bottom: 13%;transform: translate(-50%);"
-    v-if="context.length == 0"
+    v-if="context.length == 1"
         :size="60"
         color="#14202c"
         indeterminate
         />
-    <v-data-table style="height: 100%; background: transparent !important;" mobile-breakpoint="0"
+    <v-data-table style=" height: 100%; background: transparent !important;" mobile-breakpoint="0"
       no-data-text="Pas de données disponibles" :headers="dynamicHeaders()" :items="context" :items-per-page="4"
       fixed-header :footer-props="{
         'color': '#000',
@@ -21,13 +21,13 @@
         <!-- <div class="font-table">{{item.name}}</div> -->
       </template>
       <template v-slot:[`item.surface`]="{ item }">
-        <span class="text">{{ (+item.area).toFixed(2) }} m²</span>
+        <span class="text">{{ item.area.toFixed(2) }} m²</span>
       </template>
       <template v-slot:[`item.sum`]="{ item }">
-        <span class="text">{{ (+item.sum).toFixed(2) }} {{ unit }}</span>
+        <span class="text">{{ item.sum.toFixed(2) }} {{ unit }}</span>
       </template>
       <template v-slot:[`item.squareMeter`]="{ item }">
-        <span class="text">{{ (+item.squareMeter).toFixed(2) }} {{ unit }}</span>
+        <span class="text">{{ item.squareMeter.toFixed(2) }} {{ unit }}</span>
       </template>
       <!--<template v-slot:[`item.month`]="{ item }">
     <span class="text">{{ item.month.toFixed(2) }} L</span>

@@ -53,7 +53,7 @@ function getPeriodArray(timestamp, period) {
       tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
       currentDay.add(1, 'day');
     }
-    return [daysInMonth, moment(timestamp).startOf('month').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss'),tooltipDate];
+    return [daysInMonth, moment(timestamp).startOf('month').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss'), tooltipDate];
   } else if (period === 'Année') {
     var monthsInYear = [];
     var tooltipDate = [];
@@ -62,7 +62,7 @@ function getPeriodArray(timestamp, period) {
       monthsInYear.push(currentMonth.format('MMM'));
       tooltipDate.push(moment(currentMonth).format('MMMM/YYYY').slice(0, 1).toUpperCase() + moment(currentMonth).format('MMMM/YYYY').slice(1));
     }
-    return [monthsInYear, moment(timestamp).startOf('year').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss'),tooltipDate];
+    return [monthsInYear, moment(timestamp).startOf('year').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss'), tooltipDate];
   } else if (period === 'Décennie') {
     var yearsInDecade = [];
     var tooltipDate = [];
@@ -71,7 +71,7 @@ function getPeriodArray(timestamp, period) {
       tooltipDate.push(moment(currentYear).format('YYYY').slice(0, 1).toUpperCase() + moment(currentYear).format('YYYY').slice(1));
       yearsInDecade.push(currentYear.format('YYYY'));
     }
-    return [yearsInDecade, moment(timestamp).add(-10, 'years').startOf('year').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss'),tooltipDate];
+    return [yearsInDecade, moment(timestamp).add(-10, 'years').startOf('year').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss'), tooltipDate];
   } else if (period === '3 mois') {
     var startOfMonth = moment(timestamp).add(-2, 'months').startOf('month');
     var endOfMonth = moment(timestamp).endOf('month');
@@ -83,11 +83,10 @@ function getPeriodArray(timestamp, period) {
       daysIn3Months.push(currentDay.format('DD MMM'));
       currentDay.add(1, 'day');
     }
-    return [daysIn3Months, moment(timestamp).add(-2, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss'),tooltipDate];
+    return [daysIn3Months, moment(timestamp).add(-2, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss'), tooltipDate];
   } else {
     return [];
   }
-
 }
 
 export async function getBuildingName(id_batiment) {
@@ -107,17 +106,9 @@ export async function getDataBuilding(timestamp, period, buildings, cp, cp_batim
   lacpList = await HTTP.get(`/building/${id_batiment}/node/${dynamicId}/control_endpoint_list`);
 
   const floors = await HTTP.get(`/building/${id_batiment}/floor/list`);
-  const floorsInfo = [];
+  // const floorsInfo = [];
   let label1 = periodArray1[0];
-  // cpDynamicId_bat = lacpList.data[0].endpoints.find(e => e.name == cp_batiment).dynamicId;
-
-  for (let j = 0; j < lacpList.data.length; j++) {
-    for (let i = 0; i < lacpList.data[j].endpoints.length; i++) {
-      if (lacpList.data[j].endpoints[i].name === cp_batiment) {
-        cpDynamicId_bat = lacpList.data[j].endpoints[i].dynamicId;
-      }
-    }
-  }
+  cpDynamicId_bat = lacpList.data[0].endpoints.find(e => e.name == cp_batiment).dynamicId;
   timeSeriesbat = await HTTP.get(`/building/${id_batiment}/endpoint/${cpDynamicId_bat}/timeSeries/read/${periodArray1[1]}/${periodArray1[2]}`);
 
 
@@ -148,30 +139,17 @@ export async function getData(timestamp, period, buildings, cp, cp_batiment, id_
   const colors1 = ['#ff6384', '#36a2eb', '#4bc0c0', '#ff7b00', '#97BCC7', '#006884'];
   let row1 = {};
   let data1 = [];
+  // const floorsInfo = [];
   let periodArray1 = getPeriodArray(timestamp, period);
   let colorIndex1 = 0;
   let stats1 = { totalArea: 0, buildings: 0, totalConsumption: 0, totalConsumptionSquareMeter: 0 };
   let surface = await HTTP.get(`/building/${id_batiment}/building/read`);
-
   let dynamicId = surface.data.dynamicId;
-
   lacpList = await HTTP.get(`/building/${id_batiment}/node/${dynamicId}/control_endpoint_list`);
-
   const floors = await HTTP.get(`/building/${id_batiment}/floor/list`);
-  const floorsInfo = [];
   let label1 = periodArray1[0];
-
-
-  // cpDynamicId_bat = lacpList.data[0].endpoints.find(e => e.name == cp_batiment).dynamicId;
-  for (let j = 0; j < lacpList.data.length; j++) {
-    for (let i = 0; i < lacpList.data[j].endpoints.length; i++) {
-      if (lacpList.data[j].endpoints[i].name === cp_batiment) {
-        cpDynamicId_bat = lacpList.data[j].endpoints[i].dynamicId;
-      }
-    }
-  }
+  cpDynamicId_bat = lacpList.data[0].endpoints.find(e => e.name == cp_batiment).dynamicId;
   timeSeriesbat = await HTTP.get(`/building/${id_batiment}/endpoint/${cpDynamicId_bat}/timeSeries/read/${periodArray1[1]}/${periodArray1[2]}`);
-
 
   let processedTimeSeries1 = processTimeSeries(timeSeriesbat, label1, period);
 
@@ -186,13 +164,11 @@ export async function getData(timestamp, period, buildings, cp, cp_batiment, id_
     staticId: id_batiment,
   };
 
-
   data1.push(rowBat);
   let i = 0;
   let degree = 0;
   let lightness = 50;
   for (const floor of floors.data) {
-    //recup dynamicId etage 
     if (degree <= 360) {
       degree = degree + 60;
     }
@@ -204,33 +180,14 @@ export async function getData(timestamp, period, buildings, cp, cp_batiment, id_
     const floorId = floor.dynamicId;
     const floorName = floor.name;
     const attributsResponse = await HTTP.get(`/building/${id_batiment}/node/${floorId}/attributslist`);
-    
-    let floorSurface = '';
-    if (attributsResponse.data && attributsResponse.data[0] && attributsResponse.data[0].attributs) {
-      const attributs = attributsResponse.data[0].attributs;
-      const surfaceAttribut = attributs.find(attribut => attribut.label === 'area');
-      floorSurface = surfaceAttribut ? surfaceAttribut.value : '';
-    }
-
-    // const attributs = attributsResponse.data[0].attributs;
-    // const surfaceAttribut = attributs.find(attribut => attribut.label === 'area');
-    // let floorSurface = surfaceAttribut ? surfaceAttribut.value : '';
-
+    const attributs = attributsResponse.data[0].attributs;
+    const surfaceAttribut = attributs.find(attribut => attribut.label === 'area');
+    let floorSurface = surfaceAttribut ? surfaceAttribut.value : '';
     const cpList = await HTTP.get(`/building/${id_batiment}/node/${floorId}/control_endpoint_list`);
-    var endpoints;
-    var endpoint = null;
-
-
-    for (let j = 0; j < cpList.data.length; j++) {
-      for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
-        if (cpList.data[j].endpoints[i].name === cp) {
-          endpoint = cpList.data[j].endpoints[i];
-        }
-      }
-    }
-
-    
+    const endpoints = cpList.data[0].endpoints;
+    const endpoint = endpoints.find(endpoint => endpoint.name === cp);
     if (endpoint != undefined) {
+
       timeSeries1 = await HTTP.get(`/building/${id_batiment}/endpoint/${endpoint.dynamicId}/timeSeries/read/${periodArray1[1]}/${periodArray1[2]}`);
 
       let processedTimeSeries1 = processTimeSeries(timeSeries1, label1, period);
@@ -257,93 +214,3 @@ export async function getData(timestamp, period, buildings, cp, cp_batiment, id_
   stats1.totalConsumptionSquareMeter += rowBat['squareMeter'];
   return [label1, data1, stats1, periodArray1[3]];
 }
-
-
-
-
-
-
-
-
-
-
-
-// function getPeriodArray(timestamp, period) {
-//   if (period === 'Semaine') {
-//     var startOfWeek = moment(timestamp).startOf('week');
-//     var endOfWeek = moment(timestamp).endOf('week');
-//     var daysInMonth = [];
-//     var tooltipDate = [];
-//     var currentDay = moment(startOfWeek);
-//     while (currentDay.isSameOrBefore(endOfWeek)) {
-//       daysInMonth.push(currentDay.format('DD MMM'));
-//       tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
-//       currentDay.add(1, 'day');
-//     }
-//     return [daysInMonth,
-//       moment(timestamp).startOf('week').format('DD-MM-yyyy HH:mm:ss'),
-//       moment(timestamp).endOf('week').format('DD-MM-yyyy HH:mm:ss'),
-//       moment(timestamp).add(-1, 'weeks').startOf('week').format('DD-MM-yyyy HH:mm:ss'),
-//       moment(timestamp).add(-1, 'weeks').endOf('week').format('DD-MM-yyyy HH:mm:ss'),
-//       tooltipDate
-//     ];
-//   } else if (period === 'Mois') {
-//     var startOfMonth = moment(timestamp).startOf('month');
-//     var endOfMonth = moment(timestamp).endOf('month');
-//     var daysInMonth = [];
-//     var tooltipDate = [];
-//     var currentDay = moment(startOfMonth);
-//     while (currentDay.isSameOrBefore(endOfMonth)) {
-//       daysInMonth.push(currentDay.format('DD MMM'));
-//       tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
-//       currentDay.add(1, 'day');
-//     }
-//     return [daysInMonth,
-//       moment(timestamp).startOf('month').format('DD-MM-yyyy HH:mm:ss'),
-//       moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss'),
-//       moment(timestamp).add(-1, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'),
-//       moment(timestamp).add(-1, 'months').endOf('month').format('DD-MM-yyyy HH:mm:ss'),
-//       tooltipDate
-//     ];
-//   } else if (period === 'Année') {
-//     var monthsInYear = [];
-//     var tooltipDate = [];
-//     for (var i = 0; i < 12; i++) {
-//       var currentMonth = moment(timestamp).month(i);
-//       monthsInYear.push(currentMonth.format('MMM'));
-//       tooltipDate.push(moment(currentMonth).format('MMMM/YYYY').slice(0, 1).toUpperCase() + moment(currentMonth).format('MMMM/YYYY').slice(1));
-//     }
-//     return [monthsInYear,
-//       moment(timestamp).startOf('year').format('DD-MM-yyyy HH:mm:ss'),
-//       moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss'),
-//       moment(timestamp).add(-1, 'years').startOf('year').format('DD-MM-yyyy HH:mm:ss'),
-//       moment(timestamp).add(-1, 'years').endOf('year').format('DD-MM-yyyy HH:mm:ss'),
-//       tooltipDate
-//     ];
-//   } else if (period === 'Décennie') {
-//     var yearsInDecade = [];
-//     var tooltipDate = [];
-//     for (var i = -9; i <= 0; i++) {
-//       var currentYear = moment(timestamp).add(i, 'years');
-//       yearsInDecade.push(currentYear.format('YYYY'));
-//       tooltipDate.push(moment(currentYear).format('YYYY').slice(0, 1).toUpperCase() + moment(currentYear).format('YYYY').slice(1));
-//     }
-//     return [yearsInDecade,
-//       moment(timestamp).add(-10, 'years').startOf('year').format('DD-MM-yyyy HH:mm:ss'),
-//       moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss'), '', '', tooltipDate];
-//   } else if (period === '3 mois') {
-//     var startOfMonth = moment(timestamp).add(-2, 'months').startOf('month');
-//     var endOfMonth = moment(timestamp).endOf('month');
-//     var daysIn3Months = [];
-//     var tooltipDate = [];
-//     var currentDay = moment(startOfMonth);
-//     while (currentDay.isSameOrBefore(endOfMonth)) {
-//       daysIn3Months.push(currentDay.format('DD MMM'));
-//       tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
-//       currentDay.add(1, 'day');
-//     }
-//     return [daysIn3Months, moment(timestamp).add(-2, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'), moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss'), tooltipDate];
-//   } else {
-//     return [];
-//   }
-// }

@@ -13,7 +13,7 @@
           :title="config.config.labelIndicators + ' au m²'" class="flex-grow-1 pa-4" />
       </div>
       <SpinalTable :label="config.config.label"
-        :reference="config.config.buildingApiUrl === config.config.floorApiUrl ? reference : reference"
+        :reference="config.config.buildingApiUrl === config.config.floorApiUrl ? '' : reference"
         :unit="config.config.unit" :context="patrimonyTable" :temporality="temporality" />
     </div>
     <div class="MC" v-else>
@@ -162,7 +162,6 @@ export default {
       this.barLabels = res[0];
       this.stats = res[2];
       this.tooltipinfo = res[3];
-      // console.log('les stats 2', this.stats);
       this.patrimonyTable = res[1];
       this.barChartData = [];
       for (let i = 0; i < res[1].length; i++) {
@@ -186,7 +185,6 @@ export default {
       res = await getDataBuilding(this.currentTimestamp.valueTime, this.temporality.name, this.buildingsInTheList, config.config.floorApiUrl, config.config.buildingApiUrl, this.id_batiment, config.config.color);
       this.barLabels = res[0];
       this.stats = res[2];
-      // console.log('les stats 2', this.stats);
       this.patrimonyTable = res[1];
       this.tooltipinfo = res[3];
       this.barChartData = [];

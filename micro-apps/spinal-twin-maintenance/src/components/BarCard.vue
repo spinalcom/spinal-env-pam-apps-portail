@@ -1,22 +1,57 @@
 <template>
   <v-card
-    style="min-height: 220px !important; background: #f9f9f9;"
+    style="min-height: 220px !important; background: #f9f9f9"
     class="bar-card pa-1 rounded-lg d-flex flex-shrink-1 flex-column"
     elevation="5"
     outlined
   >
-  <v-card-title class="card-title pa-3 text-uppercase flex-shrink-1 justify-space-between" style="height: fit-content !important">
+    <v-card-title
+      class="card-title pa-3 text-uppercase flex-shrink-1 justify-space-between"
+      style="height: fit-content !important"
+    >
       <p class="mb-0">{{ title }}</p>
 
-      <div v-if="prev_next" style="height: 40px;">
-        <v-btn :disabled="false" @click="$emit('nav', -1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;"><v-icon style="color: #14202c !important" icon>mdi-chevron-left</v-icon></v-btn>
-        <v-btn :disabled="false" @click="$emit('nav', +1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;"><v-icon style="color: #14202c !important" icon>mdi-chevron-right</v-icon></v-btn>
+      <div v-if="prev_next" style="height: 40px">
+        <v-btn
+          :disabled="false"
+          @click="$emit('nav', -1)"
+          style="
+            font-size: 14px !important;
+            border-radius: 10px;
+            min-width: 36px !important;
+            box-shadow: none;
+            border: 1px solid #eaeef0 !important;
+          "
+          ><v-icon style="color: #14202c !important" icon
+            >mdi-chevron-left</v-icon
+          ></v-btn
+        >
+        {{ currentPeriod }}
+        <v-btn
+          :disabled="false"
+          @click="$emit('nav', +1)"
+          style="
+            font-size: 14px !important;
+            border-radius: 10px;
+            min-width: 36px !important;
+            box-shadow: none;
+            border: 1px solid #eaeef0 !important;
+          "
+          ><v-icon style="color: #14202c !important" icon
+            >mdi-chevron-right</v-icon
+          ></v-btn
+        >
       </div>
     </v-card-title>
     <div class="d-flex flex-column flex-grow-1">
       <slot name="extras"></slot>
-      <div class="flex-grow-1" style="height: 0;">
-        <Bar :data="barChartData" :chart-id="'1'" :options="barChartOptions" ref="barChart"/>
+      <div class="flex-grow-1" style="height: 0">
+        <Bar
+          :data="barChartData"
+          :chart-id="'1'"
+          :options="barChartOptions"
+          ref="barChart"
+        />
       </div>
     </div>
   </v-card>
@@ -55,7 +90,7 @@ export default {
       type: String,
       default: "Bar Card",
     },
-    prev_next: {type: Boolean, required: false},
+    prev_next: { type: Boolean, required: false },
     labels: {
       type: Array,
       required: true,
@@ -65,6 +100,8 @@ export default {
       type: Array,
       required: true,
     },
+
+    currentPeriod: { type: String, default: "" },
 
     scaleType: {
       type: String,
@@ -78,7 +115,7 @@ export default {
     noNav: {
       type: Boolean,
       required: false,
-    }
+    },
   },
 
   data: () => ({
@@ -207,10 +244,8 @@ export default {
 
     // Enregistrement du plugin de légende en HTML/CSS
   },
-  
-  methods: {
-    
-  },
+
+  methods: {},
   watch: {
     datasets() {
       const radius = 4;
@@ -244,12 +279,16 @@ export default {
 
 .card-title {
   letter-spacing: 1.1px !important;
-  color: #000000DE !important;
+  color: #000000de !important;
   font-size: 20px !important;
 }
 
-
-
-@font-face{font-family:'Charlevoix Pro';src:url('../assets/font/CharlevoixPro-Regular.woff2') format('woff2'),url('../assets/font/CharlevoixPro-Regular.woff') format('woff'),url('../assets/font/CharlevoixPro-Regular.ttf') format('truetype');font-weight:normal;font-style:normal}
-
+@font-face {
+  font-family: "Charlevoix Pro";
+  src: url("../assets/font/CharlevoixPro-Regular.woff2") format("woff2"),
+    url("../assets/font/CharlevoixPro-Regular.woff") format("woff"),
+    url("../assets/font/CharlevoixPro-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
 </style>

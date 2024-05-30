@@ -23,102 +23,159 @@ with this file. If not, see
 -->
 
 <template>
-   <div class="dataView" :id="item.dynamicId" :class="{'subItem': !isTitle, 'isSelected' : isSelected()}" @click="clickEvent">
-      <div class="value_div">
-         <div class="color" :style="{background: color}"></div>
-         <div class="value" style="margin-right: 1px;">{{ item.displayValue | round }}</div>
-         <div>{{ unit }}</div>
+  <div
+    class="dataView"
+    :id="item.dynamicId"
+    :class="{ subItem: !isTitle, isSelected: isSelected() }"
+    @click="clickEvent"
+  >
+    <div class="value_div">
+      <div class="color" :style="{ background: color }"></div>
+      <div class="value" style="margin-right: 1px">
+        {{ item.displayValue | round }}
       </div>
-      <div class="name">{{ item.name }}</div>
-   </div>
+      <div>{{ unit }}</div>
+    </div>
+    <div class="name">{{ item.name }}</div>
+    <div v-if="!isTitle && isChartPossible">
+      <v-btn icon x-small @click.stop="changeSelectedItem"
+        ><v-icon>mdi-chart-line</v-icon></v-btn
+      >
+    </div>
+  </div>
 </template>
 
 <script>
+import { isArray } from "lodash";
+import {
+  EmitterViewerHandler,
+  VIEWER_AGGREGATE_SELECTION_CHANGED,
+  VIEWER_SPRITE_CLICK,
+} from "spinal-viewer-event-manager";
+import { ITemporality } from "../../interfaces/IConfig";
+import { MutationTypes } from "../../services/store/appDataStore/mutations";
 
 export default {
-   name: "dataView",
-   props: {
-      item: {},
-      isTitle: { type: Boolean, default: () => false },
-      color: {type: String, default: () => ""},
-      unit: {type: String, default: () => ""},
-   },
-   filters: {
-      round(value) {
-         try {
-            if (typeof value === "string" && value.length === 0) return "";
-            var num = Number(value);
-            var rounded = num.toFixed(2);
-            return Number(rounded)
-         } catch (error) {
-            console.error(error);
-            return ""
-         }
+  name: "dataView",
+  displayChart: true,
+  props: {
+    item: {},
+    isTitle: { type: Boolean, default: () => false },
+    color: { type: String, default: () => "" },
+    unit: { type: String, default: () => "" },
+  },
+  filters: {
+    round(value) {
+      try {
+        if (typeof value === "string" && value.length === 0) return "";
+        var num = Number(value);
+        var rounded = num.toFixed(2);
+        return Number(rounded);
+      } catch (error) {
+        console.error(error);
+        return "";
       }
-   },
-   methods: {
-      clickEvent() {
-         this.$emit("onClick")
-      },
+    },
+  },
+  computed: {
+    isChartPossible() {
+      return (
+        this.$store.state.appDataStore.temporalitySelected.name !==
+        ITemporality.currentValue
+      );
+    },
+  },
+  methods: {
+    clickEvent() {
+      this.$emit("onClick");
+    },
 
-      isSelected() {
-         const itemSelected = this.$store.state.appDataStore.itemSelected;
-         return itemSelected && itemSelected.dynamicId == this.item.dynamicId
+    isSelected() {
+      const itemSelected = this.$store.state.appDataStore.itemSelected;
+      return itemSelected && itemSelected.dynamicId == this.item.dynamicId;
+    },
+
+    inDbids(data, to_search) {
+      to_search = isArray(to_search) ? to_search : [to_search];
+      for (const id of to_search) if (data.dbIds.includes(id)) return true;
+      return false;
+    },
+
+    changeSelectedItem() {
+      if (
+        this.$store.state.appDataStore.itemSelected &&
+        this.item.dynamicId ===
+          this.$store.state.appDataStore.itemSelected.dynamicId
+      ) {
+        this.displayChart = !this.displayChart;
+        this.$emit("chartView", this.displayChart);
+        return;
       }
-   },
-}
+      this.displayChart = true;
+      this.$store.commit(MutationTypes.SET_ITEM_SELECTED, this.item);
+      this.$emit("chartView", this.displayChart);
+    },
+  },
+
+  mounted() {
+    const emitterHandler = EmitterViewerHandler.getInstance();
+    const vm = this;
+    emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
+      if (data[0] && this.inDbids(data[0], vm.item.dbid)) {
+        vm.$emit("onClick");
+        emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: vm.item });
+      }
+    });
+  },
+};
 </script>
 
 <style>
-   .dataView {
-      width: 100%;
-      height: 20px;
-      margin-bottom: 3px;
-      display: flex;
-      align-items: flex-end;
-      font-size: 12px;
-      font-weight: 520;
-      color: #798e98;
-      border-radius: 5px;
-   }
+.dataView {
+  width: 100%;
+  height: 20px;
+  margin-bottom: 3px;
+  display: flex;
+  align-items: flex-end;
+  font-size: 12px;
+  font-weight: 520;
+  color: #798e98;
+  border-radius: 5px;
+}
 
-   .dataView.subItem {
-      background-color: #eaeef0;
-   }
+.dataView.subItem {
+  background-color: #eaeef0;
+}
 
-   .dataView.subItem:hover {
-      cursor: pointer;
-   }
+.dataView.subItem:hover {
+  cursor: pointer;
+}
 
-   .dataView.subItem.isSelected {
-      border: 2px solid rgb(0, 116, 255);
-      /* background-color: rgb(0, 116, 255) */
-   }
+.dataView.subItem.isSelected {
+  border: 2px solid rgb(0, 116, 255);
+  /* background-color: rgb(0, 116, 255) */
+}
 
-   .dataView .value_div {
-      width: 25%;
-      height: 100%;
-      display: flex;
-      padding: 0 10px;
-      align-items: center;
-   }
+.dataView .value_div {
+  width: 25%;
+  height: 100%;
+  display: flex;
+  padding: 0 10px;
+  align-items: center;
+}
 
-   .dataView .value_div .color {
-      width: 7px;
-      height: 70%;
-      margin-right: 4px;
-      border-radius: 3px;
-   }
+.dataView .value_div .color {
+  width: 7px;
+  height: 70%;
+  margin-right: 4px;
+  border-radius: 3px;
+}
 
-
-   .dataView .name {
-      width: 75%;
-      max-width: 75%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-   }
-   
-
-   
+.dataView .name {
+  width: 75%;
+  max-width: 75%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 </style>

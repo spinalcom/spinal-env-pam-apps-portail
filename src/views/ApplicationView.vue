@@ -40,7 +40,7 @@ with this file. If not, see
     <iframe
       v-if="appPath"
       class="iframeContainer"
-      :class="{'disabled-event': inDrag}"
+      :class="{ 'disabled-event': inDrag }"
       :src="appPath"
     ></iframe>
 
@@ -52,12 +52,12 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import NavBar from '../components/nav.vue';
-import {getAppById} from '../requests/userData';
-import {SET_SELECTED_APP} from '../store/appDataStore';
-import {Vue, Component, Watch} from 'vue-property-decorator';
-import ViewerIFrame from './ViewerIframe.vue';
-import {IApp} from 'micro-apps/spinal-env-pam-apps-manager/src/types/interfaces';
+import NavBar from "../components/nav.vue";
+import { getAppById } from "../requests/userData";
+import { SET_SELECTED_APP } from "../store/appDataStore";
+import { Vue, Component, Watch } from "vue-property-decorator";
+import ViewerIFrame from "./ViewerIframe.vue";
+import { IApp } from "micro-apps/spinal-env-pam-apps-manager/src/types/interfaces";
 @Component({
   components: {
     NavBar,
@@ -71,11 +71,12 @@ class ApplicationView extends Vue {
   inDrag = false;
 
   async mounted() {
+    window.router = this.$route;
     await this.initApp();
   }
 
   async initApp() {
-    console.log('initApp');
+    console.log("initApp");
     this.appSelected = this.getAppInfo();
     this.appPath = this.getAppPath();
 
@@ -90,7 +91,7 @@ class ApplicationView extends Vue {
 
   getAppInfo() {
     try {
-      const {query} = this.$route;
+      const { query } = this.$route;
       const appId: any = query.app;
       if (!appId) return;
 
@@ -109,14 +110,14 @@ class ApplicationView extends Vue {
     return `/micro-apps/${this.appSelected.packageName}`;
   }
 
-  @Watch('$route')
+  @Watch("$route")
   watchRoute() {
     this.initApp();
   }
 
   get isMobile() {
     const breakpoint = this.$vuetify.breakpoint.name;
-    if (['xs', 'sm'].indexOf(breakpoint) !== -1) return true;
+    if (["xs", "sm"].indexOf(breakpoint) !== -1) return true;
     return false;
   }
 }

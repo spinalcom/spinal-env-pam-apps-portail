@@ -190,7 +190,7 @@ export default {
               // if (tooltipItem.dataset.label == this.datasets[0].label) {
               //   return ''
               // }
-              let label = ` ${tooltipItem.dataset.label}: ${tooltipItem.raw.toFixed(1)} ${this.optional.unit}`;
+              let label = ` ${tooltipItem.dataset.label}: ${tooltipItem.raw} ${this.optional.unit}`;
               return label;
             },
           },
@@ -222,7 +222,6 @@ export default {
       } else {
         tab.push(index);
       }
-      // console.log("lindex est  : " + tab);
       this.$emit('update:hidden', tab);
     },
     updateChart() {
