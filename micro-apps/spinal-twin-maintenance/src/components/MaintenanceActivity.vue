@@ -18,7 +18,7 @@
         </BarChart>
         <LoadingCard v-else class="flex-grow-1 pa-4 br" style="width: 100%;"/>
         <div class="d-flex cards">
-          <StatCard  v-if="periodTickets !== -1" :value="periodTickets" :unit="'Tickets'" :title="selectedTempoTicketsText" class="flex-grow-1 pa-4" style="width: 100% !important"/>
+          <StatCard  v-if="load" :value="periodTickets" :unit="'Tickets'" :title="selectedTempoTicketsText" class="flex-grow-1 pa-4" style="width: 100% !important"/>
           <LoadingCard v-else class="flex-grow-1 pa-4"  style="height: 106px; width: 100% !important"/>
           <StatCard v-if="load" :value="cardsData.onGoingTickets" :unit="'Tickets'" :title="'en cours'" class="flex-grow-1 pa-4" style="width: 100% !important"/>
           <LoadingCard v-else class="flex-grow-1 pa-4"  style="height: 106px; width: 100% !important"/>
@@ -132,11 +132,12 @@ class App extends Vue {
     this.domainPie = res[2];
     this.declarerPie = res[3];
     this.declarerColors = this.getColors(this.declarerPie.length);
+    this.selectedTempoTicketsText = res[1].selectedTempoTicketsText;
+    
 
     try {
       let ticketsCreatedRes = await ticketsCreatedPromise;
       this.periodTickets = ticketsCreatedRes[0];
-      this.selectedTempoTicketsText = ticketsCreatedRes[1];
     } catch (e) {
       if (e instanceof Error && e.message === 'Cancellation') {
         this.periodTickets = -1;

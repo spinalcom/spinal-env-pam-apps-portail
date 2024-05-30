@@ -114,6 +114,7 @@ export default {
         sorted.push({
           label: "ETC...",
           value: data.map((e) => e.value).reduce((e1, e2) => e1 + e2, 0),
+          color: '#d0d0d0'
         });
       } else sorted = data;
       if (this.color)

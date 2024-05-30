@@ -129,7 +129,7 @@ export default ApplicationView;
   width: 100%;
   height: 100%;
   padding: 0px !important;
-  // padding: 5px !important;
+  // padding: 0px !important;
   display: flex;
 
   .navbar {
