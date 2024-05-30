@@ -23,13 +23,12 @@ with this file. If not, see
 -->
 
 <template>
-  <!--Binding a key to the component-->
   <v-app id="application">
     <sc-spinal-navigator
       class="ma-1 pa-1"
       v-model="navigator"
       :path.sync="path"
-      :max-depth="2"
+      :max-depth="1"
       :expand-selector="expand"
     ></sc-spinal-navigator>
     <v-main v-if="loading">
@@ -38,7 +37,7 @@ with this file. If not, see
     <v-main style="position: absolute; margin-top: 3.5%; width: 100%" v-else>
       <sc-bar-card
         id="bar-section"
-        :title="'FRÉQUENTATION'"
+        :title="'Production d\'énergie'"
         :labels="barChartData.labels"
         :datasets="barChartData.datasets"
       ></sc-bar-card>
@@ -46,29 +45,29 @@ with this file. If not, see
       <v-row id="stat-section">
         <v-col>
           <sc-stat-card
-            :value="peopleNumber('year')"
-            :unit="'personnes'"
-            :title="'EN MOYENNE DANS LE BÂTIMENT'"
-            :subtitle="'CETTE ANNÉE'"
-            :color="'#14202c'"
+            :value="+energyConsumption('year')"
+            :unit="'KW'"
+            :title="'DE PRODUCTION D\'ÉNERGIE CETTE ANNÉE'"
+            :subtitle="' '"
+            :color="'#e8d712'"
           ></sc-stat-card>
         </v-col>
         <v-col>
           <sc-stat-card
-            :value="peopleNumber('week')"
-            :unit="'personnes'"
-            :title="'EN MOYENNE DANS LE BÂTIMENT'"
-            :subtitle="'CETTE SEMAINE'"
-            :color="'#14202c'"
+            :value="+energyConsumption('month')"
+            :unit="'KW'"
+            :title="'DE PRODUCTION D\'ÉNERGIE CE MOIS'"
+            :subtitle="' '"
+            :color="'#e8d712'"
           ></sc-stat-card>
         </v-col>
         <v-col>
           <sc-stat-card
-            :value="peopleNumber('day')"
-            :unit="'personnes'"
-            :title="'EN MOYENNE DANS LE BÂTIMENT'"
-            :subtitle="'AUJOURD\'HUI'"
-            :color="'#14202c'"
+            :value="+energyConsumption('day')"
+            :unit="'KW'"
+            :title="'DE PRODUCTION D\'ÉNERGIE AUJOURD\'HUI'"
+            :subtitle="'Aujourd\'hui'"
+            :color="'#e8d712'"
           ></sc-stat-card>
         </v-col>
       </v-row>
@@ -79,7 +78,7 @@ with this file. If not, see
 <script>
 import { mapState, mapActions, mapGetters } from "vuex";
 import { label } from "./date-comparison";
-import {getEquipments, getFloors, getRooms} from "./functions/getBuilding";
+import { getEquipments, getFloors, getRooms } from "./functions/getBuilding";
 export default {
   data() {
     return {
@@ -100,7 +99,9 @@ export default {
       endpoints: state => state.endpoints,
     }),
     ...mapGetters({
-      peopleNumber: "peopleNumber",
+      energyConsumption: "energyConsumption",
+      /* lightingConsumption: "lightingConsumption",
+      heatingConsumption: "heatingConsumption", */
     }),
     selectedSeries() {
       return this.navigator.element.title === "Bâtiment"
@@ -114,35 +115,48 @@ export default {
         labels: label[this.navigator.period.value],
         datasets: [
           {
-            label: '9h-19h',
+            label: 'PRODUCTION D\'ÉNERGIE',
             data: this.selectedSeries[this.navigator.period.value][0],
-            backgroundColor: ["#f08c8c"],
+            backgroundColor: ["#e8d712"],
           },
-          {
-            label: '19h-9h',
-            data: this.selectedSeries[this.navigator.period.value][1],
-            backgroundColor: ["#14202c"],
-          }
         ]
       }
     },
+    percentageCalculator() {
+      let p = [0, 0, 0, 0, 0, 0];
+      if(this.energyConsumption('day')!==0){
+        p[2] = 0//(this.lightingConsumption('day') * 100 / this.energyConsumption('day')).toFixed(2);
+        p[5] = 0//(this.heatingConsumption('day') * 100 / this.energyConsumption('day')).toFixed(2);
+      }
+      if(this.energyConsumption('week')!==0){
+        p[1] = 0//(this.lightingConsumption('week') * 100 / this.energyConsumption('week')).toFixed(2);
+        p[4] = 0 //(this.heatingConsumption('week') * 100 / this.energyConsumption('week')).toFixed(2);
+      }
+      if(this.energyConsumption('year')!==0){
+        p[0] = 0 //(this.lightingConsumption('year') * 100 / this.energyConsumption('year')).toFixed(2);
+        p[3] = 0 //(this.heatingConsumption('year') * 100 / this.energyConsumption('year')).toFixed(2);
+      }
+      return p;
+    },
 
     lastPeriodCompare() {
+      console.log("In lastPeriodCompare");
       let p = [0, 0];
       for(let i = -8; i>=-14; i--) p[1] += this.selectedSeries['month'][0][31+i];
-      if(p[1]!=0) p[1] = (((this.peopleNumber('month')-p[1])/p[1])*100).toFixed(2);
+      if(p[1]!=0) p[1] = (((this.energyConsumption('month')-p[1])/p[1])*100).toFixed(2);
       else p[1] = Infinity;
       let lastYearConsumption = this.building_time_series.decade[0][8];
       let currentYearConsumption = this.building_time_series.decade[0][9];
       if(lastYearConsumption!=0) p[0] = (((currentYearConsumption-lastYearConsumption)/lastYearConsumption)*100).toFixed(2);
       else p[0] = Infinity;
+      console.log("p : ", p);
       return p;
     },
   },
 
   methods: {
     ...mapActions({
-      getPeopleNumber: "getPeopleNumber",
+      getEnergyConsumption: "getEnergyConsumption",
       initializeBuilding: 'initializeBuilding',
     }),
     async expand(item) {
@@ -163,7 +177,7 @@ export default {
 
   async mounted() {
     this.initializeBuilding().then(() => {
-      this.getPeopleNumber();
+      this.getEnergyConsumption();
     });
   },
 
