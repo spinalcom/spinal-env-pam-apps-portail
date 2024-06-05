@@ -27,7 +27,6 @@ with this file. If not, see
       <div class="DButton">
         <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()" />
       </div>
-
       <div class="temporality">
         <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
           :GetChildrenFct="onTemporalitySelectOpen" :maxDepth="0" v-model="temporalitySelected" label="TEMPORALITÉ" />
@@ -125,7 +124,7 @@ class App extends Vue {
     spaceSelectedId: '',
     buildingId: ''
   };
-  floor: any
+  floor: any = null
   async mounted() {
 
 
@@ -163,7 +162,6 @@ class App extends Vue {
 
     if (v.type == "geographicFloor")
       this.floor = this.query.spaceSelectedId
-    console.log('TOTO' , this.floor);
 
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
   }
@@ -188,7 +186,7 @@ class App extends Vue {
     } else if (query.mode == "data") {
       this.isActive = true
     }
-    console.warn(query.spaceSelectedId);
+    // console.warn(query.spaceSelectedId);
 
 
     if (query.spaceSelectedId) {
@@ -349,7 +347,7 @@ class App extends Vue {
 
   onActionClick({ button, item }) {
 
-    console.warn("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", item);
+    // console.warn("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", item , button);
     // button.onclickEvent = "OPEN_VIEWER"
 
     const data = {
@@ -365,7 +363,7 @@ class App extends Vue {
 
     switch (button.onclickEvent) {
       case ActionTypes.OPEN_VIEWER:
-        console.log('laaaaaaaaaaaalalaalallalalalalalalalala');
+        // console.log('laaaaaaaaaaaalalaalallalalalalalalalala');
         this.$store.dispatch(button.onclickEvent, {
           onlyThisModel: true,
           config: this.config,
@@ -373,7 +371,7 @@ class App extends Vue {
         });
         break;
       case ActionTypes.ISOLATE_ITEMS:
-        console.log('totototototototototototoototototot');
+        // console.log('totototototototototototoototototot');
         this.$store.dispatch(button.onclickEvent, {
           onlyThisModel: true,
           config: this.config,
@@ -381,7 +379,7 @@ class App extends Vue {
         });
         break;
       case "OPEN_VIEWER_PLUS":
-        console.log('uvuvuvuvvuuvvuvuvuvuvuuvvuvuvuvuvuvuvuuvv');
+        // console.log('uvuvuvuvvuuvvuvuvuvuvuuvvuvuvuvuvuvuvuuvv');
         this.$store.dispatch(ActionTypes.OPEN_VIEWER, {
           onlyThisModel: false,
           config: this.config,
@@ -398,11 +396,68 @@ class App extends Vue {
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
       this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
-      if (result.node.dynamicId) {
+      // console.warn('uuujuuuu', result.navigate, 'test');
+      if (result.navigate) {
+        // console.warn('information');
+        console.log(result.node);
+        this.query.spaceSelectedId = result.node.dynamicId
+        this.query.name = result.node.name
+        this.query.buildingId = result.node.buildingId
+        
+
+        const item = {
+          buildingId: result.node.buildingId,
+          dynamicId: result.node.dynamicId,
+          name: result.node.name
+        };
+        const button = {
+          "title": "charger",
+          "icon": "mdi-video-3d",
+          "onclickEvent": "OPEN_VIEWER",
+          "isShownTypes": [
+            "geographicFloor"
+          ]
+        }
+        this.onActionClick({ button, item })
+
+        const itemToSelect = {
+        "isOpen": false,
+        "loading": false,
+        "dynamicId": result.node.dynamicId,
+        "name": result.node.name,
+        "buildingId": result.node.buildingId,
+        "type": "geographicFloor",
+      }
+
+      if (this.$refs['space-selector']) {
+        this.$refs['space-selector'].select(itemToSelect);
+        // this.$refs['space-selector'].closeItem(itemToSelect);
+      }
+
+        
+        // // this.replaceRoute();
+        // console.log("ttototo ?", this.query);
+
+        // const item = {
+        //   buildingId: result.node.buildingId,
+        //   dynamicId:  result.node.dynamicId,
+        // };
+        // const button = {
+        //   "title": "charger",
+        //   "icon": "mdi-video-3d",
+        //   "onclickEvent": "OPEN_VIEWER",
+        //   "isShownTypes": [
+        //     "geographicFloor"
+        //   ]
+        // }
+        // this.onActionClick({ button, item })
+      }
+      else if (result.node?.dynamicId) {
         const a = document.createElement("a");
         a.setAttribute("href", `#${result.node.dynamicId}`);
         a.click();
       }
+
     });
   }
 
@@ -520,7 +575,7 @@ export default App;
       transition: 0.5s;
       position: absolute;
       margin-right: 6px;
-      height: 92%;
+      height: 91%;
       right: 0px;
     }
 
@@ -641,3 +696,4 @@ body {
   min-height: unset !important;
 }
 </style>
+./components/SpaceSelector/index./components/SpaceSelector/spaceSelectorButtons

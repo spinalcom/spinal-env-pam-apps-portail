@@ -80,7 +80,7 @@ export class SpriteManager {
 			// console.log(d.comp);
 			const VueComponent = Vue.extend(d.component);
 			const vueInstance = new VueComponent({ propsData: d });
-			console.warn(vueInstance,'///////////////////////');
+			// console.warn(vueInstance,'///////////////////////');
 			
 			const label = new Autodesk.Edit3D.Label3D(viewer, d.position, "");
 			label.viewer.container.appendChild(label.container);
@@ -95,7 +95,7 @@ export class SpriteManager {
 					component: vueInstance
 				}
 			);
-			console.warn('6');
+			// console.warn('6');
 		}
 	}
 

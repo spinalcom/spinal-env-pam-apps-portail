@@ -140,7 +140,8 @@ class SpaceSelectorItem extends Vue {
   }
 
   onOpenClose() {
-
+    console.log('OPEN C');
+    
     this.$emit('onOpenClose');
   }
 

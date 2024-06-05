@@ -71,7 +71,7 @@ export default {
   },
   methods: {
     clickEvent() {
-      // console.log('?????');
+      console.log('?????');
       this.$emit("onClick");
     },
 

@@ -30,6 +30,10 @@ export interface IConfig {
 	sprites: boolean;
 	temporality: ITemporality[];
 	application?: IApplication[]; 
+	inventory : string;
+	profileName: string;
+	profileNameRoom : string;
+	categorieAttributRoom : string;
 }
 
 export const enum ITemporality {

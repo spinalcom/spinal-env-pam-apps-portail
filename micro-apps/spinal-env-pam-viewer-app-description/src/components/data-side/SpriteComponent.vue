@@ -2,15 +2,15 @@
 
   <div class="menu">
     <!-- <v-icon>mdi-chevron-left</v-icon> -->
-    <div v-if="isopen" @click.stop="onClick" ref="container" class="container">
+    <div v-if="isopen" ref="container" class="container">
       <div class="card">
         <div class="top-section">
           <div class="border"></div>
           <div class="icons">
             <div class="logo">
               {{ data.name }}
-
             </div>
+            <div style="justify-content: center;align-items: center;display: flex;background-color: #14202c; transform: translate(50px,-5px);cursor: pointer;border-radius: 25px;width: 15px; height: 15px;" @click="onClickNavigate()">></div>
             <div class="social-media">
               {{ parseFloat(data.data.attributsList[0].attributs[4].value.toFixed(1)) }}m²
             </div>
@@ -60,7 +60,7 @@
                     style="display: flex;justify-content: center; align-items: center;;color: #14202c;font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
                     xx</div>
                 </div>
-                
+
                 <!-- <div
                 style="border: 1px solid blue;border-radius: 5px;color: blue ; padding : 2px; font-size: 11px;font-weight: bold;width: 50%;">
                 temperature : {{ data.data.controlEndpoint[1].endpoints[0].value }}C°</div>
@@ -68,24 +68,25 @@
                 style="border: 1px solid yellow;border-radius: 5px;color : yellow ; padding : 2px; font-size: 11px;font-weight: bold;margin-left:10px; width: 50%;">
                 CO2/QUALITÉ D'AIRE</div> -->
               </div>
-              
+
             </div>
           </div>
 
 
         </div>
-        <div style="display:flex;align-items: center; flex-direction: row;width: 100%;justify-content: space-around;transform: translate(0,10px);">
-            <button
-              style="background-color: #14202c ;color: white; width:50%; font-weight: bold;border-radius: 5px;font-size: 12px;width: 35%;"
-              @click.stop="changeRoute('ticket')">
-              Tickets
-            </button>
-            <button
-              style="background-color: #14202c ;color: white;width:50%; font-weight: bold;border-radius: 5px;font-size: 12px;width: 35%;"
-              @click.stop="changeRoute('insight')">
-              Insight
-            </button>
-          </div>
+        <div
+          style="display:flex;align-items: center; flex-direction: row;width: 100%;justify-content: space-around;transform: translate(0,10px);">
+          <button
+            style="background-color: #14202c ;color: white; width:50%; font-weight: bold;border-radius: 5px;font-size: 12px;width: 35%;"
+            @click.stop="changeRoute('ticket')">
+            Tickets
+          </button>
+          <button
+            style="background-color: #14202c ;color: white;width:50%; font-weight: bold;border-radius: 5px;font-size: 12px;width: 35%;"
+            @click.stop="changeRoute('insight')">
+            Insight
+          </button>
+        </div>
         <div class="bottom-section">
           <span class="title">Contenu de la piece</span>
           <div class="row row1">
@@ -228,22 +229,27 @@ export default {
       this._isNotSelected();
     },
 
-    onClick(ev) {
-      ev.stopPropagation();
-      ev.preventDefault();
-      ev.stopImmediatePropagation();
-
-      console.log(this, ev)
-      this.isClicked = true;
+    onClickNavigate() {
       const emitterHandler = EmitterViewerHandler.getInstance();
-      emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
-      if (this.isClicked)
-        this._isSelected();
-      else {
-        this._isNotSelected();
-      }
-      return false;
+      emitterHandler.emit(VIEWER_SPRITE_CLICK, { navigate: 'la page' , node: this.data });
     },
+
+    // onClick(ev) {
+    //   ev.stopPropagation();
+    //   ev.preventDefault();
+    //   ev.stopImmediatePropagation();
+
+    //   console.log(this, ev)
+    //   this.isClicked = true;
+    //   const emitterHandler = EmitterViewerHandler.getInstance();
+    //   emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
+    //   if (this.isClicked)
+    //     this._isSelected();
+    //   else {
+    //     this._isNotSelected();
+    //   }
+    //   return false;
+    // },
     _isSelected() {
       this.data.color = 'cyan'
       this.isClicked = true;

@@ -30,7 +30,10 @@ export const config: IConfig = {
 	sprites: false,
 	viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },
 	temporality: [ITemporality.currentValue, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
-
+	inventory : "Typologie",
+	profileName : "KPI USI",
+	profileNameRoom : "Occupation",
+	categorieAttributRoom : "GMAO",
 	application: [
 		{
 			name: "Voir les données Insight",

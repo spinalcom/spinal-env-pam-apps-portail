@@ -111,6 +111,7 @@ class SpaceSelector extends Vue {
   @Prop({ type: String, required: true })
   label: string;
 
+  localOpen = this.open;
   selectorHeight = 0;
 
   get selectedZoneName() {
@@ -120,6 +121,12 @@ class SpaceSelector extends Vue {
   isFill = "hidden";
 
   buildingStructure: ISpaceSelectorItem[] = [];
+
+  @Watch("open")
+  onopen(newVal) {
+    this.localOpen = newVal;
+  }
+
 
   @Watch("selectedZone")
   async onSelectedChange() {
@@ -136,7 +143,8 @@ class SpaceSelector extends Vue {
         //   await this.openItem(item, idx);
         // }
       } else {
-        for (const parentId of this.selectedZone.parents) {
+        if (Array.isArray(this.selectedZone.parents) && this.selectedZone.parents.length > 0) {
+          for (const parentId of this.selectedZone.parents) {
           if (
             parentId === item.staticId &&
             (this.selectedZone.platformId === item.platformId ||
@@ -150,6 +158,8 @@ class SpaceSelector extends Vue {
             break;
           }
         }
+        }
+        
         if (found === false) {
           // await this.closeItem(item);
         }
@@ -159,8 +169,11 @@ class SpaceSelector extends Vue {
   }
 
   select(item?: ISpaceSelectorItem) {
-    this.$emit("update:open", !this.open);
-    this.$emit("input", item);
+
+    this.localOpen = !this.localOpen;
+    this.$emit('update:open', this.localOpen);
+    this.$emit('input', item);
+
   }
 
   private myDiv!: HTMLDivElement;
@@ -221,10 +234,10 @@ class SpaceSelector extends Vue {
 
   private closeItem(item: ISpaceSelectorItem) {
     console.log('OPEN CLOSE ???');
-    
+
     item.isOpen = false;
     console.log(item.isOpen);
-    
+
     const toRm: typeof this.buildingStructure = [];
     for (const it of this.buildingStructure) {
       if (
@@ -285,6 +298,8 @@ class SpaceSelector extends Vue {
   onActionClick(data) {
     this.$emit("onActionClick", data);
   }
+
+
 }
 export default SpaceSelector;
 </script>

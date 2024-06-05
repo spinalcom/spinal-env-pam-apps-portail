@@ -115,8 +115,6 @@ class SpaceSelectorItem extends Vue {
 
   
   public get icon(): string {
-    console.log(this.item?.isOpen);
-    
     return this.item?.isOpen ? 'mdi-chevron-down' : 'mdi-chevron-up';
   }
 

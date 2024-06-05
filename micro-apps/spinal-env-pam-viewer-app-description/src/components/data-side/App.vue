@@ -24,7 +24,9 @@ with this file. If not, see
 
 <template>
 
+
   <div class="appli">
+
     <button @click="() => {
           $emit('buttonClicked');
           resize();
@@ -91,7 +93,20 @@ with this file. If not, see
           <!-- Zone de texte -->
           <div
             style="margin-left: 25px; height: 100%; display: flex; align-items: center;font-size: 20px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;white-space: nowrap;">
-            1250 m²
+            <!-- 1250 m² -->
+            <!-- {{ item.label }}
+            {{ item.value }} -->
+
+            <!-- <div v-if="floorstaticDetails.length && floorstaticDetails[0].attributsList.length">
+              <div style="transform: translate(0,-15px);"
+                v-for="(item, index) in floorstaticDetails[0].attributsList[0].attributs">
+                <div style="position: absolute;" v-if="item.label == 'area'">
+                  {{ item.value }} m²
+                </div>
+              </div>
+            </div> -->
+
+
           </div>
         </div>
       </div>
@@ -99,29 +114,65 @@ with this file. If not, see
 
     <div class="inventory">
 
-      <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Inventaire
-        de la piece</span>
-      <div>
-        
+      <div class="blocInformation">
+        <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Inventaire
+          de la piece ({{ config.inventory }})</span>
+        <div>
+
+
+          <div class="inventory-container">
+            <div v-for="(item, index) in inventoyList" :key="index" class="inventory-item">
+              <li>{{ item }}</li>
+            </div>
+          </div>
+
+        </div>
       </div>
-      <div></div>
+      <div class="blocInformation">
+        <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Liste des
+          attributs</span>
+        <div class="inventory-container">
+          <div class="inventory-item" v-for="(item, index) in attributs">
+            <li> {{ item.label }}: {{ item.value }}</li>
+          </div>
+        </div>
+      </div>
+
+      <div class="blocInformation">
+        <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Points de mesures
+          ({{ config.profileName }})</span>
+
+        <div class="inventory-container" @click="toto(endpointProfil)">
+          <div style="background-color: #14202c;color:white;padding: 16px;border-radius: 5px;padding-left: 6px ;"
+            class="inventory-item" v-for="endpoint in endpointProfil">
+            <div> <span>{{ endpoint.name }}: </span>
+              <span v-if="typeof endpoint.value === 'number'">{{ endpoint.value.toFixed(2) }}</span>
+              <span v-else>{{ endpoint.value }} </span>
+              <span v-if="endpoint.unit">{{ endpoint.unit }}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
 
+
+
     <div class="description">
-      <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Vue
-        d'ensemble et accès aux applications</span>
+      <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Accès aux
+        applications</span>
 
 
       <div class="container_cards">
 
 
-        <div v-for="item in appTab" :key="item.id" class="cardDescription">
+        <div v-for="item in appTab" class="cardDescription">
           <div @click="() => {
           $emit('changeRoute', item.id);
         }" class="data_cardDescription">
-            <div class="nombre_data_cardDescription">
+            <!-- <div class="nombre_data_cardDescription">
               {{ formatValue(item.value) }}<div class="microinfo">{{ item.unit }}</div>
-            </div>
+            </div> -->
             <div class="description_data_cardDescription">
               {{ item.name }}
             </div>
@@ -134,8 +185,6 @@ with this file. If not, see
             </svg>
           </div>
         </div>
-
-
 
       </div>
     </div>
@@ -158,11 +207,13 @@ import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import { mapState } from "vuex";
 import SpriteComponent from "./SpriteComponent.vue"
 import GroupDataView from "./groupDataView.vue";
+import { computed } from 'vue';
 import {
   EmitterViewerHandler,
   VIEWER_AGGREGATE_SELECTION_CHANGED,
 } from "spinal-viewer-event-manager";
 import { getPosition } from "../viewer/utils/getObjectPos";
+import { log } from "console";
 
 @Component({
   components: {
@@ -173,12 +224,23 @@ import { getPosition } from "../viewer/utils/getObjectPos";
 class dataSideApp extends Vue {
   // @State data!: any[];
 
+  
   @Prop() config!: IConfig;
   @Prop() selectedZone: ISpaceSelectorItem;
   @Prop() data: any[];
   @Prop() floor: any;
   @Prop() DActive: boolean;
   @Prop() ActiveData: boolean;
+  // public  doubleCount = computed(() => this.floorstaticDetails[0]?.attributsList[0].attributs);
+
+  get attributs(): any[] {
+    console.log(this.floorstaticDetails[0], 'aaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbccccccccccccccccc');
+    
+    if (this.floorstaticDetails && this.floorstaticDetails[0] && this.floorstaticDetails[0].attributsList && this.floorstaticDetails[0].attributsList[0]) {
+      return this.floorstaticDetails[0].attributsList[0].attributs;
+    }
+    return [];
+  }
 
   PAGE_STATES: typeof PAGE_STATES = PAGE_STATES;
   pageSate: PAGE_STATES = PAGE_STATES.loading;
@@ -186,10 +248,14 @@ class dataSideApp extends Vue {
   retry: Function;
   referenceObjects: any[];
   inventory: any;
-  appTab: any[];
-  conso = "eyJuYW1lIjoic3BpbmFsLXR3aW4tc3RhbmRhcmQtZW5lcmd5LWZsdWlkcyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiYmFlZi0yYmRhLTk0ZjktMThmYTQ3YjIxMGIiLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE2NDUxNTAxMDE1LCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTY0NTE0ODM5MTUsImljb24iOiJtZGktY2FyLWJyYWtlLWZsdWlkLWxldmVsIiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtdHdpbi1zdGFuZGFyZC1lbmVyZ3ktZmx1aWRzIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19"
-  insights = "eyJuYW1lIjoiSW5zaWdodHMiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImIwZTEtNzI3NS02YWNhLTE4ZjJlMjE1NmE4IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxNDQ2NTk0NzM4MCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0NDY1ODg3OTEyLCJpY29uIjoibWRpLWN1cnRhaW5zLWNsb3NlZCIsImRlc2NyaXB0aW9uIjoiSU5zaWdodHMiLCJ0YWdzIjpbIkluc2lnaHRzIl0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0taW5zaWdodHMiLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiMzdkZS0wMmI4LWUxOGItMTg1MDY0M2I2OGEiLCJidWlsZGluZ0lkIjoiNTkzMi02MDg2LTllMWEtMTg1MDY0Nzg0NjAifX0"
-  tickets = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiZWI0ZC1hM2MxLWVmMTEtMThmMjBkZGM5YzciLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0MjQzMzcyMzcxLCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTQyNDMzNTcxMjcsImljb24iOiJtZGktdGlja2V0LWFjY291bnQiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOlsidGlja2V0Il0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
+  appTab: any[] = [];
+  inventoyList: any[] = [];
+  floorstaticDetails: any = [];
+  // attributs : any[] = this.floorstaticDetails[0]?.attributsList[0].attributs
+  endpointProfil: any = 'toto';
+  // conso = "eyJuYW1lIjoic3BpbmFsLXR3aW4tc3RhbmRhcmQtZW5lcmd5LWZsdWlkcyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiYmFlZi0yYmRhLTk0ZjktMThmYTQ3YjIxMGIiLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE2NDUxNTAxMDE1LCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTY0NTE0ODM5MTUsImljb24iOiJtZGktY2FyLWJyYWtlLWZsdWlkLWxldmVsIiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtdHdpbi1zdGFuZGFyZC1lbmVyZ3ktZmx1aWRzIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19"
+  // insights = "eyJuYW1lIjoiSW5zaWdodHMiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImIwZTEtNzI3NS02YWNhLTE4ZjJlMjE1NmE4IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxNDQ2NTk0NzM4MCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0NDY1ODg3OTEyLCJpY29uIjoibWRpLWN1cnRhaW5zLWNsb3NlZCIsImRlc2NyaXB0aW9uIjoiSU5zaWdodHMiLCJ0YWdzIjpbIkluc2lnaHRzIl0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0taW5zaWdodHMiLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiMzdkZS0wMmI4LWUxOGItMTg1MDY0M2I2OGEiLCJidWlsZGluZ0lkIjoiNTkzMi02MDg2LTllMWEtMTg1MDY0Nzg0NjAifX0"
+  // tickets = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiZWI0ZC1hM2MxLWVmMTEtMThmMjBkZGM5YzciLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0MjQzMzcyMzcxLCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTQyNDMzNTcxMjcsImljb24iOiJtZGktdGlja2V0LWFjY291bnQiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOlsidGlja2V0Il0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
   // tickets = "eyJuYW1lIjoiRGVzY3JpcHRpb24iLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImRhZGUtYTljYi1lMzc5LTE4ZjBmZGExZTI1IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxMzk1NzkyMTg4NiwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzEzOTU3OTAzOTA5LCJpY29uIjoibWRpLWJvb2staW5mb3JtYXRpb24tdmFyaWFudCIsImRlc2NyaXB0aW9uIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC1kZXNjcmlwdGlvbiIsInRhZ3MiOlsiRGVzY3JpcHRpb24iXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLWRlc2NyaXB0aW9uIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19"
   resize() {
     setTimeout(() => {
@@ -197,29 +263,36 @@ class dataSideApp extends Vue {
     }, 1);
   }
 
+  // const floorsStatickD : computed(() => this.floorstaticDetails[0].attributsList[0].attributs )
+
+  // computed {
+  //   attributs(): any[] {
+  //     if (this.floorstaticDetails && this.floorstaticDetails[0] && this.floorstaticDetails[0].attributsList && this.floorstaticDetails[0].attributsList[0]) {
+  //       return this.floorstaticDetails[0].attributsList[0].attributs;
+  //     }
+  //     return [];
+  //   }
+  // }
+
   async mounted() {
-
-
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
       if (data)
         this.findDynamicIdByDbid(data[0].dbIds[0], data[0]);
 
     });
-
-
-    // await this.retriveData();
     this.pageSate = PAGE_STATES.loaded;
     this.isBuildingSelected = true;
   }
   formatValue(value) {
-    // On vérifie si la valeur est entière
     if (Number.isInteger(value)) {
-      return value; // Si c'est un entier, on retourne la valeur sans modification
+      return value;
     }
-    // Sinon, on utilise toFixed(2) pour limiter à deux décimales et parseFloat pour enlever les zéros inutiles
+
     return parseFloat(value.toFixed(2));
   }
+
+
 
 
   async findDynamicIdByDbid(dbidToFind, data) {
@@ -250,9 +323,14 @@ class dataSideApp extends Vue {
     return null;
   }
 
+  toto(ed) {
+    console.log(ed);
+
+  }
+
   async getfloorstaticdetails(id) {
     const buildingId = localStorage.getItem("idBuilding");
-    console.log('ENTRÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉ');
+    // console.log('ENTRÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉ');
 
     const promises = [
       this.$store.dispatch(ActionTypes.GET_FLOOR_STATIC_DETAILS, {
@@ -260,21 +338,53 @@ class dataSideApp extends Vue {
         referenceIds: id
       }),
     ];
-    console.log('FINNNNNNNNNNNNNNNNN');
+    // console.log('FINNNNNNNNNNNNNNNNN');
 
     const result = await Promise.all(promises);
-    console.warn('les static details de mon floor sont', result);
-    console.log('RETURN');
+    // console.warn('les static details de mon floor sont', result);
+    // console.log('RETURN');
+    this.floorstaticDetails = result
     // console.log(this.createApp(result), ')
+    // let type = 'floor'
+    this.filteredEndpoints('floor')
     this.createApp(result)
     this.$forceUpdate();
     // return;
   }
 
-  createApp(tab) {
-    let objetApp = [];  // Le tableau qui sera retourné avec les résultats
+  async getroomstaticdetails(id) {
+    console.log(id, '///////////////////////////////////////////////////////////////////////');
 
-    // Assurer que this.config et this.config.application sont bien définis
+    const buildingId = localStorage.getItem("idBuilding");
+    // console.log('ENTRÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉ');
+
+    const promises = [
+      this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
+        buildingId,
+        referenceIds: [id]
+      }),
+    ];
+    // console.log('FINNNNNNNNNNNNNNNNN');
+
+    const result = await Promise.all(promises);
+    console.warn('les static details de mon floor sont', result);
+    // console.log('RETURN');
+    this.floorstaticDetails = result
+    console.warn('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', this.floorstaticDetails);
+
+    // console.log(this.createApp(result), ')
+    this.filteredEndpoints('room')
+    this.createApp(result)
+    this.$forceUpdate();
+    // return;
+  }
+
+
+
+
+  createApp(tab) {
+    let objetApp = [];
+
     if (!this.config || !this.config.application) {
       console.log("Configuration manquante");
       return [];
@@ -299,7 +409,7 @@ class dataSideApp extends Vue {
               console.log("Aucun endpoint correspondant trouvé pour la targetValue donnée.");
             }
           } else {
-            appObject.value = matchedProfile.endpoints.length;
+            appObject.value = matchedProfile.endpoints.length || 5
           }
         } else {
           console.log('Pas de profil qui match');
@@ -307,9 +417,9 @@ class dataSideApp extends Vue {
       } else if (type === "tickets") {
         // Traitement pour les tickets
         if (!targetValue) {
-          console.log(tab);
+          // console.log(tab);
 
-          appObject.value = tab[0].tickets.length;
+          appObject.value = tab[0]?.tickets?.length;
         } else {
           console.log('Pas de donnée disponible pour les tickets avec targetValue.');
         }
@@ -339,6 +449,21 @@ class dataSideApp extends Vue {
   //   }
 
   // }
+
+  filteredEndpoints(type) {
+    if (type == "floor") {
+      const profile = this.floorstaticDetails[0].controlEndpoint.find(profile => profile.profileName === this.config.profileName);
+      this.endpointProfil = profile ? profile.endpoints : [];
+    } else {
+      const profile = this.floorstaticDetails[0].controlEndpoint.find(profile => profile.profileName === this.config.profileNameRoom);
+      this.endpointProfil = profile ? profile.endpoints : [];
+    }
+
+    console.log(this.endpointProfil);
+
+    // this.$forceUpdate();
+    // return profile ? profile.endpoints : [];
+  }
 
   forgeItem(result, buildingId, dbid, bimFileId) {
     // console.log(result);
@@ -391,7 +516,7 @@ class dataSideApp extends Vue {
         });
       }
     });
-    console.log(uniqueNames);
+    // console.log(uniqueNames);
     return Array.from(uniqueNames);
   }
 
@@ -423,13 +548,16 @@ class dataSideApp extends Vue {
   }
 
   getDataDynamicIdtab() {
-    console.log(this.data, 'sssssssssssssssss');
+    // console.log(this.data, 'sssssssssssssssss');
 
     const dynamicIds = this.data.map(obj => obj.dynamicId);
+
+    console.log();
+
     // console.log(dynamicIds);
     this.fetchReferenceObjects(dynamicIds)
 
-    console.log(dynamicIds);
+    // console.log(dynamicIds);
 
     this.getInventoryObject(dynamicIds)
   }
@@ -450,7 +578,7 @@ class dataSideApp extends Vue {
   }
   async getInventoryObject(referenceIds) {
     const buildingId = localStorage.getItem("idBuilding");
-    console.warn(referenceIds);
+    // console.warn(referenceIds);
 
 
     const promises = [
@@ -462,9 +590,45 @@ class dataSideApp extends Vue {
     const result = await Promise.all(promises);
     // this.referenceObjects = result[0];
     this.inventory = [...result];
-    this.extractUniqueInventoryNames()
-    console.warn(this.inventory);
+    // this.extractUniqueInventoryNames()
+    // console.warn(this.inventory,'eeeeeeeee');
+    this.countInventoryTypes([...result]);
 
+
+  }
+
+
+
+
+  countInventoryTypes(floors) {
+    const inventoryCounts = {};
+    console.log(floors, 'les flllllllllllooooooooooooooorsssssss');
+
+    floors[0].forEach(floor => {
+      // Trouver l'entrée "Typologie" dans les inventories
+      const typologyInventory = floor.inventories.find(inventory => inventory.name === this.config.inventory);
+
+      if (typologyInventory) {
+        // Compter chaque groupe dans l'inventaire "Typologie"
+        typologyInventory.inventory.forEach(group => {
+          if (inventoryCounts[group.name]) {
+            inventoryCounts[group.name] += group.equipments.length;
+          } else {
+            inventoryCounts[group.name] = group.equipments.length;
+          }
+        });
+      }
+    });
+
+    // Créer et afficher la liste des comptes
+    const results = [];
+    for (const [key, value] of Object.entries(inventoryCounts)) {
+      results.push(`${value} ${key}`);
+    }
+    this.inventoyList = results
+    // console.log(results, '///////////////');
+    this.$forceUpdate();
+    return results;
   }
 
   /**
@@ -473,6 +637,8 @@ class dataSideApp extends Vue {
 
   @Watch("selectedZone")
   watchSelectedZone() {
+    console.log('UWUWUWUWUWUWUWU', this.selectedZone);
+
     if (this.selectedZone.type === "building") {
       this.isBuildingSelected = true;
       this.$store.commit(MutationTypes.SET_DATA, []);
@@ -483,16 +649,36 @@ class dataSideApp extends Vue {
     this.retriveData();
   }
 
-  @Watch("floor")
+  // @Watch("floor")
   watchfloor() {
-    console.log('LE FLORR SELECTIONNÉ EST :', this.floor);
-    this.getfloorstaticdetails(this.floor)
+    // console.log('LE FLORR SELECTIONNÉ EST :', this.floor);
+    console.log(this.floor, 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+    // this.getfloorstaticdetails(this.floor)
   }
 
   @Watch("data")
   watchData() {
-    // console.log(this.data , 'toto');
-    this.getDataDynamicIdtab()
+    console.log(this.data, 'toto');
+
+    if (this.data.length == 0) {
+      console.log('ROOM');
+      console.warn(this.floor, 'BBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+      console.log(this.data, 'BBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+      this.getroomstaticdetails(this.selectedZone.dynamicId)
+
+      this.getInventoryObject([this.selectedZone.dynamicId])
+      // this.watchfloor()
+    } else {
+      console.log('ETAGE');
+      this.getfloorstaticdetails(this.floor)
+      this.getDataDynamicIdtab()
+    }
+
+    // this.getDataDynamicIdtab()
+
+
+
+
     // console.log("AFFICHAGE SPRITES");
     // if (this.config.sprites)
     //   this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
@@ -584,6 +770,27 @@ export default dataSideApp;
 a {
   text-decoration: none;
 
+}
+
+.inventory-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.inventory-item {
+  width: 48%;
+  margin: 1%;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.blocInformation {
+  background-color: rgb(240, 240, 240);
+  padding: 5px;
+  border-radius: 5px;
+  margin-bottom: 10px;
 }
 
 //Spinal_card
@@ -718,6 +925,7 @@ a {
   position: relative;
   padding: 10px;
   height: 60%;
+  overflow: auto;
   /* border-top: 2px solid rgb(235, 234, 234); */
 }
 
@@ -743,6 +951,7 @@ a {
   border-top: 2px solid rgb(235, 234, 234);
   // height: 31vh;
   overflow: auto;
+  height: 30%;
 }
 
 .container_cards {
@@ -754,11 +963,11 @@ a {
 }
 
 .cardDescription {
-  margin-top: 10px;
-  margin-bottom: 10px;
+  margin-top: 5px;
+  margin-bottom: 5px;
   background-color: white;
-  width: 49%;
-  height: 112px;
+  width: 100%;
+  height: 40px;
   /* border: 1px solid rgb(199, 199, 199); */
   border-radius: 5px;
   box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
@@ -788,7 +997,8 @@ a {
 
 .data_cardDescription {
   border-right: 1px solid rgb(202, 202, 202);
-  width: 87%;
+  // width: 87%;
+  width: 100%;
   height: 100%;
   display: flex;
   padding-left: 30px;
@@ -798,7 +1008,8 @@ a {
   justify-content: center;
   align-items: center;
   display: flex;
-  width: 13%;
+  // width: 13%;
+  width: 50px;
   background-color: rgb(243, 243, 243);
   transition: 0.2s;
   z-index: 1;
@@ -817,7 +1028,7 @@ a {
 }
 
 .description_data_cardDescription {
-  width: 47%;
+  width: 90%;
   justify-content: center;
   align-items: center;
   display: flex;
