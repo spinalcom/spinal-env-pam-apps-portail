@@ -59,6 +59,13 @@ export async function getStaticDetails( buildingId: string, roomDynId: number): 
   return result.data;
 }
 
+export async function getStaticDetailsEquipement( buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipment/${roomDynId}/read_static_details`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
 
 export async function getFloorStaticDetails( buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
@@ -81,6 +88,19 @@ export async function getMultipleInventory(buildingId: string, referenceIds: num
   }
 }
 
+
+export async function postBIMObjectInfo(buildingId: string, referenceIds: any): Promise<any> {
+  console.log('arrivé dans la fonction post');
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/BIM/getBimObjectsInfo');
+  try {
+      const response = await spinalAPI.post<any>(url, referenceIds);
+      return response.data; 
+  } catch (error) {
+      console.error('Erreur lors de la récupération des objets de référence:', error);
+      throw error;
+  }
+}
 
 
 export async function getRooms(patrimoineId: string, buildingId: string, floorId: string, floorDynId: number): Promise<IZoneItem[]> {

@@ -27,10 +27,10 @@ with this file. If not, see
       <div class="DButton">
         <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()" />
       </div>
-      <div class="temporality">
+      <!-- <div class="temporality">
         <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
           :GetChildrenFct="onTemporalitySelectOpen" :maxDepth="0" v-model="temporalitySelected" label="TEMPORALITÉ" />
-      </div>
+      </div> -->
 
       <div class="space">
         <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"

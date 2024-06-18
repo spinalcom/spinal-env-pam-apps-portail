@@ -31,8 +31,11 @@ export const config: IConfig = {
 	viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },
 	temporality: [ITemporality.currentValue, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
 	inventory : "Typologie",
-	profileName : "KPI USI",
-	profileNameRoom : "Occupation",
+
+	//objet étage + objet pièce + objet équipement
+	profileName : "KPI USI", //etage
+	profileNameRoom : "Occupation",//piece
+
 	categorieAttributRoom : "GMAO",
 	application: [
 		{
@@ -88,6 +91,7 @@ export const config: IConfig = {
 			profileName : "KPI USI",
 			targetValue: "Energie globale",
 		}
+		
 	]
 
 };

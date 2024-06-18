@@ -28,10 +28,10 @@ with this file. If not, see
   <div class="appli">
 
     <button @click="() => {
-          $emit('buttonClicked');
-          resize();
-        }
-          " style="
+      $emit('buttonClicked');
+      resize();
+    }
+      " style="
           position: absolute;
           top: 47.5%;
           left: -20px;
@@ -51,10 +51,10 @@ with this file. If not, see
       <v-icon v-else>mdi-chevron-left</v-icon>
     </button>
     <button @click="() => {
-          $emit('buttonClicked3D');
-          resize();
-        }
-          " style="
+      $emit('buttonClicked3D');
+      resize();
+    }
+      " style="
           position: absolute;
           top: 52.5%;
           background-color: white;
@@ -87,9 +87,9 @@ with this file. If not, see
         <div
           style="position: relative; font-family: Arial, Helvetica, sans-serif; height: 50px; width: 98px;margin-top: -10px; margin-bottom: -10px;">
           <!-- Votre div incliné -->
-          <div
+          <!-- <div
             style="position: absolute; left: 0; height: 154%; background-color: rgb(240, 240, 240); width: 3px; transform: skew(-30deg) translateY(-12px);">
-          </div>
+          </div> -->
           <!-- Zone de texte -->
           <div
             style="margin-left: 25px; height: 100%; display: flex; align-items: center;font-size: 20px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;white-space: nowrap;">
@@ -120,7 +120,11 @@ with this file. If not, see
         <div>
 
 
-          <div class="inventory-container">
+          <div v-if="inventoyList == null"
+            style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px; margin-bottom: 10px;">
+            <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
+          </div>
+          <div v-else class="inventory-container">
             <div v-for="(item, index) in inventoyList" :key="index" class="inventory-item">
               <li>{{ item }}</li>
             </div>
@@ -131,8 +135,14 @@ with this file. If not, see
       <div class="blocInformation">
         <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Liste des
           attributs</span>
-        <div class="inventory-container">
-          <div class="inventory-item" v-for="(item, index) in attributs">
+        <div v-if="attributs == null"
+          style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px ; margin-bottom: 10px;">
+          <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
+        </div>
+        <div v-else class="inventory-container">
+          <div
+            style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
+            class="inventory-item" v-for="(item, index) in attributs">
             <li> {{ item.label }}: {{ item.value }}</li>
           </div>
         </div>
@@ -143,7 +153,13 @@ with this file. If not, see
           ({{ config.profileName }})</span>
 
         <div class="inventory-container" @click="toto(endpointProfil)">
-          <div style="background-color: #14202c;color:white;padding: 16px;border-radius: 5px;padding-left: 6px ;"
+          
+          <div v-if="endpointProfil == null"
+            style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px; margin-bottom: 10px;">
+            <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
+          </div>
+          <div
+            style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
             class="inventory-item" v-for="endpoint in endpointProfil">
             <div> <span>{{ endpoint.name }}: </span>
               <span v-if="typeof endpoint.value === 'number'">{{ endpoint.value.toFixed(2) }}</span>
@@ -168,8 +184,8 @@ with this file. If not, see
 
         <div v-for="item in appTab" class="cardDescription">
           <div @click="() => {
-          $emit('changeRoute', item.id);
-        }" class="data_cardDescription">
+            $emit('changeRoute', item.id);
+          }" class="data_cardDescription">
             <!-- <div class="nombre_data_cardDescription">
               {{ formatValue(item.value) }}<div class="microinfo">{{ item.unit }}</div>
             </div> -->
@@ -224,7 +240,7 @@ import { log } from "console";
 class dataSideApp extends Vue {
   // @State data!: any[];
 
-  
+
   @Prop() config!: IConfig;
   @Prop() selectedZone: ISpaceSelectorItem;
   @Prop() data: any[];
@@ -233,13 +249,13 @@ class dataSideApp extends Vue {
   @Prop() ActiveData: boolean;
   // public  doubleCount = computed(() => this.floorstaticDetails[0]?.attributsList[0].attributs);
 
-  get attributs(): any[] {
-    console.log(this.floorstaticDetails[0], 'aaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbccccccccccccccccc');
-    
+  get attributs(): any {
+    // console.log(this.floorstaticDetails[0], 'aaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbccccccccccccccccc');
+
     if (this.floorstaticDetails && this.floorstaticDetails[0] && this.floorstaticDetails[0].attributsList && this.floorstaticDetails[0].attributsList[0]) {
       return this.floorstaticDetails[0].attributsList[0].attributs;
     }
-    return [];
+    return null;
   }
 
   PAGE_STATES: typeof PAGE_STATES = PAGE_STATES;
@@ -249,10 +265,10 @@ class dataSideApp extends Vue {
   referenceObjects: any[];
   inventory: any;
   appTab: any[] = [];
-  inventoyList: any[] = [];
+  inventoyList: any = null;
   floorstaticDetails: any = [];
   // attributs : any[] = this.floorstaticDetails[0]?.attributsList[0].attributs
-  endpointProfil: any = 'toto';
+  endpointProfil: any = null;
   // conso = "eyJuYW1lIjoic3BpbmFsLXR3aW4tc3RhbmRhcmQtZW5lcmd5LWZsdWlkcyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiYmFlZi0yYmRhLTk0ZjktMThmYTQ3YjIxMGIiLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE2NDUxNTAxMDE1LCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTY0NTE0ODM5MTUsImljb24iOiJtZGktY2FyLWJyYWtlLWZsdWlkLWxldmVsIiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtdHdpbi1zdGFuZGFyZC1lbmVyZ3ktZmx1aWRzIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19"
   // insights = "eyJuYW1lIjoiSW5zaWdodHMiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImIwZTEtNzI3NS02YWNhLTE4ZjJlMjE1NmE4IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxNDQ2NTk0NzM4MCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0NDY1ODg3OTEyLCJpY29uIjoibWRpLWN1cnRhaW5zLWNsb3NlZCIsImRlc2NyaXB0aW9uIjoiSU5zaWdodHMiLCJ0YWdzIjpbIkluc2lnaHRzIl0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0taW5zaWdodHMiLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiMzdkZS0wMmI4LWUxOGItMTg1MDY0M2I2OGEiLCJidWlsZGluZ0lkIjoiNTkzMi02MDg2LTllMWEtMTg1MDY0Nzg0NjAifX0"
   // tickets = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiZWI0ZC1hM2MxLWVmMTEtMThmMjBkZGM5YzciLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0MjQzMzcyMzcxLCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTQyNDMzNTcxMjcsImljb24iOiJtZGktdGlja2V0LWFjY291bnQiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOlsidGlja2V0Il0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
@@ -275,8 +291,12 @@ class dataSideApp extends Vue {
   // }
 
   async mounted() {
+    // this.getrayane();
+
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
+      console.log(data, 'dzdzdzd' , VIEWER_AGGREGATE_SELECTION_CHANGED);
+      
       if (data)
         this.findDynamicIdByDbid(data[0].dbIds[0], data[0]);
 
@@ -293,34 +313,95 @@ class dataSideApp extends Vue {
   }
 
 
+  async getBIMInfo(referenceIds) {
+    //fonction a éditer lors du 
+    console.log('get rayane');
+
+    const buildingId = localStorage.getItem("idBuilding");
+    // console.warn(referenceIds);
+
+    const promises = [
+      this.$store.dispatch(ActionTypes.GET_BIM_OBJECT_INFO, {
+        buildingId,
+        referenceIds
+      }),
+    ];
+    const result = await Promise.all(promises);
+    console.log([...result], 'resukte finale de rayane');
+    return [...result]
+  }
+
+  checkForReferenceObjectRoom(list) {
+    return list.some(item => item.name === "hasReferenceObject.ROOM");
+  }
 
 
   async findDynamicIdByDbid(dbidToFind, data) {
     const buildingId = localStorage.getItem("idBuilding");
-    const objects = this.referenceObjects;
-    for (const obj of objects[0]) {
-      if (Array.isArray(obj.infoReferencesObjects)) {
-        for (const ref of obj.infoReferencesObjects) {
-          if (ref.dbid === dbidToFind && data.modelId.bimFileId == obj.bimFileId) {
-            const referenceIds = obj.dynamicId
-            // console.log({ dynamicId: obj.dynamicId, name: obj.name });
-            // return { dynamicId: obj.dynamicId };
-            const promises = [
-              this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
-                buildingId,
-                referenceIds
-              }),
-            ];
-            const result = await Promise.all(promises);
-            // console.log('les static details de mon objet sont', result);
-            this.forgeItem(result, buildingId, ref.dbid, obj.bimFileId)
-            return;
+    console.log('ici ajouter la nouvelle requetes pour choper les elements ujuuu lafonction rayane', dbidToFind, data);
+    // console.log(data.dbIds);
+    // console.log(data.modelId.bimFileId);
+    const BimObject = [
+      {
+        "bimFileId": data.modelId.bimFileId,
+        "dbids": data.dbIds
+      }
+    ]
+    const referenceResult = await this.getBIMInfo(BimObject)
 
+
+    console.log(referenceResult, 'le referecence resulte !!!!!!!!!!!!!!!!!!!!!!!!!');
+
+    const isRoom = this.checkForReferenceObjectRoom(referenceResult[0][0].bimObjects[0].parent_relation_list)
+
+    console.log(isRoom, 'cest un equipemetn ?');
+
+
+    if (isRoom) {
+      const objects = this.referenceObjects;
+      console.log(objects);
+
+      for (const obj of objects[0]) {
+        if (Array.isArray(obj.infoReferencesObjects)) {
+          for (const ref of obj.infoReferencesObjects) {
+            if (ref.dbid === dbidToFind && data.modelId.bimFileId == obj.bimFileId) {
+              const referenceIds = obj.dynamicId
+              // console.log({ dynamicId: obj.dynamicId, name: obj.name });
+              // return { dynamicId: obj.dynamicId };
+              const promises = [
+                this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
+                  buildingId,
+                  referenceIds
+                }),
+              ];
+              const result = await Promise.all(promises);
+              console.log('les static details de mon objet sont', result, ref.dbid, obj.bimFileId);
+              this.forgeItem(result, buildingId, ref.dbid, obj.bimFileId , data.center)
+              return;
+
+            }
           }
         }
       }
+      return null;
     }
-    return null;
+    else {
+
+
+      const referenceIds = referenceResult[0][0].bimObjects[0].dynamicId
+      const promises = [
+        this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
+          buildingId,
+          referenceIds
+        }),
+      ];
+
+      const result = await Promise.all(promises);
+
+      this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0] , data.center)
+      return;
+    }
+
   }
 
   toto(ed) {
@@ -465,24 +546,25 @@ class dataSideApp extends Vue {
     // return profile ? profile.endpoints : [];
   }
 
-  forgeItem(result, buildingId, dbid, bimFileId) {
-    // console.log(result);
+  forgeItem(result, buildingId, dbid, bimFileId , center) {
+    console.log(center ,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
     // Object.assign(item, { color: '#ded638', buildingId: buildingId, dbid: dbid, bimFileId: bimFileId });
     // console.log(this.data);
-    let X = "0";
-    let Y = "0";
-    let Z = "0";
+    
+    let X = center.x;
+    let Y = center.y;
+    let Z = center.z;
 
-    result[0].attributsList.forEach(category => {
-      category.attributs.forEach(attribute => {
-        if (attribute.label === "XYZ center") {
-          const coordinates = attribute.value.split(";");
-          X = coordinates[0];
-          Y = coordinates[1];
-          Z = coordinates[2];
-        }
-      });
-    });
+    // result[0].attributsList.forEach(category => {
+    //   category.attributs.forEach(attribute => {
+    //     if (attribute.label === "XYZ center") {
+    //       const coordinates = attribute.value.split(";");
+    //       X = coordinates[0];
+    //       Y = coordinates[1];
+    //       Z = coordinates[2];
+    //     }
+    //   });
+    // });
 
     // const [X, Y, Z] = result[key]["XYZ center"].split(";");
 
@@ -563,7 +645,6 @@ class dataSideApp extends Vue {
   }
   async fetchReferenceObjects(referenceIds) {
     const buildingId = localStorage.getItem("idBuilding");
-    // Les IDs que vous voulez récupérer
 
     const promises = [
       this.$store.dispatch(ActionTypes.GET_REFERENCE_OBJECT_LIST_MULTIPLE, {
@@ -784,13 +865,16 @@ a {
   display: flex;
   align-items: center;
   box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .blocInformation {
   background-color: rgb(240, 240, 240);
   padding: 5px;
   border-radius: 5px;
-  margin-bottom: 10px;
+  margin-bottom: 18px;
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
 }
 
 //Spinal_card
@@ -924,8 +1008,9 @@ a {
 .inventory {
   position: relative;
   padding: 10px;
-  height: 60%;
+  height: 70%;
   overflow: auto;
+
   /* border-top: 2px solid rgb(235, 234, 234); */
 }
 
@@ -936,7 +1021,7 @@ a {
   left: 0;
   top: 0;
   /* Aligné au top de .inventory */
-  right: 135px;
+  //right: 135px;
   border-top: 2px solid rgb(235, 234, 234);
   /* Le même style de bordure que voulu initialement */
   width: auto;
@@ -951,7 +1036,7 @@ a {
   border-top: 2px solid rgb(235, 234, 234);
   // height: 31vh;
   overflow: auto;
-  height: 30%;
+  height: 25%;
 }
 
 .container_cards {
@@ -1055,7 +1140,7 @@ a {
   position: absolute;
   top: -100%;
   left: 100%;
-  background: url('../../assets/tets.svg') no-repeat center center;
+  // background: url('../../assets/tets.svg') no-repeat center center;
   background-size: contain;
   transition: all .4s ease;
   filter: invert(1) saturate(5) hue-rotate(200deg) opacity(0.1);

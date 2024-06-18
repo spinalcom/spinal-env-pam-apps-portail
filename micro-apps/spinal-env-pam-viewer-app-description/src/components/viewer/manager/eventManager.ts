@@ -131,18 +131,38 @@ export class EventManager {
 			///////////////////////////////////////////////////////////////////////
 
 			function viewerGetSelectionChange(data: any) {
+	
 				const eventData: IDbIdModelAggregate[] = [];
 				for (const selection of data.selections) {
+					const dbIds = selection.dbIdArray;
+					const model = selection.model;
+					const bbox = new THREE.Box3();
+			
+					for (const dbId of dbIds) {
+						model.getObjectTree(function(tree) {
+							tree.enumNodeFragments(dbId, function(fragId) {
+								const fragBBox = new THREE.Box3();
+								model.getFragmentList().getWorldBounds(fragId, fragBBox);
+								bbox.union(fragBBox);
+							});
+						});
+					}
+			
+					const center = bbox.getCenter(new THREE.Vector3());
+					
 					eventData.push({
-						dbIds: selection.dbIdArray,
-						modelId: selection.model,
+						dbIds: dbIds,
+						modelId: model,
+						center: center
 					});
 				}
+			
 				this.lastSelection = eventData;
 				emitterHandler.emit(VIEWER_AGGREGATE_SELECTION_CHANGED, eventData);
 			}
-
+			
 			viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT, viewerGetSelectionChange);
+			
 
 			const inter = setInterval(() => {
 				emitterHandler.emit(VIEWER_INITIALIZED);

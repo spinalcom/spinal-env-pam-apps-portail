@@ -26,10 +26,11 @@ import { getBuildings, getBuildingById } from "../../spinalAPI/GeographicContext
 import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
-import { getEquipments, getFloors, getRooms, getStaticDetails, getMultipleInventory, getFloorStaticDetails } from "../../spinalAPI/GeographicContext/geographicContext";
+import { getEquipments, getFloors, getRooms, getStaticDetails,getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails ,postBIMObjectInfo } from "../../spinalAPI/GeographicContext/geographicContext";
 import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
 import { getMultipleReferenceObjects } from "../../spinalAPI/GeographicContext/getObjectList";
+import { getBIMObjectInfo } from "../../spinalAPI/BIM/BIMFileContext";
 import { IViewInfoBody, IViewInfoItemRes } from "../../spinalAPI/GeographicContext/getViewInfo";
 import { ActionTypes, ApiIteratorStoreRecordNumberType, ApiIteratorStoreRecordStringType, ApiIteratorStoreType, AugmentedActionContextAppData } from "../../../interfaces/vuexStoreTypes";
 import { getGroupsItems, getAllCategoriesTree } from "../../spinalAPI/GeographicContext/groupsItems";
@@ -50,6 +51,17 @@ export const actions = {
 	async [ActionTypes.GET_INVENTORY_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }): Promise<any> {
 		try {
 			const result = await getMultipleInventory(buildingId, referenceIds);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_BIM_OBJECT_INFO]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: any }): Promise<any> {
+		console.log('arrivé dans laction');
+		
+		try {
+			const result = await postBIMObjectInfo(buildingId, referenceIds);
 			return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des objets de référence:', error);
@@ -84,6 +96,21 @@ export const actions = {
 			throw error;
 		}
 	},
+
+	async [ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+		// console.log('Début de l\'action GET_REFERENCE_OBJECT_LIST_MULTIPLE',buildingId , referenceIds);
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			// const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
+			const result = await getStaticDetailsEquipement(buildingId, referenceIds);
+			// console.log('Récupération de l objet de référence réussie:', result);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
 	async [ActionTypes.GET_FLOOR_STATIC_DETAILS]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
@@ -247,7 +274,7 @@ export const actions = {
 
 	[ActionTypes.ISOLATE_ITEMS]({ commit, dispatch, state }, playload: any) {
 		console.log(ViewerManager.getInstance(), 'Linstance : le payload : ', playload);
-		
+
 		let isKeyPresent = false;
 		for (let id of playload.item.parents) {
 			const instance = ViewerManager.getInstance();
@@ -257,13 +284,13 @@ export const actions = {
 				break;
 			}
 		}
-	
+
 		if (isKeyPresent) {
 			ViewerManager.getInstance().isolate(playload);
 		} else {
 
-			console.log(playload.config , playload.item , playload.onlyThisModel , 'toto');
-			
+			console.log(playload.config, playload.item, playload.onlyThisModel, 'toto');
+
 			dispatch(ActionTypes.OPEN_VIEWER, {
 				onlyThisModel: playload.onlyThisModel,
 				config: playload.config,

@@ -3,16 +3,22 @@
   <div class="menu">
     <!-- <v-icon>mdi-chevron-left</v-icon> -->
     <div v-if="isopen" ref="container" class="container">
+      <div @click="close()" style="justify-content: center;align-items: center;display: flex;background-color: white;cursor: pointer;border-radius: 25px;width: 20px; height: 20px;position: absolute;right: -8px;font-size: 13px;z-index: 9;top: 3px;font-weight: bold;border: 1px solid gray;color: #14202c;">X</div>
       <div class="card">
         <div class="top-section">
           <div class="border"></div>
           <div class="icons">
-            <div class="logo">
+            <div :title="data.name" class="logo">
               {{ data.name }}
             </div>
-            <div style="justify-content: center;align-items: center;display: flex;background-color: #14202c; transform: translate(50px,-5px);cursor: pointer;border-radius: 25px;width: 15px; height: 15px;" @click="onClickNavigate()">></div>
+            <div
+              style="justify-content: center;align-items: center;display: flex;background-color: #14202c;cursor: pointer;width: 20px; height: 20px;position: absolute;right: 15px;font-size: 20px;transform: translateY(-4px);"
+              @click="onClickNavigate()">
+              &#x21AA;
+            </div>
+            
             <div class="social-media">
-              {{ parseFloat(data.data.attributsList[0].attributs[4].value.toFixed(1)) }}m²
+              <!-- {{ parseFloat(data.data.attributsList[0].attributs[4].value.toFixed(1)) }}m² -->
             </div>
           </div>
           <div style="display : flex ; flex-direction: column ; width: 100%;">
@@ -25,7 +31,8 @@
                     PRÉSENCE</div>
                   <div
                     style="display: flex;justify-content: center; align-items: center;color: #14202c; font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
-                    {{ data.data.controlEndpoint[0].endpoints[0].value }}</div>
+                    <!-- {{ data.data.controlEndpoint[0].endpoints[0].value }} -->
+                  </div>
                 </div>
                 <div
                   style="border: 1px solid  #14202c;border-radius: 5px;color: orange; font-size: 11px;font-weight: bold;width: 50%;margin-left:10px ">
@@ -34,14 +41,14 @@
                     occupation</div>
                   <div
                     style="display: flex;justify-content: center; align-items: center;;color: #14202c;font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
-                    {{ parseFloat(data.data.controlEndpoint[0].endpoints[1].value.toFixed(1)) }}%</div>
+                    <!-- {{ parseFloat(data.data.controlEndpoint[0].endpoints[1].value.toFixed(1)) }}% -->
+                  </div>
                 </div>
                 <!-- <div
                 style="border: 1px solid green;border-radius: 5px;color:green ; padding : 2px; font-size: 11px;font-weight: bold;margin-left:10px ;width: 50%;">
                 taux d'occupation : {{ parseFloat(data.data.controlEndpoint[0].endpoints[1].value.toFixed(1)) }}%</div> -->
               </div>
               <div style="display: flex;margin-top : 10px;margin-bottom: 10px">
-
                 <div
                   style="border: 1px solid  #14202c;border-radius: 5px;color: orange; font-size: 11px;font-weight: bold;width: 50%;">
                   <div
@@ -49,7 +56,8 @@
                     TEMPERATURE</div>
                   <div
                     style="display: flex;justify-content: center; align-items: center;;color: #14202c;font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
-                    {{ data.data.controlEndpoint[1].endpoints[0].value }}C°</div>
+                    <!-- {{ data.data.controlEndpoint[1].endpoints[0].value }}C° -->
+                  </div>
                 </div>
                 <div
                   style="border: 1px solid  #14202c;border-radius: 5px;color: orange; font-size: 11px;font-weight: bold;width: 50%;margin-left:10px ">
@@ -61,6 +69,8 @@
                     xx</div>
                 </div>
 
+            
+
                 <!-- <div
                 style="border: 1px solid blue;border-radius: 5px;color: blue ; padding : 2px; font-size: 11px;font-weight: bold;width: 50%;">
                 temperature : {{ data.data.controlEndpoint[1].endpoints[0].value }}C°</div>
@@ -71,7 +81,6 @@
 
             </div>
           </div>
-
 
         </div>
         <div
@@ -138,6 +147,7 @@ export default {
       }
     },
   },
+  
   data: () => ({
     isopen: true,
     showAttr: false,
@@ -190,7 +200,6 @@ export default {
       else {
         query.app = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiZWI0ZC1hM2MxLWVmMTEtMThmMjBkZGM5YzciLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0MjQzMzcyMzcxLCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTQyNDMzNTcxMjcsImljb24iOiJtZGktdGlja2V0LWFjY291bnQiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOlsidGlja2V0Il0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
       }
-
       query.buildingId = this.data.buildingId
       query.spaceSelectedId = this.data.dynamicId
       query.name = this.data.name
@@ -217,7 +226,6 @@ export default {
       return undefined;
     },
 
-
     shouldDisplayAttribute(attr) {
       // Liste des labels à exclure
       const excludedLabels = ['name', 'XYZ center'];
@@ -231,7 +239,7 @@ export default {
 
     onClickNavigate() {
       const emitterHandler = EmitterViewerHandler.getInstance();
-      emitterHandler.emit(VIEWER_SPRITE_CLICK, { navigate: 'la page' , node: this.data });
+      emitterHandler.emit(VIEWER_SPRITE_CLICK, { navigate: 'la page', node: this.data });
     },
 
     // onClick(ev) {
@@ -250,6 +258,7 @@ export default {
     //   }
     //   return false;
     // },
+
     _isSelected() {
       this.data.color = 'cyan'
       this.isClicked = true;
@@ -553,15 +562,6 @@ export default {
   font-size: 11px;
 }
 
-
-
-
-
-
-
-
-
-
 .menu {
   position: absolute;
   overflow: visible
@@ -653,6 +653,10 @@ export default {
   font-weight: bold;
   font-size: 15;
   margin-top: 6px;
+  /* background-color: red; */
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: 70%;
 }
 
 .card .top-section .icons .logo .top-section {
