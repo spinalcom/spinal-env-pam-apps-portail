@@ -419,6 +419,7 @@ class NodeVisualization extends Vue {
       console.error(`Node with ID ${nodeId} not found.`);
       return;
     }
+    console.log("Node clicked", "last clicked");
 
     // console.log("Transformed data", this.transformedNodesGeneric, "Node", node);
 
@@ -447,6 +448,7 @@ class NodeVisualization extends Vue {
       //closing opened node
       this.collapseNodeAndDescendants(node.id);
       this.expandedNodes.delete(node.id);
+      // EventBus.$emit("deselect-all", node.id);
       EventBus.$emit("toggle-children", node.id);
       // console.log("Node is already expanded, collapse it");
     } else {
@@ -457,6 +459,7 @@ class NodeVisualization extends Vue {
           (n) => n.parentId !== node.id
         );
         this.expandedNodes.delete(node.id);
+        // EventBus.$emit("deselect-all", node.id);
         EventBus.$emit("toggle-children", node.id);
       } else if (node.parentId === null) {
         //principal nodes
@@ -471,12 +474,14 @@ class NodeVisualization extends Vue {
         // console.log("Children", children);
         this.displayedNodes = [...this.displayedNodes, ...children];
         this.expandedNodes.add(node.id);
+        EventBus.$emit("deselect-all", node.id);
         EventBus.$emit("toggle-children", node.id);
         // }
       } else {
         // Node is not expanded, expand it
         if (!node.children || node.children.length == 0) {
           // console.log("Node has no children");
+          // EventBus.$emit("deselect-all", node.id);
           EventBus.$emit("toggle-children", node.id);
         } else {
           const children = this.transformedNodesGeneric.filter(
@@ -485,6 +490,7 @@ class NodeVisualization extends Vue {
           // console.log("Children", children);
           this.displayedNodes = [...this.displayedNodes, ...children];
           this.expandedNodes.add(node.id);
+          // EventBus.$emit("deselect-all", node.id);
           EventBus.$emit("toggle-children", node.id);
         }
       }

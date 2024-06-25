@@ -260,7 +260,7 @@ class TableRow extends Vue {
     }
   }
 
-  toggleChildrenOut(dynamicId: number) {
+  handleClick2(dynamicId: number) {
     let listofselected = this.$store.state.appDataStore.selectedEquipements;
     // console.log("List of selected", listofselected);
     if (this.internalSelectedDynamicId === dynamicId) {
@@ -278,36 +278,14 @@ class TableRow extends Vue {
       } else {
         this.internalSelectedDynamicId = 0;
       }
-
-      // this.internalSelectedDynamicId = dynamicId;
     }
-    // this.highlightSelection(dynamicId);
-    // if (!this.isSelected) {
-    //   if (this.data.dynamicId != dynamicId) {
-    //     let listofselected = this.$store.state.appDataStore.selectedEquipements;
+    this.toggleChildrenOut(dynamicId);
+  }
 
-    //     for (let i = 0; i < listofselected.length; i++) {
-    //       console.log("List of selected", listofselected[i]);
-    //       if (listofselected[i] === this.findParent(dynamicId)) {
-    //         this.parentOpened = true;
-    //       }
-    //     }
-
-    //     if (!this.parentOpened) {
-    //       // this.diselect();
-    //       EventBus.$emit("diselect");
-    //       // listofselected = [];
-    //       // console.log("Parent not opened", this.parentOpened);
-    //       // this.$store.commit(MutationTypes.RESET_EQUIPEMENT);
-    //       // let listofselected =
-    //       //   this.$store.state.appDataStore.selectedEquipements;
-    //       // console.log("List of selected", listofselected);
-    //     }
-    //   }
-    // }
+  toggleChildrenOut(dynamicId: number) {
     if (this.data.dynamicId != dynamicId) {
       let listofselected = this.$store.state.appDataStore.selectedEquipements;
-      console.log("List of selected in", listofselected);
+      // console.log("List of selected in", listofselected);
       for (let i = 0; i < listofselected.length; i++) {
         if (listofselected[i] === this.findParent(dynamicId)) {
           this.parentOpened = true;
@@ -315,12 +293,11 @@ class TableRow extends Vue {
       }
       if (!this.parentOpened) {
         // this.diselect();
-        EventBus.$emit("diselect-out", dynamicId);
-
+        // EventBus.$emit("diselect-out", dynamicId);
         // console.log("Parent not opened", this.parentOpened);
         // this.$store.commit(MutationTypes.RESET_EQUIPEMENT);
         // let listofselected = this.$store.state.appDataStore.selectedEquipements;
-        console.log("List of selected out", listofselected);
+        // console.log("List of selected out", listofselected);
       }
     } else if (this.data.dynamicId == dynamicId) {
       // console.log("If");
@@ -363,6 +340,11 @@ class TableRow extends Vue {
   deselectNode2() {
     this.showChildren = false;
     this.isSelected = false;
+  }
+  deselectAllNodes() {
+    console.log("Deselect all nodes");
+    this.isSelected = false;
+    this.showChildren = false;
   }
   getZoomPoints() {
     this.payload.push({
@@ -436,18 +418,20 @@ class TableRow extends Vue {
   }
 
   mounted() {
-    EventBus.$on("toggle-children", this.toggleChildrenOut);
+    EventBus.$on("toggle-children", this.handleClick2);
     EventBus.$on("diselect", this.deselectNode2);
     EventBus.$on("diselect-out", this.diselect);
+    EventBus.$on("deselect-all", this.deselectAllNodes);
     EventBus.$on("highlight-selection", (dynamicId: number) => {
       this.selectedDynamicId = dynamicId;
     });
     // console.log("Mounted", this.data);
   }
   beforeDestroy() {
-    EventBus.$off("toggle-children", this.toggleChildrenOut);
+    EventBus.$off("toggle-children", this.handleClick2);
     EventBus.$off("diselect", this.deselectNode2);
     EventBus.$off("diselect-out", this.diselect);
+    EventBus.$off("deselect-all", this.deselectAllNodes);
     // EventBus.$off("highlight-selection");
   }
 }
