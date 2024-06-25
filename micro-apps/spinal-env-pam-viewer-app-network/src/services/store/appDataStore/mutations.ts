@@ -44,6 +44,7 @@ export enum MutationTypes {
 	SET_DATA = "SET_DATA",
 	ADD_SELECTED_EQUIPEMENT = "ADD_SELECTED_EQUIPEMENT",
 	REMOVE_SELECTED_EQUIPEMENT = "REMOVE_SELECTED_EQUIPEMENT",
+	RESET_EQUIPEMENT = "RESET_EQUIPEMENT",
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -59,6 +60,7 @@ export type MutationsAppData<S = StateAppData> = {
 	[MutationTypes.SET_DATA](state: StateAppData, data: INodeItemTree[]): void;
 	[MutationTypes.ADD_SELECTED_EQUIPEMENT](state: StateAppData, id: number): void;
 	[MutationTypes.REMOVE_SELECTED_EQUIPEMENT](state: StateAppData, id: number): void;
+	[MutationTypes.RESET_EQUIPEMENT](state: StateAppData): void;
 };
 
 export const mutations: MutationTree<StateAppData> & MutationsAppData = {
@@ -116,5 +118,9 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 		if (index > -1) {
 			state.selectedEquipements.splice(index, 1);
 		}
+	},
+	//Clean selected equipement
+	[MutationTypes.RESET_EQUIPEMENT](state: StateAppData): void {
+		state.selectedEquipements = [];
 	},
 };

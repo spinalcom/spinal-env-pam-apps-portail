@@ -100,7 +100,7 @@ class NodeVisualization extends Vue {
     this.Nodeto = this.$store.state.appDataStore.selectedEquipements;
     console.log("Mounted", this.dataprop);
     this.transformedNodesGeneric = this.transformData(this.dataprop);
-    console.log("Transformed data node to", this.transformedNodesGeneric);
+    // console.log("Transformed data node to", this.transformedNodesGeneric);
     this.displayedNodes = this.getPrincipalNodes(this.transformedNodesGeneric);
     console.log("Displayed nodes", this.displayedNodes);
     this.createChart(this.displayedNodes);
@@ -111,7 +111,7 @@ class NodeVisualization extends Vue {
   }
 
   createChart(transformDataent: TransformedNode[]) {
-    console.log("createChart", transformDataent);
+    // console.log("createChart", transformDataent);
 
     const svg = d3.select(this.$refs.container).select("svg");
     const width = +svg.attr("width");
@@ -398,11 +398,11 @@ class NodeVisualization extends Vue {
   }
 
   getPrincipalNodes(transformedData: TransformedNode[]): TransformedNode[] {
-    console.log("Transformed data getPrincipale", transformedData);
+    // console.log("Transformed data getPrincipale", transformedData);
     const returneddata = transformedData.filter(
       (node) => node.parentId === null
     );
-    console.log("Returned data", returneddata);
+    // console.log("Returned data", returneddata);
     return returneddata;
     // return transformedData.filter((node) => node.parentId === null);
   }
@@ -420,45 +420,38 @@ class NodeVisualization extends Vue {
       return;
     }
 
-    console.log("Transformed data", this.transformedNodesGeneric, "Node", node);
+    // console.log("Transformed data", this.transformedNodesGeneric, "Node", node);
 
     if (this.lastClickedNodeId !== null) {
       d3.select(`[data-node-id='${this.lastClickedNodeId}']`).classed(
         "node-shadow",
         false
       );
-      console.log(
-        "Node clicked",
-        node.id,
-        "last clicked",
-        this.lastClickedNodeId
-      );
+      // console.log(
+      //   "Node clicked",
+      //   node.id,
+      //   "last clicked",
+      //   this.lastClickedNodeId
+      // );
     }
     this.lastClickedNodeId = node.id;
     d3.select(`[data-node-id='${node.id}']`).classed("node-shadow", true);
-    console.log(
-      "Node clicked",
-      node.id,
-      "last clicked",
-      this.lastClickedNodeId
-    );
+    // console.log(
+    //   "Node clicked",
+    //   node.id,
+    //   "last clicked",
+    //   this.lastClickedNodeId
+    // );
 
     if (this.expandedNodes.has(node.id)) {
-      // Node is already expanded, collapse it along with its descendants
+      //closing opened node
       this.collapseNodeAndDescendants(node.id);
-      // this.displayedNodes = this.displayedNodes.filter(
-      //   (n) => n.parentId !== node.id
-      // );
       this.expandedNodes.delete(node.id);
       EventBus.$emit("toggle-children", node.id);
+      // console.log("Node is already expanded, collapse it");
     } else {
       if (node.parentId !== null && !this.expandedNodes.has(node.parentId)) {
-        console.log(
-          "Node is not a principal node",
-          node.parentId,
-          "lkdqlk",
-          this.expandedNodes
-        );
+        //impossible case
         console.log("Parent node is not expanded, expand it first");
         this.displayedNodes = this.displayedNodes.filter(
           (n) => n.parentId !== node.id
@@ -466,6 +459,7 @@ class NodeVisualization extends Vue {
         this.expandedNodes.delete(node.id);
         EventBus.$emit("toggle-children", node.id);
       } else if (node.parentId === null) {
+        //principal nodes
         this.displayedNodes = this.getPrincipalNodes(
           this.transformedNodesGeneric
         );
@@ -474,19 +468,25 @@ class NodeVisualization extends Vue {
         const children = this.transformedNodesGeneric.filter(
           (n) => n.parentId === node.id
         );
-        console.log("Children", children);
+        // console.log("Children", children);
         this.displayedNodes = [...this.displayedNodes, ...children];
         this.expandedNodes.add(node.id);
         EventBus.$emit("toggle-children", node.id);
+        // }
       } else {
         // Node is not expanded, expand it
-        const children = this.transformedNodesGeneric.filter(
-          (n) => n.parentId === node.id
-        );
-        console.log("Children", children);
-        this.displayedNodes = [...this.displayedNodes, ...children];
-        this.expandedNodes.add(node.id);
-        EventBus.$emit("toggle-children", node.id);
+        if (!node.children || node.children.length == 0) {
+          // console.log("Node has no children");
+          EventBus.$emit("toggle-children", node.id);
+        } else {
+          const children = this.transformedNodesGeneric.filter(
+            (n) => n.parentId === node.id
+          );
+          // console.log("Children", children);
+          this.displayedNodes = [...this.displayedNodes, ...children];
+          this.expandedNodes.add(node.id);
+          EventBus.$emit("toggle-children", node.id);
+        }
       }
     }
     this.lastClickedNodeId = nodeId;
@@ -501,7 +501,21 @@ class NodeVisualization extends Vue {
       console.error(`Node with ID ${nodeId} not found.`);
       return;
     }
-    console.log("Transformed data", this.transformedNodesGeneric, "Node", node);
+    if (this.lastClickedNodeId !== null) {
+      d3.select(`[data-node-id='${this.lastClickedNodeId}']`).classed(
+        "node-shadow",
+        false
+      );
+      // console.log(
+      //   "Node clicked",
+      //   node.id,
+      //   "last clicked",
+      //   this.lastClickedNodeId
+      // );
+    }
+    this.lastClickedNodeId = node.id;
+    d3.select(`[data-node-id='${node.id}']`).classed("node-shadow", true);
+    // console.log("Transformed data", this.transformedNodesGeneric, "Node", node);
     if (this.expandedNodes.has(node.id)) {
       // Node is already expanded, collapse it
       // this.displayedNodes = this.displayedNodes.filter(

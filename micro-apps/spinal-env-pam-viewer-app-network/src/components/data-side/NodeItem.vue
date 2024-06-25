@@ -31,7 +31,7 @@ with this file. If not, see
         <div class="stat-card">
           <StatCard :dataprop="data"></StatCard>
         </div>
-        <div class="stat-card"></div>
+        <div class="stat-card"><TypeCard :dataprop="data"></TypeCard></div>
       </div>
       <div class="header">
         <div>
@@ -64,10 +64,11 @@ import { Watch } from "vue-property-decorator";
 import { log } from "console";
 import NodeVisualization from "./NodeVisualtion.vue";
 import StatCard from "./statistique-components/StatCard.vue";
+import TypeCard from "./statistique-components/TypeCard.vue";
 
 @Component({
   name: "NodeItem",
-  components: { Table, NodeVisualization, StatCard },
+  components: { Table, NodeVisualization, StatCard, TypeCard },
 })
 class NodeItem extends Vue {
   @Prop() data: any[];
@@ -116,17 +117,17 @@ class NodeItem extends Vue {
   async mounted() {
     this.datatoShow = this.data;
     this.filterData();
-    console.log("DAvtibe", this.DActive, "Active Data", this.ActiveData);
+    // console.log("DAvtibe", this.DActive, "Active Data", this.ActiveData);
   }
 
   @Watch("DActive")
   onDActiveChanged(newVal: boolean, oldVal: boolean) {
-    console.log(`DActive changed from ${oldVal} to ${newVal}`);
+    // console.log(`DActive changed from ${oldVal} to ${newVal}`);
   }
 
   @Watch("ActiveData")
   onActiveDataChanged(newVal: boolean, oldVal: boolean) {
-    console.log(`ActiveData changed from ${oldVal} to ${newVal}`);
+    // console.log(`ActiveData changed from ${oldVal} to ${newVal}`);
   }
   get fullDataClass() {
     return {
@@ -268,9 +269,11 @@ export default NodeItem;
 }
 .stat-card {
   width: 48%;
-  height: 100px;
+  height: 120px;
   background-color: #f5f5f5;
   border-radius: 10px;
+  margin-top: 2px;
+  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.1);
 }
 .Full-data {
   width: 40%;

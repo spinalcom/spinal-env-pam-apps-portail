@@ -16,9 +16,15 @@
                 @change="filterData"
               >
                 <option value="all">Typologie</option>
-                <option value="BIMObject">BIMObject</option>
+                <option
+                  v-for="typology in uniqueTypologies"
+                  :key="typology"
+                  :value="typology"
+                >
+                  {{ typology }}
+                </option>
               </select>
-              <div class="filtre-icon">
+              <div class="filtre-icon" style="margin-left: 5px">
                 <div class="filtreButtonTop"></div>
                 <div class="filtreButton"></div>
               </div>
@@ -104,11 +110,15 @@ class Table extends Vue {
       const statusMatch =
         this.selectedStatus === "all" || d.status === this.selectedStatus;
       const typeMatch =
-        this.selectedType === "all" || d.type === this.selectedType;
+        this.selectedType === "all" || d.typologie === this.selectedType;
       return statusMatch && typeMatch;
     });
   }
 
+  get uniqueTypologies() {
+    const typologies = this.data.map((d) => d.typologie);
+    return Array.from(new Set(typologies));
+  }
   async mounted() {
     console.log("Received data..................", this.data);
     EventBus.$on("dio", this.dio);

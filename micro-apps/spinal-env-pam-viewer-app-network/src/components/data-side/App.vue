@@ -444,6 +444,9 @@ class dataSideApp extends Vue {
       node.self_status = statuses[randomIndex];
       node.status = node.self_status;
     }
+    const typologies = ["Luminaire", "Automate", "Multisensor"];
+    const randomIndex = Math.floor(Math.random() * typologies.length);
+    node.typologie = typologies[randomIndex];
   }
 
   updateSelectedSprites(sprites, number) {
