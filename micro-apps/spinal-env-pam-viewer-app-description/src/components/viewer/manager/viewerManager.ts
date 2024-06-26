@@ -25,7 +25,7 @@
 import { ModelManager } from "./modelManager";
 import { getViewInfo, getViewInfoFormatted, IViewInfoBody, IViewInfoItemRes, IViewInfoTmpRes, mergeIViewInfo } from "../requests/GeographicContext/getViewInfo";
 import { IPlayload, IPlayloadWithComponent } from "../interfaces/IPlayload";
-import { EmitterViewerHandler, VIEWER_ADD_SPRITE, VIEWER_INITIALIZED, VIEWER_OBJ_COLOR, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_START_LOAD_MODEL, ViewerEventWithData } from "spinal-viewer-event-manager";
+import { EmitterViewerHandler, VIEWER_ADD_SPRITE, VIEWER_INITIALIZED, VIEWER_OBJ_COLOR, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_START_LOAD_MODEL, VIEWER_HIDE_ELEMENT,ViewerEventWithData , VIEWER_REM_SPHERE } from "spinal-viewer-event-manager";
 import { VIEWER_EVENTS } from "../events";
 import Vue from "vue";
 import { log, warn } from "console";
@@ -161,10 +161,22 @@ export class ViewerManager {
 	public select(item: IPlayload) {
 		return this._fctViewerIteract(VIEWER_OBJ_SELECT, item);
 	}
+	
+	
+
+	public hide(item: IPlayload) {
+		console.log('toto555', item);
+		return this._fctViewerIteract(VIEWER_REM_SPHERE, item.item, item.config);
+	}
 
 	public isolate(item: IPlayload) {
+		console.log(item , 'tututututu');
+		
+		this.hide(item) //TODO A BASCULER SUR UNE AUTRE ACTION ........ RAYANE GABRIEL
+
 		return this._fctViewerIteract(VIEWER_OBJ_ISOLATE, item.item, item.config);
 	}
+	
 
 	public showAllObjects() {
 		const emitter = EmitterViewerHandler.getInstance();
@@ -219,9 +231,12 @@ export class ViewerManager {
 	}
 
 	private async _fctViewerIteract(eventName: keyof ViewerEventWithData, playload: (IPlayload | string) | (IPlayload | string)[], isolateConfig?: any): Promise<any> {
-
+		console.log('TOTO' , eventName ,playload);
+		
 		const emitter = EmitterViewerHandler.getInstance();
 		if (eventName === (VIEWER_EVENTS.UNLOAD as any)) {
+			
+			
 			playload = Array.isArray(playload) ? playload : [playload];
 			const obj = {};
 			const modelIds = playload.map((item) => {
@@ -238,6 +253,7 @@ export class ViewerManager {
 
 		let data: IViewInfoItemRes[];
 		if (isolateConfig) {
+			
 			const body = {
 				dynamicId: playload['dynamicId'],
 				floorRef: isolateConfig.viewerInfo.roomRef,

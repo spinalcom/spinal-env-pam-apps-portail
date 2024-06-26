@@ -29,11 +29,14 @@ export interface IConfig {
 	viewerInfo: { roomRef: boolean; floorRef: boolean; equipments: "all" | "groupItem" | "none" };
 	sprites: boolean;
 	temporality: ITemporality[];
-	application?: IApplication[]; 
-	inventory : string;
+	application?: IApplication[];
+	inventory: string;
 	profileName: string;
-	profileNameRoom : string;
-	categorieAttributRoom : string;
+	profileNameRoom: string;
+	categorieAttributRoom: string;
+	batiment: { profileNameControlePts: string, profileNameAttribut: string }
+	floor: { profileNameControlePts: string, profileNameAttribut: string }
+	room: { profileNameControlePts: string, profileNameAttribut: string }
 }
 
 export const enum ITemporality {
@@ -48,7 +51,7 @@ export interface IApplication {
 	name: string;
 	id: string;
 	type: string;
-	targetValue?: any; 
-	profileName? : string;
-	unit? : string
-  }
+	targetValue?: any;
+	profileName?: string;
+	unit?: string
+}

@@ -282,6 +282,19 @@ export class ViewerUtils {
 		});
 	}
 
+	public async hideElementsByDbIds(viewer: Autodesk.Viewing.Viewer3D, dbIds: number[]) {
+		console.log('rayyyyayaaane 2222222222222222222222222');
+		
+		await this._waitModelIsLoading();
+	
+		const models = viewer.getVisibleModels();
+	
+		// Hide the elements in each model
+		models.forEach((model) => {
+			viewer.hide(dbIds, model);
+		});
+	}
+
 	// public removeSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
 
 	// public removeAllSprites(viewer: Autodesk.Viewing.Viewer3D) { }

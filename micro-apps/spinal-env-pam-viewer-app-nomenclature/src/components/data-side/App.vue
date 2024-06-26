@@ -114,6 +114,7 @@ import { WASI } from "wasi";
     SpinalTable
   },
   filters: {},
+  
 })
 class dataSideApp extends Vue {
   // @State data!: any[];
@@ -135,6 +136,7 @@ class dataSideApp extends Vue {
   CurrentLoading: boolean;
   displaydata: boolean = false
 
+
   resize() {
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
@@ -147,6 +149,8 @@ class dataSideApp extends Vue {
     this.isBuildingSelected = true;
 
   }
+
+  // double = computed(() => count.value * 2)
 
   async handleItemSelected(payload) {
 

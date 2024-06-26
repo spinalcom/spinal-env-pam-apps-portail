@@ -312,7 +312,6 @@ class App extends Vue {
 
 
   onActionClick({ button, item }) {
-    
     console.warn("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", item);
     // button.onclickEvent = "OPEN_VIEWER"
     

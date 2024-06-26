@@ -22,7 +22,10 @@ with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
 <template>
+
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
+
+
     <div class="selectors">
       <div class="DButton">
         <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()" />
@@ -45,7 +48,7 @@ with this file. If not, see
       <dataSideApp :floor="floor" :DActive="isActive3D" :ActiveData="isActive"
         :class="{ 'active': isActive, 'inactive': isActive3D }" class="appContainer" :config="config"
         :selectedZone="selectedZone" :data="displayedData" @changeRoute="changeApp" @clickOnDataView="onDataViewClicked"
-        @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D">
+        @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D" @full3D="full3D()">
       </dataSideApp>
     </div>
   </v-app>
@@ -127,6 +130,12 @@ class App extends Vue {
   floor: any = null
   async mounted() {
 
+    if (window.innerWidth < 900) {
+      console.log(window.innerWidth);
+      
+      this.isActive = true;
+      this.isActive3D = false;
+    }
 
     try {
       this.pageSate = PAGE_STATES.loading;
@@ -243,6 +252,19 @@ class App extends Vue {
     if (this.isActive)
       this.isActive = false
     this.isActive3D = !this.isActive3D;
+    this.handleRouteChange();
+  }
+
+  full3D() {
+    if (this.isActive) {
+      this.isActive = false
+      this.isActive3D = true;
+    } else {
+      this.isActive = true
+      this.isActive3D = false
+    }
+
+
     this.handleRouteChange();
   }
 
@@ -403,7 +425,7 @@ class App extends Vue {
         this.query.spaceSelectedId = result.node.dynamicId
         this.query.name = result.node.name
         this.query.buildingId = result.node.buildingId
-        
+
 
         const item = {
           buildingId: result.node.buildingId,
@@ -421,20 +443,20 @@ class App extends Vue {
         this.onActionClick({ button, item })
 
         const itemToSelect = {
-        "isOpen": false,
-        "loading": false,
-        "dynamicId": result.node.dynamicId,
-        "name": result.node.name,
-        "buildingId": result.node.buildingId,
-        "type": "geographicFloor",
-      }
+          "isOpen": false,
+          "loading": false,
+          "dynamicId": result.node.dynamicId,
+          "name": result.node.name,
+          "buildingId": result.node.buildingId,
+          "type": "geographicFloor",
+        }
 
-      if (this.$refs['space-selector']) {
-        this.$refs['space-selector'].select(itemToSelect);
-        // this.$refs['space-selector'].closeItem(itemToSelect);
-      }
+        if (this.$refs['space-selector']) {
+          this.$refs['space-selector'].select(itemToSelect);
+          // this.$refs['space-selector'].closeItem(itemToSelect);
+        }
 
-        
+
         // // this.replaceRoute();
         // console.log("ttototo ?", this.query);
 
@@ -515,10 +537,8 @@ export default App;
 .app {
   width: 100%;
   height: 100%;
-
   $selectorHeight: 60px;
-
-
+  overflow: hidden;
 
   ::v-deep .card-colored {
     background-color: #14202c !important;
@@ -541,6 +561,14 @@ export default App;
       height: 60px;
     }
 
+    @media (max-width: 960px) {
+      .DButton {
+        display: none;
+      }
+
+    }
+
+
     .temporality {
       position: relative;
       width: 200px;
@@ -552,6 +580,22 @@ export default App;
       width: 40%;
       height: $selectorHeight;
     }
+
+
+
+
+    @media (max-width: 960px) {
+      .space {
+        position: relative;
+        width: 80%;
+        height: $selectorHeight;
+        margin-top: 2px;
+      }
+
+    }
+
+
+
   }
 
 
@@ -587,6 +631,16 @@ export default App;
       right: 0px;
       margin-right: 6px;
       height: 92%;
+    }
+
+    @media (max-width: 960px) {
+      .active {
+        height: 83vh;
+      }
+
+      .inactive {
+        height: 83vh !important;
+      }
     }
 
     .inactive {
@@ -696,4 +750,3 @@ body {
   min-height: unset !important;
 }
 </style>
-./components/SpaceSelector/index./components/SpaceSelector/spaceSelectorButtons

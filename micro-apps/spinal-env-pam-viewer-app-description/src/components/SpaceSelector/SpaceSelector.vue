@@ -356,6 +356,7 @@ export default SpaceSelector;
   height: 59px;
   background-color: #14202c;
   cursor: pointer;
+  z-index: 99;
 }
 
 .space-selector-header-title {

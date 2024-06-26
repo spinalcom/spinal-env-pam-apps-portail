@@ -26,7 +26,7 @@ import { getBuildings, getBuildingById } from "../../spinalAPI/GeographicContext
 import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
-import { getEquipments, getFloors, getRooms, getStaticDetails,getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails ,postBIMObjectInfo } from "../../spinalAPI/GeographicContext/geographicContext";
+import { getEquipments, getFloors, getRooms, getStaticDetails, getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails, postBIMObjectInfo, getBuildingInfo, getBuildingStaticDetails,getDocumentation, postDownloadFile } from "../../spinalAPI/GeographicContext/geographicContext";
 import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
 import { getMultipleReferenceObjects } from "../../spinalAPI/GeographicContext/getObjectList";
@@ -59,9 +59,20 @@ export const actions = {
 	},
 	async [ActionTypes.GET_BIM_OBJECT_INFO]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: any }): Promise<any> {
 		console.log('arrivé dans laction');
-		
+
 		try {
 			const result = await postBIMObjectInfo(buildingId, referenceIds);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.POST_DOWNLOAD_FILE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: any }): Promise<any> {
+		console.log('arrivé dans laction');
+
+		try {
+			const result = await postDownloadFile(buildingId, referenceIds);
 			return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des objets de référence:', error);
@@ -115,6 +126,43 @@ export const actions = {
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
 			const result = await getFloorStaticDetails(buildingId, referenceIds);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_BUILDING_STATIC_DETAILS]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+		console.log(buildingId , referenceIds , 'RR');
+		
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			console.log('icic ???');
+			
+			const result = await getBuildingStaticDetails(buildingId, referenceIds);
+			return result; 
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_DOCUMENTATION]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+		console.log(buildingId , referenceIds , 'RR');
+		
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getDocumentation(buildingId, referenceIds);
+			return result; 
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
+	async [ActionTypes.GET_BUILDING_INFO]({ commit }: AugmentedActionContextAppData, { buildingId }: { buildingId: string; }): Promise<any> {
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getBuildingInfo(buildingId);
 			return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des objets de référence:', error);
@@ -272,6 +320,12 @@ export const actions = {
 		ViewerManager.getInstance().select(playload);
 	},
 
+	[ActionTypes.HIDE_ITEMS]({ commit, dispatch, state }, playload: any) {
+		//TODO a finir rayane gariel
+		console.log(playload, 'le patload');
+		ViewerManager.getInstance().hide(playload);
+	},
+
 	[ActionTypes.ISOLATE_ITEMS]({ commit, dispatch, state }, playload: any) {
 		console.log(ViewerManager.getInstance(), 'Linstance : le payload : ', playload);
 
@@ -279,7 +333,7 @@ export const actions = {
 		for (let id of playload.item.parents) {
 			const instance = ViewerManager.getInstance();
 			if (instance._viewerStartedList.hasOwnProperty(id.toString())) {
-				console.log('ça a marchééééééééééééééééééééé');
+				// console.log('ça a marchééééééééééééééééééééé');
 				isKeyPresent = true;
 				break;
 			}

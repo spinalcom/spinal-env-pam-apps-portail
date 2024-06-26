@@ -36,9 +36,9 @@ with this file. If not, see
           </button>
         </div>
 
-        <div class="navPickerApp-companyLogo">
+        <!-- <div class="navPickerApp-companyLogo">
           <img :src="logoSvg" />
-        </div>
+        </div> -->
 
       </div>
     </div>
@@ -152,7 +152,7 @@ export default {
 <style lang="scss" scoped>
 .mobile-nav-container {
   position: absolute;
-  width: 450px !important;
+  width: 64px !important;
   height: 60px !important;
   top: 5px;
   left: 0px;
@@ -161,5 +161,11 @@ export default {
 .mobile-nav-container.enabled {
   width: 100vw !important;
   height: 100vh !important;
+}
+
+@media (max-width: 960px) {
+  .navPickerApp {
+    width: 60px; 
+  }
 }
 </style>

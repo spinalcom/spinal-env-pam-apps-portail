@@ -21,7 +21,7 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-import { VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_CONTEXT_MENU_CLICK, EmitterViewerHandler, IDbIdModelAggregate, IContextMenuButton, VIEWER_START_LOAD_MODEL, VIEWER_INITIALIZED, VIEWER_AGGREGATE_SELECTION_CHANGED, VIEWER_SET_CAMERA, VIEWER_SET_CONTEXT_MENU, VIEWER_OBJ_COLOR, VIEWER_ADD_SPRITE, VIEWER_REM_SPRITE, VIEWER_REM_ALL_SPRITE, VIEWER_MOV_SPRITE, VIEWER_ADD_LINE, VIEWER_REM_LINE, VIEWER_MOV_LINE, VIEWER_ADD_SPHERE, VIEWER_REM_SPHERE, VIEWER_MOV_SPHERE, EViewerSetCamera } from "spinal-viewer-event-manager";
+import { VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_CONTEXT_MENU_CLICK, EmitterViewerHandler, IDbIdModelAggregate, IContextMenuButton, VIEWER_START_LOAD_MODEL, VIEWER_INITIALIZED, VIEWER_AGGREGATE_SELECTION_CHANGED, VIEWER_SET_CAMERA, VIEWER_SET_CONTEXT_MENU, VIEWER_OBJ_COLOR, VIEWER_ADD_SPRITE, VIEWER_REM_SPRITE, VIEWER_REM_ALL_SPRITE, VIEWER_MOV_SPRITE, VIEWER_ADD_LINE, VIEWER_REM_LINE, VIEWER_MOV_LINE, VIEWER_ADD_SPHERE, VIEWER_REM_SPHERE, VIEWER_MOV_SPHERE, EViewerSetCamera ,VIEWER_HIDE_ELEMENT } from "spinal-viewer-event-manager";
 import { ViewerUtils } from "../utils/viewerUtils";
 import ModelManager from "./modelManager";
 import { VIEWER_EVENTS } from "../events";
@@ -56,9 +56,19 @@ export class EventManager {
 			});
 
 			emitterHandler.on(VIEWER_OBJ_ISOLATE, (data: any) => {
+				// console.log('RAYANE');
+				
 				if (data && data.length > 0) return viewerUtils.viewerIsolation(viewer, data);
 				viewerUtils.showAllObject(viewer);
 			});
+
+			// emitterHandler.on(VIEWER_HIDE_ELEMENT, (data: any) => {
+			// 	console.warn('toto888888888888888888888888888888');
+				
+			// 	if (data && data.length > 0) return viewerUtils.viewerIsolation(viewer, data);
+			// 	viewerUtils.hideElementsByDbIds(viewer , []);
+				
+			// });
 
 			emitterHandler.on(VIEWER_OBJ_SELECT, (data: any) => {
 				viewerUtils.viewerSelect(viewer, data);
@@ -92,6 +102,8 @@ export class EventManager {
 				viewerUtils.addComponentAsSprite(viewer, data);
 			});
 
+			
+
 			emitterHandler.on(VIEWER_REM_SPRITE, (data: any) => {
 				viewerUtils.removeSprite(viewer, data);
 			});
@@ -121,8 +133,16 @@ export class EventManager {
 			});
 
 			emitterHandler.on(VIEWER_REM_SPHERE, (data: any) => {
-				viewerUtils.removeSphere(viewer, data);
+				console.log('GABRIEL', data);
+				
+				// viewerUtils.removeSphere(viewer, data);
+				// console.log('RAAAAAAAAAYYYYYYYYYYANNNNE');
+				
+				if (data && data.length > 0) return viewerUtils.hideElementsByDbIds(viewer, [4247]);
+				viewerUtils.hideElementsByDbIds(viewer , [4247]);
+				
 			});
+			
 
 			emitterHandler.on(VIEWER_MOV_SPHERE, (data: any) => {
 				viewerUtils.moveSphere(viewer, data);

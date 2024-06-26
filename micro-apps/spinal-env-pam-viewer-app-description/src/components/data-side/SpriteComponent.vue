@@ -3,7 +3,9 @@
   <div class="menu">
     <!-- <v-icon>mdi-chevron-left</v-icon> -->
     <div v-if="isopen" ref="container" class="container">
-      <div @click="close()" style="justify-content: center;align-items: center;display: flex;background-color: white;cursor: pointer;border-radius: 25px;width: 20px; height: 20px;position: absolute;right: -8px;font-size: 13px;z-index: 9;top: 3px;font-weight: bold;border: 1px solid gray;color: #14202c;">X</div>
+      <div @click="close()"
+        style="justify-content: center;align-items: center;display: flex;background-color: white;cursor: pointer;border-radius: 25px;width: 20px; height: 20px;position: absolute;right: -8px;font-size: 13px;z-index: 9;top: 3px;font-weight: bold;border: 1px solid gray;color: #14202c;">
+        X</div>
       <div class="card">
         <div class="top-section">
           <div class="border"></div>
@@ -12,16 +14,22 @@
               {{ data.name }}
             </div>
             <div
-              style="justify-content: center;align-items: center;display: flex;background-color: #14202c;cursor: pointer;width: 20px; height: 20px;position: absolute;right: 15px;font-size: 20px;transform: translateY(-4px);"
+              style="justify-content: center;align-items: center;display: flex;background-color: #14202c;cursor: pointer;width: 16px; height: 16px;position: absolute;right: 80px;font-size: 17px;transform: translateY(-3px);"
               @click="onClickNavigate()">
               &#x21AA;
             </div>
-            
+
             <div class="social-media">
-              <!-- {{ parseFloat(data.data.attributsList[0].attributs[4].value.toFixed(1)) }}m² -->
+              <div v-if="useFullDAta && useFullDAta.attributsList">
+                <div v-for="attribut in useFullDAta.attributsList" :key="attribut.label">
+                  <div style="margin-top: 4px;" v-if="attribut.label === 'area'">
+                    {{ parseFloat(attribut.value).toFixed(1) }}m²
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div style="display : flex ; flex-direction: column ; width: 100%;">
+          <!-- <div style="display : flex ; flex-direction: column ; width: 100%;">
             <div style="width: 100%;">
               <div style="display: flex;margin-top: 10px">
                 <div
@@ -31,7 +39,7 @@
                     PRÉSENCE</div>
                   <div
                     style="display: flex;justify-content: center; align-items: center;color: #14202c; font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
-                    <!-- {{ data.data.controlEndpoint[0].endpoints[0].value }} -->
+                    {{ data.data.controlEndpoint[0].endpoints[0].value }}
                   </div>
                 </div>
                 <div
@@ -41,14 +49,16 @@
                     occupation</div>
                   <div
                     style="display: flex;justify-content: center; align-items: center;;color: #14202c;font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
-                    <!-- {{ parseFloat(data.data.controlEndpoint[0].endpoints[1].value.toFixed(1)) }}% -->
+                    {{ parseFloat(data.data.controlEndpoint[0].endpoints[1].value.toFixed(1)) }}%
                   </div>
                 </div>
-                <!-- <div
+                <div
                 style="border: 1px solid green;border-radius: 5px;color:green ; padding : 2px; font-size: 11px;font-weight: bold;margin-left:10px ;width: 50%;">
-                taux d'occupation : {{ parseFloat(data.data.controlEndpoint[0].endpoints[1].value.toFixed(1)) }}%</div> -->
+                taux d'occupation : {{ parseFloat(data.data.controlEndpoint[0].endpoints[1].value.toFixed(1)) }}%</div>
               </div>
               <div style="display: flex;margin-top : 10px;margin-bottom: 10px">
+
+
                 <div
                   style="border: 1px solid  #14202c;border-radius: 5px;color: orange; font-size: 11px;font-weight: bold;width: 50%;">
                   <div
@@ -56,9 +66,12 @@
                     TEMPERATURE</div>
                   <div
                     style="display: flex;justify-content: center; align-items: center;;color: #14202c;font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
-                    <!-- {{ data.data.controlEndpoint[1].endpoints[0].value }}C° -->
+                    {{ data.data.controlEndpoint[1].endpoints[0].value }}C°
                   </div>
                 </div>
+
+
+
                 <div
                   style="border: 1px solid  #14202c;border-radius: 5px;color: orange; font-size: 11px;font-weight: bold;width: 50%;margin-left:10px ">
                   <div
@@ -69,21 +82,55 @@
                     xx</div>
                 </div>
 
-            
 
-                <!-- <div
+
+
+                <div
                 style="border: 1px solid blue;border-radius: 5px;color: blue ; padding : 2px; font-size: 11px;font-weight: bold;width: 50%;">
                 temperature : {{ data.data.controlEndpoint[1].endpoints[0].value }}C°</div>
               <div
                 style="border: 1px solid yellow;border-radius: 5px;color : yellow ; padding : 2px; font-size: 11px;font-weight: bold;margin-left:10px; width: 50%;">
-                CO2/QUALITÉ D'AIRE</div> -->
+                CO2/QUALITÉ D'AIRE</div>
               </div>
 
             </div>
+          </div> -->
+
+          <div id="attr_id"
+            style="display: flex; flex-wrap: wrap; overflow-y: scroll; justify-content: center; gap: 5px;  border-radius: 5px;  ">
+            <div v-for="attribut in useFullDAta.attributsList" :key="attribut.label"
+              style="border: 1px solid #14202c; border-radius: 5px; font-size: 11px; font-weight: bold; width: calc(50% - 20px); margin: 5px; overflow: hidden; max-height: 100px; flex-grow: 1; flex-basis: calc(50% - 20px);">
+              <div
+                style="display: flex; justify-content: center; align-items: center; color: white; background: #14202c;">
+                {{ attribut.label.toUpperCase() }}
+              </div>
+              <div :title="attribut.value" style="display: flex; justify-content: center; align-items: center; color: #14202c; font-size: 13px; background-color: white; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px;white-space: nowrap;
+  text-overflow: ellipsis; overflow: hidden;">
+                {{ attribut.value }}
+              </div>
+            </div>
           </div>
+
+
+
+
+
 
         </div>
         <div
+          style="display: flex; align-items: center; flex-direction: row; width: 100%; justify-content: center; transform: translate(0, 10px);">
+
+          <button v-for="app in useFullDAta.app"
+            style="background-color: #14202c; color: white; width: 50%; font-weight: bold; border-radius: 5px; font-size: 12px; margin: 4px;"
+            @click.stop="changeRoute(app.id)">
+            {{ app.value }}
+          </button>
+
+        </div>
+
+
+
+        <!-- <div
           style="display:flex;align-items: center; flex-direction: row;width: 100%;justify-content: space-around;transform: translate(0,10px);">
           <button
             style="background-color: #14202c ;color: white; width:50%; font-weight: bold;border-radius: 5px;font-size: 12px;width: 35%;"
@@ -95,10 +142,18 @@
             @click.stop="changeRoute('insight')">
             Insight
           </button>
-        </div>
+        </div> -->
+
+        
         <div class="bottom-section">
-          <span class="title">Contenu de la piece</span>
-          <div class="row row1">
+          
+          <div  v-if="useFullDAta.bimObjects" style="width: 98%;color: #14202c;border: 1px solid gray;border-radius: 5px;font-weight: bold;padding-left:5px ;">Nombre de BimObject : {{ useFullDAta.bimObjects }} </div>
+
+
+          <span v-if="useFullDAta.controlEndpoint" class="title">Points de mesures</span>
+
+
+          <!-- <div class="row row1">
             <div
               style="border-right:1px solid  rgb(215, 215, 215);;border-top:1px solid  rgb(215, 215, 215); background-color: rgb(230, 230, 230);"
               class="item">
@@ -108,16 +163,31 @@
             <div
               style="border-right:1px solid  rgb(215, 215, 215);;border-top:1px solid rgb(215, 215, 215);background-color: rgb(230, 230, 230);"
               class="item">
-              <span class="big-text">XX</span>
+              <span class="big-text">XX</span>align-items: center;
               <span class="regular-text">multicapteurs</span>
             </div>
             <div
-              style="border-right:1px solid  rgb(215, 215, 215);;border-top:1px solid  rgb(215, 215, 215); ; background-color: rgb(230, 230, 230);"
+              style="border-right:1px solid  rgb(215, 215, 215);border-top:1px solid  rgb(215, 215, 215); ; background-color: rgb(230, 230, 230);"
               class="item">
               <span class="big-text">XX</span>
               <span class="regular-text">Ventilo-convecteur</span>
             </div>
+            
+          </div> -->
+
+          <div v-if="useFullDAta.controlEndpoint" class="row row1">
+            <div v-for="(item, index) in useFullDAta.controlEndpoint" :key="index" :style="{
+              borderRight: '1px solid rgb(215, 215, 215)',
+              borderTop: '1px solid rgb(215, 215, 215)',
+              backgroundColor: 'rgb(230, 230, 230)',
+              fontWeight: 'bold'
+            }" class="item">
+              <span class="big-text">{{ roundValue(item.value) }}</span>
+              <span class="regular-text">{{ item.name }} {{ item.unit }}</span>
+            </div>
           </div>
+
+
         </div>
       </div>
     </div>
@@ -130,9 +200,11 @@ import {
   VIEWER_SPRITE_CLICK,
 } from "spinal-viewer-event-manager";
 
+
 export default {
   props: {
     data: {},
+
   },
   filters: {
     round(value) {
@@ -147,7 +219,7 @@ export default {
       }
     },
   },
-  
+
   data: () => ({
     isopen: true,
     showAttr: false,
@@ -161,8 +233,13 @@ export default {
       background: '#13A9E0'
     },
     isClicked: false,
+    useFullDAta: false,
   }),
   mounted() {
+
+    console.log('totot l element est monté avec ,', this.data.config.SpriteComponent, this.data.data);
+
+    this.extractUsefulData(this.data.config.SpriteComponent, this.data.data)
     // document.addEventListener("click", (evt) => {
     //   evt.stopPropagation();
     //   const flyoutEl = this.$refs.container;
@@ -190,16 +267,62 @@ export default {
 
   },
   methods: {
+
+    extractUsefulData(data, sourceData) {
+      const usefulData = {};
+
+      data.forEach(item => {
+        if (item.name === 'attributsList') {
+          sourceData.attributsList.forEach(attribut => {
+            if (attribut.name === item.categorie) {
+              if (item.value == null) {
+                usefulData['attributsList'] = [...(usefulData['attributsList'] || []), ...attribut.attributs];
+              } else {
+                attribut.attributs.forEach(attr => {
+                  if (item.value == attr.label) {
+                    usefulData['attributsList'] = [...(usefulData['attributsList'] || []), attr];
+                  }
+                });
+              }
+            }
+          });
+        } else if (item.name === "bimObjects") {
+          usefulData['bimObjects'] = sourceData.bimObjects?.length;
+        } else if (item.name === "controlEndpoint") {
+
+          sourceData.controlEndpoint.forEach(ctrEndpoints => {
+            if (ctrEndpoints.profileName == item.categorie) {
+              if (item.value == null) {
+                usefulData['controlEndpoint'] = [...(usefulData['controlEndpoint'] || []), ...ctrEndpoints.endpoints];
+              } else {
+                ctrEndpoints.endpoints.forEach(endpoint => {
+                  if (item.value == endpoint.name) {
+                    usefulData['controlEndpoint'] = [...(usefulData['controlEndpoint'] || []), endpoint];
+                  }
+                });
+              }
+            }
+          });
+        } else if (item.name == "app") {
+          usefulData['app'] = [...(usefulData['app'] || []), item]
+        }
+      });
+
+      console.log(usefulData);
+      this.useFullDAta = usefulData;
+    }
+    ,
+    roundValue(value) {
+      return typeof value === 'number' ? value.toFixed(2) : value;
+    }
+    ,
+
     close() {
       this.isopen = false;
     },
     changeRoute(route) {
       const query = {}
-      if (route == 'insight')
-        query.app = "eyJuYW1lIjoiSW5zaWdodHMiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImIwZTEtNzI3NS02YWNhLTE4ZjJlMjE1NmE4IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxNDQ2NTk0NzM4MCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0NDY1ODg3OTEyLCJpY29uIjoibWRpLWN1cnRhaW5zLWNsb3NlZCIsImRlc2NyaXB0aW9uIjoiSU5zaWdodHMiLCJ0YWdzIjpbIkluc2lnaHRzIl0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0taW5zaWdodHMiLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiMzdkZS0wMmI4LWUxOGItMTg1MDY0M2I2OGEiLCJidWlsZGluZ0lkIjoiNTkzMi02MDg2LTllMWEtMTg1MDY0Nzg0NjAifX0"
-      else {
-        query.app = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiZWI0ZC1hM2MxLWVmMTEtMThmMjBkZGM5YzciLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0MjQzMzcyMzcxLCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTQyNDMzNTcxMjcsImljb24iOiJtZGktdGlja2V0LWFjY291bnQiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOlsidGlja2V0Il0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
-      }
+      query.app = route
       query.buildingId = this.data.buildingId
       query.spaceSelectedId = this.data.dynamicId
       query.name = this.data.name
@@ -292,6 +415,35 @@ export default {
 </script>
 
 <style scoped>
+#attr_id::-webkit-scrollbar {
+  width: 7px;
+  /* Width of the entire scrollbar */
+}
+
+#attr_id::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  /* Color of the track */
+  border-radius: 10px;
+}
+
+#attr_id::-webkit-scrollbar-thumb {
+  background: #dadada;
+  /* Color of the scrollbar handle */
+  border-radius: 10px;
+  border: 1px solid gray;
+}
+
+#attr_id::-webkit-scrollbar-thumb:hover {
+  background: #c5c5c5;
+  /* Color of the scrollbar handle on hover */
+}
+
+#attr_id {
+  z-index: 5;
+  height: 120px;
+}
+
+
 .category {
   background-color: rgb(245, 245, 245);
   margin-top: 8px;
@@ -648,15 +800,16 @@ export default {
   aspect-ratio: 1;
   /* padding:  */
   white-space: nowrap;
+  text-overflow: ellipsis;
   font-weight: 15px;
   color: #14202c;
   font-weight: bold;
   font-size: 15;
   margin-top: 6px;
   /* background-color: red; */
-  text-overflow: ellipsis;
+
   overflow: hidden;
-  width: 70%;
+  width: 60%;
 }
 
 .card .top-section .icons .logo .top-section {
@@ -684,6 +837,10 @@ export default {
 .card .bottom-section {
   margin-top: 15px;
   padding: 10px 5px;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .card .bottom-section .title {
