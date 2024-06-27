@@ -5,7 +5,7 @@
     <div v-if="isopen" ref="container" class="container">
 
       <div @click="close()"
-        style="justify-content: center;align-items: center;display: flex;background-color: white;cursor: pointer;border-radius: 25px;width: 20px; height: 20px;position: absolute;right: -8px;font-size: 13px;z-index: 9;top: 3px;font-weight: bold;border: 1px solid gray;color: #14202c;">
+        style="justify-content: center;align-items: center;display: flex;background-color: white;cursor: pointer;border-radius: 25px;width: 60px; height: 60px;position: absolute;left: 100%;font-size: 13px;z-index: 9;bottom: 0px;font-weight: bold;border: 1px solid gray;color: #14202c;">
         X</div>
       <div class="card">
         <div class="top-section">
@@ -324,7 +324,7 @@ export default {
     ,
 
     close() {
-      this.isopen = false;
+      this.$emit('close');
     },
     changeRoute(route) {
       const query = {}
@@ -741,6 +741,7 @@ export default {
   box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 20px 0px;
   transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative !important;
+  transform: translate(-21px, 10px);
 }
 
 /* 

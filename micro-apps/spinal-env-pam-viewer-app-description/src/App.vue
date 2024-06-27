@@ -129,7 +129,8 @@ class App extends Vue {
   };
   floor: any = null
   async mounted() {
-
+    console.log(window.parent.router.path , 'toto');
+    
     if (window.innerWidth < 900) {
       console.log(window.innerWidth);
       
