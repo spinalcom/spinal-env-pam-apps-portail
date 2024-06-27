@@ -423,6 +423,8 @@ class dataSideApp extends Vue {
       console.warn(this.buildingInfo[0].dynamicId, '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
 
       const result = await this.getBuildingStaticDetails();
+      console.log(result, '??????????????');
+      
       this.floorstaticDetails = result
       this.filteredEndpoints('building')
       this.filtredAttribut('building')
