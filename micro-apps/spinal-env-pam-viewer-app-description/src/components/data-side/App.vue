@@ -1377,11 +1377,7 @@ a {
   height: 25%;
 }
 
-@media (max-width: 960px) {
-  // .description {
-  //   display: ;
-  // }
-}
+
 
 
 .container_cards {

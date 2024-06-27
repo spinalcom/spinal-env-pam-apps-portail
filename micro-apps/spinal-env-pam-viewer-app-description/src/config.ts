@@ -61,12 +61,12 @@ export const config: IConfig = {
 			type: "controlEndpoint",
 			unit: "nbr de ctrlpts"
 		},
-		// {
-		// 	name: "Voir les tickets du bâtiment",
-		// 	id: "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiZWI0ZC1hM2MxLWVmMTEtMThmMjBkZGM5YzciLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0MjQzMzcyMzcxLCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTQyNDMzNTcxMjcsImljb24iOiJtZGktdGlja2V0LWFjY291bnQiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOlsidGlja2V0Il0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ",
-		// 	type: "tickets",
-		// 	unit: "nbr de ticket"
-		// }
+		{
+			name: "Voir les tickets du bâtiment",
+			id: "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0czIiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6IjI0ZGMtZDhkNi1hZTdmLTE5MDU5YWMwYTViIiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxOTQ5MTM3NzA4MSwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE5NDkxMzY1NDY3LCJpY29uIjoibWRpLXRpY2tldC1vdXRsaW5lIiwiZGVzY3JpcHRpb24iOiJ0aWNrZXRzMiIsInRhZ3MiOlsic3BpbmFsLWVudi1wYW0tdGlja2V0czIiXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS10aWNrZXRzMiIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ",
+			type: "tickets",
+			unit: "nbr de ticket"
+		}
 		// ,
 		// {
 		// 	name: "Dashboard d'energie globale",
