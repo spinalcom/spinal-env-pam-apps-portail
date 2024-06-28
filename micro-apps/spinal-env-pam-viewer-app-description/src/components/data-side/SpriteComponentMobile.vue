@@ -1,39 +1,40 @@
 <template>
+  <div class="total">
+    <!-- <div @click="close()"
+          style="background-color: white; width: 50px; height: 50px; position: absolute; bottom: 20px; right: 20px; z-index: 9999; border-radius: 5px; border: 2px solid rgb(20, 32, 44); justify-content: center; align-items: center; display: flex;">
+          X</div> -->
+    <div class="menu">
+      <!-- <v-icon>mdi-chevron-left</v-icon> -->
+      <div v-if="isopen" ref="container" class="container">
 
-  <div class="menu">
-    <!-- <v-icon>mdi-chevron-left</v-icon> -->
-    <div v-if="isopen" ref="container" class="container">
+        
+        <div class="card">
+          <div class="top-section">
+            <div class="border"></div>
+            <div class="icons">
+              <div :title="data.name" class="logo">
+                {{ data.name }}
+              </div>
+              <div
+                style="justify-content: center;align-items: center;display: flex;background-color: #14202c;cursor: pointer;width: 16px; height: 16px;position: absolute;right: 80px;font-size: 17px;transform: translateY(-3px);"
+                @click="onClickNavigate()">
+                &#x21AA;
+              </div>
 
-      <div @click="close()"
-        style="justify-content: center;align-items: center;display: flex;background-color: white;cursor: pointer;border-radius: 25px;width: 60px; height: 60px;position: absolute;left: 100%;font-size: 13px;z-index: 9;bottom: 0px;font-weight: bold;border: 1px solid gray;color: #14202c;">
-        X</div>
-      <div class="card">
-        <div class="top-section">
-          <div class="border"></div>
-          <div class="icons">
-            <div :title="data.name" class="logo">
-              {{ data.name }}
-            </div>
-            <div
-              style="justify-content: center;align-items: center;display: flex;background-color: #14202c;cursor: pointer;width: 16px; height: 16px;position: absolute;right: 80px;font-size: 17px;transform: translateY(-3px);"
-              @click="onClickNavigate()">
-              &#x21AA;
-            </div>
-
-            <div class="social-media">
-              <div v-if="useFullDAta && useFullDAta.attributsList">
-                <div v-for="attribut in useFullDAta.attributsList" :key="attribut.label">
-                  <div style="margin-top: 4px;" v-if="attribut.label === 'area'">
-                    {{ parseFloat(attribut.value).toFixed(1) }}m²
+              <div class="social-media">
+                <div v-if="useFullDAta && useFullDAta.attributsList">
+                  <div v-for="attribut in useFullDAta.attributsList" :key="attribut.label">
+                    <div style="margin-top: 4px;" v-if="attribut.label === 'area'">
+                      {{ parseFloat(attribut.value).toFixed(1) }}m²
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
 
 
-          <!-- <div style="display : flex ; flex-direction: column ; width: 100%;">
+            <!-- <div style="display : flex ; flex-direction: column ; width: 100%;">
             <div style="width: 100%;">
               <div style="display: flex;margin-top: 10px">
                 <div
@@ -100,41 +101,41 @@
             </div>
           </div> -->
 
-          <div id="attr_id"
-            style="display: flex; flex-wrap: wrap; overflow-y: scroll; justify-content: center; gap: 5px;  border-radius: 5px;  ">
-            <div v-for="attribut in useFullDAta.attributsList" :key="attribut.label"
-              style="border: 1px solid #14202c; border-radius: 5px; font-size: 11px; font-weight: bold; width: calc(50% - 20px); margin: 5px; overflow: hidden; max-height: 100px; flex-grow: 1; flex-basis: calc(50% - 20px);">
-              <div
-                style="display: flex; justify-content: center; align-items: center; color: white; background: #14202c;">
-                {{ attribut.label.toUpperCase() }}
-              </div>
-              <div :title="attribut.value" style="display: flex; justify-content: center; align-items: center; color: #14202c; font-size: 13px; background-color: white; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px;white-space: nowrap;
+            <div id="attr_id"
+              style="display: flex; flex-wrap: wrap; overflow-y: scroll; justify-content: center; gap: 5px;  border-radius: 5px;  ">
+              <div v-for="attribut in useFullDAta.attributsList" :key="attribut.label"
+                style="border: 1px solid #14202c; border-radius: 5px; font-size: 11px; font-weight: bold; width: calc(50% - 20px); margin: 5px; overflow: hidden; max-height: 100px; flex-grow: 1; flex-basis: calc(50% - 20px);">
+                <div
+                  style="display: flex; justify-content: center; align-items: center; color: white; background: #14202c;">
+                  {{ attribut.label.toUpperCase() }}
+                </div>
+                <div :title="attribut.value" style="display: flex; justify-content: center; align-items: center; color: #14202c; font-size: 13px; background-color: white; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px;white-space: nowrap;
   text-overflow: ellipsis; overflow: hidden;">
-                {{ attribut.value }}
+                  {{ attribut.value }}
+                </div>
               </div>
             </div>
+
+
+
+
+
+
+          </div>
+          <div
+            style="display: flex; align-items: center; flex-direction: row; width: 100%; justify-content: center; transform: translate(0, 10px);">
+
+            <button v-for="app in useFullDAta.app"
+              style="background-color: #14202c; color: white; width: 50%; font-weight: bold; border-radius: 5px; font-size: 12px; margin: 4px;"
+              @click.stop="changeRoute(app.id)">
+              {{ app.value }}
+            </button>
+
           </div>
 
 
 
-
-
-
-        </div>
-        <div
-          style="display: flex; align-items: center; flex-direction: row; width: 100%; justify-content: center; transform: translate(0, 10px);">
-
-          <button v-for="app in useFullDAta.app"
-            style="background-color: #14202c; color: white; width: 50%; font-weight: bold; border-radius: 5px; font-size: 12px; margin: 4px;"
-            @click.stop="changeRoute(app.id)">
-            {{ app.value }}
-          </button>
-
-        </div>
-
-
-
-        <!-- <div
+          <!-- <div
           style="display:flex;align-items: center; flex-direction: row;width: 100%;justify-content: space-around;transform: translate(0,10px);">
           <button
             style="background-color: #14202c ;color: white; width:50%; font-weight: bold;border-radius: 5px;font-size: 12px;width: 35%;"
@@ -149,17 +150,17 @@
         </div> -->
 
 
-        <div class="bottom-section">
+          <div class="bottom-section">
 
-          <div v-if="useFullDAta.bimObjects"
-            style="width: 98%;color: #14202c;border: 1px solid gray;border-radius: 5px;font-weight: bold;padding-left:5px ;">
-            Nombre de BimObject : {{ useFullDAta.bimObjects }} </div>
-
-
-          <span v-if="useFullDAta.controlEndpoint" class="title">Points de mesures</span>
+            <div v-if="useFullDAta.bimObjects"
+              style="width: 98%;color: #14202c;border: 1px solid gray;border-radius: 5px;font-weight: bold;padding-left:5px ;">
+              Nombre de BimObject : {{ useFullDAta.bimObjects }} </div>
 
 
-          <!-- <div class="row row1">
+            <span v-if="useFullDAta.controlEndpoint" class="title">Points de mesures</span>
+
+
+            <!-- <div class="row row1">
             <div
               style="border-right:1px solid  rgb(215, 215, 215);;border-top:1px solid  rgb(215, 215, 215); background-color: rgb(230, 230, 230);"
               class="item">
@@ -181,19 +182,20 @@
             
           </div> -->
 
-          <div v-if="useFullDAta.controlEndpoint" class="row row1">
-            <div v-for="(item, index) in useFullDAta.controlEndpoint" :key="index" :style="{
-              borderRight: '1px solid rgb(215, 215, 215)',
-              borderTop: '1px solid rgb(215, 215, 215)',
-              backgroundColor: 'rgb(230, 230, 230)',
-              fontWeight: 'bold'
-            }" class="item">
-              <span class="big-text">{{ roundValue(item.value) }}</span>
-              <span class="regular-text">{{ item.name }} {{ item.unit }}</span>
+            <div v-if="useFullDAta.controlEndpoint" class="row row1">
+              <div v-for="(item, index) in useFullDAta.controlEndpoint" :key="index" :style="{
+                borderRight: '1px solid rgb(215, 215, 215)',
+                borderTop: '1px solid rgb(215, 215, 215)',
+                backgroundColor: 'rgb(230, 230, 230)',
+                fontWeight: 'bold'
+              }" class="item">
+                <span class="big-text">{{ roundValue(item.value) }}</span>
+                <span class="regular-text">{{ item.name }} {{ item.unit }}</span>
+              </div>
             </div>
+
+
           </div>
-
-
         </div>
       </div>
     </div>
@@ -741,7 +743,10 @@ export default {
   box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 20px 0px;
   transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative !important;
-  transform: translate(-21px, 10px);
+  /* transform: translate(-21px, 10px); */
+  transform: translate(-52%, -50%);
+  left: 50VW;
+  top: 50vh;
 }
 
 /* 
@@ -885,5 +890,16 @@ export default {
 .card .bottom-section .row .item:nth-child(2) {
   border-left: 1px solid rgba(255, 255, 255, 0.126);
   border-right: 1px solid rgba(255, 255, 255, 0.126);
+}
+
+.total {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(128, 128, 128, 0.493);
+  top: 0px;
+  left: 0px;
+  margin: none;
+  padding: none;
 }
 </style>
