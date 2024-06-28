@@ -26,7 +26,7 @@ with this file. If not, see
   <div>
     <v-card elevation="4" class="cardContainer">
       <!-- configuration de la légende (affichage et couleur des sprites)-->
-      <v-card v-if="!chartViewDisplay" class="d-flex flex-column justify-space-around align-center hide_inverse " style="
+      <v-card v-if="!chartViewDisplay" class="d-flex flex-column justify-space-around align-center  switchmobile" style="
           position: absolute;
           left: -75px;
           width: 70px;
@@ -58,7 +58,7 @@ with this file. If not, see
           }"></div>
           <div style="font-size: 13px">{{ legend.max.value }}</div>
         </div>
-        <v-btn icon @click="dialog = true"><v-icon>mdi-cog</v-icon></v-btn>
+        <v-btn class="hide_inverse" icon @click="dialog = true"><v-icon>mdi-cog</v-icon></v-btn>
       </v-card>
 
       <div class="hide" @click="() => {
@@ -820,6 +820,16 @@ export { InsightApp };
 export default InsightApp;
 </script>
 <style lang="scss">
+
+@media (max-width: 970px) {
+  .switchmobile {
+    //background-color: red !important;
+    top: 53px !important;
+  }
+}
+
+
+
 .cardContainer {
   width: 100%;
   height: 100%;
