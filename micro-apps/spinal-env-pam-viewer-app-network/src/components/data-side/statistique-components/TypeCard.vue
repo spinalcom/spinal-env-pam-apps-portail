@@ -76,7 +76,7 @@ class TypeCard extends Vue {
   }
   displayTypologies(typologieCounts) {
     const container = document.getElementById("typologie-container");
-    container.innerHTML = "";
+    // container.innerHTML = "";
 
     for (const [typologie, count] of Object.entries(typologieCounts)) {
       const typologieBox = document.createElement("div");
@@ -85,7 +85,7 @@ class TypeCard extends Vue {
           <h2>${count}</h2>
           <p>${typologie}</p>
         `;
-      container.appendChild(typologieBox);
+      // container.appendChild(typologieBox);
     }
   }
 }

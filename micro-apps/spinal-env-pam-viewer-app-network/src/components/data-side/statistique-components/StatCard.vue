@@ -25,9 +25,23 @@ with this file. If not, see
   <div class="container">
     <div class="title-container">
       <p class="stat-title">Status Overview</p>
-
+      <!-- <button
+        
+        style="border: 1px solid black; padding: 5px"
+      >
+        go to tickets apps
+      </button> -->
       <div class="stat-num">
-        <div class="app-button">Tickets</div>
+        <div
+          class="app-button"
+          @click="
+            () => {
+              $emit('changeRoute', tickets);
+            }
+          "
+        >
+          Tickets
+        </div>
         <div class="leftarrow"></div>
       </div>
     </div>
@@ -71,6 +85,8 @@ class StatCard extends Vue {
   @Prop() dataprop: any[];
 
   totalNodes: number = 0;
+  tickets: string =
+    "eyJuYW1lIjoidHQiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6IjA3M2ItNjBmZi1mYTYzLTE5MDVhMmFkMzhhIiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxOTQ5OTY4Nzg0NCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE5NDk5Njc0NTA2LCJpY29uIjoiIiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJtaWNyby1hcHBzLXNwaW5hbC1lbnYtcGFtLXRpY2tldHMiLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiNjEzYS00MWQxLTEyZTItMTkwMzRiYjZlYmIiLCJidWlsZGluZ0lkIjoiYmM5My04ZTA2LWM2YmQtMTkwMzRiY2ZmNTcifX0";
   statusCounts: { active: number; inactive: number; unknown: number } = {
     active: 0,
     inactive: 0,

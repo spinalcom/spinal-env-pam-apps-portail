@@ -225,6 +225,7 @@ class App extends Vue {
 
   changeApp(e) {
     this.query.app = e;
+    console.log("changeApp", e);
     this.changeRoute();
   }
 
@@ -293,13 +294,14 @@ class App extends Vue {
   }
   replaceRoute() {
     window.parent.routerFontion.customReplace(
-      // window.parent.router.path,
+      window.parent.router.path,
       this.query
     );
   }
   changeRoute() {
+    console.log("changeRoute", this.query);
     window.parent.routerFontion.customPush(
-      // window.parent.router.path,
+      window.parent.router.path,
       this.query
     );
   }
@@ -559,6 +561,7 @@ export default App;
       margin-right: 6px;
       height: 92%;
       right: 0px;
+      z-index: 3;
     }
     .active {
       width: 98.5%;

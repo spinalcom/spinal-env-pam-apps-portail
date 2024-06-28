@@ -1,5 +1,5 @@
 <!-- 
-Copyright 2023 SpinalCom - www.spinalcom.com
+Copyright 2024 SpinalCom - www.spinalcom.com
 
 This file is part of SpinalCore.
 
@@ -186,10 +186,22 @@ class dataSideApp extends Vue {
   retry: Function;
   insights =
     "eyJuYW1lIjoiSW5zaWdodHMiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImIwZTEtNzI3NS02YWNhLTE4ZjJlMjE1NmE4IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxNDQ2NTk0NzM4MCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0NDY1ODg3OTEyLCJpY29uIjoibWRpLWN1cnRhaW5zLWNsb3NlZCIsImRlc2NyaXB0aW9uIjoiSU5zaWdodHMiLCJ0YWdzIjpbIkluc2lnaHRzIl0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0taW5zaWdodHMiLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiMzdkZS0wMmI4LWUxOGItMTg1MDY0M2I2OGEiLCJidWlsZGluZ0lkIjoiNTkzMi02MDg2LTllMWEtMTg1MDY0Nzg0NjAifX0";
-  // tickets =
-  //   "eyJuYW1lIjoiVGlja2V0IiwidHlwZSI6IkJ1aWxkaW5nQXBwIiwiaWQiOiJmNmE5LWQ3YmMtNTViMC0xOGYxMDBmYmViOCIsImRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTM5NjE0NDQzMjQsImluZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxMzk2MTQxODQyNCwiaWNvbiI6Im1kaS1hYmFjdXMiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOltdLCJjYXRlZ29yeU5hbWUiOiIiLCJncm91cE5hbWUiOiIiLCJoYXNWaWV3ZXIiOmZhbHNlLCJwYWNrYWdlTmFtZSI6Im1pY3JvLWFwcHMtc3BpbmFsLWVudi1wYW0tdGlja2V0cyIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ";
+  tickets: string =
+    "eyJuYW1lIjoidHQiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6IjA3M2ItNjBmZi1mYTYzLTE5MDVhMmFkMzhhIiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxOTQ5OTY4Nzg0NCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE5NDk5Njc0NTA2LCJpY29uIjoiIiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJtaWNyby1hcHBzLXNwaW5hbC1lbnYtcGFtLXRpY2tldHMiLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiNjEzYS00MWQxLTEyZTItMTkwMzRiYjZlYmIiLCJidWlsZGluZ0lkIjoiYmM5My04ZTA2LWM2YmQtMTkwMzRiY2ZmNTcifX0";
 
   selectedNodeIndex: number | null = null;
+  spriteIds: number[] = [];
+
+  equipementsXYZ: {
+    dynamicId: number;
+    X: number;
+    Y: number;
+    Z: number;
+    parent?: number;
+    typologie?: string;
+  }[] = [];
+  contextType: "networkTreeContext";
+  selectedSprites = [];
 
   resize() {
     setTimeout(() => {
@@ -199,186 +211,221 @@ class dataSideApp extends Vue {
   async mounted() {
     this.pageSate = PAGE_STATES.loaded;
     this.isBuildingSelected = true;
+    // this.retriveData();
   }
 
-  equipementsXYZ: {
-    dynamicId: number;
-    X: number;
-    Y: number;
-    Z: number;
-    parent?: number;
-  }[] = [];
-  contextType: "networkTreeContext";
-  selectedSprites = [];
-
   async retriveData() {
+    console.log("retriveData", this.selectedZone.name);
+    // this.$store.commit(MutationTypes.SET_DATA, []);
+    console.log("retriveData data", this.data);
     try {
       this.pageSate = PAGE_STATES.loading;
       const buildingId = localStorage.getItem("idBuilding");
-      const patrimoineString = localStorage.getItem("patrimoine");
-
-      const patrimoineId = patrimoineString
-        ? JSON.parse(patrimoineString).id
-        : null;
-
-      const contextpromises = [
-        this.$store.dispatch(ActionTypes.GET_CONTEXT, {
-          buildingId,
-          patrimoineId,
-        }),
-      ];
-      const ctxresult = await Promise.all(contextpromises);
-      const filteredCtx = ctxresult
-        .flat()
-        .filter((item) => item.type === "networkTreeContext");
-      let contextId = filteredCtx[0].dynamicId;
-      const floorpromises = [
-        this.$store.dispatch(ActionTypes.GET_CHILDREN, {
-          buildingId,
-          patrimoineId,
-          nodeId: contextId,
-        }),
-      ];
-      let floorresult = await Promise.all(floorpromises);
-      floorresult = floorresult.flat();
-      console.log("floorresult", floorresult[0]);
-      let nodeId = floorresult[0].dynamicId;
-      let relation = "hasNetworkTreeBimObject";
-
-      const automates = [
-        this.$store.dispatch(ActionTypes.GET_CHILDREN_BY_RELATION, {
-          buildingId,
-          patrimoineId,
-          nodeId: nodeId,
-          relation: relation,
-        }),
-      ];
-      let childrenbyrelation = await Promise.all(automates);
-      childrenbyrelation = childrenbyrelation.flat();
-      console.log("childrenbyrelation", childrenbyrelation);
-
-      let childrenIds = childrenbyrelation.map((r) => r.dynamicId);
-      childrenIds = childrenIds.flat();
-
-      let parentsIds = childrenbyrelation.map((r) => r.dynamicId);
-      parentsIds = parentsIds.flat();
-
-      let relations: { dynamicId: number; relation: any }[];
-      relations = childrenIds.map((r) => {
-        return { dynamicId: r, relation: ["hasNetworkTreeBimObject"] };
-      });
-      // console.warn("relations", relations);
-
-      const luminaireChildren = [
-        this.$store.dispatch(ActionTypes.GET_CHILDREN_BY_RELATION_MULTIPLE, {
-          buildingId,
-          patrimoineId,
-          relations: relations,
-        }),
-      ];
-      console.log("luminaireChildren", luminaireChildren);
-      console.log("buildingId", buildingId);
-      console.log("floorId");
-      let luminairechildrenbyrelation = await Promise.all(luminaireChildren);
-      luminairechildrenbyrelation = luminairechildrenbyrelation.flat();
-      luminairechildrenbyrelation.forEach((item) => {
-        item.nodes = item.nodes.filter((node) => node.type === "BIMObject");
-      });
-      // console.log("luminaire", luminairechildrenbyrelation);
-
-      childrenIds = [];
-      luminairechildrenbyrelation.forEach((lum) => {
-        childrenIds = this.collectDynamicIds(lum.nodes, childrenIds);
-      });
-
-      //Get the name of the parent items
-      const childrenMap = new Map(
-        childrenbyrelation.map((child) => [child.dynamicId, child])
+      const patrimoineId = this.getPatrimoineId();
+      const contextId = await this.getContextId(buildingId, patrimoineId);
+      const floorData = await this.getFloorData(
+        buildingId,
+        patrimoineId,
+        contextId
       );
-      luminairechildrenbyrelation.forEach((luminaire) => {
-        const matchingChild = childrenMap.get(luminaire.dynamicId);
-        if (matchingChild) {
-          luminaire.name = matchingChild.name;
-          luminaire.staticId = matchingChild.staticId;
-          luminaire.type = matchingChild.type;
-        }
-        // const statuses = ["active", "inactive"];
-        // const randomIndex = Math.floor(Math.random() * statuses.length);
-        // luminaire.status = statuses[randomIndex];
-      });
+      const selectedNodeId = this.getSelectedZoneNodeId(floorData);
 
-      console.log("luminaire list:", luminairechildrenbyrelation);
-
-      luminairechildrenbyrelation.forEach((luminaire) =>
-        this.updateStatus(luminaire)
+      const childrenData = await this.getChildrenByRelation(
+        buildingId,
+        patrimoineId,
+        selectedNodeId
       );
 
-      // Now each luminaire object and its children have updated status attributes
-      console.log("Updated luminaire list:", luminairechildrenbyrelation);
-      // let nextIds = luminairechildrenbyrelation.map((r) =>
-      //   r.nodes.map((e) => e.dynamicId)
-      // );
-      // nextIds = nextIds.flat();
-      // console.warn("childrenIds", childrenIds);
-      // console.warn("nextIds", nextIds);
-      childrenIds = [...parentsIds, ...childrenIds];
-      const attributes = [
-        this.$store.dispatch(ActionTypes.GET_ATTRIBUTE_LIST_MULTIPLE, {
-          buildingId,
-          dynamicIds: childrenIds,
-        }),
-      ];
-      const attributes_result = await Promise.all(attributes);
+      const luminaireChildren = await this.getLuminaireChildren(
+        buildingId,
+        patrimoineId,
+        childrenData
+      );
 
-      this.equipementsXYZ = attributes_result[0].map((r) => {
-        const { dynamicId, categoryAttributes } = r;
-        let X, Y, Z;
-        categoryAttributes.forEach((attribute) => {
-          if (attribute.name === "Spatial") {
-            const [x, y, z] = attribute.attributs[0].value.split(";");
-            X = parseFloat(x);
-            Y = parseFloat(y);
-            Z = parseFloat(z);
-          }
-        });
+      const attributesResult = await this.getAttributeList();
 
-        return {
-          dynamicId,
-          X,
-          Y,
-          Z,
-        };
+      this.equipementsXYZ = this.extractEquipments(attributesResult);
+
+      this.updateLuminaireList(luminaireChildren);
+
+      luminaireChildren.forEach((item) => {
+        this.addParentToNodes([item]);
       });
 
-      const addParentToNodes = (nodes: any[], parentId?: number) => {
-        nodes.forEach((node) => {
-          // Find the corresponding item in equipementsXYZ
-          const equipItem = this.equipementsXYZ.find(
-            (equip) => equip.dynamicId === node.dynamicId
-          );
-          if (equipItem) {
-            equipItem.parent = parentId;
-          }
-
-          // Recursively process child nodes if any
-          if (node.nodes && node.nodes.length > 0) {
-            addParentToNodes(node.nodes, node.dynamicId);
-          }
-        });
-      };
-      luminairechildrenbyrelation.forEach((item) => {
-        addParentToNodes([item]);
-      });
-      // console.log("Updated equipementsXYZ:", this.equipementsXYZ);
-
-      this.$store.commit(MutationTypes.SET_DATA, luminairechildrenbyrelation);
+      this.$store.commit(MutationTypes.SET_DATA, luminaireChildren);
       this.pageSate = PAGE_STATES.loaded;
+      console.log("retriveData data", this.data);
     } catch (err) {
       console.log(err);
       this.retry = this.retriveData;
       this.pageSate = PAGE_STATES.error;
     }
   }
+
+  getPatrimoineId() {
+    const patrimoineString = localStorage.getItem("patrimoine");
+    return patrimoineString ? JSON.parse(patrimoineString).id : null;
+  }
+
+  async getContextId(buildingId: string | null, patrimoineId: any) {
+    const contextPromises = [
+      this.$store.dispatch(ActionTypes.GET_CONTEXT, {
+        buildingId,
+        patrimoineId,
+      }),
+    ];
+    const ctxResult = await Promise.all(contextPromises);
+    const filteredCtx = ctxResult
+      .flat()
+      .filter((item: any) => item.type === "networkTreeContext");
+    return filteredCtx[0].dynamicId;
+  }
+
+  async getFloorData(
+    buildingId: string | null,
+    patrimoineId: any,
+    contextId: number
+  ) {
+    const floorPromises = [
+      this.$store.dispatch(ActionTypes.GET_CHILDREN, {
+        buildingId,
+        patrimoineId,
+        nodeId: contextId,
+      }),
+    ];
+    let floorResult = await Promise.all(floorPromises);
+    floorResult = floorResult.flat();
+    return floorResult;
+  }
+
+  getSelectedZoneNodeId(floorResult: any[]) {
+    let nodeId = 0;
+    for (let i = 0; i < floorResult.length; i++) {
+      if (floorResult[i].name == this.selectedZone.name) {
+        nodeId = floorResult[i].dynamicId;
+        break;
+      }
+    }
+    return nodeId;
+  }
+
+  async getChildrenByRelation(
+    buildingId: string | null,
+    patrimoineId: any,
+    selectedNodeId: number
+  ) {
+    const relation = "hasNetworkTreeBimObject";
+    const automates = [
+      this.$store.dispatch(ActionTypes.GET_CHILDREN_BY_RELATION, {
+        buildingId,
+        patrimoineId,
+        nodeId: selectedNodeId,
+        relation,
+      }),
+    ];
+    let childrenByRelation = await Promise.all(automates);
+    childrenByRelation = childrenByRelation.flat();
+    return childrenByRelation;
+  }
+
+  async getLuminaireChildren(
+    buildingId: string | null,
+    patrimoineId: any,
+    childrenByRelation: any[]
+  ) {
+    let childrenIds = childrenByRelation.map((r) => r.dynamicId).flat();
+    let parentsIds = childrenByRelation.map((r) => r.dynamicId).flat();
+    let relations = childrenIds.map((r) => ({
+      dynamicId: r,
+      relation: ["hasNetworkTreeBimObject"],
+    }));
+    const luminaireChildren = [
+      this.$store.dispatch(ActionTypes.GET_CHILDREN_BY_RELATION_MULTIPLE, {
+        buildingId,
+        patrimoineId,
+        relations,
+      }),
+    ];
+    let luminaireChildrenByRelation = await Promise.all(luminaireChildren);
+    luminaireChildrenByRelation = luminaireChildrenByRelation.flat();
+    luminaireChildrenByRelation.forEach((item) => {
+      item.nodes = item.nodes.filter((node) => node.type === "BIMObject");
+    });
+    childrenIds = [];
+    luminaireChildrenByRelation.forEach((lum) => {
+      childrenIds = this.collectDynamicIds(lum.nodes, childrenIds);
+    });
+
+    this.spriteIds = [...parentsIds, ...childrenIds];
+    const childrenMap = new Map(
+      childrenByRelation.map((child) => [child.dynamicId, child])
+    );
+    luminaireChildrenByRelation.forEach((luminaire) => {
+      const matchingChild = childrenMap.get(luminaire.dynamicId);
+      if (matchingChild) {
+        luminaire.name = matchingChild.name;
+        luminaire.staticId = matchingChild.staticId;
+        luminaire.type = matchingChild.type;
+      }
+    });
+    return luminaireChildrenByRelation;
+  }
+
+  async getAttributeList() {
+    const attributes = [
+      this.$store.dispatch(ActionTypes.GET_ATTRIBUTE_LIST_MULTIPLE, {
+        buildingId: localStorage.getItem("idBuilding"),
+        dynamicIds: this.spriteIds,
+      }),
+    ];
+    const attributesResult = await Promise.all(attributes);
+    return attributesResult[0];
+  }
+
+  extractEquipments(attributesResult: any[]) {
+    return attributesResult.map((r) => {
+      const { dynamicId, categoryAttributes } = r;
+      let X, Y, Z;
+      categoryAttributes.forEach((attribute: any) => {
+        if (attribute.name === "Spatial") {
+          const [x, y, z] = attribute.attributs[0].value.split(";");
+          X = parseFloat(x);
+          Y = parseFloat(y);
+          Z = parseFloat(z);
+        }
+      });
+
+      return {
+        dynamicId,
+        X,
+        Y,
+        Z,
+      };
+    });
+  }
+
+  updateLuminaireList(luminaireChildrenByRelation: any[]) {
+    luminaireChildrenByRelation.forEach((luminaire) =>
+      this.updateStatus(luminaire)
+    );
+  }
+
+  addParentToNodes(nodes: any[], parentId?: number) {
+    nodes.forEach((node) => {
+      const equipItem = this.equipementsXYZ.find(
+        (equip) => equip.dynamicId === node.dynamicId
+      );
+      if (equipItem) {
+        equipItem.parent = parentId;
+        equipItem.typologie = node.typologie;
+      }
+
+      if (node.nodes && node.nodes.length > 0) {
+        this.addParentToNodes(node.nodes, node.dynamicId);
+      }
+    });
+  }
+
   collectDynamicIds(nodes, collectedIds: number[]) {
     nodes.forEach((node) => {
       if (node.dynamicId !== undefined) {
@@ -391,13 +438,7 @@ class dataSideApp extends Vue {
 
     return collectedIds;
   }
-  getDropdownItems(items) {
-    console.log("inside drop down function");
-    return items.map((item) => ({
-      text: item.dynamicId,
-      value: item.dynamicId,
-    }));
-  }
+
   updateStatus(node) {
     if (node.nodes && node.nodes.length > 0) {
       // Recursively update children first
@@ -477,9 +518,11 @@ class dataSideApp extends Vue {
   watchSelectedZone() {
     if (this.selectedZone.type === "building") {
       this.isBuildingSelected = true;
+      this.$store.commit(MutationTypes.SET_DATA, []);
       return;
     }
-
+    this.$store.commit(MutationTypes.SET_DATA, []);
+    this.equipementsXYZ = [];
     this.isBuildingSelected = false;
     this.retriveData();
   }
@@ -488,6 +531,7 @@ class dataSideApp extends Vue {
   watchData() {
     if (this.config.sprites)
       this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+    this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
     if (this.isBuildingSelected) return;
     const items = new Array();
     console.log("this data", this.data);
@@ -498,6 +542,7 @@ class dataSideApp extends Vue {
         buildingId: localStorage.getItem("idBuilding"),
         data: this.equipementsXYZ[key],
         parent: this.equipementsXYZ[key].parent,
+        typologie: this.equipementsXYZ[key].typologie,
         position: new THREE.Vector3(
           this.equipementsXYZ[key].X,
           this.equipementsXYZ[key].Y,
@@ -513,19 +558,13 @@ class dataSideApp extends Vue {
       buildingId: localStorage.getItem("idBuilding"),
       component: SpriteComponent,
     });
-    // this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-    //   items: luminaires.flat(),
-    //   buildingId: localStorage.getItem("idBuilding"),
-    //   component: SpriteComponentLuminaire,
-    // });
-
-    return;
-    // }
     const buildingId = localStorage.getItem("idBuilding");
     this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
       items: [],
       buildingId: buildingId || this.selectedZone.staticId,
     });
+    return;
+    // }
   }
   shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {

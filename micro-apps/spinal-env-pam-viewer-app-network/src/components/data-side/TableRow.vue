@@ -15,9 +15,18 @@
         'child-row3': level > 2,
       }"
     >
-      <td class="name">{{ data.dynamicId }}</td>
+      <td class="name">{{ data.name }}</td>
 
-      <td class="type">{{ data.typologie }}</td>
+      <td class="type">
+        <div
+          class="typologie"
+          :style="{ backgroundImage: `url(${dataImageUrl})` }"
+        ></div>
+        {{ data.typologie }}
+      </td>
+      <!-- :style="{
+            backgroundImage: `url(${require(`../viewer/assets/Automate.png`)})`,
+          }" -->
 
       <td class="nb">
         <div v-if="!data.nodes">00</div>
@@ -84,6 +93,7 @@ import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import { IPlayload } from "../viewer";
 import { EventBus } from "./EventBus";
 import store from "./tableIds";
+import axios from "axios";
 
 @Component({
   name: "TableRow",
@@ -95,9 +105,8 @@ class TableRow extends Vue {
   @Prop({ default: 0 }) level!: number;
   @Prop() selectedDynamicId!: number;
 
-  internalSelectedDynamicId: number = this.selectedDynamicId;
+  internalSelectedDynamicId: number = 0;
 
-  // Added watcher to update the internal data property
   @Watch("selectedDynamicId")
   onSelectedDynamicIdChange(newVal: number) {
     // if (this.isSelected) {
@@ -107,6 +116,46 @@ class TableRow extends Vue {
     // console.log("isSelected", this.isSelected);
     // this.internalSelectedDynamicId = newVal;
   }
+  dataImageUrl: string = "";
+
+  async getImageUrl(typologie: string): Promise<string> {
+    const imageMapping: { [key: string]: string } = {
+      Luminaire: require("../viewer/assets/Luminaire.png"),
+      Automate: require("../viewer/assets/Automate.png"),
+      Multisensor: require("../viewer/assets/Multisensor.png"),
+    };
+    console.log("typo00", typologie);
+
+    const defaultImagePath = require("../viewer/assets/Luminaire.png");
+
+    // Check if the typology exists in the mapping
+    if (imageMapping.hasOwnProperty(typologie)) {
+      return imageMapping[typologie];
+    }
+
+    // If not found in mapping, return default
+    console.warn(
+      `Image not found for typology ${typologie}, using default image.`
+    );
+    return defaultImagePath;
+  }
+
+  // async getImageUrl(typologie: string): Promise<string> {
+  //   console.log("typo00", typologie);
+  //   const dynamicImagePath = `../viewer/assets/${typologie}.png`;
+  //   console.log("Dynamic Image Path", dynamicImagePath);
+
+  //   const defaultImagePath = require(`../viewer/assets/Luminaire.png`);
+
+  //   try {
+  //     // Using import() for dynamic imports
+  //     const dynamicImageModule = await import(dynamicImagePath);
+  //     return dynamicImageModule.default;
+  //   } catch (error) {
+  //     console.warn("Dynamic image not found, using default image.");
+  //     return defaultImagePath;
+  //   }
+  // }
 
   // object de type Ipayload
   payload: IPlayload[] = [
@@ -127,9 +176,9 @@ class TableRow extends Vue {
   ];
   payloadout: IPlayload[] = [
     {
-      id: "",
-      dynamicId: 94457248,
-      staticId: "SpinalNode-88e8d597-e801-3dea-0930-861e31da4b81-18f2ee6b72e",
+      id: "0",
+      dynamicId: 0,
+      staticId: "SpinalNode-9c000ce3-3fb9-6f14-303f-23dc1854b543-187a0b0d166",
       buildingId: "5932-6086-9e1a-18506478460",
       floorId: "94457248",
     },
@@ -163,16 +212,11 @@ class TableRow extends Vue {
       }
       if (!pp) {
         this.internalSelectedDynamicId = dynamicId;
-        // console.log("pp", pp);
         this.highlightSelection(dynamicId);
       } else {
         this.internalSelectedDynamicId = 0;
-        // console.log("ppÀ", pp);
       }
-
-      // this.internalSelectedDynamicId = dynamicId;
     }
-    // this.highlightSelection(dynamicId);
 
     if (!this.isSelected) {
       for (let i = 0; i < listofselected.length; i++) {
@@ -183,17 +227,6 @@ class TableRow extends Vue {
       console.log("parentopened", this.parentOpened);
       if (!this.parentOpened) {
         EventBus.$emit("diselect");
-        // try {
-        //   let elementborder = document.getElementsByClassName("boderSel");
-        //   if (elementborder) {
-        //     elementborder[0].classList.remove("boderSel");
-        //   }
-        //   elementborder = null as any;
-        // } catch (error) {
-        //   console.log("Error catching borderSel", error);
-        // }
-        // listofselected = [];
-        // this.$store.state.appDataStore.selectedEquipements = [];
         console.log("Parent not opened", this.parentOpened);
         // this.$store.commit(MutationTypes.RESET_EQUIPEMENT);
         let listofselected = this.$store.state.appDataStore.selectedEquipements;
@@ -232,8 +265,7 @@ class TableRow extends Vue {
           String(this.data.dynamicId),
         ]);
         this.getZoomPoints();
-
-        // this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, this.payload);
+        this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, this.payload);
       } else {
         this.$store.dispatch(ActionTypes.DESELECT_LINE, [
           String(this.data.dynamicId),
@@ -241,6 +273,7 @@ class TableRow extends Vue {
         this.$store.dispatch(ActionTypes.DESELECT_SPRITE, [
           String(this.data.dynamicId),
         ]);
+        this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS);
       }
     } else {
       this.isSelected = !this.isSelected;
@@ -255,7 +288,7 @@ class TableRow extends Vue {
         this.getZoomPoints();
 
         // EventBus.$emit("on-node-click", this.data.dynamicId);
-        // this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, this.payload);
+        this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, this.payload);
       }
     }
   }
@@ -417,7 +450,9 @@ class TableRow extends Vue {
     // console.log("Diselect E,ND", this.showChildren);
   }
 
-  mounted() {
+  async mounted() {
+    this.internalSelectedDynamicId = this.selectedDynamicId;
+    this.dataImageUrl = await this.getImageUrl(this.data.typologie);
     EventBus.$on("toggle-children", this.handleClick2);
     EventBus.$on("diselect", this.deselectNode2);
     EventBus.$on("diselect-out", this.diselect);
@@ -448,7 +483,10 @@ export default TableRow;
 }
 .dataTable .type {
   width: 26%;
-
+  display: flex;
+  flex-direction: row;
+  /* justify-content: center; */
+  align-items: center;
   padding: 12px 0px;
 }
 .dataTable .nb {
@@ -540,6 +578,17 @@ export default TableRow;
 }
 .boderSel {
   border: 2px solid blue;
+}
+.typologie {
+  width: 15px;
+  height: 15px;
+  /* margin-top: 5px; */
+  /* border-radius: 50%; */
+  display: inline-block;
+  margin-right: 5px;
+  /* background-color: #325e4b; */
+  /* background-image: url("../viewer/assets/lamp.png"); */
+  background-size: contain;
 }
 
 /* Optional: additional styling for the container when visible */

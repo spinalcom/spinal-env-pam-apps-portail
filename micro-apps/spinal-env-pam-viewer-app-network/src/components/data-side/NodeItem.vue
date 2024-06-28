@@ -29,7 +29,7 @@ with this file. If not, see
     <div :class="fullDataClass">
       <div class="stat">
         <div class="stat-card">
-          <StatCard :dataprop="data"></StatCard>
+          <StatCard :dataprop="data" @changeRoute="changeApp"></StatCard>
         </div>
         <div class="stat-card"><TypeCard :dataprop="data"></TypeCard></div>
       </div>
@@ -84,6 +84,19 @@ class NodeItem extends Vue {
   selectedStatus: string = "all";
 
   selectedType: string = "all";
+  query: {
+    app: string;
+    mode: string;
+    name: string;
+    spaceSelectedId: string;
+    buildingId: string;
+  } = {
+    app: "",
+    mode: "null",
+    name: "",
+    spaceSelectedId: "",
+    buildingId: "",
+  };
 
   toggleNode(index: number) {
     // this.history.push([...this.datatoShow]); // Save current state to history
@@ -118,6 +131,19 @@ class NodeItem extends Vue {
     this.datatoShow = this.data;
     this.filterData();
     // console.log("DAvtibe", this.DActive, "Active Data", this.ActiveData);
+  }
+
+  changeApp(e) {
+    this.query.app = e;
+    console.log("changeApp", e);
+    this.changeRoute();
+  }
+  changeRoute() {
+    console.log("changeRoute", this.query);
+    window.parent.routerFontion.customPush(
+      window.parent.router.path,
+      this.query
+    );
   }
 
   @Watch("DActive")

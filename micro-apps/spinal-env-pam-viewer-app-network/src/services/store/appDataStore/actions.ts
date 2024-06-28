@@ -575,6 +575,9 @@ export const actions = {
   ) {
     return SpriteManager.getInstance().removeStyleLine(dynamicIds);
   },
+  [ActionTypes.REMOVE_ALL_LINES]({ commit, dispatch, state }) {
+    // return SpriteManager.getInstance().deleteLines();
+  },
   // [ActionTypes.ADD_LINES](
   //   { commit, dispatch, state },
   //   { source,destinations, buildingId }: any

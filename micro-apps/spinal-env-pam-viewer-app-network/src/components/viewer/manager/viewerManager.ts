@@ -247,6 +247,7 @@ export class ViewerManager {
 			return;
 		}
 		
+		if (!playload) return emitter.emit(eventName, []);
 		console.log("inside zoom1" , eventName , playload);
 		const data: IViewInfoItemRes[] = await this.getViewerInfoMerged(playload as IPlayload);
 		console.log("inside zoom2" , data);

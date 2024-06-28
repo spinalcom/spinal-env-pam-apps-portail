@@ -7,8 +7,10 @@
         sprite_color2:
           data.data.parent === null || data.data.parent === undefined,
       }"
-      :style="{ background: data.color, ...dynamicStyle }"
+      :style="{ backgroundImage: `url(${dataImageUrl})`, ...dynamicStyle }"
     ></div>
+    <!-- :style="{ background: data.color, ...dynamicStyle }" -->
+    <!-- :style="{ backgroundImage: `url(${dataImageUrl})` }" -->
     <!-- <div class="sprite_value_unit" :style="dynamicStyle">
       {{ data.data.parent }}
     </div> -->
@@ -51,9 +53,36 @@ export default {
       border: "3px solid #F9F9F9",
       boxShadow: "none",
     },
+    dataImageUrl: "",
   }),
-  mounted() {},
+
+  async mounted() {
+    // console.log("mounted Sprite componenet", this.data);
+    const typologie = this.data.data.typologie || "default";
+    this.dataImageUrl = await this.getImageUrl(typologie);
+  },
   methods: {
+    async getImageUrl(typologie) {
+      const imageMapping = {
+        Luminaire: require("../viewer/assets/Luminaire.png"),
+        Automate: require("../viewer/assets/Automate.png"),
+        Multisensor: require("../viewer/assets/Multisensor.png"),
+      };
+      // console.log("typo00", typologie);
+
+      const defaultImagePath = require("../viewer/assets/Luminaire.png");
+
+      // Check if the typology exists in the mapping
+      if (imageMapping.hasOwnProperty(typologie)) {
+        return imageMapping[typologie];
+      }
+
+      // If not found in mapping, return default
+      console.warn(
+        `Image not found for typology ${typologie}, using default image.`
+      );
+      return defaultImagePath;
+    },
     onClick() {
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
@@ -97,7 +126,10 @@ export default {
   /* border: 3px solid #F9F9F9; */
   /* border: 3px solid; */
   z-index: 2;
-  background: #0a1045;
+  /* background: #0a1045; */
+
+  background: #fff;
+  background-size: contain;
 }
 /* .sprite_color:hover {
   width: 22px;
@@ -108,7 +140,9 @@ export default {
   height: 16px;
   border-radius: 50%;
   z-index: 2;
-  background: #00c2d1;
+  background: #fff;
+  /* background-image: url("../viewer/assets/Automate.png"); */
+  background-size: contain;
 }
 /* .sprite_color2:hover {
   width: 26px;

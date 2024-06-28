@@ -52,6 +52,9 @@ with this file. If not, see
       <div id="tail1"></div>
       <div id="tail2"></div>
     </div>
+    <!-- <div class="bottom-container"> -->
+    <LegendVue :listItem="legendSpaceAssignation"></LegendVue>
+    <!-- </div> -->
   </div>
 </template>
 
@@ -60,6 +63,9 @@ import { Prop, Vue, Watch } from "vue-property-decorator";
 import Component from "vue-class-component";
 import * as d3 from "d3";
 import { EventBus } from "./EventBus";
+// import { Legend } from "./interfaces/ILegend";
+import { Legend } from "../../interfaces/ILegend";
+import LegendVue from "./Legend.vue";
 
 interface TransformedNode {
   id: number;
@@ -71,10 +77,14 @@ interface TransformedNode {
   name?: string;
   type?: string;
   children?: TransformedNode[];
+  typologie?: string;
 }
 
 @Component({
   name: "NodeVisualization",
+  components: {
+    LegendVue,
+  },
 })
 class NodeVisualization extends Vue {
   @Prop() dataprop: any[];
@@ -84,7 +94,7 @@ class NodeVisualization extends Vue {
   transformedNodesGeneric: TransformedNode[] = [];
 
   lampImage = require("../viewer/assets/lamp.png");
-  automateImage = require("../viewer/assets/automate.png");
+  automateImage = require("../viewer/assets/Automate.png");
   lastClickedNodeId: number | null = null;
   tooltip: {
     id: number;
@@ -95,6 +105,41 @@ class NodeVisualization extends Vue {
     type: string;
   } | null = null; // Add tooltip state
   tooltipPosition = { top: 0, left: 0 };
+  legendSpaceAssignation: Legend[] = [
+    {
+      title: "Automate 'Noeud parent'",
+      color: "#00c2d1",
+      type: "Not-assigned",
+    },
+    {
+      title: "Equipement 'Noeud enfant'",
+      color: "#0a1045",
+      type: "Assigned",
+    },
+    {
+      title: "Lien de réseau 'non selectionné'",
+      color: "#FFB30F",
+      type: "AssignedToAnother",
+    },
+    {
+      title: "Lien vers le fils 'selectionné'",
+      color: "#00ff00",
+      type: "AssignedToAnother",
+    },
+    {
+      title: "Lien vers le père 'selectionné'",
+      color: "#0000FF",
+      type: "AssignedToAnother",
+    },
+  ];
+
+  dataImageUrl: string = "";
+
+  imageMapping: { [key: string]: string } = {
+    Luminaire: require("../viewer/assets/Luminaire.png"),
+    Automate: require("../viewer/assets/Automate.png"),
+    Multisensor: require("../viewer/assets/Multisensor.png"),
+  };
 
   mounted() {
     this.Nodeto = this.$store.state.appDataStore.selectedEquipements;
@@ -110,9 +155,8 @@ class NodeVisualization extends Vue {
     EventBus.$off("on-node-click", this.onNodeClickOut);
   }
 
-  createChart(transformDataent: TransformedNode[]) {
+  async createChart(transformDataent: TransformedNode[]) {
     // console.log("createChart", transformDataent);
-
     const svg = d3.select(this.$refs.container).select("svg");
     const width = +svg.attr("width");
     const height = +svg.attr("height");
@@ -122,31 +166,31 @@ class NodeVisualization extends Vue {
     svg.selectAll("*").remove();
     const defs = svg.append("defs");
 
-    defs
-      .append("pattern")
-      .attr("id", "lamp-pattern")
-      .attr("patternUnits", "userSpaceOnUse")
-      .attr("width", 40) // Adjust size of the pattern
-      .attr("height", 30)
-      .attr("x", -15) // Center the pattern horizontally
-      .attr("y", -15) // Center the pattern vertically
-      .append("image")
-      .attr("xlink:href", this.lampImage)
-      .attr("width", 30) // Adjust size of the image
-      .attr("height", 30);
+    // defs
+    //   .append("pattern")
+    //   .attr("id", "lamp-pattern")
+    //   .attr("patternUnits", "userSpaceOnUse")
+    //   .attr("width", 40) // Adjust size of the pattern
+    //   .attr("height", 30)
+    //   .attr("x", -15) // Center the pattern horizontally
+    //   .attr("y", -15) // Center the pattern vertically
+    //   .append("image")
+    //   .attr("xlink:href", this.lampImage)
+    //   .attr("width", 30) // Adjust size of the image
+    //   .attr("height", 30);
 
-    defs
-      .append("pattern")
-      .attr("id", "automate-pattern")
-      .attr("patternUnits", "userSpaceOnUse")
-      .attr("width", 50) // Adjust size of the pattern
-      .attr("height", 50)
-      .attr("x", -15) // Center the pattern horizontally
-      .attr("y", -15) // Center the pattern vertically
-      .append("image")
-      .attr("xlink:href", this.automateImage)
-      .attr("width", 30) // Adjust size of the image
-      .attr("height", 30);
+    // defs
+    //   .append("pattern")
+    //   .attr("id", "automate-pattern")
+    //   .attr("patternUnits", "userSpaceOnUse")
+    //   .attr("width", 50) // Adjust size of the pattern
+    //   .attr("height", 50)
+    //   .attr("x", -15) // Center the pattern horizontally
+    //   .attr("y", -15) // Center the pattern vertically
+    //   .append("image")
+    //   .attr("xlink:href", this.automateImage)
+    //   .attr("width", 30) // Adjust size of the image
+    //   .attr("height", 30);
 
     svg
       .append("defs")
@@ -268,10 +312,10 @@ class NodeVisualization extends Vue {
       .style("height", "40px")
       .style("border-radius", "50%")
       .style("background-color", "white")
-      .style("background-image", (d) =>
-        d.parentId !== null
-          ? `url(${this.lampImage})`
-          : `url(${this.automateImage})`
+      .style(
+        "background-image",
+        (d) =>
+          `url(${this.imageMapping[d.typologie] || this.imageMapping.Automate})`
       )
       .style("background-size", "70%")
       .style("background-position", "center")
@@ -379,6 +423,7 @@ class NodeVisualization extends Vue {
           name: node.name,
           type: node.type,
           children: node.nodes,
+          typologie: node.typologie,
         };
 
         transformedNodes.push(transformedNode);
