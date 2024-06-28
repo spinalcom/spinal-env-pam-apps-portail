@@ -80,13 +80,16 @@ class GeographicContextApi extends AAPI {
     });
   }
 
-  public async getAllRooms(): Promise<[Room[], Floor[]]> {
+  public async getAllRooms(floorId?): Promise<[Room[], Floor[]]> {
     let floors: Floor[] = [];
 
     return new Promise<[Room[], Floor[]]>((resolve, reject) => {
       this.getFloorList()
         .then((floorLst) => {
-          floors = floorLst;
+          if(floorId) {
+            floorLst= floorLst.filter((floor) => floor.dynamicId === floorId);
+          }
+          floors = floorLst ;
           return floorLst;
         })
         .then((floors) => floors.map((floor) => floor.dynamicId))

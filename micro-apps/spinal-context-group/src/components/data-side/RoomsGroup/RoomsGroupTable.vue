@@ -6,29 +6,54 @@
           <div class="header">
             <div class="title-wrapper">
               <div class="title">
-                <div class="title-content" v-if="radarGridMode === 'radar'">Radar</div>
-                <div class="title-content" v-else-if="radarGridMode === 'nomenclature'">Nomenclature</div>
+                <div class="title-content" v-if="radarGridMode === 'radar'"
+                  >Radar</div
+                >
+                <div
+                  class="title-content"
+                  v-else-if="radarGridMode === 'nomenclature'"
+                  >Nomenclature</div
+                >
               </div>
             </div>
           </div>
         </div>
         <div class="body-wrapper">
           <div v-if="radarGridMode === 'radar'" class="radar-wrapper big-radar">
-            <Radar id="radar-chart-chart" :options="radarOptions" :data="dataRadar"></Radar>
+            <Radar
+              id="radar-chart-chart"
+              :options="radarOptions"
+              :data="dataRadar"
+            ></Radar>
           </div>
-          <div v-else-if="radarGridMode === 'nomenclature'" :style="{ height: '100%' }">
-            <Nomenclature :selectedItems.sync="selectedRoomsNomenclature" :style="{ height: '100%' }">
+          <div
+            v-else-if="radarGridMode === 'nomenclature'"
+            :style="{ height: '100%' }"
+          >
+            <Nomenclature
+              :selectedItems.sync="selectedRoomsNomenclature"
+              :style="{ height: '100%' }"
+            >
             </Nomenclature>
           </div>
         </div>
-        <div class=" footer-wrapper">
+        <div class="footer-wrapper">
           <div class="footer">
             <div class="toggle-group tg-left">
-              <ToggleButtonV1 color1="black" color2="white" symbol-left="mdi-radar" symbol-right="mdi-dots-grid"
-                ref="toggleRadarNomenclature" v-on:toggled="switchRadarNomenclature()" tooltip-left="Radar"
-                tooltip-right="Nomenclature">
+              <ToggleButtonV1
+                color1="black"
+                color2="white"
+                symbol-left="mdi-radar"
+                symbol-right="mdi-dots-grid"
+                ref="toggleRadarNomenclature"
+                v-on:toggled="switchRadarNomenclature()"
+                tooltip-left="Radar"
+                tooltip-right="Nomenclature"
+              >
               </ToggleButtonV1>
-              <v-btn color="primary" @click="assignRoomFromNomenclature()">Assigner</v-btn>
+              <v-btn color="primary" @click="assignRoomFromNomenclature()"
+                >Assigner</v-btn
+              >
             </div>
           </div>
         </div>
@@ -48,43 +73,53 @@
           <div class="header">
             <div class="title-wrapper">
               <div class="title">
-                <div class="title-content" v-if="grpRoomFocus === 'GrpRoomList'">
+                <div
+                  class="title-content"
+                  v-if="grpRoomFocus === 'GrpRoomList'"
+                >
                   Assignation <br />
                   des espaces
                 </div>
-                <div class="title-content" v-else-if="grpRoomFocus === 'GrpRoom' && currentGrpRoom">
-                  {{ currentGrpRoom.title || "" }}
+                <div
+                  class="title-content"
+                  v-else-if="grpRoomFocus === 'GrpRoom' && currentGrpRoom"
+                >
+                  {{ currentGrpRoom.title || '' }}
                 </div>
-                <div class="sub-title" v-if="currentGrpRoom &&
-                  currentGrpRoom.parentTitle &&
-                  grpRoomFocus === 'GrpRoomList'
-                  ">
+                <div
+                  class="sub-title"
+                  v-if="
+                    currentGrpRoom &&
+                    currentGrpRoom.parentTitle &&
+                    grpRoomFocus === 'GrpRoomList'
+                  "
+                >
                   <span class="sub-title-content">categorie :</span>
                   <span class="name-category">{{
                     currentGrpRoom.parentTitle
                   }}</span>
                 </div>
 
-                  <v-tooltip top>
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn color="grey" dark v-bind="attrs" v-on="on" icon>aaaaaaaaaaaaaaaaaaa
-                        <v-icon>mdi-information-outline</v-icon>
-                      </v-btn>
-                    </template>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn color="grey" dark v-bind="attrs" v-on="on" icon>
+                      <v-icon>mdi-information-outline</v-icon>
+                    </v-btn>
+                  </template>
 
-                    <!-- <span v-if="grpRoomFocus === 'GrpRoom'">
-                      <span class="bold-element">{{
-                        currentGrpRoom.title
-                      }}</span>
-                      est un
-                      <span class="bold-element">groupe de pièce</span> qui 
-                      appartient à la categorie ...</span>
-                    <span v-if="grpRoomFocus === 'GrpRoomList'">Le composant Assignation des espaces permet de: <br />
-                      - visualiser des groupes de pièces appartenant à la même
-                      catégorie <br />
-                      - assigner des pièces à des groupes de pièces</span> -->
-                  </v-tooltip>
-
+                  <span v-if="grpRoomFocus === 'GrpRoom'">
+                    <span class="bold-element">{{ currentGrpRoom.title }}</span>
+                    est un
+                    <span class="bold-element">groupe de pièce</span> qui
+                    appartient à la categorie ...</span
+                  >
+                  <span v-if="grpRoomFocus === 'GrpRoomList'"
+                    >Le composant Assignation des espaces permet de: <br />
+                    - visualiser des groupes de pièces appartenant à la même
+                    catégorie <br />
+                    - assigner des pièces à des groupes de pièces</span
+                  >
+                </v-tooltip>
               </div>
               <div class="subtitle-wrapper" v-if="grpRoomFocus === 'GrpRoom'">
                 <div class="subtitle">
@@ -103,38 +138,68 @@
                 <div class="initial-area area" :class="globalKpiClass">
                   <div class="value">
                     {{
-                      grpRoomFocus === "GrpRoomList"
+                      grpRoomFocus === 'GrpRoomList'
                         ? grpRoomWithChildrenController.globalArea.toFixed(2)
                         : currentGrpRoom.area.toFixed(2)
                     }}
                   </div>
                   <div class="unit">m2</div>
                 </div>
-                <div class="separator-wrapper" v-if="grpRoomWithChildrenController.totalGain.value !== 0">
+                <div
+                  class="separator-wrapper"
+                  v-if="grpRoomWithChildrenController.totalGain.value !== 0"
+                >
                   <div class="separator"></div>
                 </div>
-                <div class="new-area area" v-if="grpRoomWithChildrenController.totalGain.value !== 0">
+                <div
+                  class="new-area area"
+                  v-if="grpRoomWithChildrenController.totalGain.value !== 0"
+                >
                   <div class="value">
-                    {{ grpRoomWithChildrenController.totalArea.value.toFixed(2) }}
+                    {{
+                      grpRoomWithChildrenController.totalArea.value.toFixed(2)
+                    }}
                   </div>
                   <div class="unit">m2</div>
                 </div>
               </div>
               <div class="gain-wrapper">
                 <div class="arrow">
-                  <v-icon color="green"
-                    v-if="grpRoomWithChildrenController.totalGain.percentage > 0">mdi-arrow-up-thick</v-icon>
-                  <v-icon color="red"
-                    v-else-if="grpRoomWithChildrenController.totalGain.percentage < 0">mdi-arrow-down-thick</v-icon>
+                  <v-icon
+                    color="green"
+                    v-if="
+                      grpRoomWithChildrenController.totalGain.percentage > 0
+                    "
+                    >mdi-arrow-up-thick</v-icon
+                  >
+                  <v-icon
+                    color="red"
+                    v-else-if="
+                      grpRoomWithChildrenController.totalGain.percentage < 0
+                    "
+                    >mdi-arrow-down-thick</v-icon
+                  >
                 </div>
-                <div class="text" v-if="grpRoomWithChildrenController.totalGain.percentage > 0 ||
-      grpRoomWithChildrenController.totalGain.percentage < 0
-      ">
+                <div
+                  class="text"
+                  v-if="
+                    grpRoomWithChildrenController.totalGain.percentage > 0 ||
+                    grpRoomWithChildrenController.totalGain.percentage < 0
+                  "
+                >
                   <span v-if="unitMode === 'm2'">
-                    {{ grpRoomWithChildrenController.totalGain.value.toFixed(2) }} m2
+                    {{
+                      grpRoomWithChildrenController.totalGain.value.toFixed(2)
+                    }}
+                    m2
                   </span>
                   <span v-else-if="unitMode === 'percentage'">
-                    {{ grpRoomWithChildrenController.totalGain.percentage.toFixed(2) }} %
+                    {{
+                      grpRoomWithChildrenController.totalGain.percentage.toFixed(
+                        2
+                      )
+                    }}
+                    %
                   </span>
                 </div>
               </div>
@@ -145,9 +210,20 @@
           <div class="component-actions-wrapper" v-if="!showRadar">
             <div class="actions">
               <div class="search-wrapper">
-                <v-autocomplete multiple v-if="grpRoomFocus === 'GrpRoom'" :label="searchBarPlaceholder"
-                  :items="availableRooms" item-text="name" item-value="dynamicId" single-line hide-details="true"
-                  outlined dense v-model="searchModel" :loading="isLoading">
+                <v-autocomplete
+                  multiple
+                  v-if="grpRoomFocus === 'GrpRoom'"
+                  :label="searchBarPlaceholder"
+                  :items="availableRooms"
+                  item-text="name"
+                  item-value="dynamicId"
+                  single-line
+                  hide-details="true"
+                  outlined
+                  dense
+                  v-model="searchModel"
+                  :loading="isLoading"
+                >
                   <template #prepend-inner>
                     <v-tooltip top>
                       <template v-slot:activator="{ on, attrs }">
@@ -163,23 +239,45 @@
                       </v-list-item-title>
                     </v-list-item>
                   </template>
-                  <template v-slot:selection="{ attr, on, item, selected, index }">
-                    <v-chip v-if="index < 3" v-bind="attr" :input-value="selected" label
-                      :color="createColorPropChipsBefore(item)" :text-color="createColorPropChipsBefore(item, 'text')"
-                      deletable-chips class="white--text ma-1" close v-on="on"
-                      @click:close="deleteChipFromRoomSelection(item)">
+                  <template
+                    v-slot:selection="{ attr, on, item, selected, index }"
+                  >
+                    <v-chip
+                      v-if="index < 3"
+                      v-bind="attr"
+                      :input-value="selected"
+                      label
+                      :color="createColorPropChipsBefore(item)"
+                      :text-color="createColorPropChipsBefore(item, 'text')"
+                      deletable-chips
+                      class="white--text ma-1"
+                      close
+                      v-on="on"
+                      @click:close="deleteChipFromRoomSelection(item)"
+                    >
                       <span v-text="item.name"></span>
                     </v-chip>
                     <span v-if="index === 3" class="grey--text text-caption">
-                      (+{{ searchModel.length - 3 }} autre<span v-if="searchModel.length - 3 > 1">s</span>)
+                      (+{{ searchModel.length - 3 }} autre<span
+                        v-if="searchModel.length - 3 > 1"
+                        >s</span
+                      >)
                     </span>
                   </template>
                   <template v-slot:item="{ item }">
-                    <v-list-item-content class="d-flex inline chips-legend-container">
-                      <span v-if="grpRoomFocus === 'GrpRoom'" :style="createStyleTitleSelectBefore(item)"
-                        class="chip-legend-item">
+                    <v-list-item-content
+                      class="d-flex inline chips-legend-container"
+                    >
+                      <span
+                        v-if="grpRoomFocus === 'GrpRoom'"
+                        :style="createStyleTitleSelectBefore(item)"
+                        class="chip-legend-item"
+                      >
                       </span>
-                      <v-list-item-title class="ml-4" v-text="item.name"></v-list-item-title>
+                      <v-list-item-title
+                        class="ml-4"
+                        v-text="item.name"
+                      ></v-list-item-title>
                     </v-list-item-content>
                     <v-list-item-icon>
                       <v-icon :color="getFutureOperation(item)">
@@ -191,48 +289,121 @@
 
                 <v-row>
                   <v-col lg="8" md="8" sm="8">
-                    <v-text-field v-if="grpRoomFocus === 'GrpRoomList'" class="" dense v-model="searchModelGrp"
-                      label="Rechercher un groupe de pièce" placeholder="" outlined hide-details="true"
-                      single-line></v-text-field>
+                    <v-text-field
+                      v-if="grpRoomFocus === 'GrpRoomList'"
+                      class=""
+                      dense
+                      v-model="searchModelGrp"
+                      label="Rechercher un groupe de pièce"
+                      placeholder=""
+                      outlined
+                      hide-details="true"
+                      single-line
+                    ></v-text-field>
                   </v-col>
                 </v-row>
               </div>
               <div class="button-wrapper" v-if="grpRoomFocus === 'GrpRoom'">
-                <v-btn :disabled="searchModel === null" width="80%" max-width="80%" color="primary"
-                  @click="addRoom('search')">Ajouter</v-btn>
+                <v-btn
+                  :disabled="searchModel === null"
+                  width="80%"
+                  max-width="80%"
+                  color="primary"
+                  @click="addRoom('search')"
+                  >Ajouter</v-btn
+                >
               </div>
             </div>
           </div>
           <div class="radar-wrapper" v-if="showRadar && viewMode === 'grid'">
-            <Radar id="radar-chart" :options="radarOptions" :data="dataRadar"></Radar>
+            <Radar
+              id="radar-chart"
+              :options="radarOptions"
+              :data="dataRadar"
+            ></Radar>
           </div>
-          <RoomGroupDataTable ref="roomGroupDataTable" :data="dataFiltered" :showRadar="showRadar"
-            :is-loading-data="isLoadingData" :grpRoomFocus="grpRoomFocus" :headersTable="headersTable"
-            :dataTableHeight="dataTableHeight" :unitMode="unitMode" @selectItem="selectItem"
-            @getOperationsItem="getOperationsItem" @guessItemColor="guessItemColor" @restore="restore"
-            @deleteEntity="deleteEntity" :showSelect="false">
+          <RoomGroupDataTable
+            ref="roomGroupDataTable"
+            :data="dataFiltered"
+            :showRadar="showRadar"
+            :isFilter="filterBySelectedZone"
+            :selectedFloorId="selectedZone.dynamicId"
+            :is-loading-data="isLoadingData"
+            :grpRoomFocus="grpRoomFocus"
+            :headersTable="headersTable"
+            :dataTableHeight="dataTableHeight"
+            :unitMode="unitMode"
+            @selectItem="selectItem"
+            @getOperationsItem="getOperationsItem"
+            @guessItemColor="guessItemColor"
+            @restore="restore"
+            @deleteEntity="deleteEntity"
+            :showSelect="false"
+          >
           </RoomGroupDataTable>
         </div>
         <div class="footer-wrapper">
           <div class="footer">
+            <div></div>
             <div class="toggle-group">
-              <ToggleButtonV1 color1="black" color2="white" symbol-left="mdi-tape-measure" symbol-right="mdi-percent"
-                tooltip-left="M2" tooltip-right="Pourcentage" v-on:toggled="toggleUnitMode">
+              <!-- <ToggleButtonV1
+                color1="black"
+                color2="white"
+                symbol-left="mdi-tape-measure"
+                symbol-right="mdi-percent"
+                tooltip-left="M2"
+                tooltip-right="Pourcentage"
+                v-on:toggled="toggleUnitMode"
+              >
               </ToggleButtonV1>
-              <ToggleButtonV1 color1="black" color2="white" symbol-left="mdi-grid" v-if="viewMode === 'grid'"
-                symbol-right="mdi-radar" ref="radar" v-on:toggled="toggleRadarVisibility" tooltip-left="Grid"
-                tooltip-right="Radar">
-              </ToggleButtonV1>
+              <ToggleButtonV1
+                color1="black"
+                color2="white"
+                symbol-left="mdi-grid"
+                v-if="viewMode === 'grid'"
+                symbol-right="mdi-radar"
+                ref="radar"
+                v-on:toggled="toggleRadarVisibility"
+                tooltip-left="Grid"
+                tooltip-right="Radar"
+              >
+              </ToggleButtonV1> -->
+              <MenuV1
+                @clickLogarithm="clickLogarithm"
+                @clickGroupManager="clickGroupManager"
+                @clickNomenclature="clickNomenclature"
+                @clickDisplayLegend="clickDisplayLegend"
+                @clickChangeUnit="toggleUnitMode"
+                @clickSwitchDataViz="toggleRadarVisibility"
+                @clickFilterFloor="toggleFilterFloor"
+              > </MenuV1>
             </div>
             <div class="actions">
-              <v-btn color="primary" text outlined @click="updateDataTableHeight()"
-                v-show="grpRoomFocus === 'GrpRoomList'">Fermer</v-btn>
-              <v-btn color="primary" @click="goBack()" v-show="grpRoomFocus === 'GrpRoom'">Retour</v-btn>
-              <v-btn color="primary" @click="commitChange()"
-                v-show="grpRoomFocus === 'GrpRoomList' && !showRadar">Valider
+              <v-btn
+                color="primary"
+                text
+                outlined
+                @click="updateDataTableHeight()"
+                v-show="grpRoomFocus === 'GrpRoomList'"
+                >Fermer</v-btn
+              >
+              <v-btn
+                color="primary"
+                @click="goBack()"
+                v-show="grpRoomFocus === 'GrpRoom'"
+                >Retour</v-btn
+              >
+              <v-btn
+                color="primary"
+                @click="commitChange()"
+                v-show="grpRoomFocus === 'GrpRoomList' && !showRadar"
+                >Valider
               </v-btn>
-              <v-btn color="primary" @click="commitChangeGrpRoom()"
-                v-show="grpRoomFocus === 'GrpRoom' && !showRadar">Valider
+              <v-btn
+                color="primary"
+                @click="commitChangeGrpRoom()"
+                v-show="grpRoomFocus === 'GrpRoom' && !showRadar"
+                >Valider
               </v-btn>
             </div>
           </div>
@@ -244,26 +415,27 @@
 
 <script lang="ts">
 // * API
-import { RoomsGroupAPI } from "../../../services/spinalAPI/Rooms Group";
+import { RoomsGroupAPI } from '../../../services/spinalAPI/Rooms Group';
 
 // * Controllers
-import { GroupRoomWithChildrenController } from "../../../controllers";
+import { GroupRoomWithChildrenController } from '../../../controllers';
 
 // * Components
-import Nomenclature from "../Nomenclature/Nomenclature.vue";
-import ToggleButtonV1 from "../utils/ToggleButtonV1.vue";
-import ToggleButtonV2 from "../utils/ToggleButtonV2.vue";
-import RoomGroupDataTable from "./DataTable/RoomGroupDataTable.vue";
+import Nomenclature from '../Nomenclature/Nomenclature.vue';
+import ToggleButtonV1 from '../utils/ToggleButtonV1.vue';
+import ToggleButtonV2 from '../utils/ToggleButtonV2.vue';
+import RoomGroupDataTable from './DataTable/RoomGroupDataTable.vue';
+import MenuV1 from '../Menu/MenuV1.vue';
 
 // * DTO
-import { Room } from "../../../interfaces/API/Geographic Context/DTO/Request/Room";
+import { Room } from '../../../interfaces/API/Geographic Context/DTO/Request/Room';
 
 // * Factory
-import { iGroupRoomItemFactory } from "../../../controllers/GroupeWithChildren";
-import { ExpansionMode, iListObjFactory } from "../../../interfaces/";
+import { iGroupRoomItemFactory } from '../../../interfaces/GroupWithChildren/Factory/';
+import { ExpansionMode, iListObjFactory } from '../../../interfaces/';
 
 // * Plot
-import { Line, Radar } from "vue-chartjs";
+import { Line, Radar } from 'vue-chartjs';
 import {
   Chart as ChartJs,
   Title,
@@ -273,44 +445,30 @@ import {
   RadialLinearScale,
   PointElement,
   LineElement,
-} from "chart.js";
+} from 'chart.js';
 
 // * Services
-import { GroupContextApi, NodeAttributsAPI } from "../../../services";
-import { SpinalAPI } from "../../../services";
+import { GroupContextApi, NodeAttributsAPI } from '../../../services';
+import { SpinalAPI } from '../../../services';
 
 // * Types
 import {
   EGroupType,
   GroupRoomFocus,
   OperationMapWithId,
-} from "../../../services/GroupeWithChildren/Interfaces/";
-import { IGroupRoomItem } from "../../../services/GroupeWithChildren/Interfaces/IGroupRoomItem";
-import { TypeLegend } from "../../../services/GroupeWithChildren/Interfaces/";
-import { type UnitMode, type ViewMode } from "./Type";
+} from '../../../services/GroupeWithChildren/Interfaces/';
+import { IGroupRoomItem } from '../../../services/GroupeWithChildren/Interfaces/IGroupRoomItem';
+import { TypeLegend } from '../../../services/GroupeWithChildren/Interfaces/';
+import { type UnitMode, type ViewMode } from './Type';
 
 // * Vue
-import { Ref, computed, onMounted, ref } from "vue";
+import { Ref, computed, onMounted, ref } from 'vue';
 
 // * Vuetify
 // import { VAutocomplete } from "vuetify/lib";
 // import { VBtn } from "vuetify/lib";
 // import { VCard } from "vuetify/lib";
-// import { VChip } from "vuetify/lib";
-// import { VCol } from "vuetify/lib";
-// import { VDataTable } from "vuetify/lib";
-// import { VIcon } from "vuetify/lib";
-// import { VList } from "vuetify/lib";
-// import { VListIcon } from "vuetify/lib";
-// import { VListItem } from "vuetify/lib";
-// import { VListItemTitle } from "vuetify/lib";
-// import { VListItemIcon } from "vuetify/lib";
-// import { VListItemContent } from "vuetify/lib";
-// import { VMenu } from "vuetify/lib";
-// import { VSelect } from "vuetify/lib";
-// import { VTextField } from "vuetify/lib";
-// import { VTooltip } from "vuetify/lib/components";
-// import { VRow } from "vuetify/lib";
+import { VTooltip } from 'vuetify/lib';
 
 ChartJs.register(
   Filler,
@@ -324,36 +482,32 @@ ChartJs.register(
 // TODO Creer une search bar sur le grp de piece
 export default {
   components: {
-    // VAutocomplete,
-    // VCard,
-    // VChip,
-    // VTooltip,
-    // VMenu,
-    // VBtn,
-    // VIcon,
-    // VDataTable,
-    // VSelect,
-    // VList,
-    // VListIcon,
-    // VListItem,
-    // VListItemTitle,
-    // VListItemIcon,
-    // VListItemContent,
-    // VTextField,
-    
-     ToggleButtonV1,
-     ToggleButtonV2,
-     Nomenclature,
-     Radar,
-     RoomGroupDataTable,
+    VTooltip,
+    MenuV1,
+    ToggleButtonV1,
+    ToggleButtonV2,
+    Nomenclature,
+    Radar,
+    RoomGroupDataTable,
+  },
+  props:{
+    selectedZone: {
+      type:  Object, // Adjust the type according to what selectedZone is supposed to be
+      required: true, 
+      default: () => {
+        return {}; 
+      }
+    }
   },
   data() {
     let spinalAPI = SpinalAPI.getInstance();
     let apiGrpContext = new GroupContextApi(spinalAPI);
     let apiNodeAttributs = new NodeAttributsAPI();
     let apiRoomGroup = new RoomsGroupAPI();
-    let unitMode: UnitMode = "m2";
+    let unitMode: UnitMode = 'm2';
+    const logarithmicRadar = false;
     const showRadar = false;
+    const filterBySelectedZone: boolean = false;
     const showDataTableGrpRoom: boolean = false;
     const showDataTableGrpRoomList: boolean = true;
     const dataTable = ref(null);
@@ -365,44 +519,48 @@ export default {
     const dataTableWrapper = ref(null);
     const radar = ref(null);
     const searchModel: Ref<Array<string>> = ref([]);
-    const searchModelGrp: Ref<string> = ref("");
+    const searchModelGrp: Ref<string> = ref('');
     const categoriesModel: Ref<IGroupRoomItem> = ref(null);
-    const grpRoomFocus: Ref<GroupRoomFocus> = ref("GrpRoomList");
+    const grpRoomFocus: Ref<GroupRoomFocus> = ref('GrpRoomList');
     const isLoading: Ref<boolean> = ref(false);
     const currentGrpRoom: Ref<IGroupRoomItem | undefined> = ref(undefined);
-    const grpRoomWithChildrenController = new GroupRoomWithChildrenController(apiGrpContext, apiNodeAttributs, apiRoomGroup);
-    const viewMode: ViewMode = "grid";
+    const grpRoomWithChildrenController = new GroupRoomWithChildrenController(
+      apiGrpContext,
+      apiNodeAttributs,
+      apiRoomGroup
+    );
+    const viewMode: ViewMode = 'grid';
     const radarGridMode: 'radar' | 'nomenclature' = 'radar';
 
     const assignationSpaceHeaders: Array<any> = [
       {
-        text: "Groupe de pièces",
-        align: "start",
-        value: "title",
+        text: 'Groupe de pièces',
+        align: 'start',
+        value: 'title',
       },
-      { text: "Gains", align: "end", value: "gain" },
-      { text: "Actions", align: "end", value: "operations" },
-      { text: "Nb pièces", align: "end", value: "length" },
-      { text: "Superficie (m2)", align: "end", value: "newArea" },
+      { text: 'Gains', align: 'end', value: 'gain' },
+      { text: 'Actions', align: 'end', value: 'operations' },
+      { text: 'Nb pièces', align: 'end', value: 'length' },
+      { text: 'Superficie (m2)', align: 'end', value: 'newArea' },
     ];
 
     const grpRoomHeader: Array<any> = [
       {
-        text: "Pièces",
-        align: "start",
-        value: "title",
+        text: 'Pièces',
+        align: 'start',
+        value: 'title',
       },
-      { text: "Categorie", align: "start", value: "categorie" },
-      { text: "Groupe", align: "start", value: "groupe" },
-      { text: "Etage", align: "start", value: "floorName" },
-      { text: "Superficie (m2)", align: "end", value: "area" },
-      { text: "Actions", align: "end", value: "action" },
+      { text: 'Categorie', align: 'start', value: 'categorie' },
+      { text: 'Groupe', align: 'start', value: 'groupe' },
+      { text: 'Etage', align: 'start', value: 'floorName' },
+      { text: 'Superficie (m2)', align: 'end', value: 'area' },
+      { text: 'Actions', align: 'end', value: 'action' },
     ];
 
     let headersTable: Ref<any> = ref(assignationSpaceHeaders);
     const data: Ref<any> = ref();
     const roomListAndObj = ref(iListObjFactory.build());
-    const selectedRoomsNomenclature: Room[] = []
+    const selectedRoomsNomenclature: Room[] = [];
 
     return {
       searchModel,
@@ -429,10 +587,13 @@ export default {
       dataTableWrapper,
       categoriesModel,
       viewMode,
-      selectedRoomsNomenclature
+      selectedRoomsNomenclature,
+      filterBySelectedZone,
+      logarithmicRadar,
     };
   },
   mounted() {
+    console.log(this.selectedZone)
     this.dataTableHeight = this.$refs.roomGroupDataTable.$el.clientHeight - 130;
     this.loadData();
   },
@@ -440,19 +601,21 @@ export default {
     assignRoomFromNomenclature() {
       let mapIds = this.selectedRoomsNomenclature.map((x: Room) => x.dynamicId);
 
-
       if (Array.isArray(this.searchModel)) {
         mapIds = mapIds.filter((x) => !this.searchModel.includes(x));
-        this.searchModel.splice(this.searchModel.length, 0, ...mapIds)
+        this.searchModel.splice(this.searchModel.length, 0, ...mapIds);
       } else {
-        this.searchModel = mapIds
+        this.searchModel = mapIds;
       }
-      this.selectedRoomsNomenclature.splice(0, this.selectedRoomsNomenclature.length)
+      this.selectedRoomsNomenclature.splice(
+        0,
+        this.selectedRoomsNomenclature.length
+      );
     },
     assignNewHeader() {
-      if (this.grpRoomFocus === "GrpRoom") {
+      if (this.grpRoomFocus === 'GrpRoom') {
         this.headersTable = [...this.grpRoomHeader];
-      } else if (this.grpRoomFocus === "GrpRoomList") {
+      } else if (this.grpRoomFocus === 'GrpRoomList') {
         this.headersTable = [...this.assignationSpaceHeaders];
       }
     },
@@ -466,7 +629,8 @@ export default {
         .then((grps) => {
           this.data = grps;
           this.roomListAndObj = this.grpRoomWithChildrenController.rooms;
-          this.categoriesModel = this.grpRoomWithChildrenController.currentCategory;
+          this.categoriesModel =
+            this.grpRoomWithChildrenController.currentCategory;
           this.isLoadingData = false;
         })
         .catch((err: any) => {
@@ -474,17 +638,17 @@ export default {
         });
     },
     updateDataTableHeight() {
-      console.log("this refs = ", this.$refs);
+      console.log('this refs = ', this.$refs);
     },
-    toggleComponentMode(context: "item" | "actions" | "func") {
+    toggleComponentMode(context: 'item' | 'actions' | 'func') {
       try {
-        if (this.grpRoomFocus !== "GrpRoomList" && context === "item") return;
+        if (this.grpRoomFocus !== 'GrpRoomList' && context === 'item') return;
         this.grpRoomFocus =
-          this.grpRoomFocus === "GrpRoomList" ? "GrpRoom" : "GrpRoomList";
-        if (this.grpRoomFocus === "GrpRoomList") {
+          this.grpRoomFocus === 'GrpRoomList' ? 'GrpRoom' : 'GrpRoomList';
+        if (this.grpRoomFocus === 'GrpRoomList') {
           this.showDataTableGrpRoom = false;
           this.showDataTableGrpRoomList = !this.showDataTableGrpRoom;
-        } else if (this.grpRoomFocus === "GrpRoom") {
+        } else if (this.grpRoomFocus === 'GrpRoom') {
           this.showDataTableGrpRoom = true;
           this.showDataTableGrpRoomList = !this.showDataTableGrpRoom;
         }
@@ -495,7 +659,7 @@ export default {
         console.error(err);
       }
     },
-    saveGrpRoom() { },
+    saveGrpRoom() {},
     switchRadarNomenclature() {
       if (this.radarGridMode === 'nomenclature') {
         this.radarGridMode = 'radar';
@@ -507,18 +671,18 @@ export default {
       this.grpRoomWithChildrenController
         .commitChangeGrpRoom()
         .then(() => {
-          console.log("Selected Grp Room Commited");
+          console.log('Selected Grp Room Commited');
           this.goBack();
         })
         .catch((err) => {
           console.error(err);
         });
     },
-    selectItem(item: IGroupRoomItem, context: "item") {
+    selectItem(item: IGroupRoomItem, context: 'item') {
       this.updateDataTableHeight();
       this.grpRoomWithChildrenController.selectItem(item);
-      if (this.grpRoomFocus !== "GrpRoomList" && context === "item") return;
-      this.searchModel = "";
+      if (this.grpRoomFocus !== 'GrpRoomList' && context === 'item') return;
+      this.searchModel = '';
       this.toggleComponentMode(context);
       this.grpRoomWithChildrenController.setFocus(this.grpRoomFocus);
       this.currentGrpRoom = this.grpRoomWithChildrenController.getSelected();
@@ -526,8 +690,8 @@ export default {
       this.updateFocus();
     },
     goBack() {
-      this.grpRoomFocus = "GrpRoomList";
-      this.searchModel = "";
+      this.grpRoomFocus = 'GrpRoomList';
+      this.searchModel = '';
       this.updateFocus();
       this.assignNewHeader();
       this.reloadData();
@@ -538,28 +702,28 @@ export default {
     },
     setViewModeByExpansion(expansionMode: ExpansionMode) {
       switch (expansionMode) {
-        case "one-tier":
-          this.viewMode = "grid";
+        case 'split':
+          this.viewMode = 'grid';
           break;
-        case "half":
-          this.viewMode = "grid";
-          break;
-        case "full":
-          this.viewMode = "radar-grid";
+        case 'full':
+          this.viewMode = 'radar-grid';
           this.showRadar = false;
           break;
         default:
       }
     },
     reloadData() {
-      this.data = [...this.grpRoomWithChildrenController.reloadGroupToDisplay()];
+      this.data = [
+        ...this.grpRoomWithChildrenController.reloadGroupToDisplay(),
+      ];
+      
     },
     reset() {
       this.grpRoomWithChildrenController
         .reset()
         .then(() => {
           this.reloadData();
-          this.searchModel.splice(0, this.searchModel.length)
+          this.searchModel.splice(0, this.searchModel.length);
         })
         .catch((err: any) => {
           console.error(err);
@@ -586,10 +750,10 @@ export default {
           acc + (el.operations === op ? 1 : 0),
         0
       );
-      if (op === "ToAssign") {
+      if (op === 'ToAssign') {
         value += item.children?.reduce(
           (acc: number, el: IGroupRoomItem) =>
-            acc + (el.operations === "ToReAssign" ? 1 : 0),
+            acc + (el.operations === 'ToReAssign' ? 1 : 0),
           0
         );
       }
@@ -602,9 +766,8 @@ export default {
       const ops = this.grpRoomWithChildrenController.getFutureOperation(item);
       return GroupRoomWithChildrenController.guessItemColor(ops);
     },
-    addRoom(ctx: "search" | "", item?: Partial<IGroupRoomItem | any>) {
+    addRoom(ctx: 'search' | '', item?: Partial<IGroupRoomItem | any>) {
       let pms: Array<Promise<any>> = [];
-
       if (!item) {
         for (const id of this.searchModel) {
           pms.push(
@@ -630,14 +793,15 @@ export default {
     },
     tmpItemClass(item: IGroupRoomItem) {
       if (!item.display) {
-        return "soft-deleted-item";
+        return 'soft-deleted-item';
       }
       if (item.tmp) {
-        return "tmp-item";
+        return 'tmp-item';
       }
       return;
     },
-    deleteEntity(item: IGroupRoomItem, context: "menu" | "actions") {
+    deleteEntity(item: IGroupRoomItem, context: 'menu' | 'actions') {
+
       this.grpRoomWithChildrenController
         .deleteItem(item)
         .then(() => {
@@ -648,16 +812,16 @@ export default {
         });
     },
     toggleUnitMode() {
-      if (this.unitMode === "m2") {
-        this.unitMode = "percentage";
-      } else if (this.unitMode === "percentage") {
-        this.unitMode = "m2";
+      if (this.unitMode === 'm2') {
+        this.unitMode = 'percentage';
+      } else if (this.unitMode === 'percentage') {
+        this.unitMode = 'm2';
       }
     },
     restore(item: IGroupRoomItem) {
       this.grpRoomWithChildrenController
         .restoreItem(item)
-        .then(() => { })
+        .then(() => {})
         .catch((err: any) => {
           console.error(err);
         });
@@ -668,19 +832,19 @@ export default {
     buildAreaBeforeGrpRoom() {
       return this.data.map((room: IGroupRoomItem) => {
         switch (room.operations) {
-          case "Assigned":
+          case 'Assigned':
             return room.area;
             break;
-          case "Not-assigned":
+          case 'Not-assigned':
             return 0;
             break;
-          case "ToDeAssign":
+          case 'ToDeAssign':
             return 0;
             break;
-          case "ToAssign":
+          case 'ToAssign':
             return 0;
             break;
-          case "AssignedToAnother":
+          case 'AssignedToAnother':
             return 0;
           default:
             return 0;
@@ -691,19 +855,19 @@ export default {
     buildAreaAfterGrpRoom() {
       return this.data.map((room: IGroupRoomItem) => {
         switch (room.operations) {
-          case "Assigned":
+          case 'Assigned':
             return room.newArea;
             break;
-          case "Not-assigned":
+          case 'Not-assigned':
             return 0;
             break;
-          case "ToDeAssign":
+          case 'ToDeAssign':
             return room.area;
             break;
-          case "ToAssign":
+          case 'ToAssign':
             return room.area;
             break;
-          case "AssignedToAnother":
+          case 'AssignedToAnother':
             return 0;
           default:
             return room.area;
@@ -714,70 +878,76 @@ export default {
     createStyleTitleSelectBefore(item: any) {
       let itemColorBefore = undefined;
       let LegBefore: TypeLegend = item.operations;
-      let futureOp = this.grpRoomWithChildrenController.getFutureOperation(item);
+      let futureOp =
+        this.grpRoomWithChildrenController.getFutureOperation(item);
       let styleObj = {};
 
-      styleObj["height"] = "2em";
+      styleObj['height'] = '2em';
       if (
         this.grpRoomWithChildrenController.selectedGrpRoom.children.find(
           (room) => room.title === item.name
         )
       ) {
-        styleObj["background"] =
-          GroupRoomWithChildrenController.guessItemColor("Assigned");
+        styleObj['background'] =
+          GroupRoomWithChildrenController.guessItemColor('Assigned');
         return styleObj;
       }
       switch (futureOp) {
-        case "ToAssign":
-          LegBefore = "Not-assigned";
+        case 'ToAssign':
+          LegBefore = 'Not-assigned';
           break;
-        case "ToReAssign":
-          LegBefore = "AssignedToAnother";
+        case 'ToReAssign':
+          LegBefore = 'AssignedToAnother';
           break;
         default:
-          LegBefore = "Not-assigned";
+          LegBefore = 'Not-assigned';
       }
-      itemColorBefore = GroupRoomWithChildrenController.guessItemColor(LegBefore);
-      styleObj["background"] = itemColorBefore;
+      itemColorBefore =
+        GroupRoomWithChildrenController.guessItemColor(LegBefore);
+      styleObj['background'] = itemColorBefore;
       return styleObj;
     },
-    createColorPropChipsBefore(item: any, ctx = "bg"): string {
+    createColorPropChipsBefore(item: any, ctx = 'bg'): string {
       let itemColorBefore = undefined;
       let LegBefore: TypeLegend = item.operations;
-      let futureOp = this.grpRoomWithChildrenController.getFutureOperation(item);
-      let textColor = "";
+      let futureOp =
+        this.grpRoomWithChildrenController.getFutureOperation(item);
+      let textColor = '';
 
       if (
         this.grpRoomWithChildrenController.selectedGrpRoom.children.find(
           (room) => room.title === item.name
         )
       ) {
-        itemColorBefore = GroupRoomWithChildrenController.guessItemColor("Assigned");
-        textColor = "white";
-        return ctx === "bg" ? `${itemColorBefore}` : textColor;
+        itemColorBefore =
+          GroupRoomWithChildrenController.guessItemColor('Assigned');
+        textColor = 'white';
+        return ctx === 'bg' ? `${itemColorBefore}` : textColor;
       }
       switch (futureOp) {
-        case "ToAssign":
-          LegBefore = "Not-assigned";
-          textColor = "white";
+        case 'ToAssign':
+          LegBefore = 'Not-assigned';
+          textColor = 'white';
           break;
-        case "ToReAssign":
-          LegBefore = "AssignedToAnother";
-          textColor = "white";
+        case 'ToReAssign':
+          LegBefore = 'AssignedToAnother';
+          textColor = 'white';
           break;
         default:
-          textColor = "white";
-          LegBefore = "Not-assigned";
+          textColor = 'white';
+          LegBefore = 'Not-assigned';
       }
-      itemColorBefore = GroupRoomWithChildrenController.guessItemColor(LegBefore);
-      return ctx === "bg" ? `${itemColorBefore}` : textColor;
+      itemColorBefore =
+        GroupRoomWithChildrenController.guessItemColor(LegBefore);
+      return ctx === 'bg' ? `${itemColorBefore}` : textColor;
     },
     deleteChipFromRoomSelection(item: any) {
       this.searchModel = this.searchModel.filter((el) => el !== item.dynamicId);
     },
+
     switchCategory(category: number | IGroupRoomItem) {
       this.isLoadingData = true;
-      if (category && typeof category === "number") {
+      if (category && typeof category === 'number') {
         this.grpRoomWithChildrenController
           .switchCategories(category)
           .then((newCategories) => {
@@ -787,7 +957,7 @@ export default {
           .catch((err: any) => {
             console.error(err);
           });
-      } else if (category && typeof category === "object") {
+      } else if (category && typeof category === 'object') {
         this.grpRoomWithChildrenController
           .switchCategories(category.id)
           .then((newCategories) => {
@@ -799,6 +969,28 @@ export default {
           });
       }
     },
+
+    clickGroupManager(){
+      this.$emit('clickGroupManager');
+    },
+    clickNomenclature(){
+      this.$emit('clickNomenclature');
+    },
+    clickDisplayLegend(){
+      this.$emit('clickDisplayLegend');
+    },
+    clickLogarithm(){
+      // console.log(`${this.$store.state.appDataStore?.zoneSelected?.dynamicId} ${this.$store.state.appDataStore?.zoneSelected?.name}`);
+      this.logarithmicRadar=!this.logarithmicRadar;
+    },
+    toggleFilterFloor(){
+      this.filterBySelectedZone = !this.filterBySelectedZone;
+      this.grpRoomWithChildrenController.setSelectedFloorId(this.selectedZone.dynamicId);
+      this.grpRoomWithChildrenController.setFilter(this.filterBySelectedZone);
+
+      this.loadData()
+    }
+
   },
   computed: {
     availableRooms() {
@@ -817,42 +1009,43 @@ export default {
         //     return false;
         // })
         return filteredRooms;
-      } catch (err: any) { }
+      } catch (err: any) {}
       return [];
     },
     searchBarPlaceholder() {
-      return this.grpRoomFocus === "GrpRoomList"
-        ? "Recherchez un groupe de pièces"
-        : "Selectionner une ou plusieurs pièce(s)";
+      return this.grpRoomFocus === 'GrpRoomList'
+        ? 'Recherchez un groupe de pièces'
+        : 'Selectionner une ou plusieurs pièce(s)';
     },
     globalKpiClass() {
       if (this.grpRoomWithChildrenController.totalGain.value !== 0) {
-        return "greyed mini-text";
+        return 'greyed mini-text';
       } else {
-        return "";
+        return '';
       }
     },
     gridClass() {
       switch (this.viewMode) {
-        case "radar-grid":
-          return "grid-fullscreen";
-        case "grid":
-          return "";
+        case 'radar-grid':
+          return 'grid-fullscreen';
+        case 'grid':
+          return '';
         default:
           break;
       }
-      return "";
+      return '';
     },
     dataFiltered() {
-      if (this.grpRoomFocus === "GrpRoom") {
-        return this.data;
-      } else if (this.grpRoomFocus === "GrpRoomList") {
-        return this.data?.filter((grp) =>
-          grp?.title.toLowerCase().startsWith(this.searchModelGrp.toLowerCase())
-        );
-      }
-      return [];
-    },
+  if (this.grpRoomFocus === 'GrpRoom') {
+    return this.data;
+  } else if (this.grpRoomFocus === 'GrpRoomList') {
+    let filteredGroups = this.data?.filter((grp) =>
+      grp.title.toLowerCase().startsWith(this.searchModelGrp.toLowerCase())
+    );
+    return filteredGroups;
+  }
+  return [];
+},
     // TODO Refaire cette function
     dataRadar() {
       let labelRadar: string[] = [];
@@ -868,45 +1061,80 @@ export default {
         return obj;
       }
 
-      console.log("ViewMode = ", this.viewMode)
+      console.log('ViewMode = ', this.viewMode);
       if (this.viewMode === 'radar-grid') {
-        console.log("View Mode === radar-grid")
+        console.log('View Mode === radar-grid');
       }
-      if (this.viewMode === 'radar-grid' || this.grpRoomFocus === "GrpRoomList") {
-        grpCurrentCategory = this.grpRoomWithChildrenController?.groupRoomTree?.filter((x: IGroupRoomItem) => x.parentId === this.categoriesModel.id);
+      // if (
+      //   this.viewMode === 'radar-grid' ||
+      //   this.grpRoomFocus === 'GrpRoomList'
+      // ) {
+        grpCurrentCategory =
+          this.grpRoomWithChildrenController?.groupRoomTree?.filter(
+            (x: IGroupRoomItem) => x.parentId === this.categoriesModel.id
+          );
         areaAfter = grpCurrentCategory.map(
           (grpGroup: IGroupRoomItem) => grpGroup.newArea
         );
-        labelRadar = grpCurrentCategory.map((grpGroup: IGroupRoomItem) => grpGroup.title);
-        areaBefore = grpCurrentCategory.map((grpGroup: IGroupRoomItem) => grpGroup.area);
-      } else if (this.grpRoomFocus === "GrpRoom") {
-        labelRadar = this.data.map((grpGroup: IGroupRoomItem) => grpGroup.title);
-        areaAfter = this.buildAreaAfterGrpRoom();
-        areaBefore = this.buildAreaBeforeGrpRoom();
-      }
+        labelRadar = grpCurrentCategory.map(
+          (grpGroup: IGroupRoomItem) => grpGroup.title
+        );
+        areaBefore = grpCurrentCategory.map(
+          (grpGroup: IGroupRoomItem) => grpGroup.area
+        );
+      // } else if (this.grpRoomFocus === 'GrpRoom') {
+        // labelRadar = this.data.map(
+        //   (grpGroup: IGroupRoomItem) => grpGroup.title
+        // );
+        // areaAfter = this.buildAreaAfterGrpRoom();
+        // areaBefore = this.buildAreaBeforeGrpRoom();
+      // }
 
+      if(this.logarithmicRadar){
+          areaAfter = areaAfter.map((x) => {
+            if (x === 0) {
+              return 0;
+            }
+            return Math.log10(x);
+          });
+          areaBefore = areaBefore.map((x) => {
+            if (x === 0) {
+              return 0;
+            }
+            return Math.log10(x);
+          });
+        }
+      console.log('Area Before = ', areaBefore);
       obj.datasets.push({
-        label: "Nouvelle superficie (m2)",
+        label: 'Nouvelle superficie (m2)',
         data: areaAfter,
         fill: true,
-        backgroundColor: "rgba(255, 0, 2, 0.2)",
-        borderColor: "rgb(255, 0, 2)",
-        pointBackgroundColor: "rgb(255, 0, 2)",
-        pointBorderColor: "#fff",
-        pointHoverBackgroundColor: "#fff",
-        pointHoverBorderColor: "rgb(255, 0, 2)",
+        backgroundColor: 'rgba(255, 0, 2, 0.2)',
+        borderColor: 'rgb(255, 0, 2)',
+        pointBackgroundColor: 'rgb(255, 0, 2)',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgb(255, 0, 2)',
+        tooltipLabel: function(tooltipItem, data) {
+        let value = grpCurrentCategory[tooltipItem.index].newArea;
+        return `New Area: ${value} m²`;
+    }
       });
 
       obj.datasets.push({
-        label: "Ancienne superficie (m2)",
+        label: 'Ancienne superficie (m2)',
         data: areaBefore,
         fill: true,
-        backgroundColor: "rgba(20,32,44, 0.4)",
-        borderColor: "rgb(20,32,44)",
-        pointBackgroundColor: "rgb(20,32,44)",
-        pointBorderColor: "#fff",
-        pointHoverBackgroundColor: "#fff",
-        pointHoverBorderColor: "rgb(20,32,44)",
+        backgroundColor: 'rgba(20,32,44, 0.4)',
+        borderColor: 'rgb(20,32,44)',
+        pointBackgroundColor: 'rgb(20,32,44)',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgb(20,32,44)',
+        tooltipLabel: function(tooltipItem, data) {
+        let value = grpCurrentCategory[tooltipItem.index].area;
+        return `Old Area: ${value} m²`;
+        }
       });
       obj.labels = labelRadar;
       return obj;
@@ -995,7 +1223,7 @@ export default {
     height: 100%;
     overflow-y: hidden;
     overflow-x: hidden;
-    font-family: "Charlevoix" !important;
+    font-family: 'Charlevoix' !important;
 
     tbody {
       td {
@@ -1026,7 +1254,7 @@ export default {
 
         .title {
           position: relative;
-          font-family: "charlevoix" !important;
+          font-family: 'charlevoix' !important;
           font-weight: 900;
           font-size: 3em !important;
           line-height: 1em;
@@ -1075,7 +1303,8 @@ export default {
             }
           }
 
-          .initial-area {}
+          .initial-area {
+          }
 
           .separator-wrapper {
             display: flex;
@@ -1128,7 +1357,7 @@ export default {
 
   .subtitle-wrapper {
     margin-top: 0.7em;
-    font-family: "Charlevoix";
+    font-family: 'Charlevoix';
   }
 
   .footer-wrapper {
@@ -1190,7 +1419,7 @@ export default {
   }
 
   .charlevoix {
-    font-family: "Charlevoix";
+    font-family: 'Charlevoix';
   }
 
   .radar-wrapper {

@@ -57,7 +57,8 @@ class RoomManager {
   }
 
   public async loadData() {
-    return this.loadRooms();
+    const data = this.loadRooms();
+    return data;
   }
 
   public getRoomByDbId(dbIdObject: string): IRoom | undefined {
@@ -103,7 +104,7 @@ class RoomManager {
         .then((ids) => ids.map((id) => getRoomsRefRaw(buildingId, id)))
         .then((pms) => Promise.all(pms))
         .then((roomsRefs) => this.buildRoomAndFloorList(rooms, roomsRefs))
-        .then(() => resolve(this._rooms.list))
+        .then(() =>  resolve(this._rooms.list))
         .catch((err) => {
           reject(new Error(err));
         });
@@ -112,7 +113,7 @@ class RoomManager {
 
   private async buildRoomAndFloorList(
     rooms: Room[],
-    roomsRefs: any[]
+    roomsRefs: any[],
   ): Promise<void> {
     let roomTmp: Room;
     return new Promise((resolve, reject) => {
@@ -124,12 +125,11 @@ class RoomManager {
           this.addRoom(room, roomsRefs, i);
         }
       }
-
-      this._rooms = createListAndObjByTag<Room>(this._rooms.list, "dynamicId");
-      this._floors = createListAndObjByTag<Floor>(
-        this._floors.list,
-        "dynamicId"
-      );
+        this._rooms = createListAndObjByTag<Room>(this._rooms.list, "dynamicId");
+        this._floors = createListAndObjByTag<Floor>(
+          this._floors.list,
+          "dynamicId"
+        );
       resolve();
     });
   }

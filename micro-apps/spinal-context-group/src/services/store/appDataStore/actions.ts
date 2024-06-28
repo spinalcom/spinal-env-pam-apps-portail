@@ -174,10 +174,9 @@ export const actions = {
 			await ViewerManager.getInstance().loadInViewer(playload.item, playload.onlyThisModel, body);
 
 			if (playload.onlyThisModel) state.viewerStartedList = {};
-
 			commit(MutationTypes.ADD_VIEWER_LOADED, { id: playload.item.dynamicId });
 		} catch (error) {
-			console.log("errror", error);
+			console.log("error", error);
 		}
 	},
 

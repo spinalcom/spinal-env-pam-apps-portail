@@ -65,7 +65,8 @@ export class SpinalAPI {
 
   get = this.axiosInstance.get;
   post = this.axiosInstance.post;
-
+  put = this.axiosInstance.put;
+  delete = this.axiosInstance.delete;
   async *createIteratorCall<K extends (...args) => any>(
     fct: K,
     ...args: Parameters<K>

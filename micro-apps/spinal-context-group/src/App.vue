@@ -23,56 +23,112 @@ with this file. If not, see
 -->
 <template>
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
-    <NomenclatureModale ref="nomenclatureModale" v-if="showNomenclatureModale" :showModal="showNomenclatureModale"
-      v-on:close="closeModaleNomenclature"></NomenclatureModale>
-    <ModaleEditGroup ref="editGroupModale" v-if="showModalEditGroup"
-      @activateSpaceAssignation="activateSpaceAssignation" @activateNomenclatureModale="activateNomenclatureModale"
-      v-on:close="closeModaleEditGroup" :showModal="showModalEditGroup">
+    <NomenclatureModale
+      ref="nomenclatureModale"
+      v-if="showNomenclatureModale"
+      :showModal="showNomenclatureModale"
+      v-on:close="closeModaleNomenclature"
+    ></NomenclatureModale>
+    <ModaleEditGroup
+      ref="editGroupModale"
+      v-if="showModalEditGroup"
+      @activateSpaceAssignation="activateSpaceAssignation"
+      @activateNomenclatureModale="activateNomenclatureModale"
+      v-on:close="closeModaleEditGroup"
+      :showModal="showModalEditGroup"
+    >
     </ModaleEditGroup>
-    <v-overlay :value="showModalEditGroup || showNomenclatureModale"></v-overlay>
+    <v-overlay
+      :value="showModalEditGroup || showNomenclatureModale"
+    ></v-overlay>
     <div class="selectors">
       <div class="DButton">
-        <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()" />
+        <ScDownloadButton
+          :fileName="'insight_data'"
+          :csv="true"
+          :data="getDataFormatted()"
+        />
       </div>
       <div class="space">
-        <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"
-          :GetChildrenFct="onSpaceSelectOpen" v-model="selectedZone" label="ESPACE"
-          :spaceSelectorItemButtons="spaceSelectorButtons" :viewButtonsType="config.viewButtons"
-          @onActionClick="onActionClick" />
+        <space-selector
+          ref="space-selector"
+          :open.sync="openSpaceSelector"
+          :maxDepth="2"
+          :GetChildrenFct="onSpaceSelectOpen"
+          v-model="selectedZone"
+          label="ESPACE"
+          :spaceSelectorItemButtons="spaceSelectorButtons"
+          :viewButtonsType="config.viewButtons"
+          @onActionClick="onActionClick"
+        />
       </div>
     </div>
 
     <div class="dataBody">
-      <viewerApp class="viewerContainer" :class="classViewerContainer"></viewerApp>
+      <viewerApp
+        :class="{ active3D: isActive3D }"
+        class="viewerContainer"
+      ></viewerApp>
+
       <div class="bottom-container">
         <div class="legend-wrapper">
-          <LegendVue v-if="currentExpansionMode !== 'full'" :listItem="legendSpaceAssignation"
-            v-show="currentExpansionMode !== 'zero'"></LegendVue>
-        </div>
-        <div class="menu-wrapper">
-          <MenuV1 v-if="currentExpansionMode !== 'full'" @clickFirstCell="openModaleEditGroup"
-            @clickSecondCell="openNomenclatureModale" @clickMainCell="toggleHomeMode">
-          </MenuV1>
+          <LegendVue
+            v-if="!isActive && displayLegend"
+            :listItem="legendSpaceAssignation"
+            v-show="!isActive"
+          ></LegendVue>
         </div>
 
-        <dataSideApp class="appContainer" ref="dataSideApp" :class="classDataSide" :config="config"
-          :selectedZone="selectedZone" :data="displayedData" @clickOnDataView="onDataViewClicked"
-          :selectedEntities="selectedEntities" :selectEntity="selectRoom">
-          <template #expander>
-            <Expansion @updateExpansion="updateExpansion" ref="expansion" iconLeft="mdi-chevron-left"
-              iconRight="mdi-chevron-right">
-            </Expansion>
-          </template>
+        <!-- <div class="menu-wrapper">
+          <MenuV1
+            v-if="currentExpansionMode !== 'full'"
+            @clickFirstCell="openModaleEditGroup"
+            @clickSecondCell="openNomenclatureModale"
+            @clickMainCell="toggleHomeMode"
+          >
+          </MenuV1>
+        </div> -->
+
+        <dataSideApp
+          class="appContainer"
+          ref="dataSideApp"
+          :class="{ active: isActive, inactive: isActive3D }"
+          :config="config"
+          :selectedZone="selectedZone"
+          :data="displayedData"
+          @clickOnDataView="onDataViewClicked"
+          @buttonClicked3D="toggleActive3D"
+          @buttonClicked="toggleActive"
+          :selectedEntities="selectedEntities"
+          :selectEntity="selectRoom"
+          :DActive="isActive3D"
+          :ActiveData="isActive"
+        >
           <template #body>
-            <RoomsGroupTable ref="roomsGroupTable"> </RoomsGroupTable>
+            <RoomsGroupTable ref="roomsGroupTable"
+              :selectedZone="selectedZone"
+              @clickGroupManager="openModaleEditGroup"
+              @clickNomenclature="openNomenclatureModale"
+              @clickDisplayLegend="toggleDisplayLegend"
+              > 
+            </RoomsGroupTable>
           </template>
         </dataSideApp>
       </div>
     </div>
   </v-app>
 
-  <v-container class="loading" v-else-if="pageSate === PAGE_STATES.loading" fluid>
-    <v-progress-circular :size="70" :width="3" color="purple" indeterminate></v-progress-circular>
+  <v-container
+    class="loading"
+    v-else-if="pageSate === PAGE_STATES.loading"
+    fluid
+  >
+    <v-progress-circular
+      :size="70"
+      :width="3"
+      color="purple"
+      indeterminate
+    ></v-progress-circular>
   </v-container>
 </template>
 
@@ -80,7 +136,7 @@ with this file. If not, see
 /**
  * * Controllers
  */
-import { GroupRoomWithChildrenController } from "./controllers";
+import { GroupRoomWithChildrenController } from './controllers';
 
 /**
  * * Components
@@ -88,17 +144,17 @@ import { GroupRoomWithChildrenController } from "./controllers";
 import {
   ISpaceSelectorItem,
   SpaceSelector,
-} from "./components/SpaceSelector/index";
-import ScDownloadButton from "spinal-components/src/components/DownloadButton.vue";
-import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
-import viewerApp from "./components/viewer/viewer.vue";
-import dataSideApp from "./components/data-side/App.vue";
-import ModaleEditGroup from "./components/data-side/Modales/EditGroupModale.vue";
-import LegendVue from "./components/data-side/Legend.vue";
-import Expansion from "./components/data-side/Expansion/Expansion.vue";
-import MenuV1 from "./components/data-side/Menu/MenuV1.vue";
-import NomenclatureModale from "./components/data-side/Modales/NomenclatureModale.vue";
-import RoomsGroupTable from "./components/data-side/RoomsGroup/RoomsGroupTable.vue";;
+} from './components/SpaceSelector/index';
+import ScDownloadButton from 'spinal-components/src/components/DownloadButton.vue';
+import { ViewerButtons } from './components/SpaceSelector/spaceSelectorButtons';
+import viewerApp from './components/viewer/viewer.vue';
+import dataSideApp from './components/data-side/App.vue';
+import ModaleEditGroup from './components/data-side/Modales/EditGroupModale.vue';
+import LegendVue from './components/data-side/Legend.vue';
+//import Expansion from "./components/data-side/Expansion/Expansion.vue";
+import MenuV1 from './components/data-side/Menu/MenuV1.vue';
+import NomenclatureModale from './components/data-side/Modales/NomenclatureModale.vue';
+import RoomsGroupTable from './components/data-side/RoomsGroup/RoomsGroupTable.vue';
 
 /**
  * * Factory
@@ -109,49 +165,48 @@ import RoomsGroupTable from "./components/data-side/RoomsGroup/RoomsGroupTable.v
 /**
  * * Interfaces
  */
-import { ActionTypes } from "./interfaces/vuexStoreTypes";
-import { IConfig } from "./interfaces/IConfig";
-import { PAGE_STATES } from "./interfaces/pageStates";
+import { ActionTypes } from './interfaces/vuexStoreTypes';
+import { IConfig } from './interfaces/IConfig';
+import { PAGE_STATES } from './interfaces/pageStates';
 import type {
   IButton,
   IZoneItem,
   TGeoItem,
-} from "./components/SpaceSelector/interfaces/IBuildingItem";
-import { ExpansionMode, IItemV1 } from "./interfaces";
+} from './components/SpaceSelector/interfaces/IBuildingItem';
+import { ExpansionMode, IItemV1 } from './interfaces';
 
 /**
  * * Other
  */
-import { config } from "./config";
-import { Vue } from "vue-property-decorator";
-import Component from "vue-class-component";
-import "spinal-components/dist/spinal-components.css";
+import { config } from './config';
+import { Vue } from 'vue-property-decorator';
+import Component from 'vue-class-component';
+import 'spinal-components/dist/spinal-components.css';
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
   VIEWER_OBJ_SELECT,
   VIEWER_AGGREGATE_SELECTION_CHANGED,
-} from "spinal-viewer-event-manager";
-import { RoomManager } from "./services/RoomsManager";
-import { INodeItem, IRoom } from "./interfaces";
-import { ViewerManager } from "./components/viewer";
+} from 'spinal-viewer-event-manager';
+import { RoomManager } from './services/RoomsManager';
+import { INodeItem, IRoom } from './interfaces';
+import { ViewerManager } from './components/viewer';
 
 /**
  * * Services
  */
-import { RoomsGroupAPI } from "./services/spinalAPI";
+import { RoomsGroupAPI } from './services/spinalAPI';
 
 /**
  * * Stores
  */
-import type { Store } from "./services/store";
-import { MutationTypes } from "./services/store/appDataStore/mutations";
+import type { Store } from './services/store';
+import { MutationTypes } from './services/store/appDataStore/mutations';
 
 /**
  * * Types
  */
-import { Legend } from "./interfaces/GroupWithChildren";
-
+import { Legend } from './interfaces/GroupWithChildren';
 
 interface IItemData {
   platformId: string;
@@ -172,7 +227,6 @@ interface IItemDatatmp {
     ModaleEditGroup,
     RoomsGroupTable,
     LegendVue,
-    Expansion,
     MenuV1,
     NomenclatureModale,
   },
@@ -183,6 +237,7 @@ class App extends Vue {
   $store: Store;
   openSpaceSelector: boolean = false;
   openTemporalitySelector: boolean = false;
+  displayLegend: boolean =false;
   config: IConfig = config;
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
   emitterHandler: EmitterViewerHandler | undefined = undefined;
@@ -203,8 +258,10 @@ class App extends Vue {
   selectedRoom: IRoom[];
   legendSpaceAssignation: Legend[] =
     GroupRoomWithChildrenController.legendSpaceAssignation;
-  currentExpansionMode: ExpansionMode = "one-tier";
+  currentExpansionMode: ExpansionMode = 'split';
   expsEventAttached: boolean = false;
+  isActive: boolean = false;
+  isActive3D: boolean = false;
 
   async mounted() {
     try {
@@ -227,7 +284,7 @@ class App extends Vue {
   activateSpaceAssignation(item: IItemV1) {
     // Show Dataside
     this.showModalEditGroup = false;
-    this.currentExpansionMode = "one-tier";
+    this.currentExpansionMode = 'one-tier';
     if (this.$refs.roomsGroupTable) {
       this.$refs.roomsGroupTable.loadData(item.id);
     }
@@ -240,11 +297,16 @@ class App extends Vue {
       this.$refs.nomenclatureModale.loadData();
     }
   }
+  // resize() {
+  //   setTimeout(() => {
+  //     window.dispatchEvent(new Event('resize'));
+  //   }, 1);
 
+  // }
   listenExpansionEvent() {
     if (this.$refs.dataSideApp && !this.expsEventAttached) {
-      this.$refs.dataSideApp.$el.addEventListener("transitionend", () => {
-        console.log("Transition ended");
+      this.$refs.dataSideApp.$el.addEventListener('transitionend', () => {
+        console.log('Transition ended');
         this.expsEventAttached = true;
         this.viewerManager.resize();
         console.log(this.$refs.roomsGroupTable);
@@ -278,28 +340,28 @@ class App extends Vue {
 
   public get classDataSide() {
     switch (this.currentExpansionMode) {
-      case "zero":
-        return "app-container-zero";
-      case "one-tier":
-        return "";
-      case "half":
-        return "app-container-halfscreen";
-      case "full":
-        return "app-container-fullscreen";
+      case 'zero':
+        return 'app-container-zero';
+      case 'one-tier':
+        return '';
+      case 'half':
+        return 'app-container-halfscreen';
+      case 'full':
+        return 'app-container-fullscreen';
       default:
     }
   }
 
   public get classViewerContainer() {
     switch (this.currentExpansionMode) {
-      case "zero":
-        return "viewerContainer-zero";
-      case "one-tier":
-        return "";
-      case "half":
-        return "viewerContainer-half";
-      case "full":
-        return "viewerContainer-invisible";
+      case 'zero':
+        return 'viewerContainer-zero';
+      case 'one-tier':
+        return '';
+      case 'half':
+        return 'viewerContainer-half';
+      case 'full':
+        return 'viewerContainer-invisible';
       default:
     }
   }
@@ -319,13 +381,17 @@ class App extends Vue {
     this.showNomenclatureModale = true;
   }
 
+  public toggleDisplayLegend(){
+    this.displayLegend = !this.displayLegend;
+  }
+
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<IZoneItem[]> {
     switch (item?.type) {
       case undefined:
-        const buildingId = localStorage.getItem("idBuilding");
+        const buildingId = localStorage.getItem('idBuilding');
         const playload = {
           config,
-          item: { buildingId, type: "building" },
+          item: { buildingId, type: 'building' },
         };
 
         const promises = [
@@ -339,17 +405,17 @@ class App extends Vue {
             name: building.name,
             staticId: building.id,
             categories: [],
-            color: "#35CAE5",
+            color: '#35CAE5',
             dynamicId: 0,
-            type: "building",
+            type: 'building',
           },
         ];
-      case "building":
+      case 'building':
         return await this.$store.dispatch(ActionTypes.GET_FLOORS, {
           buildingId: item.staticId,
           patrimoineId: item.patrimoineId,
         });
-      case "geographicFloor":
+      case 'geographicFloor':
         //@ts-ignore
         return await this.$store.dispatch(ActionTypes.GET_ROOMS, {
           floorId: item.dynamicId,
@@ -375,7 +441,7 @@ class App extends Vue {
           parents: [],
           drawLink: [],
           haveChildren: false,
-          type: "time",
+          type: 'time',
         }));
 
       default:
@@ -383,10 +449,13 @@ class App extends Vue {
     }
   }
 
-  updateExpansion(newExpansion: ExpansionMode) {
-    console.log("New Expansion = ", newExpansion);
-    this.currentExpansionMode = newExpansion;
-    console.log("Refs = ", this.$refs);
+  updateExpansion() {
+    let newExpansionMode: ExpansionMode = 'split';
+    if (this.isActive3D) newExpansionMode = 'zero';
+    if (this.isActive) newExpansionMode = 'full';
+    console.log('New Expansion = ', newExpansionMode);
+    this.currentExpansionMode = newExpansionMode;
+    console.log('Refs = ', this.$refs);
     this.listenExpansionEvent();
     this.$refs.roomsGroupTable.setViewModeByExpansion(
       this.currentExpansionMode
@@ -394,8 +463,26 @@ class App extends Vue {
   }
 
   onGoBack() {
-    const parent = this.$refs["space-selector"].getParentOfSelected();
+    const parent = this.$refs['space-selector'].getParentOfSelected();
     if (parent) this.selectedZone = parent;
+  }
+
+  toggleActive3D() {
+    if (this.isActive) this.isActive = false;
+    this.isActive3D = !this.isActive3D;
+    this.updateExpansion();
+    console.log('isActive3D', this.isActive3D, ' | isActive :', this.isActive);
+    //this.handleRouteChange();
+  }
+
+  toggleActive() {
+    if (this.isActive3D) {
+      this.isActive3D = false;
+    }
+    this.isActive = !this.isActive;
+    this.updateExpansion();
+    console.log('isActive3D', this.isActive3D, ' | isActive :', this.isActive);
+    //this.handleRouteChange();
   }
 
   private getItemData(item: TGeoItem | TGeoItem[]): IItemData {
@@ -446,7 +533,7 @@ class App extends Vue {
           item: data,
         });
         break;
-      case "OPEN_VIEWER_PLUS":
+      case 'OPEN_VIEWER_PLUS':
         this.$store.dispatch(ActionTypes.OPEN_VIEWER, {
           onlyThisModel: false,
           config: this.config,
@@ -463,8 +550,8 @@ class App extends Vue {
     this.emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
       this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
       if (result.node.dynamicId) {
-        const a = document.createElement("a");
-        a.setAttribute("href", `#${result.node.dynamicId}`);
+        const a = document.createElement('a');
+        a.setAttribute('href', `#${result.node.dynamicId}`);
         a.click();
       }
     });
@@ -515,16 +602,16 @@ class App extends Vue {
 
   toggleHomeMode() {
     this.showModalEditGroup = false;
-    this.currentExpansionMode = "zero";
-    this.$refs.expansion.resetToZero()
+    this.currentExpansionMode = 'zero';
+    this.$refs.expansion.resetToZero();
   }
 
   private _getHeader() {
     return {
-      id: "id",
-      name: "name",
-      type: "type",
-      value: "value",
+      id: 'id',
+      name: 'name',
+      type: 'type',
+      value: 'value',
     };
   }
 
@@ -589,41 +676,43 @@ export default App;
       width: 60%;
       height: 100%;
       float: left;
-      position: relative;
-      transition: all 1s;
-    }
-
-    .viewerContainer-zero {
-      width: calc(100% - 2em) !important;
-    }
-
-    .viewerContainer-half {
-      width: 50% !important;
-    }
-
-    .viewerContainer-invisible {
-      width: 0% !important;
     }
 
     .appContainer {
-      width: var(--app-container-width);
-      // Ideale
-      height: calc(100% - $selectorHeight);
-      z-index: 80;
-      transition: all 1s;
-      background-color: #f9f9f9;
+      width: 40%;
+      z-index: 7;
+      float: right;
+      transition: 0.5s;
+      position: absolute;
+      margin-right: 6px;
+      height: 92%;
+      right: 0px;
     }
 
-    .app-container-halfscreen {
-      width: 50% !important;
+    .active {
+      width: 98.5%;
+      // height: 100%;
+      position: absolute;
+      z-index: 7;
+      right: 0px;
+      margin-right: 6px;
+      height: 92%;
     }
 
-    .app-container-fullscreen {
-      width: 100% !important;
+    .inactive {
+      // display: none;
+      position: absolute;
+      width: 0%;
+      height: 92%;
+      right: 0px;
+      transition: 0.1;
     }
 
-    .app-container-zero {
-      width: 2em !important;
+    .active3D {
+      width: 99vw;
+      height: 100%;
+      float: left;
+      position: absolute;
     }
   }
 }
@@ -693,11 +782,18 @@ body {
   border-radius: 5px;
 }
 
-.appContainer .dataContainer .calcul_content .calcul .select .v-text-field.v-text-field--solo .v-input__control {
+.appContainer
+  .dataContainer
+  .calcul_content
+  .calcul
+  .select
+  .v-text-field.v-text-field--solo
+  .v-input__control {
   min-height: unset !important;
 }
 
-.legend-wrapper {}
+.legend-wrapper {
+}
 
 .menu-wrapper {
   display: flex;

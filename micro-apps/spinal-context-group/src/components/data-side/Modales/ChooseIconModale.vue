@@ -57,7 +57,7 @@ export default {
         this.arrayIcon = this.arrayIcon?.map(([k, v]): any => {
             return { k: k, v: v }
         })
-        console.log("Array icon = ", this.arrayIcon);
+        // console.log("Array icon = ", this.arrayIcon);
     },
 }
 </script>

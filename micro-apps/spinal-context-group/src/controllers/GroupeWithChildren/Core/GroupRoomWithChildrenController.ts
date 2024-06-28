@@ -103,6 +103,8 @@ class GroupRoomWithChildrenController
   private _lexiconAttributes: { [key: string]: AttributeCategory };
   private _currentCategory: IGroupRoomItem;
   private _categories: IGroupRoomItem[];
+  private _selectedFloorId: number;
+  private _filter : boolean = false;
 
   private readonly _roomManager: RoomManager;
   private _viewerManager: ViewerManager;
@@ -126,7 +128,7 @@ class GroupRoomWithChildrenController
     roomGroupAPiInstance: RoomsGroupAPI
   ) {
     super();
-    this.grpCtxApiInstance = grpContextAPIInstance; // I Will mock this later through
+    this.grpCtxApiInstance = grpContextAPIInstance; 
     this.nodeAttrApiInstance = nodeAttributsAPIInstance;
     this.roomGroupApiInstance = roomGroupAPiInstance;
     this._totalGainGrpRoom = iKpiBaseFactory.build({}) ?? undefined;
@@ -149,7 +151,7 @@ class GroupRoomWithChildrenController
   public async loadData(): Promise<TGroupOperation> {
     return new Promise((resolve, reject) => {
       this._roomManager
-        .loadData()
+        .loadData() 
         .then(() => (this._allRooms = this._roomManager.rooms))
         .then(() => this.grpCtxApiInstance.getGroupContextTree())
         .then((response) => super.loadData(response))
@@ -160,11 +162,22 @@ class GroupRoomWithChildrenController
         .then(() => this.recomputeKpi())
         .then(() => resolve("Success"))
         .catch((err: any) => {
+          console.error(err)
           reject(new Error(err));
         });
     });
   }
 
+  public applyFilter(): void {
+    console.log('all rooms before filter :',this._allRooms, Object.keys(this._allRooms.obj).length);
+    this._allRooms.list = this._allRooms.list.filter((room) => room.floorId === this._selectedFloorId);
+    for(const item of Object.keys(this._allRooms.obj)){
+      if(this._allRooms.obj[item].floorId !== this._selectedFloorId){
+        delete this._allRooms.obj[item];
+      }
+    }
+    console.log('all rooms after filter :',this._allRooms, Object.keys(this._allRooms.obj).length);
+  }
   public async addNewItem(
     item: IGroupRoomItem,
     parent?: IGroupRoomItem
@@ -202,6 +215,7 @@ class GroupRoomWithChildrenController
       if (item.operations === "ToReAssign") {
         this.restoreStateAffectedItem(item.previousOpsItems);
       }
+      console.log('ITEM SOON TO DE-ASSIGN :',item);
       this.updateOperationsState(item, "ToDeAssign");
       this.checkHardDelete(item);
       this.colorizeViewer();
@@ -667,7 +681,6 @@ class GroupRoomWithChildrenController
     } else {
       this._groupToDisplay = [];
     }
-
     return this._groupToDisplay;
   }
 
@@ -974,7 +987,7 @@ class GroupRoomWithChildrenController
 
     gainValue = selectedGrpRoom.newArea - selectedGrpRoom.area;
     gainPercentage =
-      selectedGrpRoom.area !== 0 ? (gainValue / selectedGrpRoom.area) * 100 : 0;
+    selectedGrpRoom.area !== 0 ? (gainValue / selectedGrpRoom.area) * 100 : 0;
     selectedGrpRoom.gainKpi.value = gainValue;
     selectedGrpRoom.gainKpi.percentage = gainPercentage;
   }
@@ -1056,6 +1069,15 @@ class GroupRoomWithChildrenController
 
   public getFocus(): GroupRoomFocus {
     return this._grpFocus;
+  }
+
+  public setSelectedFloorId(floorId: number): void {
+    this._selectedFloorId = floorId;
+  }
+
+  public setFilter(filter: boolean) : void {
+    this._filter = filter
+    console.log('Filter :', this._filter)
   }
 
   public get totalGain(): KpiBase {
@@ -1212,7 +1234,6 @@ class GroupRoomWithChildrenController
   private async transformTree(): Promise<IGroupRoomItem[]> {
     let roomsId: number[] = [];
     let grpRooms: IGroupRoomItem[] = [];
-
     roomsId = this._allRooms.list.map((el) => el.dynamicId);
     return new Promise((resolve, reject) => {
       // if (this._alreadyTransformed) {
@@ -1348,7 +1369,6 @@ class GroupRoomWithChildrenController
         });
         return newGrpGroup;
       });
-      console.log("TransformGrpGroup");
       resolve(groupRooms);
     });
   }

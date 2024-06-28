@@ -24,6 +24,51 @@ with this file. If not, see
 
 <template>
   <v-card elevation="4" class="cardContainer data-side">
+    <button @click="() => {
+          $emit('buttonClicked');
+          resize();
+        }
+          " style="
+          position: absolute;
+          top: 47.5%;
+          left: -20px;
+          background-color: white;
+          border-radius: 10px;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding-right: 5px;
+          border-left: 2px solid gainsboro;
+          
+        " :style="{ left: DActive ? '-35px' : '-20px' }">
+      <v-icon v-if="DActive"> mdi-chevron-double-left </v-icon>
+      <v-icon v-else-if="ActiveData">mdi-chevron-right</v-icon>
+      <v-icon v-else>mdi-chevron-left</v-icon>
+    </button>
+    <button @click="() => {
+          $emit('buttonClicked3D');
+          resize();
+        }
+          " style="
+          position: absolute;
+          top: 52.5%;
+          background-color: white;
+          border-radius: 10px;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding-right: 5px;
+          border-left: 2px solid gainsboro;
+          
+        " :style="{ left: DActive ? '-35px' : '-20px' }">
+      <v-icon v-if="ActiveData">mdi-chevron-double-right</v-icon>
+      <v-icon v-else-if="DActive">mdi-chevron-left</v-icon>
+      <v-icon v-else>mdi-chevron-right</v-icon>
+    </button>
     <div v-if="selectedEntities.length > 0">
       <div v-for="entitie in selectedEntities" :key="entitie.dynamicId">
         <div @click="selectEntity(entitie)" class="entitie">{{ entitie.name }}</div>
@@ -45,7 +90,7 @@ with this file. If not, see
     </div>
 
     <div class="centered" v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected">
-      Aucune donnée à afficher ! veuillez selectionner un étage ou une pièce.
+      Aucune donnée à afficher ! Veuillez selectionner un étage.
     </div>
 
     <div class="centered" v-else-if="pageSate === PAGE_STATES.loading">
@@ -96,6 +141,8 @@ class dataSideApp extends Vue {
   @Prop() selectedZone: ISpaceSelectorItem;
   @Prop() data: any[];
   @Prop({ default: [] }) selectedEntities: IRoom[];
+  @Prop() DActive: boolean;
+  @Prop() ActiveData: boolean;
 
   PAGE_STATES: typeof PAGE_STATES = PAGE_STATES;
   pageSate: PAGE_STATES = PAGE_STATES.loading;
@@ -108,6 +155,11 @@ class dataSideApp extends Vue {
     this.pageSate = PAGE_STATES.loaded;
     this.viewManager = ViewerManager.getInstance()
     this.isBuildingSelected = true;
+  }
+  resize() {
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 1);
   }
 
   async retriveData() {

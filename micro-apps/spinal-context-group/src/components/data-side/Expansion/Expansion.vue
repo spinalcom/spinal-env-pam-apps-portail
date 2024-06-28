@@ -1,13 +1,13 @@
 <template>
   <div class="button-wrapper">
     <div class="buttons">
-      <button @click="actionBottomButton()" class="buttons-expand mt-8" color="primary" fab small>
+      <button @click="actionBottomButton()" class="buttons-expand " color="primary" fab small>
         <v-icon v-if="currentExpansion === 'one-tier'">mdi-chevron-left
         </v-icon>
         <v-icon v-else-if="currentExpansion === 'zero'">mdi-chevron-left</v-icon>
         <v-icon v-else="currentExpansion === 'full'">mdi-chevron-double-right</v-icon>
       </button>
-      <button @click="actionTopButton()" class="buttons-expand" fab small>
+      <button @click="actionTopButton()" class="buttons-expand mt-8" fab small>
         <v-icon v-if="currentExpansion === 'one-tier'">mdi-chevron-right
         </v-icon>
         <v-icon v-else-if="currentExpansion === 'zero'">mdi-chevron-double-left</v-icon>
@@ -146,7 +146,6 @@ export default {
 
 
 .buttons-expand {
-
   background-color: white;
   border-radius: 10px;
   width: 30px;

@@ -141,6 +141,7 @@ export class ViewerManager {
 
   // TODO A supprimer
   public async resize(): Promise<void> {
+    console.log("On resize");
     return new Promise<void>((resolve, reject) => {
       this.viewer.resize();
       resolve();

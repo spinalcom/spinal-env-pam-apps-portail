@@ -71,8 +71,8 @@ export async function getRooms(
   );
   let result = await spinalAPI.get<IZoneItem[]>(url);
   const res = result.data.map((obj) => {
-    console.log("Obj = ", obj);
-    console.log("Floor dynamicId = ", floorId);
+    // console.log("Obj = ", obj);
+    // console.log("Floor dynamicId = ", floorId);
     Object.assign(obj, {
       patrimoineId,
       buildingId,

@@ -70,7 +70,7 @@ export default {
 }
 
 .list {
-	background: rgba(255, 255, 255, 0.452);
+	background: rgb(255, 255, 255);
 	border-radius: 0.5em;
 	padding: 1.5em 1.5em 1.5em 1.5em;
 	overflow: hidden;
@@ -118,16 +118,6 @@ export default {
 }
 
 
-@keyframes slide-down {
-	0% {
-		height: var(--height-legend-list) !important;
-	}
-
-	100% {
-		height: var(--height-legend-action-bar) !important;
-	}
-}
-
 @keyframes slide-up-keyframes {
 	from {
 		height: var(--height-legend-action-bar) !important;
@@ -136,10 +126,6 @@ export default {
 	100% {
 		height: var(--height-legend-list) !important;
 	}
-}
-
-.slide-down-anim {
-	animation: slide-down 1s both !important;
 }
 
 .slide-up-anim {

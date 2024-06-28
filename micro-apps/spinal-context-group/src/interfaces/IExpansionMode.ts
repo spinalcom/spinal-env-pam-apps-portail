@@ -1,3 +1,3 @@
-type ExpansionMode = "zero" | "one-tier" | "half" | "full";
+type ExpansionMode = "zero" | "split" | "full";
 
 export { type ExpansionMode };

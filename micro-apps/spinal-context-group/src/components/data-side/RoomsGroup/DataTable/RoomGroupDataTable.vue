@@ -8,7 +8,7 @@
       v-model="selectedRow"
       :headers="headersTable"
       :items-per-page="10"
-      :items="data"
+      :items="filteredData"
       loading-text="En cours de chargement ..."
       :hide-default-footer="data&&data.length < 10"
       fixedHeader
@@ -130,7 +130,7 @@
             </td>
             <td>
               <div class="d-flex justify-end align-center font-weight-bold">
-                {{ item.area }}
+                {{ item.area.toFixed(2) }}
               </div>
             </td>
             <td>
@@ -250,27 +250,38 @@ export default {
         return "m2";
       },
     },
+
+    isFilter: {
+      type: Boolean,
+      required: true,
+      default: () => {
+        return false;
+      },
+    },
+    selectedFloorId: {
+      type: Number,
+      required:true,
+      default: () => {
+        return -1;
+      },
+    }
+    
+
+
+    
   },
   methods: {
     animDataTable() {
       try {
         if (this.grpRoomFocus === "GrpRoom") {
-          this.$refs.dataTable.$el.classList.remove(
-            "animate__animated",
-            "animate__fadeInRight",
-            "animate__faster"
-          );
+        
           this.$refs.dataTable.$el.classList.add(
             "animate__animated",
             "animate__fadeOutRight",
             "animate__faster"
           );
           setTimeout(() => {
-            this.$refs.dataTable.$el.classList.remove(
-              "animate__animated",
-              "animate__fadeOutRight",
-              "animate__faster"
-            );
+      
             this.$refs.dataTable.$el.classList.add(
               "animate__animated",
               "animate__fadeInLeft",
@@ -278,22 +289,12 @@ export default {
             );
           }, this.delayAnimation * 1000);
         } else if (this.grpRoomFocus === "GrpRoomList") {
-          this.$refs.dataTable.$el.classList.remove(
-            "animate__animated",
-            "animate__fadeInLeft",
-            "animate__faster"
-          );
           this.$refs.dataTable.$el.classList.add(
             "animate__animated",
             "animate__fadeOutLeft",
             "animate__faster"
           );
           setTimeout(() => {
-            this.$refs.dataTable.$el.classList.remove(
-              "animate__animated",
-              "animate__fadeOutLeft",
-              "animate__faster"
-            );
             this.$refs.dataTable.$el.classList.add(
               "animate__animated",
               "animate__fadeInRight",
@@ -345,6 +346,26 @@ export default {
       };
     },
   },
+
+  computed: {
+    filteredData() {
+      console.log("is filter ",this.isFilter)
+      if (this.data.length > 0 && this.isFilter) {
+        if(this.grpRoomFocus === "GrpRoomList"){
+
+          let filteredGroups = this.data?.map(grp => ({
+          ...grp,
+            children: grp.children.filter(child => child.floorId === this.selectedFloorId)
+            }));
+          return filteredGroups
+        }
+        if(this.grpRoomFocus === "GrpRoom"){
+          return this.data.filter(room => room.floorId === this.selectedFloorId)
+        }
+      }
+     return this.data;
+    }
+  }
 };
 </script>
 
@@ -354,12 +375,12 @@ export default {
   transition: all 0.8s;
 }
 
-.list-enter,
-.list-leave-to {
-  opacity: 0;
-  transform: translateY(100%);
-  position: absolute;
-}
+// .list-enter,
+// .list-leave-to {
+//   opacity: 0;
+//   transform: translateY(100%);
+//   position: absolute;
+// }
 
 .list-move {
   transition: transform 0.5s;

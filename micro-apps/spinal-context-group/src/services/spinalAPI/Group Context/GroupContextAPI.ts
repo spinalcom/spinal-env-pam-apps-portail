@@ -91,9 +91,12 @@ class GroupContextApi extends AAPI implements IApiGroupContext {
       data = this._grpCtxPayloadGenerator?.translate(item, verb);
       switch (verb) {
         case EAPIVerb.API_CREATION:
+          console.log('looooooooo :', this._apiInstance)
           resolve(this._apiInstance.post(url, data));
           break;
         case EAPIVerb.API_UPDATE:
+          console.log('laaaaaaaaaaaaaaaaaaaaaaaaaaa :', this._apiInstance)
+
           resolve(this._apiInstance.put(url, data));
           break;
         case EAPIVerb.API_DELETION:
