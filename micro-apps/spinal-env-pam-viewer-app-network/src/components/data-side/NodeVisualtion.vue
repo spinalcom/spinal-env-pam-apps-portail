@@ -23,17 +23,26 @@ with this file. If not, see
 -->
 <template>
   <div ref="container" class="graph-container">
-    <h2>Vue.js and D3 Line Chart</h2>
-    <!-- <div class="tooltip">
-      <p>Noeud Id</p>
-      <p>Status</p>
-      <p>Children:</p>
-      <div id="tailShadow"></div>
-      <div id="tail1"></div>
-      <div id="tail2"></div>
-    </div> -->
+    <div class="chart-title-container">
+      <div>
+        <h2>Représentation Visuelle du réseau</h2>
+        <p>Noeuds du RDC</p>
+      </div>
+      <div class="toggle-container">
+        <input
+          type="checkbox"
+          id="toggle-switch"
+          class="toggle-switch"
+          @change="changeDirection"
+        />
+        <label for="toggle-switch" class="toggle-label"></label>
+      </div>
+    </div>
 
-    <svg width="100%" height="900"></svg>
+    <svg width="100%" height="auto"></svg>
+    <div class="legend-container">
+      <LegendVue :listItem="legendSpaceAssignation"></LegendVue>
+    </div>
     <div
       v-if="tooltip"
       class="tooltip"
@@ -52,9 +61,6 @@ with this file. If not, see
       <div id="tail1"></div>
       <div id="tail2"></div>
     </div>
-    <!-- <div class="bottom-container"> -->
-    <LegendVue :listItem="legendSpaceAssignation"></LegendVue>
-    <!-- </div> -->
   </div>
 </template>
 
@@ -107,28 +113,18 @@ class NodeVisualization extends Vue {
   tooltipPosition = { top: 0, left: 0 };
   legendSpaceAssignation: Legend[] = [
     {
-      title: "Automate 'Noeud parent'",
-      color: "#00c2d1",
+      title: "Noeud Actif",
+      color: "#325e4b",
       type: "Not-assigned",
     },
     {
-      title: "Equipement 'Noeud enfant'",
-      color: "#0a1045",
+      title: "Noeud Inactif",
+      color: "#d7270c",
       type: "Assigned",
     },
     {
-      title: "Lien de réseau 'non selectionné'",
-      color: "#FFB30F",
-      type: "AssignedToAnother",
-    },
-    {
-      title: "Lien vers le fils 'selectionné'",
-      color: "#00ff00",
-      type: "AssignedToAnother",
-    },
-    {
-      title: "Lien vers le père 'selectionné'",
-      color: "#0000FF",
+      title: "Noeud Inconnu",
+      color: "#f49700",
       type: "AssignedToAnother",
     },
   ];
@@ -145,6 +141,7 @@ class NodeVisualization extends Vue {
     this.Nodeto = this.$store.state.appDataStore.selectedEquipements;
     console.log("Mounted", this.dataprop);
     this.transformedNodesGeneric = this.transformData(this.dataprop);
+    // this.transformedNodesGeneric = this.transformDataVertical(this.dataprop);
     // console.log("Transformed data node to", this.transformedNodesGeneric);
     this.displayedNodes = this.getPrincipalNodes(this.transformedNodesGeneric);
     console.log("Displayed nodes", this.displayedNodes);
@@ -153,6 +150,17 @@ class NodeVisualization extends Vue {
   }
   beforeDestroy() {
     EventBus.$off("on-node-click", this.onNodeClickOut);
+  }
+
+  changeDirection(event: Event) {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    if (isChecked) {
+      this.transformedNodesGeneric = this.transformDataVertical(this.dataprop);
+    } else {
+      this.transformedNodesGeneric = this.transformData(this.dataprop);
+    }
+    this.displayedNodes = this.getPrincipalNodes(this.transformedNodesGeneric);
+    this.createChart(this.displayedNodes);
   }
 
   async createChart(transformDataent: TransformedNode[]) {
@@ -273,8 +281,8 @@ class NodeVisualization extends Vue {
           nodeBoundingRect.left +
           nodeBoundingRect.width / 2 -
           tooltipWidth / 2 +
-          80;
-        const tooltipY = nodeBoundingRect.top - tooltipHeight;
+          50;
+        const tooltipY = nodeBoundingRect.top - tooltipHeight - 20;
 
         this.tooltip = {
           id: d.id,
@@ -297,14 +305,14 @@ class NodeVisualization extends Vue {
         d.fy = null;
         simulation.nodes(transformDataent);
         simulation.alpha(1).restart();
-      })
-      .call(
-        d3
-          .drag()
-          .on("start", dragstarted)
-          .on("drag", dragged)
-          .on("end", dragended)
-      );
+      });
+    // .call(
+    //   d3
+    //     .drag()
+    //     .on("start", dragstarted)
+    //     .on("drag", dragged)
+    //     .on("end", dragended)
+    // );
 
     node
       .append("xhtml:div")
@@ -397,7 +405,7 @@ class NodeVisualization extends Vue {
     depth: number = 0
   ): TransformedNode[] {
     const transformedNodes: TransformedNode[] = [];
-    const yIncrement = 50;
+    const yIncrement = 55;
 
     // Helper function to recursively add nodes
     const addNodes = (
@@ -433,6 +441,57 @@ class NodeVisualization extends Vue {
           const childYStart =
             nodeY - ((node.nodes.length - 1) * yIncrement) / 2;
           addNodes(node.nodes, node.dynamicId, x + 100, childYStart, depth + 1);
+        }
+      });
+    };
+
+    addNodes(nodes, parentId, x, y, depth);
+
+    return transformedNodes;
+  }
+
+  transformDataVertical(
+    nodes: Node[],
+    parentId: number | null = null,
+    x: number = 250,
+    y: number = 150,
+    depth: number = 0
+  ): TransformedNode[] {
+    const transformedNodes: TransformedNode[] = [];
+    const xIncrement = 70;
+
+    // Helper function to recursively add nodes
+    const addNodes = (
+      nodes: Node[],
+      parentId: number | null,
+      x: number,
+      y: number,
+      depth: number
+    ) => {
+      nodes.forEach((node, index) => {
+        const nodeX = x + index * xIncrement;
+        const nodeY = y + depth * xIncrement;
+
+        const transformedNode: TransformedNode = {
+          id: node.dynamicId,
+          parentId: parentId,
+          x: nodeX,
+          y: nodeY,
+          status: node.status,
+          self_status: node.self_status,
+          name: node.name,
+          type: node.type,
+          children: node.nodes,
+          typologie: node.typologie,
+        };
+
+        transformedNodes.push(transformedNode);
+
+        if (node.nodes && node.nodes.length > 0) {
+          // Calculate the starting x position for children to be centered around the parent node
+          const childXStart =
+            nodeX - ((node.nodes.length - 1) * xIncrement) / 2;
+          addNodes(node.nodes, node.dynamicId, childXStart, y + 100, depth + 1);
         }
       });
     };
@@ -637,12 +696,15 @@ export default NodeVisualization;
 
 <style lang="scss">
 .graph-container {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   // background: linear-gradient(to bottom right, #fff, #e3e1eb);
   background-color: #eff4f5;
+  // background-color: red;
+  height: 100%;
 }
 
 // .tooltip {
@@ -684,5 +746,68 @@ export default NodeVisualization;
   border-bottom: 0.3px solid #fff;
   line-height: 1.2;
   // padding-bottom: -10px;
+}
+.legend-container {
+  // background-color: blue;
+  // width: 250px;
+  // height: 250px;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  bottom: 10;
+  right: 10;
+}
+
+/***********************title */
+.chart-title-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 96%;
+}
+.toggle-container {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 25px;
+}
+
+.toggle-switch {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.toggle-label:before {
+  content: "";
+  position: absolute;
+  height: 21px;
+  width: 21px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.toggle-switch:checked + .toggle-label {
+  background-color: rgba(46, 45, 56, 1);
+}
+
+.toggle-switch:checked + .toggle-label:before {
+  transform: translateX(25px);
 }
 </style>

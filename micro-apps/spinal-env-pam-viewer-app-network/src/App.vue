@@ -469,6 +469,7 @@ class App extends Vue {
   }
 
   public get displayedData() {
+    console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaappppppppppppppppp");
     return this.$store.state.appDataStore.data;
   }
 

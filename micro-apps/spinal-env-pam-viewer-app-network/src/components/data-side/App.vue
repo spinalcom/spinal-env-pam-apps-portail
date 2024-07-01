@@ -88,26 +88,6 @@ with this file. If not, see
           <div class="date" title="recharger"></div>
         </div>
       </div>
-      <!-- <button
-        @click="
-          () => {
-            $emit('changeRoute', tickets);
-          }
-        "
-        style="border: 1px solid black; padding: 5px"
-      >
-        go to tickets apps
-      </button>
-      <button
-        @click="
-          () => {
-            $emit('changeRoute', insights);
-          }
-        "
-        style="border: 1px solid black; padding: 5px"
-      >
-        go to insights apps
-      </button> -->
       <div
         :style="{
           'overflow-y': 'hidden',
@@ -115,9 +95,13 @@ with this file. If not, see
         }"
         class="data-container"
       >
-        <div>
-          <NodeItem :data="data" :DActive="DActive" :ActiveData="ActiveData" />
-        </div>
+        <!-- <div> -->
+        <NodeItem
+          :data="myowndata"
+          :DActive="DActive"
+          :ActiveData="ActiveData"
+        />
+        <!-- </div> -->
       </div>
     </div>
 
@@ -184,13 +168,9 @@ class dataSideApp extends Vue {
   pageSate: PAGE_STATES = PAGE_STATES.loading;
   isBuildingSelected: boolean = true;
   retry: Function;
-  insights =
-    "eyJuYW1lIjoiSW5zaWdodHMiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImIwZTEtNzI3NS02YWNhLTE4ZjJlMjE1NmE4IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxNDQ2NTk0NzM4MCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0NDY1ODg3OTEyLCJpY29uIjoibWRpLWN1cnRhaW5zLWNsb3NlZCIsImRlc2NyaXB0aW9uIjoiSU5zaWdodHMiLCJ0YWdzIjpbIkluc2lnaHRzIl0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0taW5zaWdodHMiLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiMzdkZS0wMmI4LWUxOGItMTg1MDY0M2I2OGEiLCJidWlsZGluZ0lkIjoiNTkzMi02MDg2LTllMWEtMTg1MDY0Nzg0NjAifX0";
-  tickets: string =
-    "eyJuYW1lIjoidHQiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6IjA3M2ItNjBmZi1mYTYzLTE5MDVhMmFkMzhhIiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxOTQ5OTY4Nzg0NCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE5NDk5Njc0NTA2LCJpY29uIjoiIiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJtaWNyby1hcHBzLXNwaW5hbC1lbnYtcGFtLXRpY2tldHMiLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiNjEzYS00MWQxLTEyZTItMTkwMzRiYjZlYmIiLCJidWlsZGluZ0lkIjoiYmM5My04ZTA2LWM2YmQtMTkwMzRiY2ZmNTcifX0";
-
   selectedNodeIndex: number | null = null;
   spriteIds: number[] = [];
+  myowndata: any[];
 
   equipementsXYZ: {
     dynamicId: number;
@@ -215,20 +195,36 @@ class dataSideApp extends Vue {
   }
 
   async retriveData() {
-    console.log("retriveData", this.selectedZone.name);
+    console.log("retriveData Selected Zone name :", this.selectedZone.name);
     // this.$store.commit(MutationTypes.SET_DATA, []);
-    console.log("retriveData data", this.data);
+    this.myowndata = [];
+    console.log("retriveData myowndata", this.myowndata);
     try {
       this.pageSate = PAGE_STATES.loading;
       const buildingId = localStorage.getItem("idBuilding");
       const patrimoineId = this.getPatrimoineId();
       const contextId = await this.getContextId(buildingId, patrimoineId);
+      const geographicContext = await this.getGeoContextId(
+        buildingId,
+        patrimoineId
+      );
+      console.log("geographicContext", geographicContext);
       const floorData = await this.getFloorData(
         buildingId,
         patrimoineId,
         contextId
       );
+
+      console.log("floorData", floorData);
       const selectedNodeId = this.getSelectedZoneNodeId(floorData);
+
+      // const hardwareContextId = await this.getHardwareContextByRelation(
+      //   buildingId,
+      //   patrimoineId,
+      //   this.selectedZone.dynamicId
+      // );
+
+      // console.log("hardwareContextId", hardwareContextId);
 
       const childrenData = await this.getChildrenByRelation(
         buildingId,
@@ -236,6 +232,7 @@ class dataSideApp extends Vue {
         selectedNodeId
       );
 
+      console.log("Children By relation", childrenData);
       const luminaireChildren = await this.getLuminaireChildren(
         buildingId,
         patrimoineId,
@@ -253,8 +250,9 @@ class dataSideApp extends Vue {
       });
 
       this.$store.commit(MutationTypes.SET_DATA, luminaireChildren);
+      this.myowndata = luminaireChildren;
       this.pageSate = PAGE_STATES.loaded;
-      console.log("retriveData data", this.data);
+      console.log("retriveData end myowndata", this.myowndata);
     } catch (err) {
       console.log(err);
       this.retry = this.retriveData;
@@ -280,6 +278,19 @@ class dataSideApp extends Vue {
       .filter((item: any) => item.type === "networkTreeContext");
     return filteredCtx[0].dynamicId;
   }
+  async getGeoContextId(buildingId: string | null, patrimoineId: any) {
+    const contextPromises = [
+      this.$store.dispatch(ActionTypes.GET_CONTEXT, {
+        buildingId,
+        patrimoineId,
+      }),
+    ];
+    const ctxResult = await Promise.all(contextPromises);
+    const filteredCtx = ctxResult
+      .flat()
+      .filter((item: any) => item.type === "geographicContext");
+    return filteredCtx;
+  }
 
   async getFloorData(
     buildingId: string | null,
@@ -301,6 +312,7 @@ class dataSideApp extends Vue {
   getSelectedZoneNodeId(floorResult: any[]) {
     let nodeId = 0;
     for (let i = 0; i < floorResult.length; i++) {
+      console.log("floorResult[i].name", this.selectedZone.name);
       if (floorResult[i].name == this.selectedZone.name) {
         nodeId = floorResult[i].dynamicId;
         break;
@@ -309,21 +321,46 @@ class dataSideApp extends Vue {
     return nodeId;
   }
 
+  async getHardwareContextByRelation(
+    buildingId: string | null,
+    patrimoineId: any,
+    selectedNodeId: number
+  ) {
+    const relation2 = "hasNetworkTree";
+    console.log("selectedNodeIdssssssssssssssssss", selectedNodeId);
+    const automates2 = [
+      this.$store.dispatch(ActionTypes.GET_CHILDREN_BY_RELATION, {
+        buildingId,
+        patrimoineId,
+        nodeId: selectedNodeId,
+        relation: relation2,
+      }),
+    ];
+    let childrenByRelation2 = await Promise.all(automates2);
+
+    console.log("automates", childrenByRelation2);
+    childrenByRelation2 = childrenByRelation2.flat();
+    return childrenByRelation2[0].dynamicId;
+  }
+
   async getChildrenByRelation(
     buildingId: string | null,
     patrimoineId: any,
     selectedNodeId: number
   ) {
     const relation = "hasNetworkTreeBimObject";
+    console.log("selectedNodeIdssssssssssssssssss", selectedNodeId);
     const automates = [
       this.$store.dispatch(ActionTypes.GET_CHILDREN_BY_RELATION, {
         buildingId,
         patrimoineId,
         nodeId: selectedNodeId,
-        relation,
+        relation: relation,
       }),
     ];
     let childrenByRelation = await Promise.all(automates);
+
+    console.log("automates", childrenByRelation);
     childrenByRelation = childrenByRelation.flat();
     return childrenByRelation;
   }
@@ -519,11 +556,14 @@ class dataSideApp extends Vue {
     if (this.selectedZone.type === "building") {
       this.isBuildingSelected = true;
       this.$store.commit(MutationTypes.SET_DATA, []);
+
       return;
     }
     this.$store.commit(MutationTypes.SET_DATA, []);
     this.equipementsXYZ = [];
     this.isBuildingSelected = false;
+
+    this.myowndata = [];
     this.retriveData();
   }
 

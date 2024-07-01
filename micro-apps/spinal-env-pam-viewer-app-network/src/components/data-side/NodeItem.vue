@@ -310,7 +310,7 @@ export default NodeItem;
 .dod {
   width: 58%;
   // margin-right: 2%;
-  height: 500px;
+  height: 100%;
   // background: red;
   display: block;
 }
@@ -320,5 +320,6 @@ export default NodeItem;
   justify-content: space-between;
   align-items: flex-start;
   padding: 10px;
+  height: 100% !important;
 }
 </style>

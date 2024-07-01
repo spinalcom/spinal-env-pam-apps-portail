@@ -163,6 +163,14 @@ export class ViewerUtils {
 				isolateAll(model);
 			}
 		}
+		// for (const { model, dbIds } of datas) {
+    //         if (dbIds.length > 0) {
+    //             if (model.visibilityManager) model.visibilityManager.isolate(dbIds);
+
+    //         } else {
+    //             isolateAll(model);
+    //         }
+    //     }
 
 		this.setWaitBeforeDisplaySprites(false);
 

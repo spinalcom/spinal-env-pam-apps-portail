@@ -68,7 +68,7 @@ export default {
 }
 
 .list {
-  background: rgba(255, 255, 255, 0.452);
+  background: rgba(255, 255, 255, 1);
   border-radius: 0.5em;
   padding: 1.5em 1.5em 1.5em 1.5em !important;
   overflow: hidden;
