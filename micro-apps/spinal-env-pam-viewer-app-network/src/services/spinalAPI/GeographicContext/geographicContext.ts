@@ -201,7 +201,7 @@ export async function getMultipleChildrenRelationNode(
   relations = nextIds.map((r) => {
     return { dynamicId: r, relation: ["hasNetworkTreeBimObject"] };
   });
-  console.log('relations', relations);
+  // console.log('relations', relations);
   realresult = result.data;
   realresult = realresult.flat();
   realresult.forEach((item) => {

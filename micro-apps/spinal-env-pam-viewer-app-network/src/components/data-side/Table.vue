@@ -120,7 +120,7 @@ class Table extends Vue {
     return Array.from(new Set(typologies));
   }
   async mounted() {
-    console.log("Received data..................", this.data);
+    // console.log("Received data..................", this.data);
     EventBus.$on("dio", this.dio);
     this.filterData();
     this.pairs = this.getAllParentChildPairs(this.data);

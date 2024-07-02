@@ -334,6 +334,31 @@ export const actions = {
     // console.log('equipmentscall', items);
     return items?.value;
   },
+       async [ActionTypes.RESET_API_ITERATOR_STORE](
+  { commit }: AugmentedActionContextAppData,
+  { buildingId }: any
+): Promise<void> {
+  if (
+    typeof ApiIteratorStore[ActionTypes.GET_CHILDREN_BY_RELATION] !== 'undefined' &&
+    typeof ApiIteratorStore[ActionTypes.GET_CHILDREN_BY_RELATION][buildingId] !== 'undefined'
+  ) {
+    delete ApiIteratorStore[ActionTypes.GET_CHILDREN_BY_RELATION][buildingId];
+  }
+         if (
+    typeof ApiIteratorStore[ActionTypes.GET_CHILDREN_BY_RELATION_MULTIPLE] !== 'undefined' &&
+    typeof ApiIteratorStore[ActionTypes.GET_CHILDREN_BY_RELATION_MULTIPLE][buildingId] !== 'undefined'
+  ) {
+    delete ApiIteratorStore[ActionTypes.GET_CHILDREN_BY_RELATION_MULTIPLE][buildingId];
+         }
+          if (
+    typeof ApiIteratorStore[ActionTypes.GET_ATTRIBUTE_LIST_MULTIPLE] !== 'undefined' &&
+    typeof ApiIteratorStore[ActionTypes.GET_ATTRIBUTE_LIST_MULTIPLE][buildingId] !== 'undefined'
+  ) {
+    delete ApiIteratorStore[ActionTypes.GET_ATTRIBUTE_LIST_MULTIPLE][buildingId];
+  }
+        console.log(`ApiIteratorStore getchldren has been reset.`);
+},
+ 
     
     async [ActionTypes.GET_CHILDREN_BY_RELATION_MULTIPLE](
     { commit }: AugmentedActionContextAppData,
@@ -450,6 +475,7 @@ export const actions = {
     ].next();
     return items?.value;
   },
+
 
   ////////////////////////////////////////////////////////
   //                VIEWER

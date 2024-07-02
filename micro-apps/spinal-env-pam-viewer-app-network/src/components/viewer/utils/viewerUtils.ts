@@ -322,12 +322,12 @@ export class ViewerUtils {
 				option.ids = dbids;
 			}
 
-			if (sceneAlignMethod === SceneAlignMethod.OriginToOrigin) {
-				option.globalOffset = await getGlobalOffset(viewer, buildingId);
-			} else if (sceneAlignMethod === SceneAlignMethod.ShareCoordinates && aecPath) {
+			// if (sceneAlignMethod === SceneAlignMethod.OriginToOrigin) {
+			// 	option.globalOffset = await getGlobalOffset(viewer, buildingId);
+			// } else if (sceneAlignMethod === SceneAlignMethod.ShareCoordinates && aecPath) {
 				option.applyRefPoint = true;
 				option.globalOffset = await addOffsetFromAEC(getAPINormalisePath(aecPath, buildingId), viewer, buildingId);
-			}
+			// }
 
 			const path = getAPINormalisePath(urlpath, buildingId);
 			const model = await this._loadModel(modelId, viewer, path, option, this._isFirstModel);

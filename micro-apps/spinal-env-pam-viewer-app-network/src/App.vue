@@ -222,6 +222,10 @@ class App extends Vue {
       this.applyURLParam(currentQuery);
     });
   }
+  getPatrimoineId() {
+    const patrimoineString = localStorage.getItem("patrimoine");
+    return patrimoineString ? JSON.parse(patrimoineString).id : null;
+  }
 
   changeApp(e) {
     this.query.app = e;
@@ -469,7 +473,6 @@ class App extends Vue {
   }
 
   public get displayedData() {
-    console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaappppppppppppppppp");
     return this.$store.state.appDataStore.data;
   }
 

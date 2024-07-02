@@ -111,6 +111,7 @@ export async function getAndFormatModels(buildingId: string, res : IViewInfoTmpR
         name: itm.name,
         path: getPath(itm),
         aecPath: getAecPath(itm),
+        offset: itm.offset,
         dbids
       })
     }

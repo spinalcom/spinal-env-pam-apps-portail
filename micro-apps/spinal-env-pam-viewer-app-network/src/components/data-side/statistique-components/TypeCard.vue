@@ -46,8 +46,8 @@ class TypeCard extends Vue {
   @Prop() dataprop: any[];
 
   mounted() {
-    console.log("Mounted typecard", this.dataprop);
-    console.log(this.countTypologieNodes(this.dataprop));
+    // console.log("Mounted typecard", this.dataprop);
+    // console.log(this.countTypologieNodes(this.dataprop));
     this.displayTypologies(this.countTypologieNodes(this.dataprop));
   }
   countTypologieNodes(data) {

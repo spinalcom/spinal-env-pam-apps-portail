@@ -29,4 +29,5 @@ export interface IloadModelTask {
    id: string;
    name: string;
    bimFileId?: string;
+   offset?: any;
 }

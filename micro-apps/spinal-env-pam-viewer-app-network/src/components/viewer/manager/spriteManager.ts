@@ -77,7 +77,8 @@ export class SpriteManager {
 	}
 
 	public async addComponentAsSprite(viewer: Autodesk.Viewing.Viewer3D, data: any | any[]) {
-  console.log("viewer", viewer);
+		// console.log("viewer", viewer);
+		// console.log("data to draw", data);
   data = Array.isArray(data) ? data : [data];
   
   const dataMap = new Map();

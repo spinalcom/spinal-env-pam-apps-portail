@@ -124,7 +124,7 @@ class TableRow extends Vue {
       Automate: require("../viewer/assets/Automate.png"),
       Multisensor: require("../viewer/assets/Multisensor.png"),
     };
-    console.log("typo00", typologie);
+    // console.log("typo00", typologie);
 
     const defaultImagePath = require("../viewer/assets/Luminaire.png");
 
@@ -193,14 +193,14 @@ class TableRow extends Vue {
   leafChild: boolean = false;
 
   highlightSelection(dynamicId: number) {
-    console.log("Highlight Selection", dynamicId);
+    // console.log("Highlight Selection", dynamicId);
     // this.onSelectedDynamicIdChange(dynamicId);
     EventBus.$emit("highlight-selection", dynamicId);
   }
   handleClick(dynamicId: number) {
     // this.highlightSelection(dynamicId);
     let listofselected = this.$store.state.appDataStore.selectedEquipements;
-    console.log("List of selected", listofselected);
+    // console.log("List of selected", listofselected);
     if (this.internalSelectedDynamicId === dynamicId) {
       this.internalSelectedDynamicId = 0;
     } else {
@@ -224,13 +224,13 @@ class TableRow extends Vue {
           this.parentOpened = true;
         }
       }
-      console.log("parentopened", this.parentOpened);
+      // console.log("parentopened", this.parentOpened);
       if (!this.parentOpened) {
         EventBus.$emit("diselect");
-        console.log("Parent not opened", this.parentOpened);
+        // console.log("Parent not opened", this.parentOpened);
         // this.$store.commit(MutationTypes.RESET_EQUIPEMENT);
         let listofselected = this.$store.state.appDataStore.selectedEquipements;
-        console.log("List of selected", listofselected);
+        // console.log("List of selected", listofselected);
       }
     }
 
@@ -255,7 +255,7 @@ class TableRow extends Vue {
     }
   }
   toggleChildren(dynamicId: number) {
-    console.log("toggleChildren");
+    // console.log("toggleChildren");
     if (this.data.nodes && this.data.nodes.length > 0) {
       this.showChildren = !this.showChildren;
       this.isSelected = this.showChildren;

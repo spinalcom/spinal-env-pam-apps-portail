@@ -150,7 +150,7 @@ import SpriteComponent from "./SpriteComponent.vue";
 import NodeItem from "./NodeItem.vue";
 import Filtre from "./Filtres.vue";
 import SpriteComponentLuminaire from "./SpriteComponentLuminaire.vue";
-import { warn } from "console";
+import { Console, warn } from "console";
 
 @Component({
   components: { NodeItem, Filtre },
@@ -198,7 +198,7 @@ class dataSideApp extends Vue {
     console.log("retriveData Selected Zone name :", this.selectedZone.name);
     // this.$store.commit(MutationTypes.SET_DATA, []);
     this.myowndata = [];
-    console.log("retriveData myowndata", this.myowndata);
+    // console.log("retriveData myowndata", this.myowndata);
     try {
       this.pageSate = PAGE_STATES.loading;
       const buildingId = localStorage.getItem("idBuilding");
@@ -217,19 +217,25 @@ class dataSideApp extends Vue {
 
       console.log("floorData", floorData);
       const selectedNodeId = this.getSelectedZoneNodeId(floorData);
+      const hardwareContextId = await this.getHardwareContextByRelation(
+        buildingId,
+        patrimoineId,
+        this.selectedZone.dynamicId
+        // 29837264
+      );
+      console.log("hardwareContextId", hardwareContextId);
+      // console.log("before rest data", this.data);
+      // this.$store.commit(MutationTypes.RESET_DATA);
+      // console.log("after rest data", this.data);
 
-      // const hardwareContextId = await this.getHardwareContextByRelation(
-      //   buildingId,
-      //   patrimoineId,
-      //   this.selectedZone.dynamicId
-      // );
-
-      // console.log("hardwareContextId", hardwareContextId);
-
+      // let childrenData: any[] = [];
+      // console.log("Children By relation before", childrenData);
       const childrenData = await this.getChildrenByRelation(
         buildingId,
         patrimoineId,
-        selectedNodeId
+        hardwareContextId
+        // selectedNodeId
+        // 89612864
       );
 
       console.log("Children By relation", childrenData);
@@ -238,8 +244,11 @@ class dataSideApp extends Vue {
         patrimoineId,
         childrenData
       );
+      console.log("luminaireChildren AAAAAAAAAAAAAAAAAAAA", luminaireChildren);
 
       const attributesResult = await this.getAttributeList();
+
+      console.log("attributesssssssssssssssssssssss", attributesResult);
 
       this.equipementsXYZ = this.extractEquipments(attributesResult);
 
@@ -326,8 +335,9 @@ class dataSideApp extends Vue {
     patrimoineId: any,
     selectedNodeId: number
   ) {
+    this.resetContext(buildingId);
     const relation2 = "hasNetworkTree";
-    console.log("selectedNodeIdssssssssssssssssss", selectedNodeId);
+
     const automates2 = [
       this.$store.dispatch(ActionTypes.GET_CHILDREN_BY_RELATION, {
         buildingId,
@@ -337,10 +347,18 @@ class dataSideApp extends Vue {
       }),
     ];
     let childrenByRelation2 = await Promise.all(automates2);
-
-    console.log("automates", childrenByRelation2);
     childrenByRelation2 = childrenByRelation2.flat();
+    if (childrenByRelation2.length === 0) {
+      return selectedNodeId;
+    }
     return childrenByRelation2[0].dynamicId;
+  }
+
+  async resetContext(buildingId: string | null) {
+    this.$store.dispatch(ActionTypes.RESET_API_ITERATOR_STORE, {
+      buildingId,
+    });
+    return;
   }
 
   async getChildrenByRelation(
@@ -348,9 +366,10 @@ class dataSideApp extends Vue {
     patrimoineId: any,
     selectedNodeId: number
   ) {
+    this.resetContext(buildingId);
     const relation = "hasNetworkTreeBimObject";
-    console.log("selectedNodeIdssssssssssssssssss", selectedNodeId);
-    const automates = [
+    let automates: any = [];
+    automates = [
       this.$store.dispatch(ActionTypes.GET_CHILDREN_BY_RELATION, {
         buildingId,
         patrimoineId,
@@ -370,6 +389,7 @@ class dataSideApp extends Vue {
     patrimoineId: any,
     childrenByRelation: any[]
   ) {
+    this.resetContext(buildingId);
     let childrenIds = childrenByRelation.map((r) => r.dynamicId).flat();
     let parentsIds = childrenByRelation.map((r) => r.dynamicId).flat();
     let relations = childrenIds.map((r) => ({
@@ -380,7 +400,7 @@ class dataSideApp extends Vue {
       this.$store.dispatch(ActionTypes.GET_CHILDREN_BY_RELATION_MULTIPLE, {
         buildingId,
         patrimoineId,
-        relations,
+        relations: relations,
       }),
     ];
     let luminaireChildrenByRelation = await Promise.all(luminaireChildren);
@@ -409,6 +429,8 @@ class dataSideApp extends Vue {
   }
 
   async getAttributeList() {
+    const buildingId = localStorage.getItem("idBuilding");
+    this.resetContext(buildingId);
     const attributes = [
       this.$store.dispatch(ActionTypes.GET_ATTRIBUTE_LIST_MULTIPLE, {
         buildingId: localStorage.getItem("idBuilding"),
@@ -425,10 +447,20 @@ class dataSideApp extends Vue {
       let X, Y, Z;
       categoryAttributes.forEach((attribute: any) => {
         if (attribute.name === "Spatial") {
-          const [x, y, z] = attribute.attributs[0].value.split(";");
-          X = parseFloat(x);
-          Y = parseFloat(y);
-          Z = parseFloat(z);
+          // const [x, y, z] = attribute.attributs[0].value.split(";");
+          // X = parseFloat(x);
+          // Y = parseFloat(y);
+          // Z = parseFloat(z);
+          const xyzAttribute = attribute.attributs.find(
+            (attr) => attr.label === "XYZ center"
+          );
+
+          if (xyzAttribute) {
+            const [x, y, z] = xyzAttribute.value.split(";");
+            X = parseFloat(x);
+            Y = parseFloat(y);
+            Z = parseFloat(z);
+          }
         }
       });
 
@@ -555,20 +587,17 @@ class dataSideApp extends Vue {
   watchSelectedZone() {
     if (this.selectedZone.type === "building") {
       this.isBuildingSelected = true;
-      this.$store.commit(MutationTypes.SET_DATA, []);
-
       return;
     }
-    this.$store.commit(MutationTypes.SET_DATA, []);
-    this.equipementsXYZ = [];
     this.isBuildingSelected = false;
-
     this.myowndata = [];
+    this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
     this.retriveData();
   }
 
   @Watch("data")
   watchData() {
+    console.log("data changed");
     if (this.config.sprites)
       this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
     this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
@@ -592,7 +621,7 @@ class dataSideApp extends Vue {
     }
     // const automates = items.slice(0, 6);
     // const luminaires = items.slice(6);
-
+    console.log("items", items);
     this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
       items: items.flat(),
       buildingId: localStorage.getItem("idBuilding"),
