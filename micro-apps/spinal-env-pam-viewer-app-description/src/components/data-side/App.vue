@@ -26,7 +26,6 @@ with this file. If not, see
 
 
   <div class="appli">
-
     <SpriteComponentMobile @close="handleClose"
       style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;"
       v-if="displaySprite" :data="isSmallScreen">
@@ -41,7 +40,6 @@ with this file. If not, see
       <v-icon v-else>mdi-close-circle-outline</v-icon>
     </div>
 
-    <!-- <div @click="testAction()">tototoototo</div> -->
     <div class="el3d">
       <button @click="() => {
         $emit('buttonClicked');
@@ -92,62 +90,43 @@ with this file. If not, see
 
     <div>
       <div class="title">
-        <!-- <div
-          style="font-size: 20px;font-weight: bold;font-family: Arial, Helvetica, sans-serif;white-space: nowrap; margin-top: 10px;margin-left: 10px;">
-          Informations générales</div> -->
-        <!-- <div style="display: flex ; flex-direction: row;">
-          <a class="button parallelogram" href="#">
-            <span class="skew-fix">Attribut / Documentation</span> </a>
-          <a class="button parallelogram" href="#">
-            <span class="skew-fix">Insights / Endpoints</span> </a>
-        </div> -->
         <div class="button parallelogram adaptative" style="">
           <v-select label="Details" v-model="selection"
-            :items="['Vue global', 'Attribut', 'Indicateur', 'Points de mesures', 'Documentation']"></v-select>
+            :items="['Vue globale', 'Attribut', 'Indicateur', 'Points de mesures', 'Documentation']"></v-select>
         </div>
-        <!-- 
-        <div class="attribut" style="font-size: 18px;font-weight: bold;font-family: Arial, Helvetica, sans-serif; ">
-          Docuentation</div> -->
 
-        <div
-          style="position: relative; font-family: Arial, Helvetica, sans-serif; height: 50px; width: 98px;margin-top: 0px; margin-bottom: -10px; border: 1px">
-          <!-- Votre div incliné -->
-          <!-- <div
-            style="position: absolute; left: 0; height: 105%; background-color: rgb(240, 240, 240); width: 3px; transform: skew(-30deg) translateY(-0px);">
-          </div> -->
-          <!-- Zone de texte -->
-          <div
-            style=" height: 100%; display: flex; align-items: center;font-size: 18px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;white-space: nowrap;">
-            <!-- 1250 m² -->
-            <!-- {{ item.label }}
-            {{ item.value }} -->
-
-            <div v-if="floorstaticDetails.length && floorstaticDetails[0].attributsList.length">
-              <div class="area" style="" v-for="(item, index) in floorstaticDetails[0].attributsList[0].attributs">
-                <div style="position: absolute;" v-if="item.label == 'area'">
-                  {{ item.value }} m²
-                </div>
-              </div>
+        <div style="width: 20%; justify-content: center;align-items: center;display: flex;"
+          v-if="floorstaticDetails.length && floorstaticDetails[0].attributsList.length">
+          <div style="" v-for="(item, index) in floorstaticDetails[0].attributsList[0].attributs">
+            <div v-if="item.label == 'area'">
+              {{ item.value }} m²
             </div>
           </div>
         </div>
-
       </div>
     </div>
 
     <div class="inventory">
-      <div v-if="selection == 'Vue global'">
+      <div v-if="selection == 'Vue globale'">
         <div class="blocInformation">
           <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Inventaire
             des équipements ({{ config.inventory }})</span>
           <div>
             <div v-if="inventoyList == null"
               style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px; margin-bottom: 10px;">
-              <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
+              <!-- <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular> -->
+              PAS DE DONNÉES DISPONIBLE
             </div>
             <div v-else class="inventory-container">
               <div v-for="(item, index) in inventoyList" :key="index" class="inventory-item">
                 <li>{{ item }}</li>
+                <!-- <div @click="hideelement(item)">CLICK</div> -->
+                <div style="margin-left: 5px;">
+                  <v-icon v-if="eyes.indexOf(index) === -1" @click="() => { hideelement(item); closeeyes(index) }"
+                    style="cursor: pointer">mdi-eye-outline</v-icon>
+                  <v-icon v-else @click="() => { hideelement(item); closeeyes(index) }"
+                    style="cursor: pointer">mdi-eye-off-outline</v-icon>
+                </div>
               </div>
             </div>
           </div>
@@ -164,16 +143,20 @@ with this file. If not, see
               style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
               class="inventory-item" v-for="(item, index) in attributProfil">
               <li> {{ item.label }}: {{ item.value }}</li>
+
             </div>
           </div>
         </div>
 
         <div class="blocInformation">
-          <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Points de mesures
-            ({{ config.profileName }})</span>
-
+          <span v-if="selectedZone.type == 'geographicFloor'"
+            style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Points de mesures
+          </span>
+          <!-- {{ selectedZone.type }} -->
+          <!-- <span v-if="selectedZone.type == 'geographicRoom'"
+            style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Points de mesures
+            ({{ config.profileNameRoom }})</span> -->
           <div class="inventory-container">
-
             <div v-if="endpointProfil == null"
               style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px; margin-bottom: 10px;">
               <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
@@ -192,14 +175,55 @@ with this file. If not, see
         </div>
       </div>
 
-
-      <!-- ONGLET ATTRIBUT -->
+      <!-- ONGLET attribut (attribut)-->
       <div v-if="selection == 'Attribut'">
-
+        <h2>Attribut de la selection</h2>
         <div v-for="(item, index) in floorstaticDetails[0].attributsList" class="blocInformation">
-          <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">{{ item.name
+          <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">{{ item.name
             }}</span>
           <div v-if="floorstaticDetails[0].attributsList == null"
+            style="justify-content: center; align-items: center; width: 100%; display: flex; margin-top: 10px; margin-bottom: 10px;">
+            <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
+          </div>
+          <div v-else class="inventory-container">
+            <div class="inventory-item"
+              style="color:#14202c; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
+              v-for="(attr, index2) in item.attributs">
+              <li>{{ attr.label }}: {{ attr.value }}</li>
+            </div>
+          </div>
+        </div>
+
+        <h2>Attribut des parents</h2>
+
+        <!-- Section pour afficher les parentAttribut -->
+        <div v-for="(parentItem, parentIndex) in parentAttribut" class="parentInformation" :key="parentIndex">
+          <div v-for="(parentItems, parentIndexs) in parentItem">
+            <div class="blocInformation" v-if="parentItems.documentation.categoryAttributes.length > 0">
+              <h3>{{ parentItems.name }}</h3>
+              <div v-for="(category, catIndex) in parentItems.documentation.categoryAttributes"
+                class="category-container" :key="catIndex">
+                <h3
+                  style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold; margin-top: 10px;">
+                  {{ category.name }}
+                </h3>
+                <div class="category-attributes"
+                  style="color:#14202c; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
+                  <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{ attr.value
+                    }}
+                  </li>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ONGLET POINT DE MESURE (endpoints)-->
+      <div v-if="selection == 'Points de mesures'">
+        <!-- {{ floorstaticDetails }} -->
+        <div v-for="(item, index) in floorstaticDetails[0].endpoints" class="blocInformation">
+          <div v-if="floorstaticDetails[0].endpoints == null"
             style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px ; margin-bottom: 10px;">
             <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
           </div>
@@ -208,18 +232,16 @@ with this file. If not, see
 
             <div class="inventory-item"
               style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
-              v-for="(item, index2) in floorstaticDetails[0].attributsList[index].attributs">
-              <li> {{ item.label }}: {{ item.value }}</li>
+              v-for="(item, index2) in floorstaticDetails[0].endpoints[index]">
+              <li> {{ item.name }}: {{ item.value }} {{ item.unit }}</li>
             </div>
           </div>
 
         </div>
       </div>
 
-
-      <!-- ONGLET POINT DE MESURE -->
-      <div v-if="selection == 'Points de mesures'">
-        <!-- {{ floorstaticDetails[0].controlEndpoint }} -->
+      <!-- ONGLET INDICATEUR (controleEndpoint) -->
+      <div v-if="selection == 'Indicateur'">
         <div v-for="(item, index) in floorstaticDetails[0].controlEndpoint" class="blocInformation">
           <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">{{
             item.profileName }}</span>
@@ -228,8 +250,6 @@ with this file. If not, see
             <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
           </div>
           <div v-else class="inventory-container">
-
-
             <div class="inventory-item"
               style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
               v-for="(item, index2) in floorstaticDetails[0].controlEndpoint[index].endpoints">
@@ -241,48 +261,51 @@ with this file. If not, see
       </div>
 
       <!-- ONGLET DOCUMENTATION -->
-
       <div v-if="selection == 'Documentation'">
-        <!-- {{ floorstaticDetails[0].controlEndpoint }} -->
-        <div v-for="(item, index) in documentation" class="blocInformation">
-          <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">{{
-            item.profileName }}</span>
-
-          <div style="display: flex;" v-for="(item, index2) in documentation[index]">
-
-
+        <h3>{{ floorstaticDetails[0].name }}</h3>
+        <div class="blocInformation">
+          <div style="display: flex;" v-for="(item, index) in documentation.element">
             <div class="inventory-item"
-              style="width: 90%;;color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
-              <li> {{ item.Name }}</li>
+              style="width: 90%;color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
+              <li>{{ item.Name }}</li>
             </div>
 
-            <v-icon @click="downloadFile(item.dynamicId)" style="cursor: pointer; font-size: 40px;"
-              color="green">mdi-download-box</v-icon>
-
+            <v-icon @click="downloadFile(item.dynamicId)" style="cursor: pointer; font-size: 40px;" color="green">
+              mdi-download-box
+            </v-icon>
           </div>
+        </div>
 
+        <h3>Documents des Parents</h3>
+        <br>
+        <div v-for="(parent, index) in documentation.parents" :key="index">
+          <div v-if="parent.documentation && parent.documentation.length > 0">
+            <h3>{{ parent.name }}</h3>
+            <div class="blocInformation">
+              <div style="display: flex;" v-for="(item, index2) in parent.documentation" :key="index2">
+                <div class="inventory-item"
+                  style="width: 90%;color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
+                  <li>{{ item.Name }}</li>
+                </div>
+                <v-icon @click="downloadFile(item.dynamicId)" style="cursor: pointer; font-size: 40px;" color="green">
+                  mdi-download-box
+                </v-icon>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
     </div>
-
-
 
     <div class="description">
       <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Accès aux
         applications</span>
 
-
       <div class="container_cards">
-
-
         <div v-for="item in appTab" class="cardDescription">
           <div @click="() => {
             $emit('changeRoute', item.id);
           }" class="data_cardDescription">
-            <!-- <div class="nombre_data_cardDescription">
-              {{ formatValue(item.value) }}<div class="microinfo">{{ item.unit }}</div>
-            </div> -->
             <div class="description_data_cardDescription">
               {{ item.name }}
             </div>
@@ -295,11 +318,8 @@ with this file. If not, see
             </svg>
           </div>
         </div>
-
       </div>
     </div>
-
-
   </div>
 
 </template>
@@ -325,6 +345,7 @@ import {
 } from "spinal-viewer-event-manager";
 import { getPosition } from "../viewer/utils/getObjectPos";
 import { log, warn } from "console";
+import { getParent } from "../../services/spinalAPI/GeographicContext/geographicContext";
 
 @Component({
   components: {
@@ -334,8 +355,6 @@ import { log, warn } from "console";
   filters: {},
 })
 class dataSideApp extends Vue {
-  // @State data!: any[];
-
 
   @Prop() config!: IConfig;
   @Prop() selectedZone: ISpaceSelectorItem;
@@ -343,24 +362,6 @@ class dataSideApp extends Vue {
   @Prop() floor: any;
   @Prop() DActive: boolean;
   @Prop() ActiveData: boolean;
-  // public  doubleCount = computed(() => this.floorstaticDetails[0]?.attributsList[0].attributs);
-
-  get attributs(): any {
-    // console.log(this.floorstaticDetails[0], 'aaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbccccccccccccccccc');
-
-    if (this.floorstaticDetails && this.floorstaticDetails[0] && this.floorstaticDetails[0].attributsList && this.floorstaticDetails[0].attributsList[0]) {
-      return this.floorstaticDetails[0].attributsList[0].attributs;
-    }
-
-    else if (type == "building") {
-      console.log('tototot ??');
-
-      const profile = this.floorstaticDetails[0].controlEndpoint.find(profile => profile.profileName === this.config.batiment.profileNameControlePts);
-      this.endpointProfil = profile ? profile.endpoints : [];
-    }
-
-    return null;
-  }
 
   PAGE_STATES: typeof PAGE_STATES = PAGE_STATES;
   pageSate: PAGE_STATES = PAGE_STATES.loading;
@@ -370,19 +371,19 @@ class dataSideApp extends Vue {
   inventory: any;
   appTab: any[] = [];
   inventoyList: any = null;
+  inventoryDbids: any = null;
   floorstaticDetails: any = [];
   endpointProfil: any = null;
   buildingInfo: any;
   attributProfil: any;
-  selection: string = 'Vue global';
+  selection: string = 'Vue globale';
   documentation: any;
   modefull = false;
   isSmallScreen: any;
   displaySprite: boolean = false;
-  // conso = "eyJuYW1lIjoic3BpbmFsLXR3aW4tc3RhbmRhcmQtZW5lcmd5LWZsdWlkcyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiYmFlZi0yYmRhLTk0ZjktMThmYTQ3YjIxMGIiLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE2NDUxNTAxMDE1LCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTY0NTE0ODM5MTUsImljb24iOiJtZGktY2FyLWJyYWtlLWZsdWlkLWxldmVsIiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtdHdpbi1zdGFuZGFyZC1lbmVyZ3ktZmx1aWRzIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19"
-  // insights = "eyJuYW1lIjoiSW5zaWdodHMiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImIwZTEtNzI3NS02YWNhLTE4ZjJlMjE1NmE4IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxNDQ2NTk0NzM4MCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0NDY1ODg3OTEyLCJpY29uIjoibWRpLWN1cnRhaW5zLWNsb3NlZCIsImRlc2NyaXB0aW9uIjoiSU5zaWdodHMiLCJ0YWdzIjpbIkluc2lnaHRzIl0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0taW5zaWdodHMiLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiMzdkZS0wMmI4LWUxOGItMTg1MDY0M2I2OGEiLCJidWlsZGluZ0lkIjoiNTkzMi02MDg2LTllMWEtMTg1MDY0Nzg0NjAifX0"
-  // tickets = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiZWI0ZC1hM2MxLWVmMTEtMThmMjBkZGM5YzciLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0MjQzMzcyMzcxLCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTQyNDMzNTcxMjcsImljb24iOiJtZGktdGlja2V0LWFjY291bnQiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOlsidGlja2V0Il0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
-  // tickets = "eyJuYW1lIjoiRGVzY3JpcHRpb24iLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImRhZGUtYTljYi1lMzc5LTE4ZjBmZGExZTI1IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxMzk1NzkyMTg4NiwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzEzOTU3OTAzOTA5LCJpY29uIjoibWRpLWJvb2staW5mb3JtYXRpb24tdmFyaWFudCIsImRlc2NyaXB0aW9uIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC1kZXNjcmlwdGlvbiIsInRhZ3MiOlsiRGVzY3JpcHRpb24iXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLWRlc2NyaXB0aW9uIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19"
+  parentAttribut: any = [];
+  eyes: [] = [];
+
   resize() {
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
@@ -391,6 +392,24 @@ class dataSideApp extends Vue {
 
   changeIcon() {
     this.modefull = !this.modefull
+  }
+
+  hideelement(item) {
+    localStorage.removeItem('Hidendbid');
+    const itemType = item.substring(item.indexOf(' ') + 1);
+    const numbers = this.inventoryDbids[itemType] || [];
+    localStorage.setItem('Hidendbid', JSON.stringify(numbers));
+    const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query };
+
+    const data = {
+      buildingId: this.selectedZone.staticId,
+      dynamicId: currentQuery.spaceSelectedId,
+    };
+
+    this.$store.dispatch(ActionTypes.HIDE_ITEMS, {
+      items: data,
+      buildingId: this.selectedZone.staticId,
+    });
   }
 
 
@@ -404,29 +423,15 @@ class dataSideApp extends Vue {
     }
   }
 
-  // const floorsStatickD : computed(() => this.floorstaticDetails[0].attributsList[0].attributs )
-
-  // computed {
-  //   attributs(): any[] {
-  //     if (this.floorstaticDetails && this.floorstaticDetails[0] && this.floorstaticDetails[0].attributsList && this.floorstaticDetails[0].attributsList[0]) {
-  //       return this.floorstaticDetails[0].attributsList[0].attributs;
-  //     }
-  //     return [];
-  //   }
-  // }
 
   async mounted() {
 
-
     if (this.selectedZone.type == "building") {
-      console.log('ici faire les requete pour building');
-
       this.loadBuildingInfo()
     }
 
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
-      // console.log(data, 'dzdzdzd', VIEWER_AGGREGATE_SELECTION_CHANGED);
 
       if (data)
         this.findDynamicIdByDbid(data[0].dbIds[0], data[0]);
@@ -439,30 +444,63 @@ class dataSideApp extends Vue {
   async loadBuildingInfo() {
     await this.getBuildingInfo();
     if (this.buildingInfo[0].dynamicId) {
-      console.warn(this.buildingInfo[0].dynamicId, '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
 
       const result = await this.getBuildingStaticDetails();
-      console.log(result, '??????????????');
 
       this.floorstaticDetails = result
       this.filteredEndpoints('building')
+      this.getDocumentation(result)
       this.filtredAttribut('building')
-      this.getDocumentation()
       this.$forceUpdate();
     }
   }
 
-  async getDocumentation() {
-    const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
-    const promises = [
-      this.$store.dispatch(ActionTypes.GET_DOCUMENTATION, {
-        buildingId: localStorage.getItem("idBuilding"),
-        referenceIds: this.buildingInfo[0].dynamicId,
+  async getDocumentation(data) {
+
+    const buildingId = localStorage.getItem("idBuilding");
+    const elementDynamicId = data[0].dynamicId;
+
+
+    const parentPromise = [
+      this.$store.dispatch(ActionTypes.GET_PARENT, {
+        buildingId: buildingId,
+        referenceIds: elementDynamicId,
       }),
     ];
-    const result = await Promise.all(promises);
-    this.documentation = result
+    const resultParent = await Promise.all(parentPromise);
+    const parents = resultParent[0];
+
+    const documentationPromise = [
+      this.$store.dispatch(ActionTypes.GET_DOCUMENTATION, {
+        buildingId: buildingId,
+        referenceIds: elementDynamicId,
+      }),
+    ];
+    const result = await Promise.all(documentationPromise);
+    const documentation = result[0];
+
+    let parentDocumentation = {};
+    for (let parent of parents) {
+      const parentDocPromise = [
+        this.$store.dispatch(ActionTypes.GET_DOCUMENTATION, {
+          buildingId: buildingId,
+          referenceIds: parent.dynamicId,
+        }),
+      ];
+      const parentDocResult = await Promise.all(parentDocPromise);
+      parentDocumentation[parent.dynamicId] = {
+        name: parent.name,
+        documentation: parentDocResult[0]
+      };
+    }
+
+    this.documentation = {
+      element: documentation,
+      parents: parentDocumentation
+    };
+    this.$forceUpdate();
   }
+
 
   async getBuildingStaticDetails() {
 
@@ -484,16 +522,12 @@ class dataSideApp extends Vue {
     ];
     const result = await Promise.all(promises);
 
-    // Créer un URL object à partir du blob et déclencher le téléchargement
     result.forEach(blob => {
-      console.log(blob.type);
       const type = blob.type.split('/', 2);
-      console.log(type);
-
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'filename.' + type[1]); // ou déterminez le nom de fichier de manière dynamique
+      link.setAttribute('download', 'filename.' + type[1]);
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
@@ -515,37 +549,24 @@ class dataSideApp extends Vue {
       }),
     ];
     const result = await Promise.all(promises);
-    // console.warn([...result], '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! warn favour building   informationnnnnnnnnnnnnnn');
     this.buildingInfo = [...result]
   }
 
 
-  formatValue(value) {
-    if (Number.isInteger(value)) {
-      return value;
-    }
+  // formatValue(value) {
+  //   if (value === null || value === undefined || isNaN(value)) {
+  //     return '-'; // ou tout autre valeur par défaut, comme une chaîne vide ''
+  //   }
+  //   if (Number.isInteger(value)) {
+  //     return value;
+  //   }
+  //   return parseFloat(value.toFixed(2));
+  // }
 
-    return parseFloat(value.toFixed(2));
-  }
 
-  testAction() {
-    const idtohide = [4247, 6408, 6409, 6407, 6410];
-    const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
-    const item = {
-      dynamicId: currentQuery.spaceSelectedId,
-      buildingId: localStorage.getItem("idBuilding")
-    };
-    this.$store.dispatch(ActionTypes.HIDE_ITEMS, {
-      item,
-      idtohide
-    });
-  }
 
   async getBIMInfo(referenceIds) {
-    //fonction a éditer lors du 
-    console.log('get rayane');
     const buildingId = localStorage.getItem("idBuilding");
-    // console.warn(referenceIds);
     const promises = [
       this.$store.dispatch(ActionTypes.GET_BIM_OBJECT_INFO, {
         buildingId,
@@ -553,7 +574,6 @@ class dataSideApp extends Vue {
       }),
     ];
     const result = await Promise.all(promises);
-    // console.log([...result], 'resukte finale de rayane');
     return [...result]
   }
 
@@ -565,9 +585,6 @@ class dataSideApp extends Vue {
 
   async findDynamicIdByDbid(dbidToFind, data) {
     const buildingId = localStorage.getItem("idBuilding");
-    console.log('ici ajouter la nouvelle requetes pour choper les elements ujuuu lafonction rayane', dbidToFind, data);
-    // console.log(data.dbIds);
-    // console.log(data.modelId.bimFileId);
     const BimObject = [
       {
         "bimFileId": data.modelId.bimFileId,
@@ -576,25 +593,15 @@ class dataSideApp extends Vue {
     ]
     const referenceResult = await this.getBIMInfo(BimObject)
 
-
-    console.log(referenceResult, 'le referecence resulte !!!!!!!!!!!!!!!!!!!!!!!!!');
-
     const isRoom = this.checkForReferenceObjectRoom(referenceResult[0][0].bimObjects[0].parent_relation_list)
-
-    console.log(isRoom, 'cest un equipemetn ?');
-
 
     if (isRoom) {
       const objects = this.referenceObjects;
-      console.log(objects);
-
       for (const obj of objects[0]) {
         if (Array.isArray(obj.infoReferencesObjects)) {
           for (const ref of obj.infoReferencesObjects) {
             if (ref.dbid === dbidToFind && data.modelId.bimFileId == obj.bimFileId) {
               const referenceIds = obj.dynamicId
-              // console.log({ dynamicId: obj.dynamicId, name: obj.name });
-              // return { dynamicId: obj.dynamicId };
               const promises = [
                 this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
                   buildingId,
@@ -602,7 +609,6 @@ class dataSideApp extends Vue {
                 }),
               ];
               const result = await Promise.all(promises);
-              console.log('les static details de mon objet sont', result, ref.dbid, obj.bimFileId);
               this.forgeItem(result, buildingId, ref.dbid, obj.bimFileId, data.center)
               return;
 
@@ -613,8 +619,6 @@ class dataSideApp extends Vue {
       return null;
     }
     else {
-
-
       const referenceIds = referenceResult[0][0].bimObjects[0].dynamicId
       const promises = [
         this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
@@ -635,7 +639,6 @@ class dataSideApp extends Vue {
 
   async getfloorstaticdetails(id) {
     const buildingId = localStorage.getItem("idBuilding");
-    // console.log('ENTRÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉ');
 
     const promises = [
       this.$store.dispatch(ActionTypes.GET_FLOOR_STATIC_DETAILS, {
@@ -643,26 +646,18 @@ class dataSideApp extends Vue {
         referenceIds: id
       }),
     ];
-    // console.log('FINNNNNNNNNNNNNNNNN');
-
     const result = await Promise.all(promises);
-    // console.warn('les static details de mon floor sont', result);
-    // console.log('RETURN');
     this.floorstaticDetails = result
-    // console.log(this.createApp(result), ')
-    // let type = 'floor'
     this.filteredEndpoints('floor')
+    this.getDocumentation(result)
     this.filtredAttribut('floor')
-    this.getDocumentation()
     this.createApp(result)
     this.$forceUpdate();
-    // return;
   }
 
   async getroomstaticdetails(id) {
 
     const buildingId = localStorage.getItem("idBuilding");
-    // console.log('ENTRÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉ');
 
     const promises = [
       this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
@@ -675,31 +670,25 @@ class dataSideApp extends Vue {
 
     this.floorstaticDetails = result
     this.filteredEndpoints('room')
+    this.getDocumentation(result)
     this.filtredAttribut('room')
-    this.getDocumentation()
     this.createApp(result)
     this.$forceUpdate();
   }
 
 
-
-
   createApp(tab) {
     let objetApp = [];
-    console.log('tototot');
-
     if (!this.config || !this.config.application) {
-      console.log("Configuration manquante");
+      console.warn("Configuration manquante");
       return [];
     }
 
     this.config.application.forEach(application => {
       const { name, id, type, targetValue, profileName, unit } = application;
-
       let appObject = { name, id, value: null, unit: unit };
 
       if (type === "controlEndpoint") {
-
         const matchedProfile = tab[0].controlEndpoint.find(profile => profile.profileName === profileName);
         if (matchedProfile) {
           if (targetValue) {
@@ -710,28 +699,25 @@ class dataSideApp extends Vue {
                 appObject.unit = targetEndpoint.unit;
               }
             } else {
-              console.log("Aucun endpoint correspondant trouvé pour la targetValue donnée.");
+              console.warn("Aucun endpoint correspondant trouvé pour la targetValue donnée.");
             }
           } else {
             appObject.value = matchedProfile.endpoints.length || 5
           }
         } else {
-          console.log('Pas de profil qui match');
+          console.warn('Pas de profil qui match');
         }
       } else if (type === "tickets") {
-        // Traitement pour les tickets
         if (!targetValue) {
-          // console.log(tab);
 
           appObject.value = tab[0]?.tickets?.length;
         } else {
-          console.log('Pas de donnée disponible pour les tickets avec targetValue.');
+          console.warn('Pas de donnée disponible pour les tickets avec targetValue.');
         }
       } else {
-        console.log('Type non supporté, valeur non définie');
+        console.warn('Type non supporté, valeur non définie');
       }
 
-      // Ajouter l'objet configuré à la liste de retour
       objetApp.push(appObject);
     });
     this.appTab = [...objetApp];
@@ -739,22 +725,51 @@ class dataSideApp extends Vue {
   }
 
 
+  async getParentAttribut() {
+    const buildingId = localStorage.getItem("idBuilding");
+    const elementDynamicId = this.floorstaticDetails[0].dynamicId;
 
-  // findProfileData(config, data) {
-  //   if (endpoints.profileName === config.profileName) {
-  //     const targetEndpoint = endpoints.endpoints.find(endpoint => endpoint.name === config.targetValue);
-  //     if (targetEndpoint) {
-  //       return targetEndpoint.value;
-  //     } else {
-  //       console.log("Aucun endpoint correspondant trouvé pour la targetValue donnée.");
-  //     }
-  //   } else {
-  //     console.log("Le profileName de la configuration ne correspond pas aux données.");
-  //   }
+    const parentPromise = [
+      this.$store.dispatch(ActionTypes.GET_PARENT, {
+        buildingId: buildingId,
+        referenceIds: elementDynamicId,
+      }),
+    ];
 
-  // }
+    const resultParent = await Promise.all(parentPromise);
+    const parents = resultParent[0];
+
+    const parentDynamicIds = parents.map(parent => parent.dynamicId);
+
+    const parentDocPromise = [
+      this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
+        buildingId,
+        referenceIds: parentDynamicIds,
+      }),
+    ];
+
+    const parentDocResult = await Promise.all(parentDocPromise);
+    const parentDocumentationResult = parentDocResult[0];
+
+    let parentDocumentation = {};
+    parents.forEach((parent, index) => {
+      parentDocumentation[parent.dynamicId] = {
+        name: parent.name,
+        documentation: parentDocumentationResult[index]
+      };
+    });
+
+    this.parentAttribut = {
+      parents: parentDocumentation
+    };
+
+  }
+
+
+
   filtredAttribut(type) {
 
+    this.getParentAttribut();
     let data = this.floorstaticDetails[0].attributsList
     let attributProfil = [];
 
@@ -763,11 +778,6 @@ class dataSideApp extends Vue {
       if (floorDetail) {
         attributProfil = floorDetail.attributs;
       }
-    } else if (type === "building") {
-      const buildingDetail = data.find(detail => detail.name.toLowerCase() === this.config.batiment.profileNameAttribut.toLowerCase());
-      if (buildingDetail) {
-        attributProfil = buildingDetail.attributs;
-      }
     }
     else if (type === "room") {
       const buildingDetail = data.find(detail => detail.name.toLowerCase() === this.config.room.profileNameAttribut.toLowerCase());
@@ -775,7 +785,12 @@ class dataSideApp extends Vue {
         attributProfil = buildingDetail.attributs;
       }
     }
-    console.log(attributProfil);
+    else {
+      const buildingDetail = data.find(detail => detail.name.toLowerCase() === this.config.batiment.profileNameAttribut.toLowerCase());
+      if (buildingDetail) {
+        attributProfil = buildingDetail.attributs;
+      }
+    }
     this.attributProfil = attributProfil
 
   }
@@ -783,28 +798,19 @@ class dataSideApp extends Vue {
 
   filteredEndpoints(type) {
     if (type == "floor") {
-      const profile = this.floorstaticDetails[0].controlEndpoint.find(profile => profile.profileName === this.config.profileName);
+      const profile = this.floorstaticDetails[0].controlEndpoint.find(profile => profile.profileName === this.config.floor.profileNameControlePts);
       this.endpointProfil = profile ? profile.endpoints : [];
     } else if (type == "building") {
-      console.log('tototot ??');
-
       const profile = this.floorstaticDetails[0].controlEndpoint.find(profile => profile.profileName === this.config.batiment.profileNameControlePts);
       this.endpointProfil = profile ? profile.endpoints : [];
     } else {
-      const profile = this.floorstaticDetails[0].controlEndpoint.find(profile => profile.profileName === this.config.profileNameRoom);
+      const profile = this.floorstaticDetails[0].controlEndpoint.find(profile => profile.profileName === this.config.room.profileNameControlePts);
       this.endpointProfil = profile ? profile.endpoints : [];
     }
 
-    console.log(this.endpointProfil);
-
-    // this.$forceUpdate();
-    // return profile ? profile.endpoints : [];
   }
 
   forgeItem(result, buildingId, dbid, bimFileId, center) {
-    // console.log(center, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-    // Object.assign(item, { color: '#ded638', buildingId: buildingId, dbid: dbid, bimFileId: bimFileId });
-    // console.log(this.data);
 
     let X = center.x;
     let Y = center.y;
@@ -839,12 +845,10 @@ class dataSideApp extends Vue {
 
     const screenWidth = window.innerWidth;
     if (screenWidth <= 700) {
-      console.log('mobile');
       this.displaySprite = false;
       this.isSmallScreen = item;
       this.displaySprite = true;
     } else {
-      // Sinon, exécuter l'action existante
       this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
         items: item,
         buildingId: buildingId,
@@ -871,7 +875,6 @@ class dataSideApp extends Vue {
         });
       }
     });
-    // console.log(uniqueNames);
     return Array.from(uniqueNames);
   }
 
@@ -903,17 +906,8 @@ class dataSideApp extends Vue {
   }
 
   getDataDynamicIdtab() {
-    // console.log(this.data, 'sssssssssssssssss');
-
     const dynamicIds = this.data.map(obj => obj.dynamicId);
-
-    console.log();
-
-    // console.log(dynamicIds);
     this.fetchReferenceObjects(dynamicIds)
-
-    // console.log(dynamicIds);
-
     this.getInventoryObject(dynamicIds)
   }
   async fetchReferenceObjects(referenceIds) {
@@ -926,15 +920,11 @@ class dataSideApp extends Vue {
       }),
     ];
     const result = await Promise.all(promises);
-    // this.referenceObjects = result[0];
     this.referenceObjects = [...result];
 
   }
   async getInventoryObject(referenceIds) {
     const buildingId = localStorage.getItem("idBuilding");
-    // console.warn(referenceIds);
-
-
     const promises = [
       this.$store.dispatch(ActionTypes.GET_INVENTORY_MULTIPLE, {
         buildingId,
@@ -942,44 +932,64 @@ class dataSideApp extends Vue {
       }),
     ];
     const result = await Promise.all(promises);
-    // this.referenceObjects = result[0];
     this.inventory = [...result];
-    // this.extractUniqueInventoryNames()
-    // console.warn(this.inventory,'eeeeeeeee');
     this.countInventoryTypes([...result]);
 
   }
 
-
+  closeeyes(index) {
+    const indexPosition = this.eyes.indexOf(index);
+    if (indexPosition === -1) {
+      this.eyes.push(index);
+    } else {
+      this.eyes.splice(indexPosition, 1);
+    }
+  }
 
   countInventoryTypes(floors) {
     const inventoryCounts = {};
-    // console.log(floors, 'les flllllllllllooooooooooooooorsssssss');
+    const inventoryDbids = {}; // Pour stocker les dbids regroupés par type d'inventaire
 
     floors[0].forEach(floor => {
-      // Trouver l'entrée "Typologie" dans les inventories
-      const typologyInventory = floor.inventories.find(inventory => inventory.name === this.config.inventory);
+      if (floor.inventories) {
+        const typologyInventory = floor.inventories.find(inventory => inventory.name === this.config.inventory);
 
-      if (typologyInventory) {
-        // Compter chaque groupe dans l'inventaire "Typologie"
-        typologyInventory.inventory.forEach(group => {
-          if (inventoryCounts[group.name]) {
-            inventoryCounts[group.name] += group.equipments.length;
-          } else {
-            inventoryCounts[group.name] = group.equipments.length;
-          }
-        });
+        if (typologyInventory) {
+          typologyInventory.inventory.forEach(group => {
+            if (inventoryCounts[group.name]) {
+              inventoryCounts[group.name] += group.equipments.length;
+            } else {
+              inventoryCounts[group.name] = group.equipments.length;
+            }
+
+            // Collecter les dbids pour chaque type d'inventaire
+            if (!inventoryDbids[group.name]) {
+              inventoryDbids[group.name] = [];
+            }
+            group.equipments.forEach(equipment => {
+              inventoryDbids[group.name].push(equipment.dbid);
+            });
+          });
+        } else {
+          console.warn(`Aucun inventaire trouvé pour le type "${this.config.inventory}" dans cet étage.`);
+        }
+      } else {
+        console.warn(`Aucun inventaire trouvé pour cet étage :`, floor);
       }
     });
 
-    // Créer et afficher la liste des comptes
     const results = [];
     for (const [key, value] of Object.entries(inventoryCounts)) {
       results.push(`${value} ${key}`);
     }
-    this.inventoyList = results
-    // console.log(results, '///////////////');
+
+    console.log('INVOTORY LIST AFFECTATION :::::::::::::', results);
+    
+
+    this.inventoyList = results;
+    this.inventoryDbids = inventoryDbids;
     this.$forceUpdate();
+
     return results;
   }
 
@@ -989,10 +999,7 @@ class dataSideApp extends Vue {
 
   @Watch("selectedZone")
   watchSelectedZone() {
-    console.log('UWUWUWUWUWUWUWU', this.selectedZone);
-
     if (this.selectedZone.type === "building") {
-      console.log('ici faire les requetes pour buildings');
       this.loadBuildingInfo()
       this.isBuildingSelected = true;
       this.$store.commit(MutationTypes.SET_DATA, []);
@@ -1002,13 +1009,6 @@ class dataSideApp extends Vue {
       this.retriveData();
     }
   }
-
-  // @Watch("floor")
-  // watchfloor() {
-  //   // console.log('LE FLORR SELECTIONNÉ EST :', this.floor);
-  //   // console.log(this.floor, 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
-  //   // this.getfloorstaticdetails(this.floor)
-  // }
 
   @Watch("data")
   watchData() {
@@ -1020,7 +1020,6 @@ class dataSideApp extends Vue {
         this.getInventoryObject([this.selectedZone.dynamicId])
         // this.watchfloor()
       } else {
-        console.log('ETAGE');
         this.getfloorstaticdetails(this.floor)
         this.getDataDynamicIdtab()
       }
@@ -1028,6 +1027,8 @@ class dataSideApp extends Vue {
     else {
       console.warn('GET_BUILDING_INFO', 'building ???????????????????');
 
+      //TODO INVENTORY BATIEMENT
+      this.inventoyList = []
     }
 
 
@@ -1036,7 +1037,6 @@ class dataSideApp extends Vue {
 
 
 
-    // console.log("AFFICHAGE SPRITES");
     // if (this.config.sprites)
     //   this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
 
@@ -1376,8 +1376,11 @@ a {
 .container {}
 
 .title {
+  position: relative;
+  //background-color: RED;
+  width: 100%;
   display: flex;
-  justify-content: space-between;
+  // justify-content: space-between;
   // padding: 10px;
 }
 

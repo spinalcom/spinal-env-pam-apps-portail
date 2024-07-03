@@ -99,6 +99,27 @@ export async function getDocumentation(buildingId: string, referenceIds: number)
   return result.data;
 }
 
+export async function getParent(buildingId: string, referenceIds: number): Promise<IZoneItem[]> {
+  
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${referenceIds}/parents`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+
+export async function getAttributListMultiple(buildingId: string, referenceIds: number[]): Promise<any> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/node/attribute_list_multiple');
+  try {
+    const response = await spinalAPI.post<any>(url, referenceIds);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des objets de référence:', error);
+    throw error;
+  }
+}
+
 
 
 export async function getMultipleInventory(buildingId: string, referenceIds: number[]): Promise<any> {

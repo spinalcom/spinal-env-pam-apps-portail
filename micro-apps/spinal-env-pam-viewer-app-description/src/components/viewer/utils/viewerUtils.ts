@@ -39,7 +39,7 @@ export class ViewerUtils {
 	private _isFirstModel: boolean = true;
 	public waitBeforeDisplaySprites: boolean = true;
 
-	private constructor() {}
+	private constructor() { }
 
 	public static getInstance(): ViewerUtils {
 		if (!this._instance) this._instance = new ViewerUtils();
@@ -156,10 +156,13 @@ export class ViewerUtils {
 
 		const datas = this._classifyDbIdsByModel(data);
 
+
 		for (const { model, dbIds } of datas) {
 			if (dbIds.length > 0) {
-				if (model.visibilityManager) viewer.isolate(dbIds, model);
-			} else {
+				if (model.visibilityManager) model.visibilityManager.isolate(dbIds);
+
+			} 
+			else {
 				isolateAll(model);
 			}
 		}
@@ -284,16 +287,22 @@ export class ViewerUtils {
 
 	public async hideElementsByDbIds(viewer: Autodesk.Viewing.Viewer3D, dbIds: number[]) {
 		console.log('rayyyyayaaane 2222222222222222222222222');
-		
-		await this._waitModelIsLoading();
 	
+		await this._waitModelIsLoading();
 		const models = viewer.getVisibleModels();
 	
-		// Hide the elements in each model
+		
 		models.forEach((model) => {
-			viewer.hide(dbIds, model);
+			dbIds.forEach((dbId) => {
+				if (viewer.isNodeVisible(dbId, model)) {
+					viewer.hide(dbId, model);
+				} else {
+					viewer.show(dbId, model);
+				}
+			});
 		});
 	}
+	
 
 	// public removeSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
 
@@ -339,7 +348,7 @@ export class ViewerUtils {
 			if (this._isFirstModel) this._isFirstModel = false;
 
 			return model;
-		} catch (error) {}
+		} catch (error) { }
 	}
 
 	private _addSlash(path: string): string {
@@ -528,9 +537,9 @@ function convertHexColorToRGB(hex: string) {
 	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 	return result
 		? {
-				r: parseInt(result[1], 16),
-				g: parseInt(result[2], 16),
-				b: parseInt(result[3], 16),
-		  }
+			r: parseInt(result[1], 16),
+			g: parseInt(result[2], 16),
+			b: parseInt(result[3], 16),
+		}
 		: null;
 }

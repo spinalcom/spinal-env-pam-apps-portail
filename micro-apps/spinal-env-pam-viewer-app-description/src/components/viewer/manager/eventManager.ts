@@ -21,7 +21,7 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-import { VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_CONTEXT_MENU_CLICK, EmitterViewerHandler, IDbIdModelAggregate, IContextMenuButton, VIEWER_START_LOAD_MODEL, VIEWER_INITIALIZED, VIEWER_AGGREGATE_SELECTION_CHANGED, VIEWER_SET_CAMERA, VIEWER_SET_CONTEXT_MENU, VIEWER_OBJ_COLOR, VIEWER_ADD_SPRITE, VIEWER_REM_SPRITE, VIEWER_REM_ALL_SPRITE, VIEWER_MOV_SPRITE, VIEWER_ADD_LINE, VIEWER_REM_LINE, VIEWER_MOV_LINE, VIEWER_ADD_SPHERE, VIEWER_REM_SPHERE, VIEWER_MOV_SPHERE, EViewerSetCamera ,VIEWER_HIDE_ELEMENT } from "spinal-viewer-event-manager";
+import { VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_CONTEXT_MENU_CLICK, EmitterViewerHandler, IDbIdModelAggregate, IContextMenuButton, VIEWER_START_LOAD_MODEL, VIEWER_INITIALIZED, VIEWER_AGGREGATE_SELECTION_CHANGED, VIEWER_SET_CAMERA, VIEWER_SET_CONTEXT_MENU, VIEWER_OBJ_COLOR, VIEWER_ADD_SPRITE, VIEWER_REM_SPRITE, VIEWER_REM_ALL_SPRITE, VIEWER_MOV_SPRITE, VIEWER_ADD_LINE, VIEWER_REM_LINE, VIEWER_MOV_LINE, VIEWER_ADD_SPHERE, VIEWER_REM_SPHERE, VIEWER_MOV_SPHERE, EViewerSetCamera, VIEWER_HIDE_ELEMENT } from "spinal-viewer-event-manager";
 import { ViewerUtils } from "../utils/viewerUtils";
 import ModelManager from "./modelManager";
 import { VIEWER_EVENTS } from "../events";
@@ -37,7 +37,7 @@ export class EventManager {
 	private static _instance: EventManager;
 	lastSelection: any;
 
-	private constructor() {}
+	private constructor() { }
 
 	public static getInstance(): EventManager {
 		if (!this._instance) this._instance = new EventManager();
@@ -56,19 +56,18 @@ export class EventManager {
 			});
 
 			emitterHandler.on(VIEWER_OBJ_ISOLATE, (data: any) => {
-				// console.log('RAYANE');
-				
 				if (data && data.length > 0) return viewerUtils.viewerIsolation(viewer, data);
 				viewerUtils.showAllObject(viewer);
 			});
 
 			// emitterHandler.on(VIEWER_HIDE_ELEMENT, (data: any) => {
 			// 	console.warn('toto888888888888888888888888888888');
-				
+
 			// 	if (data && data.length > 0) return viewerUtils.viewerIsolation(viewer, data);
 			// 	viewerUtils.hideElementsByDbIds(viewer , []);
-				
+
 			// });
+
 
 			emitterHandler.on(VIEWER_OBJ_SELECT, (data: any) => {
 				viewerUtils.viewerSelect(viewer, data);
@@ -88,7 +87,7 @@ export class EventManager {
 				viewerUtils.setCamera(viewer, data);
 			});
 
-			emitterHandler.on(VIEWER_SET_CONTEXT_MENU, (data: any) => {});
+			emitterHandler.on(VIEWER_SET_CONTEXT_MENU, (data: any) => { });
 
 			emitterHandler.on(VIEWER_OBJ_COLOR, (data: any) => {
 				viewerUtils.setObjColor(viewer, data);
@@ -102,7 +101,7 @@ export class EventManager {
 				viewerUtils.addComponentAsSprite(viewer, data);
 			});
 
-			
+
 
 			emitterHandler.on(VIEWER_REM_SPRITE, (data: any) => {
 				viewerUtils.removeSprite(viewer, data);
@@ -132,17 +131,36 @@ export class EventManager {
 				viewerUtils.addSphere(viewer, data);
 			});
 
+			// Code dans eventManager.ts
 			emitterHandler.on(VIEWER_REM_SPHERE, (data: any) => {
-				console.log('GABRIEL', data);
-				
-				// viewerUtils.removeSphere(viewer, data);
-				// console.log('RAAAAAAAAAYYYYYYYYYYANNNNE');
-				
-				if (data && data.length > 0) return viewerUtils.hideElementsByDbIds(viewer, [4247]);
-				viewerUtils.hideElementsByDbIds(viewer , [4247]);
-				
+
+				const storedNumbers = localStorage.getItem('Hidendbid');
+				let numbersArray = [];
+
+				if (storedNumbers !== null) {
+					try {
+						// Vérifier si la chaîne est valide
+						if (storedNumbers.startsWith('[') && storedNumbers.endsWith(']')) {
+							numbersArray = JSON.parse(storedNumbers);
+						} else {
+							// Essayer de corriger la chaîne si possible
+							const correctedString = '[' + storedNumbers.split(',').map(Number).join(',') + ']';
+							numbersArray = JSON.parse(correctedString);
+						}
+					} catch (e) {
+						console.error("Erreur de parsing JSON:", e);
+					}
+				}
+
+
+				if (data && data.length > 0) {
+					viewerUtils.hideElementsByDbIds(viewer, numbersArray);
+				} else {
+					viewerUtils.hideElementsByDbIds(viewer, [4247]);
+				}
 			});
-			
+
+
 
 			emitterHandler.on(VIEWER_MOV_SPHERE, (data: any) => {
 				viewerUtils.moveSphere(viewer, data);
@@ -151,38 +169,38 @@ export class EventManager {
 			///////////////////////////////////////////////////////////////////////
 
 			function viewerGetSelectionChange(data: any) {
-	
+
 				const eventData: IDbIdModelAggregate[] = [];
 				for (const selection of data.selections) {
 					const dbIds = selection.dbIdArray;
 					const model = selection.model;
 					const bbox = new THREE.Box3();
-			
+
 					for (const dbId of dbIds) {
-						model.getObjectTree(function(tree) {
-							tree.enumNodeFragments(dbId, function(fragId) {
+						model.getObjectTree(function (tree) {
+							tree.enumNodeFragments(dbId, function (fragId) {
 								const fragBBox = new THREE.Box3();
 								model.getFragmentList().getWorldBounds(fragId, fragBBox);
 								bbox.union(fragBBox);
 							});
 						});
 					}
-			
+
 					const center = bbox.getCenter(new THREE.Vector3());
-					
+
 					eventData.push({
 						dbIds: dbIds,
 						modelId: model,
 						center: center
 					});
 				}
-			
+
 				this.lastSelection = eventData;
 				emitterHandler.emit(VIEWER_AGGREGATE_SELECTION_CHANGED, eventData);
 			}
-			
+
 			viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT, viewerGetSelectionChange);
-			
+
 
 			const inter = setInterval(() => {
 				emitterHandler.emit(VIEWER_INITIALIZED);

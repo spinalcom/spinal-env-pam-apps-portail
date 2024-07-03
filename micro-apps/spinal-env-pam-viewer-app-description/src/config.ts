@@ -30,29 +30,33 @@ export const config: IConfig = {
 	sprites: false,
 	viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },
 	temporality: [ITemporality.currentValue, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
+
+	//catégorie d'inventaire cliblé
 	inventory: "Typologie",
 
-	//objet étage + objet pièce + objet équipement + objet bulding
-	profileName: "KPI USI", //etage
-	profileNameRoom: "Occupation",//piece
-
-	categorieAttributRoom: "GMAO",
-
-
-	batiment:{
-		profileNameControlePts: "KPI",
-		profileNameAttribut: 'default'
+	//information de selection (attribut / controle endpoint)
+	batiment: {
+		profileNameControlePts: "KPI", //profil name attribut cbilé batiment
+		profileNameAttribut: 'default'// catégorie attribut cbilé batiment
 	},
-	floor:{
-		profileNameControlePts: "KPI USI",
-		profileNameAttribut: "Spatial"
+	floor: {
+		profileNameControlePts: "KPI USI", // profil name attribut cbilé floor
+		profileNameAttribut: "Spatial" // catégorie attribut cbilé floor
 	},
-	room:{
-		profileNameControlePts: "KPI USI",
-		profileNameAttribut: "Spatial"
+	room: {
+		profileNameControlePts: "KPI USI", // profil name attribut cbilé room
+		profileNameAttribut: "Spatial"  // catégorie attribut cbilé room
 	},
 
 
+	// categorieAttributRoom: "GMAO",
+
+	//ajout des application disponible depuis description
+	//avec name = text dans l'application
+	//id de l'app sur PAM
+	//profileName du controle point ciblé
+	//type de donnée cilbé dans la requetes statickdetails 
+	//unit de l'information
 	application: [
 		{
 			name: "Voir les données Insight",
@@ -67,17 +71,11 @@ export const config: IConfig = {
 			type: "tickets",
 			unit: "nbr de ticket"
 		}
-		// ,
-		// {
-		// 	name: "Dashboard d'energie globale",
-		// 	id: "eyJuYW1lIjoic3BpbmFsLXR3aW4tc3RhbmRhcmQtZW5lcmd5LWZsdWlkcyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiYmFlZi0yYmRhLTk0ZjktMThmYTQ3YjIxMGIiLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE2NDUxNTAxMDE1LCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTY0NTE0ODM5MTUsImljb24iOiJtZGktY2FyLWJyYWtlLWZsdWlkLWxldmVsIiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtdHdpbi1zdGFuZGFyZC1lbmVyZ3ktZmx1aWRzIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19",
-		// 	type: "controlEndpoint",
-		// 	profileName: "KPI USI",
-		// 	targetValue: "Energie globale",
-		// }
-
 	],
 
+	//informaton dans spriteComponent
+	// name correspond au type de donnée ciblé 
+	// categorie correspond à la donnée voulu 
 	SpriteComponent: [
 		{
 			name: "attributsList",
@@ -104,16 +102,16 @@ export const config: IConfig = {
 			value: null //si string affiche la donnée voulu sinon affiche tout les endpoints
 		},
 		{
-			name : "app",
+			name: "app",
 			value: "Ticket",
 			id: "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiZWI0ZC1hM2MxLWVmMTEtMThmMjBkZGM5YzciLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0MjQzMzcyMzcxLCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTQyNDMzNTcxMjcsImljb24iOiJtZGktdGlja2V0LWFjY291bnQiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOlsidGlja2V0Il0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ",
 		},
 		{
-			name : "app",
+			name: "app",
 			value: "Insight",
 			id: "eyJuYW1lIjoiSW5zaWdodHMiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImIwZTEtNzI3NS02YWNhLTE4ZjJlMjE1NmE4IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxNDQ2NTk0NzM4MCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0NDY1ODg3OTEyLCJpY29uIjoibWRpLWN1cnRhaW5zLWNsb3NlZCIsImRlc2NyaXB0aW9uIjoiSU5zaWdodHMiLCJ0YWdzIjpbIkluc2lnaHRzIl0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0taW5zaWdodHMiLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiMzdkZS0wMmI4LWUxOGItMTg1MDY0M2I2OGEiLCJidWlsZGluZ0lkIjoiNTkzMi02MDg2LTllMWEtMTg1MDY0Nzg0NjAifX0",
 		},
-		
+
 	]
 
 

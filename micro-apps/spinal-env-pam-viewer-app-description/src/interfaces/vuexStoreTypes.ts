@@ -62,7 +62,10 @@ export enum ActionTypes {
 	GET_BUILDING_INFO = "GET_BUILDING_INFO",
 	GET_BUILDING_STATIC_DETAILS = "GET_BUILDING_STATIC_DETAILS",
 	GET_DOCUMENTATION = "GET_DOCUMENTATION",
-	POST_DOWNLOAD_FILE = "POST_DOWNLOAD_FILE"
+	POST_DOWNLOAD_FILE = "POST_DOWNLOAD_FILE",
+	GET_PARENT = "GET_PARENT",
+	GET_ATTRIBUT_LIST_MULTIPLE = "GET_ATTRIBUT_LIST_MULTIPLE",
+	HIDE_ITEMS = "HIDE_ITEMS"
 }
 
 export type TFctViewerIteract = (stateContext: AugmentedActionContextAppData, payload: { buildingId: string; id: number | number[] }) => Promise<void>;

@@ -25,7 +25,7 @@
 import { ModelManager } from "./modelManager";
 import { getViewInfo, getViewInfoFormatted, IViewInfoBody, IViewInfoItemRes, IViewInfoTmpRes, mergeIViewInfo } from "../requests/GeographicContext/getViewInfo";
 import { IPlayload, IPlayloadWithComponent } from "../interfaces/IPlayload";
-import { EmitterViewerHandler, VIEWER_ADD_SPRITE, VIEWER_INITIALIZED, VIEWER_OBJ_COLOR, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_START_LOAD_MODEL, VIEWER_HIDE_ELEMENT,ViewerEventWithData , VIEWER_REM_SPHERE } from "spinal-viewer-event-manager";
+import { EmitterViewerHandler, VIEWER_ADD_SPRITE, VIEWER_INITIALIZED, VIEWER_OBJ_COLOR, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_START_LOAD_MODEL,ViewerEventWithData , VIEWER_REM_SPHERE } from "spinal-viewer-event-manager";
 import { VIEWER_EVENTS } from "../events";
 import Vue from "vue";
 import { log, warn } from "console";
@@ -123,7 +123,10 @@ export class ViewerManager {
 		if (typeof this._viewerStores["GET_VIEWER_INFO"] === "undefined") {
 			this._viewerStores["GET_VIEWER_INFO"] = {};
 		}
+		
+		
 		const items = Array.isArray(argItem) ? argItem : [argItem];
+		console.log(items);
 		const buildingId = argBuildingId || items[0].buildingId;
 		const ids = items.map((el) => el.dynamicId);
 		const res: any[] = [];
@@ -165,14 +168,13 @@ export class ViewerManager {
 	
 
 	public hide(item: IPlayload) {
-		console.log('toto555', item);
-		return this._fctViewerIteract(VIEWER_REM_SPHERE, item.item, item.config);
+		return this._fctViewerIteract(VIEWER_REM_SPHERE, item.items, item.config);
 	}
 
 	public isolate(item: IPlayload) {
 		console.log(item , 'tututututu');
 		
-		this.hide(item) //TODO A BASCULER SUR UNE AUTRE ACTION ........ RAYANE GABRIEL
+		this.hide(item) //TODO A BASCULER SUR UNE AUTRE ACTION ........  GABRIEL
 
 		return this._fctViewerIteract(VIEWER_OBJ_ISOLATE, item.item, item.config);
 	}
@@ -230,7 +232,7 @@ export class ViewerManager {
 		}));
 	}
 
-	private async _fctViewerIteract(eventName: keyof ViewerEventWithData, playload: (IPlayload | string) | (IPlayload | string)[], isolateConfig?: any): Promise<any> {
+	private async _fctViewerIteract(eventName: keyof ViewerEventWithData, playload: (IPlayload | string) | (IPlayload | string)[], isolateConfig?: any ,): Promise<any> {
 		console.log('TOTO' , eventName ,playload);
 		
 		const emitter = EmitterViewerHandler.getInstance();
