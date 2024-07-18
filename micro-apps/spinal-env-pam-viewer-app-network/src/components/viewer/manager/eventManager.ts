@@ -91,6 +91,9 @@ export class EventManager {
 			emitterHandler.on(<any>VIEWER_EVENTS.VIEWER_ADD_COMPONENT_SPRITE, (data: any) => {
 				viewerUtils.addComponentAsSprite(viewer, data);
 			});
+			emitterHandler.on(<any>VIEWER_EVENTS.VIEWER_REMOVE_ALL_LINES,() =>{
+				viewerUtils.removeAllLines(viewer);
+			});
 
 			emitterHandler.on(VIEWER_REM_SPRITE, (data: any) => {
 				viewerUtils.removeSprite(viewer, data);

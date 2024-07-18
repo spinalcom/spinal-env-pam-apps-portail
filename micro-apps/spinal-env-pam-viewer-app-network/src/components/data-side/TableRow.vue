@@ -15,7 +15,18 @@
         'child-row3': level > 2,
       }"
     >
-      <td class="name">{{ data.name }}</td>
+      <td class="name">
+        <div
+          class="name-image"
+          :class="{
+            'name-image-selected': isSelected,
+            'name-image-deselected': !isSelected,
+            hide_arrow: !data.nodes,
+          }"
+          :style="{ marginLeft: `${level * 15}px` }"
+        ></div>
+        {{ data.name }}
+      </td>
 
       <td class="type">
         <div
@@ -76,6 +87,7 @@
         v-for="(child, childIndex) in data.nodes"
         :key="childIndex"
         :data="child"
+        :fulldata="fulldata"
         :index="childIndex"
         :level="level + 1"
         :pairs="pairs"
@@ -104,6 +116,7 @@ class TableRow extends Vue {
   @Prop() index!: number;
   @Prop({ default: 0 }) level!: number;
   @Prop() selectedDynamicId!: number;
+  @Prop() fulldata!: any[];
 
   internalSelectedDynamicId: number = 0;
 
@@ -122,11 +135,11 @@ class TableRow extends Vue {
     const imageMapping: { [key: string]: string } = {
       Luminaire: require("../viewer/assets/Luminaire.png"),
       Automate: require("../viewer/assets/Automate.png"),
-      Multisensor: require("../viewer/assets/Multisensor.png"),
+      Multicapteurs: require("../viewer/assets/Multicapteurs.png"),
+      Climatiseur: require("../viewer/assets/Climatiseur.png"),
     };
-    // console.log("typo00", typologie);
 
-    const defaultImagePath = require("../viewer/assets/Luminaire.png");
+    const defaultImagePath = require("../viewer/assets/default.png");
 
     // Check if the typology exists in the mapping
     if (imageMapping.hasOwnProperty(typologie)) {
@@ -193,14 +206,12 @@ class TableRow extends Vue {
   leafChild: boolean = false;
 
   highlightSelection(dynamicId: number) {
-    // console.log("Highlight Selection", dynamicId);
     // this.onSelectedDynamicIdChange(dynamicId);
     EventBus.$emit("highlight-selection", dynamicId);
   }
   handleClick(dynamicId: number) {
     // this.highlightSelection(dynamicId);
     let listofselected = this.$store.state.appDataStore.selectedEquipements;
-    // console.log("List of selected", listofselected);
     if (this.internalSelectedDynamicId === dynamicId) {
       this.internalSelectedDynamicId = 0;
     } else {
@@ -224,13 +235,10 @@ class TableRow extends Vue {
           this.parentOpened = true;
         }
       }
-      // console.log("parentopened", this.parentOpened);
       if (!this.parentOpened) {
         EventBus.$emit("diselect");
-        // console.log("Parent not opened", this.parentOpened);
         // this.$store.commit(MutationTypes.RESET_EQUIPEMENT);
         let listofselected = this.$store.state.appDataStore.selectedEquipements;
-        // console.log("List of selected", listofselected);
       }
     }
 
@@ -239,7 +247,6 @@ class TableRow extends Vue {
   }
   findParent(dynamicId: number): number {
     const pair = this.pairs.find((pair) => pair.child === dynamicId);
-    // console.log("Pair to get", this.pairs);
     if (pair) {
       return pair.parent;
     } else {
@@ -248,14 +255,12 @@ class TableRow extends Vue {
   }
   NodesTotoggle(dynamicId: number) {
     this.nodestoToggle.push(dynamicId);
-    // console.log(" Nodes to get", this.findParent(dynamicId));
     while (this.findParent(dynamicId) !== -1) {
       dynamicId = this.findParent(dynamicId);
       this.nodestoToggle.push(dynamicId);
     }
   }
   toggleChildren(dynamicId: number) {
-    // console.log("toggleChildren");
     if (this.data.nodes && this.data.nodes.length > 0) {
       this.showChildren = !this.showChildren;
       this.isSelected = this.showChildren;
@@ -280,7 +285,7 @@ class TableRow extends Vue {
       // if (this.leafChild) {
       // this.leafChild = !this.leafChild;
       // }
-      console.log("Else");
+      // console.log("Else");
       if (this.isSelected) {
         this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
           String(this.data.dynamicId),
@@ -293,9 +298,17 @@ class TableRow extends Vue {
     }
   }
 
-  handleClick2(dynamicId: number) {
+  async handleClick2(dynamicId: number) {
     let listofselected = this.$store.state.appDataStore.selectedEquipements;
-    // console.log("List of selected", listofselected);
+    console.log("Clicked Node", dynamicId);
+    let path = this.findPath(this.fulldata, dynamicId);
+    // console.log("Path", path);
+    const topLevelNodes = this.getTopLevelNodes(this.fulldata);
+    for (let i = 0; i < topLevelNodes.length; i++) {
+      if (dynamicId == topLevelNodes[i]) {
+        await EventBus.$emit("deselect-all", dynamicId);
+      }
+    }
     if (this.internalSelectedDynamicId === dynamicId) {
       this.internalSelectedDynamicId = 0;
     } else {
@@ -312,13 +325,74 @@ class TableRow extends Vue {
         this.internalSelectedDynamicId = 0;
       }
     }
-    this.toggleChildrenOut(dynamicId);
+    let openall = true;
+
+    if (path[0] == dynamicId) {
+      // console.log("Selected Dynamic Id");
+      if (!this.showChildren) {
+        await EventBus.$emit("deselect-all", dynamicId);
+        openall = false;
+      }
+    }
+    // console.log("Open all", openall);
+    for (let i = 0; i < listofselected.length - 1; i++) {
+      for (let j = 0; j < path.length; j++) {
+        if (listofselected[i] === path[j]) {
+          openall = false;
+        }
+      }
+    }
+    // console.log("Open all", openall, "stooooooooooooooooor", listofselected);
+    if (openall && listofselected.length > 1) {
+      // console.log("L3ziiiiiiiiiiiiiiiz");
+      this.$store.commit(MutationTypes.RESET_EQUIPEMENT);
+      // console.log("L3ziiiiiiiiiiiiiiiz");
+      for (let i = 0; i < path.length; i++) {
+        this.toggleChildrenOut(path[i]);
+      }
+    } else {
+      this.toggleChildrenOut(dynamicId);
+    }
+
+    // for (let i = 0; i < path.length; i++) {
+    //   // if (!this.isSelected) {
+    //   console.log("Entering ToggleChildrenOut for", path[i]);
+
+    // await EventBus.$emit("deselect-all", dynamicId);
+    // this.toggleChildrenOut(dynamicId);
+    // }
+    // }
+  }
+  findPath(data, targetId) {
+    const path = [];
+
+    function helper(nodes) {
+      if (!Array.isArray(nodes)) return false; // Check if nodes is an array
+      for (let node of nodes) {
+        path.push(node.dynamicId);
+        if (node.dynamicId === targetId) {
+          return true;
+        }
+        if (node.nodes && helper(node.nodes)) {
+          return true;
+        }
+        path.pop(); // Remove the node if targetId not found in this branch
+      }
+      return false;
+    }
+
+    helper(data);
+    return path;
   }
 
-  toggleChildrenOut(dynamicId: number) {
+  getTopLevelNodes(data) {
+    return data.map((node) => node.dynamicId);
+  }
+
+  async toggleChildrenOut(dynamicId: number) {
+    console.log("this dynamicId inside", this.data.dynamicId);
     if (this.data.dynamicId != dynamicId) {
       let listofselected = this.$store.state.appDataStore.selectedEquipements;
-      // console.log("List of selected in", listofselected);
       for (let i = 0; i < listofselected.length; i++) {
         if (listofselected[i] === this.findParent(dynamicId)) {
           this.parentOpened = true;
@@ -327,23 +401,25 @@ class TableRow extends Vue {
       if (!this.parentOpened) {
         // this.diselect();
         // EventBus.$emit("diselect-out", dynamicId);
-        // console.log("Parent not opened", this.parentOpened);
         // this.$store.commit(MutationTypes.RESET_EQUIPEMENT);
         // let listofselected = this.$store.state.appDataStore.selectedEquipements;
-        // console.log("List of selected out", listofselected);
       }
     } else if (this.data.dynamicId == dynamicId) {
-      // console.log("If");
+      console.log("this dynamicId equals the old one ");
       if (this.data.nodes && this.data.nodes.length > 0) {
+        console.log("type 1");
         this.showChildren = !this.showChildren;
         this.isSelected = this.showChildren;
+        // this.$store.commit(MutationTypes.ADD_SELECTED_EQUIPEMENT, dynamicId);
         if (this.showChildren) {
+          console.log("type 1.1");
           this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
             String(this.data.dynamicId),
           ]);
           this.getZoomPoints();
           // this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, this.payload);
         } else {
+          console.log("type 1.2");
           this.$store.dispatch(ActionTypes.DESELECT_LINE, [
             String(this.data.dynamicId),
           ]);
@@ -352,10 +428,13 @@ class TableRow extends Vue {
           ]);
 
           this.getZoomPoints();
+          this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS);
         }
-        this.$store.commit(MutationTypes.RESET_EQUIPEMENT);
+        console.log("type 1 end");
+        // this.$store.commit(MutationTypes.RESET_EQUIPEMENT);
         this.$store.commit(MutationTypes.ADD_SELECTED_EQUIPEMENT, dynamicId);
       } else {
+        console.log("type 2 start");
         this.isSelected = !this.isSelected;
         // this.leafChild = !this.leafChild;
         console.log("Else");
@@ -375,7 +454,6 @@ class TableRow extends Vue {
     this.isSelected = false;
   }
   deselectAllNodes() {
-    console.log("Deselect all nodes");
     this.isSelected = false;
     this.showChildren = false;
   }
@@ -398,14 +476,12 @@ class TableRow extends Vue {
         });
       }
     }
-    // console.log("Payload", this.payload);
   }
 
   diselect(dynamicId: number) {
     // this.isSelected = false;
     // this.showChildren = false;
     let listofselected = this.$store.state.appDataStore.selectedEquipements;
-    console.log("------------------Diselect in-----------------");
     // console.log("Diselect List of selected", listofselected);
     // console.log("Diselect clicked node", dynamicId);
     // for (let i = 0; i < listofselected.length; i++) {
@@ -477,7 +553,10 @@ export default TableRow;
 <style scoped>
 .dataTable .name {
   width: 50%;
-
+  display: flex;
+  flex-direction: row;
+  /* justify-content: center; */
+  align-items: center;
   padding: 12px 0px;
   padding-left: 1%;
 }
@@ -493,6 +572,20 @@ export default TableRow;
   width: 12%;
 
   padding: 12px 0px;
+}
+.name-image {
+  width: 18px;
+  height: 18px;
+  background-image: url("./assets/right-blue.svg");
+  margin-right: 5px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+.name-image-selected {
+  transform: rotate(90deg);
+}
+.name-image-deselected {
+  transform: rotate(0deg);
 }
 .dataTable .status {
   width: 12%;
@@ -518,6 +611,9 @@ export default TableRow;
 }
 .boderSel {
   border: 2px solid blue;
+}
+.hide_arrow {
+  opacity: 0;
 }
 
 .circle-status-active {

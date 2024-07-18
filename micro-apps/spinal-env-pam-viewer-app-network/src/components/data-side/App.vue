@@ -90,16 +90,23 @@ with this file. If not, see
       </div>
       <div
         :style="{
-          'overflow-y': 'hidden',
           height: 'calc(100% )',
         }"
         class="data-container"
       >
         <!-- <div> -->
+        <!-- <HardwareContext
+          :data="hardwareContextData"
+          :selectedDynamicId="selectedHardwareContext"
+          @update-selected="updateSelectedContext"
+        /> -->
         <NodeItem
           :data="myowndata"
           :DActive="DActive"
           :ActiveData="ActiveData"
+          :hardwareContextData="hardwareContextData"
+          :selectedHardwareContext="selectedHardwareContext"
+          @updateSelectedHardwareContext="handleSelectedHardwareContextUpdate"
         />
         <!-- </div> -->
       </div>
@@ -148,12 +155,13 @@ import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import { mapState } from "vuex";
 import SpriteComponent from "./SpriteComponent.vue";
 import NodeItem from "./NodeItem.vue";
-import Filtre from "./Filtres.vue";
 import SpriteComponentLuminaire from "./SpriteComponentLuminaire.vue";
 import { Console, warn } from "console";
+import HardwareContext from "./HardwareContext.vue";
+import { h } from "vue";
 
 @Component({
-  components: { NodeItem, Filtre },
+  components: { NodeItem, HardwareContext },
   filters: {},
 })
 class dataSideApp extends Vue {
@@ -168,10 +176,10 @@ class dataSideApp extends Vue {
   pageSate: PAGE_STATES = PAGE_STATES.loading;
   isBuildingSelected: boolean = true;
   retry: Function;
-  selectedNodeIndex: number | null = null;
   spriteIds: number[] = [];
   myowndata: any[];
 
+  hardwareContextData: any[] = [];
   equipementsXYZ: {
     dynamicId: number;
     X: number;
@@ -180,8 +188,7 @@ class dataSideApp extends Vue {
     parent?: number;
     typologie?: string;
   }[] = [];
-  contextType: "networkTreeContext";
-  selectedSprites = [];
+  selectedHardwareContext: number = 0;
 
   resize() {
     setTimeout(() => {
@@ -191,68 +198,65 @@ class dataSideApp extends Vue {
   async mounted() {
     this.pageSate = PAGE_STATES.loaded;
     this.isBuildingSelected = true;
+    const buildingId = localStorage.getItem("idBuilding");
+    const patrimoineId = this.getPatrimoineId();
+    await this.getHardwareContextByRelation(
+      buildingId,
+      patrimoineId,
+      this.selectedZone.dynamicId
+    );
     // this.retriveData();
   }
 
-  async retriveData() {
-    console.log("retriveData Selected Zone name :", this.selectedZone.name);
-    // this.$store.commit(MutationTypes.SET_DATA, []);
+  handleSelectedHardwareContextUpdate(newDynamicId) {
+    console.log("handleSelectedHardwareContextUpdate", newDynamicId);
+    this.selectedHardwareContext = newDynamicId;
+  }
+
+  async retriveData(selectedId: number) {
     this.myowndata = [];
-    // console.log("retriveData myowndata", this.myowndata);
     try {
       this.pageSate = PAGE_STATES.loading;
       const buildingId = localStorage.getItem("idBuilding");
       const patrimoineId = this.getPatrimoineId();
-      const contextId = await this.getContextId(buildingId, patrimoineId);
-      const geographicContext = await this.getGeoContextId(
-        buildingId,
-        patrimoineId
-      );
-      console.log("geographicContext", geographicContext);
-      const floorData = await this.getFloorData(
-        buildingId,
-        patrimoineId,
-        contextId
-      );
+      // const contextId = await this.getContextId(buildingId, patrimoineId);
+      // const geographicContext = await this.getGeoContextId(
+      //   buildingId,
+      //   patrimoineId
+      // );
+      // const floorData = await this.getFloorData(
+      //   buildingId,
+      //   patrimoineId,
+      //   contextId
+      // );
+      // const selectedNodeId = this.getSelectedZoneNodeId(floorData);
+      // const hardwareContextId = await this.getHardwareContextByRelation(
+      //   buildingId,
+      //   patrimoineId,
+      //   this.selectedZone.dynamicId
+      // );
 
-      console.log("floorData", floorData);
-      const selectedNodeId = this.getSelectedZoneNodeId(floorData);
-      const hardwareContextId = await this.getHardwareContextByRelation(
-        buildingId,
-        patrimoineId,
-        this.selectedZone.dynamicId
-        // 29837264
-      );
-      console.log("hardwareContextId", hardwareContextId);
-      // console.log("before rest data", this.data);
-      // this.$store.commit(MutationTypes.RESET_DATA);
-      // console.log("after rest data", this.data);
-
-      // let childrenData: any[] = [];
-      // console.log("Children By relation before", childrenData);
       const childrenData = await this.getChildrenByRelation(
         buildingId,
         patrimoineId,
-        hardwareContextId
-        // selectedNodeId
-        // 89612864
+        selectedId
       );
-
-      console.log("Children By relation", childrenData);
       const luminaireChildren = await this.getLuminaireChildren(
         buildingId,
         patrimoineId,
         childrenData
       );
-      console.log("luminaireChildren AAAAAAAAAAAAAAAAAAAA", luminaireChildren);
+
+      console.log("luminaireChildren", luminaireChildren);
 
       const attributesResult = await this.getAttributeList();
 
-      console.log("attributesssssssssssssssssssssss", attributesResult);
+      const Typologies = await this.getElementTypologie();
+      // console.log("Typologies", Typologies);
 
       this.equipementsXYZ = this.extractEquipments(attributesResult);
 
-      this.updateLuminaireList(luminaireChildren);
+      this.updateLuminaireList(luminaireChildren, Typologies);
 
       luminaireChildren.forEach((item) => {
         this.addParentToNodes([item]);
@@ -260,11 +264,11 @@ class dataSideApp extends Vue {
 
       this.$store.commit(MutationTypes.SET_DATA, luminaireChildren);
       this.myowndata = luminaireChildren;
+      console.log("Full data", this.myowndata);
       this.pageSate = PAGE_STATES.loaded;
-      console.log("retriveData end myowndata", this.myowndata);
     } catch (err) {
       console.log(err);
-      this.retry = this.retriveData;
+      // this.retry = this.retriveData;
       this.pageSate = PAGE_STATES.error;
     }
   }
@@ -321,7 +325,6 @@ class dataSideApp extends Vue {
   getSelectedZoneNodeId(floorResult: any[]) {
     let nodeId = 0;
     for (let i = 0; i < floorResult.length; i++) {
-      console.log("floorResult[i].name", this.selectedZone.name);
       if (floorResult[i].name == this.selectedZone.name) {
         nodeId = floorResult[i].dynamicId;
         break;
@@ -335,9 +338,10 @@ class dataSideApp extends Vue {
     patrimoineId: any,
     selectedNodeId: number
   ) {
+    if (selectedNodeId === 0) return;
+    //Get hardware contexts for the selected Zone (Floor)
     this.resetContext(buildingId);
     const relation2 = "hasNetworkTree";
-
     const automates2 = [
       this.$store.dispatch(ActionTypes.GET_CHILDREN_BY_RELATION, {
         buildingId,
@@ -346,12 +350,18 @@ class dataSideApp extends Vue {
         relation: relation2,
       }),
     ];
-    let childrenByRelation2 = await Promise.all(automates2);
-    childrenByRelation2 = childrenByRelation2.flat();
-    if (childrenByRelation2.length === 0) {
+    let equivalentHardwareContext = await Promise.all(automates2);
+    equivalentHardwareContext = equivalentHardwareContext.flat();
+    await this.getHDcontexts(
+      buildingId,
+      patrimoineId,
+      equivalentHardwareContext
+    );
+    if (equivalentHardwareContext.length === 0) {
       return selectedNodeId;
     }
-    return childrenByRelation2[0].dynamicId;
+    this.selectedHardwareContext = equivalentHardwareContext[0].dynamicId;
+    return equivalentHardwareContext[0].dynamicId;
   }
 
   async resetContext(buildingId: string | null) {
@@ -378,10 +388,35 @@ class dataSideApp extends Vue {
       }),
     ];
     let childrenByRelation = await Promise.all(automates);
-
-    console.log("automates", childrenByRelation);
     childrenByRelation = childrenByRelation.flat();
     return childrenByRelation;
+  }
+
+  async getHDcontexts(
+    buildingId: string | null,
+    patrimoineId: any,
+    hdNodes: any[]
+  ) {
+    //Hardware Contexts Names
+    this.resetContext(buildingId);
+    let childrenIds = hdNodes.map((r) => r.dynamicId).flat();
+    let parentsIds = hdNodes.map((r) => r.dynamicId).flat();
+    let relations = childrenIds.map((r) => ({
+      dynamicId: r,
+      relation: ["hasNetworkTreeGroup"],
+    }));
+    // console.log("relations", relations);
+    const luminaireChildren = [
+      this.$store.dispatch(ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE, {
+        buildingId,
+        patrimoineId,
+        relations: relations,
+      }),
+    ];
+    let contextParentByRelation = await Promise.all(luminaireChildren);
+    contextParentByRelation = contextParentByRelation.flat();
+    this.hardwareContextData = contextParentByRelation;
+    return contextParentByRelation;
   }
 
   async getLuminaireChildren(
@@ -426,6 +461,19 @@ class dataSideApp extends Vue {
       }
     });
     return luminaireChildrenByRelation;
+  }
+
+  async getElementTypologie() {
+    const buildingId = localStorage.getItem("idBuilding");
+    this.resetContext(buildingId);
+    const attributes = [
+      this.$store.dispatch(ActionTypes.READ_STATIC_DETAILS_MULTIPLE, {
+        buildingId: localStorage.getItem("idBuilding"),
+        dynamicIds: this.spriteIds,
+      }),
+    ];
+    const attributesResult = await Promise.all(attributes);
+    return attributesResult[0];
   }
 
   async getAttributeList() {
@@ -473,9 +521,12 @@ class dataSideApp extends Vue {
     });
   }
 
-  updateLuminaireList(luminaireChildrenByRelation: any[]) {
+  updateLuminaireList(
+    luminaireChildrenByRelation: any[],
+    typologiesList: any[]
+  ) {
     luminaireChildrenByRelation.forEach((luminaire) =>
-      this.updateStatus(luminaire)
+      this.updateStatus(luminaire, typologiesList)
     );
   }
 
@@ -508,10 +559,10 @@ class dataSideApp extends Vue {
     return collectedIds;
   }
 
-  updateStatus(node) {
+  updateStatus(node, typologiesList: any[]) {
     if (node.nodes && node.nodes.length > 0) {
       // Recursively update children first
-      node.nodes.forEach((child) => this.updateStatus(child));
+      node.nodes.forEach((child) => this.updateStatus(child, typologiesList));
 
       const statuses = [
         "active",
@@ -554,57 +605,63 @@ class dataSideApp extends Vue {
       node.self_status = statuses[randomIndex];
       node.status = node.self_status;
     }
-    const typologies = ["Luminaire", "Automate", "Multisensor"];
+    const typologies = ["Luminaire", "Automate", "Multisensor", "Climatiseur"];
     const randomIndex = Math.floor(Math.random() * typologies.length);
     node.typologie = typologies[randomIndex];
-  }
 
-  updateSelectedSprites(sprites, number) {
-    // Find the index of the number in the list
-    const index = sprites.indexOf(number);
-
-    // Check if the number is in the list
-    if (index === -1) {
-      // Number not in the list, add it
-      sprites.push(number);
-      console.log(`${number} added to the list.`);
-    } else {
-      // Number is in the list, remove it
-      sprites.splice(index, 1);
-      console.log(`${number} removed from the list.`);
-    }
-  }
-
-  selectDataView(item) {
-    this.$emit("clickOnDataView", item);
+    // const matchingTypology = typologiesList.find(
+    //   (typology) => typology.dynamicId === node.dynamicId
+    // );
+    // if (matchingTypology) {
+    //   node.typologie = matchingTypology.group;
+    // }
   }
 
   /**
    * Watch
    */
 
-  @Watch("selectedZone")
-  watchSelectedZone() {
+  @Watch("selectedHardwareContext")
+  watchSelectedHardwareContext() {
     if (this.selectedZone.type === "building") {
       this.isBuildingSelected = true;
       return;
     }
     this.isBuildingSelected = false;
     this.myowndata = [];
-    this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
-    this.retriveData();
+    // this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
+    this.retriveData(this.selectedHardwareContext);
+  }
+
+  @Watch("selectedZone")
+  async watchSelectedZone() {
+    if (this.selectedZone.type === "building") {
+      this.isBuildingSelected = true;
+      return;
+    }
+    this.isBuildingSelected = false;
+    this.myowndata = [];
+    // this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
+    const buildingId = localStorage.getItem("idBuilding");
+    const patrimoineId = this.getPatrimoineId();
+    const hardwareContextId = await this.getHardwareContextByRelation(
+      buildingId,
+      patrimoineId,
+      this.selectedZone.dynamicId
+    );
+
+    // this.retriveData(hardwareContextId);
   }
 
   @Watch("data")
-  watchData() {
-    console.log("data changed");
-    if (this.config.sprites)
-      this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+  async watchData() {
+    console.log("watchData");
+    // if (this.config.sprites) {
+    this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
     this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
+    // }
     if (this.isBuildingSelected) return;
     const items = new Array();
-    console.log("this data", this.data);
-    // const microControllers = automates;
     for (const key of Object.keys(this.equipementsXYZ)) {
       items.push({
         dynamicId: this.equipementsXYZ[key].dynamicId,
@@ -619,9 +676,7 @@ class dataSideApp extends Vue {
         ),
       });
     }
-    // const automates = items.slice(0, 6);
-    // const luminaires = items.slice(6);
-    console.log("items", items);
+    // await this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
     this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
       items: items.flat(),
       buildingId: localStorage.getItem("idBuilding"),
@@ -633,14 +688,6 @@ class dataSideApp extends Vue {
       buildingId: buildingId || this.selectedZone.staticId,
     });
     return;
-    // }
-  }
-  shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
   }
 }
 
@@ -649,21 +696,15 @@ export default dataSideApp;
 </script>
   <style lang="scss">
 .dataContainer {
-  // display: flex;
   height: 100%;
   width: 100%;
-  // background: orange;
   font-family: Charlevoix Pro !important;
-  // font-size: 13px;
 }
 .data-container {
   display: flex;
   flex-direction: column;
-  // justify-content: space-between;
   height: 100%;
   padding: 10px 20px;
-
-  // background: #00a2ff;
 }
 .graph-inspector {
   margin-top: 25px;

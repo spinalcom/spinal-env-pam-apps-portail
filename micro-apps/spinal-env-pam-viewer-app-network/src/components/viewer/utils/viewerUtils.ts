@@ -289,6 +289,10 @@ export class ViewerUtils {
 			SpriteManager.getInstance().addComponentAsSprite(viewer, result);
 		});
 	}
+	public async removeAllLines(viewer: Autodesk.Viewing.Viewer3D) {
+		await this._waitModelIsLoading();
+			SpriteManager.getInstance().removeAllLines(viewer);
+	}
 
 	// public removeSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
 

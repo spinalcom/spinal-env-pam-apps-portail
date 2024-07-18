@@ -93,7 +93,6 @@ class StatCard extends Vue {
     unknown: 0,
   };
   mounted() {
-    console.log("Mounted", this.dataprop);
     const { totalNodes, statusCounts } = this.countNodesAndStatus(
       this.dataprop
     );
@@ -113,9 +112,6 @@ class StatCard extends Vue {
         unknownPercentage
       );
     });
-
-    console.log("Total Nodes:", totalNodes);
-    console.log("Status Counts:", statusCounts);
   }
   countNodesAndStatus(data) {
     let totalNodes = 0;

@@ -40,6 +40,8 @@ import {
   getchildren,
   getMultipleChildrenRelationNode,
   gethildrenRelationNode,
+  readStaticDetailsMultiple,
+  getMultipleParentRelationNode,
 } from '../../spinalAPI/GeographicContext/geographicContext';
 import type {
   IEquipmentItem,
@@ -355,9 +357,47 @@ export const actions = {
     typeof ApiIteratorStore[ActionTypes.GET_ATTRIBUTE_LIST_MULTIPLE][buildingId] !== 'undefined'
   ) {
     delete ApiIteratorStore[ActionTypes.GET_ATTRIBUTE_LIST_MULTIPLE][buildingId];
+          }
+          if (
+    typeof ApiIteratorStore[ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE] !== 'undefined' &&
+    typeof ApiIteratorStore[ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE][buildingId] !== 'undefined'
+  ) {
+    delete ApiIteratorStore[ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE][buildingId];
   }
-        console.log(`ApiIteratorStore getchldren has been reset.`);
-},
+        // console.log(`ApiIteratorStore getchldren has been reset.`);
+  },
+       
+       async [ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE](
+    { commit }: AugmentedActionContextAppData,
+    { patrimoineId, buildingId, relations, forceUpdate }: any
+  ): Promise<IEquipmentItem[]> {
+    const spinalAPI = SpinalAPI.getInstance();
+    if (
+      typeof ApiIteratorStore[ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE] ===
+      'undefined'
+    ) {
+      ApiIteratorStore[ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE] = {};
+    }
+
+    if (
+      typeof ApiIteratorStore[ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE][
+        buildingId
+      ] === 'undefined'
+    ) {
+      ApiIteratorStore[ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE][buildingId] =
+        spinalAPI.createIteratorCall(
+          getMultipleParentRelationNode,
+          patrimoineId,
+          buildingId,
+          relations,
+        );
+    }
+    const items = await ApiIteratorStore[
+      ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE
+    ][buildingId].next();
+    // console.log('equipmentscall', items);
+    return items?.value;
+  },
  
     
     async [ActionTypes.GET_CHILDREN_BY_RELATION_MULTIPLE](
@@ -392,6 +432,52 @@ export const actions = {
     return items?.value;
   },
     
+      async [ActionTypes.READ_STATIC_DETAILS_MULTIPLE](
+    { commit }: AugmentedActionContextAppData,
+    { buildingId, dynamicIds, forceUpdate }: any
+  ): Promise<IEquipmentItem[]> {
+    const spinalAPI = SpinalAPI.getInstance();
+    if (
+      typeof ApiIteratorStore[ActionTypes.READ_STATIC_DETAILS_MULTIPLE] ===
+      'undefined'
+    ) {
+      ApiIteratorStore[ActionTypes.READ_STATIC_DETAILS_MULTIPLE] = {};
+    }
+
+    if (
+      typeof ApiIteratorStore[ActionTypes.READ_STATIC_DETAILS_MULTIPLE][
+        buildingId
+      ] === 'undefined'
+    ) {
+      ApiIteratorStore[ActionTypes.READ_STATIC_DETAILS_MULTIPLE][buildingId] =
+        spinalAPI.createIteratorCall(
+          readStaticDetailsMultiple,
+          buildingId,
+          dynamicIds
+        );
+    }
+    const items = await ApiIteratorStore[
+      ActionTypes.READ_STATIC_DETAILS_MULTIPLE
+    ][buildingId].next();
+        // console.log('equipmentscall', items);
+        
+        const processEquipments = (items) => {
+  return items.map(item => {
+    const group = item.groupParents.find(parent => parent.type === item.type + "Group");
+    return {
+      dynamicId: item.dynamicId,
+      group: group ? group.name : null
+    };
+  });
+};
+
+// Assuming 'items' is the array you provided in the example
+const result = processEquipments(items.value);
+
+// console.log(result);
+        // return items?.value;
+        return result;
+  },
 
   async [ActionTypes.GET_ATTRIBUTE_LIST_MULTIPLE](
     { commit }: AugmentedActionContextAppData,
@@ -602,7 +688,7 @@ export const actions = {
     return SpriteManager.getInstance().removeStyleLine(dynamicIds);
   },
   [ActionTypes.REMOVE_ALL_LINES]({ commit, dispatch, state }) {
-    // return SpriteManager.getInstance().deleteLines();
+    return ViewerManager.getInstance().removeAllLines();
   },
   // [ActionTypes.ADD_LINES](
   //   { commit, dispatch, state },

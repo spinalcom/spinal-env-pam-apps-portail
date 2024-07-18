@@ -82,7 +82,8 @@ export class SpriteManager {
   data = Array.isArray(data) ? data : [data];
   
   const dataMap = new Map();
-  data.forEach(d => dataMap.set(d.dynamicId, d));
+		data.forEach(d => dataMap.set(d.dynamicId, d));
+		await this.removeAllLines(viewer);
 
   for (const d of data) {
 		if (!d.component) continue;
@@ -100,8 +101,10 @@ export class SpriteManager {
 		
 		const parentPosition = this.getParentPosition(data, d.data.parent);
 		// console.log("drawedlines", this.drawedlines)
+
 		if (this.drawedlines < data.length) {
-		
+
+		// console.log("drawing all lines");
 		if (parentPosition) {
 			this.drawLineBetweenPositions(viewer, d.data.parent, d.data.dynamicId, parentPosition, d.position);
 			this.drawedlines++;
@@ -195,13 +198,13 @@ export class SpriteManager {
 		
 		// console.log("end");
 	}
-	public async deleteLines(viewer: Autodesk.Viewing.Viewer3D) {
-		console.log("Removing all lines");
+	public async removeAllLines(viewer: Autodesk.Viewing.Viewer3D) {
+		// console.log("Removing all lines");
+		this.drawedlines = 0;
 		 const sceneName = "LinesScene";
-    if (viewer.overlays.hasScene(sceneName)) {
-			// viewer.overlays.removeMesh(line, sceneName);
+		if (viewer.overlays.hasScene(sceneName)) {
 			viewer.overlays.clearScene(sceneName);
-    }
+		}
 	}
 	public removeStyleLine(dynamicIds: Array<number>){
 		for (let i = 0; i < dynamicIds.length; i++) {

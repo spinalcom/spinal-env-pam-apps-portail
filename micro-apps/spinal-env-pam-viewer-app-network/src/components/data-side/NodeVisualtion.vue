@@ -38,8 +38,17 @@ with this file. If not, see
         <label for="toggle-switch" class="toggle-label"></label>
       </div>
     </div>
-
-    <svg width="100%" height="auto"></svg>
+    <div class="svg-container">
+      <svg width="1000" height="1000"></svg>
+    </div>
+    <div
+      class="full-view-button"
+      @click="toggleFullView"
+      :class="{
+        'half-screen': isFullscreen,
+        'full-screen': !isFullscreen,
+      }"
+    ></div>
     <div class="legend-container">
       <LegendVue :listItem="legendSpaceAssignation"></LegendVue>
     </div>
@@ -98,6 +107,7 @@ class NodeVisualization extends Vue {
   displayedNodes: TransformedNode[] = [];
   expandedNodes: Set<number> = new Set(); // Track expanded nodes
   transformedNodesGeneric: TransformedNode[] = [];
+  isVertical = false;
 
   lampImage = require("../viewer/assets/lamp.png");
   automateImage = require("../viewer/assets/Automate.png");
@@ -134,18 +144,22 @@ class NodeVisualization extends Vue {
   imageMapping: { [key: string]: string } = {
     Luminaire: require("../viewer/assets/Luminaire.png"),
     Automate: require("../viewer/assets/Automate.png"),
-    Multisensor: require("../viewer/assets/Multisensor.png"),
+    Multicapteurs: require("../viewer/assets/Multicapteurs.png"),
+    Climatiseur: require("../viewer/assets/Climatiseur.png"),
+    Default: require("../viewer/assets/default.png"),
   };
+  isFullscreen: boolean = false;
+  toggleFullView() {
+    this.isFullscreen = !this.isFullscreen;
+    this.$emit("toggle-full-view");
+  }
 
   mounted() {
     this.Nodeto = this.$store.state.appDataStore.selectedEquipements;
-    console.log("Mounted", this.dataprop);
+
     this.transformedNodesGeneric = this.transformData(this.dataprop);
-    // this.transformedNodesGeneric = this.transformDataVertical(this.dataprop);
-    // console.log("Transformed data node to", this.transformedNodesGeneric);
     this.displayedNodes = this.getPrincipalNodes(this.transformedNodesGeneric);
-    console.log("Displayed nodes", this.displayedNodes);
-    this.createChart(this.displayedNodes);
+    this.createChart(this.displayedNodes, this.isVertical);
     EventBus.$on("on-node-click", this.onNodeClickOut);
   }
   beforeDestroy() {
@@ -153,52 +167,30 @@ class NodeVisualization extends Vue {
   }
 
   changeDirection(event: Event) {
-    const isChecked = (event.target as HTMLInputElement).checked;
-    if (isChecked) {
+    this.isVertical = (event.target as HTMLInputElement).checked;
+    if (this.isVertical) {
       this.transformedNodesGeneric = this.transformDataVertical(this.dataprop);
     } else {
       this.transformedNodesGeneric = this.transformData(this.dataprop);
     }
     this.displayedNodes = this.getPrincipalNodes(this.transformedNodesGeneric);
-    this.createChart(this.displayedNodes);
+    this.createChart(this.displayedNodes, this.isVertical);
   }
 
-  async createChart(transformDataent: TransformedNode[]) {
-    // console.log("createChart", transformDataent);
+  @Watch("isVertical")
+  onSelectedDynamicIdChange(newVal: number) {
+    console.log("isVertical", this.isVertical);
+    this.createChart(this.displayedNodes, this.isVertical);
+  }
+
+  async createChart(transformDataent: TransformedNode[], isVertical) {
     const svg = d3.select(this.$refs.container).select("svg");
     const width = +svg.attr("width");
     const height = +svg.attr("height");
     const parentColor = "#0a1045";
     const childColor = "#00c2d1";
-
     svg.selectAll("*").remove();
     const defs = svg.append("defs");
-
-    // defs
-    //   .append("pattern")
-    //   .attr("id", "lamp-pattern")
-    //   .attr("patternUnits", "userSpaceOnUse")
-    //   .attr("width", 40) // Adjust size of the pattern
-    //   .attr("height", 30)
-    //   .attr("x", -15) // Center the pattern horizontally
-    //   .attr("y", -15) // Center the pattern vertically
-    //   .append("image")
-    //   .attr("xlink:href", this.lampImage)
-    //   .attr("width", 30) // Adjust size of the image
-    //   .attr("height", 30);
-
-    // defs
-    //   .append("pattern")
-    //   .attr("id", "automate-pattern")
-    //   .attr("patternUnits", "userSpaceOnUse")
-    //   .attr("width", 50) // Adjust size of the pattern
-    //   .attr("height", 50)
-    //   .attr("x", -15) // Center the pattern horizontally
-    //   .attr("y", -15) // Center the pattern vertically
-    //   .append("image")
-    //   .attr("xlink:href", this.automateImage)
-    //   .attr("width", 30) // Adjust size of the image
-    //   .attr("height", 30);
 
     svg
       .append("defs")
@@ -239,11 +231,6 @@ class NodeVisualization extends Vue {
         target: d,
       }));
 
-    const linkGenerator = d3
-      .linkHorizontal()
-      .x((d: any) => d.x)
-      .y((d: any) => d.y);
-
     const link = svg
       .append("g")
       .attr("class", "links")
@@ -251,9 +238,7 @@ class NodeVisualization extends Vue {
       .data(links)
       .enter()
       .append("path")
-      .attr("d", (d: any) =>
-        linkGenerator({ source: d.source, target: d.target })
-      )
+      .attr("d", (d: any) => (isVertical ? linkPath2(d) : linkPath(d)))
       .attr("stroke", (d: any) =>
         getLinkColor(d.source.status, d.target.status)
       )
@@ -267,22 +252,22 @@ class NodeVisualization extends Vue {
       .data(transformDataent)
       .enter()
       .append("foreignObject")
-      .attr("width", 40)
-      .attr("height", 40)
-      .attr("x", (d) => d.x - 20)
-      .attr("y", (d) => d.y - 20)
+      .attr("width", 160)
+      .attr("height", 60)
+      .attr("x", (d) => d.x - 80)
+      .attr("y", (d) => d.y - 30)
       .style("overflow", "visible")
       .on("mouseover", (event, d) => {
         const nodeBoundingRect = event.currentTarget.getBoundingClientRect();
         const tooltipWidth = 150;
         const tooltipHeight = 60;
 
-        const tooltipX =
+        let tooltipX =
           nodeBoundingRect.left +
           nodeBoundingRect.width / 2 -
           tooltipWidth / 2 +
-          50;
-        const tooltipY = nodeBoundingRect.top - tooltipHeight - 20;
+          110;
+        let tooltipY = nodeBoundingRect.top - tooltipHeight - 10;
 
         this.tooltip = {
           id: d.id,
@@ -298,40 +283,59 @@ class NodeVisualization extends Vue {
         this.tooltip = null;
       })
       .on("click", (event, d) => {
-        this.onNodeClick(d.id); // Call your custom node click handler
+        this.onNodeClick(d.id);
 
-        // Update positions and restart simulation
         d.fx = null;
         d.fy = null;
         simulation.nodes(transformDataent);
         simulation.alpha(1).restart();
       });
-    // .call(
-    //   d3
-    //     .drag()
-    //     .on("start", dragstarted)
-    //     .on("drag", dragged)
-    //     .on("end", dragended)
-    // );
 
-    node
+    const nodeDiv = node
       .append("xhtml:div")
-      .style("width", "40px")
-      .style("height", "40px")
-      .style("border-radius", "50%")
+      .style("width", "160px")
+      .style("height", "60px")
+      .style("display", "flex")
+      .style("align-items", "center")
+      .style("border-radius", "5px")
       .style("background-color", "white")
+      .style("border", (d) => `2px solid ${getNodeBorderColor(d.status)}`)
+      .style("box-shadow", (d) =>
+        d.id === this.lastClickedNodeId ? "0px 0px 10px 1px blue" : "none"
+      )
+      .style("padding", "10px 3px");
+
+    nodeDiv
+      .append("div")
+      .style("width", "20%")
+      .style("height", "60%")
       .style(
         "background-image",
         (d) =>
-          `url(${this.imageMapping[d.typologie] || this.imageMapping.Automate})`
+          `url(${this.imageMapping[d.typologie] || this.imageMapping.Default})`
       )
-      .style("background-size", "70%")
-      .style("background-position", "center")
-      .style("background-repeat", "no-repeat")
-      .style("border", (d) => `3px solid ${getNodeBorderColor(d.status)}`)
-      .style("box-shadow", (d) =>
-        d.id === this.lastClickedNodeId ? "0px 0px 10px 1px blue" : "none"
+      .style("background-size", "contain")
+      .style("background-position", "center");
+
+    const infoDiv = nodeDiv
+      .append("div")
+      .style("width", "70%")
+      .style("padding", "5px");
+
+    infoDiv
+      .append("div")
+      .style("font-size", "0.7rem")
+      .style("line-height", "1.2")
+      .text((d) =>
+        d.name.length > 30 ? d.name.substring(0, 30) + "..." : d.name
       );
+
+    infoDiv
+      .append("div")
+      .style("font-size", "0.6rem")
+      .style("color", (d) => `${getNodeBorderColor(d.status)}`)
+      .style("font-weight", "bold")
+      .text((d) => d.status);
 
     const label = svg
       .append("g")
@@ -346,11 +350,11 @@ class NodeVisualization extends Vue {
       .text((d: any) => d.id);
 
     function ticked() {
-      link.attr("d", (d: any) =>
-        linkGenerator({ source: d.source, target: d.target })
-      );
-      node.attr("x", (d) => d.x - 20).attr("y", (d) => d.y - 20);
+      link.attr("d", (d: any) => (isVertical ? linkPath2(d) : linkPath(d)));
+      node.attr("x", (d) => d.x - 80).attr("y", (d) => d.y - 30);
     }
+
+    adjustSvgSize(svg, node);
 
     function dragstarted(event: any, d: any) {
       if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -367,6 +371,63 @@ class NodeVisualization extends Vue {
       if (!event.active) simulation.alphaTarget(0);
       d.fx = null;
       d.fy = null;
+    }
+
+    function adjustSvgSize(svg, node) {
+      const nodes = node.nodes();
+      let minX = Infinity,
+        minY = Infinity,
+        maxX = -Infinity,
+        maxY = -Infinity;
+
+      nodes.forEach((n) => {
+        const nodeX = +n.getAttribute("x");
+        const nodeY = +n.getAttribute("y");
+        const nodeWidth = 200; // Width of each node
+        const nodeHeight = 60; // Height of each node
+
+        // Adjust min and max based on node position and size
+        if (nodeX < minX) minX = nodeX;
+        if (nodeY < minY) minY = nodeY;
+        if (nodeX + nodeWidth > maxX) maxX = nodeX + nodeWidth;
+        if (nodeY + nodeHeight > maxY) maxY = nodeY + nodeHeight;
+
+        // Check if node has expanded children (adjust maxY accordingly)
+        const expandedChildrenHeight = 100; // Example height of expanded children
+        // Adjust maxY if expandedChildrenHeight is greater than nodeHeight
+        if (expandedChildrenHeight > nodeHeight) {
+          if (nodeY + expandedChildrenHeight > maxY) {
+            maxY = nodeY + expandedChildrenHeight;
+          }
+        }
+      });
+
+      const padding = 20;
+      const width = maxX - minX + padding * 2 + 160;
+      const height = maxY - minY + padding * 2 + 100;
+
+      svg.attr("width", width).attr("height", height);
+    }
+
+    function linkPath(d: any) {
+      const sourceX = d.source.x + 80; // Right edge of the parent node
+      const sourceY = d.source.y;
+      const targetX = d.target.x - 80; // Left edge of the child node
+      const targetY = d.target.y;
+      return `M${sourceX},${sourceY} C${sourceX + 50},${sourceY} ${
+        targetX - 50
+      },${targetY} ${targetX},${targetY}`;
+    }
+
+    function linkPath2(d: any) {
+      console.log("vertical", isVertical);
+      const sourceX = d.source.x; // Right edge of the parent node
+      const sourceY = d.source.y + 25; // Bottom edge of the parent node
+      const targetX = d.target.x; // Left edge of the child node
+      const targetY = d.target.y - 25; // Top edge of the child node
+      return `M${sourceX},${sourceY} C${sourceX},${sourceY + 70} ${targetX},${
+        targetY - 70
+      } ${targetX},${targetY}`;
     }
 
     function getNodeBorderColor(status: string): string {
@@ -390,7 +451,6 @@ class NodeVisualization extends Vue {
         return "#d7270c";
       }
       if (sourceStatus === "unknown") {
-        //|| targetStatus === "unknown"
         return "#f49700";
       }
       return "gray";
@@ -400,13 +460,13 @@ class NodeVisualization extends Vue {
   transformData(
     nodes: Node[],
     parentId: number | null = null,
-    x: number = 50,
-    y: number = 200,
+    x: number = 150,
+    y: number = 80,
     depth: number = 0
   ): TransformedNode[] {
     const transformedNodes: TransformedNode[] = [];
-    const yIncrement = 55;
-
+    const yIncrement = 80;
+    console.log("nodes", nodes);
     // Helper function to recursively add nodes
     const addNodes = (
       nodes: Node[],
@@ -440,25 +500,73 @@ class NodeVisualization extends Vue {
           // Calculate the starting y position for children to be centered around the parent node
           const childYStart =
             nodeY - ((node.nodes.length - 1) * yIncrement) / 2;
-          addNodes(node.nodes, node.dynamicId, x + 100, childYStart, depth + 1);
+          addNodes(node.nodes, node.dynamicId, x + 200, childYStart, depth + 1);
         }
       });
     };
 
     addNodes(nodes, parentId, x, y, depth);
+    console.log(
+      "Transformed daaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3",
+      transformedNodes
+    );
+    this.adjustY(transformedNodes);
+    console.log(
+      "Transformed daaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3",
+      transformedNodes
+    );
 
     return transformedNodes;
+  }
+  adjustY(nodes) {
+    const idMap = {};
+    nodes.forEach((node) => {
+      idMap[node.id] = node;
+    });
+
+    nodes.forEach((node) => {
+      if (node.y < 80) {
+        let siblings = nodes
+          .filter((n) => n.parentId === node.parentId)
+          .sort((a, b) => a.y - b.y);
+        let y = 80;
+        siblings.forEach((sibling) => {
+          sibling.y = y;
+          y += 80;
+        });
+      }
+    });
+  }
+  adjustX(nodes) {
+    const idMap = {};
+    nodes.forEach((node) => {
+      idMap[node.id] = node;
+    });
+
+    nodes.forEach((node) => {
+      if (node.x < 150) {
+        let siblings = nodes
+          .filter((n) => n.parentId === node.parentId)
+          .sort((a, b) => a.x - b.x);
+        let x = 150;
+        siblings.forEach((sibling) => {
+          sibling.x = x;
+          x += 200;
+        });
+      }
+    });
   }
 
   transformDataVertical(
     nodes: Node[],
     parentId: number | null = null,
-    x: number = 250,
-    y: number = 150,
+    x: number = 150,
+    y: number = 80,
     depth: number = 0
   ): TransformedNode[] {
     const transformedNodes: TransformedNode[] = [];
-    const xIncrement = 70;
+    const xIncrement = 200;
+    const yIncrement = 50;
 
     // Helper function to recursively add nodes
     const addNodes = (
@@ -470,7 +578,7 @@ class NodeVisualization extends Vue {
     ) => {
       nodes.forEach((node, index) => {
         const nodeX = x + index * xIncrement;
-        const nodeY = y + depth * xIncrement;
+        const nodeY = y + depth * yIncrement;
 
         const transformedNode: TransformedNode = {
           id: node.dynamicId,
@@ -497,7 +605,7 @@ class NodeVisualization extends Vue {
     };
 
     addNodes(nodes, parentId, x, y, depth);
-
+    this.adjustX(transformedNodes);
     return transformedNodes;
   }
 
@@ -516,6 +624,44 @@ class NodeVisualization extends Vue {
     return this.transformedNodesGeneric.find((node) => node.id === id);
   }
 
+  findNodeAndParent(nodes, targetDynamicId) {
+    // This function will traverse the nodes and return the node and its parent
+    let parent = null;
+    let targetNode = null;
+
+    function traverse(currentNodes, parentNode) {
+      for (const node of currentNodes) {
+        if (node.dynamicId === targetDynamicId) {
+          parent = parentNode;
+          targetNode = node;
+          return true;
+        }
+        if (node.nodes && traverse(node.nodes, node)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    traverse(nodes, null);
+    return { targetNode, parent };
+  }
+
+  getSiblings(nodes, targetDynamicId) {
+    const { targetNode, parent } = this.findNodeAndParent(
+      nodes,
+      targetDynamicId
+    );
+
+    if (!targetNode || !parent) {
+      // If the node or its parent is not found, return an empty array
+      return [];
+    }
+
+    // Return all children of the parent except the target node
+    return parent.nodes.filter((node) => node.dynamicId !== targetDynamicId);
+  }
+
   onNodeClick(nodeId: number) {
     const node = this.getNodeById(nodeId);
 
@@ -523,7 +669,6 @@ class NodeVisualization extends Vue {
       console.error(`Node with ID ${nodeId} not found.`);
       return;
     }
-    console.log("Node clicked", "last clicked");
 
     // console.log("Transformed data", this.transformedNodesGeneric, "Node", node);
 
@@ -566,7 +711,6 @@ class NodeVisualization extends Vue {
         // EventBus.$emit("deselect-all", node.id);
         EventBus.$emit("toggle-children", node.id);
       } else if (node.parentId === null) {
-        //principal nodes
         this.displayedNodes = this.getPrincipalNodes(
           this.transformedNodesGeneric
         );
@@ -575,23 +719,19 @@ class NodeVisualization extends Vue {
         const children = this.transformedNodesGeneric.filter(
           (n) => n.parentId === node.id
         );
-        // console.log("Children", children);
         this.displayedNodes = [...this.displayedNodes, ...children];
         this.expandedNodes.add(node.id);
         EventBus.$emit("deselect-all", node.id);
         EventBus.$emit("toggle-children", node.id);
-        // }
       } else {
         // Node is not expanded, expand it
         if (!node.children || node.children.length == 0) {
-          // console.log("Node has no children");
           // EventBus.$emit("deselect-all", node.id);
           EventBus.$emit("toggle-children", node.id);
         } else {
           const children = this.transformedNodesGeneric.filter(
             (n) => n.parentId === node.id
           );
-          // console.log("Children", children);
           this.displayedNodes = [...this.displayedNodes, ...children];
           this.expandedNodes.add(node.id);
           // EventBus.$emit("deselect-all", node.id);
@@ -600,7 +740,7 @@ class NodeVisualization extends Vue {
       }
     }
     this.lastClickedNodeId = nodeId;
-    this.createChart(this.displayedNodes);
+    this.createChart(this.displayedNodes, this.isVertical);
   }
   onNodeClickOut(nodeId: number) {
     // console.log("node by id", this.getNodeById(nodeId));
@@ -669,7 +809,7 @@ class NodeVisualization extends Vue {
       }
     }
 
-    this.createChart(this.displayedNodes);
+    this.createChart(this.displayedNodes, this.isVertical);
   }
   collapseNodeAndDescendants(nodeId: number) {
     const children = this.transformedNodesGeneric.filter(
@@ -705,15 +845,25 @@ export default NodeVisualization;
   background-color: #eff4f5;
   // background-color: red;
   height: 100%;
+  width: 100%;
+  // overflow: auto;
 }
-
-// .tooltip {
-//   position: absolute;
-//   background-color: rgba(255, 255, 255, 0.9);
-//   border: 1px solid #ccc;
-//   padding: 10px;
-//   z-index: 9999;
-// }
+.svg-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  // overflow-y: scroll;
+  padding-top: 10px;
+  overflow: auto !important;
+}
+::-webkit-scrollbar {
+  height: 8px; /* height of horizontal scrollbar ← You're missing this */
+  width: 8px; /* width of vertical scrollbar */
+  // border: 1px solid #d5d5d5;
+}
+svg {
+  flex-shrink: 0;
+}
 .tooltip {
   position: absolute;
   background-color: rgba(46, 45, 56, 1);
@@ -754,8 +904,8 @@ export default NodeVisualization;
   display: flex;
   flex-direction: column;
   position: absolute;
-  bottom: 10;
-  right: 10;
+  bottom: 15;
+  right: 15;
 }
 
 /***********************title */
@@ -809,5 +959,29 @@ export default NodeVisualization;
 
 .toggle-switch:checked + .toggle-label:before {
   transform: translateX(25px);
+}
+.full-view-button {
+  width: 20px;
+  height: 20px;
+  // background-image: url("./assets/fullscreen.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  position: absolute;
+  left: 15px;
+  bottom: 15px;
+}
+.full-view-button:hover {
+  width: 24px;
+  height: 24px;
+  left: 13px;
+  bottom: 13px;
+}
+.full-screen {
+  background-image: url("./assets/fullscreen.svg");
+}
+
+.half-screen {
+  background-image: url("./assets/halfscreen.svg");
 }
 </style>

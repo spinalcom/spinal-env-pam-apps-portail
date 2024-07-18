@@ -112,6 +112,7 @@ import type { IZoneItem, IButton } from "./interfaces/IBuildingItem";
 import type { ISpaceSelectorItem } from "./interfaces/ISpaceSelectorItem";
 import SpaceSelectorItem from "./SpaceSelectorItem.vue";
 import { convertZonesToISpaceSelectorItems } from "./convertZonesToISpaceSelectorItems";
+import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 
 @Component({
   components: {

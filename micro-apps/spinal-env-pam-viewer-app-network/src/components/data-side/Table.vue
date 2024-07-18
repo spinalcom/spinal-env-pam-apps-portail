@@ -55,6 +55,7 @@
             v-for="(item, index) in filteredData"
             :key="index"
             :data="item"
+            :fulldata="data"
             :pairs="pairs"
           />
         </tbody>
@@ -124,7 +125,6 @@ class Table extends Vue {
     EventBus.$on("dio", this.dio);
     this.filterData();
     this.pairs = this.getAllParentChildPairs(this.data);
-    console.log("Pairs......................................", this.pairs);
   }
   beforeDestroy() {
     EventBus.$off("dio", this.dio);
@@ -145,8 +145,15 @@ table {
   position: sticky;
   top: 0;
 }
+.table-container {
+  // width: 70vh;
+  // background-color: red;
+  // height: 100%;
+  // overflow: auto;
+  // position: relative;
+}
 .table-scroll {
-  max-height: 70vh;
+  height: 62vh;
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
@@ -163,12 +170,12 @@ table {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888; /* Scrollbar color */
+  background: #14202c; /* Scrollbar color */
   border-radius: 10px; /* Rounded corners on the scrollbar */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555; /* Scrollbar color on hover */
+  background: #181d49; /* Scrollbar color on hover */
 }
 
 /* For Firefox */

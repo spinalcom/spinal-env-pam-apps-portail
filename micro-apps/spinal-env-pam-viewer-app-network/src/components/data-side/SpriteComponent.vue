@@ -66,11 +66,12 @@ export default {
       const imageMapping = {
         Luminaire: require("../viewer/assets/Luminaire.png"),
         Automate: require("../viewer/assets/Automate.png"),
-        Multisensor: require("../viewer/assets/Multisensor.png"),
+        Multicapteurs: require("../viewer/assets/Multicapteurs.png"),
+        Climatiseur: require("../viewer/assets/Climatiseur.png"),
       };
       // console.log("typo00", typologie);
 
-      const defaultImagePath = require("../viewer/assets/Luminaire.png");
+      const defaultImagePath = require("../viewer/assets/default.png");
 
       // Check if the typology exists in the mapping
       if (imageMapping.hasOwnProperty(typologie)) {
@@ -83,10 +84,15 @@ export default {
       );
       return defaultImagePath;
     },
-    onClick() {
+    async onClick() {
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
-      // console.log("????????????????????????????? not", this.dynamicStyle);
+
+      // EventBus.$emit("deselect-all", node.id);
+
+      // await EventBus.$emit("toggle-children", 72890448);
+      // await EventBus.$emit("toggle-children", 74232656);
+      // await EventBus.$emit("toggle-children", 74476816);
       EventBus.$emit("toggle-children", this.data.dynamicId);
     },
     _isSelected() {

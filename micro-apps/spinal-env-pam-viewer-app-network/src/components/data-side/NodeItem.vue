@@ -24,28 +24,91 @@ with this file. If not, see
 <template>
   <div :class="fullContainerClass">
     <div class="displayn" :class="nodeInspectorClass">
-      <NodeVisualization :dataprop="data"></NodeVisualization>
+      <NodeVisualization
+        :dataprop="data"
+        @toggle-full-view="toggleFullView"
+      ></NodeVisualization>
     </div>
     <div :class="fullDataClass">
+      <div class="stat-hide-container">
+        <div class="header-title">Analyse Statistique</div>
+        <div>
+          <div
+            v-if="!statsVisible"
+            @click="toggleStats(true)"
+            style="display: flex; flex-direction: row"
+          >
+            <div title="Afficher les statistiques" class="show-img"></div>
+            <!-- <p>Afficher</p> -->
+          </div>
+          <div
+            v-if="statsVisible"
+            @click="toggleStats(false)"
+            style="display: flex; flex-direction: row"
+          >
+            <!-- <p>Masquer</p> -->
+            <div title="Masquer les statistiques" class="hide-img"></div>
+          </div>
+        </div>
+      </div>
       <div class="stat">
-        <div class="stat-card">
+        <div
+          class="stat-card"
+          :style="{ height: statsVisible ? '120px' : '0px' }"
+        >
           <StatCard :dataprop="data" @changeRoute="changeApp"></StatCard>
         </div>
-        <div class="stat-card"><TypeCard :dataprop="data"></TypeCard></div>
-      </div>
-      <div class="header">
-        <div>
-          <div v-if="selectedNodeName == null" class="header-title">
-            Réseau des automates
-          </div>
-          <div v-if="selectedNodeName !== null" class="header-title">
-            {{ selectedNodeName }}
-          </div>
-          <div class="">Description de l'application</div>
+        <div
+          class="stat-card"
+          :style="{ height: statsVisible ? '120px' : '0px' }"
+        >
+          <TypeCard :dataprop="data"></TypeCard>
         </div>
-        <div class="stats">
-          <div class="header-title">{{ datatoShow.length }}</div>
-          <div>automates</div>
+      </div>
+      <div
+        style="
+          background-color: #14202c;
+          width: 100%;
+          height: 1px;
+          opacity: 0.2;
+        "
+      ></div>
+      <!-- <div class="stat-hide-container">
+        <div>
+          <div class="header-title">Context Hardware</div>
+          <div class="description-text">
+            Les contextes hardware disponible sur l'étage
+          </div>
+        </div>
+      </div>
+      <div class="hardware">
+        <HardwareContext
+          :data="hardwareContextData"
+          :selectedDynamicId="selectedHardwareContext"
+          @update-selected="updateSelectedContext"
+        />
+      </div> -->
+
+      <div class="header">
+        <div class="header-left">
+          <div v-if="selectedNodeName == null" class="header-title">
+            Réseau du {{ selectedHardwareContextName }}
+          </div>
+          <!-- <div v-if="selectedNodeName !== null" class="header-title">
+            {{ selectedNodeName }}
+          </div> -->
+          <div class="description-text">
+            Les contextes hardware disponible sur l'étage
+          </div>
+        </div>
+        <div class="header-right">
+          <HardwareContext
+            :data="hardwareContextData"
+            :selectedDynamicId="selectedHardwareContext"
+            @update-selected="updateSelectedContext"
+          />
+          <!-- <div class="header-title">{{ datatoShow.length }}</div>
+          <div class="description-text">automates</div> -->
         </div>
       </div>
 
@@ -66,14 +129,18 @@ import NodeVisualization from "./NodeVisualtion.vue";
 import StatCard from "./statistique-components/StatCard.vue";
 import TypeCard from "./statistique-components/TypeCard.vue";
 
+import HardwareContext from "./HardwareContext.vue";
+
 @Component({
   name: "NodeItem",
-  components: { Table, NodeVisualization, StatCard, TypeCard },
+  components: { Table, NodeVisualization, StatCard, TypeCard, HardwareContext },
 })
 class NodeItem extends Vue {
   @Prop() data: any[];
   @Prop() DActive: boolean;
   @Prop() ActiveData: boolean;
+  @Prop() hardwareContextData: any[]; // Receive hardware context data
+  @Prop() selectedHardwareContext: number; // Receive selected hardware context
 
   datatoShow: any = [];
   history: any[] = [];
@@ -82,6 +149,7 @@ class NodeItem extends Vue {
   selectedNodeName: string | null = null;
   dynamicId: number = 0;
   selectedStatus: string = "all";
+  statsVisible: boolean = true;
 
   selectedType: string = "all";
   query: {
@@ -98,6 +166,31 @@ class NodeItem extends Vue {
     buildingId: "",
   };
 
+  isFullViewActive: boolean = false;
+  isNormalViewActive: boolean = true;
+
+  selectedHardwareContextName: string = "";
+
+  updateSelectedContext(dynamicId: number) {
+    this.$emit("updateSelectedHardwareContext", dynamicId);
+  }
+  toggleStats(show: boolean) {
+    this.statsVisible = show;
+  }
+  toggleFullView() {
+    console.log(
+      "toggleFullView",
+      this.isFullViewActive,
+      this.isNormalViewActive
+    );
+    if (!this.isFullViewActive && this.isNormalViewActive) {
+      this.isFullViewActive = true;
+      this.isNormalViewActive = false;
+    } else {
+      this.isFullViewActive = false;
+      this.isNormalViewActive = true;
+    }
+  }
   toggleNode(index: number) {
     // this.history.push([...this.datatoShow]); // Save current state to history
     this.history.push({
@@ -129,7 +222,15 @@ class NodeItem extends Vue {
   }
   async mounted() {
     this.datatoShow = this.data;
+    for (let i = 0; i < this.hardwareContextData.length; i++) {
+      if (
+        this.hardwareContextData[i].dynamicId === this.selectedHardwareContext
+      ) {
+        this.selectedHardwareContextName = this.hardwareContextData[i].nodes[0];
+      }
+    }
     this.filterData();
+    console.log("mounted", this.isFullViewActive, this.isNormalViewActive);
     // console.log("DAvtibe", this.DActive, "Active Data", this.ActiveData);
   }
 
@@ -158,11 +259,13 @@ class NodeItem extends Vue {
   get fullDataClass() {
     return {
       "Full-data": !this.DActive && this.ActiveData,
+      "normal-inspector": !this.isNormalViewActive,
     };
   }
   get nodeInspectorClass() {
     return {
       dod: !this.DActive && this.ActiveData,
+      "full-inspector": this.isFullViewActive,
     };
   }
   get fullContainerClass() {
@@ -183,15 +286,28 @@ export default NodeItem;
   justify-content: space-between;
   align-items: center;
 }
-.stats {
+.header-right {
+  width: 48%;
   display: flex;
   flex-direction: column;
   justify-content: end;
   align-items: end;
 }
+.header-left {
+  width: 52%;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: start;
+}
 .header-title {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: bold;
+}
+.description-text {
+  font-size: 0.9rem;
+  color: #8a8a8a;
+  margin-top: -5px;
 }
 .list {
   list-style-type: none;
@@ -295,14 +411,18 @@ export default NodeItem;
 }
 .stat-card {
   width: 48%;
-  height: 120px;
   background-color: #f5f5f5;
   border-radius: 10px;
   margin-top: 2px;
   box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.1);
+  transition: height 0.5s ease;
+  overflow: hidden; /* Ensures content doesn't overflow when height is 0 */
+  height: 120px; /* Default height */
 }
 .Full-data {
   width: 40%;
+  transition: width 0.5s ease;
+  opacity: 1;
 }
 .displayn {
   display: none;
@@ -313,7 +433,21 @@ export default NodeItem;
   height: 100%;
   // background: red;
   display: block;
+  transition: width 0.5s ease;
 }
+
+.normal-inspector {
+  width: 0%;
+
+  opacity: 0;
+  transition: width 0.5s ease;
+}
+
+.full-inspector {
+  width: 100%;
+  transition: width 0.5s ease;
+}
+
 .fullContainer {
   display: flex;
   flex-direction: row;
@@ -321,5 +455,49 @@ export default NodeItem;
   align-items: flex-start;
   padding: 10px;
   height: 100% !important;
+}
+.hardware {
+  height: 80px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+.stat-hide-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+// Hide the "Show Stats" or "Hide Stats" buttons
+.stat-hide-container p {
+  display: inline-block;
+  cursor: pointer;
+}
+
+.stat-hide-container p:nth-child(2) {
+  display: none;
+}
+
+.stat-hide-container p:first-child {
+  display: none;
+}
+
+.stat-hide-container p:last-child {
+  display: inline-block;
+}
+.show-img {
+  height: 15px;
+  width: 15px;
+  background-image: url("./assets/show.png");
+  background-size: contain;
+  background-position: center;
+  cursor: pointer;
+}
+.hide-img {
+  height: 15px;
+  width: 15px;
+  background-image: url("./assets/hide.png");
+  background-size: contain;
+  background-position: center;
+  cursor: pointer;
 }
 </style>

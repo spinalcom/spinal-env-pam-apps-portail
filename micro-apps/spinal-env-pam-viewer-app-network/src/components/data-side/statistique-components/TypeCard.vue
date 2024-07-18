@@ -25,13 +25,27 @@ with this file. If not, see
   <div class="container">
     <div class="title-container">
       <p class="stat-title">Typologie Overview</p>
-
       <div class="stat-num">
-        <div class="app-button">Descreption</div>
+        <div class="app-button">Description</div>
         <div class="leftarrow"></div>
       </div>
     </div>
-    <!-- <div clœœass="desc-container" id="typologie-container"></div> -->
+    <div class="desc-container-wrapper">
+      <div class="desc-container-typologie">
+        <div
+          v-for="(count, typologie) in typologieCounts"
+          :key="typologie"
+          class="typologie-item"
+        >
+          <div
+            class="typo-img"
+            :style="{ backgroundImage: `url(${getImageUrl(typologie)})` }"
+          ></div>
+          <div style="margin-right: 5px">{{ count }}</div>
+          <div>{{ typologie }}</div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -43,50 +57,71 @@ import Component from "vue-class-component";
   name: "TypeCard",
 })
 class TypeCard extends Vue {
-  @Prop() dataprop: any[];
+  @Prop() dataprop!: any[];
+  typologieCounts: { [key: string]: number } = {};
 
   mounted() {
-    // console.log("Mounted typecard", this.dataprop);
-    // console.log(this.countTypologieNodes(this.dataprop));
-    this.displayTypologies(this.countTypologieNodes(this.dataprop));
+    this.typologieCounts = this.countTypologieNodes(this.dataprop);
+    console.log(this.dataprop);
   }
-  countTypologieNodes(data) {
-    const result = {};
 
-    function traverse(node) {
-      // Check if node has a typologie
+  getImageUrl(typologie: string): string {
+    const imageMapping: { [key: string]: string } = {
+      Luminaire: require("../../viewer/assets/Luminaire.png"),
+      Automate: require("../../viewer/assets/Automate.png"),
+      Multicapteurs: require("../../viewer/assets/Multicapteurs.png"),
+      Climatiseur: require("../../viewer/assets/Climatiseur.png"),
+    };
+
+    const defaultImagePath = require("../../viewer/assets/default.png");
+
+    // Check if the typology exists in the mapping
+    if (imageMapping.hasOwnProperty(typologie)) {
+      return imageMapping[typologie];
+    }
+
+    // If not found in mapping, return default
+    console.warn(
+      `Image not found for typology ${typologie}, using default image.`
+    );
+    return defaultImagePath;
+  }
+
+  countTypologieNodes(data: any[]): { [key: string]: number } {
+    const result: { [key: string]: number } = {};
+
+    function traverse(node: any) {
       if (node.typologie) {
         if (!result[node.typologie]) {
           result[node.typologie] = 0;
         }
-        // Increment the node count for this typologie
         result[node.typologie] += 1;
       }
 
-      // Recursively traverse child nodes
       if (Array.isArray(node.nodes)) {
         node.nodes.forEach((childNode) => traverse(childNode));
       }
     }
 
-    // Traverse the root data array
     data.forEach((rootNode) => traverse(rootNode));
 
-    return result;
-  }
-  displayTypologies(typologieCounts) {
-    const container = document.getElementById("typologie-container");
-    // container.innerHTML = "";
+    // Sort the entries by count (descending) and then alphabetically
+    const sortedEntries = Object.entries(result).sort(
+      ([typologieA, countA], [typologieB, countB]) => {
+        if (countA === countB) {
+          return typologieA.localeCompare(typologieB);
+        }
+        return countB - countA;
+      }
+    );
 
-    for (const [typologie, count] of Object.entries(typologieCounts)) {
-      const typologieBox = document.createElement("div");
-      typologieBox.className = "typologie-box";
-      typologieBox.innerHTML = `
-          <h2>${count}</h2>
-          <p>${typologie}</p>
-        `;
-      // container.appendChild(typologieBox);
+    // Convert sorted entries back to an object
+    const sortedResult: { [key: string]: number } = {};
+    for (const [typologie, count] of sortedEntries) {
+      sortedResult[typologie] = count;
     }
+
+    return sortedResult;
   }
 }
 
@@ -103,24 +138,24 @@ export default TypeCard;
   justify-content: space-between;
   width: 100%;
   height: 100%;
-  padding: 13 15 !important;
+  padding: 13px 15px !important;
 }
+
 .title-container {
   width: 100%;
   height: 30%;
-  // background-color: green;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
 }
+
 .stat-title {
   font-family: Roboto, sans-serif !important;
-  // font-family: Charlevoix Pro !important;
   font-weight: 500;
-  // letter-spacing: 0.0125em !important;
   font-size: 1rem !important;
 }
+
 .leftarrow {
   width: 12px;
   height: 12px;
@@ -129,7 +164,6 @@ export default TypeCard;
   background-repeat: no-repeat;
   border-radius: 50%;
   z-index: 3;
-  // margin-left: 18px;
 }
 
 .app-button {
@@ -138,69 +172,60 @@ export default TypeCard;
   color: white;
   font-size: 0.9rem;
   width: 80%;
-  overflow: hidden;
-  // background: red;
   cursor: pointer;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   z-index: 2;
-  padding: 10 0px;
+  padding: 10px 0px;
   margin-left: -7px;
   padding-left: 15px !important;
 }
+
 .app-button:hover {
   color: #14202c;
 }
 
-.desc-container {
+.desc-container-wrapper {
   width: 100%;
   height: 70%;
-  margin: 0;
+  overflow-y: auto;
+}
+
+.desc-container-typologie {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  // grid-auto-rows: minmax(100px, auto);
+  column-gap: 10px;
+  width: 95%;
+}
+.typo-img {
+  // background-color: red;
+  background-size: cover;
+  background-repeat: no-repeat;
+  height: 15px;
+  width: 15px;
+  margin-right: 8px;
+}
+
+.typologie-item {
+  color: black;
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
-  align-items: end;
-  overflow: hidden;
-  // background-color: yellow;
+  justify-content: start;
+  align-items: center;
+  border-left: 1px solid transparent;
   position: relative;
 }
-.all-eq-num {
-  display: flex;
-  flex-direction: row;
-  // justify-content: start;
-  justify-content: start;
-  align-items: end;
-  width: 100%;
-  height: 50%;
-  // background-color: blue;
-}
-.desc-container {
-  display: flex;
-  overflow-x: auto;
-  white-space: nowrap;
-  // padding: 20px;
-  box-sizing: border-box;
-}
-.typologie-box {
-  display: inline-block;
-  width: 25%;
-  box-sizing: border-box;
-  text-align: center;
-  // padding: 10px;
-  // margin: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  // background-color: #f9f9f9;
-}
-.typologie-box h2 {
-  margin: 0;
-  font-size: 0.9rem !important;
-}
-.typologie-box p {
-  margin: 5px 0 0 0;
-  font-size: 0.9rem !important;
-  color: #555;
+
+.typologie-item:not(:nth-child(2n))::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  right: 10px; /* Note: Added 'px' for the 'right' property */
+  width: 2px;
+  height: 100%;
+  background-color: #14202c;
 }
 </style>

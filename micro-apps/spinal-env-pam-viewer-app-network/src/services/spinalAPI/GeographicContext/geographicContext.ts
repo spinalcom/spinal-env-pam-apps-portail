@@ -173,6 +173,35 @@ export async function gethildrenRelationNode(
 }
 
 
+export async function getMultipleParentRelationNode(
+  patrimoineId: string,
+  buildingId: string,
+  // nodeId: number,
+  // relation: any,
+  relations: { dynamicId: number, relation: any }[]
+): Promise<IEquipmentItem[]> {
+  let realresult;
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    `/api/v1/node/parents_multiple`
+  );
+  
+  let body = relations.map(({ dynamicId, relation }) => ({ dynamicId, relation }));
+  let result = await spinalAPI.post(url, body);
+  let parents = result.data;
+  const neededParents = parents.map(parent => {
+    return {
+        dynamicId: parent.dynamicId,
+        nodes: parent.nodes
+            .filter(node => node.type === "networkTreeContext")
+            .map(node => node.name)
+    };
+}).filter(parent => parent.nodes.length > 0);
+  return neededParents;
+}
+
+
 export async function getMultipleChildrenRelationNode(
   patrimoineId: string,
   buildingId: string,
@@ -334,6 +363,23 @@ export async function getAttributsMultiple(
   // console.log('result', result.data);
   return result.data;
 }
+
+export async function readStaticDetailsMultiple(
+  buildingId: string,
+  dynamicIds: number[]
+): Promise<IEquipmentItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    `/api/v1/equipment/read_static_details_multiple`
+  );
+  const body = dynamicIds;
+  // console.log('body', body);
+  let result = await spinalAPI.post(url, body);
+  // console.log('READ STAT', result.data);
+  return result.data;
+}
+
 
 export async function updateMultipleAttributes(
   buildingId: string,

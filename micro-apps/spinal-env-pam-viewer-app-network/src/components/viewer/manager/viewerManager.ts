@@ -104,8 +104,8 @@ export class ViewerManager {
 	}
 
 	public async getViewerInfoMerged(argItem: IPlayload | IPlayload[], body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }): Promise<IViewInfoItemRes[]> {
-		console.log("getViewerInfoMerged body" , body);
-		console.log("getViewerInfoMerged argItem" , argItem);
+		// console.log("getViewerInfoMerged body" , body);
+		// console.log("getViewerInfoMerged argItem" , argItem);
 		
 		const datas = await this.getViewerInfo(argItem, undefined, body);
 		const res = [];
@@ -204,6 +204,11 @@ export class ViewerManager {
 		const formatted = await this._getAndFormatViewerInfos(item, buildingId, component);
 		const emitter = EmitterViewerHandler.getInstance();
 		emitter.emit(<any>VIEWER_EVENTS.VIEWER_ADD_COMPONENT_SPRITE, formatted as any);
+	}
+	public async removeAllLines() {
+		// const formatted = await this._getAndFormatViewerInfos(item, buildingId, component);
+		const emitter = EmitterViewerHandler.getInstance();
+		emitter.emit(<any>VIEWER_EVENTS.VIEWER_REMOVE_ALL_LINES);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////

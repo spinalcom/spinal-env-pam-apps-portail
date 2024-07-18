@@ -134,7 +134,8 @@ class SpaceSelectorItem extends Vue {
       : false;
   }
 
-  onSelect() {
+  async onSelect() {
+    // await this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
     if (this.viewButtonsType === "base") {
       const button = this.getButton();
       if (button) this.$emit("onActionClick", { button, item: this.item });
