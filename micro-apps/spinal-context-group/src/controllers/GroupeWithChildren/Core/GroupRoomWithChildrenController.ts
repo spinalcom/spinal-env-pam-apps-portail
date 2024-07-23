@@ -686,7 +686,7 @@ class GroupRoomWithChildrenController
 
   public recomputeKpi(reset = false) {
     this.recomputeEveryGrp(reset);
-    this.getDataSelectedRoom();
+    this.updateGainsSelectedGrpRoom();
   }
 
   public async addItemFromViewer(ctx: string, item: IGroupRoomItem | any) {
@@ -1003,7 +1003,8 @@ class GroupRoomWithChildrenController
     }
   }
 
-  private getDataSelectedRoom() {
+
+  private updateGainsSelectedGrpRoom() {
     if (!this._selectedGrpRooms) {
       this._totalGainGrpRoom = iKpiBaseFactory.build({});
       this._totalAreaGrpRoom = iKpiBaseFactory.build({});

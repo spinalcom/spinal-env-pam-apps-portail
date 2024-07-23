@@ -51,7 +51,7 @@ export default {
     return {
       isChecked: false,
       menuVisible: false,
-      selectedItems : [] as number[], 
+      selectedItems : [7] as number[], 
       subItems: [
         { value: 1, icon: 'mdi-format-list-bulleted-type', title: "Sélection catégorie/groupe", toggeable: false },
         { value: 2, icon: 'mdi-map-legend', title: "Afficher la légende", toggeable: true },

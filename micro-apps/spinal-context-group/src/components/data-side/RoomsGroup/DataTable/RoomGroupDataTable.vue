@@ -77,7 +77,10 @@
               <div class="greyed d-flex justify-end align-center">
                 {{
                   item && item.children
-                    ? item.children.filter((room) => room.operations !== "ToDeAssign").length
+                    ? item.children.filter(room => 
+                        room.operations !== "ToDeAssign" &&
+                        (!isFilter || room.floorId === selectedFloorId)
+                      ).length
                     : 0
                 }}
               </div>
@@ -258,6 +261,7 @@ export default {
         return false;
       },
     },
+
     selectedFloorId: {
       type: Number,
       required:true,
@@ -337,6 +341,7 @@ export default {
       this.$emit("restore", item);
     },
     deleteEntity(item, ctx) {
+      console.log('emiting deleteEntity')
       this.$emit("deleteEntity", item, ctx);
     },
     createStyleTitle(item) {
@@ -351,14 +356,13 @@ export default {
     filteredData() {
       console.log("is filter ",this.isFilter)
       if (this.data.length > 0 && this.isFilter) {
-        if(this.grpRoomFocus === "GrpRoomList"){
-
-          let filteredGroups = this.data?.map(grp => ({
-          ...grp,
-            children: grp.children.filter(child => child.floorId === this.selectedFloorId)
-            }));
-          return filteredGroups
-        }
+        // if(this.grpRoomFocus === "GrpRoomList"){
+        //   let filteredGroups = this.data?.map(grp => ({
+        //   ...grp,
+        //     children: grp.children.filter(child => child.floorId === this.selectedFloorId)
+        //     }));
+        //   return filteredGroups
+        // }
         if(this.grpRoomFocus === "GrpRoom"){
           return this.data.filter(room => room.floorId === this.selectedFloorId)
         }

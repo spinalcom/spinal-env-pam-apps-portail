@@ -42,13 +42,13 @@ with this file. If not, see
       :value="showModalEditGroup || showNomenclatureModale"
     ></v-overlay>
     <div class="selectors">
-      <div class="DButton">
+      <!-- <div class="DButton">
         <ScDownloadButton
           :fileName="'insight_data'"
           :csv="true"
           :data="getDataFormatted()"
         />
-      </div>
+      </div> -->
       <div class="space">
         <space-selector
           ref="space-selector"
@@ -237,7 +237,7 @@ class App extends Vue {
   $store: Store;
   openSpaceSelector: boolean = false;
   openTemporalitySelector: boolean = false;
-  displayLegend: boolean =false;
+  displayLegend: boolean = false;
   config: IConfig = config;
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
   emitterHandler: EmitterViewerHandler | undefined = undefined;

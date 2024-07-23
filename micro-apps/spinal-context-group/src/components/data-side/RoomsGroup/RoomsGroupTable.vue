@@ -86,40 +86,36 @@
                 >
                   {{ currentGrpRoom.title || '' }}
                 </div>
-                <div
-                  class="sub-title"
-                  v-if="
-                    currentGrpRoom &&
-                    currentGrpRoom.parentTitle &&
-                    grpRoomFocus === 'GrpRoomList'
-                  "
-                >
-                  <span class="sub-title-content">categorie :</span>
-                  <span class="name-category">{{
-                    currentGrpRoom.parentTitle
-                  }}</span>
-                </div>
-
                 <v-tooltip top>
                   <template v-slot:activator="{ on, attrs }">
                     <v-btn color="grey" dark v-bind="attrs" v-on="on" icon>
                       <v-icon>mdi-information-outline</v-icon>
                     </v-btn>
                   </template>
-
-                  <span v-if="grpRoomFocus === 'GrpRoom'">
-                    <span class="bold-element">{{ currentGrpRoom.title }}</span>
-                    est un
-                    <span class="bold-element">groupe de pièce</span> qui
-                    appartient à la categorie ...</span
-                  >
-                  <span v-if="grpRoomFocus === 'GrpRoomList'"
+                <span v-if="grpRoomFocus === 'GrpRoomList'"
                     >Le composant Assignation des espaces permet de: <br />
                     - visualiser des groupes de pièces appartenant à la même
                     catégorie <br />
                     - assigner des pièces à des groupes de pièces</span
                   >
+                  <span v-if="grpRoomFocus === 'GrpRoom'">
+                    <span class="bold-element">{{ currentGrpRoom.title }}</span>
+                    est un
+                    <span class="bold-element">groupe de pièce</span> qui
+                    appartient à la categorie {{  currentGrpRoom.parentTitle }}</span
+                  >
                 </v-tooltip>
+                <div
+                  class="sub-title"
+                  v-if="
+                    grpRoomWithChildrenController.currentCategory
+                  "
+                >
+                  <span class="sub-title-content">categorie :</span>
+                  <span class="name-category">{{
+                    grpRoomWithChildrenController.currentCategory.title
+                  }}</span>
+                </div>
               </div>
               <div class="subtitle-wrapper" v-if="grpRoomFocus === 'GrpRoom'">
                 <div class="subtitle">
@@ -129,7 +125,8 @@
                       (room) => room.display
                     ).length
                   }}</span>
-                  pièce<span>s</span>
+                  pièce<span>s dont <span class="bold-element"> {{ dataFiltered.filter( room => room.floorId === selectedZone.dynamicId).length }}</span>  sont sur l'étage sélectionné</span>
+
                 </div>
               </div>
             </div>
@@ -507,7 +504,7 @@ export default {
     let unitMode: UnitMode = 'm2';
     const logarithmicRadar = false;
     const showRadar = false;
-    const filterBySelectedZone: boolean = false;
+    const filterBySelectedZone: boolean = true;
     const showDataTableGrpRoom: boolean = false;
     const showDataTableGrpRoomList: boolean = true;
     const dataTable = ref(null);
@@ -589,11 +586,10 @@ export default {
       viewMode,
       selectedRoomsNomenclature,
       filterBySelectedZone,
-      logarithmicRadar,
+      logarithmicRadar
     };
   },
   mounted() {
-    console.log(this.selectedZone)
     this.dataTableHeight = this.$refs.roomGroupDataTable.$el.clientHeight - 130;
     this.loadData();
   },
@@ -801,7 +797,7 @@ export default {
       return;
     },
     deleteEntity(item: IGroupRoomItem, context: 'menu' | 'actions') {
-
+      console.log('Delete Entity', item);
       this.grpRoomWithChildrenController
         .deleteItem(item)
         .then(() => {
@@ -958,6 +954,7 @@ export default {
             console.error(err);
           });
       } else if (category && typeof category === 'object') {
+        this.selectedCategory = category;
         this.grpRoomWithChildrenController
           .switchCategories(category.id)
           .then((newCategories) => {
@@ -987,7 +984,6 @@ export default {
       this.filterBySelectedZone = !this.filterBySelectedZone;
       this.grpRoomWithChildrenController.setSelectedFloorId(this.selectedZone.dynamicId);
       this.grpRoomWithChildrenController.setFilter(this.filterBySelectedZone);
-
       this.loadData()
     }
 
@@ -1035,17 +1031,18 @@ export default {
       }
       return '';
     },
-    dataFiltered() {
-  if (this.grpRoomFocus === 'GrpRoom') {
-    return this.data;
-  } else if (this.grpRoomFocus === 'GrpRoomList') {
-    let filteredGroups = this.data?.filter((grp) =>
-      grp.title.toLowerCase().startsWith(this.searchModelGrp.toLowerCase())
-    );
-    return filteredGroups;
-  }
-  return [];
-},
+
+    dataFiltered() { // Do name filtering with bar search (only filter on group list view)
+      if (this.grpRoomFocus === 'GrpRoom') {
+        return this.data;
+      } else if (this.grpRoomFocus === 'GrpRoomList') {
+        let filteredGroups = this.data?.filter((grp) =>
+          grp.title.toLowerCase().startsWith(this.searchModelGrp.toLowerCase())
+        );
+        return filteredGroups;
+      }
+      return [];
+    },
     // TODO Refaire cette function
     dataRadar() {
       let labelRadar: string[] = [];
@@ -1073,12 +1070,15 @@ export default {
           this.grpRoomWithChildrenController?.groupRoomTree?.filter(
             (x: IGroupRoomItem) => x.parentId === this.categoriesModel.id
           );
+        
+          grpCurrentCategory = grpCurrentCategory.filter((x: IGroupRoomItem) => x.title !== 'Jardin');
         areaAfter = grpCurrentCategory.map(
           (grpGroup: IGroupRoomItem) => grpGroup.newArea
         );
         labelRadar = grpCurrentCategory.map(
           (grpGroup: IGroupRoomItem) => grpGroup.title
         );
+        
         areaBefore = grpCurrentCategory.map(
           (grpGroup: IGroupRoomItem) => grpGroup.area
         );
@@ -1241,6 +1241,9 @@ export default {
     height: fit-content;
     // background-color: blue;
     height: 11em;
+    max-height: 12em;
+    padding-bottom: 50px;
+    
 
     .header {
       display: grid;
@@ -1251,12 +1254,13 @@ export default {
         flex-direction: column;
         justify-content: flex-start;
         align-items: flex-start;
+        
 
         .title {
           position: relative;
           font-family: 'charlevoix' !important;
           font-weight: 900;
-          font-size: 3em !important;
+          font-size: 2.5em !important;
           line-height: 1em;
           text-transform: uppercase;
 
@@ -1356,6 +1360,7 @@ export default {
   }
 
   .subtitle-wrapper {
+
     margin-top: 0.7em;
     font-family: 'Charlevoix';
   }
