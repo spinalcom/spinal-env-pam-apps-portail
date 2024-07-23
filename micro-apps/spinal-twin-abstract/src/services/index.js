@@ -29,22 +29,17 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
   for (const controlEndpoint of controlEndpoints) {
     cpList = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/control_endpoint_list`);
 
-    // cpList = cpList.data[0].endpoints;
-    // for (let i = 0; i < cpList.length; i++) {
-    //   if (cpList[i].name === controlEndpoint.name) {
-    //     cpID = cpList[i].dynamicId;
-    //   }
-    // }
-
+    // Recherche le dynamicId du bon cp parmis la réponse api
     for (let j = 0; j < cpList.data.length; j++) {
       for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
         if (cpList.data[j].endpoints[i].name === controlEndpoint.name) {
           cpID = cpList.data[j].endpoints[i].dynamicId;
-          console.log(cpID)
+          console.log( `Space :  ${space.name} | Control Point : ${controlEndpoint.name} | cpID : ${cpID}`)
         }
       }
     }
     
+    // si le cpID est trouvé, on récupère les données timeseries
     if (cpID) {
     timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`);
     timeSeries = timeSeries.data;
@@ -52,7 +47,7 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
     // prevTimeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${cpID}/timeSeries/read/${periodArray[3]}/${periodArray[4]}`);
     // prevTimeSeries = prevTimeSeries.data;
 
-
+    
     let processedTimeSeries = [];
     if (tempo === 'Semaine') {
       label.forEach(day => {
@@ -178,15 +173,13 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
       stack: controlEndpoint.stackGroup,
       tooltipDate: tooltipDate
     })
-      
-  }
-    
+    cpID = null;
+    }    
   }
 }
 catch {
-  return [null, null, null, null, calendar]
+  return undefined;
 }
-  
   return [label, data, avg, total, calendar];
 }
 
@@ -289,7 +282,7 @@ export async function getTodaysData(space, controlEndpoints) {
   let cpList, cpID, timeSeries, sumSeries, sub;
   for (const controlEndpoint of controlEndpoints) {
     cpList = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/control_endpoint_list`);
-    console.log(cpList.data);
+    // console.log(cpList.data);
     // cpList = cpList.data[1].endpoints;
     // for (let i = 0; i < cpList.length; i++) {
     //   if (cpList[i].name === controlEndpoint.name) {
@@ -301,7 +294,7 @@ export async function getTodaysData(space, controlEndpoints) {
       for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
         if (cpList.data[j].endpoints[i].name === controlEndpoint.name) {
           cpID = cpList.data[j].endpoints[i].dynamicId;
-          console.log(cpID)
+          // console.log(cpID)
         }
       }
     }
@@ -319,6 +312,7 @@ export async function getTodaysData(space, controlEndpoints) {
       subtitle: controlEndpoint.subtitle,
       root: controlEndpoint.root
     })
+    cpID = null;
   }
   }
   let sum = data[0].value;

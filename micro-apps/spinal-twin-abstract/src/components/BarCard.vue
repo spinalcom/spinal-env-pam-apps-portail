@@ -1,33 +1,39 @@
 <template>
   <v-card
-    style="min-height: 220px !important; background: #f9f9f9; border-radius: 10px;"
+    style="min-height: 75vh !important; background: #f9f9f9; border-radius: 10px;"
     class="bar-card  d-flex flex-shrink-1 flex-column"
     elevation="5"
     outlined
   >
-  <v-card-title class="card-title flex-shrink-1 justify-space-between" style="height: fit-content !important; padding: 0 !important">
+    <v-card-title class="card-title flex-shrink-1 justify-space-between" style="height: fit-content !important; padding: 0 !important">
       <p class="mb-0" style="padding: 10px;">
         {{ title }}
         <br>
         <span class="desc">{{ subtitle }}</span>
       </p>
       <div class="d-flex align-center mln6" style="position: absolute; right: calc(50% - 55px)" v-if="isYear">
-        <v-icon  icon style="color: #0000008a !important" class="pr-3" size="default">mdi-poll</v-icon>
-        <v-switch @click="$emit('stack', switchValue)" style="margin-top: 1px; padding: 0px;height: 24px;" v-model="switchValue" inset color="blue-grey" dense/>
-        <v-icon  icon style="color: #0000008a !important" size="default">mdi-calendar-month-outline</v-icon>
+        <v-icon icon style="color: #0000008a !important" class="pr-3" size="default">mdi-poll</v-icon>
+        <v-switch @click="$emit('stack', switchValue)" style="margin-top: 1px; padding: 0px;height: 24px;" v-model="switchValue" inset color="blue-grey" dense />
+        <v-icon icon style="color: #0000008a !important" size="default">mdi-calendar-month-outline</v-icon>
       </div>
       <div v-if="prev_next" style="height: 40px; align-self: flex-start; padding-top: 10px; padding-right: 10px;">
         <v-btn :disabled="false" @click="$emit('nav', -1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;"><v-icon style="color: #14202c !important" icon>mdi-chevron-left</v-icon>{{ prev }}</v-btn>
         <v-btn :disabled="false" @click="$emit('nav', +1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;">{{ next }}<v-icon style="color: #14202c !important" icon>mdi-chevron-right</v-icon></v-btn>
       </div>
     </v-card-title>
-    <div class="d-flex flex-column flex-grow-1">
+
+    <div v-if="noData" class="no-data-container d-flex justify-center align-center flex-grow-1">
+      <v-icon style="color: red !important; ">mdi-alert-circle-outline</v-icon>
+      <span class="no-data-text">NO DATA</span>
+    </div>
+
+    <div v-else class="d-flex flex-column flex-grow-1">
       <slot name="extras" v-if="switchValue && isYear"></slot>
       <div class="flex-grow-1" style="height: 0;" v-if="switchValue && isYear">
-        <CalendarAndStripe :results="calendar" :unit="optional.unit" v-if="calendar && calendar.d && calendar.d.length>0"/>
+        <CalendarAndStripe :results="calendar" :unit="optional.unit" v-if="calendar && calendar.d && calendar.d.length > 0" />
       </div>
       <div class="flex-grow-1" style="height: 0;" v-else>
-        <Bar :data="barChartData" :chart-id="'1'" :options="barChartOptions" ref="barChart"/>
+        <Bar :data="barChartData" :chart-id="'1'" :options="barChartOptions" ref="barChart" />
       </div>
     </div>
   </v-card>
@@ -108,6 +114,10 @@ export default {
       type: Object,
       default: () => {return {unit: '', footer: 'Total'}},
       required: false
+    },
+    noData: {
+      type: Boolean,
+      required: false,
     },
   },
 
@@ -376,6 +386,14 @@ export default {
 }
 </style>
 <style scoped>
+.no-data-container {
+  border-radius: 8px;
+  padding: 20px;
+}
+.no-data-text {
+  font-size: 24px;
+  margin-left: 10px;
+}
 .bar-card {
   background-color: #f9f9f9;
   font-family: "Charlevoix Pro";

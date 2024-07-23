@@ -15,6 +15,7 @@
         :next="temporality.next" 
         :prev="temporality.prev"
         :optional="barOptions"
+        :noData="noData"
         style="max-height: 530px;"
         class="BR"
         >
@@ -49,7 +50,7 @@
             class="flex-grow-1 pa-4" 
             style="width: 100% !important; height: fit-content;"
             />
-            <LoadingCard class="flex-grow-1 pa-4" style="width: 100% !important; min-height: 105px;" v-else-if="cards.includes('total')"/>
+            <LoadingCard :noData="noData" class="flex-grow-1 pa-4" style="width: 100% !important; min-height: 105px;" v-else-if="cards.includes('total') || noData"/>
             <StackCard
             v-if="averageCard.length !== 0 && cards.includes('average')"
             :title="averageTitle"
@@ -58,7 +59,7 @@
             class="flex-grow-1 pa-4" 
             style="width: 100% !important; height: fit-content;"
             />
-            <LoadingCard class="flex-grow-1 pa-4" style="width: 100% !important; min-height: 105px;" v-else-if="cards.includes('average')"/>
+            <LoadingCard :noData="noData" class="flex-grow-1 pa-4" style="width: 100% !important; min-height: 105px;" v-else-if="cards.includes('average') || noData"/>
             <StackCard
             v-if="todaysCard.length !== 0 && cards.includes('today')"
             :title="todaysTitle"
@@ -67,7 +68,7 @@
             class="flex-grow-1 pa-4" 
             style="width: 100% !important; height: fit-content;"
             />
-            <LoadingCard class="flex-grow-1 pa-4" style="width: 100% !important; min-height: 105px !important;" v-else-if="cards.includes('today')"/>
+            <LoadingCard :noData="noData" class="flex-grow-1 pa-4" style="width: 100% !important; min-height: 105px !important;" v-else-if="cards.includes('today') || noData"/>
         </div>
     </div>
   </div>
@@ -126,6 +127,7 @@ class App extends Vue {
 
   selectedControlEndpoint: LegendModel = {name: this.controlEndpoints[0].name, color: this.controlEndpoints[0].color};
   controlEndpointList: LegendModel[] = [];
+  noData = false;
 
   @Prop({type: Object as () => ISpaceSelectorItem, required: true})
   space: ISpaceSelectorItem;
@@ -144,6 +146,11 @@ class App extends Vue {
     this.averageCard = [];
     this.totalCard = [];
     let res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.controlEndpoints);
+    if(!res) {
+      this.noData = true;
+      return;
+    }
+    this.noData = false;
     this.chart.label = res[0];
     this.chart.data = res[1];
     this.averageCard = res[2];
