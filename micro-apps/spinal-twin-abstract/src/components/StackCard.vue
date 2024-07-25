@@ -7,15 +7,17 @@
         <span class="desc" style="margin-left: 0 !important;">{{ subtitle }}</span>
       </p>
     </div>
-    <div class="d-flex flex-row card-layer" style="height: 70px;" v-for="d of data">
-      <div class="d-flex flex-column justify-center stat-value" :style="[{ color: d.color }, {'font-size': (d.root ==true) ?'48px':'30px'}]">{{ shortNumberCall(d.value) }}</div>
-      <div class="d-flex flex-column justify-center stat-text">
-        <span> <span :style="{ color: d.color }">{{ d.unit }}</span> {{ d.title }}</span>
-        <div v-if="d.subtitle === 'today'" class="stat-subtitle orange--text text-uppercase">
-            <div class="rounded-circle d-inline-block orange pa-1" ></div>
-            Aujourd'hui
-        </div>
-        <span v-else-if="d.subValue && d.subValue!= 'NaN%' && !d.subValue.includes('Infinity') && d.subtitle!=''" class=""><span style="color: #000000DE;"> {{ d.subValue }} </span>{{ d.subtitle }}</span>
+    <div class="d-flex flex-row card-layer" style="height: 70px;" v-for="d of data" v-if="d.title">
+
+        <div class="d-flex flex-column justify-center stat-value" :style="[{ color: d.color }, {'font-size': (d.root ==true) ?'48px':'30px'}]">{{ shortNumberCall(d.value) }}</div>
+        <div class="d-flex flex-column justify-center stat-text">
+          <span> <span :style="{ color: d.color }">{{ d.unit }}</span> {{ d.title }}</span>
+          <div v-if="d.subtitle === 'today'" class="stat-subtitle orange--text text-uppercase">
+              <div class="rounded-circle d-inline-block orange pa-1" ></div>
+              Aujourd'hui
+          </div>
+          <span v-else-if="d.subValue && d.subValue!= 'NaN%' && !d.subValue.includes('Infinity') && d.subtitle!=''" class=""><span style="color: #000000DE;"> {{ d.subValue }} </span>{{ d.subtitle }}</span>
+
       </div>
     </div>
   </div>

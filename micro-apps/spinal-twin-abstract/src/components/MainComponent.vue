@@ -146,6 +146,7 @@ class App extends Vue {
     this.averageCard = [];
     this.totalCard = [];
     let res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, this.controlEndpoints);
+    console.log('res : ', res)
     if(!res) {
       this.noData = true;
       return;
