@@ -133,7 +133,8 @@
             <div class="info-wrapper">
               <div class="area-wrapper">
                 <div class="initial-area area" :class="globalKpiClass">
-                  <div class="value">
+                  <div class="value" >
+
                     {{
                       grpRoomFocus === 'GrpRoomList'
                         ? grpRoomWithChildrenController.globalArea.toFixed(2)
@@ -518,7 +519,9 @@ export default {
     const searchModel: Ref<Array<string>> = ref([]);
     const searchModelGrp: Ref<string> = ref('');
     const categoriesModel: Ref<IGroupRoomItem> = ref(null);
-    const grpRoomFocus: Ref<GroupRoomFocus> = ref('GrpRoomList');
+      
+    /** Value is either  GrpRoomList or GrpRoom */
+    const grpRoomFocus: Ref<GroupRoomFocus> = ref('GrpRoomList'); // GrpRoomList | GrpRoom
     const isLoading: Ref<boolean> = ref(false);
     const currentGrpRoom: Ref<IGroupRoomItem | undefined> = ref(undefined);
     const grpRoomWithChildrenController = new GroupRoomWithChildrenController(
@@ -632,6 +635,7 @@ export default {
         .catch((err: any) => {
           console.error(err);
         });
+        
     },
     updateDataTableHeight() {
       console.log('this refs = ', this.$refs);
@@ -1070,8 +1074,6 @@ export default {
           this.grpRoomWithChildrenController?.groupRoomTree?.filter(
             (x: IGroupRoomItem) => x.parentId === this.categoriesModel.id
           );
-        
-          grpCurrentCategory = grpCurrentCategory.filter((x: IGroupRoomItem) => x.title !== 'Jardin');
         areaAfter = grpCurrentCategory.map(
           (grpGroup: IGroupRoomItem) => grpGroup.newArea
         );

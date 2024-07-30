@@ -25,13 +25,26 @@
             :key="item.id"
             @click="selectItem(item, 'item')"
           >
-            <td class="cursor-pointer">
+          <td>
+              <div class="bold-cell">
+                <span v-if="!item.display" class="bold-darkgreyed"
+                  >[Supprime]</span
+                >
+                <span
+                  :style="createStyleTitle(item, grpRoomFocus)"
+                  class="chip-legend-item"
+                >
+                </span>
+                {{ item.title }}
+              </div>
+            </td>
+            <!-- <td class="cursor-pointer">
               <div
                 class="font-weight-bold d-flex flex-row justify-start align-center"
               >
                 {{ item.title }}
               </div>
-            </td>
+            </td> -->
             <td>
               <div class="gain-cell d-flex flex-row justify-end align-center">
                 <div class="arrow-svg" v-if="item.gainKpi.value > 0">
@@ -109,7 +122,7 @@
                 >
                 <span
                   v-if="grpRoomFocus === 'GrpRoom'"
-                  :style="createStyleTitle(item)"
+                  :style="createStyleTitle(item, grpRoomFocus)"
                   class="chip-legend-item"
                 >
                 </span>
@@ -344,7 +357,14 @@ export default {
       console.log('emiting deleteEntity')
       this.$emit("deleteEntity", item, ctx);
     },
-    createStyleTitle(item) {
+    createStyleTitle(item, focusType) {
+      if (focusType === "GrpRoomList") {
+        return {
+          background: item.color,
+          height: "2em",
+        };
+      }
+      // else  -> focusType === "GrpRoom"
       return {
         background: this.guessItemColor(item),
         height: "2em",
@@ -354,19 +374,20 @@ export default {
 
   computed: {
     filteredData() {
-      console.log("is filter ",this.isFilter)
       if (this.data.length > 0 && this.isFilter) {
         // if(this.grpRoomFocus === "GrpRoomList"){
-        //   let filteredGroups = this.data?.map(grp => ({
-        //   ...grp,
-        //     children: grp.children.filter(child => child.floorId === this.selectedFloorId)
-        //     }));
-        //   return filteredGroups
-        // }
-        if(this.grpRoomFocus === "GrpRoom"){
-          return this.data.filter(room => room.floorId === this.selectedFloorId)
-        }
-      }
+          //   let filteredGroups = this.data?.map(grp => ({
+            //   ...grp,
+            //     children: grp.children.filter(child => child.floorId === this.selectedFloorId)
+            //     }));
+            //   return filteredGroups
+            // }
+            if(this.grpRoomFocus === "GrpRoom"){
+
+              return this.data.filter(room => room.floorId === this.selectedFloorId)
+            }
+          }
+     
      return this.data;
     }
   }

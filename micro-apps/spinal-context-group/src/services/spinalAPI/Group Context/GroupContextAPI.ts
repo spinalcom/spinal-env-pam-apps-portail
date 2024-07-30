@@ -183,7 +183,6 @@ class GroupContextApi extends AAPI implements IApiGroupContext {
               );
             }
           }
-
           resolve(groupContext);
         })
         .catch((err: any) => {
@@ -198,7 +197,6 @@ class GroupContextApi extends AAPI implements IApiGroupContext {
     grpCategory: GroupContext[]
   ) {
     let grpCategoryTmp: IGroupItem;
-
     for (const [i, category] of grpCategory.entries()) {
       if (!category.name || !category.dynamicId) {
         continue;
@@ -207,6 +205,7 @@ class GroupContextApi extends AAPI implements IApiGroupContext {
       grpCategoryTmp = GroupItemFactory.build({
         title: (category.name as string) ?? "",
         id: (category.dynamicId as number) ?? -1,
+        color: category.color,
         children: [],
         display: true,
         type: EGroupType.GRP_CATEGORY,
@@ -237,6 +236,7 @@ class GroupContextApi extends AAPI implements IApiGroupContext {
       grpGroupTmp = GroupItemFactory.build({
         title: group.name as string,
         id: group.dynamicId as number,
+        color: group.color,
         children: [],
         display: true,
         type: EGroupType.GRP_GROUP,

@@ -278,8 +278,11 @@ export async function getTodaysData(space, controlEndpoints) {
   // ]
   const data = [];
   const buildingId = localStorage.getItem("idBuilding");
-  var startOfDay = moment().startOf('day').format('DD-MM-yyyy HH:mm:ss');
-  var endOfDay = moment().endOf('day').format('DD-MM-yyyy HH:mm:ss');
+  // var startOfDay = moment().startOf('day').format('DD-MM-yyyy HH:mm:ss');
+  // var endOfDay = moment().endOf('day').format('DD-MM-yyyy HH:mm:ss');
+  var startOfDay = moment().startOf('day').add(1, 'hours').format('DD-MM-yyyy HH:mm:ss');
+  var endOfDay = moment().startOf('day').add(1,'day').format('DD-MM-yyyy HH:mm:ss');
+  // console.log(startOfDay, endOfDay);
   let cpList, cpID, timeSeries, sumSeries, sub;
   for (const controlEndpoint of controlEndpoints) {
     cpList = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/control_endpoint_list`);

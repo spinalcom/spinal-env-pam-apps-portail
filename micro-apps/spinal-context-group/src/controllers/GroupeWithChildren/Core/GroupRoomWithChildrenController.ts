@@ -152,10 +152,10 @@ class GroupRoomWithChildrenController
     return new Promise((resolve, reject) => {
       this._roomManager
         .loadData() 
-        .then(() => (this._allRooms = this._roomManager.rooms))
-        .then(() => this.grpCtxApiInstance.getGroupContextTree())
+        .then(() => (this._allRooms = this._roomManager.rooms)) // ALL the rooms
+        .then(() => this.grpCtxApiInstance.getGroupContextTree()) // Get the tree contexts => categories => groups => rooms
         .then((response) => super.loadData(response))
-        .then(() => this.transformTree())
+        .then(() => this.transformTree()) 
         .then((trsfGrpRoom) => (this._groupRoomTree = trsfGrpRoom))
         .then(() => this.getCategoryList())
         .then((cats) => (this._categories = cats))
@@ -242,6 +242,7 @@ class GroupRoomWithChildrenController
   }
   itemColorBefore;
 
+  /** Build PayLoad to colorize all rooms, give them default color  */
   private async buildViewerFirstPass(
     lexiconRoom: Object,
     defaultColor
@@ -260,7 +261,7 @@ class GroupRoomWithChildrenController
               ? "AssignedToAnother"
               : itemTmp.operations;
           color = GroupRoomWithChildrenController.guessItemColor(
-            itemTmp.operations
+           itemTmp.operations
           );
           return {
             ...room,
@@ -273,6 +274,7 @@ class GroupRoomWithChildrenController
     });
   }
 
+  /** Build PayLoad to colorize rooms of selected group, give them true color  */
   private async buildViewerSecondPass(
     lexiconRoom: Object,
     defaultColor
@@ -297,6 +299,28 @@ class GroupRoomWithChildrenController
     });
   }
 
+  private async buildViewerGroupColor(lexiconRoom) : Promise<IPlayload[]> {
+    let firstPass = [];
+    let itemTmp: IGroupRoomItem;
+    let color = "";
+
+    return new Promise((resolve, reject) => {
+      firstPass = this._allRooms.list
+        .map((room: Room) => {
+          itemTmp = lexiconRoom[room.dynamicId];
+          itemTmp = iGroupRoomItemFactory.build({ ...itemTmp });
+          return {
+            ...room,
+            color: lexiconRoom[room.dynamicId] ? lexiconRoom[room.dynamicId].color : '#808080',
+            id: room.dynamicId,
+          };
+        })
+        .filter((x) => x);
+      resolve(firstPass);
+    });
+
+  }
+
   private async buildLexiconGroupRoomTree(): Promise<{
     [key: string]: IGroupRoomItem;
   }> {
@@ -311,6 +335,8 @@ class GroupRoomWithChildrenController
         }
 
         for (const room of grp.children) {
+          
+          //room.color = grp.color;
           lexiconRoom[room.id] ||= room;
         }
       }
@@ -318,6 +344,7 @@ class GroupRoomWithChildrenController
     });
   }
 
+  /** Build list of room objects that are part of category */
   private async buildLexiconGRTByCat(catId: number): Promise<{
     [key: string]: IGroupRoomItem;
   }> {
@@ -325,13 +352,14 @@ class GroupRoomWithChildrenController
       [key: string]: IGroupRoomItem;
     }>((resolve, reject) => {
       const lexiconRoom = {};
-
+      console.log('groupRoomTree :',this._groupRoomTree);
       for (const grp of this._groupRoomTree) {
         if (!Array.isArray(grp.children) || grp.parentId !== catId) {
           continue;
         }
 
         for (const room of grp.children) {
+          room.color = grp.color;
           lexiconRoom[room.id] ||= room;
         }
       }
@@ -346,14 +374,16 @@ class GroupRoomWithChildrenController
         (leg: Legend) => leg.type === "Not-assigned"
       );
     let idBuilding = this._roomManager.getIdCurrentBuilding();
-    let lexicon = this._lexiconGrpRoomTree;
-
+    let lexicon = this._lexiconGrpRoomTree; 
     return new Promise<void>((resolve, reject) => {
-      this.buildLexiconGRTByCat(this._currentCategory.id)
+      this.buildLexiconGRTByCat(this._currentCategory.id) // get the rooms of the current category
         .then((lex) => (lexicon = lex))
+        //.then(() => { console.log('lexicon1 :',lexicon);})
         .then(() => this.buildViewerFirstPass(lexicon, defaultColor))
+        //.then((pass) => { console.log('pass :',pass); return pass;})
         .then((pass) => this._viewerManager.colorItems(pass, idBuilding))
         .then(() => this.buildViewerSecondPass(lexicon, defaultColor))
+        //.then((pass) => { console.log('pass2 :',pass); return pass;})
         .then((pass) => this._viewerManager.colorItems(pass, idBuilding))
         .then(() => resolve())
         .catch((err) => {
@@ -362,6 +392,26 @@ class GroupRoomWithChildrenController
         });
     });
   }
+
+  /**
+   * Colorize the rooms by the color of their group
+   */
+  public async colorizeViewerByGroups(){
+    let idBuilding = this._roomManager.getIdCurrentBuilding();
+    let lexicon = this._lexiconGrpRoomTree;
+    return new Promise<void>((resolve, reject) => {
+      this.buildLexiconGRTByCat(this._currentCategory.id)
+        .then((lex) => (lexicon = lex))
+        .then(() => this.buildViewerGroupColor(lexicon))
+        .then((pass) => this._viewerManager.colorItems(pass, idBuilding))
+        .then(() => resolve())
+        .catch((err) => {
+          console.error(err);
+          reject(new Error(err));
+        });
+    });
+  }
+
 
   public async restoreItem(item: IGroupRoomItem) {
     return new Promise((resolve, reject) => {
@@ -676,11 +726,13 @@ class GroupRoomWithChildrenController
       this._groupToDisplay = this._groupRoomTree.filter((x) => {
         return this._currentCategory.id === x.parentId;
       });
+      this.colorizeViewerByGroups();
     } else if (this._grpFocus === "GrpRoom" && this._selectedGrpRooms) {
       this._groupToDisplay = this._selectedGrpRooms.children;
     } else {
       this._groupToDisplay = [];
     }
+    
     return this._groupToDisplay;
   }
 
@@ -1323,6 +1375,7 @@ class GroupRoomWithChildrenController
         const newGrpGroup: IGroupRoomItem = iGroupRoomItemFactory.build({
           id: grpGroup.id,
           title: grpGroup.title,
+          color: grpGroup.color,
           type: grpGroup.type,
           idIndexesFromRoot: grpGroup.idIndexesFromRoot,
           parentId: parent.id,
