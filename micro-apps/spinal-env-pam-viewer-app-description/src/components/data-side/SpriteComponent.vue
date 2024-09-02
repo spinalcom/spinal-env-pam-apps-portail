@@ -1,5 +1,4 @@
 <template>
-
   <div class="menu">
     <!-- <v-icon>mdi-chevron-left</v-icon> -->
     <div v-if="isopen" @click.stop="onClick" ref="container" class="container">
@@ -9,58 +8,176 @@
           <div class="icons">
             <div class="logo">
               {{ data.name }}
-
             </div>
             <div class="social-media">
-              {{ parseFloat(data.data.attributsList[0].attributs[4].value.toFixed(1)) }}m²
+              {{
+                parseFloat(
+                  data.data.attributsList[0].attributs[4].value.toFixed(1)
+                )
+              }}m²
             </div>
           </div>
-          <div style="display : flex ; flex-direction: column ; width: 100%;">
-            <div style="width: 100%;">
-              <div style="display: flex;margin-top: 10px">
+          <div style="display: flex; flex-direction: column; width: 100%">
+            <div style="width: 100%">
+              <div style="display: flex; margin-top: 10px">
                 <div
-                  style="border: 1px solid  #14202c;border-radius: 5px;color: orange; font-size: 11px;font-weight: bold;width: 50%;">
+                  style="
+                    border: 1px solid #14202c;
+                    border-radius: 5px;
+                    color: orange;
+                    font-size: 11px;
+                    font-weight: bold;
+                    width: 50%;
+                  "
+                >
                   <div
-                    style="display: flex;justify-content: center; align-items: center;color: white;background: #14202c">
-                    PRÉSENCE</div>
+                    style="
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      color: white;
+                      background: #14202c;
+                    "
+                  >
+                    PRÉSENCE
+                  </div>
                   <div
-                    style="display: flex;justify-content: center; align-items: center;color: #14202c; font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
-                    {{ data.data.controlEndpoint[0].endpoints[0].value }}</div>
+                    style="
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      color: #14202c;
+                      font-size: 13px;
+                      background-color: white;
+                      border-bottom-left-radius: 5px;
+                      border-bottom-right-radius: 5px;
+                    "
+                  >
+                    {{ data.data.controlEndpoint[0].endpoints[0].value }}
+                  </div>
                 </div>
                 <div
-                  style="border: 1px solid  #14202c;border-radius: 5px;color: orange; font-size: 11px;font-weight: bold;width: 50%;margin-left:10px ">
+                  style="
+                    border: 1px solid #14202c;
+                    border-radius: 5px;
+                    color: orange;
+                    font-size: 11px;
+                    font-weight: bold;
+                    width: 50%;
+                    margin-left: 10px;
+                  "
+                >
                   <div
-                    style="display: flex;justify-content: center; align-items: center;color: white;background: #14202c">
-                    occupation</div>
+                    style="
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      color: white;
+                      background: #14202c;
+                    "
+                  >
+                    occupation
+                  </div>
                   <div
-                    style="display: flex;justify-content: center; align-items: center;;color: #14202c;font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
-                    {{ parseFloat(data.data.controlEndpoint[0].endpoints[1].value.toFixed(1)) }}%</div>
+                    style="
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      color: #14202c;
+                      font-size: 13px;
+                      background-color: white;
+                      border-bottom-left-radius: 5px;
+                      border-bottom-right-radius: 5px;
+                    "
+                  >
+                    {{
+                      parseFloat(
+                        data.data.controlEndpoint[0].endpoints[1].value.toFixed(
+                          1
+                        )
+                      )
+                    }}%
+                  </div>
                 </div>
                 <!-- <div
                 style="border: 1px solid green;border-radius: 5px;color:green ; padding : 2px; font-size: 11px;font-weight: bold;margin-left:10px ;width: 50%;">
                 taux d'occupation : {{ parseFloat(data.data.controlEndpoint[0].endpoints[1].value.toFixed(1)) }}%</div> -->
               </div>
-              <div style="display: flex;margin-top : 10px;margin-bottom: 10px">
+              <div style="display: flex; margin-top: 10px; margin-bottom: 10px">
+                <div
+                  style="
+                    border: 1px solid #14202c;
+                    border-radius: 5px;
+                    color: orange;
+                    font-size: 11px;
+                    font-weight: bold;
+                    width: 50%;
+                  "
+                >
+                  <div
+                    style="
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      color: white;
+                      background: #14202c;
+                    "
+                  >
+                    TEMPERATURE
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      color: #14202c;
+                      font-size: 13px;
+                      background-color: white;
+                      border-bottom-left-radius: 5px;
+                      border-bottom-right-radius: 5px;
+                    "
+                  >
+                    {{ data.data.controlEndpoint[1].endpoints[0].value }}C°
+                  </div>
+                </div>
+                <div
+                  style="
+                    border: 1px solid #14202c;
+                    border-radius: 5px;
+                    color: orange;
+                    font-size: 11px;
+                    font-weight: bold;
+                    width: 50%;
+                    margin-left: 10px;
+                  "
+                >
+                  <div
+                    style="
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      color: white;
+                      background: #14202c;
+                    "
+                  >
+                    AIR
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      color: #14202c;
+                      font-size: 13px;
+                      background-color: white;
+                      border-bottom-left-radius: 5px;
+                      border-bottom-right-radius: 5px;
+                    "
+                  >
+                    xx
+                  </div>
+                </div>
 
-                <div
-                  style="border: 1px solid  #14202c;border-radius: 5px;color: orange; font-size: 11px;font-weight: bold;width: 50%;">
-                  <div
-                    style="display: flex;justify-content: center; align-items: center;color: white;background: #14202c">
-                    TEMPERATURE</div>
-                  <div
-                    style="display: flex;justify-content: center; align-items: center;;color: #14202c;font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
-                    {{ data.data.controlEndpoint[1].endpoints[0].value }}C°</div>
-                </div>
-                <div
-                  style="border: 1px solid  #14202c;border-radius: 5px;color: orange; font-size: 11px;font-weight: bold;width: 50%;margin-left:10px ">
-                  <div
-                    style="display: flex;justify-content: center; align-items: center;color: white;background: #14202c">
-                    AIR</div>
-                  <div
-                    style="display: flex;justify-content: center; align-items: center;;color: #14202c;font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
-                    xx</div>
-                </div>
-                
                 <!-- <div
                 style="border: 1px solid blue;border-radius: 5px;color: blue ; padding : 2px; font-size: 11px;font-weight: bold;width: 50%;">
                 temperature : {{ data.data.controlEndpoint[1].endpoints[0].value }}C°</div>
@@ -68,42 +185,81 @@
                 style="border: 1px solid yellow;border-radius: 5px;color : yellow ; padding : 2px; font-size: 11px;font-weight: bold;margin-left:10px; width: 50%;">
                 CO2/QUALITÉ D'AIRE</div> -->
               </div>
-              
             </div>
           </div>
-
-
         </div>
-        <div style="display:flex;align-items: center; flex-direction: row;width: 100%;justify-content: space-around;transform: translate(0,10px);">
-            <button
-              style="background-color: #14202c ;color: white; width:50%; font-weight: bold;border-radius: 5px;font-size: 12px;width: 35%;"
-              @click.stop="changeRoute('ticket')">
-              Tickets
-            </button>
-            <button
-              style="background-color: #14202c ;color: white;width:50%; font-weight: bold;border-radius: 5px;font-size: 12px;width: 35%;"
-              @click.stop="changeRoute('insight')">
-              Insight
-            </button>
-          </div>
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            flex-direction: row;
+            width: 100%;
+            justify-content: space-around;
+            transform: translate(0, 10px);
+          "
+        >
+          <button
+            style="
+              background-color: #14202c;
+              color: white;
+              width: 50%;
+              font-weight: bold;
+              border-radius: 5px;
+              font-size: 12px;
+              width: 35%;
+            "
+            @click.stop="changeRoute('ticket')"
+          >
+            Tickets
+          </button>
+          <button
+            style="
+              background-color: #14202c;
+              color: white;
+              width: 50%;
+              font-weight: bold;
+              border-radius: 5px;
+              font-size: 12px;
+              width: 35%;
+            "
+            @click.stop="changeRoute('insight')"
+          >
+            Insight
+          </button>
+        </div>
         <div class="bottom-section">
           <span class="title">Contenu de la piece</span>
           <div class="row row1">
             <div
-              style="border-right:1px solid  rgb(215, 215, 215);;border-top:1px solid  rgb(215, 215, 215); background-color: rgb(230, 230, 230);"
-              class="item">
+              style="
+                border-right: 1px solid rgb(215, 215, 215);
+                border-top: 1px solid rgb(215, 215, 215);
+                background-color: rgb(230, 230, 230);
+              "
+              class="item"
+            >
               <span class="big-text">XX</span>
               <span class="regular-text">luminaires</span>
             </div>
             <div
-              style="border-right:1px solid  rgb(215, 215, 215);;border-top:1px solid rgb(215, 215, 215);background-color: rgb(230, 230, 230);"
-              class="item">
+              style="
+                border-right: 1px solid rgb(215, 215, 215);
+                border-top: 1px solid rgb(215, 215, 215);
+                background-color: rgb(230, 230, 230);
+              "
+              class="item"
+            >
               <span class="big-text">XX</span>
               <span class="regular-text">multicapteurs</span>
             </div>
             <div
-              style="border-right:1px solid  rgb(215, 215, 215);;border-top:1px solid  rgb(215, 215, 215); ; background-color: rgb(230, 230, 230);"
-              class="item">
+              style="
+                border-right: 1px solid rgb(215, 215, 215);
+                border-top: 1px solid rgb(215, 215, 215);
+                background-color: rgb(230, 230, 230);
+              "
+              class="item"
+            >
               <span class="big-text">XX</span>
               <span class="regular-text">Ventilo-convecteur</span>
             </div>
@@ -114,7 +270,6 @@
   </div>
 </template>
 <script>
-
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
@@ -147,7 +302,7 @@ export default {
     dynamicStyle: {
       border: "3px solid #F9F9F9",
       boxShadow: "none",
-      background: '#13A9E0'
+      background: "#13A9E0",
     },
     isClicked: false,
   }),
@@ -176,27 +331,28 @@ export default {
     //     console.log("salut");
     //   }
     // }, true);
-
   },
   methods: {
     close() {
       this.isopen = false;
     },
     changeRoute(route) {
-      const query = {}
-      if (route == 'insight')
-        query.app = "eyJuYW1lIjoiSW5zaWdodHMiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImIwZTEtNzI3NS02YWNhLTE4ZjJlMjE1NmE4IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxNDQ2NTk0NzM4MCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0NDY1ODg3OTEyLCJpY29uIjoibWRpLWN1cnRhaW5zLWNsb3NlZCIsImRlc2NyaXB0aW9uIjoiSU5zaWdodHMiLCJ0YWdzIjpbIkluc2lnaHRzIl0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0taW5zaWdodHMiLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiMzdkZS0wMmI4LWUxOGItMTg1MDY0M2I2OGEiLCJidWlsZGluZ0lkIjoiNTkzMi02MDg2LTllMWEtMTg1MDY0Nzg0NjAifX0"
+      const query = {};
+      if (route == "insight")
+        query.app =
+          "eyJuYW1lIjoiSW5zaWdodHMiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImIwZTEtNzI3NS02YWNhLTE4ZjJlMjE1NmE4IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxNDQ2NTk0NzM4MCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0NDY1ODg3OTEyLCJpY29uIjoibWRpLWN1cnRhaW5zLWNsb3NlZCIsImRlc2NyaXB0aW9uIjoiSU5zaWdodHMiLCJ0YWdzIjpbIkluc2lnaHRzIl0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0taW5zaWdodHMiLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiMzdkZS0wMmI4LWUxOGItMTg1MDY0M2I2OGEiLCJidWlsZGluZ0lkIjoiNTkzMi02MDg2LTllMWEtMTg1MDY0Nzg0NjAifX0";
       else {
-        query.app = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiZWI0ZC1hM2MxLWVmMTEtMThmMjBkZGM5YzciLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0MjQzMzcyMzcxLCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTQyNDMzNTcxMjcsImljb24iOiJtZGktdGlja2V0LWFjY291bnQiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOlsidGlja2V0Il0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
+        query.app =
+          "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiZWI0ZC1hM2MxLWVmMTEtMThmMjBkZGM5YzciLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzE0MjQzMzcyMzcxLCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MTQyNDMzNTcxMjcsImljb24iOiJtZGktdGlja2V0LWFjY291bnQiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOlsidGlja2V0Il0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWVudi1wYW0tdGlja2V0cyIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ";
       }
 
-      query.buildingId = this.data.buildingId
-      query.spaceSelectedId = this.data.dynamicId
-      query.name = this.data.name
+      query.buildingId = this.data.buildingId;
+      query.spaceSelectedId = this.data.dynamicId;
+      query.name = this.data.name;
       window.parent.routerFontion.customPush(window.parent.router.path, query);
     },
     extrairePrefixe(str) {
-      const dernierSlashIndex = str.lastIndexOf('/');
+      const dernierSlashIndex = str.lastIndexOf("/");
       if (dernierSlashIndex !== -1) {
         return str.substring(0, dernierSlashIndex);
       }
@@ -207,19 +363,17 @@ export default {
         for (const attribute of category.attributs) {
           if (attribute.label === this.extrairePrefixe(this.data.attr)) {
             return attribute.value;
-          }
-          else if (this.data.attr === "Nom") {
-            return this.data.name
+          } else if (this.data.attr === "Nom") {
+            return this.data.name;
           }
         }
       }
       return undefined;
     },
 
-
     shouldDisplayAttribute(attr) {
       // Liste des labels à exclure
-      const excludedLabels = ['name', 'XYZ center'];
+      const excludedLabels = ["name", "XYZ center"];
       return !excludedLabels.includes(attr.label);
     },
     onClose() {
@@ -233,23 +387,22 @@ export default {
       ev.preventDefault();
       ev.stopImmediatePropagation();
 
-      console.log(this, ev)
+      console.log(this, ev);
       this.isClicked = true;
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
-      if (this.isClicked)
-        this._isSelected();
+      if (this.isClicked) this._isSelected();
       else {
         this._isNotSelected();
       }
       return false;
     },
     _isSelected() {
-      this.data.color = 'cyan'
+      this.data.color = "cyan";
       this.isClicked = true;
       const enfant = this.$refs.container;
       if (enfant && enfant.parentElement) {
-        enfant.parentElement.style.zIndex = '99';
+        enfant.parentElement.style.zIndex = "99";
       }
 
       this.dynamicStyle = {
@@ -259,11 +412,11 @@ export default {
     },
     _isNotSelected() {
       this.showAttr = false;
-      this.data.color = 'blue'
+      this.data.color = "blue";
       this.isClicked = false;
       const enfant = this.$refs.container;
       if (enfant && enfant.parentElement) {
-        enfant.parentElement.style.zIndex = '1';
+        enfant.parentElement.style.zIndex = "1";
       }
 
       this.dynamicStyle = {
@@ -273,7 +426,6 @@ export default {
     },
   },
 };
-
 </script>
 
 <style scoped>
@@ -283,7 +435,6 @@ export default {
   overflow: hidden;
   border-radius: 3px;
   border: 1px solid rgb(220, 220, 220);
-
 }
 
 .attribute {
@@ -295,8 +446,9 @@ export default {
   position: absolute;
   box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
   left: 200px;
-  -webkit-animation: scale-in-hor-left 0.2s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-  animation: scale-in-hor-left 0.2s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  -webkit-animation: scale-in-hor-left 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+    both;
+  animation: scale-in-hor-left 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
 @-webkit-keyframes scale-in-hor-left {
@@ -351,14 +503,7 @@ export default {
   color: black;
   font-size: 10px;
   overflow: visible;
-
 }
-
-
-
-
-
-
 
 @-webkit-keyframes scale-in-tl {
   0% {
@@ -396,9 +541,6 @@ export default {
   }
 }
 
-
-
-
 /* .sprite_container {
   overflow: hidden;
   border-radius: 100%;
@@ -408,7 +550,6 @@ export default {
   z-index: 9999;
   width: 250px;
   /* background-color: red; */
-
 }
 
 .new-class {
@@ -417,12 +558,11 @@ export default {
 }
 
 .sprite_color {
-  background-color: #13A9E0;
+  background-color: #13a9e0;
   width: 13px;
   height: 13px;
   border-radius: 100%;
   z-index: 0 !important;
-
 }
 
 .sprite_value_unit {
@@ -437,7 +577,6 @@ export default {
   background: #f9f9f9;
   z-index: 1;
 }
-
 
 .cards {
   padding-left: 0 !important;
@@ -466,8 +605,7 @@ export default {
   border-radius: calc(var(--curve) * 1px);
   background-color: var(--surface-color);
   transform: translateY(100%);
-  transition: .2s ease-in-out;
-
+  transition: 0.2s ease-in-out;
 }
 
 .card__header {
@@ -480,7 +618,7 @@ export default {
   border-radius: calc(var(--curve) * 1px) 0 0 0;
   background-color: var(--surface-color);
   transform: translateY(-100%);
-  transition: .2s ease-in-out;
+  transition: 0.2s ease-in-out;
   background-color: rgb(211, 211, 211);
   border-top-left-radius: 10px;
   border-bottom-left-radius: 12px;
@@ -500,7 +638,6 @@ export default {
   bottom: 100%;
   right: 0;
   z-index: 1;
-
 }
 
 .card__arc path {
@@ -517,7 +654,7 @@ export default {
 
 .card__title {
   font-size: 1.5em;
-  margin: 0 0 .3em;
+  margin: 0 0 0.3em;
   color: #000000;
 }
 
@@ -525,12 +662,12 @@ export default {
   display: block;
   margin: 1em 0;
   font-family: "MockFlowFont";
-  font-size: .8em;
-  color: #D7BDCA;
+  font-size: 0.8em;
+  color: #d7bdca;
 }
 
 .card__status {
-  font-size: .9em;
+  font-size: 0.9em;
   color: #616161;
 }
 
@@ -547,18 +684,9 @@ export default {
   font-size: 11px;
 }
 
-
-
-
-
-
-
-
-
-
 .menu {
   position: absolute;
-  overflow: visible
+  overflow: visible;
 }
 
 .card {
