@@ -31,7 +31,7 @@ export interface IConfig {
 	temporality: ITemporality[];
 	source: ISource | ISource[];
 	imageMapping: { [key: string]: string };
-
+	typologiesSource: { context: string; category: string;};
 	
 }
 

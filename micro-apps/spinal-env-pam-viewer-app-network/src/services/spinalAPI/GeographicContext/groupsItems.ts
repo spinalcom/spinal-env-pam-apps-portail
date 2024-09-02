@@ -306,7 +306,7 @@ async function _getGroupsItemsRequest(buildingId: string, contextId: number, cat
 
 /////////////////////////////////////////////////////////////////////////////////////
 
-function getPositionMultiple(buildingId: string, dynamicIds : number[], type: string, size = 500) {
+function getPositionMultiple(buildingId: string, dynamicIds : number[], type: string, size = 200) {
 
    let apiRoute = "/api/v1/equipment/get_position_multiple";
    if (type === "geographicRoom") apiRoute = "/api/v1/room/get_position_multiple";

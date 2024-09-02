@@ -28,6 +28,7 @@ import { IPlayload, IPlayloadWithComponent } from "../interfaces/IPlayload";
 import { EmitterViewerHandler, VIEWER_ADD_SPRITE, VIEWER_INITIALIZED, VIEWER_OBJ_COLOR, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_START_LOAD_MODEL, ViewerEventWithData } from "spinal-viewer-event-manager";
 import { VIEWER_EVENTS } from "../events";
 import Vue from "vue";
+import { IConfig } from "micro-apps/spinal-context-group/src/interfaces";
 
 export class ViewerManager {
 	private static _instance: ViewerManager;
@@ -104,9 +105,6 @@ export class ViewerManager {
 	}
 
 	public async getViewerInfoMerged(argItem: IPlayload | IPlayload[], body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }): Promise<IViewInfoItemRes[]> {
-		// console.log("getViewerInfoMerged body" , body);
-		// console.log("getViewerInfoMerged argItem" , argItem);
-		
 		const datas = await this.getViewerInfo(argItem, undefined, body);
 		const res = [];
 
@@ -174,8 +172,6 @@ export class ViewerManager {
 	}
 
 	public fitToView(item: IPlayload) {
-
-		console.log("inside zoom0" , item);
 		return this._fctViewerIteract(VIEWER_OBJ_FIT_TO_VIEW, item);
 	}
 
@@ -221,7 +217,6 @@ export class ViewerManager {
 	private async _getAndFormatViewerInfos(item: IPlayloadWithComponent | IPlayloadWithComponent[], buildingId?: string, component?: Vue) {
 		item = Array.isArray(item) ? item : [item];
 		const data = await this.getViewerInfo(item, buildingId);
-
 		const obj = convertToObj(data);
 
 		return item.map((i) => ({
@@ -258,9 +253,7 @@ export class ViewerManager {
 		}
 		
 		if (!playload) return emitter.emit(eventName, []);
-		console.log("inside zoom1" , eventName , playload);
 		const data: IViewInfoItemRes[] = await this.getViewerInfoMerged(playload as IPlayload);
-		console.log("inside zoom2" , data);
 		const res = data.map((it) => {
 			return {
 				dbIds: it.dbIds,
@@ -268,8 +261,6 @@ export class ViewerManager {
 				modelId: (playload as IPlayload).floorId || (playload as IPlayload).id || (playload as IPlayload).dynamicId,
 			};
 		});
-
-		console.log("inside zoom3" , res);
 		
 
 		emitter.emit(eventName, res);

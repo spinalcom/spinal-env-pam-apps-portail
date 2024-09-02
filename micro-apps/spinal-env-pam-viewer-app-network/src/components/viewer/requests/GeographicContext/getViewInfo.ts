@@ -140,16 +140,6 @@ async function getFirstScene(spinalAPi: SpinalAPI, buildingId: string) {
   return sceneList?.scenes[0];
 }
 
-// export async function getAndFormatModels(res: IViewInfoTmpRes[]) {
-//   return res.map((it: IViewInfoTmpRes) => {
-//     console.log(it);
-//     return {
-//       id: it.bimFileId,
-//       dbIds: Array.from(it.dbIds),
-//     };
-//   });
-// }
-
 export function convertViewerInfoToObj(res: IViewInfoTmpRes[]) {
   return res.reduce((obj, item) => {
     obj[item.bimFileId] = item.dbIds;

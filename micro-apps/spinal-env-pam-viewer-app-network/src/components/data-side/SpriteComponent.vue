@@ -71,6 +71,7 @@ import lodash from "lodash";
 import { State } from "vuex-class";
 import { MutationTypes } from "../../services/store/appDataStore/mutations";
 // import { ActionTypes } from "../store/actions";
+import { IConfig } from "../../interfaces/IConfig";
 
 export default {
   props: {
@@ -83,7 +84,7 @@ export default {
       message: false,
       hints: true,
       dynamicStyle: {
-        border: "3px solid #F9F9F9",
+        border: "2px solid #F9F9F9",
         boxShadow: "none",
       },
       dataImageUrl: "",
@@ -92,19 +93,18 @@ export default {
     };
   },
   async mounted() {
-    // console.log("Sprite -mounted", this.data);
     const typologie = this.data.data.typologie || "default";
     this.dataImageUrl = await this.getImageUrl(typologie);
   },
   methods: {
     async getImageUrl(typologie) {
-      const imageMapping = {
-        Luminaire: require("../viewer/assets/Luminaire.png"),
-        Automate: require("../viewer/assets/Automate.png"),
-        Multicapteurs: require("../viewer/assets/Multicapteurs.png"),
-        Climatiseur: require("../viewer/assets/Climatiseur.png"),
-      };
-
+      // const imageMapping = {
+      //   Luminaire: require("../viewer/assets/Luminaire.png"),
+      //   Automate: require("../viewer/assets/Automate.png"),
+      //   Multicapteurs: require("../viewer/assets/Multicapteurs.png"),
+      //   Climatiseur: require("../viewer/assets/Climatiseur.png"),
+      // };
+      const imageMapping = this.data.imageMapping;
       const defaultImagePath = require("../viewer/assets/default.png");
 
       if (imageMapping.hasOwnProperty(typologie)) {
@@ -136,7 +136,7 @@ export default {
     },
     _isSelected() {
       this.dynamicStyle = {
-        border: "3px solid #F9F9F9",
+        border: "2px solid #F9F9F9",
         boxShadow: "0px 0px 10px 2px #00A2FF",
       };
     },
@@ -167,7 +167,7 @@ export default {
   /* animation: blinker 1s linear infinite; */
 }
 .blinker {
-  border: 2px solid #ff6f61; /* Initial border color */
+  border: 3px solid #d7270c; /* Initial border color */
   display: inline-block;
   box-sizing: border-box;
   animation: blink-border 1.5s infinite;
@@ -176,9 +176,9 @@ export default {
 @keyframes blink-border {
   0%,
   100% {
-    border-color: #ff6f61; /* Border color when visible */
+    border-color: #d7270c; /* Border color when visible */
   }
-  50% {
+  30% {
     border-color: transparent; /* Border color when invisible */
   }
 }

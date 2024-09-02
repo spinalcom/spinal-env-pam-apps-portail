@@ -135,10 +135,10 @@ export default {
 }
 
 .slide-down-anim {
-  animation: slide-down 1s both !important;
+  // animation: slide-down 1s both !important;
 }
 
 .slide-up-anim {
-  animation: slide-up-keyframes 1s both !important;
+  // animation: slide-up-keyframes 1s both !important;
 }
 </style>

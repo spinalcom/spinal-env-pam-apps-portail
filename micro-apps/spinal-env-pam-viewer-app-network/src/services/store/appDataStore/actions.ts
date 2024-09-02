@@ -39,6 +39,7 @@ import {
   getContext,
   getchildren,
   getMultipleChildrenRelationNode,
+  getGroupes,
   gethildrenRelationNode,
   readStaticDetailsMultiple,
   getMultipleParentRelationNode,
@@ -174,7 +175,6 @@ export const actions = {
       );
     }
     const contexts = await contextObjStore[buildingId].next();
-    //commit(MutationTypes.SET_FLOORS, { id: buildingId, items: floors.value });
     return contexts.value;
   },
     
@@ -200,7 +200,6 @@ export const actions = {
       );
     }
     const contexts = await contextObjStore[buildingId].next();
-    //commit(MutationTypes.SET_FLOORS, { id: buildingId, items: floors.value });
     return contexts.value;
   },
 
@@ -261,11 +260,9 @@ export const actions = {
     { commit }: AugmentedActionContextAppData,
     { buildingId, formattedData }: { buildingId: string; formattedData: any[] }
   ): Promise<any> {
-    console.log('arrivé dans l actio');
     const spinalAPI = SpinalAPI.getInstance();
     try {
       const result = await updateMultipleAttributes(buildingId, formattedData);
-      console.log('Mise à jour des attributs réussie:', result);
       return result;
     } catch (error) {
       console.error('Erreur lors de la mise à jour des attributs:', error);
@@ -301,7 +298,6 @@ export const actions = {
     const items = await ApiIteratorStore[
       ActionTypes.GET_EQUIPMENT_LIST_MULTIPLE
     ][buildingId].next();
-    // console.log('equipmentscall', items);
     return items?.value;
   },
     async [ActionTypes.GET_CHILDREN_BY_RELATION](
@@ -321,6 +317,7 @@ export const actions = {
         buildingId
       ] === 'undefined'
     ) {
+      
       ApiIteratorStore[ActionTypes.GET_CHILDREN_BY_RELATION][buildingId] =
         spinalAPI.createIteratorCall(
           gethildrenRelationNode,
@@ -333,7 +330,6 @@ export const actions = {
     const items = await ApiIteratorStore[
       ActionTypes.GET_CHILDREN_BY_RELATION
     ][buildingId].next();
-    // console.log('equipmentscall', items);
     return items?.value;
   },
        async [ActionTypes.RESET_API_ITERATOR_STORE](
@@ -359,17 +355,23 @@ export const actions = {
     delete ApiIteratorStore[ActionTypes.GET_ATTRIBUTE_LIST_MULTIPLE][buildingId];
           }
           if (
+    typeof ApiIteratorStore[ActionTypes.GET_GROUPES_CATEGORY] !== 'undefined' &&
+    typeof ApiIteratorStore[ActionTypes.GET_GROUPES_CATEGORY][buildingId] !== 'undefined'
+  ) {
+    delete ApiIteratorStore[ActionTypes.GET_GROUPES_CATEGORY][buildingId];
+          }
+          if (
     typeof ApiIteratorStore[ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE] !== 'undefined' &&
     typeof ApiIteratorStore[ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE][buildingId] !== 'undefined'
   ) {
     delete ApiIteratorStore[ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE][buildingId];
   }
-        // console.log(`ApiIteratorStore getchldren has been reset.`);
+      
   },
        
        async [ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE](
     { commit }: AugmentedActionContextAppData,
-    { patrimoineId, buildingId, relations, forceUpdate }: any
+    { patrimoineId, buildingId, relations, size, forceUpdate }: any
   ): Promise<IEquipmentItem[]> {
     const spinalAPI = SpinalAPI.getInstance();
     if (
@@ -390,19 +392,53 @@ export const actions = {
           patrimoineId,
           buildingId,
           relations,
+          size
         );
     }
+         console.log('ApiIteratorStore[ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE]',relations);
     const items = await ApiIteratorStore[
       ActionTypes.GET_PARENT_BY_RELATION_MULTIPLE
     ][buildingId].next();
-    // console.log('equipmentscall', items);
+    return items?.value;
+  },
+       
+       async [ActionTypes.GET_GROUPES_CATEGORY](
+    { commit }: AugmentedActionContextAppData,
+    { patrimoineId, buildingId, context,category, forceUpdate }: any
+  ): Promise<IEquipmentItem[]> {
+         const spinalAPI = SpinalAPI.getInstance();
+         
+    if (
+      typeof ApiIteratorStore[ActionTypes.GET_GROUPES_CATEGORY] ===
+      'undefined'
+    ) {
+      ApiIteratorStore[ActionTypes.GET_GROUPES_CATEGORY] = {};
+    }
+
+    if (
+      typeof ApiIteratorStore[ActionTypes.GET_GROUPES_CATEGORY][
+        buildingId
+      ] === 'undefined'
+    ) {
+      ApiIteratorStore[ActionTypes.GET_GROUPES_CATEGORY][buildingId] =
+        spinalAPI.createIteratorCall(
+          getGroupes,
+          patrimoineId,
+          buildingId,
+          context,
+          category,
+        );
+    }
+    const items = await ApiIteratorStore[
+      ActionTypes.GET_GROUPES_CATEGORY
+    ][buildingId].next();
     return items?.value;
   },
  
     
     async [ActionTypes.GET_CHILDREN_BY_RELATION_MULTIPLE](
     { commit }: AugmentedActionContextAppData,
-    { patrimoineId, buildingId, relations, forceUpdate }: any
+    { patrimoineId, buildingId, relations, size, forceUpdate }: any
   ): Promise<IEquipmentItem[]> {
     const spinalAPI = SpinalAPI.getInstance();
     if (
@@ -423,18 +459,18 @@ export const actions = {
           patrimoineId,
           buildingId,
           relations,
+          size
         );
     }
     const items = await ApiIteratorStore[
       ActionTypes.GET_CHILDREN_BY_RELATION_MULTIPLE
     ][buildingId].next();
-    // console.log('equipmentscall', items);
     return items?.value;
   },
     
-      async [ActionTypes.READ_STATIC_DETAILS_MULTIPLE](
+  async [ActionTypes.READ_STATIC_DETAILS_MULTIPLE](
     { commit }: AugmentedActionContextAppData,
-    { buildingId, dynamicIds, forceUpdate }: any
+    { buildingId, dynamicIds, size, forceUpdate }: any
   ): Promise<IEquipmentItem[]> {
     const spinalAPI = SpinalAPI.getInstance();
     if (
@@ -453,30 +489,21 @@ export const actions = {
         spinalAPI.createIteratorCall(
           readStaticDetailsMultiple,
           buildingId,
-          dynamicIds
+          dynamicIds,
+          size
         );
     }
     const items = await ApiIteratorStore[
       ActionTypes.READ_STATIC_DETAILS_MULTIPLE
     ][buildingId].next();
-        // console.log('equipmentscall', items);
-        
-//         const processEquipments = (items) => {
-//   return items.map(item => {
-//     const group = item.groupParents.find(parent => parent.type === item.type + "Group");
-//     return {
-//       dynamicId: item.dynamicId,
-//       group: group ? group.name : null
-//     };
-//   });
-        // };
+
         const processEquipments = (items) => {
   return items.map(item => {
     const group = item.groupParents.find(parent => parent.type === item.type + "Group");
     const endpoints = item.controlEndpoint.map(ce => ce.endpoints.map(endpoint => ({
       name: endpoint.name,
       value: endpoint.value
-    }))).flat(); // Flatten if there are multiple controlEndpoints
+    }))).flat(); 
     const controlEndpoints = item.endpoint;
 
     return {
@@ -488,17 +515,14 @@ export const actions = {
   });
 };
 
-// Assuming 'items' is the array you provided in the example
 const result = processEquipments(items.value);
 
-console.log("Call for statique deails",result);
-        // return items?.value;
         return result;
   },
 
   async [ActionTypes.GET_ATTRIBUTE_LIST_MULTIPLE](
     { commit }: AugmentedActionContextAppData,
-    { buildingId, dynamicIds, forceUpdate }: any
+    { buildingId, dynamicIds,size, forceUpdate }: any
   ): Promise<IEquipmentItem[]> {
     const spinalAPI = SpinalAPI.getInstance();
     if (
@@ -517,13 +541,13 @@ console.log("Call for statique deails",result);
         spinalAPI.createIteratorCall(
           getAttributsMultiple,
           buildingId,
-          dynamicIds
+          dynamicIds,
+          size
         );
     }
     const items = await ApiIteratorStore[
       ActionTypes.GET_ATTRIBUTE_LIST_MULTIPLE
     ][buildingId].next();
-    // console.log('equipmentscall', items);
     return items?.value;
   },
 
@@ -588,6 +612,7 @@ console.log("Call for statique deails",result);
     { commit, dispatch, state }: AugmentedActionContextAppData,
     playload: { onlyThisModel: boolean; config: IConfig; item: any }
   ): Promise<void> {
+    console.log('OPEN_VIEWER//////////////////////////////');
     try {
       const viewerInfo = playload.config.viewerInfo;
       const body = {
@@ -689,7 +714,7 @@ console.log("Call for statique deails",result);
     return ViewerManager.getInstance().addComponentAsSprites(
       items,
       buildingId,
-      component
+      component,
     );
   },
 
@@ -721,10 +746,4 @@ console.log("Call for statique deails",result);
   [ActionTypes.REMOVE_ALL_LINES]({ commit, dispatch, state }) {
     return ViewerManager.getInstance().removeAllLines();
   },
-  // [ActionTypes.ADD_LINES](
-  //   { commit, dispatch, state },
-  //   { source,destinations, buildingId }: any
-  // ) {
-  //   return ViewerManager.getInstance().addLines(source,destinations, buildingId);
-  // },
 };

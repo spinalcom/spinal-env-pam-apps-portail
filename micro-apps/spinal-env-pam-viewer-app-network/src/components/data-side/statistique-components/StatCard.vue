@@ -72,7 +72,7 @@ with this file. If not, see
         <div class="flip-card-back" v-if="showDetailsProp">
           <!-- <div style="width: 100%"> -->
           <div class="title-container">
-            <p class="stat-title">Status Overview</p>
+            <p class="stat-title">Typologie Overview</p>
             <div class="stat-num">
               <div class="app-button" @click="$emit('changeRoute', tickets)">
                 Tickets

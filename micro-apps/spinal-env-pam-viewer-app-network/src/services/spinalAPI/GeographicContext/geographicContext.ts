@@ -23,6 +23,7 @@
  */
 
 import { SpinalAPI } from '../SpinalAPI';
+import * as lodash from "lodash";
 import type {
   IBuildingItem,
   IZoneItem,
@@ -111,6 +112,45 @@ export async function getchildren(
   return result.data;
 }
 
+export async function getGroupes(
+  patrimoineId: string,
+  buildingId: string,
+  context: string,
+  category: string,
+): Promise<IEquipmentItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url_context_id = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    `api/v1/groupContext/list`
+  );
+
+ 
+  let result_context = await spinalAPI.get<IEquipmentItem[]>(url_context_id);
+  const context_id = result_context.data.find((c) => c.name === context).dynamicId;
+   const url_category_id = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    `api/v1/groupeContext/${context_id}/category_list`
+  );
+  let result_category = await spinalAPI.get<IEquipmentItem[]>(url_category_id);
+  const category_id = result_category.data.find((c) => c.name === category).dynamicId;
+  
+  const url = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    `api/v1/groupeContext/${context_id}/category/${category_id}/group_list`
+  );
+  let result = await spinalAPI.get<IEquipmentItem[]>(url);
+  //return list of names
+  const res = result.data.map((obj) => {
+    Object.assign(obj, {
+      patrimoineId,
+      buildingId,
+      color: '#2693ff',
+    });
+    return obj;
+  });
+  return res;
+}
+
 export async function getEquipments(
   patrimoineId: string,
   buildingId: string,
@@ -124,7 +164,7 @@ export async function getEquipments(
     `api/v1/room/${roomDynId}/equipement_list`
   );
   let result = await spinalAPI.get<IEquipmentItem[]>(url);
-  const res = result.data.map((obj) => {
+  const res = result.data.name.map((obj) => {
     Object.assign(obj, {
       patrimoineId,
       buildingId,
@@ -148,9 +188,7 @@ export async function getEquipmentListMultiple(
     `/api/v1/room/equipment_list_multiple`
   );
   const body = roomIds;
-  // console.log('body', body);
   let result = await spinalAPI.post(url, body);
-  // console.log('result', result.data);
   return result.data;
 }
 export async function gethildrenRelationNode(
@@ -166,9 +204,7 @@ export async function gethildrenRelationNode(
   );
   
   const body = [relation];
-  // console.log('body', body);
   let result = await spinalAPI.post(url, body);
-  // console.log('result', result.data);
   return result.data;
 }
 
@@ -176,121 +212,212 @@ export async function gethildrenRelationNode(
 export async function getMultipleParentRelationNode(
   patrimoineId: string,
   buildingId: string,
-  // nodeId: number,
-  // relation: any,
-  relations: { dynamicId: number, relation: any }[]
+  relations: { dynamicId: number, relation: any }[],
+  size = 200
 ): Promise<IEquipmentItem[]> {
-  let realresult;
-  const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrlWithPlatformId(
-    buildingId,
-    `/api/v1/node/parents_multiple`
+
+  const apiRoute = "/api/v1/node/parents_multiple";
+
+  // Divide the relations into chunks of the specified size
+  const promises = lodash.chunk(relations, size).map(chunk => 
+    getMultipleParentRelationNodeRequest(buildingId, chunk, apiRoute)
   );
+
+  return Promise.allSettled(promises).then((results) => {
+    // Flatten the array of results and filter only fulfilled promises
+    return results.reduce((list, { status, value }) => {
+      if (status === "fulfilled") list.push(...value);
+      return list;
+    }, []);
+  });
+}
+
+async function getMultipleParentRelationNodeRequest(
+  buildingId: string,
+  relations: { dynamicId: number, relation: any }[],
+  apiRoute: string
+): Promise<IEquipmentItem[]> {
+
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, apiRoute);
   
   let body = relations.map(({ dynamicId, relation }) => ({ dynamicId, relation }));
   let result = await spinalAPI.post(url, body);
   let parents = result.data;
+  
   const neededParents = parents.map(parent => {
     return {
-        dynamicId: parent.dynamicId,
-        nodes: parent.nodes
-            .filter(node => node.type === "networkTreeContext")
-            .map(node => node.name)
+      dynamicId: parent.dynamicId,
+      nodes: parent.nodes
+        .filter(node => node.type === "networkTreeContext")
+        .map(node => node.name)
     };
-}).filter(parent => parent.nodes.length > 0);
+  }).filter(parent => parent.nodes.length > 0);
+  console.log('ApiIteratorStore[ActionTypes.GET_PARENTS_BY_RELATION]',neededParents);
   return neededParents;
 }
 
 
+
+
+// export async function getMultipleChildrenRelationNode(
+//   patrimoineId: string,
+//   buildingId: string,
+//   relations: { dynamicId: number, relation: any }[]
+// ): Promise<IEquipmentItem[]> {
+//   let realresult;
+//   const spinalAPI = SpinalAPI.getInstance();
+//   const url = spinalAPI.createUrlWithPlatformId(
+//     buildingId,
+//     `/api/v1/node/children_multiple `
+//   );
+  
+//   let body = relations.map(({ dynamicId, relation }) => ({ dynamicId, relation }));
+//   let result = await spinalAPI.post(url, body);
+//   let luminairechildrenbyrelation = result.data;
+//   let nextIds = luminairechildrenbyrelation.map((r) =>
+//     r.nodes.map((e) => e.dynamicId)
+//   );
+//   nextIds = nextIds.flat();
+//   relations = [];
+//   relations = nextIds.map((r) => {
+//     return { dynamicId: r, relation: ["hasNetworkTreeBimObject"] };
+//   });
+  
+//   realresult = result.data;
+//   realresult = realresult.flat();
+//   realresult.forEach((item) => {
+//     item.nodes = item.nodes.filter((node) => node.type === "BIMObject");
+//   });
+
+//   //Recursive function to get all the children of the children
+//   while (relations.length > 0) {
+//     body = relations.map(({ dynamicId, relation }) => ({ dynamicId, relation }));
+//     result = await spinalAPI.post(url, body);
+//     let newNodes: any[] = [];
+//       result.data.forEach((e: any) => {
+//         // if (e.nodes.some((node: any) => node.type === "BIMObject")) {
+//         if (Array.isArray(e.nodes) && e.nodes.some((node: any) => node.type === "BIMObject")) {
+
+//          newNodes.push(e);
+//       }
+//     });
+
+//     //Removing nodes that are not BIMObject
+//     let listOfObjects: any[] = []; 
+//     let newnodesFiltered: { dynamicId: number, nodes: any[] }; 
+
+//     newNodes.forEach((e: any) => {
+//       newnodesFiltered = {
+//         dynamicId: e.dynamicId,
+//         nodes: [],
+//       };
+//       e.nodes.forEach((node: any) => {
+//         if (node.type === "BIMObject") {
+//           newnodesFiltered.nodes.push(node);
+//         }
+//       });
+//       listOfObjects.push(newnodesFiltered);
+//     });
+
+//     //getting new relations for the next iteration
+//       nextIds = listOfObjects.map((r) =>
+//         r.nodes.map((e) => e.dynamicId)
+//       );
+//       nextIds = nextIds.flat();
+//       relations = [];
+//       relations = nextIds.map((r) => {
+//         return { dynamicId: r, relation: ["hasNetworkTreeBimObject"] };
+//       });
+    
+//     //concatenating the new nodes to the real result ones
+//     listOfObjects.forEach((obj: any) => {
+//       findAndAppendNodes(obj.dynamicId, realresult, obj.nodes);
+//     });
+//   }
+//   console.log('LAMIIIIIIIIIIIIIIIIIIIINE',realresult);
+
+//   return realresult;
+// }
 export async function getMultipleChildrenRelationNode(
   patrimoineId: string,
   buildingId: string,
-  // nodeId: number,
-  // relation: any,
-  relations: { dynamicId: number, relation: any }[]
+  relations: { dynamicId: number, relation: any }[],
+  size = 1
 ): Promise<IEquipmentItem[]> {
-  let realresult;
+  let realresult: any[] = [];
   const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrlWithPlatformId(
-    buildingId,
-    `/api/v1/node/children_multiple `
+  const apiRoute = `/api/v1/node/children_multiple`;
+
+  // Function to process each chunk of relations
+  async function processChunk(chunkRelations: { dynamicId: number, relation: any }[]) {
+    const url = spinalAPI.createUrlWithPlatformId(buildingId, apiRoute);
+    let body = chunkRelations.map(({ dynamicId, relation }) => ({ dynamicId, relation }));
+    let result = await spinalAPI.post(url, body);
+    return result.data;
+  }
+
+  // Process the initial chunk of relations
+  let results = await Promise.all(
+    lodash.chunk(relations, size).map(chunk => processChunk(chunk))
   );
-  
-  let body = relations.map(({ dynamicId, relation }) => ({ dynamicId, relation }));
-  // console.log('body', body);
-  let result = await spinalAPI.post(url, body);
-  // console.log('result from function', result.data);
-  let luminairechildrenbyrelation = result.data;
-  let nextIds = luminairechildrenbyrelation.map((r) =>
-    r.nodes.map((e) => e.dynamicId)
-  );
-  nextIds = nextIds.flat();
-  // console.log('nextIds', nextIds);
-  relations = [];
-  relations = nextIds.map((r) => {
-    return { dynamicId: r, relation: ["hasNetworkTreeBimObject"] };
-  });
-  // console.log('relations', relations);
-  realresult = result.data;
-  realresult = realresult.flat();
-  realresult.forEach((item) => {
-    item.nodes = item.nodes.filter((node) => node.type === "BIMObject");
+
+  results = results.flat();
+
+  // Extract next level dynamic IDs and filter for "BIMObject" type nodes
+  let nextIds = results
+    .map(r => r.nodes.map(e => e.dynamicId))
+    .flat();
+  realresult = results.flat();
+  realresult.forEach(item => {
+    item.nodes = item.nodes.filter(node => node.type === "BIMObject");
   });
 
-  //Recursive function to get all the children of the children
-  while (relations.length > 0) {
-    body = relations.map(({ dynamicId, relation }) => ({ dynamicId, relation }));
-    result = await spinalAPI.post(url, body);
-    // console.log('result from function', result.data);
+  // Continue processing while there are still relations to process
+  while (nextIds.length > 0) {
+    relations = nextIds.map(dynamicId => {
+      return { dynamicId, relation: ["hasNetworkTreeBimObject"] };
+    });
+
+    results = await Promise.all(
+      lodash.chunk(relations, size).map(chunk => processChunk(chunk))
+    );
+
+    results = results.flat();
     let newNodes: any[] = [];
-      result.data.forEach((e: any) => {
-      // console.log('e', e);
-      if (e.nodes.some((node: any) => node.type === "BIMObject")) {
-         newNodes.push(e);
+    results.forEach(e => {
+      if (Array.isArray(e.nodes) && e.nodes.some(node => node.type === "BIMObject")) {
+        newNodes.push(e);
       }
     });
-    // console.log('newnodesindxes', newNodes);
 
-    //Removing nodes that are not BIMObject
-    let listOfObjects: any[] = []; 
-    let newnodesFiltered: { dynamicId: number, nodes: any[] }; 
-
-    newNodes.forEach((e: any) => {
-      newnodesFiltered = {
+    // Remove nodes that are not of type "BIMObject" and prepare new relations
+    let listOfObjects: any[] = [];
+    newNodes.forEach(e => {
+      let newnodesFiltered = {
         dynamicId: e.dynamicId,
         nodes: [],
       };
-      e.nodes.forEach((node: any) => {
+      e.nodes.forEach(node => {
         if (node.type === "BIMObject") {
           newnodesFiltered.nodes.push(node);
         }
       });
       listOfObjects.push(newnodesFiltered);
     });
-    // console.log('listOfObjects ', listOfObjects);
 
-    //getting new relations for the next iteration
-      nextIds = listOfObjects.map((r) =>
-        r.nodes.map((e) => e.dynamicId)
-      );
-      nextIds = nextIds.flat();
-      // console.log('nextIds', nextIds);
-      relations = [];
-      relations = nextIds.map((r) => {
-        return { dynamicId: r, relation: ["hasNetworkTreeBimObject"] };
-      });
-    // console.log('relations', relations);
-    
-    //concatenating the new nodes to the real result ones
-    listOfObjects.forEach((obj: any) => {
+    nextIds = listOfObjects.map(r => r.nodes.map(e => e.dynamicId)).flat();
+
+    // Concatenate the new nodes to the existing results
+    listOfObjects.forEach(obj => {
       findAndAppendNodes(obj.dynamicId, realresult, obj.nodes);
     });
-    // console.log(realresult);
   }
-  
-
   return realresult;
 }
+
+
+
 
 function findAndAppendNodes(dynamicId: number, nodes: any[], nodesToAdd: any[]) {
     for (let node of nodes) {
@@ -312,106 +439,96 @@ function findAndAppendNodes(dynamicId: number, nodes: any[], nodesToAdd: any[]) 
     return false;
 }
 
+ export async function getAttributsMultiple(buildingId: string, dynamicIds : number[], size = 200) {
 
-// export async function getMultipleChildrenRelationNode(
-//   patrimoineId: string,
-//   buildingId: string,
-//   relations: { dynamicId: number, relation: any }[]
-// ): Promise<IEquipmentItem[]> {
-//   const spinalAPI = SpinalAPI.getInstance();
-//   const url = spinalAPI.createUrlWithPlatformId(
-//     buildingId,
-//     `/api/v1/node/children_multiple`
-//   );
+   let apiRoute = "/api/v1/node/attribute_list_multiple";
 
-//   const getChildrenRecursive = async (dynamicId: number): Promise<any> => {
-//     const body = [{ dynamicId }];
-//     const result = await spinalAPI.post(url, body);
-//     const children = result.data[0].nodes;
-//     const childrenPromises = children.map(async (child: any) => {
-//       if (child.nodes && child.nodes.length > 0) {
-//         // Recursively get children if the node has children
-//         return getChildrenRecursive(child.dynamicId);
-//       }
-//       return child;
-//     });
-//     return Promise.all(childrenPromises);
-//   };
+   const promises = lodash.chunk(dynamicIds, size).map(ids => getAttributsMultipleRequest(buildingId, ids, apiRoute));
 
-//   const relationsPromises = relations.map(async ({ dynamicId, relation }) => {
-//     const children = await getChildrenRecursive(dynamicId);
-//     return { dynamicId, nodes: children };
-//   });
-
-//   const result = await Promise.all(relationsPromises);
-//   return result.data;
-// }
-
-
-export async function getAttributsMultiple(
-  buildingId: string,
-  dynamicIds: number[]
-): Promise<IEquipmentItem[]> {
-  const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrlWithPlatformId(
-    buildingId,
-    `/api/v1/node/attribute_list_multiple`
-  );
-  const body = dynamicIds;
-  // console.log('body', body);
-  let result = await spinalAPI.post(url, body);
-  // console.log('result', result.data);
-  return result.data;
+   return Promise.allSettled(promises).then((result) => {
+      return result.reduce((list, { status, value }) => {
+        if (status === "fulfilled") list.push(...value);
+         return list;
+     }, []) 
+   })
 }
+
+async function getAttributsMultipleRequest(buildingId: string, dynamicIds : string[],  apiRoute: string) {
+   const spinalAPI = SpinalAPI.getInstance();
+   const url = spinalAPI.createUrlWithPlatformId(buildingId, apiRoute);
+  let result = await spinalAPI.post<any>(url, dynamicIds);
+  
+   return result.data || [];
+}
+
 
 export async function readStaticDetailsMultiple(
   buildingId: string,
-  dynamicIds: number[]
+  dynamicIds: number[],
+  size = 200
+): Promise<IEquipmentItem[]> {
+  const apiRoute = `/api/v1/equipment/read_static_details_multiple`;
+
+  // Divide the dynamicIds into chunks and map each chunk to a request promise
+  const promises = lodash.chunk(dynamicIds, size).map(ids => readStaticDetailsMultipleRequest(buildingId, ids, apiRoute));
+
+  // Wait for all promises to settle, then collect results from the fulfilled promises
+  return Promise.allSettled(promises).then((result) => {
+    return result.reduce((list, { status, value }) => {
+      if (status === "fulfilled") list.push(...value);
+      return list;
+    }, []);
+  });
+}
+
+async function readStaticDetailsMultipleRequest(
+  buildingId: string,
+  dynamicIds: number[],
+  apiRoute: string
 ): Promise<IEquipmentItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrlWithPlatformId(
-    buildingId,
-    `/api/v1/equipment/read_static_details_multiple`
-  );
-  const body = dynamicIds;
-  // console.log('body', body);
-  let result = await spinalAPI.post(url, body);
-  // console.log('READ STAT', result.data);
-  return result.data;
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, apiRoute);
+  let result = await spinalAPI.post(url, dynamicIds);
+  return result.data || [];
 }
 
 
 export async function updateMultipleAttributes(
   buildingId: string,
-  formattedData: any[]
-): Promise<any> {
-  console.log('arrivé dans node attribut');
+  formattedData: any[],
+  size = 200
+): Promise<any[]> {
 
+  const apiRoute = '/api/v1/node/attribute/update_multiple';
+
+  // Divide the formattedData into chunks and map each chunk to a request promise
+  const promises = lodash.chunk(formattedData, size).map(dataChunk => updateMultipleAttributesRequest(buildingId, dataChunk, apiRoute));
+
+  // Wait for all promises to settle, then collect results from the fulfilled promises
+  return Promise.allSettled(promises).then((result) => {
+    return result.reduce((list, { status, value }) => {
+      if (status === "fulfilled") list.push(...value);
+      return list;
+    }, []);
+  });
+}
+
+async function updateMultipleAttributesRequest(
+  buildingId: string,
+  formattedDataChunk: any[],
+  apiRoute: string
+): Promise<any[]> {
   const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrlWithPlatformId(
-    buildingId,
-    '/api/v1/node/attribute/update_multiple'
-  );
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, apiRoute);
 
   try {
-    const response = await spinalAPI.post<any>(url, formattedData);
-    console.log('fin de node attribut');
-    return response.data;
+    const response = await spinalAPI.post<any[]>(url, formattedDataChunk);
+    return response.data || [];
   } catch (error) {
-    console.error('Erreur lors de la mise à jour des attributs:', error);
+    console.error('Error updating attributes:', error);
     throw error;
   }
 }
-
-// export async function getEquipmentListMultiple(
-//   roomIds: number[]
-// ): Promise<IEquipmentItem[]> {
-//   const spinalAPI = SpinalAPI.getInstance();
-//   console.log('roomIds', roomIds);
-//   const url = spinalAPI.createUrl('api/v1/room/equipment_list_multiple');
-//   let result = await spinalAPI.post<IEquipmentItem[]>(url, { roomIds });
-//   return result.data;
-// }
 
 export async function getFloorRef(
   platformId: string,

@@ -95,12 +95,6 @@ with this file. If not, see
         }"
         class="data-container"
       >
-        <!-- <div> -->
-        <!-- <HardwareContext
-          :data="hardwareContextData"
-          :selectedDynamicId="selectedHardwareContext"
-          @update-selected="updateSelectedContext"
-        /> -->
         <NodeItem
           :data="myowndata"
           :DActive="DActive"
@@ -163,6 +157,7 @@ import SpriteComponentLuminaire from "./SpriteComponentLuminaire.vue";
 import { Console, warn } from "console";
 import HardwareContext from "./HardwareContext.vue";
 import { h } from "vue";
+import { config } from "process";
 
 @Component({
   components: { NodeItem, HardwareContext },
@@ -182,6 +177,7 @@ class dataSideApp extends Vue {
   retry: Function;
   spriteIds: number[] = [];
   myowndata: any[];
+  groupes: any[];
 
   hardwareContextData: any[] = [];
   equipementsXYZ: {
@@ -245,18 +241,23 @@ class dataSideApp extends Vue {
       //   patrimoineId,
       //   this.selectedZone.dynamicId
       // );
-
+      this.groupes = await this.getGroupes(
+        buildingId,
+        patrimoineId,
+        this.config.typologiesSource.context,
+        this.config.typologiesSource.category
+      );
       const childrenData = await this.getChildrenByRelation(
         buildingId,
         patrimoineId,
         selectedId
       );
+
       const luminaireChildren = await this.getLuminaireChildren(
         buildingId,
         patrimoineId,
         childrenData
       );
-
       const attributesResult = await this.getAttributeList();
 
       const Typologies = await this.getElementTypologie();
@@ -279,6 +280,7 @@ class dataSideApp extends Vue {
         this.equipementsXYZ
       );
       this.myowndata = mergedList;
+      console.log("Postions", this.equipementsXYZ);
       // console.log(mergedList);
       this.pageSate = PAGE_STATES.loaded;
     } catch (err) {
@@ -367,6 +369,7 @@ class dataSideApp extends Vue {
     ];
     let equivalentHardwareContext = await Promise.all(automates2);
     equivalentHardwareContext = equivalentHardwareContext.flat();
+    console.log("equivalentHardwareContext", equivalentHardwareContext);
     await this.getHDcontexts(
       buildingId,
       patrimoineId,
@@ -384,6 +387,27 @@ class dataSideApp extends Vue {
       buildingId,
     });
     return;
+  }
+  async getGroupes(
+    buildingId: string | null,
+    patrimoineId: any,
+    context: string,
+    category: string
+  ) {
+    this.resetContext(buildingId);
+    let groupes: any = [];
+    groupes = [
+      this.$store.dispatch(ActionTypes.GET_GROUPES_CATEGORY, {
+        buildingId,
+        patrimoineId,
+        context: context,
+        category: category,
+      }),
+    ];
+    let items = await Promise.all(groupes);
+    items = items.flat();
+    const filteredNames = items.map((item) => item.name);
+    return filteredNames;
   }
 
   async getChildrenByRelation(
@@ -426,8 +450,10 @@ class dataSideApp extends Vue {
         buildingId,
         patrimoineId,
         relations: relations,
+        size: 200,
       }),
     ];
+
     let contextParentByRelation = await Promise.all(luminaireChildren);
     contextParentByRelation = contextParentByRelation.flat();
     this.hardwareContextData = contextParentByRelation;
@@ -451,6 +477,7 @@ class dataSideApp extends Vue {
         buildingId,
         patrimoineId,
         relations: relations,
+        size: 1,
       }),
     ];
     let luminaireChildrenByRelation = await Promise.all(luminaireChildren);
@@ -485,6 +512,7 @@ class dataSideApp extends Vue {
       this.$store.dispatch(ActionTypes.READ_STATIC_DETAILS_MULTIPLE, {
         buildingId: localStorage.getItem("idBuilding"),
         dynamicIds: this.spriteIds,
+        size: 20,
       }),
     ];
     const attributesResult = await Promise.all(attributes);
@@ -498,6 +526,7 @@ class dataSideApp extends Vue {
       this.$store.dispatch(ActionTypes.GET_ATTRIBUTE_LIST_MULTIPLE, {
         buildingId: localStorage.getItem("idBuilding"),
         dynamicIds: this.spriteIds,
+        size: 200,
       }),
     ];
     const attributesResult = await Promise.all(attributes);
@@ -702,15 +731,16 @@ class dataSideApp extends Vue {
       node.status = node.self_status;
     }
 
-    // const typologies = ["Luminaire", "Automate", "Multisensor", "Climatiseur"];
-    // const randomIndex = Math.floor(Math.random() * typologies.length);
-    // node.typologie = typologies[randomIndex];
-
     const matchingTypology = typologiesList.find(
       (typology) => typology.dynamicId === node.dynamicId
     );
     if (matchingTypology) {
-      node.typologie = matchingTypology.group;
+      const exists = this.groupes.includes(matchingTypology.group);
+      if (!exists) {
+        node.typologie = "Inconnue";
+      } else {
+        node.typologie = matchingTypology.group;
+      }
     }
   }
 
@@ -726,7 +756,6 @@ class dataSideApp extends Vue {
     }
     this.isBuildingSelected = false;
     this.myowndata = [];
-    // this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
     this.retriveData(this.selectedHardwareContext);
   }
 
@@ -738,7 +767,6 @@ class dataSideApp extends Vue {
     }
     this.isBuildingSelected = false;
     this.myowndata = [];
-    // this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
     const buildingId = localStorage.getItem("idBuilding");
     const patrimoineId = this.getPatrimoineId();
     const hardwareContextId = await this.getHardwareContextByRelation(
@@ -746,9 +774,8 @@ class dataSideApp extends Vue {
       patrimoineId,
       this.selectedZone.dynamicId
     );
-
-    // this.retriveData(hardwareContextId);
   }
+
   callCard(items: any[]) {
     console.log("call card");
     this.$store.dispatch(ActionTypes.REMOVE_CARDS);
@@ -757,15 +784,16 @@ class dataSideApp extends Vue {
       buildingId: localStorage.getItem("idBuilding"),
       component: SpriteCardComponent,
     });
+    // this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
     return;
   }
 
   @Watch("data")
   async watchData() {
     console.log("watchData");
+    this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
     // if (this.config.sprites) {
     this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-    this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
     // }
     if (this.isBuildingSelected) return;
     const items = new Array();
@@ -780,6 +808,7 @@ class dataSideApp extends Vue {
         name: this.equipementsXYZ[key].name,
         status: this.equipementsXYZ[key].status,
         self_status: this.equipementsXYZ[key].self_status,
+        imageMapping: this.config.imageMapping,
         position: new THREE.Vector3(
           this.equipementsXYZ[key].X,
           this.equipementsXYZ[key].Y,
@@ -787,19 +816,13 @@ class dataSideApp extends Vue {
         ),
       });
     }
-    console.log("items", items);
-    //await this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
+
+    console.log("itemsiiiiiiiiiiiiiiiiii", items);
     this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
       items: items.flat(),
       buildingId: localStorage.getItem("idBuilding"),
       component: SpriteComponent,
     });
-    // this.callCard(items);
-    // this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-    //   items: items.flat(),
-    //   buildingId: localStorage.getItem("idBuilding"),
-    //   component: SpriteCardComponent,
-    // });
 
     const buildingId = localStorage.getItem("idBuilding");
     this.$store.dispatch(ActionTypes.COLOR_ITEMS, {

@@ -81,7 +81,7 @@ export class ViewerUtils {
 		).then((result) => {
 			ModelManager.getInstance().addNewModel((data as any).item?.dynamicId, result);
 			this.setWaitBeforeDisplaySprites(false);
-
+			//HEREE
 			this.setCamera(viewer, EViewerSetCamera.top);
 			return result;
 		});
@@ -313,8 +313,8 @@ export class ViewerUtils {
 			SpriteManager.getInstance().addComponentAsSprite(viewer, result);
 		});
 	}
-	public async removeAllLines(viewer: Autodesk.Viewing.Viewer3D) {
-		await this._waitModelIsLoading();
+	public removeAllLines(viewer: Autodesk.Viewing.Viewer3D) {
+		// await this._waitModelIsLoading();
 			SpriteManager.getInstance().removeAllLines(viewer);
 	}
 

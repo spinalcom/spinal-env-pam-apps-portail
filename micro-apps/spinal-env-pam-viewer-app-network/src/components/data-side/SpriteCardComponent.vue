@@ -31,7 +31,12 @@
           <div class="icons">
             <div :title="data.name" class="logo">
               {{ data.name }}
+              <br />
+              <p style="font-size: 0.7rem; margin-top: 7px; font-weight: 700">
+                Status: {{ data.status }}
+              </p>
             </div>
+
             <div
               style="
                 justify-content: center;
@@ -43,25 +48,13 @@
                 height: 16px;
                 position: absolute;
                 right: 80px;
-                font-size: 17px;
+                top: 10px;
+                font-size: 0.9rem;
                 transform: translateY(-3px);
               "
               @click="onClickNavigate()"
             >
               &#x21AA;
-            </div>
-
-            <div class="social-media">
-              <div v-if="useFullDAta && useFullDAta.attributsList">
-                <div
-                  v-for="attribut in useFullDAta.attributsList"
-                  :key="attribut.label"
-                >
-                  <div style="margin-top: 4px" v-if="attribut.label === 'area'">
-                    {{ parseFloat(attribut.value).toFixed(1) }}m²
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -86,7 +79,6 @@
                 font-weight: bold;
                 width: calc(50% - 20px);
                 margin: 5px;
-                overflow: hidden;
                 max-height: 100px;
                 flex-grow: 1;
                 flex-basis: calc(50% - 20px);
@@ -116,26 +108,59 @@
                   border-bottom-right-radius: 5px;
                   white-space: nowrap;
                   text-overflow: ellipsis;
-                  overflow: hidden;
                 "
               >
                 {{ roundValue(endpoint.value) }}
               </div>
             </div>
-            <!-- <div
-              v-for="(item, index) in data.data.endpoints"
-              :key="index"
-              :style="{
-                borderRight: '1px solid rgb(215, 215, 215)',
-                borderTop: '1px solid rgb(215, 215, 215)',
-                backgroundColor: 'rgb(230, 230, 230)',
-                fontWeight: 'bold',
-              }"
-              class="item"
+            <div
+              style="width: 100%; height: 2px; background-color: #14202c"
+            ></div>
+            <!-- <div>Control End Points</div> -->
+            <div
+              v-for="endpoint in data.data.controlEndpoint"
+              :key="endpoint.name"
+              style="
+                border: 1px solid #14202c;
+                border-radius: 5px;
+                font-size: 11px;
+                font-weight: bold;
+                width: calc(50% - 20px);
+                margin: 5px;
+                max-height: 100px;
+                flex-grow: 1;
+                flex-basis: calc(50% - 20px);
+              "
             >
-              <span class="big-text">{{ roundValue(item.value) }}</span>
-              <span class="regular-text">{{ item.name }} {{ item.unit }}</span>
-            </div> -->
+              <div
+                style="
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  color: white;
+                  background: #14202c;
+                "
+              >
+                {{ endpoint.name.toUpperCase() }}
+              </div>
+              <div
+                :title="endpoint.value"
+                style="
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  color: #14202c;
+                  font-size: 13px;
+                  background-color: white;
+                  border-bottom-left-radius: 5px;
+                  border-bottom-right-radius: 5px;
+                  white-space: nowrap;
+                  text-overflow: ellipsis;
+                "
+              >
+                {{ roundValue(endpoint.value) }}
+              </div>
+            </div>
           </div>
         </div>
         <div
@@ -147,23 +172,7 @@
             justify-content: center;
             transform: translate(0, 10px);
           "
-        >
-          <button
-            v-for="app in useFullDAta.app"
-            style="
-              background-color: #14202c;
-              color: white;
-              width: 50%;
-              font-weight: bold;
-              border-radius: 5px;
-              font-size: 12px;
-              margin: 4px;
-            "
-            @click.stop="changeRoute(app.id)"
-          >
-            {{ app.value }}
-          </button>
-        </div>
+        ></div>
 
         <div class="bottom-section">
           <!-- <div
@@ -196,6 +205,7 @@ import {
 export default {
   props: {
     data: {},
+    changeRoute: Function,
   },
   filters: {
     round(value) {
@@ -360,7 +370,12 @@ export default {
     },
 
     onClickNavigate() {
-      console.log("click navigate");
+      console.log("click navigate", this.config);
+      if (this.changeRoute) {
+        this.changeRoute(this.data.app.id);
+      } else {
+        console.log("changeRoute method is not passed.");
+      }
       const emitterHandler = EmitterViewerHandler.getInstance();
       console.log(emitterHandler);
       const descriptionApp =
@@ -794,16 +809,11 @@ export default {
 .card .top-section .icons .logo {
   height: 100%;
   aspect-ratio: 1;
-  /* padding:  */
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-weight: 15px;
+  font-weight: 500;
   color: #14202c;
-  font-weight: bold;
-  font-size: 15;
-  margin-top: 6px;
-  /* background-color: red; */
-
+  font-size: 0.75rem;
   overflow: hidden;
   width: 60%;
 }

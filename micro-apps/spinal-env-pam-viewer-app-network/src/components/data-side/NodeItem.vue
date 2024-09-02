@@ -32,23 +32,16 @@ with this file. If not, see
     <div :class="fullDataClass">
       <div class="stat-hide-container">
         <div class="header-title">Analyse Statistique</div>
-        <div>
+        <div @click="toggleStats" style="display: flex; flex-direction: row">
           <div
-            v-if="!statsVisible"
-            @click="toggleStats(true)"
-            style="display: flex; flex-direction: row"
-          >
-            <div title="Afficher les statistiques" class="show-img"></div>
-            <!-- <p>Afficher</p> -->
-          </div>
-          <div
-            v-if="statsVisible"
-            @click="toggleStats(false)"
-            style="display: flex; flex-direction: row"
-          >
-            <!-- <p>Masquer</p> -->
-            <div title="Masquer les statistiques" class="hide-img"></div>
-          </div>
+            :title="
+              statsVisible
+                ? 'Masquer les statistiques'
+                : 'Afficher les statistiques'
+            "
+            class="toggle-img"
+            :class="{ rotated: statsVisible }"
+          ></div>
         </div>
       </div>
       <div class="stat">
@@ -63,10 +56,7 @@ with this file. If not, see
             :showDetailsProp.sync="showDetailsProp"
           ></StatCard>
         </div>
-        <div
-          class="stat-card2"
-          :style="{ height: statsVisible ? '150px' : '0px' }"
-        >
+        <div class="stat-card2" :style="{ height: false ? '150px' : '0px' }">
           <TypeCard
             :dataprop="data"
             :showDetailsProp.sync="showDetailsProp"
@@ -195,9 +185,10 @@ class NodeItem extends Vue {
 
   updateSelectedContext(dynamicId: number) {
     this.$emit("updateSelectedHardwareContext", dynamicId);
+    this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
   }
   toggleStats(show: boolean) {
-    this.statsVisible = show;
+    this.statsVisible = !this.statsVisible;
   }
   toggleFullView() {
     console.log(
@@ -432,7 +423,7 @@ export default NodeItem;
   align-items: center;
 }
 .stat-card {
-  width: 70%;
+  width: 100%;
   background-color: #f5f5f5;
   border-radius: 10px;
   margin-top: 2px;
@@ -443,7 +434,7 @@ export default NodeItem;
   margin-bottom: 10px;
 }
 .stat-card2 {
-  width: 28%;
+  width: 0%;
   background-color: #f5f5f5;
   border-radius: 10px;
   margin-top: 2px;
@@ -518,20 +509,39 @@ export default NodeItem;
 .stat-hide-container p:last-child {
   display: inline-block;
 }
-.show-img {
+// .show-img {
+//   height: 15px;
+//   width: 15px;
+//   background-image: url("./assets/right-blue.svg");
+//   background-size: contain;
+//   background-position: center;
+//   cursor: pointer;
+//   transform: rotate(90deg);
+// }
+// .hide-img {
+//   height: 15px;
+//   width: 15px;
+//   background-image: url("./assets/right-blue.svg");
+//   background-size: contain;
+//   background-position: center;
+//   cursor: pointer;
+//   transform: rotate(270deg);
+// }
+.toggle-img {
   height: 15px;
   width: 15px;
-  background-image: url("./assets/show.png");
+  background-image: url("./assets/right-blue.svg");
   background-size: contain;
   background-position: center;
   cursor: pointer;
+  transition: transform 0.3s ease-in-out;
 }
-.hide-img {
-  height: 15px;
-  width: 15px;
-  background-image: url("./assets/hide.png");
-  background-size: contain;
-  background-position: center;
-  cursor: pointer;
+
+.toggle-img.rotated {
+  transform: rotate(270deg);
+}
+
+.toggle-img:not(.rotated) {
+  transform: rotate(90deg);
 }
 </style>

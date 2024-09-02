@@ -170,12 +170,35 @@ class TreeTable extends Vue {
   }
   filterNodes() {
     const query = this.searchQuery.toLowerCase();
-    this.flattenedData = this.flattenedDataBackup.filter(
+
+    // Reset flattenedData to its backup
+    this.flattenedData = [...this.flattenedDataBackup];
+
+    // Find all matching nodes
+    const matchedNodes = this.flattenedDataBackup.filter(
       (node) =>
         node.name.toLowerCase().includes(query) ||
         node.typologie.toLowerCase().includes(query)
     );
+
+    // Find all parent nodes for each matched node
+    const nodesToShow = new Set<number | null>();
+    matchedNodes.forEach((matchedNode) => {
+      let currentNode: FlattenedNode | undefined = matchedNode;
+      while (currentNode) {
+        nodesToShow.add(currentNode.dynamicId);
+        currentNode = this.flattenedDataBackup.find(
+          (node) => node.dynamicId === currentNode?.parentDynamicId
+        );
+      }
+    });
+
+    // Filter the flattenedData to only include the nodes that should be shown
+    this.flattenedData = this.flattenedDataBackup.filter((node) =>
+      nodesToShow.has(node.dynamicId)
+    );
   }
+
   watch: {
     searchQuery: "filterNodes";
   };
@@ -228,6 +251,7 @@ class TreeTable extends Vue {
         String(node.dynamicId),
       ]);
       EventBus.$emit("on-node-click", node.dynamicId);
+      this.showCard(node);
     }
     if (type === 1) {
       this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
@@ -238,12 +262,12 @@ class TreeTable extends Vue {
         String(node.dynamicId),
       ]);
       EventBus.$emit("on-node-click", node.dynamicId);
+      this.showCard(node);
     }
     this.lastClickedNode = node;
     this.lastClickedNodeDynamicId = node.dynamicId ?? 0;
     this.displayNode = node.dynamicId;
     this.expandedNodes = this.pathToNode(node.dynamicId);
-    this.showCard(node);
   }
 
   shouldDisplayNode(node: FlattenedNode): boolean {
@@ -372,7 +396,7 @@ export default TreeTable;
 
 /* Scroll & Scroller */
 .table-scroll {
-  height: 62vh;
+  height: 55vh;
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
@@ -395,8 +419,8 @@ export default TreeTable;
   background: #181d49; /* Scrollbar color on hover */
 }
 * {
-  scrollbar-width: thin; /* Make scrollbar thinner */
-  scrollbar-color: #888 #f1f1f1; /* Scrollbar thumb and track colors */
+  /*scrollbar-width: thin;*/
+  /* scrollbar-color: #888 #f1f1f1;  */
 }
 
 /* Header Style */

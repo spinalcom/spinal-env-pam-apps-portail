@@ -176,14 +176,14 @@ class App extends Vue {
   };
   floor: any = null;
   legendSpaceAssignation: Legend[] = [
+    // {
+    //   title: "Automate 'Noeud parent'",
+    //   color: "#00c2d1",
+    //   type: "Not-assigned",
+    // },
     {
-      title: "Automate 'Noeud parent'",
-      color: "#00c2d1",
-      type: "Not-assigned",
-    },
-    {
-      title: "Equipement 'Noeud enfant'",
-      color: "#0a1045",
+      title: "Equipement non actif",
+      color: "#d7270c",
       type: "Assigned",
     },
     {
@@ -325,7 +325,6 @@ class App extends Vue {
     );
   }
   changeRoute() {
-    console.log("changeRoute", this.query);
     window.parent.routerFontion.customPush(
       window.parent.router.path,
       this.query
@@ -451,6 +450,7 @@ class App extends Vue {
   }
 
   onActionClick({ button, item }) {
+    // TOBACK
     const data = {
       buildingId: item.buildingId,
       staticId: item.staticId,
@@ -469,30 +469,19 @@ class App extends Vue {
           item: data,
         });
         break;
-      case "OPEN_VIEWER_PLUS":
-        this.$store.dispatch(ActionTypes.OPEN_VIEWER, {
-          onlyThisModel: false,
-          config: this.config,
-          item: data,
-        });
-        break;
-      default:
-        this.$store.dispatch(button.onclickEvent, data);
-        break;
+      // case "OPEN_VIEWER_PLUS":
+      //   this.$store.dispatch(ActionTypes.OPEN_VIEWER, {
+      //     onlyThisModel: false,
+      //     config: this.config,
+      //     item: data,
+      //   });
+      //   break;
+      // default:
+      //   this.$store.dispatch(button.onclickEvent, data);
+      //   break;
     }
   }
 
-  // listenSpritesEvent() {
-  //   const emitterHandler = EmitterViewerHandler.getInstance();
-  //   emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
-  //     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
-  //     if (result.node.dynamicId) {
-  //       const a = document.createElement("a");
-  //       a.setAttribute("href", `#${result.node.dynamicId}`);
-  //       a.click();
-  //     }
-  //   });
-  // }
   listenSpritesEvent() {
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
@@ -529,11 +518,9 @@ class App extends Vue {
 
         if (this.$refs["space-selector"]) {
           this.$refs["space-selector"].select(itemToSelect);
-          // this.$refs['space-selector'].closeItem(itemToSelect);
         }
 
         // // this.replaceRoute();
-        // console.log("ttototo ?", this.query);
 
         // const item = {
         //   buildingId: result.node.buildingId,
@@ -571,19 +558,23 @@ class App extends Vue {
       id: "id",
       name: "name",
       type: "type",
-      value: "value",
+      value: "Réseaux",
+      status: "status",
     };
   }
 
   private _getRows(list: any[]) {
     if (!list) return [];
 
-    return list.map(({ color, displayValue, name, staticId, type }) => ({
-      name,
-      type,
-      value: Number.parseFloat(displayValue).toFixed(2),
-      id: staticId,
-    }));
+    return list.map(
+      ({ color, displayValue, name, staticId, type, status }) => ({
+        name,
+        type,
+        value: Number.parseFloat(displayValue).toFixed(2),
+        id: staticId,
+        status: status,
+      })
+    );
   }
 }
 
@@ -616,6 +607,7 @@ export default App;
     .DButton {
       width: 60px;
       height: 60px;
+      z-index: 1;
     }
 
     .temporality {

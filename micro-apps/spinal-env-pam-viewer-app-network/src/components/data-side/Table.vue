@@ -182,11 +182,6 @@ table {
   background: #181d49; /* Scrollbar color on hover */
 }
 
-/* For Firefox */
-* {
-  scrollbar-width: thin; /* Make scrollbar thinner */
-  scrollbar-color: #888 #f1f1f1; /* Scrollbar thumb and track colors */
-}
 .table-header {
   display: flex;
   flex-direction: row;

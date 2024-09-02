@@ -109,12 +109,13 @@ export class SpriteManager {
 	public async addComponentAsSprite(viewer: Autodesk.Viewing.Viewer3D, data: any | any[]) {
 		// console.log("viewer", viewer);
 		// console.log("data to draw", data);
-		// console.log("drawedlines..............................................................");
+		
+		
   data = Array.isArray(data) ? data : [data];
   
   const dataMap = new Map();
 		data.forEach(d => dataMap.set(d.dynamicId, d));
-		await this.removeAllLines(viewer);
+		// await this.removeAllLines(viewer);
 
   for (const d of data) {
 		if (!d.component) continue;
@@ -229,14 +230,7 @@ export class SpriteManager {
 		
 		// console.log("end");
 	}
-	public async removeAllLines(viewer: Autodesk.Viewing.Viewer3D) {
-		// console.log("Removing all lines");
-		this.drawedlines = 0;
-		 const sceneName = "LinesScene";
-		if (viewer.overlays.hasScene(sceneName)) {
-			viewer.overlays.clearScene(sceneName);
-		}
-	}
+
 	public removeStyleLine(dynamicIds: Array<number>){
 		for (let i = 0; i < dynamicIds.length; i++) {
 			for (let line of this.linesGlobal) {
@@ -281,17 +275,11 @@ export class SpriteManager {
 			}
 			for (let line of this.linesGlobal) {
 				if (dynamicIds[i] == line.source) {
-					// console.log("line first case");
-
 					this.updateLine(line.line, new THREE.Color(0x00ff00),10);//selected line vers fils
 				} else if (dynamicIds[i] == line.destination) { 
-
-					// console.log("line second case");
 					this.updateLine(line.line, new THREE.Color(0x0000FF),10);// vers parent
 				}
 				else {
-
-					// console.log("line 3rd case");
 					this.updateLine(line.line, new THREE.Color(0xFFB30F),4);// unselected line
 				}
 			}
@@ -331,8 +319,17 @@ export class SpriteManager {
 		this.cards3Ds = [];
 	}
 
-
+	public removeAllLines(viewer: Autodesk.Viewing.Viewer3D) {
+		console.log("Removing all lines");
+		this.drawedlines = 0;
+		 const sceneName = "LinesScene";
+		if (viewer.overlays.hasScene(sceneName)) {
+			viewer.overlays.clearScene(sceneName);
+		}
+	}
+	
 	public removeSprites() {
+		// console.log("Removing all sprites");
 		if (this._dataVizExtn) this.dataVizExtn.removeAllViewables();
 		this.label3Ds.slice().forEach(l => l.label.dtor());
 		this.label3Ds = [];

@@ -24,20 +24,50 @@ with this file. If not, see
 <template>
   <div ref="container" class="graph-container">
     <div class="chart-title-container">
-      <div>
-        <h2>Représentation Visuelle du réseau</h2>
-        <p>Noeuds du RDC</p>
-      </div>
-      <div class="toggle-container">
-        <input
-          type="checkbox"
-          id="toggle-switch"
-          class="toggle-switch"
-          @change="changeDirection"
-        />
-        <label for="toggle-switch" class="toggle-label"></label>
+      <div class="header-title">Représentation Visuelle du réseau</div>
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <div
+          title="Télecharger"
+          class="download-all-button"
+          v-if="allOpened"
+        ></div>
+        <div
+          title="Afficher tout le reseau"
+          v-if="!allOpened"
+          class="show-all-button"
+          @click="openAll()"
+        >
+          Tout afficher
+        </div>
+        <div
+          title="Fermer tout le reseau"
+          v-if="allOpened"
+          class="show-all-button"
+          @click="closeAll()"
+        >
+          Réduire
+        </div>
+        <div title="Vue Vertical" class="toggle-container">
+          <input
+            type="checkbox"
+            id="toggle-switch"
+            class="toggle-switch"
+            @change="changeDirection"
+          />
+          <label for="toggle-switch" class="toggle-label"></label>
+        </div>
       </div>
     </div>
+    <div
+      style="background-color: #14202c; width: 100%; height: 1px; opacity: 0.2"
+    ></div>
     <div class="svg-container">
       <svg width="1000" height="1000"></svg>
     </div>
@@ -109,6 +139,7 @@ class NodeVisualization extends Vue {
   expandedNodes: Set<number> = new Set(); // Track expanded nodes
   transformedNodesGeneric: TransformedNode[] = [];
   isVertical = false;
+  allOpened = false;
 
   lampImage = require("../viewer/assets/lamp.png");
   automateImage = require("../viewer/assets/Automate.png");
@@ -165,6 +196,18 @@ class NodeVisualization extends Vue {
   }
   beforeDestroy() {
     EventBus.$off("on-node-click", this.onNodeClickOut);
+  }
+  openAll() {
+    this.allOpened = true;
+    this.transformedNodesGeneric = this.showAllGraph(this.dataprop);
+    this.displayedNodes = this.getPrincipalNodes(this.transformedNodesGeneric);
+    this.createChart(this.transformedNodesGeneric, this.isVertical);
+  }
+  closeAll() {
+    this.allOpened = false;
+    this.transformedNodesGeneric = this.transformData(this.dataprop);
+    this.displayedNodes = this.getPrincipalNodes(this.transformedNodesGeneric);
+    this.createChart(this.displayedNodes, this.isVertical);
   }
 
   changeDirection(event: Event) {
@@ -511,6 +554,74 @@ class NodeVisualization extends Vue {
 
     return transformedNodes;
   }
+  showAllGraph(
+    nodes: Node[],
+    parentId: number | null = null,
+    x: number = 150,
+    y: number = 80,
+    depth: number = 0
+  ): TransformedNode[] {
+    const transformedNodes: TransformedNode[] = [];
+    const yIncrement = 80;
+    const xIncrement = 250;
+
+    // Helper function to calculate the total height required by a node's subtree
+    const calculateSubtreeHeight = (nodes: Node[]): number => {
+      if (!nodes || nodes.length === 0) return yIncrement;
+      return nodes.reduce((total, node) => {
+        return total + calculateSubtreeHeight(node.nodes || []);
+      }, 0);
+    };
+
+    // Helper function to recursively add nodes
+    const addNodes = (
+      nodes: Node[],
+      parentId: number | null,
+      x: number,
+      y: number,
+      depth: number
+    ) => {
+      let currentY = y;
+
+      nodes.forEach((node) => {
+        const subtreeHeight = calculateSubtreeHeight(node.nodes || []);
+        const nodeY = currentY + subtreeHeight / 2 - yIncrement / 2;
+
+        const transformedNode: TransformedNode = {
+          id: node.dynamicId,
+          dynamicId: node.dynamicId,
+          parentId: parentId,
+          x: x,
+          y: nodeY,
+          status: node.status,
+          self_status: node.self_status,
+          name: node.name,
+          type: node.type,
+          children: node.nodes,
+          typologie: node.typologie,
+        };
+
+        transformedNodes.push(transformedNode);
+
+        if (node.nodes && node.nodes.length > 0) {
+          addNodes(
+            node.nodes,
+            node.dynamicId,
+            x + xIncrement,
+            currentY,
+            depth + 1
+          );
+        }
+
+        currentY += subtreeHeight;
+      });
+    };
+
+    addNodes(nodes, parentId, x, y, depth);
+
+    return transformedNodes;
+  }
+
   adjustY(nodes) {
     const idMap = {};
     nodes.forEach((node) => {
@@ -844,7 +955,7 @@ export default NodeVisualization;
   align-items: center;
   justify-content: center;
   // background: linear-gradient(to bottom right, #fff, #e3e1eb);
-  background-color: #eff4f5;
+
   // background-color: red;
   height: 100%;
   width: 100%;
@@ -855,7 +966,9 @@ export default NodeVisualization;
   height: 100%;
   display: flex;
   // overflow-y: scroll;
-  padding-top: 10px;
+  background-color: #eff4f5;
+  margin-top: 12px;
+  // padding-top: 10px;
   overflow: auto !important;
 }
 ::-webkit-scrollbar {
@@ -916,7 +1029,8 @@ svg {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  width: 96%;
+  width: 100%;
+  margin-bottom: 12px;
 }
 .toggle-container {
   position: relative;
@@ -985,5 +1099,37 @@ svg {
 
 .half-screen {
   background-image: url("./assets/halfscreen.svg");
+}
+.show-all-button {
+  cursor: pointer;
+  width: 100px;
+  height: 32px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: #14202c;
+  text-align: center;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: bold;
+  margin-right: 10px;
+}
+.show-all-button:hover {
+  background-color: #14202c90;
+}
+.download-all-button {
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: #14202c;
+  background-image: url("./assets/download.svg");
+  background-size: 65%;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-right: 10px;
+}
+.download-all-button:hover {
+  background-color: #14202c90;
 }
 </style>
