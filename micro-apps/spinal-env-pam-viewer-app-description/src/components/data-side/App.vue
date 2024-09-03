@@ -92,7 +92,7 @@ with this file. If not, see
       <div class="title">
         <div class="button  adaptative" style="">
           <v-select label="Details" v-model="selection"
-            :items="['Vue Globale', 'Attribut', 'Indicateur', 'Points de mesures', 'Documentation', 'Ticket']"></v-select>
+            :items="['Vue Globale', 'Attribut', 'Indicateur', 'Points de mesures', 'Documentation', 'Tickets']"></v-select>
         </div>
 
         <div style="width: 20%; justify-content: center;align-items: center;display: flex;"
@@ -172,8 +172,21 @@ with this file. If not, see
               </div>
             </div>
           </div>
-
         </div>
+
+        <div class="blocInformation">
+          <span v-if="selectedZone.type == 'geographicFloor'"
+            style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Tickets
+          </span>
+          <div v-if="ticketsList && ticketsList[0]" class="inventory-container">
+            <div
+              style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
+              class="inventory-item">
+              <div>Nombre de tickets : {{ ticketsList[0].length }} </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- ONGLET attribut (attribut)-->
@@ -219,6 +232,39 @@ with this file. If not, see
           </div>
         </div>
       </div>
+
+      <!-- ONGLET TICKETS -->
+<div v-if="selection == 'Tickets'">
+  <!-- Vérification si les tickets existent -->
+  <div v-if="ticketsList && ticketsList[0]">
+    <!-- Boucle sur chaque ticket -->
+    <div v-for="(ticket, index) in ticketsList[0]" :key="index" class="blocInformation">
+      <div class="">
+        <div 
+          >
+          <!-- Affichage des informations principales du ticket -->
+          <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Inventaire
+            des équipements ({{  ticket.name}})</span>
+            <div class="back_blanc">
+          <!-- <li class="back_blanc"> <strong>Nom :</strong> {{ }}</li> -->
+          <li ><strong>Description :</strong> {{ ticket.description }}</li>
+          <li ><strong>Date de création :</strong> {{ new Date(ticket.creationDate).toLocaleString() }}</li>
+          <li ><strong>Priorité :</strong> {{ ticket.priority }}</li>
+          <li ><strong>Étape actuelle :</strong> {{ ticket.step.name }}</li>
+          <li ><strong>Processus :</strong> {{ ticket.process.name }}</li>
+          <li ><strong>Nom du workflow :</strong> {{ ticket.workflowName }}</li>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Affichage lorsqu'il n'y a pas de tickets -->
+  <div v-else>
+    <p>Aucun ticket disponible.</p>
+  </div>
+</div>
+
 
       <!-- ONGLET POINT DE MESURE (endpoints)-->
       <div v-if="selection == 'Points de mesures'">
@@ -382,6 +428,7 @@ class dataSideApp extends Vue {
   isSmallScreen: any;
   displaySprite: boolean = false;
   parentAttribut: any = [];
+  ticketsList: any = [];
   eyes: [] = [];
 
   resize() {
@@ -450,6 +497,7 @@ class dataSideApp extends Vue {
       this.floorstaticDetails = result
       this.filteredEndpoints('building')
       this.getDocumentation(result)
+      this.getTicket(result)
       this.filtredAttribut('building')
       this.$forceUpdate();
     }
@@ -468,8 +516,12 @@ class dataSideApp extends Vue {
     ];
 
     const resultParent = await Promise.all(parentPromise);
-    console.warn(resultParent , "///////////////////////////////////////////////////////////////////////////")
-    
+
+    const tickets = resultParent;
+    console.warn(tickets, "///////////////////////////////////////////////////////////////////////////")
+    this.ticketsList = tickets;
+    console.error(this.ticketsList);
+
   }
 
   async getDocumentation(data) {
@@ -674,6 +726,7 @@ class dataSideApp extends Vue {
     this.filteredEndpoints('floor')
     this.getDocumentation(result)
     this.filtredAttribut('floor')
+    this.getTicket(result)
     this.createApp(result)
     this.$forceUpdate();
   }
@@ -711,6 +764,7 @@ class dataSideApp extends Vue {
       this.floorstaticDetails = result
       this.filteredEndpoints('room')
       this.getDocumentation(result)
+      this.getTicket(result)
       this.filtredAttribut('room')
       this.createApp(result)
 
@@ -1129,6 +1183,10 @@ export { dataSideApp };
 export default dataSideApp;
 </script>
 <style lang="scss">
+.back_blanc{
+ margin: 3px; width: 100%;color:#14202c;padding: 7px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+}
+
 .title_attribut {
   font-size: 1.5rem;
 }
