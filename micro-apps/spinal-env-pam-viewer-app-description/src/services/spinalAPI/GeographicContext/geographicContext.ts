@@ -58,6 +58,12 @@ export async function getStaticDetails(buildingId: string, roomDynId: number): P
   let result = await spinalAPI.get<IZoneItem[]>(url);
   return result.data;
 }
+export async function getNodeRead(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${roomDynId}/read`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
 
 export async function getStaticDetailsEquipement(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
@@ -84,17 +90,24 @@ export async function getBuildingInfo(buildingId: string): Promise<IZoneItem[]> 
 
 
 export async function getBuildingStaticDetails(buildingId: string, referenceIds: number): Promise<IZoneItem[]> {
-
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/building/${referenceIds}/read_static_details`);
   let result = await spinalAPI.get<IZoneItem[]>(url);
 
   return result.data;
 }
+
 export async function getDocumentation(buildingId: string, referenceIds: number): Promise<IZoneItem[]> {
   
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${referenceIds}/file_list`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+export async function getTicket(buildingId: string, referenceIds: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${referenceIds}/ticket_list`);
   let result = await spinalAPI.get<IZoneItem[]>(url);
   return result.data;
 }

@@ -2,11 +2,13 @@
 
   <div class="menu">
     <!-- <v-icon>mdi-chevron-left</v-icon> -->
+    <!-- <span class="mdi mdi-abjad-arabic"></span> -->
     <div v-if="isopen" ref="container" class="container">
 
       <div @click="close()"
         style="justify-content: center;align-items: center;display: flex;background-color: white;cursor: pointer;border-radius: 25px;width: 20px; height: 20px;position: absolute;right: -8px;font-size: 13px;z-index: 9;top: 3px;font-weight: bold;border: 1px solid gray;color: #14202c;">
-        X</div>
+        <span class="mdi mdi-close"></span>
+      </div>
       <div class="card">
         <div class="top-section">
           <div class="border"></div>
@@ -244,7 +246,6 @@ export default {
   mounted() {
 
     console.log('totot l element est monté avec ,', this.data.config.SpriteComponent, this.data.data);
-
     this.extractUsefulData(this.data.config.SpriteComponent, this.data.data)
     // document.addEventListener("click", (evt) => {
     //   evt.stopPropagation();

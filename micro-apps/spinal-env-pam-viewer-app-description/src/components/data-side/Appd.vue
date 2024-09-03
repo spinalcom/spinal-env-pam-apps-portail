@@ -257,6 +257,8 @@ class dataSideApp extends Vue {
 
 
   async findDynamicIdByDbid(dbidToFind, data) {
+    console.log('la ???');
+    
     const buildingId = localStorage.getItem("idBuilding");
     const objects = this.referenceObjects
     for (const obj of objects[0]) {

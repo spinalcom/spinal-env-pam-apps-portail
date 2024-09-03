@@ -90,9 +90,9 @@ with this file. If not, see
 
     <div>
       <div class="title">
-        <div class="button parallelogram adaptative" style="">
+        <div class="button  adaptative" style="">
           <v-select label="Details" v-model="selection"
-            :items="['Vue globale', 'Attribut', 'Indicateur', 'Points de mesures', 'Documentation']"></v-select>
+            :items="['Vue Globale', 'Attribut', 'Indicateur', 'Points de mesures', 'Documentation', 'Ticket']"></v-select>
         </div>
 
         <div style="width: 20%; justify-content: center;align-items: center;display: flex;"
@@ -107,8 +107,8 @@ with this file. If not, see
     </div>
 
     <div class="inventory">
-      <div v-if="selection == 'Vue globale'">
-        <div class="blocInformation">
+      <div v-if="selection == 'Vue Globale'">
+        <div v-if="inventoyList.length > 0" class="blocInformation">
           <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Inventaire
             des équipements ({{ config.inventory }})</span>
           <div>
@@ -149,6 +149,7 @@ with this file. If not, see
         </div>
 
         <div class="blocInformation">
+          <!-- endpoint -->
           <span v-if="selectedZone.type == 'geographicFloor'"
             style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Points de mesures
           </span>
@@ -177,7 +178,7 @@ with this file. If not, see
 
       <!-- ONGLET attribut (attribut)-->
       <div v-if="selection == 'Attribut'">
-        <h2>Attribut de la selection</h2>
+        <div class="title_attribut">Attribut de la selection</div>
         <div v-for="(item, index) in floorstaticDetails[0].attributsList" class="blocInformation">
           <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">{{ item.name
             }}</span>
@@ -194,7 +195,7 @@ with this file. If not, see
           </div>
         </div>
 
-        <h2>Attribut des parents</h2>
+        <div class="title_attribut">Attribut des parents</div>
 
         <!-- Section pour afficher les parentAttribut -->
         <div v-for="(parentItem, parentIndex) in parentAttribut" class="parentInformation" :key="parentIndex">
@@ -240,7 +241,7 @@ with this file. If not, see
         </div>
       </div>
 
-      <!-- ONGLET INDICATEUR (controleEndpoint) -->
+      <!-- ONGLET INDICATEUR (controleEndpoint) indicateur -->
       <div v-if="selection == 'Indicateur'">
         <div v-for="(item, index) in floorstaticDetails[0].controlEndpoint" class="blocInformation">
           <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">{{
@@ -256,7 +257,6 @@ with this file. If not, see
               <li> {{ item.name }}: {{ item.value }}</li>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -376,7 +376,7 @@ class dataSideApp extends Vue {
   endpointProfil: any = null;
   buildingInfo: any;
   attributProfil: any;
-  selection: string = 'Vue globale';
+  selection: string = 'Vue Globale';
   documentation: any;
   modefull = false;
   isSmallScreen: any;
@@ -455,6 +455,23 @@ class dataSideApp extends Vue {
     }
   }
 
+
+  async getTicket(data) {
+    const buildingId = localStorage.getItem("idBuilding");
+    const elementDynamicId = data[0].dynamicId
+
+    const parentPromise = [
+      this.$store.dispatch(ActionTypes.GET_TICKET, {
+        buildingId: buildingId,
+        referenceIds: elementDynamicId,
+      }),
+    ];
+
+    const resultParent = await Promise.all(parentPromise);
+    console.warn(resultParent , "///////////////////////////////////////////////////////////////////////////")
+    
+  }
+
   async getDocumentation(data) {
 
     const buildingId = localStorage.getItem("idBuilding");
@@ -477,6 +494,9 @@ class dataSideApp extends Vue {
       }),
     ];
     const result = await Promise.all(documentationPromise);
+
+    console.warn(result, 'le grand ////////////////////////////////////////////////////////////////');
+
     const documentation = result[0];
 
     let parentDocumentation = {};
@@ -498,6 +518,9 @@ class dataSideApp extends Vue {
       element: documentation,
       parents: parentDocumentation
     };
+
+    console.warn(this.documentation);
+
     this.$forceUpdate();
   }
 
@@ -627,12 +650,12 @@ class dataSideApp extends Vue {
         }),
       ];
 
-      const result = await Promise.all(promises);
 
+      const result = await Promise.all(promises);
+      // console.log(result, 'aaaa - aaaaa');
       this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0], data.center)
       return;
     }
-
   }
 
 
@@ -654,26 +677,66 @@ class dataSideApp extends Vue {
     this.createApp(result)
     this.$forceUpdate();
   }
-
+  //TODO , ici l'erreur , de getroomstaticdetails
   async getroomstaticdetails(id) {
+    console.warn('///////////////////////////// c est ici');
 
     const buildingId = localStorage.getItem("idBuilding");
 
-    const promises = [
-      this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
+
+    const promises_node = [
+      this.$store.dispatch(ActionTypes.GET_NODE_READ, {
         buildingId,
         referenceIds: [id]
       }),
     ];
 
-    const result = await Promise.all(promises);
+    const node_read = await Promise.all(promises_node);
 
-    this.floorstaticDetails = result
-    this.filteredEndpoints('room')
-    this.getDocumentation(result)
-    this.filtredAttribut('room')
-    this.createApp(result)
-    this.$forceUpdate();
+    console.warn(node_read[0].type, 'LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLAAAAAAAAAAAAAAAAAAAA');
+
+    if (node_read[0].type != "BIMObject") {
+
+      console.log('LOG DE TICKET ::::::::::::::::::::::::::::::::::::::::::::::::::,', id);
+
+      const promises = [
+        this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
+          buildingId,
+          referenceIds: [id]
+        }),
+      ];
+
+      const result = await Promise.all(promises);
+
+      this.floorstaticDetails = result
+      this.filteredEndpoints('room')
+      this.getDocumentation(result)
+      this.filtredAttribut('room')
+      this.createApp(result)
+
+    } else {
+      // console.log('LOBJET ???????');
+      console.log('LOG DE TICKET ::::::::::::::::::::::::::::::::::::::::::::::::::,', id);
+      const promises = [
+        this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
+          buildingId,
+          referenceIds: [id]
+        }),
+      ];
+
+      const result = await Promise.all(promises);
+
+      // console.log(result , 'LE RESULTAT LLLLLLLLLLLLLLLLLLLLLLAAAAAAAAAAAAAAAAAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP');
+      this.floorstaticDetails = result
+      this.filteredEndpoints('room')
+      this.getDocumentation(result)
+      this.getTicket(result)
+      this.filtredAttribut('room')
+      this.$forceUpdate();
+    }
+
+
+
   }
 
 
@@ -983,8 +1046,8 @@ class dataSideApp extends Vue {
       results.push(`${value} ${key}`);
     }
 
-    console.log('INVOTORY LIST AFFECTATION :::::::::::::', results);
-    
+    // console.log('INVOTORY LIST AFFECTATION :::::::::::::', results);
+
 
     this.inventoyList = results;
     this.inventoryDbids = inventoryDbids;
@@ -1012,7 +1075,9 @@ class dataSideApp extends Vue {
 
   @Watch("data")
   watchData() {
+    //TOTO ICI L ERREUR 
     if (this.selectedZone.type != "building") {
+      // console.log(this.selectedZone.type, 'les information du batiement !!!!!!!!!!!!!!!!!!!!!!!!!', this.selectedZone);
 
       if (this.data.length == 0) {
         this.getroomstaticdetails(this.selectedZone.dynamicId)
@@ -1025,7 +1090,7 @@ class dataSideApp extends Vue {
       }
     }
     else {
-      console.warn('GET_BUILDING_INFO', 'building ???????????????????');
+      // console.warn('GET_BUILDING_INFO', 'building ???????????????????');
 
       //TODO INVENTORY BATIEMENT
       this.inventoyList = []
@@ -1064,6 +1129,10 @@ export { dataSideApp };
 export default dataSideApp;
 </script>
 <style lang="scss">
+.title_attribut {
+  font-size: 1.5rem;
+}
+
 .cardContainer {
   padding: 10px;
 }
@@ -1168,14 +1237,22 @@ a {
 
 .inventory-item {
   width: 48%;
-  margin: 1%;
+  margin: 5px;
   height: 18px;
   display: flex;
   align-items: center;
   box-sizing: border-box;
   white-space: nowrap;
   overflow: hidden;
+  justify-content: space-between;
 }
+
+.v-select__selection--comma {
+  font-size: 1.5rem !important;
+  font-family: Arial, Helvetica, sans-serif;
+  overflow: visible !important;
+}
+
 
 @media (max-width: 960px) {
   .inventory-item {
@@ -1194,7 +1271,7 @@ a {
 .blocInformation {
   background-color: rgb(240, 240, 240);
   padding: 5px;
-  border-radius: 5px;
+  // border-radius: 5px;
   margin-bottom: 18px;
   box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
 }
@@ -1329,7 +1406,7 @@ a {
 }
 
 .button {
-  background-color: rgb(224, 224, 224);
+  // background-color: rgb(224, 224, 224);
   // box-shadow: 10px 10px 0 rgba(0, 0, 0, .5);
   display: inline-block;
   padding: 5px;
@@ -1338,11 +1415,13 @@ a {
   padding-left: 10px;
   padding-right: 10px;
   transition: 0.2s;
-  border-left: 1px solid rgb(196, 196, 196);
+  // border-left: 1px solid rgb(196, 196, 196);
   white-space: nowrap;
   margin-left: 20px;
   margin-top: 6px;
   margin-bottom: 5px;
+  font-size: xx-large;
+  cursor: pointer;
 }
 
 .button:hover {
@@ -1402,7 +1481,7 @@ a {
   left: 0;
   top: 0;
   border-top: 1px solid rgb(235, 234, 234);
-  width: 400px;
+  width: 100%;
 
 }
 
