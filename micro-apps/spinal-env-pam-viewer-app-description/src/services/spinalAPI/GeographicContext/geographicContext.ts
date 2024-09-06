@@ -65,6 +65,20 @@ export async function getNodeRead(buildingId: string, roomDynId: number): Promis
   return result.data;
 }
 
+export async function getpositionEquipement(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipment/${roomDynId}/get_position`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+export async function getpositionRoom(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/room/${roomDynId}/get_position`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
 export async function getStaticDetailsEquipement(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipment/${roomDynId}/read_static_details`);

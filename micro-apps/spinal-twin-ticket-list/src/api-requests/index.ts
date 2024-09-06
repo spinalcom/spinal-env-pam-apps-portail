@@ -30,12 +30,17 @@ export async function getBuildingAsync() {
   return result.data;
 }
 
-export async function getBuildingSpaceTreeAsync() {
-  /*const buildingId = localStorage.getItem("idBuilding");
-  const result = await HTTP.get(
-    `/building/${buildingId}/geographicContext/space`
+export async function getFileAsync(nodeId: number) {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.post(
+    `/building/${buildingId}/node/${nodeId}/download_file`,
+    null,
+    { responseType: "blob" }
   );
-  return result.data.children[0];*/
+  return window.URL.createObjectURL(result.data);
+}
+
+export async function getBuildingSpaceTreeAsync() {
   const building = await getBuildingAsync();
   building.children = [...(await getFloorListAsync())];
 
@@ -65,6 +70,29 @@ export async function getRoomListAsync(floorId: number) {
   return result.data;
 }
 
+// Tickets de maintenances
+export async function getWorkflowListAsync() {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(`building/${buildingId}/workflow/list`);
+  return result.data;
+}
+
+export async function getProcessListAsync(workflowId: number) {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(
+    `building/${buildingId}/workflow/${workflowId}/processList`
+  );
+  return result.data;
+}
+
+export async function getStepListAsync(workflowId: number, processId: number) {
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(
+    `building/${buildingId}/workflow/${workflowId}/process/${processId}/stepList`
+  );
+  return result.data;
+}
+
 export async function getTicketListAsync(nodeId: number) {
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
@@ -73,12 +101,6 @@ export async function getTicketListAsync(nodeId: number) {
   return result.data;
 }
 
-// Tickets de maintenances
-export async function getWorkflowListAsync() {
-  const buildingId = localStorage.getItem("idBuilding");
-  const result = await HTTP.get(`building/${buildingId}/workflow/list`);
-  return result.data;
-}
 export async function getTicketWorkflowAsync() {
   const result = await getWorkflowListAsync();
   return result[0];

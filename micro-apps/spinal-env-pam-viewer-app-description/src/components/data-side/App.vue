@@ -31,6 +31,8 @@ with this file. If not, see
       v-if="displaySprite" :data="isSmallScreen">
     </SpriteComponentMobile>
 
+    <BreadcrumbSelector :ids="referencedId" :type="referencedType" />
+
     <div class="hide" @click="() => {
       gestionBouton()
     }"
@@ -92,7 +94,7 @@ with this file. If not, see
       <div class="title">
         <div class="button  adaptative" style="">
           <v-select label="Details" v-model="selection"
-            :items="['Vue Globale', 'Attribut', 'Indicateur', 'Points de mesures', 'Documentation', 'Tickets']"></v-select>
+            :items="dynamicItems"></v-select>
         </div>
 
         <div style="width: 20%; justify-content: center;align-items: center;display: flex;"
@@ -108,24 +110,24 @@ with this file. If not, see
 
     <div class="inventory">
       <div v-if="selection == 'Vue Globale'">
-        <div v-if="inventoyList.length > 0" class="blocInformation">
-          <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Inventaire
-            des équipements ({{ config.inventory }})</span>
-          <div>
-            <div v-if="inventoyList == null"
-              style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px; margin-bottom: 10px;">
-              <!-- <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular> -->
-              PAS DE DONNÉES DISPONIBLE
-            </div>
-            <div v-else class="inventory-container">
-              <div v-for="(item, index) in inventoyList" :key="index" class="inventory-item">
-                <li>{{ item }}</li>
-                <!-- <div @click="hideelement(item)">CLICK</div> -->
-                <div style="margin-left: 5px;">
-                  <v-icon v-if="eyes.indexOf(index) === -1" @click="() => { hideelement(item); closeeyes(index) }"
-                    style="cursor: pointer">mdi-eye-outline</v-icon>
-                  <v-icon v-else @click="() => { hideelement(item); closeeyes(index) }"
-                    style="cursor: pointer">mdi-eye-off-outline</v-icon>
+        <div v-if="inventoyList">
+          <div v-if="inventoyList.length > 0" class="blocInformation">
+            <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Inventaire
+              des équipements ({{ config.inventory }})</span>
+            <div>
+              <div v-if="inventoyList == null"
+                style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px; margin-bottom: 10px;">
+                PAS DE DONNÉES DISPONIBLE
+              </div>
+              <div v-else class="inventory-container">
+                <div v-for="(item, index) in inventoyList" :key="index" class="inventory-item">
+                  <li>{{ item }}</li>
+                  <div style="margin-left: 5px;">
+                    <v-icon v-if="eyes.indexOf(index) === -1" @click="() => { hideelement(item); closeeyes(index) }"
+                      style="cursor: pointer">mdi-eye-outline</v-icon>
+                    <v-icon v-else @click="() => { hideelement(item); closeeyes(index) }"
+                      style="cursor: pointer">mdi-eye-off-outline</v-icon>
+                  </div>
                 </div>
               </div>
             </div>
@@ -151,7 +153,7 @@ with this file. If not, see
         <div class="blocInformation">
           <!-- endpoint -->
           <span v-if="selectedZone.type == 'geographicFloor'"
-            style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Points de mesures
+            style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Indicateur
           </span>
           <!-- {{ selectedZone.type }} -->
           <!-- <span v-if="selectedZone.type == 'geographicRoom'"
@@ -234,36 +236,35 @@ with this file. If not, see
       </div>
 
       <!-- ONGLET TICKETS -->
-<div v-if="selection == 'Tickets'">
-  <!-- Vérification si les tickets existent -->
-  <div v-if="ticketsList && ticketsList[0]">
-    <!-- Boucle sur chaque ticket -->
-    <div v-for="(ticket, index) in ticketsList[0]" :key="index" class="blocInformation">
-      <div class="">
-        <div 
-          >
-          <!-- Affichage des informations principales du ticket -->
-          <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Inventaire
-            des équipements ({{  ticket.name}})</span>
-            <div class="back_blanc">
-          <!-- <li class="back_blanc"> <strong>Nom :</strong> {{ }}</li> -->
-          <li ><strong>Description :</strong> {{ ticket.description }}</li>
-          <li ><strong>Date de création :</strong> {{ new Date(ticket.creationDate).toLocaleString() }}</li>
-          <li ><strong>Priorité :</strong> {{ ticket.priority }}</li>
-          <li ><strong>Étape actuelle :</strong> {{ ticket.step.name }}</li>
-          <li ><strong>Processus :</strong> {{ ticket.process.name }}</li>
-          <li ><strong>Nom du workflow :</strong> {{ ticket.workflowName }}</li>
+      <div v-if="selection == 'Tickets'">
+        <!-- Vérification si les tickets existent -->
+        <div v-if="ticketsList && ticketsList[0]">
+          <!-- Boucle sur chaque ticket -->
+          <div v-for="(ticket, index) in ticketsList[0]" :key="index" class="blocInformation">
+            <div class="">
+              <div>
+                <!-- Affichage des informations principales du ticket -->
+                <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Inventaire
+                  des équipements ({{ ticket.name }})</span>
+                <div class="back_blanc">
+                  <!-- <li class="back_blanc"> <strong>Nom :</strong> {{ }}</li> -->
+                  <li><strong>Description :</strong> {{ ticket.description }}</li>
+                  <li><strong>Date de création :</strong> {{ new Date(ticket.creationDate).toLocaleString() }}</li>
+                  <li><strong>Priorité :</strong> {{ ticket.priority }}</li>
+                  <li><strong>Étape actuelle :</strong> {{ ticket.step.name }}</li>
+                  <li><strong>Processus :</strong> {{ ticket.process.name }}</li>
+                  <li><strong>Nom du workflow :</strong> {{ ticket.workflowName }}</li>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- Affichage lorsqu'il n'y a pas de tickets -->
+        <div v-else>
+          <p>Aucun ticket disponible.</p>
         </div>
       </div>
-    </div>
-  </div>
-  
-  <!-- Affichage lorsqu'il n'y a pas de tickets -->
-  <div v-else>
-    <p>Aucun ticket disponible.</p>
-  </div>
-</div>
 
 
       <!-- ONGLET POINT DE MESURE (endpoints)-->
@@ -384,6 +385,7 @@ import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import { mapState } from "vuex";
 import SpriteComponent from "./SpriteComponent.vue"
 import GroupDataView from "./groupDataView.vue";
+import BreadcrumbSelector from "./breadcrumb.vue";
 import { computed } from 'vue';
 import {
   EmitterViewerHandler,
@@ -396,7 +398,8 @@ import { getParent } from "../../services/spinalAPI/GeographicContext/geographic
 @Component({
   components: {
     GroupDataView,
-    SpriteComponentMobile
+    SpriteComponentMobile,
+    BreadcrumbSelector,
   },
   filters: {},
 })
@@ -421,7 +424,7 @@ class dataSideApp extends Vue {
   floorstaticDetails: any = [];
   endpointProfil: any = null;
   buildingInfo: any;
-  attributProfil: any;
+  attributProfil: any = null;
   selection: string = 'Vue Globale';
   documentation: any;
   modefull = false;
@@ -430,7 +433,23 @@ class dataSideApp extends Vue {
   parentAttribut: any = [];
   ticketsList: any = [];
   eyes: [] = [];
+  referencedId: any = 0;
+  referencedType: any = 'building';
 
+  get dynamicItems(): string[] {
+    let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
+
+    if (this.endpointProfil && this.endpointProfil.length > 0) {
+      items.push('Indicateur');
+    }
+
+    if (this.floorstaticDetails[0]?.endpoints && this.floorstaticDetails[0].endpoints.length > 0) {
+      items.push('Points de mesures');
+    }
+
+    return items;
+  }
+  
   resize() {
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
@@ -518,7 +537,6 @@ class dataSideApp extends Vue {
     const resultParent = await Promise.all(parentPromise);
 
     const tickets = resultParent;
-    console.warn(tickets, "///////////////////////////////////////////////////////////////////////////")
     this.ticketsList = tickets;
     console.error(this.ticketsList);
 
@@ -547,8 +565,6 @@ class dataSideApp extends Vue {
     ];
     const result = await Promise.all(documentationPromise);
 
-    console.warn(result, 'le grand ////////////////////////////////////////////////////////////////');
-
     const documentation = result[0];
 
     let parentDocumentation = {};
@@ -570,8 +586,6 @@ class dataSideApp extends Vue {
       element: documentation,
       parents: parentDocumentation
     };
-
-    console.warn(this.documentation);
 
     this.$forceUpdate();
   }
@@ -609,7 +623,6 @@ class dataSideApp extends Vue {
       window.URL.revokeObjectURL(url);
     });
 
-    console.warn('Le fichier a été téléchargé');
     return result;
   }
 
@@ -626,17 +639,6 @@ class dataSideApp extends Vue {
     const result = await Promise.all(promises);
     this.buildingInfo = [...result]
   }
-
-
-  // formatValue(value) {
-  //   if (value === null || value === undefined || isNaN(value)) {
-  //     return '-'; // ou tout autre valeur par défaut, comme une chaîne vide ''
-  //   }
-  //   if (Number.isInteger(value)) {
-  //     return value;
-  //   }
-  //   return parseFloat(value.toFixed(2));
-  // }
 
 
 
@@ -704,7 +706,6 @@ class dataSideApp extends Vue {
 
 
       const result = await Promise.all(promises);
-      // console.log(result, 'aaaa - aaaaa');
       this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0], data.center)
       return;
     }
@@ -732,7 +733,6 @@ class dataSideApp extends Vue {
   }
   //TODO , ici l'erreur , de getroomstaticdetails
   async getroomstaticdetails(id) {
-    console.warn('///////////////////////////// c est ici');
 
     const buildingId = localStorage.getItem("idBuilding");
 
@@ -746,11 +746,7 @@ class dataSideApp extends Vue {
 
     const node_read = await Promise.all(promises_node);
 
-    console.warn(node_read[0].type, 'LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLAAAAAAAAAAAAAAAAAAAA');
-
-    if (node_read[0].type != "BIMObject") {
-
-      console.log('LOG DE TICKET ::::::::::::::::::::::::::::::::::::::::::::::::::,', id);
+    if (node_read[0].type == "geographicRoom") {
 
       const promises = [
         this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
@@ -758,6 +754,9 @@ class dataSideApp extends Vue {
           referenceIds: [id]
         }),
       ];
+
+      this.referencedType = node_read[0].type
+      this.referencedId = id
 
       const result = await Promise.all(promises);
 
@@ -768,9 +767,12 @@ class dataSideApp extends Vue {
       this.filtredAttribut('room')
       this.createApp(result)
 
-    } else {
-      // console.log('LOBJET ???????');
-      console.log('LOG DE TICKET ::::::::::::::::::::::::::::::::::::::::::::::::::,', id);
+    } else if (node_read[0].type == 'BIMObject') {
+
+
+      this.referencedType = 'BIMObject'
+      this.referencedId = id
+
       const promises = [
         this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
           buildingId,
@@ -780,13 +782,15 @@ class dataSideApp extends Vue {
 
       const result = await Promise.all(promises);
 
-      // console.log(result , 'LE RESULTAT LLLLLLLLLLLLLLLLLLLLLLAAAAAAAAAAAAAAAAAAAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP');
       this.floorstaticDetails = result
       this.filteredEndpoints('room')
       this.getDocumentation(result)
       this.getTicket(result)
       this.filtredAttribut('room')
       this.$forceUpdate();
+    } else {
+      this.referencedType = 'etage'
+      this.referencedId = id
     }
 
 
@@ -797,7 +801,7 @@ class dataSideApp extends Vue {
   createApp(tab) {
     let objetApp = [];
     if (!this.config || !this.config.application) {
-      console.warn("Configuration manquante");
+      // console.warn("Configuration manquante");
       return [];
     }
 
@@ -1100,9 +1104,6 @@ class dataSideApp extends Vue {
       results.push(`${value} ${key}`);
     }
 
-    // console.log('INVOTORY LIST AFFECTATION :::::::::::::', results);
-
-
     this.inventoyList = results;
     this.inventoryDbids = inventoryDbids;
     this.$forceUpdate();
@@ -1129,10 +1130,10 @@ class dataSideApp extends Vue {
 
   @Watch("data")
   watchData() {
+    this.referencedId = 0;
+    this.referencedType = ''
     //TOTO ICI L ERREUR 
     if (this.selectedZone.type != "building") {
-      // console.log(this.selectedZone.type, 'les information du batiement !!!!!!!!!!!!!!!!!!!!!!!!!', this.selectedZone);
-
       if (this.data.length == 0) {
         this.getroomstaticdetails(this.selectedZone.dynamicId)
 
@@ -1144,9 +1145,7 @@ class dataSideApp extends Vue {
       }
     }
     else {
-      // console.warn('GET_BUILDING_INFO', 'building ???????????????????');
 
-      //TODO INVENTORY BATIEMENT
       this.inventoyList = []
     }
 
@@ -1183,8 +1182,14 @@ export { dataSideApp };
 export default dataSideApp;
 </script>
 <style lang="scss">
-.back_blanc{
- margin: 3px; width: 100%;color:#14202c;padding: 7px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+.back_blanc {
+  margin: 6px;
+  color: #14202c;
+  padding: 9px;
+  border-radius: 5px;
+  padding-left: 6px;
+  background-color: #f9f9f9;
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
 }
 
 .title_attribut {
@@ -1327,11 +1332,13 @@ a {
 }
 
 .blocInformation {
-  background-color: rgb(240, 240, 240);
+  background-color: #ebebeb;
   padding: 5px;
-  // border-radius: 5px;
-  margin-bottom: 18px;
+  border-radius: 2px;
+  margin-bottom: 20px;
+  margin-top: 10px;
   box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+  margin-left: 11px;
 }
 
 //Spinal_card
@@ -1469,7 +1476,7 @@ a {
   display: inline-block;
   padding: 5px;
   text-decoration: none;
-  height: 52px;
+  height: 59px;
   padding-left: 10px;
   padding-right: 10px;
   transition: 0.2s;
@@ -1483,11 +1490,18 @@ a {
 }
 
 .button:hover {
-  background-color: rgb(201, 201, 201);
+  background-color: rgb(228, 228, 228);
   // box-shadow: 0 0 0;
 }
 
 
+// >>> .v-input__slot::before {
+//   border-style: none !important;
+// }
+
+.v-text-field>.v-input__control>.v-input__slot:before {
+  border-style: none !important;
+}
 
 .parallelogram {
   transform: skew(-20deg);
@@ -1538,7 +1552,7 @@ a {
   position: absolute;
   left: 0;
   top: 0;
-  border-top: 1px solid rgb(235, 234, 234);
+  border-top: 1px solid rgb(212, 212, 212);
   width: 100%;
 
 }
@@ -1548,7 +1562,7 @@ a {
   padding-top: 15px;
   background-color: rgb(255, 255, 255);
   /* box-shadow: rgb(217, 226, 235) 3px 3px 6px 0px inset, rgba(255, 255, 255, 0.596) -3px -3px 6px 1px inset; */
-  border-top: 2px solid rgb(235, 234, 234);
+  border-top: 2px solid rgb(201, 201, 201);
   overflow: auto;
   height: 25%;
 }
@@ -1565,20 +1579,22 @@ a {
 }
 
 .cardDescription {
-  margin-top: 5px;
-  margin-bottom: 5px;
-  background-color: white;
-  width: 100%;
-  height: 40px;
-  /* border: 1px solid rgb(199, 199, 199); */
-  border-radius: 5px;
-  box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+
   cursor: pointer;
-  transition: 0.2s;
-  position: relative;
-  display: flex;
-  overflow: hidden;
+  -webkit-user-select: none;
   user-select: none;
+  background-color: #fff;
+  border-radius: 5px;
+  width: 100%;
+  height: 50px;
+  margin-top: 8px;
+  margin-bottom: 14px;
+  transition: all .2s;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 2px #3c40434d, 0 1px 3px 1px #3c404326;
+  margin-left: 10px;
 }
 
 
@@ -1599,7 +1615,7 @@ a {
 
 
 .cardDescription:hover {
-  background-color: rgb(245, 245, 245);
+  background-color: rgb(221, 221, 221);
 }
 
 .cardDescription:hover .gotoApp {

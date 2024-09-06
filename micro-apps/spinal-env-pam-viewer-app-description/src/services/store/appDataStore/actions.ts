@@ -26,7 +26,7 @@ import { getBuildings, getBuildingById } from "../../spinalAPI/GeographicContext
 import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
-import { getEquipments, getFloors, getRooms, getStaticDetails, getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails, postBIMObjectInfo, getBuildingInfo, getBuildingStaticDetails,getDocumentation, postDownloadFile , getParent , getAttributListMultiple , getNodeRead  , getTicket} from "../../spinalAPI/GeographicContext/geographicContext";
+import { getEquipments, getFloors, getRooms, getStaticDetails, getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails, postBIMObjectInfo, getBuildingInfo, getBuildingStaticDetails,getDocumentation, postDownloadFile , getParent , getAttributListMultiple , getNodeRead  , getTicket , getpositionEquipement , getpositionRoom} from "../../spinalAPI/GeographicContext/geographicContext";
 import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
 import { getMultipleReferenceObjects } from "../../spinalAPI/GeographicContext/getObjectList";
@@ -114,6 +114,34 @@ export const actions = {
 		try {
 			// const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
 			const result = await getNodeRead(buildingId, referenceIds);
+			// console.log('Récupération de l objet de référence réussie:', result);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
+	async [ActionTypes.GET_POSTION_EQUIPEMENT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+		// console.log('Début de l\'action GET_REFERENCE_OBJECT_LIST_MULTIPLE',buildingId , referenceIds);
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			// const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
+			const result = await getpositionEquipement(buildingId, referenceIds);
+			// console.log('Récupération de l objet de référence réussie:', result);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
+	async [ActionTypes.GET_POSTION_ROOM]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+		// console.log('Début de l\'action GET_REFERENCE_OBJECT_LIST_MULTIPLE',buildingId , referenceIds);
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			// const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
+			const result = await getpositionRoom(buildingId, referenceIds);
 			// console.log('Récupération de l objet de référence réussie:', result);
 			return result;
 		} catch (error) {

@@ -333,7 +333,7 @@ export default {
       query.buildingId = this.data.buildingId
       query.spaceSelectedId = this.data.dynamicId
       query.name = this.data.name
-      window.parent.routerFontion.customPush(window.parent.router.path, query);
+      window.parent.routerFontion.customReplace(window.parent.router.path, query);
     },
     extrairePrefixe(str) {
       const dernierSlashIndex = str.lastIndexOf('/');
@@ -369,7 +369,19 @@ export default {
 
     onClickNavigate() {
       const emitterHandler = EmitterViewerHandler.getInstance();
+      console.log(this.data);
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { navigate: 'la page', node: this.data });
+      
+      
+      const query = {
+        app: window.parent.router.query.app, // ou une autre valeur selon votre logique
+        buildingId: this.data.buildingId,
+        spaceSelectedId: this.data.dynamicId,
+        name: this.data.name
+      };
+
+      // Remplacer ou pousser la nouvelle URL
+      window.parent.routerFontion.customPush(window.parent.router.path, query);
     },
 
     // onClick(ev) {
