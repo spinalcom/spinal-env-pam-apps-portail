@@ -24,7 +24,7 @@
   display: flex;
   align-items: center;
   margin-top: 20px;
-  margin-left: 20px;
+  margin-left: 19px;
   padding: 0px;
 }
 

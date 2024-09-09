@@ -121,6 +121,7 @@ export class EventManager {
 			});
 
 			emitterHandler.on(VIEWER_REM_SPHERE, (data: any) => {
+				console.log('hihihihiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiihihiiihihiihihihih');
 				viewerUtils.removeSphere(viewer, data);
 			});
 

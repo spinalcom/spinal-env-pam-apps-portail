@@ -93,8 +93,7 @@ with this file. If not, see
     <div>
       <div class="title">
         <div class="button  adaptative" style="">
-          <v-select label="Details" v-model="selection"
-            :items="dynamicItems"></v-select>
+          <v-select label="Details" v-model="selection" :items="dynamicItems"></v-select>
         </div>
 
         <div style="width: 20%; justify-content: flex-end;align-items: center;display: flex;padding-right: 26px;"
@@ -152,7 +151,7 @@ with this file. If not, see
 
         <div class="blocInformation">
           <!-- endpoint -->
-          <span v-if="selectedZone.type == 'geographicFloor'"
+          <span 
             style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Indicateur
           </span>
           <!-- {{ selectedZone.type }} -->
@@ -177,7 +176,7 @@ with this file. If not, see
         </div>
 
         <div class="blocInformation">
-          <span v-if="selectedZone.type == 'geographicFloor'"
+          <span 
             style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Tickets
           </span>
           <div v-if="ticketsList && ticketsList[0]" class="inventory-container">
@@ -193,7 +192,8 @@ with this file. If not, see
 
       <!-- ONGLET attribut (attribut)-->
       <div v-if="selection == 'Attribut'">
-        <div class="title_attribut">Attribut de la selection</div>
+        <h3 >Attribut de la selection</h3>
+        
         <div v-for="(item, index) in floorstaticDetails[0].attributsList" class="blocInformation">
           <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">{{ item.name
             }}</span>
@@ -210,7 +210,7 @@ with this file. If not, see
           </div>
         </div>
 
-        <div class="title_attribut">Attribut des parents</div>
+        <h3 style="margin-top: 48px; border-bottom: 1px solid #dbdbdb;">Attribut des parents</h3>
 
         <!-- Section pour afficher les parentAttribut -->
         <div v-for="(parentItem, parentIndex) in parentAttribut" class="parentInformation" :key="parentIndex">
@@ -224,7 +224,7 @@ with this file. If not, see
                   {{ category.name }}
                 </h3>
                 <div class="category-attributes"
-                  style="color:#14202c; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
+                  style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                   <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{ attr.value
                     }}
                   </li>
@@ -244,8 +244,7 @@ with this file. If not, see
             <div class="">
               <div>
                 <!-- Affichage des informations principales du ticket -->
-                <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Inventaire
-                  des équipements ({{ ticket.name }})</span>
+                <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;"> {{ ticket.name }}</span>
                 <div class="back_blanc">
                   <!-- <li class="back_blanc"> <strong>Nom :</strong> {{ }}</li> -->
                   <li><strong>Description :</strong> {{ ticket.description }}</li>
@@ -277,7 +276,6 @@ with this file. If not, see
           </div>
           <div v-else class="inventory-container">
 
-
             <div class="inventory-item"
               style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
               v-for="(item, index2) in floorstaticDetails[0].endpoints[index]">
@@ -287,6 +285,8 @@ with this file. If not, see
 
         </div>
       </div>
+
+      <!-- {{ floorstaticDetails }} -->
 
       <!-- ONGLET INDICATEUR (controleEndpoint) indicateur -->
       <div v-if="selection == 'Indicateur'">
@@ -323,7 +323,7 @@ with this file. If not, see
           </div>
         </div>
 
-        <h3>Documents des Parents</h3>
+        <h3 style="border-bottom: 1px solid #d7d7d7; margin-top: 48px">Documents des Parents</h3>
         <br>
         <div v-for="(parent, index) in documentation.parents" :key="index">
           <div v-if="parent.documentation && parent.documentation.length > 0">
@@ -345,7 +345,7 @@ with this file. If not, see
     </div>
 
     <div class="description">
-      <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Accès aux
+      <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold; margin-left: 9px;">Accès aux
         applications</span>
 
       <div class="container_cards">
@@ -437,11 +437,14 @@ class dataSideApp extends Vue {
   referencedType: any = 'building';
 
   get dynamicItems(): string[] {
-    let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
+    let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets' , 'Indicateur'];
 
-    if (this.endpointProfil && this.endpointProfil.length > 0) {
-      items.push('Indicateur');
-    }
+    // console.log(this.floorstaticDetails[0]?.controlEndpoint , 'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz' );
+    // console.log(this.floorstaticDetails[0]?.controlEndpoint?.endpoint?.length  , 'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz' );
+    
+    // if (this.floorstaticDetails[0]?.controlEndpoint && this.floorstaticDetails[0]?.controlEndpoint[0]?.endpoint?.length > 0) {
+    //   items.push('Indicateur');
+    // }
 
     if (this.floorstaticDetails[0]?.endpoints && this.floorstaticDetails[0].endpoints.length > 0) {
       items.push('Points de mesures');
@@ -449,7 +452,7 @@ class dataSideApp extends Vue {
 
     return items;
   }
-  
+
   resize() {
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
@@ -467,6 +470,8 @@ class dataSideApp extends Vue {
     localStorage.setItem('Hidendbid', JSON.stringify(numbers));
     const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query };
 
+    console.log("//////////////**************************************************************/////////////");
+    
     const data = {
       buildingId: this.selectedZone.staticId,
       dynamicId: currentQuery.spaceSelectedId,
@@ -491,6 +496,8 @@ class dataSideApp extends Vue {
 
 
   async mounted() {
+
+
 
     if (this.selectedZone.type == "building") {
       this.loadBuildingInfo()
@@ -1268,6 +1275,7 @@ a {
 .inventory-container {
   display: flex;
   flex-wrap: wrap;
+  margin-top: 5px;
 }
 
 .attribut {
@@ -1487,6 +1495,7 @@ a {
   margin-bottom: 18px;
   font-size: xx-large;
   cursor: pointer;
+  padding-left: 0px;
 }
 
 .button:hover {

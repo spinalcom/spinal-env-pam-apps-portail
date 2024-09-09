@@ -164,7 +164,10 @@ class SpaceSelectorItem extends Vue {
   }
 
   getButton() {
+    console.error(this.item.type , '////////////////////////////////////////////////////////////////////////////////////////////////////////////////');
     if (this.item.type === "building") return;
+    
+    
 
     if (this.item.type === "geographicFloor")
       return this.spaceSelectorItemButtons.find(el => el.onclickEvent === ActionTypes.OPEN_VIEWER);

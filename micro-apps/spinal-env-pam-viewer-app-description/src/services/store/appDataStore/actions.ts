@@ -395,6 +395,8 @@ export const actions = {
 	},
 
 	[ActionTypes.HIDE_ITEMS]({ commit, dispatch, state }, playload: any) {
+		console.log('RAYANNNNEE');
+		
 		ViewerManager.getInstance().hide(playload);
 	},
 

@@ -85,6 +85,11 @@ import {
   VIEWER_AGGREGATE_SELECTION_CHANGED,
 } from "spinal-viewer-event-manager";
 
+import {
+  VIEWER_REM_SPHERE,
+
+} from "spinal-viewer-event-manager";
+
 import "spinal-components/dist/spinal-components.css";
 
 import dataSideApp from "./components/data-side/App.vue";
@@ -129,10 +134,16 @@ class App extends Vue {
   };
   floor: any = null
   async mounted() {
-    console.log(window.parent.router.path, 'toto');
+
+    //refresh de l'instace pour VIEWER_REM_SPHERE
+    // const emitterHandler = EmitterViewerHandler.getInstance();
+    // emitterHandler.off(VIEWER_REM_SPHERE);
+
+    this.initializeEventHandlers();
+
 
     if (window.innerWidth < 900) {
-      console.log(window.innerWidth);
+      // console.log(window.innerWidth);
 
       this.isActive = true;
       this.isActive3D = false;
@@ -147,10 +158,25 @@ class App extends Vue {
     }
 
     this.$nextTick(() => {
+
       this.query.app = "eyJuYW1lIjoiRGVzY3JpcHRpb24iLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImRhZGUtYTljYi1lMzc5LTE4ZjBmZGExZTI1IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxMzk1NzkyMTg4NiwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzEzOTU3OTAzOTA5LCJpY29uIjoibWRpLWJvb2staW5mb3JtYXRpb24tdmFyaWFudCIsImRlc2NyaXB0aW9uIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC1kZXNjcmlwdGlvbiIsInRhZ3MiOlsiRGVzY3JpcHRpb24iXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLWRlc2NyaXB0aW9uIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19"
+      // console.warn('/////////////////////////////////////////////////////');
+      // console.log(window.parent.router.query);
+      window.parent.router.query.app = this.query.app
+      // console.log(window.parent.router.query);
+
+      console.warn('/////////////////////////////////////////////////////');
+
       const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
       this.applyURLParam(currentQuery);
     });
+  }
+
+  initializeEventHandlers() {
+    const emitterHandler = EmitterViewerHandler.getInstance();
+    emitterHandler.off(VIEWER_REM_SPHERE);
+
+
   }
 
   changeApp(e) {
@@ -185,6 +211,9 @@ class App extends Vue {
   }
 
   applyURLParam(query) {
+    console.log('apply url parame ??');
+
+
     this.query.mode = query.mode
     this.query.buildingId = query.buildingId
     this.query.spaceSelectedId = query.spaceSelectedId
@@ -213,6 +242,9 @@ class App extends Vue {
           "geographicFloor"
         ]
       }
+
+      console.warn(button, '/////////////////////////////////////////////////////////////////////////////////////////////////////////');
+
       this.onActionClick({ button, item })
 
 
@@ -224,6 +256,7 @@ class App extends Vue {
         "buildingId": query.buildingId,
         "type": "geographicFloor",
       }
+      // this.$refs['space-selector'].getButton();
 
       if (this.$refs['space-selector']) {
         this.$refs['space-selector'].select(itemToSelect);
@@ -270,6 +303,8 @@ class App extends Vue {
   }
 
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<IZoneItem[]> {
+    console.log("APPPPPPPPPPLY 2222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222");
+
     switch (item?.type) {
       case undefined:
         console.warn(item?.type, '////////////////////////');
@@ -297,7 +332,7 @@ class App extends Vue {
           },
         ];
       case "building":
-        console.warn(item?.type , '////////////////////////');
+        console.warn(item?.type, '////////////////////////');
         return await this.$store.dispatch(ActionTypes.GET_FLOORS, {
           buildingId: item.staticId,
           patrimoineId: item.patrimoineId,
@@ -317,6 +352,8 @@ class App extends Vue {
   }
 
   onTemporalitySelectOpen(item?: any) {
+    console.log('APPPPPPPPPPPPPLY 333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333');
+
     switch (item?.type) {
       case undefined:
         return config.temporality.map((temp, index) => ({
@@ -374,7 +411,7 @@ class App extends Vue {
 
   onActionClick({ button, item }) {
 
-    console.warn("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", item , button);
+    console.warn("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa555", item, button);
     // button.onclickEvent = "OPEN_VIEWER"
 
     const data = {
@@ -389,6 +426,7 @@ class App extends Vue {
     };
 
     switch (button.onclickEvent) {
+
       case ActionTypes.OPEN_VIEWER:
         // console.log('laaaaaaaaaaaalalaalallalalalalalalalala');
         this.$store.dispatch(button.onclickEvent, {
@@ -426,7 +464,7 @@ class App extends Vue {
       // console.warn('uuujuuuu', result.navigate, 'test');
       if (result.navigate) {
         // console.warn('information');
-        console.log(result.node);
+        // console.log(result.node);
         this.query.spaceSelectedId = result.node.dynamicId
         this.query.name = result.node.name
         this.query.buildingId = result.node.buildingId

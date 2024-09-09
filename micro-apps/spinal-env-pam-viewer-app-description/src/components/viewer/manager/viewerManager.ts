@@ -25,8 +25,9 @@
 import { ModelManager } from "./modelManager";
 import { getViewInfo, getViewInfoFormatted, IViewInfoBody, IViewInfoItemRes, IViewInfoTmpRes, mergeIViewInfo } from "../requests/GeographicContext/getViewInfo";
 import { IPlayload, IPlayloadWithComponent } from "../interfaces/IPlayload";
-import { EmitterViewerHandler, VIEWER_ADD_SPRITE, VIEWER_INITIALIZED, VIEWER_OBJ_COLOR, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_START_LOAD_MODEL,ViewerEventWithData , VIEWER_REM_SPHERE } from "spinal-viewer-event-manager";
+import { EmitterViewerHandler, VIEWER_ADD_SPRITE, VIEWER_INITIALIZED, VIEWER_OBJ_COLOR, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_START_LOAD_MODEL, ViewerEventWithData, VIEWER_REM_SPHERE } from "spinal-viewer-event-manager";
 import { VIEWER_EVENTS } from "../events";
+import { ViewerUtils } from "../utils/viewerUtils";
 import Vue from "vue";
 import { log, warn } from "console";
 
@@ -123,8 +124,8 @@ export class ViewerManager {
 		if (typeof this._viewerStores["GET_VIEWER_INFO"] === "undefined") {
 			this._viewerStores["GET_VIEWER_INFO"] = {};
 		}
-		
-		
+
+
 		const items = Array.isArray(argItem) ? argItem : [argItem];
 		console.log(items);
 		const buildingId = argBuildingId || items[0].buildingId;
@@ -152,6 +153,7 @@ export class ViewerManager {
 			}
 		}
 
+		console.log('icici');
 		return res;
 
 		async function* generator(data): AsyncGenerator<Awaited<any>> {
@@ -159,26 +161,31 @@ export class ViewerManager {
 				yield data;
 			}
 		}
+
+
 	}
 
 	public select(item: IPlayload) {
 		return this._fctViewerIteract(VIEWER_OBJ_SELECT, item);
 	}
-	
-	
+
+
 
 	public hide(item: IPlayload) {
+		console.log('HIHIHIHIHIHHIHIHIII', item);
 		return this._fctViewerIteract(VIEWER_REM_SPHERE, item.items, item.config);
 	}
 
+	
+
 	public isolate(item: IPlayload) {
-		console.log(item , 'tututututu');
-		
+		console.log(item, 'tututututu');
+
 		this.hide(item) //TODO A BASCULER SUR UNE AUTRE ACTION ........  GABRIEL
 
 		return this._fctViewerIteract(VIEWER_OBJ_ISOLATE, item.item, item.config);
 	}
-	
+
 
 	public showAllObjects() {
 		const emitter = EmitterViewerHandler.getInstance();
@@ -232,13 +239,13 @@ export class ViewerManager {
 		}));
 	}
 
-	private async _fctViewerIteract(eventName: keyof ViewerEventWithData, playload: (IPlayload | string) | (IPlayload | string)[], isolateConfig?: any ,): Promise<any> {
-		console.log('TOTO' , eventName ,playload);
-		
+	private async _fctViewerIteract(eventName: keyof ViewerEventWithData, playload: (IPlayload | string) | (IPlayload | string)[], isolateConfig?: any,): Promise<any> {
+		console.log('TOTO', eventName, playload);
+
 		const emitter = EmitterViewerHandler.getInstance();
 		if (eventName === (VIEWER_EVENTS.UNLOAD as any)) {
-			
-			
+
+
 			playload = Array.isArray(playload) ? playload : [playload];
 			const obj = {};
 			const modelIds = playload.map((item) => {
@@ -252,10 +259,12 @@ export class ViewerManager {
 
 			return;
 		}
+		console.log('aa');
+
 
 		let data: IViewInfoItemRes[];
 		if (isolateConfig) {
-			
+
 			const body = {
 				dynamicId: playload['dynamicId'],
 				floorRef: isolateConfig.viewerInfo.roomRef,
@@ -266,7 +275,7 @@ export class ViewerManager {
 		} else {
 			data = await this.getViewerInfoMerged(playload as IPlayload);
 		}
-		
+
 		const res = data.map((it) => {
 			return {
 				dbIds: it.dbIds,
@@ -274,8 +283,15 @@ export class ViewerManager {
 				modelId: (playload as IPlayload).floorId || (playload as IPlayload).id || (playload as IPlayload).dynamicId,
 			};
 		});
+		console.log('aaaaaaaaaaaaaa', eventName, res);
 
-		emitter.emit(eventName, res);
+
+		try {
+			emitter.emit(eventName, res);
+		} catch (error) {
+			console.error('Erreur dans emitter.emit :', error);
+		}
+		console.log('saaaasassasasassasass');
 	}
 
 	private _addViewLoaded(nodeId: string, models: any[]) {
@@ -292,6 +308,7 @@ export class ViewerManager {
 	private _removeToolbarControl() {
 		this.viewer;
 	}
+
 }
 
 function convertToObj(arr) {

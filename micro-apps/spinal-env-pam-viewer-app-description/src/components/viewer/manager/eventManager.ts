@@ -134,6 +134,9 @@ export class EventManager {
 			// Code dans eventManager.ts
 			emitterHandler.on(VIEWER_REM_SPHERE, (data: any) => {
 
+				console.log('ICI SALUT ,,,', '///////////////////////////////////////////////////////////////////');
+				
+
 				const storedNumbers = localStorage.getItem('Hidendbid');
 				let numbersArray = [];
 
