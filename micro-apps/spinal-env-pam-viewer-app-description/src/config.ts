@@ -36,15 +36,15 @@ export const config: IConfig = {
 
 	//information de selection (attribut / controle endpoint)
 	batiment: {
-		profileNameControlePts: "KPI", //profil name attribut cbilé batiment
+		profileNameControlePts: "Occupation", //profil name attribut cbilé batiment
 		profileNameAttribut: 'default'// catégorie attribut cbilé batiment
 	},
 	floor: {
-		profileNameControlePts: "KPI USI", // profil name attribut cbilé floor
+		profileNameControlePts: "Occupation", // profil name attribut cbilé floor
 		profileNameAttribut: "Spatial" // catégorie attribut cbilé floor
 	},
 	room: {
-		profileNameControlePts: "KPI USI", // profil name attribut cbilé room
+		profileNameControlePts: "Occupation", // profil name attribut cbilé room
 		profileNameAttribut: "Spatial"  // catégorie attribut cbilé room
 	},
 
