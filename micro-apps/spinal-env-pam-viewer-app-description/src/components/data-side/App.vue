@@ -97,7 +97,7 @@ with this file. If not, see
             :items="dynamicItems"></v-select>
         </div>
 
-        <div style="width: 20%; justify-content: center;align-items: center;display: flex;"
+        <div style="width: 20%; justify-content: flex-end;align-items: center;display: flex;padding-right: 26px;"
           v-if="floorstaticDetails.length && floorstaticDetails[0].attributsList.length">
           <div style="" v-for="(item, index) in floorstaticDetails[0].attributsList[0].attributs">
             <div v-if="item.label == 'area'">
@@ -1484,7 +1484,7 @@ a {
   white-space: nowrap;
   margin-left: 20px;
   margin-top: 6px;
-  margin-bottom: 5px;
+  margin-bottom: 18px;
   font-size: xx-large;
   cursor: pointer;
 }
