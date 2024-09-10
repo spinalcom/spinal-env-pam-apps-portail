@@ -149,7 +149,7 @@ with this file. If not, see
           </div>
         </div>
 
-        <div class="blocInformation">
+        <div v-if="endpointProfil.length > 0 " class="blocInformation">
           <!-- endpoint -->
           <span 
             style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Indicateur
