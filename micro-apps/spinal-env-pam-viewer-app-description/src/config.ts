@@ -40,7 +40,7 @@ export const config: IConfig = {
 		profileNameAttribut: 'default'// catégorie attribut cbilé batiment
 	},
 	floor: {
-		profileNameControlePts: "Occupation", // profil name attribut cbilé floor
+		profileNameControlePts: "KPI USI", // profil name attribut cbilé floor
 		profileNameAttribut: "Spatial" // catégorie attribut cbilé floor
 	},
 	room: {
