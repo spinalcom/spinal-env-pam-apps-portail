@@ -439,9 +439,6 @@ class dataSideApp extends Vue {
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets' ];
 
-    // console.log(this.floorstaticDetails[0]?.controlEndpoint == true , 'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz' );
-    // console.log(this.floorstaticDetails[0]?.controlEndpoint[0]?.endpoints?.length >0  == true, 'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz' );
-    
     if (this.floorstaticDetails[0]?.controlEndpoint && this.floorstaticDetails[0]?.controlEndpoint[0]?.endpoints?.length > 0) {
       items.push('Indicateur');
     }

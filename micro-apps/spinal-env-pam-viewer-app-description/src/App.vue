@@ -412,18 +412,32 @@ class App extends Vue {
   onActionClick({ button, item }) {
 
     console.warn("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa555", item, button);
-    // button.onclickEvent = "OPEN_VIEWER"
+
+
+    // const data = {
+    //   "isOpen": false,
+    //   "loading": false,
+    //   "dynamicId": 44035200,
+    //   "name": "194-Hall d'accueil",
+    //   "buildingId": "5932-6086-9e1a-18506478460",
+    //   "type": "geographicFloor"
+    // }
+
+    const buildingId = localStorage.getItem("idBuilding");
 
     const data = {
-      buildingId: item.buildingId, //important viewer
+      "isOpen": false,
+      "loading": false,
+      buildingId: buildingId, //important viewer
       // staticId: item.staticId,//can
       // id: item.dynamicId,
       dynamicId: item.dynamicId,//important viewer
-      parents: item.parents
+      parents: item.parents,
       // floorId: item.floorId,//can
       // roomId: item.roomId,//can
       // type: item.type,//can
     };
+
 
     switch (button.onclickEvent) {
 
