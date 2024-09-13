@@ -26,11 +26,17 @@ with this file. If not, see
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
 
 
+
+    <SpriteComponentMobile @close="handleClose"
+      style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;"
+      :data="isSmallScreen">
+    </SpriteComponentMobile>
+    <!-- v-if="displaySprite" -->
+
     <div class="selectors">
       <div class="DButton">
         <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()" />
       </div>
-      
       <!-- <div class="temporality">
         <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
           :GetChildrenFct="onTemporalitySelectOpen" :maxDepth="0" v-model="temporalitySelected" label="TEMPORALITÉ" />
@@ -45,12 +51,12 @@ with this file. If not, see
     </div>
 
     <div class="dataBody">
-      <viewerApp :class="{ 'active3D': isActive3D }" class="viewerContainer"></viewerApp>
-      <dataSideApp :floor="floor" :DActive="isActive3D" :ActiveData="isActive"
+      <viewerApp :class="{ 'active3D': true }" class="viewerContainer"></viewerApp>
+      <!-- <dataSideApp :floor="floor" :DActive="isActive3D" :ActiveData="isActive"
         :class="{ 'active': isActive, 'inactive': isActive3D }" class="appContainer" :config="config"
         :selectedZone="selectedZone" :data="displayedData" @changeRoute="changeApp" @clickOnDataView="onDataViewClicked"
         @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D" @full3D="full3D()">
-      </dataSideApp>
+      </dataSideApp> -->
     </div>
   </v-app>
 
@@ -77,6 +83,7 @@ import type {
 import viewerApp from "./components/viewer/viewer.vue";
 import ScDownloadButton from "spinal-components/src/components/DownloadButton.vue";
 import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
+import SpriteComponentMobile from "./components/data-side/SpriteComponentMobile.vue"
 import { config } from "./config";
 import { IConfig } from "./interfaces/IConfig";
 import { PAGE_STATES } from "./interfaces/pageStates";
@@ -111,7 +118,8 @@ interface IItemDatatmp {
     SpaceSelector,
     viewerApp,
     ScDownloadButton,
-    dataSideApp
+    dataSideApp,
+    SpriteComponentMobile
   },
 })
 class App extends Vue {
@@ -125,7 +133,10 @@ class App extends Vue {
   isActive: boolean = false;
   isActive3D: boolean = false;
   dataTable: IZoneItem[] = [];
+  isSmallScreen: any;
+  referenceObjects: any[];
   $refs: { spaceSelector };
+  displaySprite: boolean = false;
   query: { app: string; mode: string; name: string; spaceSelectedId: string; buildingId: string } = {
     app: '',
     mode: 'null',
@@ -135,6 +146,24 @@ class App extends Vue {
   };
   floor: any = null
   async mounted() {
+
+
+    //initialiser les objet de la piece : 
+    this.getDataDynamicIdtab()
+
+
+    const emitterHandler = EmitterViewerHandler.getInstance();
+    emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
+
+      console.log(data);
+
+
+      if (data)
+        this.findDynamicIdByDbid(data[0].dbIds[0], data[0]);
+
+    });
+
+
 
     //refresh de l'instace pour VIEWER_REM_SPHERE
     // const emitterHandler = EmitterViewerHandler.getInstance();
@@ -160,7 +189,7 @@ class App extends Vue {
 
     this.$nextTick(() => {
 
-      this.query.app = "eyJuYW1lIjoiRGVzY3JpcHRpb24iLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImRhZGUtYTljYi1lMzc5LTE4ZjBmZGExZTI1IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxMzk1NzkyMTg4NiwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzEzOTU3OTAzOTA5LCJpY29uIjoibWRpLWJvb2staW5mb3JtYXRpb24tdmFyaWFudCIsImRlc2NyaXB0aW9uIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC1kZXNjcmlwdGlvbiIsInRhZ3MiOlsiRGVzY3JpcHRpb24iXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLWRlc2NyaXB0aW9uIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19"
+      this.query.app = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC10ZWxlY29tbWFuZGUiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImFjYWQtOThkNi05ZWFjLTE5MWU2NTQ2M2Q0IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcyNjE0NjE4NTM0OSwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzI2MTQ2MTc1OTU2LCJpY29uIjoibWRpLWNvbnRyb2xsZXIiLCJkZXNjcmlwdGlvbiI6InNwaW5hbC1lbnYtcGFtLXZpZXdlci1hcHAtdGVsZWNvbW1hbmRlIiwidGFncyI6WyJ0ZWxlY29tbWFuZGUiXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLXRlbGVjb21tYW5kZSIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
       // console.warn('/////////////////////////////////////////////////////');
       // console.log(window.parent.router.query);
       window.parent.router.query.app = this.query.app
@@ -178,6 +207,158 @@ class App extends Vue {
     emitterHandler.off(VIEWER_REM_SPHERE);
 
 
+  }
+
+  async findDynamicIdByDbid(dbidToFind, data) {
+    const buildingId = localStorage.getItem("idBuilding");
+    const BimObject = [
+      {
+        "bimFileId": data.modelId.bimFileId,
+        "dbids": data.dbIds
+      }
+    ]
+    const referenceResult = await this.getBIMInfo(BimObject)
+
+    const isRoom = this.checkForReferenceObjectRoom(referenceResult[0][0].bimObjects[0].parent_relation_list)
+
+    if (isRoom) {
+      const objects = this.referenceObjects;
+      for (const obj of objects[0]) {
+        if (Array.isArray(obj.infoReferencesObjects)) {
+          for (const ref of obj.infoReferencesObjects) {
+            if (ref.dbid === dbidToFind && data.modelId.bimFileId == obj.bimFileId) {
+              const referenceIds = obj.dynamicId
+              const promises = [
+                this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
+                  buildingId,
+                  referenceIds
+                }),
+              ];
+              const result = await Promise.all(promises);
+              this.forgeItem(result, buildingId, ref.dbid, obj.bimFileId, data.center)
+              return;
+
+            }
+          }
+        }
+      }
+      return null;
+    }
+    else {
+      const referenceIds = referenceResult[0][0].bimObjects[0].dynamicId
+      const promises = [
+        this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
+          buildingId,
+          referenceIds
+        }),
+      ];
+
+
+      const result = await Promise.all(promises);
+      this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0], data.center)
+      return;
+    }
+  }
+
+
+  handleClose() {
+    this.displaySprite = false;
+  }
+
+
+  getDataDynamicIdtab() {
+    const data = [{
+      "dynamicId": 42502576,
+      "staticId": "SpinalNode-4bd8b812-f94d-549c-f720-706ab2f16c17-186df7cd2a9",
+      "name": "120-Salle informatique 1",
+      "type": "geographicRoom",
+      "patrimoineId": "37de-02b8-e18b-1850643b68a",
+      "buildingId": "5932-6086-9e1a-18506478460",
+      "color": "#ded638"
+    }]
+    const dynamicIds = data.map(obj => obj.dynamicId);
+    this.fetchReferenceObjects(dynamicIds)
+    // this.getInventoryObject(dynamicIds)
+  }
+
+  async fetchReferenceObjects(referenceIds) {
+    const buildingId = localStorage.getItem("idBuilding");
+
+    const promises = [
+      this.$store.dispatch(ActionTypes.GET_REFERENCE_OBJECT_LIST_MULTIPLE, {
+        buildingId,
+        referenceIds
+      }),
+    ];
+    const result = await Promise.all(promises);
+    this.referenceObjects = [...result];
+
+  }
+
+  checkForReferenceObjectRoom(list) {
+    return list.some(item => item.name === "hasReferenceObject.ROOM");
+  }
+
+  forgeItem(result, buildingId, dbid, bimFileId, center) {
+
+    let X = center.x;
+    let Y = center.y;
+    let Z = center.z;
+
+    // result[0].attributsList.forEach(category => {
+    //   category.attributs.forEach(attribute => {
+    //     if (attribute.label === "XYZ center") {
+    //       const coordinates = attribute.value.split(";");
+    //       X = coordinates[0];
+    //       Y = coordinates[1];
+    //       Z = coordinates[2];
+    //     }
+    //   });
+    // });
+
+    // const [X, Y, Z] = result[key]["XYZ center"].split(";");
+
+    const item = {
+      color: '#ded638',
+      dynamicId: result[0].dynamicId,
+      buildingId: buildingId,
+      dbid: dbid,
+      bimFileId: bimFileId,
+      name: result[0].name,
+      position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
+      data: result[0],
+      config: this.config
+    }
+    this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+
+
+    // const screenWidth = window.innerWidth;
+
+
+    this.displaySprite = false;
+    this.isSmallScreen = item;
+    this.displaySprite = true;
+
+    // this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+    //   items: item,
+    //   buildingId: buildingId,
+    //   component: SpriteComponent,
+    // });
+
+
+
+  }
+
+  async getBIMInfo(referenceIds) {
+    const buildingId = localStorage.getItem("idBuilding");
+    const promises = [
+      this.$store.dispatch(ActionTypes.GET_BIM_OBJECT_INFO, {
+        buildingId,
+        referenceIds
+      }),
+    ];
+    const result = await Promise.all(promises);
+    return [...result]
   }
 
   changeApp(e) {

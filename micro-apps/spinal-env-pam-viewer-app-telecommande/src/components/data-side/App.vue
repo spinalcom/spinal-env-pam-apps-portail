@@ -1049,8 +1049,6 @@ class dataSideApp extends Vue {
 
   getDataDynamicIdtab() {
     const dynamicIds = this.data.map(obj => obj.dynamicId);
-    console.log(dynamicIds , this.data, ' les dynamica ID //////////////////////////////////////');
-    
     this.fetchReferenceObjects(dynamicIds)
     this.getInventoryObject(dynamicIds)
   }
