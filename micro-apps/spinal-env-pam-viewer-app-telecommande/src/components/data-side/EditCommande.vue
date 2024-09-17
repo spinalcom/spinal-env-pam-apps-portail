@@ -1,46 +1,227 @@
 <template>
-  <div class="temperature-control">
-    <!-- Icône en haut -->
-    <div
-      style="display: flex;justify-content: center;align-items: center;padding: 2px ; font-size: 32px; border-radius: 10px;background-color: palevioletred; width: 50px; height: 50px;">
-      <span class="mdi mdi-thermometer-low"></span>
+  <div style="display: flex; transform: translate(-1%);">
+    <div class="temperature-control2">
+      <div class="dashedline"></div>
     </div>
-    <!-- Bouton pour augmenter la température (triangle vers le haut) -->
-    <!-- <button class="up-button" @click="increaseTemperature">
-      ▲
-    </button> -->
-    <div style="margin-top: 20px;" class="triangle" @click="increaseTemperature"></div>
+    <div class="temperature-control">
+      <!-- SVG en haut -->
+      <div :style="{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '2px',
+        fontSize: '60px',
+        borderRadius: '10px',
+        backgroundColor: color,
+        width: '90px',
+        height: '90px',
+        marginBottom: '20px',
+        transform: 'translate(40%)',
+        boxShadow: 'rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px'
+      }">
+        <!-- Utilisation de l'image SVG provenant des assets -->
+        <img :src="svgPath" alt="icon" style="width: 60px; height: 60px;" />
+      </div>
 
-    <!-- Slider vertical pour ajuster la température -->
-    <input type="range" min="10" max="40" v-model="currentTemperature" class="slider" orient="vertical" />
 
-    <!-- Affichage de la température actuelle -->
-    <div class="temperature-display">{{ currentTemperature }}°C</div>
 
-    <!-- Bouton pour diminuer la température (triangle vers le bas) -->
-    <div class="inverse_triangle" @click="decreaseTemperature">
-      
+      <div style="margin-top: 20px;" class="triangle" @click="increaseTemperature">
+        <div class="shodowbox"></div>
+        <div class="showdowbox2"></div>
+        <div class="showdowbox3"></div>
+        <div :style="{
+          all: 'unset',
+          zIndex: 99,
+          width: '20px',
+          height: '20px',
+          position: 'absolute',
+          backgroundColor: color, // Utilisation de la prop color
+          borderRadius: '50px',
+          transform: 'translate(27px, 11px) skewX(26deg) scale(1, -1.1)',
+        }"></div>
+      </div>
+
+
+      <input type="range" :min="minTemperature" :max="maxTemperature" v-model="currentTemperature" :style="sliderStyle"
+        class="slider" orient="vertical" @input="updateTemperaturePosition" ref="slider" />
+
+      <div :style="temperatureStyle">
+        {{ currentTemperature }}{{ unit }}
+      </div>
+
+      <!-- Affichage de la température actuelle -->
+      <div class="temperature-display"></div>
+      <!-- <div style="position: absolute;top: 40vh;transform: translate(-70px);font-size: 25px;">{{ currentTemperature }}°C</div> -->
+      <!-- Bouton pour diminuer la température (triangle vers le bas) -->
+      <div class="inverse_triangle" @click="decreaseTemperature">
+        <div :style="{
+          position: 'absolute',
+          backgroundColor: lastColor, // Utilisation de la couleur minimale
+          width: '20px',
+          height: '20px',
+          borderRadius: '20px',
+          zIndex: 99,
+          transform: 'translate(29px, 11px) skewX(11deg) skewY(20deg)'
+        }"></div>
+      </div>
+
+
+
+
+    </div>
+
+    <div>
+
+      <div style="padding-top: 23vh;">
+
+        <div style="height: 24vh  ; width: 100px;justify-content: space-between;flex-direction: column;align-items: center;display: flex; align-content :space-between ;
+">
+
+          <div v-for="(item, index) in objet" :key="index"
+            style="background-color: white;width: 100px;height: 32px;border-radius: 15px;box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;font-size: 21px;display: flex;flex-direction: row;margin-bottom: 10px; color: #bdbdbd;font-weight: bold;">
+            <div style="width: 30%; justify-content: center;align-items: center;display: flex;padding-top: 12px;">
+              <!-- Utilisation de la couleur dynamique -->
+              <v-badge :color="item.color"></v-badge>
+            </div>
+            <div style="width: 70%; margin-left: 13px;margin-top: 2px;">
+              <!-- Utilisation de la valeur dynamique -->
+              {{ item.value }}{{ unit }}
+            </div>
+          </div>
+
+
+
+        </div>
+
+
+      </div>
     </div>
   </div>
+
+
 </template>
 
 <script>
 export default {
   props: {
-    data: Object
+    data: Object,
+    icon: {
+      type: String,
+      default: "ampoule"
+    },
+    objet: {
+      type: Array,
+      required: true
+    },
+    unit: {
+      type: String,
+      default: "%"
+    },
+    step: {
+      type: Number,
+      default: 1
+    },
+    color: {
+      type: String,
+      default: "#ff9b9b"
+    },
+    currentData: {
+      type: Number,
+      default: 20
+    }
   },
   data: () => ({
-    currentTemperature: 20, // Température initiale
+    currentTemperature: null, // Température initiale
+    temperatureTop: 0
   }),
+  computed: {
+    lastColor() {
+      // Accéder directement au dernier élément de l'objet
+      return this.objet.length > 0 ? this.objet[this.objet.length - 1].color : ''; 
+    },
+    minTemperature() {
+      // Récupérer la plus petite valeur "value" dans l'objet vstore
+      return Math.min(...this.objet.map(item => item.value));
+    },
+    maxTemperature() {
+      // Récupérer la plus grande valeur "value" dans l'objet vstore
+      return Math.max(...this.objet.map(item => item.value));
+    },
+    svgPath() {
+      // Mappage des noms de SVG
+      const svgMap = {
+        ampoule: require('../../assets/ampoule.svg'),
+        thermometer: require('../../assets/temp.svg'),
+        store: require('../../assets/store.svg'),
+        // Ajoute ici les autres SVG connus
+      };
+      return svgMap[this.icon] || ''; // Retourne le chemin du SVG correspondant ou une chaîne vide si non trouvé
+    },
+    temperatureStyle() {
+      const pageHeight = window.innerHeight; // Récupère la hauteur de la fenêtre
+      const translateY = (pageHeight / 100) * 28; // 28vh basé sur la hauteur de la fenêtre
+
+      return {
+        position: 'absolute',
+        top: this.temperatureTop * 0.9 + 'px', // applique la position calculée
+        transform: `translate(-70px, ${translateY}px)`, // Utilise une valeur dynamique pour translateY
+        fontSize: '25px',
+      };
+    },
+
+    sliderStyle() {
+    // Trouver la valeur de l'objet la plus proche de `currentTemperature`
+    const closestItem = this.objet.reduce((prev, curr) => {
+      return (Math.abs(curr.value - this.currentTemperature) < Math.abs(prev.value - this.currentTemperature) ? curr : prev);
+    });
+
+    // Retourner la couleur associée à l'élément le plus proche
+    return {
+      '--slider-thumb-color': closestItem.color
+    };
+  }
+
+  },
+  mounted() {
+    this.updateTemperaturePosition();// Appelle une première fois au chargement
+  },
+  created() {
+    // Assigne la valeur de currentTemperature dans le hook `created`
+    this.currentTemperature = this.currentData;
+  },
   methods: {
+    updateTemperaturePosition() {
+      const slider = this.$refs.slider;
+      const sliderRect = slider.getBoundingClientRect(); // Récupère la hauteur réelle du slider
+      const range = slider.max + slider.min;
+      const sliderValue = slider.value + slider.min;
+
+      // Calculer la position en pourcentage de la hauteur du slider
+      const percentage = (sliderValue / range);
+
+      // Inverser le pourcentage pour que la température monte avec le slider
+      const thumbHeight = 20; // Taille du bouton définie dans le CSS
+      const thumbPosition = (1 - percentage) * (sliderRect.height - thumbHeight);
+
+      // Appliquer la position calculée
+      this.temperatureTop = thumbPosition;
+    },
     increaseTemperature() {
-      if (this.currentTemperature < 40) {
-        this.currentTemperature++;
+      // Vérifie si la température actuelle + le step ne dépasse pas le maximum
+      if (this.currentTemperature + Number(this.step) <= this.maxTemperature) {
+        this.currentTemperature += Number(this.step);
+      } else {
+        // Si ça dépasse, la température est égale au maximum
+        this.currentTemperature = this.maxTemperature;
       }
     },
     decreaseTemperature() {
-      if (this.currentTemperature > 10) {
-        this.currentTemperature--;
+      // Vérifie si la température actuelle - le step ne descend pas en dessous du minimum
+      if (this.currentTemperature - Number(this.step) >= this.minTemperature) {
+        this.currentTemperature -= Number(this.step);
+      } else {
+        // Si ça descend en dessous, la température est égale au minimum
+        this.currentTemperature = this.minTemperature;
       }
     },
     close() {
@@ -51,15 +232,98 @@ export default {
 </script>
 
 <style scoped>
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: 14vh;
+  margin-bottom: 110px;
+  transform: rotate(-90deg);
+  width: 25vh;
+}
+
+.dashedline {
+  content: "";
+  z-index: -1;
+  border-left: 2px dashed #444;
+  position: relative;
+  top: 0;
+  bottom: 0;
+  height: 24vh;
+  /* left: 50%; */
+  margin-top: 33vh;
+  transform: translate(100px, -100px);
+}
+
+
+
+@media (max-height: 910px) {
+  .dashedline {
+
+    margin-top: 37vh;
+  }
+}
+
+@media (max-height: 842px) {
+  .dashedline {
+    margin-top: 34vh;
+    height: 16vh;
+  }
+
+  .slider {
+    margin-bottom: 4vh;
+    width: 16vh;
+    margin-top: 10vh;
+  }
+}
+
+@media (min-height: 1000px) {
+  .dashedline {
+    height: 25vh;
+    margin-top: 31vh;
+  }
+}
+
+/* @media (max-height: 832px) {
+  .dashedline {
+    margin-top: 38vh;
+  }
+} */
+
+@media (max-height: 701px) {
+  .dashedline {
+    height: 14vh;
+    margin-top: 38vh;
+  }
+
+  .slider {
+    margin-bottom: -2vh;
+    width: 11vh;
+    margin-top: 7vh;
+  }
+}
+
 .temperature-control {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100px;
+  /* width: 100px; */
   /* Largeur de votre composant */
   padding: 20px;
-  background-color: #f0f0f0;
+
   border-radius: 10px;
+  width: 150px;
+}
+
+.temperature-control2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* width: 100px; */
+  /* Largeur de votre composant */
+  padding: 20px;
+
+  border-radius: 10px;
+  width: 50px;
 }
 
 .icon {
@@ -69,7 +333,7 @@ export default {
 
 .triangle {
   position: relative;
-  background-color: orange;
+  background-color: rgb(255, 255, 255);
   text-align: left;
 }
 
@@ -83,14 +347,16 @@ export default {
 .triangle,
 .triangle:before,
 .triangle:after {
-  width: 30px;
-  height: 30px;
-  border-top-right-radius: 30%;
+  width: 60px;
+  height: 60px;
+  border-top-right-radius: 50%;
 }
 
 .triangle {
   transform: rotate(-60deg) skewX(-30deg) scale(1, .866);
-  box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+  /* box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px; */
+  /* box-shadow: rgba(0, 0, 0, 0.25) 0px 0.0625em 0.0625em, rgba(0, 0, 0, 0.25) 0px 0.125em 0.5em, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset; */
+  z-index: 1;
 }
 
 .triangle:before {
@@ -107,28 +373,54 @@ export default {
 }
 
 
-
-
-
-
-
-
-
-.slider {
-  -webkit-appearance: none;
-  appearance: none;
-  /* width: 4px; Largeur de la piste */
-  /* height: 150px; Hauteur pour rendre le slider vertical */
-  background: none; /* Supprimer la barre par défaut */
-  margin: 10px 0;
-  margin-top: 100px !important;
-    margin-bottom: 46px;
-  transform: rotate(-90deg); /* Forcer l'orientation verticale */
+.showdowbox2 {
+  z-index: -1;
+  background-color: #981c1c00;
+  border-radius: 50px;
+  width: 130%;
+  height: 2px;
+  position: absolute;
+  top: 63px;
+  left: 22px;
+  rotate: 270deg;
+  box-shadow: 0 2px 8px #00000040;
 }
+
+.showdowbox3 {
+  z-index: -1;
+  background-color: #0000;
+  border-radius: 50px;
+  width: 160%;
+  height: 2px;
+  position: absolute;
+  top: 36px;
+  left: -32px;
+  rotate: 45deg;
+  box-shadow: 0 2px 8px #00000040;
+}
+
+.shodowbox {
+  z-index: -1;
+  background-color: #0000;
+  border-radius: 50px;
+  width: 130%;
+  height: 2px;
+  position: absolute;
+  top: -1px;
+  left: -43px;
+  rotate: 180deg;
+  box-shadow: 0 2px 8px #00000040;
+}
+
+
+
+
+
 
 .slider::-webkit-slider-runnable-track {
   width: 1px !important;
-  background-color: #f78d8d00; /* Couleur du trait */
+  background-color: #f78d8d00;
+  /* Couleur du trait */
   border-radius: 2px;
 }
 
@@ -149,28 +441,29 @@ export default {
   appearance: none;
   width: 20px;
   height: 20px;
-  background-color: orange; /* Couleur du bouton */
+  background-color: var(--slider-thumb-color);
+  /* Couleur du bouton */
   border-radius: 50%;
   cursor: pointer;
-  /* border: 2px solid #333; */
+  border: 2px solid #333;
 }
 
 .slider::-moz-range-thumb {
   width: 20px;
   height: 20px;
-  background-color: orange;
+  background-color: var(--slider-thumb-color);
   border-radius: 50%;
   cursor: pointer;
-  /* border: 2px solid #333; */
+  border: 2px solid #333;
 }
 
 .slider::-ms-thumb {
   width: 20px;
   height: 20px;
-  background-color: orange;
+  background-color: var(--slider-thumb-color);
   border-radius: 50%;
   cursor: pointer;
-  /* border: 2px solid #333; */
+  border: 2px solid #333;
 }
 
 
@@ -190,15 +483,8 @@ export default {
 .temperature-display {
   font-size: 18px;
   margin: 10px 0;
+  margin-left: 30px;
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -211,7 +497,7 @@ export default {
 
 .inverse_triangle {
   position: relative;
-  background-color: orange;
+  background-color: rgb(255, 255, 255);
   text-align: left;
 }
 
@@ -225,9 +511,9 @@ export default {
 .inverse_triangle,
 .inverse_triangle:before,
 .inverse_triangle:after {
-  width: 30px;
-  height: 30px;
-  border-top-right-radius: 30%;
+  width: 60px;
+  height: 60px;
+  border-top-right-radius: 50%;
 }
 
 .inverse_triangle {
@@ -242,6 +528,4 @@ export default {
 .inverse_triangle:after {
   transform: rotate(135deg) skewY(-45deg) scale(.707, 1.414) translate(50%);
 }
-
-
 </style>

@@ -368,7 +368,8 @@ export const actions = {
 				equipements: false,
 				dbIdsToAdd: [],
 			};
-
+			
+			
 			if (viewerInfo.equipments === "all") {
 				body.equipements = true;
 				body.dbIdsToAdd = [];
@@ -377,6 +378,8 @@ export const actions = {
 				const map = await dispatch(ActionTypes.GET_GROUPS_ITEMS, { config: playload.config, buildingId: playload.item.buildingId });
 				body.dbIdsToAdd = classifyItemByBimFileId(map, playload.item.dynamicId, playload.item.type);
 			}
+			console.log('je suis gab' , playload);
+			// body.equipements = false
 			await ViewerManager.getInstance().loadInViewer(playload.item, playload.onlyThisModel, body);
 
 			if (playload.onlyThisModel) state.viewerStartedList = {};

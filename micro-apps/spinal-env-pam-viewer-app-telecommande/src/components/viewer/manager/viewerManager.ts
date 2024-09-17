@@ -77,6 +77,9 @@ export class ViewerManager {
 
 	public async loadInViewer(item: IPlayload, loadOnlyThisModel: boolean = true, body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }) {
 		// if (this._viewerStartedList[item.staticId]) return;
+		
+		console.warn(body , ' rayane');
+		
 		if (this._viewerStartedList[item.dynamicId]) {
 			this.showAllObjects();
 			return;
@@ -92,6 +95,9 @@ export class ViewerManager {
 		emitter.once(VIEWER_INITIALIZED, async () => {
 			const buildingId = item.buildingId;
 			const dynamicId = item.dynamicId;
+
+
+			
 			if (!body) body = { dynamicId: [dynamicId], floorRef: true, roomRef: true, equipements: true };
 
 			const res = await this.getViewerInfoMerged(item, body);
@@ -176,7 +182,7 @@ export class ViewerManager {
 		return this._fctViewerIteract(VIEWER_REM_SPHERE, item.items, item.config);
 	}
 
-	
+
 
 	public isolate(item: IPlayload) {
 		console.log(item, 'tututututu');
@@ -264,7 +270,8 @@ export class ViewerManager {
 
 		let data: IViewInfoItemRes[];
 		if (isolateConfig) {
-
+			console.log('je suis totototo');
+			
 			const body = {
 				dynamicId: playload['dynamicId'],
 				floorRef: isolateConfig.viewerInfo.roomRef,

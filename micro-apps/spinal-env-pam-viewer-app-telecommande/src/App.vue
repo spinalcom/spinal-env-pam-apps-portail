@@ -27,7 +27,7 @@ with this file. If not, see
 
 
 
-    <SpriteComponentMobile @close="handleClose"
+    <SpriteComponentMobile v-if="displaySprite" @close="handleClose"
       style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;"
       :data="isSmallScreen">
     </SpriteComponentMobile>
@@ -136,7 +136,7 @@ class App extends Vue {
   isSmallScreen: any;
   referenceObjects: any[];
   $refs: { spaceSelector };
-  displaySprite: boolean = false;
+  displaySprite: boolean = true;
   query: { app: string; mode: string; name: string; spaceSelectedId: string; buildingId: string } = {
     app: '',
     mode: 'null',
