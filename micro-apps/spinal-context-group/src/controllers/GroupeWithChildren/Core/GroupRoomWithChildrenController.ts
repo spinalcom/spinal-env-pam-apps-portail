@@ -19,7 +19,7 @@ import {
   OperationState,
   iKpiBaseFactory,
 } from "../../../interfaces/GroupWithChildren";
-import { iListObjFactory } from "../../../interfaces";
+import { iListObjFactory, IRoom } from "../../../interfaces";
 import { iLegendFactory } from "../../../interfaces/GroupWithChildren";
 
 // * Generic
@@ -111,6 +111,7 @@ class GroupRoomWithChildrenController
   private readonly _emitterHandler: EmitterViewerHandler;
 
   private _globalArea = 0;
+  private _globalUnitValue = 0;
 
   private _totalGainGrpRoom: KpiBase | undefined;
   private _totalGainListGrpRoom: KpiBase | undefined;
@@ -138,6 +139,7 @@ class GroupRoomWithChildrenController
     this._currentCategory = undefined;
     this._groupToDisplay = [];
     this._globalArea = 0;
+    this._globalUnitValue = 0;
     this._genericErrMsg = "Une erreur est survenue";
     this._grpFocus = "GrpRoomList";
     this._roomManager = new RoomManager();
@@ -178,6 +180,7 @@ class GroupRoomWithChildrenController
     }
     console.log('all rooms after filter :',this._allRooms, Object.keys(this._allRooms.obj).length);
   }
+
   public async addNewItem(
     item: IGroupRoomItem,
     parent?: IGroupRoomItem
@@ -193,7 +196,6 @@ class GroupRoomWithChildrenController
 
     return new Promise<IGroupRoomItem>((resolve, reject) => {
       newItem.tmp = true;
-
       this.addNewItemErrorManagement(item)
         .then(() => this.assignRoomArea(newItem))
         .then(() => this.deleteRoomAssignedToOtherGrp(newItem))
@@ -352,7 +354,6 @@ class GroupRoomWithChildrenController
       [key: string]: IGroupRoomItem;
     }>((resolve, reject) => {
       const lexiconRoom = {};
-      console.log('groupRoomTree :',this._groupRoomTree);
       for (const grp of this._groupRoomTree) {
         if (!Array.isArray(grp.children) || grp.parentId !== catId) {
           continue;
@@ -476,6 +477,7 @@ class GroupRoomWithChildrenController
     }
   }
 
+  /** update area property of item*/ 
   private async assignRoomArea(item: IGroupRoomItem): Promise<IGroupRoomItem> {
     return new Promise((resolve, reject) => {
       item.area = parseFloat(this.getAttributByName(item, "area"));
@@ -600,23 +602,12 @@ class GroupRoomWithChildrenController
         .then((roomsToAddFilt) => this.operationOnRoom(roomsToAddFilt, 0))
         .then((pmsAddReq) => Promise.all(pmsAddReq))
         .then(() => this.rebuildGrpRoom())
-        .then(() => this.colorizeViewer())
+        // .then(() => this.colorizeViewer())
         .then(() => this.recomputeKpi(true))
         .then(() => resolve("Success"))
         .catch((err: any) => {
           reject(new Error(err));
         });
-    });
-  }
-
-  public async reset(): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      if (this._grpFocus === "GrpRoom") {
-        this.resetGrpRoom();
-      } else if (this._grpFocus === "GrpRoomList") {
-        this.resetEveryGrp();
-      }
-      resolve();
     });
   }
 
@@ -639,7 +630,7 @@ class GroupRoomWithChildrenController
         .then((roomsToAddFilt) => this.operationOnRoom(roomsToAddFilt, 0))
         .then((pmsAddReq) => Promise.all(pmsAddReq))
         .then(() => this.rebuildSelectedGrpRoom())
-        .then(() => this.colorizeViewer())
+        //.then(() => this.colorizeViewer())
         .then(() => this.recomputeKpi(true))
         .then(() => resolve("Success"))
         .catch((err: any) => {
@@ -648,13 +639,52 @@ class GroupRoomWithChildrenController
     });
   }
 
+  public async reset(): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (this._grpFocus === "GrpRoom") {
+        this.resetGrpRoom();
+      } else if (this._grpFocus === "GrpRoomList") {
+        this.resetEveryGrp();
+      }
+      resolve();
+    });
+  }
+
+
+
   public async saveGrpRoom(): Promise<TGroupOperation> {
     return new Promise((resolve, reject) => {});
   }
 
+  public getRoomFromReferenceId(dbId: number) {
+    return this._roomManager.getRoomByDbId(dbId.toString());
+  }
+
+  public getGrpRoomItemFromReferenceId(dbId: number) : { room : IRoom | IGroupRoomItem | undefined, position: { x: number, y: number, z: number }, dynamicId: number} | undefined {
+    const room = this._roomManager.getRoomByDbId(dbId.toString());
+    if (!room) return;
+    const spatialCategory = room.categoryAttributes?.find(
+      (category) => category.name === "Spatial"
+    );
+    const positionAttribute = spatialCategory?.attributs?.find(
+      (attribute) => attribute.label === "XYZ center"
+    );
+    if (! positionAttribute) return;
+    const position = positionAttribute.value.split(";");
+    //console.log('groups :', this._groupRoomTree);
+    
+    return { 
+      room : this._lexiconGrpRoomTree[room.dynamicId],
+      position : {
+      x: parseFloat(position[0]),
+      y: parseFloat(position[1]),
+      z: parseFloat(position[2]),
+      },
+      dynamicId: room.dynamicId};
+  }
+
   public selectItem(item: IGroupRoomItem) {
     let itemOrigin: Room;
-
     if (this._grpFocus === "GrpRoomList") {
       this._selectedGrpRooms = item;
       this.recomputeKpi();
@@ -671,6 +701,7 @@ class GroupRoomWithChildrenController
           throw new Error("La pièce selectioné n'éxiste pas");
         }
 
+        console.log("itemOrigin : ", itemOrigin);
         this._viewerManager
           .select(itemOrigin as IPlayload)
           .then()
@@ -694,6 +725,10 @@ class GroupRoomWithChildrenController
 
   public get globalArea(): number {
     return this._globalArea;
+  }
+
+  public get globalUnitValue(): number {
+    return this._globalUnitValue;
   }
 
   public get groupToDisplay(): IGroupRoomItem[] {
@@ -788,6 +823,43 @@ class GroupRoomWithChildrenController
     });
   }
 
+  public buildItemFromViewer(item : IGroupRoomItem | any) : IGroupRoomItem {
+    let roomOrigin: Room;
+    let floor: Floor = undefined;
+    let parent: IGroupRoomItem = undefined;
+    let grandParent: IGroupRoomItem = undefined;
+      if (item.id) {
+        roomOrigin = this._allRooms.obj[item.id];
+      } else if (item.dynamicId) {
+        roomOrigin = this._allRooms.obj[item.dynamicId];
+      }
+
+      floor =
+        this._roomManager.floors.obj[
+          this._roomManager.rooms.obj[roomOrigin.dynamicId].floorId
+        ];
+      parent = this.getParentItem(
+        this._lexiconGrpRoomTree[roomOrigin.dynamicId]
+      );
+      grandParent = this.getParentItem(parent);
+      const newItem: IGroupRoomItem = iGroupRoomItemFactory.build({
+        id: roomOrigin.dynamicId,
+        title: roomOrigin.name,
+        area: parseFloat(this.getAttributByName(roomOrigin, "area")),
+        type: EGroupType.ROOM,
+        tmp: true,
+        floorId: floor?.dynamicId ?? -1,
+        floorName: floor?.name ?? "",
+        color: this.getAttributByName(roomOrigin, "color"),
+        parentId: parent?.id,
+        parentTitle: parent?.title,
+        grandParentId: grandParent?.id,
+        grandParentTitle: grandParent?.title,
+      });
+      return newItem;
+  }
+  
+
   public applyColorsToRooms() {
     if (this._grpFocus === "GrpRoom") {
     }
@@ -874,8 +946,10 @@ class GroupRoomWithChildrenController
       toDeleteId = [];
       grp.gainKpi = iKpiBaseFactory.build({});
       grp.newArea = this._selectedGrpRooms?.area ?? 0;
+      grp.newUnitValue = this._selectedGrpRooms?.unitValue ?? 0;
     }
     this._totalAreaListGrpRoom.value = this.globalArea;
+    this._totalAreaListGrpRoom.unitValue = this.globalUnitValue;
     this._totalGainListGrpRoom = iKpiBaseFactory.build({});
   }
 
@@ -1025,6 +1099,8 @@ class GroupRoomWithChildrenController
   private recomputeSelectedGrp(grp?: IGroupRoomItem) {
     let gainValue = 0;
     let gainPercentage = 0;
+    let gainUnitValue = 0;
+
     const selectedGrpRoom: IGroupRoomItem | undefined =
       grp ?? this._selectedGrpRooms;
 
@@ -1037,10 +1113,16 @@ class GroupRoomWithChildrenController
       .filter((room: IGroupRoomItem) => room.operations !== "ToDeAssign")
       .reduce((acc: number, curr: IGroupRoomItem) => acc + curr.area, 0);
 
+    selectedGrpRoom.newUnitValue = selectedGrpRoom.children.
+    filter((room: IGroupRoomItem) => room.operations !== "ToDeAssign").length;
+    
     gainValue = selectedGrpRoom.newArea - selectedGrpRoom.area;
+    gainUnitValue = selectedGrpRoom.newUnitValue - selectedGrpRoom.unitValue;
     gainPercentage =
     selectedGrpRoom.area !== 0 ? (gainValue / selectedGrpRoom.area) * 100 : 0;
+
     selectedGrpRoom.gainKpi.value = gainValue;
+    selectedGrpRoom.gainKpi.unitValue = gainUnitValue;
     selectedGrpRoom.gainKpi.percentage = gainPercentage;
   }
 
@@ -1052,6 +1134,14 @@ class GroupRoomWithChildrenController
         }
         return acc;
       }, 0);
+
+      grp.unitValue = grp.children.reduce((acc: number, curr: IGroupRoomItem) => {
+        if (grp.parentId === this._currentCategory.id) {
+          return acc + 1;
+        }
+        return acc;
+      }, 0);
+
     }
   }
 
@@ -1070,16 +1160,23 @@ class GroupRoomWithChildrenController
         ? (gainValue / this._selectedGrpRooms.area) * 100
         : 0;
 
+    const gainUnitValue = this._selectedGrpRooms.newUnitValue - this._selectedGrpRooms.unitValue;
+    
+    this._totalGainGrpRoom.unitValue = gainUnitValue;
     this._totalGainGrpRoom.value = gainValue;
     this._totalGainGrpRoom.percentage = gainPercentage;
     this._totalAreaGrpRoom.value = this._selectedGrpRooms.newArea;
     this._totalAreaGrpRoom.percentage = gainPercentage;
+    this._totalAreaGrpRoom.unitValue= this._selectedGrpRooms.newUnitValue;
   }
 
   private recomputeEveryGrp(reset = false) {
     let gainValue = 0;
     let gainPercentage = 0;
+    let gainUnit = 0;
+
     let newArea = 0;
+    let newUnitValue = 0;
 
     if (!this._groupRoomTree) {
       this._totalGainListGrpRoom = iKpiBaseFactory.build({});
@@ -1101,15 +1198,31 @@ class GroupRoomWithChildrenController
       },
       0
     );
+
+    newUnitValue = this._groupRoomTree.reduce(
+      (acc: number, curr: IGroupRoomItem) => {
+        if (curr.parentId === this._currentCategory.id) {
+          return acc + curr.newUnitValue;
+        }
+        return acc;
+      },
+      0
+    );
+
     if (reset) {
       this._globalArea = newArea;
+      this._globalUnitValue = newUnitValue;
     }
 
     gainValue = newArea - this._globalArea;
     gainPercentage = (gainValue / this._globalArea) * 100;
+    gainUnit = newUnitValue - this._globalUnitValue;
     this._totalAreaListGrpRoom.value = newArea;
+    this._totalAreaListGrpRoom.unitValue = newUnitValue;
+
     this._totalGainListGrpRoom.value = gainValue;
     this._totalGainListGrpRoom.percentage = gainPercentage;
+    this._totalGainListGrpRoom.unitValue = gainUnit;
   }
 
   // TODO change this function in order to use groupTree and abstract method instead
@@ -1339,11 +1452,13 @@ class GroupRoomWithChildrenController
     let groupRooms: IGroupRoomItem[] = [];
 
     this._globalArea = 0;
+    this._globalUnitValue = 0;
     return new Promise<IGroupRoomItem[]>((resolve, reject) => {
       groupRooms = grpRooms.map((grpRoom: IGroupRoomItem) => {
         const area: number = grpRoom.children.reduce(
           (acc: number, curr: IGroupRoomItem) => {
             if (curr.grandParentId === categorie.id) {
+              this._globalUnitValue += 1;
               return acc + curr.area;
             }
             return 0;

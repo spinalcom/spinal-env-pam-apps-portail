@@ -131,7 +131,7 @@ export class EventManager {
 			///////////////////////////////////////////////////////////////////////
 
 			function viewerGetSelectionChange(data: any) {
-				console.log('la selection' , data);
+				//!!console.log('la selection' , data);
 				
 				const eventData: IDbIdModelAggregate[] = [];
 				for (const selection of data.selections) {

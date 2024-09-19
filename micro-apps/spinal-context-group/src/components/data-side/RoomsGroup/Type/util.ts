@@ -1,4 +1,4 @@
-type UnitMode = "m2" | "percentage";
+type UnitMode = "m2" | "percentage" | "unitValue";
 
 type ViewMode = "grid" | "radar-grid";
 

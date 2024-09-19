@@ -82,7 +82,7 @@
 
 <script lang="ts">
 // * Classes
-import { NomenclatureController } from "../../../controllers/";
+import { NomenclatureController } from "../../../controllers";
 
 // * Components
 import Nomenclature from "../Nomenclature/Nomenclature.vue"

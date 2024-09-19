@@ -1,5 +1,12 @@
 <template>
   <v-card elevation="2" class="extend" height="100%">
+    <AssignationModale
+      v-if="showViewerAssignation && !hideViewerComponents"
+      :viewerSelectedRooms="viewerSelectedRooms"
+      @closeAssignationModale="closeAssignationModale"
+      @multipleAssignation="multipleAssignation"
+      @multipleUnassignation="multipleUnassignation"
+    ></AssignationModale>
     <div class="grid-cont" :class="gridClass">
       <div class="component-wrapper cw-left" v-if="viewMode === 'radar-grid'">
         <div class="header-wrapper hw-left">
@@ -86,13 +93,13 @@
                 >
                   {{ currentGrpRoom.title || '' }}
                 </div>
-                <v-tooltip top>
+                <v-tooltip bottom>
                   <template v-slot:activator="{ on, attrs }">
                     <v-btn color="grey" dark v-bind="attrs" v-on="on" icon>
                       <v-icon>mdi-information-outline</v-icon>
                     </v-btn>
                   </template>
-                <span v-if="grpRoomFocus === 'GrpRoomList'"
+                  <span v-if="grpRoomFocus === 'GrpRoomList'"
                     >Le composant Assignation des espaces permet de: <br />
                     - visualiser des groupes de pièces appartenant à la même
                     catégorie <br />
@@ -100,16 +107,28 @@
                   >
                   <span v-if="grpRoomFocus === 'GrpRoom'">
                     <span class="bold-element">{{ currentGrpRoom.title }}</span>
-                    est un
-                    <span class="bold-element">groupe de pièce</span> qui
-                    appartient à la categorie {{  currentGrpRoom.parentTitle }}</span
-                  >
+                    contient
+                    <span class="bold-element">{{
+                      grpRoomWithChildrenController.groupToDisplay.filter(
+                        (room) => room.display
+                      ).length
+                    }}</span>
+                    pièce<span
+                      >s |
+                      <span class="bold-element">
+                        {{
+                          dataNameFiltered.filter(
+                            (room) => room.floorId === selectedZone.dynamicId
+                          ).length
+                        }}</span
+                      >
+                      sur l'étage sélectionné</span
+                    >
+                  </span>
                 </v-tooltip>
                 <div
                   class="sub-title"
-                  v-if="
-                    grpRoomWithChildrenController.currentCategory
-                  "
+                  v-if="grpRoomWithChildrenController.currentCategory"
                 >
                   <span class="sub-title-content">categorie :</span>
                   <span class="name-category">{{
@@ -117,48 +136,66 @@
                   }}</span>
                 </div>
               </div>
-              <div class="subtitle-wrapper" v-if="grpRoomFocus === 'GrpRoom'">
-                <div class="subtitle">
-                  contient
-                  <span class="bold-element">{{
-                    grpRoomWithChildrenController.groupToDisplay.filter(
-                      (room) => room.display
-                    ).length
-                  }}</span>
-                  pièce<span>s dont <span class="bold-element"> {{ dataFiltered.filter( room => room.floorId === selectedZone.dynamicId).length }}</span>  sont sur l'étage sélectionné</span>
-
-                </div>
-              </div>
             </div>
             <div class="info-wrapper">
               <div class="area-wrapper">
                 <div class="initial-area area" :class="globalKpiClass">
-                  <div class="value" >
-
+                  <v-tooltip bottom z-index="80">
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn
+                        icon
+                        @click="toggleUnitMode"
+                        v-bind="attrs"
+                        v-on="on"
+                      >
+                        <v-icon color="greyed">mdi-swap-horizontal</v-icon>
+                      </v-btn>
+                    </template>
+                    <span class="z-index-60">Changer d'unité</span>
+                  </v-tooltip>
+                  <div class="value">
                     {{
-                      grpRoomFocus === 'GrpRoomList'
-                        ? grpRoomWithChildrenController.globalArea.toFixed(2)
-                        : currentGrpRoom.area.toFixed(2)
+                      unitMode === 'm2'
+                        ? grpRoomFocus === 'GrpRoomList'
+                          ? grpRoomWithChildrenController.globalArea.toFixed(2)
+                          : currentGrpRoom.area.toFixed(2)
+                        : grpRoomFocus === 'GrpRoomList'
+                        ? grpRoomWithChildrenController.globalUnitValue
+                        : currentGrpRoom.unitValue
                     }}
                   </div>
-                  <div class="unit">m2</div>
+                  <div class="unit">
+                    {{ unitMode === 'm2' ? 'm²' : 'Pièces' }}</div
+                  >
                 </div>
                 <div
                   class="separator-wrapper"
-                  v-if="grpRoomWithChildrenController.totalGain.value !== 0"
+                  v-if="
+                    (unitMode === 'm2' &&
+                      grpRoomWithChildrenController.totalGain.value !== 0) ||
+                    (unitMode === 'unitValue' &&
+                      grpRoomWithChildrenController.totalGain.unitValue !== 0)
+                  "
                 >
                   <div class="separator"></div>
                 </div>
+
                 <div
                   class="new-area area"
                   v-if="grpRoomWithChildrenController.totalGain.value !== 0"
                 >
                   <div class="value">
                     {{
-                      grpRoomWithChildrenController.totalArea.value.toFixed(2)
+                      unitMode === 'm2'
+                        ? grpRoomWithChildrenController.totalArea.value.toFixed(
+                            2
+                          )
+                        : grpRoomWithChildrenController.totalArea.unitValue
                     }}
                   </div>
-                  <div class="unit">m2</div>
+                  <div class="unit">
+                    {{ unitMode === 'm2' ? 'm²' : 'Pièces' }}</div
+                  >
                 </div>
               </div>
               <div class="gain-wrapper">
@@ -166,14 +203,20 @@
                   <v-icon
                     color="green"
                     v-if="
-                      grpRoomWithChildrenController.totalGain.percentage > 0
+                      (unitMode === 'm2' &&
+                        grpRoomWithChildrenController.totalGain.value > 0) ||
+                      (unitMode === 'unitValue' &&
+                        grpRoomWithChildrenController.totalGain.unitValue > 0)
                     "
                     >mdi-arrow-up-thick</v-icon
                   >
                   <v-icon
                     color="red"
                     v-else-if="
-                      grpRoomWithChildrenController.totalGain.percentage < 0
+                      (unitMode === 'm2' &&
+                        grpRoomWithChildrenController.totalGain.value < 0) ||
+                      (unitMode === 'unitValue' &&
+                        grpRoomWithChildrenController.totalGain.unitValue < 0)
                     "
                     >mdi-arrow-down-thick</v-icon
                   >
@@ -181,8 +224,10 @@
                 <div
                   class="text"
                   v-if="
-                    grpRoomWithChildrenController.totalGain.percentage > 0 ||
-                    grpRoomWithChildrenController.totalGain.percentage < 0
+                    (unitMode === 'm2' &&
+                      grpRoomWithChildrenController.totalGain.value != 0) ||
+                    (unitMode === 'unitValue' &&
+                      grpRoomWithChildrenController.totalGain.unitValue != 0)
                   "
                 >
                   <span v-if="unitMode === 'm2'">
@@ -198,6 +243,10 @@
                       )
                     }}
                     %
+                  </span>
+                  <span v-else-if="unitMode === 'unitValue'">
+                    {{ grpRoomWithChildrenController.totalGain.unitValue }}
+                    Pièces
                   </span>
                 </div>
               </div>
@@ -322,7 +371,7 @@
           </div>
           <RoomGroupDataTable
             ref="roomGroupDataTable"
-            :data="dataFiltered"
+            :data="dataNameFiltered"
             :showRadar="showRadar"
             :isFilter="filterBySelectedZone"
             :selectedFloorId="selectedZone.dynamicId"
@@ -370,11 +419,11 @@
                 @clickLogarithm="clickLogarithm"
                 @clickGroupManager="clickGroupManager"
                 @clickNomenclature="clickNomenclature"
-                @clickDisplayLegend="clickDisplayLegend"
                 @clickChangeUnit="toggleUnitMode"
                 @clickSwitchDataViz="toggleRadarVisibility"
                 @clickFilterFloor="toggleFilterFloor"
-              > </MenuV1>
+              >
+              </MenuV1>
             </div>
             <div class="actions">
               <v-btn
@@ -397,12 +446,12 @@
                 v-show="grpRoomFocus === 'GrpRoomList' && !showRadar"
                 >Valider
               </v-btn>
-              <v-btn
+              <!-- <v-btn
                 color="primary"
                 @click="commitChangeGrpRoom()"
                 v-show="grpRoomFocus === 'GrpRoom' && !showRadar"
                 >Valider
-              </v-btn>
+              </v-btn> -->
             </div>
           </div>
         </div>
@@ -423,6 +472,7 @@ import Nomenclature from '../Nomenclature/Nomenclature.vue';
 import ToggleButtonV1 from '../utils/ToggleButtonV1.vue';
 import ToggleButtonV2 from '../utils/ToggleButtonV2.vue';
 import RoomGroupDataTable from './DataTable/RoomGroupDataTable.vue';
+import AssignationModale from '../Modales/AssignationModale.vue';
 import MenuV1 from '../Menu/MenuV1.vue';
 
 // * DTO
@@ -443,6 +493,7 @@ import {
   RadialLinearScale,
   PointElement,
   LineElement,
+  Tooltip,
 } from 'chart.js';
 
 // * Services
@@ -458,7 +509,14 @@ import {
 import { IGroupRoomItem } from '../../../services/GroupeWithChildren/Interfaces/IGroupRoomItem';
 import { TypeLegend } from '../../../services/GroupeWithChildren/Interfaces/';
 import { type UnitMode, type ViewMode } from './Type';
-
+import { ActionTypes } from '../../../interfaces/vuexStoreTypes';
+import { MutationTypes } from '../../services/store/appDataStore/mutations';
+import SpriteComponent from '../SpriteComponent.vue';
+import SpriteComponent2 from '../SpriteComponent2.vue';
+import {
+  EmitterViewerHandler,
+  VIEWER_AGGREGATE_SELECTION_CHANGED,
+} from 'spinal-viewer-event-manager';
 // * Vue
 import { Ref, computed, onMounted, ref } from 'vue';
 
@@ -470,8 +528,10 @@ import { VTooltip } from 'vuetify/lib';
 
 ChartJs.register(
   Filler,
+  Tooltip,
   LegendChart,
   RadialLinearScale,
+
   LineElement,
   PointElement,
   Title
@@ -487,15 +547,16 @@ export default {
     Nomenclature,
     Radar,
     RoomGroupDataTable,
+    AssignationModale,
   },
-  props:{
+  props: {
     selectedZone: {
-      type:  Object, // Adjust the type according to what selectedZone is supposed to be
-      required: true, 
+      type: Object, // Adjust the type according to what selectedZone is supposed to be
+      required: true,
       default: () => {
-        return {}; 
-      }
-    }
+        return {};
+      },
+    },
   },
   data() {
     let spinalAPI = SpinalAPI.getInstance();
@@ -508,18 +569,26 @@ export default {
     const filterBySelectedZone: boolean = true;
     const showDataTableGrpRoom: boolean = false;
     const showDataTableGrpRoomList: boolean = true;
+    const showViewerAssignation: boolean = false;
+    const hideViewerComponents: boolean = false
     const dataTable = ref(null);
     const dataTableHeight: number = 0;
     const radarOptions = ref({
       responsive: true,
+      elements: {
+        line: {
+          borderWidth: 3,
+        },
+      },
     });
+
     const isLoadingData = ref(true);
     const dataTableWrapper = ref(null);
     const radar = ref(null);
     const searchModel: Ref<Array<string>> = ref([]);
     const searchModelGrp: Ref<string> = ref('');
     const categoriesModel: Ref<IGroupRoomItem> = ref(null);
-      
+
     /** Value is either  GrpRoomList or GrpRoom */
     const grpRoomFocus: Ref<GroupRoomFocus> = ref('GrpRoomList'); // GrpRoomList | GrpRoom
     const isLoading: Ref<boolean> = ref(false);
@@ -561,6 +630,7 @@ export default {
     const data: Ref<any> = ref();
     const roomListAndObj = ref(iListObjFactory.build());
     const selectedRoomsNomenclature: Room[] = [];
+    const viewerSelectedRooms: Room[] = [];
 
     return {
       searchModel,
@@ -579,6 +649,7 @@ export default {
       showRadar,
       showDataTableGrpRoom,
       showDataTableGrpRoomList,
+      showViewerAssignation,
       radarOptions,
       radar,
       radarGridMode,
@@ -589,10 +660,94 @@ export default {
       viewMode,
       selectedRoomsNomenclature,
       filterBySelectedZone,
-      logarithmicRadar
+      logarithmicRadar,
+      viewerSelectedRooms,
+      hideViewerComponents
     };
   },
   mounted() {
+    const emitterHandler = EmitterViewerHandler.getInstance();
+    emitterHandler.on('groupAssignment:assign', (data) => {
+      this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+      this.addGrpRoomItem(data);
+    });
+
+    emitterHandler.on('groupAssignment:unassign', (data) => {
+      this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+      this.deleteEntity(data, 'menu');
+    });
+
+    emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
+      if (!data || data.length === 0 || this.grpRoomFocus == 'GrpRoomList')
+        return;
+
+      const dbIds = data[0].dbIds;
+      if (dbIds.length === 1) {
+        this.viewerSelectedRooms = [];
+        this.showViewerAssignation = false;
+        const payload =
+          this.grpRoomWithChildrenController.getGrpRoomItemFromReferenceId(
+            dbIds[0]
+          );
+        if (!payload) return;
+        if (!payload.room) {
+          //build
+          const tmpRoom = iGroupRoomItemFactory.build({
+            id: payload.dynamicId,
+          });
+          const unassignedRoom =
+            this.grpRoomWithChildrenController.buildItemFromViewer(tmpRoom);
+          // const unassignedRoom = this.grpRoomWithChildrenController.rooms.list.find((x) => x.dynamicId === payload.dynamicId);
+          // if(!unassignedRoom) return;
+          // payload.room = {...unassignedRoom};
+          payload.room = unassignedRoom;
+          //payload.room['newArea'] = unassignedRoom
+        }
+        //console.log('room = ', payload.room);
+        //get the room
+        const buildingId = localStorage.getItem('idBuilding');
+        const spriteData = {
+          dynamicId: payload.dynamicId,
+          position: payload.position,
+          groups: this.grpRoomWithChildrenController.groupRoomTree,
+          selectedRoom: payload.room,
+          selectedGroup: this.currentGrpRoom,
+        };
+        //console.log('spriteData = ', spriteData);
+        this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+        this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+          items: spriteData,
+          buildingId: buildingId || this.selectedZone.staticId,
+          component: SpriteComponent2,
+        });
+      }
+      if (dbIds.length > 1) {
+        this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+        this.viewerSelectedRooms = [];
+        // display modal at the left of the screen
+        for (const dbId of dbIds) {
+          const payload =
+            this.grpRoomWithChildrenController.getGrpRoomItemFromReferenceId(
+              dbId
+            );
+          if (!payload) continue;
+          if (!payload.room) {
+            const tmpRoom = iGroupRoomItemFactory.build({
+              id: payload.dynamicId,
+            });
+            const unassignedRoom =
+              this.grpRoomWithChildrenController.buildItemFromViewer(tmpRoom);
+            payload.room = unassignedRoom;
+            //payload.room['newArea'] = unassignedRoom
+          }
+          this.viewerSelectedRooms.push(payload.room);
+        }
+        this.showViewerAssignation = true;
+        //console.log('viewerSelectedRooms = ', this.viewerSelectedRooms);
+        //console.log('showViewerAssignation = ', this.showViewerAssignation);
+      }
+    });
+
     this.dataTableHeight = this.$refs.roomGroupDataTable.$el.clientHeight - 130;
     this.loadData();
   },
@@ -635,7 +790,6 @@ export default {
         .catch((err: any) => {
           console.error(err);
         });
-        
     },
     updateDataTableHeight() {
       console.log('this refs = ', this.$refs);
@@ -667,23 +821,38 @@ export default {
         this.radarGridMode = 'nomenclature';
       }
     },
-    commitChangeGrpRoom() {
+
+    // NOT USED ANYMORE BCS SEEMS USELESS
+    // commitChangeGrpRoom() {
+    //   this.grpRoomWithChildrenController
+    //     .commitChangeGrpRoom()
+    //     .then(() => {
+    //       console.log('Selected Grp Room Commited');
+    //       this.goBack();
+    //     })
+    //     .catch((err) => {
+    //       console.error(err);
+    //     });
+    // },
+
+    commitChange() {
       this.grpRoomWithChildrenController
-        .commitChangeGrpRoom()
+        .commitChange()
         .then(() => {
-          console.log('Selected Grp Room Commited');
-          this.goBack();
+          console.log('Commited assignations');
         })
-        .catch((err) => {
-          console.error(err);
+        .catch((e: any) => {
+          console.error(e);
         });
     },
     selectItem(item: IGroupRoomItem, context: 'item') {
+      console.log('Selected Item = ', item);
       this.updateDataTableHeight();
       this.grpRoomWithChildrenController.selectItem(item);
       if (this.grpRoomFocus !== 'GrpRoomList' && context === 'item') return;
       this.searchModel = '';
       this.toggleComponentMode(context);
+      this.clickDisplayLegend();
       this.grpRoomWithChildrenController.setFocus(this.grpRoomFocus);
       this.currentGrpRoom = this.grpRoomWithChildrenController.getSelected();
       this.data = this.grpRoomWithChildrenController.reloadGroupToDisplay();
@@ -694,6 +863,7 @@ export default {
       this.searchModel = '';
       this.updateFocus();
       this.assignNewHeader();
+      this.clickDisplayLegend();
       this.reloadData();
       this.$refs.roomGroupDataTable.animDataTable();
       if (this.showRadar) {
@@ -703,20 +873,23 @@ export default {
     setViewModeByExpansion(expansionMode: ExpansionMode) {
       switch (expansionMode) {
         case 'split':
+          this.hideViewerComponents=false;
           this.viewMode = 'grid';
           break;
         case 'full':
+          this.hideViewerComponents=true;
           this.viewMode = 'radar-grid';
           this.showRadar = false;
           break;
         default:
+          this.hideViewerComponents=false;
+          break;
       }
     },
     reloadData() {
       this.data = [
         ...this.grpRoomWithChildrenController.reloadGroupToDisplay(),
       ];
-      
     },
     reset() {
       this.grpRoomWithChildrenController
@@ -727,16 +900,6 @@ export default {
         })
         .catch((err: any) => {
           console.error(err);
-        });
-    },
-    commitChange() {
-      this.grpRoomWithChildrenController
-        .commitChange()
-        .then(() => {
-          this.goBack();
-        })
-        .catch((e: any) => {
-          console.error(e);
         });
     },
     getOperationsItem(item: IGroupRoomItem, op: TypeLegend) {
@@ -766,6 +929,11 @@ export default {
       const ops = this.grpRoomWithChildrenController.getFutureOperation(item);
       return GroupRoomWithChildrenController.guessItemColor(ops);
     },
+    addGrpRoomItem(grpRoomItem: IGroupRoomItem) {
+      console.log('Add Grp Room Item', grpRoomItem);
+      this.grpRoomWithChildrenController.addItemFromViewer('', grpRoomItem);
+    },
+
     addRoom(ctx: 'search' | '', item?: Partial<IGroupRoomItem | any>) {
       let pms: Array<Promise<any>> = [];
       if (!item) {
@@ -813,8 +981,8 @@ export default {
     },
     toggleUnitMode() {
       if (this.unitMode === 'm2') {
-        this.unitMode = 'percentage';
-      } else if (this.unitMode === 'percentage') {
+        this.unitMode = 'unitValue';
+      } else if (this.unitMode === 'unitValue') {
         this.unitMode = 'm2';
       }
     },
@@ -971,26 +1139,46 @@ export default {
       }
     },
 
-    clickGroupManager(){
+    clickGroupManager() {
       this.$emit('clickGroupManager');
     },
-    clickNomenclature(){
+    clickNomenclature() {
       this.$emit('clickNomenclature');
     },
-    clickDisplayLegend(){
+    clickDisplayLegend() {
       this.$emit('clickDisplayLegend');
     },
-    clickLogarithm(){
+    clickLogarithm() {
       // console.log(`${this.$store.state.appDataStore?.zoneSelected?.dynamicId} ${this.$store.state.appDataStore?.zoneSelected?.name}`);
-      this.logarithmicRadar=!this.logarithmicRadar;
+      this.logarithmicRadar = !this.logarithmicRadar;
     },
-    toggleFilterFloor(){
+    toggleFilterFloor() {
       this.filterBySelectedZone = !this.filterBySelectedZone;
-      this.grpRoomWithChildrenController.setSelectedFloorId(this.selectedZone.dynamicId);
+      this.grpRoomWithChildrenController.setSelectedFloorId(
+        this.selectedZone.dynamicId
+      );
       this.grpRoomWithChildrenController.setFilter(this.filterBySelectedZone);
-      this.loadData()
-    }
+      this.loadData();
+    },
 
+    closeAssignationModale() {
+      this.showViewerAssignation = false;
+    },
+
+    multipleAssignation() {
+      for (const room of this.viewerSelectedRooms) {
+        this.addGrpRoomItem(room);
+      }
+      this.viewerSelectedRooms = [];
+      this.showViewerAssignation = false;
+    },
+    multipleUnassignation() {
+      for (const room of this.viewerSelectedRooms) {
+        this.deleteEntity(room, 'menu');
+      }
+      this.viewerSelectedRooms = [];
+      this.showViewerAssignation = false;
+    },
   },
   computed: {
     availableRooms() {
@@ -1036,7 +1224,8 @@ export default {
       return '';
     },
 
-    dataFiltered() { // Do name filtering with bar search (only filter on group list view)
+    dataNameFiltered() {
+      // Do name filtering with bar search (only filter on group list view)
       if (this.grpRoomFocus === 'GrpRoom') {
         return this.data;
       } else if (this.grpRoomFocus === 'GrpRoomList') {
@@ -1070,45 +1259,64 @@ export default {
       //   this.viewMode === 'radar-grid' ||
       //   this.grpRoomFocus === 'GrpRoomList'
       // ) {
-        grpCurrentCategory =
-          this.grpRoomWithChildrenController?.groupRoomTree?.filter(
-            (x: IGroupRoomItem) => x.parentId === this.categoriesModel.id
-          );
+      grpCurrentCategory =
+        this.grpRoomWithChildrenController?.groupRoomTree?.filter(
+          (x: IGroupRoomItem) => x.parentId === this.categoriesModel.id
+        );
+
+      if (this.unitMode === 'm2') {
         areaAfter = grpCurrentCategory.map(
           (grpGroup: IGroupRoomItem) => grpGroup.newArea
         );
-        labelRadar = grpCurrentCategory.map(
-          (grpGroup: IGroupRoomItem) => grpGroup.title
-        );
-        
+
         areaBefore = grpCurrentCategory.map(
           (grpGroup: IGroupRoomItem) => grpGroup.area
         );
+      } else if (this.unitMode === 'unitValue') {
+        areaAfter = grpCurrentCategory.map(
+          (grpGroup: IGroupRoomItem) => grpGroup.newUnitValue
+        );
+        areaBefore = grpCurrentCategory.map(
+          (grpGroup: IGroupRoomItem) => grpGroup.unitValue
+        );
+      }
+      labelRadar = grpCurrentCategory.map(
+        (grpGroup: IGroupRoomItem) => grpGroup.title
+      );
+
       // } else if (this.grpRoomFocus === 'GrpRoom') {
-        // labelRadar = this.data.map(
-        //   (grpGroup: IGroupRoomItem) => grpGroup.title
-        // );
-        // areaAfter = this.buildAreaAfterGrpRoom();
-        // areaBefore = this.buildAreaBeforeGrpRoom();
+      // labelRadar = this.data.map(
+      //   (grpGroup: IGroupRoomItem) => grpGroup.title
+      // );
+      // areaAfter = this.buildAreaAfterGrpRoom();
+      // areaBefore = this.buildAreaBeforeGrpRoom();
       // }
 
-      if(this.logarithmicRadar){
-          areaAfter = areaAfter.map((x) => {
-            if (x === 0) {
-              return 0;
-            }
-            return Math.log10(x);
-          });
-          areaBefore = areaBefore.map((x) => {
-            if (x === 0) {
-              return 0;
-            }
-            return Math.log10(x);
-          });
-        }
+      if (this.logarithmicRadar) {
+        areaAfter = areaAfter.map((x) => {
+          if (x === 0) {
+            return 0;
+          }
+          return Math.log10(x);
+        });
+        areaBefore = areaBefore.map((x) => {
+          if (x === 0) {
+            return 0;
+          }
+          return Math.log10(x);
+        });
+      }
       console.log('Area Before = ', areaBefore);
+      const labelBefore =
+        this.unitMode === 'm2'
+          ? 'Ancienne superficie (m2)'
+          : 'Nombre de pièces avant assignation';
+      const labelAfter =
+        this.unitMode === 'm2'
+          ? 'Nouvelle superficie (m2)'
+          : 'Nombre de pièces après assignation';
       obj.datasets.push({
-        label: 'Nouvelle superficie (m2)',
+        label: labelAfter,
         data: areaAfter,
         fill: true,
         backgroundColor: 'rgba(255, 0, 2, 0.2)',
@@ -1117,26 +1325,18 @@ export default {
         pointBorderColor: '#fff',
         pointHoverBackgroundColor: '#fff',
         pointHoverBorderColor: 'rgb(255, 0, 2)',
-        tooltipLabel: function(tooltipItem, data) {
-        let value = grpCurrentCategory[tooltipItem.index].newArea;
-        return `New Area: ${value} m²`;
-    }
       });
 
       obj.datasets.push({
-        label: 'Ancienne superficie (m2)',
+        label: labelBefore,
         data: areaBefore,
-        fill: true,
+        fill: false,
         backgroundColor: 'rgba(20,32,44, 0.4)',
         borderColor: 'rgb(20,32,44)',
         pointBackgroundColor: 'rgb(20,32,44)',
         pointBorderColor: '#fff',
         pointHoverBackgroundColor: '#fff',
         pointHoverBorderColor: 'rgb(20,32,44)',
-        tooltipLabel: function(tooltipItem, data) {
-        let value = grpCurrentCategory[tooltipItem.index].area;
-        return `Old Area: ${value} m²`;
-        }
       });
       obj.labels = labelRadar;
       return obj;
@@ -1245,7 +1445,6 @@ export default {
     height: 11em;
     max-height: 12em;
     padding-bottom: 50px;
-    
 
     .header {
       display: grid;
@@ -1256,7 +1455,6 @@ export default {
         flex-direction: column;
         justify-content: flex-start;
         align-items: flex-start;
-        
 
         .title {
           position: relative;
@@ -1362,7 +1560,6 @@ export default {
   }
 
   .subtitle-wrapper {
-
     margin-top: 0.7em;
     font-family: 'Charlevoix';
   }

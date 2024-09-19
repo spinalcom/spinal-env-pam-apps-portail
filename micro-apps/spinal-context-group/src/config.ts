@@ -27,7 +27,7 @@ import {type IConfig, ITemporality} from './interfaces/IConfig';
 export const config: IConfig = {
 
 	viewButtons: 'base',
-	sprites: false,
+	sprites: true,
 	viewerInfo: {roomRef: true, floorRef: true, equipments: 'none'},
 	temporality: [ITemporality.currentValue, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
 };

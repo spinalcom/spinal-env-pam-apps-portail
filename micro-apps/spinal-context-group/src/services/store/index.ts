@@ -39,6 +39,8 @@ export const store = new Vuex.Store({
   },
 });
 
+Vue.prototype.$store = store; // added the instance to send it to sprite component ( see spriteManager.ts )
+
 export interface IStoreModules {
   appDataStore: StateAppData;
 }

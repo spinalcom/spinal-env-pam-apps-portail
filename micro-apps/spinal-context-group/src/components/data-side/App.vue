@@ -126,6 +126,7 @@ import { State } from "vuex-class";
 import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import { mapState } from "vuex";
 import SpriteComponent from "./SpriteComponent.vue"
+import SpriteComponent2 from "./SpriteComponent2.vue"
 import { IRoom } from "@/interfaces";
 import { Emit } from "vue-property-decorator";
 import { ViewerManager } from "../viewer";
@@ -215,11 +216,28 @@ class dataSideApp extends Vue {
 
   @Watch('selectedEntities')
   WatchSelectedEntitie() {
-    //console.log('SelectedEntitie = ', this.selectedEntities)
+    console.log('SelectedEntitie = ', this.selectedEntities)
   }
 
   @Watch("data")
-  watchData() {
+  WatchData() {
+    // this.data.map((item) => {
+    //   const spatialCategory = item.categories?.find(
+    //     (category) => category.name === "Spatial"
+    //   );
+    //   const positionAttribute = spatialCategory?.attributs?.find(
+    //     (attribute) => attribute.label === "XYZ center"
+    //   );
+    //   if (positionAttribute) {
+    //     const position = positionAttribute.value.split(";");
+    //     item.position = {
+    //       x: parseFloat(position[0]),
+    //       y: parseFloat(position[1]),
+    //       z: parseFloat(position[2]),
+    //     };
+    //   }
+    //   return item;
+    // })
     // console.log(this.data);
     // console.log("AFFICHAGE SPRITES");
     // if (this.config.sprites)
@@ -227,16 +245,17 @@ class dataSideApp extends Vue {
 
     // if (this.isBuildingSelected) return;
 
-
+    
+    // const buildingId = localStorage.getItem("idBuilding");
+    // console.log("BUILDING ID", buildingId);
     // if (this.config.sprites) {
     //   this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-    //     items: [],
-    //     buildingId: undefined,
-    //     component: SpriteComponent,
+    //     items: this.data,
+    //     buildingId: buildingId || this.selectedZone.staticId,
+    //     component: SpriteComponent2,
     //   });
     //   return;
     // }
-    // const buildingId = localStorage.getItem("idBuilding");
 
     // this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
     //   items: [],

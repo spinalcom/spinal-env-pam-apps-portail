@@ -27,7 +27,7 @@ with this file. If not, see
     <v-card elevation="4" class="cardContainer">
       <!-- configuration de la légende (affichage et couleur des sprites)-->
       <v-card
-        v-if="!chartViewDisplay"
+        v-if="!vueChart && !ActiveData"
         class="d-flex flex-column justify-space-around align-center"
         style="
           position: absolute;
@@ -37,7 +37,14 @@ with this file. If not, see
           z-index: 2;
         "
       >
-        <v-switch dense v-model="sprites"></v-switch>
+        <!-- <v-switch dense v-model="sprites"></v-switch> -->
+        <div class="switch" >
+          <input id="toggle" type="checkbox" :checked="sprites" @change="updateSpritesModel($event)" />
+          <label class="toggle" for="toggle">
+            <i></i>
+          </label>
+        </div>
+
         <div style="display: flex; align-items: center">
           <div
             class="rounded mr-2"
@@ -74,7 +81,7 @@ with this file. If not, see
         <v-btn icon @click="dialog = true"><v-icon>mdi-cog</v-icon></v-btn>
       </v-card>
 
-      <!-- affichage scindé ou coùmplet (dataapp viewer)-->
+      <!-- affichage scindé ou complet (dataapp viewer)-->
       <button
         @click="
           () => {
@@ -137,6 +144,7 @@ with this file. If not, see
         @onSpriteClick="updateSelected"
         v-show="ActiveData || !DActive"
       >
+        
         <div class="detail_header">
           <div class="title_date">
             <div class="_title">{{ config.title }}</div>
@@ -274,7 +282,6 @@ with this file. If not, see
             :legend="legend"
             :percent="percent"
             @onClick="selectDataView"
-            @chartView="chartView"
           />
         </div>
 
@@ -397,22 +404,23 @@ class InsightApp extends Vue {
   @Prop() data: any[];
   @Prop() DActive: boolean;
   @Prop() ActiveData: boolean;
+  @Prop() vueChart: boolean;
 
   time: any = null;
   sprites: boolean = true;
   reload_countdown: number = 0;
   t_index: number = 0;
-  sourceSelectedName: string = this.config.source[0].name;
+  sourceSelectedName: string = "";
   regroupementSelected: "floors" | "rooms" | IRegroupement =
     this.config.regroupement[0];
   legend: any = this.config.source[0].legend;
   dialog: boolean = false;
-  chartViewDisplay: boolean = false;
   reload = function () {};
 
   initiated: boolean = false;
 
   selectedItem: any = null;
+  selectedItems: any[] = [];
 
   intervalId: any;
 
@@ -441,7 +449,13 @@ class InsightApp extends Vue {
     );
   }
 
+
   async mounted() {
+    this.sourceSelectedName =this.config.source[0].name;
+    const source = this.config.source.find((el) => el.name === this.sourceSelectedName);
+    if(source){
+      this.$store.commit(MutationTypes.SET_SOURCE, source);
+    }
     await this.retriveData();
   }
 
@@ -491,11 +505,10 @@ class InsightApp extends Vue {
     }
   }
 
-  chartView(val) {
-    this.chartViewDisplay = val;
-    this.$emit("chartView", { display: val, source: this.sourceSelectedName });
-  }
-
+  // chartView(val) {
+  //   this.chartViewDisplay = val;
+  //   this.$emit("chartView", { display: val, source: this.sourceSelectedName });
+  // }
   resize() {
     setTimeout(() => {
       window.dispatchEvent(new Event("resize"));
@@ -570,9 +583,7 @@ class InsightApp extends Vue {
         this.legend.min.value,
         this.legend.max.value
       );
-
       this.$store.commit(MutationTypes.SET_DATA, calculated);
-
       this.pageSate = PAGE_STATES.loaded;
       this.reload_countdown = 0;
     } catch (error) {
@@ -583,11 +594,13 @@ class InsightApp extends Vue {
   }
 
   updateSelected(item) {
+    // item.detail is the item clicked in the viewer (sprite), item is the item clicked in the data view
     this.selectedItem = item.detail || item;
   }
 
   // MAJ des données en fonction de la temporalité de la navigation temporelle
   async updateDataOnTimeChanged() {
+    this.selectedItem = null ;
     const end = moment().minutes(59).seconds(59);
     switch (this.selectedTime.name) {
       case ITemporality.currentValue:
@@ -640,16 +653,9 @@ class InsightApp extends Vue {
   }
 
   async updateSprites() {
-    if (this.chartViewDisplay) {
-      this.$emit("chartView", {
-        display: true,
-        source: this.sourceSelectedName,
-      });
-      return;
-    }
     const buildingId = localStorage.getItem("idBuilding");
 
-    // recuperation des zones à afficher dans le viewer + données utiles
+    // Récuperation des zones à afficher dans le viewer + données utiles
     const itemsToColor = this.data.flatMap((el) => el.children || []);
     itemsToColor.forEach((el) => {
       el.unit = this.sourceSelected.unit;
@@ -664,8 +670,13 @@ class InsightApp extends Vue {
         buildingId,
         component: SpriteComponent,
       });
-      if (!this.selectedItem) return;
 
+       // si on affiche les sprites, on enlève la heatmap
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor.map((el) => ({ ...el, color: null })),
+        buildingId,
+      });
+      if (!this.selectedItem) return; 
       // envoi de l'evenement de click sur le sprite selectionné
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.selectedItem });
@@ -678,11 +689,6 @@ class InsightApp extends Vue {
         this.$store.dispatch(ActionTypes.SELECT_SPRITES, selectedIds);
       }, 500);
 
-      // si on afficher les sprites, on ne colorie pas les espaces
-      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
-        items: itemsToColor.map((el) => ({ ...el, color: null })),
-        buildingId,
-      });
     } else {
       // coloration des espaces si on n'affiche pas les sprites
       this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
@@ -692,6 +698,9 @@ class InsightApp extends Vue {
     }
   }
 
+  updateSpritesModel(event) {
+    this.sprites = event.target.checked;
+  }
   // affichage du diagramme sans les sprites
   updateChartSprite() {
     if (!this.sprites) this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
@@ -758,11 +767,13 @@ class InsightApp extends Vue {
     this.updateDataOnTimeChanged();
   }
 
-  // waych selectedItem
+  // watch selectedItem
   @Watch("selectedItem")
   watchSelectedItem() {
     this.updateChartSprite();
   }
+
+
 
   @Watch("reload_countdown")
   watchReloadCountdown() {
@@ -810,6 +821,7 @@ class InsightApp extends Vue {
     await this.regroupItemsAndCalculate(true);
     await this.updateSprites();
     this.updateChartSprite();
+
   }
 
   @Watch("regroupementSelected")
@@ -837,6 +849,7 @@ class InsightApp extends Vue {
 
   @Watch("t_index")
   async watchTIndex() {
+    this.$store.commit(MutationTypes.SET_T_INDEX, this.t_index);
     if (this.isBuildingSelected) return;
     clearTimeout(this.timeoutId);
     this.timeoutId = setTimeout(async () => {
@@ -862,7 +875,7 @@ class InsightApp extends Vue {
   }
 
   public get unit() {
-    return this.config.source?.unit || "";
+    return this.sourceSelected?.unit || "";
   }
 
   public get toltalColor() {
@@ -900,6 +913,77 @@ class InsightApp extends Vue {
 export { InsightApp };
 export default InsightApp;
 </script>
+<style lang="css">
+/* From Uiverse.io by elijahgummer */ 
+.switch {
+  position: relative;
+  width: 90%;
+  height: 30px;
+  box-sizing: border-box;
+  padding: 3px;
+  background: #EAEEF0;
+  border-radius: 6px;
+  margin-bottom: 3px;
+}
+.switch input[type="checkbox"] {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.switch input[type="checkbox"] + label {
+  position: relative;
+  display: block;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: #1b1c1c;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.5s ease-in-out;
+}
+.switch input[type="checkbox"] + label:after {
+  content: "";
+  display: inline-block;
+  width: 0;
+  height: 100%;
+  vertical-align: middle;
+}
+.switch input[type="checkbox"] + label i {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 12px;
+  margin-top: -6px;
+  margin-left: -1.5px;
+  background: #ffffff;
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
+}
+.switch input[type="checkbox"] + label i:before,
+.switch input[type="checkbox"] + label i:after {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  background: #ffffff;
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
+}
+.switch input[type="checkbox"] + label i:before {
+  left: -7px;
+}
+.switch input[type="checkbox"] + label i:after {
+  left: 7px;
+}
+.switch input[type="checkbox"]:checked + label {
+  left: 50%;
+}
+</style>
 <style lang="scss">
 .cardContainer {
   width: 100%;

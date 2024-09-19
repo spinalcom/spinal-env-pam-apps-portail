@@ -49,6 +49,7 @@ const vuetify = new Vuetify({
 		},
 	},
 });
+// Vue.prototype.$vuetify = vuetify;
 new Vue({
 	vuetify,
 	store,

@@ -23,7 +23,7 @@
  */
 
 import Vue from "vue";
-
+import Vuetify from 'vuetify'; 
 import { EmitterViewerHandler, VIEWER_SPRITE_CLICK, VIEWER_SPRITE_MOUSEOVER } from "spinal-viewer-event-manager";
 
 interface ISpriteData {
@@ -77,7 +77,10 @@ export class SpriteManager {
 		for (const d of data) {
 			if (!d.component) continue;
 
-			const VueComponent = Vue.extend(d.component);
+			const VueComponent = Vue.extend({
+				extends: d.component,
+				store: Vue.prototype.$store,
+			  });
 			const vueInstance = new VueComponent({ propsData: d });
 			const label = new Autodesk.Edit3D.Label3D(viewer, d.position, "");
 			const child = vueInstance.$mount().$el;

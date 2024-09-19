@@ -399,6 +399,12 @@ export const actions = {
     { commit, dispatch, state },
     { items, buildingId, component }: any
   ) {
+    // console.log({
+    //   MESSAGE: 'COUCOU',
+    //   ITEMS: items,
+    //   BUILDING_ID: buildingId,
+    //   COMPONENT: component,
+    // })
     return ViewerManager.getInstance().addComponentAsSprites(
       items,
       buildingId,
@@ -413,6 +419,23 @@ export const actions = {
     { commit, dispatch, state },
     dynamicIds: Array<number>
   ) {
+    console.log("SELECT_SPRITES", dynamicIds);
     return SpriteManager.getInstance().selectSprites(dynamicIds);
   },
+
+  [ActionTypes.UPDATE_SELECTED_CHART_ITEMS](
+    { commit, dispatch, state },
+    item: any
+  ) {
+    const foundItem = state.selectedChartItems.find((el) => {
+      return el.dynamicId === item.dynamicId;
+    });
+
+    if (foundItem) {
+      commit(MutationTypes.REMOVE_CHART_ITEM, item);
+    } else {
+      commit(MutationTypes.ADD_CHART_ITEM, item);
+    }
+  },
+
 };

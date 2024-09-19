@@ -31,6 +31,8 @@ interface IGroupRoomItem
     IIndexableFromRoot {
   area: number;
   newArea: number;
+  unitValue: number;
+  newUnitValue: number;
   gainKpi: KpiBase;
   type: number;
   operations: TypeLegend;

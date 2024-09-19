@@ -45,6 +45,11 @@ export enum MutationTypes {
   REMOVE_VIEWER_LOADED = "REMOVE_VIEWER_LOADED",
   SET_ITEM_SELECTED = "SET_ITEM_SELECTED",
   SET_DATA = "SET_DATA",
+  ADD_CHART_ITEM = "ADD_ITEM",
+  REMOVE_CHART_ITEM = "REMOVE_ITEM",
+  UPDATE_CHART_ITEM = "UPDATE_ITEM",
+  SET_SOURCE = "SET_SOURCE",
+  SET_T_INDEX= "SET_T_INDEX",
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -141,7 +146,25 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
     state.itemSelected = item;
   },
 
+  [MutationTypes.ADD_CHART_ITEM](state: StateAppData, item): void {
+    state.selectedChartItems.push(item);
+  },
+
+  [MutationTypes.REMOVE_CHART_ITEM](state: StateAppData, item): void {
+    state.selectedChartItems = state.selectedChartItems.filter(
+      (selectedItem) => selectedItem.dynamicId !== item.dynamicId
+    );
+  },
+  [MutationTypes.SET_T_INDEX](state: StateAppData, index: number): void {
+    state.t_index = index;
+  },
   [MutationTypes.SET_DATA](state: StateAppData, data: INodeItemTree[]): void {
     state.data = data;
   },
+
+  [MutationTypes.SET_SOURCE](state: StateAppData, source): void {
+    state.selectedSource = source;
+  },
+
+
 };

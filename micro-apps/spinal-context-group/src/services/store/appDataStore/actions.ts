@@ -219,6 +219,7 @@ export const actions = {
 	},
 
 	[ActionTypes.REMOVE_ALL_SPRITES]({ commit, dispatch, state }) {
+		console.log('REMOVE_ALL_SPRITES')
 		return SpriteManager.getInstance().removeSprites();
 	},
 	[ActionTypes.SELECT_SPRITES]({ commit, dispatch, state }, dynamicIds: Array<number>) {

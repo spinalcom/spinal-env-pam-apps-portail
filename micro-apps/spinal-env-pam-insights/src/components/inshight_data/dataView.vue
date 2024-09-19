@@ -38,9 +38,14 @@ with this file. If not, see
     </div>
     <div class="name">{{ item.name }}</div>
     <div v-if="!isTitle && isChartPossible">
-      <v-btn icon x-small @click.stop="changeSelectedItem"
-        ><v-icon>mdi-chart-line</v-icon></v-btn
+      <v-btn
+        icon
+        x-small
+        @click.stop="clickChart"
       >
+        <v-icon v-if="!isItemSelectedInChart">mdi-chart-line</v-icon>
+        <v-icon v-else>mdi-close</v-icon>
+      </v-btn>
     </div>
   </div>
 </template>
@@ -54,10 +59,10 @@ import {
 } from "spinal-viewer-event-manager";
 import { ITemporality } from "../../interfaces/IConfig";
 import { MutationTypes } from "../../services/store/appDataStore/mutations";
+import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 
 export default {
   name: "dataView",
-  displayChart: true,
   props: {
     item: {},
     isTitle: { type: Boolean, default: () => false },
@@ -84,6 +89,11 @@ export default {
         ITemporality.currentValue
       );
     },
+    isItemSelectedInChart() {
+      return this.$store.state.appDataStore.selectedChartItems.some(
+        (selectedItem) => selectedItem.dynamicId === this.item.dynamicId
+      );
+    },
   },
   methods: {
     clickEvent() {
@@ -101,19 +111,24 @@ export default {
       return false;
     },
 
+    clickChart() {
+      this.$store.dispatch(ActionTypes.UPDATE_SELECTED_CHART_ITEMS, this.item);
+      console.log(
+        "store chart items",
+        this.$store.state.appDataStore.selectedChartItems
+      );
+      //this.changeSelectedItem();
+    },
+
     changeSelectedItem() {
       if (
         this.$store.state.appDataStore.itemSelected &&
         this.item.dynamicId ===
           this.$store.state.appDataStore.itemSelected.dynamicId
       ) {
-        this.displayChart = !this.displayChart;
-        this.$emit("chartView", this.displayChart);
         return;
       }
-      this.displayChart = true;
       this.$store.commit(MutationTypes.SET_ITEM_SELECTED, this.item);
-      this.$emit("chartView", this.displayChart);
     },
   },
 
@@ -177,5 +192,10 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.green-icon {
+  background-color: green !important;
+  color: white !important;
 }
 </style>

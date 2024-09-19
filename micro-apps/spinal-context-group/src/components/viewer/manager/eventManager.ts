@@ -138,7 +138,7 @@ export class EventManager {
       emitterHandler.on(VIEWER_MOV_SPRITE, (data: any) => {
         viewerUtils.moveSprite(viewer, data);
       });
-
+      
       emitterHandler.on(VIEWER_ADD_LINE, (data: any) => {
         viewerUtils.addLine(viewer, data);
       });
