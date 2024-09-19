@@ -23,34 +23,34 @@
  */
 
 import { getDefaultOrFirstScene } from "../requests/GeographicContext/getViewInfo";
+import { getAPINormalisePath } from "./getAPINormalisePath";
 import { getAecModelData } from "./getAecModelData";
 
 let globalOffset: THREE.Vector3;
 
-export async function getGlobalOffset(
-  viewer: Autodesk.Viewing.Viewer3D,
-  buildingId: string
-): Promise<THREE.Vector3> {
-  if (!globalOffset) {
-    const scene = await getDefaultOrFirstScene(buildingId);
-    const firstBim = (scene?.scenesItems || [])[0];
+export async function getGlobalOffset(viewer: Autodesk.Viewing.Viewer3D, buildingId: string): Promise<THREE.Vector3> {
+	if (!globalOffset) {
+		const scene = await getDefaultOrFirstScene(buildingId);
+		const firstBim = (scene?.scenesItems || [])[0];
 
-    if (!firstBim || !firstBim.aecPath) {
-      globalOffset = viewer.model?.getData().globalOffset;
-      return globalOffset;
-    }
+		if (!firstBim || !firstBim.aecPath) {
+			globalOffset = viewer.model?.getData().globalOffset;
+			return globalOffset;
+		}
 
-    const aecModelData = await getAecModelData(firstBim.aecPath);
-    if (!aecModelData) {
-      globalOffset = viewer.model?.getData().globalOffset;
-      return globalOffset;
-    }
+		const path = getAPINormalisePath(firstBim.aecPath, buildingId)
+		const aecModelData = await getAecModelData(path);
 
-    const tf = aecModelData && aecModelData.refPointTransformation;
-    globalOffset = tf
-      ? new THREE.Vector3(tf[9], tf[10], 0)
-      : new THREE.Vector3(0, 0, 0);
-  }
 
-  return globalOffset;
+		if (!aecModelData) {
+			globalOffset = viewer.model?.getData().globalOffset;
+			return globalOffset;
+		}
+
+		const tf = aecModelData && aecModelData.refPointTransformation;
+		globalOffset = tf ? new THREE.Vector3(tf[9], tf[10], 0) : new THREE.Vector3(0, 0, 0);
+	}
+
+	
+	return globalOffset;
 }

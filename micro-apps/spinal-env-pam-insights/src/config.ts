@@ -47,86 +47,113 @@ export const config: IConfig = {
   },*/
 
   // Config DEI
-  /*
   entryPoint: {
-    context: "Gestion des équipements",
+    context: "Gestion des espaces",
     category: "Typologie",
-    group: "Multicapteurs",
+    group: "Bureaux",
   },
   source: [
     {
-      name: "Température",
-      profileName: "Multicapteurs",
+      name: "Taux d'occupation",
+      profileName: "Occupation",
       type: "controlPoint",
-      objectType: "equipments",
-      unit: "°C",
+      objectType: "rooms",
+      unit: "%",
       legend: {
-        min: { value: 15, color: "#0074FF" },
-        median: { value: 20, color: "#FFFF00" },
-        max: { value: 25, color: "#FF004B" },
+        min: { value: 0, color: "#24CBD9" },
+        median: { value: 50, color: "#2077CE" },
+        max: { value: 100, color: "#112C9D" },
       },
     },
     {
-      name: "Qualité de l'air",
-      profileName: "Multicapteurs",
+      name: "Présence",
+      profileName: "Occupation",
       type: "controlPoint",
-      objectType: "equipments",
-      unit: "ppm",
+      objectType: "rooms",
+      unit: "",
       legend: {
-        min: { value: 15, color: "#0074FF" },
-        median: { value: 20, color: "#FFFF00" },
-        max: { value: 25, color: "#FF004B" },
+        min: { value: 0, color: "#00FF00" },
+        median: { value: 0.5, color: "#FFFF00" },
+        max: { value: 1, color: "#FF0000" },
       },
     },
+    {
+      name: "Nombre de personnes",
+      profileName: "Occupation",
+      type: "controlPoint",
+      objectType: "rooms",
+      unit: "",
+      legend: {
+        min: { value: 0, color: "#00FF00" },
+        median: { value: 10, color: "#FFFF00" },
+        max: { value: 20, color: "#FF0000" },
+      },
+    }
   ],
-  regroupement: ["rooms", "floors"],
-  */
+  regroupement: [
+    {
+      context: "Gestion des espaces",
+      category: "Typologie"
+    },
+    {	
+      context: "Gestion des espaces",
+      category: "Affectation par entreprise"
+    },
+    {
+      context: "Gestion des espaces",
+      category: "Gestion des locations"
+    },
+    {
+      context: "Gestion des espaces",
+      category: "Affectation par service"
+    }
+  ],
   // FIN Config DEI
 
   // Config Gienah
 
-  entryPoint: {
-    context: "Contexte de pièces intégration",
-    category: "Toutes les pièces",
-    group: "Toutes les pièces",
-  },
-  source: [
-    {
-      name: "T° ambiante",
-      type: "endpoint",
-      objectType: "rooms",
-      unit: "°C",
-      legend: {
-        min: { value: 15, color: "#0074FF" },
-        median: { value: 20, color: "#FFFF00" },
-        max: { value: 25, color: "#FF004B" },
-      },
-    },
-    {
-      name: "Marche/arrêt",
-      type: "endpoint",
-      objectType: "rooms",
-      unit: "",
-      legend: {
-        min: { value: 0, color: "#FF0000" },
-        median: { value: 0.5, color: "#FFFF00" },
-        max: { value: 1, color: "#00FF00" },
-      },
-    },
-    {
-      name: "Consigne de température identifiée",
-      profileName: "Nobatek - Cassette CVC",
-      type: "controlPoint",
-      objectType: "rooms",
-      unit: "°C",
-      legend: {
-        min: { value: 0, color: "#0074FF" },
-        median: { value: 10, color: "#FFFF00" },
-        max: { value: 20, color: "#FF004B" },
-      },
-    },
-  ],
-  regroupement: ["floors"],
+  // entryPoint: {
+  //   context: "Contexte de pièces intégration",
+  //   category: "Toutes les pièces",
+  //   group: "Toutes les pièces",
+  // },
+  // source: [
+  //   {
+  //     name: "T° ambiante",
+  //     type: "endpoint",
+  //     objectType: "rooms",
+  //     unit: "°C",
+  //     legend: {
+  //       min: { value: 15, color: "#0074FF" },
+  //       median: { value: 20, color: "#FFFF00" },
+  //       max: { value: 25, color: "#FF004B" },
+  //     },
+  //   },
+  //   {
+  //     name: "Marche/arrêt",
+  //     type: "endpoint",
+  //     objectType: "rooms",
+  //     unit: "",
+  //     legend: {
+  //       min: { value: 0, color: "#FF0000" },
+  //       median: { value: 0.5, color: "#FFFF00" },
+  //       max: { value: 1, color: "#00FF00" },
+  //     },
+  //   },
+  //   {
+  //     name: "Consigne de température identifiée",
+  //     profileName: "Nobatek - Cassette CVC",
+  //     type: "controlPoint",
+  //     objectType: "rooms",
+  //     unit: "°C",
+  //     legend: {
+  //       min: { value: 0, color: "#0074FF" },
+  //       median: { value: 10, color: "#FFFF00" },
+  //       max: { value: 20, color: "#FF004B" },
+  //     },
+  //   },
+  // ],
+  // regroupement: ["floors"],
 
   // FIN Config Gienah
 

@@ -22,10 +22,10 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { SpinalAPI } from "../SpinalAPI";
-import { getSceneList, sceneDefaut } from "../BIM/sceneDefault";
-import { getBIMFileContext } from "../BIM/BIMFileContext";
-import { IPlayload } from "../../interfaces/IPlayload";
+import { SpinalAPI } from '../SpinalAPI';
+import { getSceneList, sceneDefaut } from '../BIM/sceneDefault';
+import { getBIMFileContext } from '../BIM/BIMFileContext';
+import { IPlayload } from '../../interfaces/IPlayload';
 export interface IViewInfoBody {
   dynamicId: number | number[];
   floorRef?: boolean;
@@ -49,24 +49,14 @@ export interface IViewInfoTmpRes {
 
 const buildingDefaultScenes = {};
 
-export async function getViewInfo(
-  buildingId: string,
-  options: IViewInfoBody
-): Promise<IViewInfoRes[]> {
+export async function getViewInfo(buildingId: string, options: IViewInfoBody): Promise<IViewInfoRes[]> {
   const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrlWithPlatformId(
-    buildingId,
-    "api/v1/geographicContext/viewInfo"
-  );
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, 'api/v1/geographicContext/viewInfo');
   let result = await spinalAPI.post<IViewInfoRes[]>(url, options);
   return result.data;
 }
 
-export function mergeIViewInfoTmpRes(
-  resBody: IViewInfoTmpRes[],
-  bimFileId: string,
-  dbId: number
-): void {
+export function mergeIViewInfoTmpRes(resBody: IViewInfoTmpRes[], bimFileId: string, dbId: number ): void {
   let found = false;
   for (const item of resBody) {
     if (item.bimFileId === bimFileId) {
@@ -84,10 +74,7 @@ export function mergeIViewInfoTmpRes(
   }
 }
 
-export function mergeIViewInfo(
-  resBody: IViewInfoTmpRes[],
-  sources: IViewInfoItemRes[]
-): void {
+export function mergeIViewInfo(resBody: IViewInfoTmpRes[], sources: IViewInfoItemRes[] ): void {
   for (const source of sources) {
     for (const dbIds of source.dbIds) {
       mergeIViewInfoTmpRes(resBody, source.bimFileId, dbIds);
@@ -95,36 +82,26 @@ export function mergeIViewInfo(
   }
 }
 
-export async function getViewInfoFormatted(
-  buildingId: string,
-  res: IViewInfoTmpRes[],
-  floor: IPlayload
-) {
+
+export async function getViewInfoFormatted(buildingId: string, res: IViewInfoTmpRes[], floor: IPlayload) {
   const defaultScene = await getDefaultOrFirstScene(buildingId);
 
-  const models = await getAndFormatModels(
-    buildingId,
-    res,
-    floor.dynamicId as any
-  );
+  const models = await getAndFormatModels(buildingId, res, floor.dynamicId as any);
   const data = {
     item: floor,
     buildingId: buildingId,
     loadingType: defaultScene.sceneAlignMethod,
-    models,
-  };
+    models
+  }
 
   return data;
 }
 
-export async function getAndFormatModels(
-  buildingId: string,
-  res: IViewInfoTmpRes[],
-  floorId: string
-) {
+
+export async function getAndFormatModels(buildingId: string, res : IViewInfoTmpRes[], floorId: string) {
   const obj = convertViewerInfoToObj(res);
   const bimFiles = await getBIMFileContext(buildingId);
-
+  
   return bimFiles.reduce((list, itm) => {
     const dbids = obj[itm.staticId];
     if (dbids) {
@@ -134,27 +111,28 @@ export async function getAndFormatModels(
         name: itm.name,
         path: getPath(itm),
         aecPath: getAecPath(itm),
-        offset: itm.offset,
-        dbids,
-      });
+        dbids
+      })
     }
 
     return list;
-  }, []);
+    
+  }, [])
 }
 
 export async function getDefaultOrFirstScene(buildingId: string) {
+
   if (!buildingDefaultScenes[buildingId]) {
     const spinalAPi = SpinalAPI.getInstance();
-    let def = await sceneDefaut(spinalAPi, buildingId);
-    if (!def || Object.keys(def || {}).length === 0)
-      def = await getFirstScene(spinalAPi, buildingId);
+    let def = await sceneDefaut(spinalAPi,buildingId);
+    if(!def || Object.keys(def || {}).length === 0) def = await getFirstScene(spinalAPi, buildingId);
 
     buildingDefaultScenes[buildingId] = def;
   }
-
-  return buildingDefaultScenes[buildingId];
+    
+    return buildingDefaultScenes[buildingId]; 
 }
+
 
 async function getFirstScene(spinalAPi: SpinalAPI, buildingId: string) {
   const sceneList = await getSceneList(spinalAPi, buildingId);
@@ -175,17 +153,17 @@ export function convertViewerInfoToObj(res: IViewInfoTmpRes[]) {
   return res.reduce((obj, item) => {
     obj[item.bimFileId] = item.dbIds;
     return obj;
-  }, {});
+  }, {})
 }
 
 function getPath(itm: any) {
-  const path: string = itm.items[0]?.path || "";
+  const path : string = itm.items[0]?.path || "";
 
   return path.replace("/html/viewerForgeFiles", "");
 }
 
 function getAecPath(itm: any) {
-  const path: string = itm.items[0]?.aecPath || "";
+  const path : string = itm.items[0]?.aecPath || "";
 
   return path.replace("/html/viewerForgeFiles", "");
 }

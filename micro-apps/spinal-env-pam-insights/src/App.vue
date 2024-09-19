@@ -130,7 +130,7 @@ import type {
   TGeoItem,
 } from "./components/SpaceSelector/interfaces/IBuildingItem";
 import { DataTable } from "./components/data-table";
-import viewerApp from "./components/viewer/viewer.vue";
+import viewerApp from "./components/viewer_old/viewer.vue";
 import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
 import { IConfig, ITemporality } from "./interfaces/IConfig";
@@ -289,11 +289,11 @@ class App extends Vue {
       const labels = getLabels(this.$store.state.appDataStore.temporalitySelected, t_index);
       const data = labels.map((lab) => ({
         x: lab,
-        y: vals[lab] || "NaN",
+        y: vals[lab] ?? "NaN",
       }));
       console.log("data", data);
       const color = item.color;
-      result.push({ label: item.name, data, color });
+      result.push({ label: item.name, data, color, tension:0.1 });
     }
     // Assign the result to a reactive property (if necessary)
     this.chartData = result;
