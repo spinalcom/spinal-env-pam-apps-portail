@@ -155,10 +155,8 @@ export async function getViewInfo(buildingId: string, options: IViewInfoBody): P
       result.data[0].data.push(item);
     });
 
-    // Ou bien, utiliser directement le spread operator pour ajouter tous les objets d'un coup
-    // result.data[0].data.push(...Add_value);
 
-    console.log(result.data[0].data); // Vérifie que les objets ont bien été ajoutés
+    console.log(result.data[0].data);
 
     
   }
