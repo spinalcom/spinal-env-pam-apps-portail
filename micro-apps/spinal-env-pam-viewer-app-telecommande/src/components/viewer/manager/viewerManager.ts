@@ -30,6 +30,8 @@ import { VIEWER_EVENTS } from "../events";
 import { ViewerUtils } from "../utils/viewerUtils";
 import Vue from "vue";
 import { log, warn } from "console";
+import { MutationTypes } from "../../../services/store/appDataStore/mutations";
+import { store } from "../../../services/store";
 
 export class ViewerManager {
 	private static _instance: ViewerManager;
@@ -78,7 +80,7 @@ export class ViewerManager {
 	public async loadInViewer(item: IPlayload, loadOnlyThisModel: boolean = true, body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }) {
 		// if (this._viewerStartedList[item.staticId]) return;
 		
-		console.warn(body , ' rayane');
+		console.warn(body?.equipements , ' rayane');
 		
 		if (this._viewerStartedList[item.dynamicId]) {
 			this.showAllObjects();
@@ -96,7 +98,7 @@ export class ViewerManager {
 			const buildingId = item.buildingId;
 			const dynamicId = item.dynamicId;
 
-
+			
 			
 			if (!body) body = { dynamicId: [dynamicId], floorRef: true, roomRef: true, equipements: true };
 
@@ -106,13 +108,18 @@ export class ViewerManager {
 				this._addViewLoaded(data.id, data.models);
 			});
 
+			console.log(res , 'rayane 2');
+			
 			const viewerInfo = await getViewInfoFormatted(buildingId, res, item);
 			emitter.emit(VIEWER_START_LOAD_MODEL, viewerInfo);
+			
 		});
 	}
 
 	public async getViewerInfoMerged(argItem: IPlayload | IPlayload[], body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }): Promise<IViewInfoItemRes[]> {
 		const datas = await this.getViewerInfo(argItem, undefined, body);
+		console.log(datas , 'datas r');
+		
 		const res = [];
 
 		for (const _item of datas) {
@@ -133,12 +140,13 @@ export class ViewerManager {
 
 
 		const items = Array.isArray(argItem) ? argItem : [argItem];
-		console.log(items);
+		console.log(items , 'tt ?');
 		const buildingId = argBuildingId || items[0].buildingId;
 		const ids = items.map((el) => el.dynamicId);
 		const res: any[] = [];
 		const nodeTofetech: number[] = [];
-
+		
+		
 		for (const dynId of ids) {
 			if (this._viewerStores["GET_VIEWER_INFO"][dynId]) {
 				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;
@@ -147,19 +155,21 @@ export class ViewerManager {
 				nodeTofetech.push(dynId);
 			}
 		}
+		console.log(ids , ' :ids'  ,'res :'  , res ,'nodeTofetech :' , nodeTofetech ,'buildingId :', buildingId);
 
 		if (nodeTofetech.length > 0) {
 
 			if (!body) body = { dynamicId: nodeTofetech, floorRef: true, roomRef: true, equipements: true };
 			const datas = await getViewInfo(buildingId, body);
-
+			console.log(datas , 'GAB!!');
+			
 			for (const _item of datas) {
 				this._viewerStores["GET_VIEWER_INFO"][_item.dynamicId] = generator(_item);
 				res.push(_item);
 			}
 		}
 
-		console.log('icici');
+		console.log('icici' , res);
 		return res;
 
 		async function* generator(data): AsyncGenerator<Awaited<any>> {

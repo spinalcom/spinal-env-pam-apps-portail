@@ -297,6 +297,9 @@ class App extends Vue {
 
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
     if (!item) return;
+
+    console.log(item , 'check');
+    
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);

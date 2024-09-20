@@ -31,6 +31,10 @@ export const config: IConfig = {
 	viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },
 	temporality: [ITemporality.currentValue, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
 
+
+	//tablette ID
+	tabletteId: 113391744,
+
 	//catégorie d'inventaire cliblé
 	inventory: "Typologie",
 

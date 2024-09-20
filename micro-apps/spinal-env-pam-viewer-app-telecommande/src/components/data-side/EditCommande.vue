@@ -72,21 +72,24 @@
 
     <div>
 
-      <div style="padding-top: 23vh;">
+      <div class="button_selection">
 
         <div style="height: 24vh  ; width: 100px;justify-content: space-between;flex-direction: column;align-items: center;display: flex; align-content :space-between ;
 ">
 
           <div v-for="(item, index) in objet" :key="index"
             style="background-color: white;width: 100px;height: 32px;border-radius: 15px;box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;font-size: 21px;display: flex;flex-direction: row;margin-bottom: 10px; color: #bdbdbd;font-weight: bold;">
-            <div style="width: 30%; justify-content: center;align-items: center;display: flex;padding-top: 12px;">
+
+            <div @click="editvalue(item.value)"
+              style="width: 30%; justify-content: center;align-items: center;display: flex;padding-top: 12px;">
               <!-- Utilisation de la couleur dynamique -->
               <v-badge :color="item.color"></v-badge>
             </div>
-            <div style="width: 70%; margin-left: 13px;margin-top: 2px;">
+            <div @click="editvalue(item.value)" style="width: 70%; margin-left: 13px;margin-top: 2px;">
               <!-- Utilisation de la valeur dynamique -->
               {{ item.value }}{{ unit }}
             </div>
+
           </div>
 
 
@@ -135,9 +138,10 @@ export default {
     temperatureTop: 0
   }),
   computed: {
+
     lastColor() {
       // Accéder directement au dernier élément de l'objet
-      return this.objet.length > 0 ? this.objet[this.objet.length - 1].color : ''; 
+      return this.objet.length > 0 ? this.objet[this.objet.length - 1].color : '';
     },
     minTemperature() {
       // Récupérer la plus petite valeur "value" dans l'objet vstore
@@ -169,17 +173,18 @@ export default {
       };
     },
 
-    sliderStyle() {
-    // Trouver la valeur de l'objet la plus proche de `currentTemperature`
-    const closestItem = this.objet.reduce((prev, curr) => {
-      return (Math.abs(curr.value - this.currentTemperature) < Math.abs(prev.value - this.currentTemperature) ? curr : prev);
-    });
 
-    // Retourner la couleur associée à l'élément le plus proche
-    return {
-      '--slider-thumb-color': closestItem.color
-    };
-  }
+    sliderStyle() {
+      // Trouver la valeur de l'objet la plus proche de `currentTemperature`
+      const closestItem = this.objet.reduce((prev, curr) => {
+        return (Math.abs(curr.value - this.currentTemperature) < Math.abs(prev.value - this.currentTemperature) ? curr : prev);
+      });
+
+      // Retourner la couleur associée à l'élément le plus proche
+      return {
+        '--slider-thumb-color': closestItem.color
+      };
+    }
 
   },
   mounted() {
@@ -190,6 +195,12 @@ export default {
     this.currentTemperature = this.currentData;
   },
   methods: {
+
+    editvalue(value) {
+      console.log('tototo', value);
+
+      this.currentTemperature = value
+    },
     updateTemperaturePosition() {
       const slider = this.$refs.slider;
       const sliderRect = slider.getBoundingClientRect(); // Récupère la hauteur réelle du slider
@@ -250,7 +261,7 @@ export default {
   bottom: 0;
   height: 24vh;
   /* left: 50%; */
-  margin-top: 33vh;
+  margin-top: 35vh;
   transform: translate(100px, -100px);
 }
 
@@ -276,10 +287,18 @@ export default {
   }
 }
 
+.button_selection {
+  padding-top: 26vh;
+}
+
 @media (min-height: 1000px) {
   .dashedline {
     height: 25vh;
-    margin-top: 31vh;
+    margin-top: 22vh;
+  }
+
+  .button_selection {
+    padding-top: 17vh;
   }
 }
 

@@ -26,6 +26,9 @@ import { ViewerUtils } from "../utils/viewerUtils";
 import ModelManager from "./modelManager";
 import { VIEWER_EVENTS } from "../events";
 
+import { MutationTypes } from "../../../services/store/appDataStore/mutations";
+import { store } from "../../../services/store";
+
 const emitterHandler = EmitterViewerHandler.getInstance();
 emitterHandler.setTarget(window.parent, "viewer");
 
@@ -53,6 +56,9 @@ export class EventManager {
 				const models = await viewerUtils.load3DModels(viewer, data);
 				// emitterHandler.emit(<any>VIEWER_EVENTS.LOADED,{id: data.item.staticId, models})
 				emitterHandler.emit(<any>VIEWER_EVENTS.LOADED, { id: data.item.dynamicId, models });
+				console.log('??');
+				store.commit(MutationTypes.SET_LOADED, localStorage.getItem('room_tablette'));
+				
 			});
 
 			emitterHandler.on(VIEWER_OBJ_ISOLATE, (data: any) => {

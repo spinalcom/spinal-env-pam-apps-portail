@@ -22,6 +22,8 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
+import { error, log } from "console";
+
 export class ModelManager {
    private static _instance: ModelManager;
    private _modelDico : Map<string, Autodesk.Viewing.Model[]> = new Map();

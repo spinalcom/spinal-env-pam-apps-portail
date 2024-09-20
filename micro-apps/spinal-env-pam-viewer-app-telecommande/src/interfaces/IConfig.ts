@@ -31,6 +31,7 @@ export interface IConfig {
 	temporality: ITemporality[];
 	application?: IApplication[];
 	inventory: string;
+	tabletteId: Number;
 	profileName: string;
 	profileNameRoom: string;
 	categorieAttributRoom: string;

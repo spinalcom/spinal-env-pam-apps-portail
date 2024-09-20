@@ -41,4 +41,5 @@ export const state = {
 	itemSelected: undefined,
 	dataVizExtn: undefined,
 	data: undefined as any,
+	loadedinformation: 0 as Number,
 };

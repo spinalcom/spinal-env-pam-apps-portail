@@ -25,30 +25,41 @@ with this file. If not, see
 
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
 
+    <!-- <button style="position: absolute;z-index: 999999999999;background-color: red;top: 50%;left: 50%;"
+      @click="asynctoto">tototototototottot</button> -->
 
+    <div  style="position: absolute;" class="space">
+      <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"
+        :GetChildrenFct="onSpaceSelectOpen" v-model="selectedZone" label="ESPACE"
+        :spaceSelectorItemButtons="spaceSelectorButtons" :viewButtonsType="config.viewButtons"
+        @onActionClick="onActionClick" />
+    </div>
+
+    <div class="navbar" style="">
+      <div>{{ spaceName }}</div>
+
+      <div style="color: #DDECF4;">
+        <div style="font-size: 65px;height: 70px;font-weight: bold">{{ currentTime }}</div>
+        <div style="font-size: 25px;">{{ currentDate }}</div>
+      </div>
+
+    </div>
 
     <SpriteComponentMobile v-if="displaySprite" @close="handleClose"
-      style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;"
+      style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 99999;"
       :data="isSmallScreen">
     </SpriteComponentMobile>
     <!-- v-if="displaySprite" -->
 
-    <div class="selectors">
-      <div class="DButton">
+    <!-- <div class="selectors"> -->
+    <!-- <div class="DButton">
         <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()" />
-      </div>
-      <!-- <div class="temporality">
+      </div> -->
+    <!-- <div class="temporality">
         <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
           :GetChildrenFct="onTemporalitySelectOpen" :maxDepth="0" v-model="temporalitySelected" label="TEMPORALITÉ" />
       </div> -->
-
-      <div class="space">
-        <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"
-          :GetChildrenFct="onSpaceSelectOpen" v-model="selectedZone" label="ESPACE"
-          :spaceSelectorItemButtons="spaceSelectorButtons" :viewButtonsType="config.viewButtons"
-          @onActionClick="onActionClick" />
-      </div>
-    </div>
+    <!-- </div> -->
 
     <div class="dataBody">
       <viewerApp :class="{ 'active3D': true }" class="viewerContainer"></viewerApp>
@@ -84,6 +95,7 @@ import viewerApp from "./components/viewer/viewer.vue";
 import ScDownloadButton from "spinal-components/src/components/DownloadButton.vue";
 import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
 import SpriteComponentMobile from "./components/data-side/SpriteComponentMobile.vue"
+import SpriteComponent from "./components/data-side/SpriteComponent2.vue"
 import { config } from "./config";
 import { IConfig } from "./interfaces/IConfig";
 import { PAGE_STATES } from "./interfaces/pageStates";
@@ -101,6 +113,7 @@ import {
 import "spinal-components/dist/spinal-components.css";
 
 import dataSideApp from "./components/data-side/App.vue";
+import { error } from "console";
 
 
 interface IItemData {
@@ -119,7 +132,8 @@ interface IItemDatatmp {
     viewerApp,
     ScDownloadButton,
     dataSideApp,
-    SpriteComponentMobile
+    SpriteComponentMobile,
+    SpriteComponent
   },
 })
 class App extends Vue {
@@ -136,7 +150,7 @@ class App extends Vue {
   isSmallScreen: any;
   referenceObjects: any[];
   $refs: { spaceSelector };
-  displaySprite: boolean = true;
+  displaySprite: boolean = false;
   query: { app: string; mode: string; name: string; spaceSelectedId: string; buildingId: string } = {
     app: '',
     mode: 'null',
@@ -144,30 +158,66 @@ class App extends Vue {
     spaceSelectedId: '',
     buildingId: ''
   };
+  currentTime: String = '';
+  currentDate: String = '';
+  spaceName: String = '';
   floor: any = null
+
+  public get loadedinformation() {
+    return this.$store.state.appDataStore.loadedinformation;
+  }
+  updateDate() {
+    const now = new Date();
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    this.currentDate = now.toLocaleDateString('fr-FR', options); // Formate la date en français
+  }
+  updateTime() {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0'); // Formate l'heure
+    const minutes = now.getMinutes().toString().padStart(2, '0'); // Formate les minutes
+    this.currentTime = `${hours}:${minutes}`;
+  }
+  async youAreHere() {
+    console.log(this.config.tabletteId, 'aaaaaaaaaaaaa');
+    const referenceIds = this.config.tabletteId
+    const buildingId = localStorage.getItem("idBuilding");
+    const promises = [
+      this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
+        buildingId,
+        referenceIds
+      }),
+    ];
+    const result = await Promise.all(promises);
+    this.setTabletteSprite(result, buildingId)
+  }
   async mounted() {
 
 
-    //initialiser les objet de la piece : 
-    this.getDataDynamicIdtab()
+
+
+    this.updateTime();
+    this.updateDate();
+    setInterval(this.updateTime, 60000);
+
+    const navPickerApp = window.parent.document.querySelector('.navbar');
+    console.log(window.parent.document);
+    const appLoadContainer = window.parent.document.querySelector('.appLoadContainer');
+    if (navPickerApp) {
+      navPickerApp.style.display = 'none'; // Cache l'élément
+      if (appLoadContainer) {
+        appLoadContainer.style.setProperty('padding', '0px', 'important');
+      }
+    }
+
+    localStorage.removeItem('room_tablette');
 
 
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
-
-      console.log(data);
-
-
       if (data)
         this.findDynamicIdByDbid(data[0].dbIds[0], data[0]);
 
     });
-
-
-
-    //refresh de l'instace pour VIEWER_REM_SPHERE
-    // const emitterHandler = EmitterViewerHandler.getInstance();
-    // emitterHandler.off(VIEWER_REM_SPHERE);
 
     this.initializeEventHandlers();
 
@@ -189,24 +239,47 @@ class App extends Vue {
 
     this.$nextTick(() => {
 
-      this.query.app = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC10ZWxlY29tbWFuZGUiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImFjYWQtOThkNi05ZWFjLTE5MWU2NTQ2M2Q0IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcyNjE0NjE4NTM0OSwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzI2MTQ2MTc1OTU2LCJpY29uIjoibWRpLWNvbnRyb2xsZXIiLCJkZXNjcmlwdGlvbiI6InNwaW5hbC1lbnYtcGFtLXZpZXdlci1hcHAtdGVsZWNvbW1hbmRlIiwidGFncyI6WyJ0ZWxlY29tbWFuZGUiXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLXRlbGVjb21tYW5kZSIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
-      // console.warn('/////////////////////////////////////////////////////');
-      // console.log(window.parent.router.query);
+      this.query.app = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC10ZWxlY29tbWFuZGUiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6Ijg0ZDgtNzgyMS0yZTI2LTE5MjAwNmI4MDJmIiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcyNjU4MzkxOTM1NSwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzI2NTgzODk4MTU5LCJpY29uIjoiIiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLXRlbGVjb21tYW5kZSIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
+
       window.parent.router.query.app = this.query.app
-      // console.log(window.parent.router.query);
-
-      console.warn('/////////////////////////////////////////////////////');
-
       const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
       this.applyURLParam(currentQuery);
+      this.asynctoto()
     });
   }
 
   initializeEventHandlers() {
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.off(VIEWER_REM_SPHERE);
+  }
 
 
+  asynctoto() {
+    const roomTablette = localStorage.getItem('room_tablette');
+    console.log('ttttttttttttttttttttttttttttttttttttttttttttttttttttttttt', roomTablette);
+
+    const item = {
+      "dynamicId": roomTablette,
+      "staticId": "SpinalNode-4be0192e-562d-1f3c-2d9c-1d558ca6b5ff-186df7cd6ff",
+      "name": "Sol [415087]",
+      "type": "BIMObject",
+      "version": 1,
+      "externalId": "154cec60-8d56-4126-8ada-aac07f24c66e-0006556f",
+      "dbid": 11181,
+      "buildingId": "5932-6086-9e1a-18506478460",
+    }
+
+    //FIT_TO_VIEW
+    //TODO ajouter laction room/54522192/reference_object_list recuperrer l'id de la room dans le local storage ?? verifier si on
+    console.warn('fit ?');
+
+    setTimeout(() => {
+      this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
+    }, 400);
+
+    console.log(config.tabletteId);
+
+    // this.getpositiontablette(config.tabletteId)
   }
 
   async findDynamicIdByDbid(dbidToFind, data) {
@@ -267,6 +340,9 @@ class App extends Vue {
 
 
   getDataDynamicIdtab() {
+
+    console.error('FIT TO VIEW *///////////////////');
+
     const data = [{
       "dynamicId": 42502576,
       "staticId": "SpinalNode-4bd8b812-f94d-549c-f720-706ab2f16c17-186df7cd2a9",
@@ -295,20 +371,88 @@ class App extends Vue {
 
   }
 
+  async getpositiontablette(referenceIds) {
+    const buildingId = localStorage.getItem("idBuilding");
+    console.log(this.config);
+
+
+    const promises = [
+      this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
+        buildingId,
+        referenceIds
+      }),
+    ];
+    const result = await Promise.all(promises);
+    console.log(result[0].attributsList);
+    let xyzCenter = null;
+
+    const spatialCategory = result[0].attributsList.find(item => item.name === "Spatial");
+
+    if (spatialCategory) {
+      const xyzAttribute = spatialCategory.attributs.find(attr => attr.label === "XYZ center");
+      if (xyzAttribute) {
+        xyzCenter = xyzAttribute.value;
+      }
+    }
+
+
+
+  }
+
+
   checkForReferenceObjectRoom(list) {
     return list.some(item => item.name === "hasReferenceObject.ROOM");
   }
 
-  forgeItem(result, buildingId, dbid, bimFileId, center) {
+  setTabletteSprite(result, buildingId) {
 
-    let X = center.x;
-    let Y = center.y;
-    let Z = center.z;
+    let X;
+    let Y;
+    let Z;
+
+    result[0].attributsList.forEach(category => {
+      category.attributs.forEach(attribute => {
+        if (attribute.label === "XYZ center") {
+          let coordinates = attribute.value.split(";");
+          X = coordinates[0];
+          Y = coordinates[1];
+          Z = coordinates[2];
+        }
+      });
+    });
+
+    const item = {
+      color: '#ded638',
+      dynamicId: result[0].dynamicId,
+      buildingId: buildingId,
+      dbid: result[0].dbid,
+      bimFileId: result[0].bimFileId,
+      name: result[0].name,
+      position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
+      data: result[0],
+      config: this.config
+    }
+    this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+
+    this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+      items: item,
+      buildingId: buildingId,
+      component: SpriteComponent,
+    });
+
+  }
+
+
+  forgeItem(result, buildingId) {
+
+    // let X;
+    // let Y;
+    // let Z;
 
     // result[0].attributsList.forEach(category => {
     //   category.attributs.forEach(attribute => {
     //     if (attribute.label === "XYZ center") {
-    //       const coordinates = attribute.value.split(";");
+    //       let coordinates = attribute.value.split(";");
     //       X = coordinates[0];
     //       Y = coordinates[1];
     //       Z = coordinates[2];
@@ -318,25 +462,25 @@ class App extends Vue {
 
     // const [X, Y, Z] = result[key]["XYZ center"].split(";");
 
-    const item = {
-      color: '#ded638',
-      dynamicId: result[0].dynamicId,
-      buildingId: buildingId,
-      dbid: dbid,
-      bimFileId: bimFileId,
-      name: result[0].name,
-      position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
-      data: result[0],
-      config: this.config
-    }
-    this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+    // const item = {
+    //   color: '#ded638',
+    //   dynamicId: result[0].dynamicId,
+    //   buildingId: buildingId,
+    //   dbid: result[0].dbid,
+    //   bimFileId: result[0].bimFileId,
+    //   name: result[0].name,
+    //   position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
+    //   data: result[0],
+    //   config: this.config
+    // }
+    // this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
 
 
     // const screenWidth = window.innerWidth;
 
 
     this.displaySprite = false;
-    this.isSmallScreen = item;
+    // this.isSmallScreen = item;
     this.displaySprite = true;
 
     // this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
@@ -344,8 +488,6 @@ class App extends Vue {
     //   buildingId: buildingId,
     //   component: SpriteComponent,
     // });
-
-
 
   }
 
@@ -393,28 +535,30 @@ class App extends Vue {
   }
 
   applyURLParam(query) {
-    console.log('apply url parame ??');
+    // console.log('apply url parame ??');
 
 
-    this.query.mode = query.mode
-    this.query.buildingId = query.buildingId
-    this.query.spaceSelectedId = query.spaceSelectedId
-    this.query.name = query.name
-    this.query.app = query.app
+    // this.query.mode = query.mode
+    // this.query.buildingId = query.buildingId
+    // this.query.spaceSelectedId = query.spaceSelectedId
+    // this.query.name = query.name
+    // this.query.app = query.app
 
-    if (query.mode == "3d") {
-      this.isActive3D = true
-    } else if (query.mode == "data") {
-      this.isActive = true
-    }
-    // console.warn(query.spaceSelectedId);
+    // if (query.mode == "3d") {
+    //   this.isActive3D = true
+    // } else if (query.mode == "data") {
+    //   this.isActive = true
+    // }
+    // // console.warn(query.spaceSelectedId);
 
 
-    if (query.spaceSelectedId) {
-
+    // if (query.spaceSelectedId) {
+      const buildingId = localStorage.getItem("idBuilding");
+      const dynamicId = localStorage.getItem("floor_tablette_id");
+      const name = localStorage.getItem("floor_tablette_name");
       const item = {
-        buildingId: query.buildingId,
-        dynamicId: query.spaceSelectedId,
+        buildingId: buildingId,
+        dynamicId: dynamicId,
       };
       const button = {
         "title": "charger",
@@ -425,17 +569,22 @@ class App extends Vue {
         ]
       }
 
-      console.warn(button, '/////////////////////////////////////////////////////////////////////////////////////////////////////////');
+      // console.warn(button, '/////////////////////////////////////////////////////////////////////////////////////////////////////////');
 
       this.onActionClick({ button, item })
 
+      //ici
 
+
+      console.log('on va dans le select de l item');
+      
+      
       const itemToSelect = {
         "isOpen": false,
         "loading": false,
-        "dynamicId": parseInt(query.spaceSelectedId),
-        "name": query.name,
-        "buildingId": query.buildingId,
+        "dynamicId": dynamicId,
+        "name": name,
+        "buildingId": buildingId,
         "type": "geographicFloor",
       }
       // this.$refs['space-selector'].getButton();
@@ -443,7 +592,7 @@ class App extends Vue {
       if (this.$refs['space-selector']) {
         this.$refs['space-selector'].select(itemToSelect);
       }
-    }
+    // }
     this.openSpaceSelector = false
   }
 
@@ -589,42 +738,20 @@ class App extends Vue {
     // TBD
   }
 
-
-
   onActionClick({ button, item }) {
-
-    console.warn("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa555", item, button);
-
-
-    // const data = {
-    //   "isOpen": false,
-    //   "loading": false,
-    //   "dynamicId": 44035200,
-    //   "name": "194-Hall d'accueil",
-    //   "buildingId": "5932-6086-9e1a-18506478460",
-    //   "type": "geographicFloor"
-    // }
-
     const buildingId = localStorage.getItem("idBuilding");
 
     const data = {
       "isOpen": false,
       "loading": false,
       buildingId: buildingId, //important viewer
-      // staticId: item.staticId,//can
-      // id: item.dynamicId,
       dynamicId: item.dynamicId,//important viewer
       parents: item.parents,
-      // floorId: item.floorId,//can
-      // roomId: item.roomId,//can
-      // type: item.type,//can
     };
-
 
     switch (button.onclickEvent) {
 
       case ActionTypes.OPEN_VIEWER:
-        // console.log('laaaaaaaaaaaalalaalallalalalalalalalala');
         this.$store.dispatch(button.onclickEvent, {
           onlyThisModel: true,
           config: this.config,
@@ -766,6 +893,37 @@ class App extends Vue {
     this.replaceRoute();
   }
 
+  // @Watch("pageSate")
+  // watchPageState() {
+
+
+  //   if (this.pageSate === this.PAGE_STATES.loaded) {
+  //     console.warn('LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL' , this.PAGE_STATES.loaded);
+  //     console.log('');
+  //     console.log(localStorage.getItem('room_tablette'));
+
+  //     // this.asynctoto()
+
+  //   }
+  // }
+
+
+
+  @Watch("loadedinformation", { deep: true })
+  async watchSelectedChartItems(select, old) {
+    console.error('nouveau id :', select);
+    this.spaceName = localStorage.getItem("room_tablette_name");
+    this.asynctoto()
+    this.youAreHere()
+    // this.updateChartData();
+    // if (select.length > 0) {
+    //   this.vueChart = true;
+    // }
+    // else {
+    //   this.vueChart = false;
+    // }
+  }
+
 }
 
 export default App;
@@ -773,6 +931,27 @@ export default App;
 
 
 <style scoped lang="scss">
+.navbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: none;
+  height: 13%;
+  width: 100%;
+  background-color: white;
+  z-index: 9999;
+  border-bottom-right-radius: 30px;
+  border-bottom-left-radius: 50px;
+  font-size: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 5%;
+  padding-right: 5%;
+  // border: 1px solid black;
+  // transform: translate(-10px);
+}
+
 .app {
   width: 100%;
   height: 100%;

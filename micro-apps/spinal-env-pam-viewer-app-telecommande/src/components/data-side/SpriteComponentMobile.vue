@@ -1,29 +1,37 @@
 <template>
-  <div class="total">
-    <div @click="close()"
-      style="background-color: white; width: 50px; height: 50px; position: absolute; bottom: 20px; right: 20px; z-index: 9999; border-radius: 5px; border: 2px solid rgb(20, 32, 44); justify-content: center; align-items: center; display: flex;">
-      X</div>
-    <div class="menu">
+  <div>
+    <div style=" backdrop-filter: blur(4px);width: 100%;height: 100%;top: 0px;left: 0px;position: absolute;">
+   
+    </div>
+    <div class="total">
+      <div @click="close()"
+        style="background-color: white; width: 50px; height: 50px; position: absolute; bottom: 20px; right: 20px; z-index: 9999; border-radius: 5px; border: 2px solid rgb(20, 32, 44); justify-content: center; align-items: center; display: flex;">
+        X</div>
+      <div class="menu">
 
-      <div style="display: flex;">
+        <div style="display: flex;">
 
-        <div class="text_title">
-          <span class="mdi mdi-map-marker marker"></span>
-          POSITION N°10.5C
+          <div class="text_title">
+            <span class="mdi mdi-map-marker marker"></span>
+            POSITION N°10.5C
+          </div>
+          <div id="curved-corner-topleft"></div>
         </div>
-        <div id="curved-corner-topleft"></div>
-      </div>
-      <div style="display: flex; align-items: center;justify-content: center; margin-top: 20px;">
+        <div style="display: flex; align-items: center;justify-content: center; margin-top: 20px;">
 
-        <EditCommande :step="1" :currentData="1" :objet="temp" :unit="'°C'" :icon="'thermometer'" :color="'#FF9685'" style="border-right: 2px dashed #a1a1a1;
+          <EditCommande :step="1" :currentData="1" :objet="temp" :unit="'°C'" :icon="'thermometer'" :color="'#FF9685'"
+            style="border-right: 2px dashed #a1a1a1;
     padding-right: 3%;"></EditCommande>
-        <EditCommande  :step="5" :currentData="50" :objet="lumi" :unit="'%'" :icon="'ampoule'" :color="'#EDE474'" style="margin-left: 2%;    border-right: 2px dashed #a1a1a1;
+          <EditCommande :step="5" :currentData="50" :objet="lumi" :unit="'%'" :icon="'ampoule'" :color="'#EDE474'"
+            style="margin-left: 2%;    border-right: 2px dashed #a1a1a1;
     padding-right: 3%"></EditCommande>
-        <EditCommande :step="5" :currentData="50" :objet="store" :unit="'%'" :icon="'store'" :color="'#A8DDF4'"
-          style="margin-left: 2%;"></EditCommande>
-        <!-- <EditCommande></EditCommande> -->
+          <EditCommande :step="5" :currentData="50" :objet="store" :unit="'%'" :icon="'store'" :color="'#A8DDF4'"
+            style="margin-left: 2%;"></EditCommande>
+          <!-- <EditCommande></EditCommande> -->
+        </div>
       </div>
     </div>
+
   </div>
 </template>
 <script>
@@ -102,14 +110,14 @@ export default {
 }
 
 .total {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(128, 128, 128, 0.493);
+  /* position: absolute; */
+  width: 100vw;
+  height: 100vh;
+  /* background-color: rgba(128, 128, 128, 0.493); */
   top: 0px;
   left: 0px;
-  margin: none;
-  padding: none;
+  /* margin: none;
+  padding: none; */
 }
 
 .text_title {

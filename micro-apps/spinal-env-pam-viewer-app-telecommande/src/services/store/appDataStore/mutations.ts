@@ -42,6 +42,7 @@ export enum MutationTypes {
 	REMOVE_VIEWER_LOADED = "REMOVE_VIEWER_LOADED",
 	SET_ITEM_SELECTED = "SET_ITEM_SELECTED",
 	SET_DATA = "SET_DATA",
+	SET_LOADED = 'SET_LOADED'
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -49,6 +50,7 @@ export type MutationsAppData<S = StateAppData> = {
 	[MutationTypes.SET_SELECTED_ZONE](state: S, payload: ISpaceSelectorItem): void;
 	[MutationTypes.SET_FLOORS](state: S, payload: { id: string; items: IZoneItem[] }): void;
 	[MutationTypes.SET_ROOMS](state: S, payload: { id: number; items: IZoneItem[] }): void;
+	[MutationTypes.SET_LOADED](state: StateAppData, data: Number ): void;
 	[MutationTypes.SET_EQUIPMENTS](state: S, payload: { id: number; items: IEquipmentItem[] }): void;
 	[MutationTypes.SET_VIEWINFO](state: S, payload: { id: number; items: IViewInfoItemRes[] }): void;
 	[MutationTypes.ADD_VIEWER_LOADED](state: S, payload: { id: string }): void;
@@ -101,5 +103,12 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 
 	[MutationTypes.SET_DATA](state: StateAppData, data: INodeItemTree[]): void {
 		state.data = data;
+	},
+
+	[MutationTypes.SET_LOADED](state: StateAppData, data: Number): void {
+		console.error('loaded');
+		state.loadedinformation = data;
+		console.log(state.loadedinformation );
+		
 	},
 };

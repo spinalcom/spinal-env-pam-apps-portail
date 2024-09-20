@@ -318,6 +318,7 @@ export const actions = {
 		if (typeof roomObjStore[id] === "undefined" || forceUpdate === true) {
 			roomObjStore[id] = spinalAPI.createIteratorCall(getEquipments, patrimoineId, buildingId, floorId, roomId, id);
 		}
+		
 
 		const equipments = await roomObjStore[id].next();
 		commit(MutationTypes.SET_EQUIPMENTS, { id: id, items: equipments.value });

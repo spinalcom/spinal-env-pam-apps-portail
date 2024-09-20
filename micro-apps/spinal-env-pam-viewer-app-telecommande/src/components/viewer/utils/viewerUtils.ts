@@ -514,6 +514,8 @@ export class ViewerUtils {
 	}
 
 	private _allModelsAreLoaded() {
+		console.log('ihihi //////////////////MMMMMMMMMMMMMMMMMMMMMMMMMMMMM');
+		
 		return ModelManager.getInstance().allModelAreLoaded();
 	}
 }
