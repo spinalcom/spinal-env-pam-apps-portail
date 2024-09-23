@@ -23,18 +23,39 @@
  */
 
 import { getTokenData } from "../requests/userData";
-import { clearLocalStorage, saveToLocalStorage } from "../utils";
+import { clearLocalStorage, getCookieValue, saveToLocalStorage } from "../utils";
 
 
-export async function isAuthenticate(): Promise<boolean> {
+
+
+const getTokenInLocalStorage = async () => {
     const token = localStorage.getItem("token");
     if (token) {
         const { code, data } = await getTokenData(token);
         if (code == 200) {
             saveToLocalStorage(data);
-            return true;
+            return token;
         }
     }
+};
+
+
+const getTokenInCookie = async () => {
+    const token = getCookieValue("token");
+    if (token) {
+        const { code, data } = await getTokenData(token);
+        if (code == 200) {
+            saveToLocalStorage(data);
+            return token;
+        }
+    }
+}
+
+export async function isAuthenticate(): Promise<boolean> {
+    const token = await getTokenInLocalStorage() || await getTokenInCookie();
+
+    if (token) return true;
 
     return false;
 }
+

@@ -32,6 +32,12 @@ export function routerInit(vue: any) {
   vue.use(VueRouter);
 }
 
+const getLoginRedirect = () => {
+  let url = process.env.SPINAL_API_URL;
+  return url?.endsWith('/') ? url.substring(0, url.length - 1) : url;
+}
+
+
 const routes: Array<RouteConfig> = [
   {
     path: '/',
@@ -39,9 +45,18 @@ const routes: Array<RouteConfig> = [
     name: '_Home',
   },
   {
-    path: '/login',
-    name: 'Login',
+    path: '/login/admin',
+    name: 'AdminLogin',
     component: LoginView,
+  },
+  {
+    name: "Login",
+    path: '/login',
+    redirect: () => {
+      const url = getLoginRedirect();
+      window.location.href = `${url}/login`;
+      return url + "/login";
+    },
   },
   {
     path: '/app',
@@ -75,11 +90,11 @@ router.beforeEach(async (to, from, next) => {
   return next();
 });
 
-router.customPush = function(path, query) {
+router.customPush = function (path, query) {
   this.push({ path, query });
 };
 
-router.customReplace = function(path, query) {
+router.customReplace = function (path, query) {
   this.replace({ path, query });
 };
 
