@@ -88,8 +88,8 @@ export function getLabels(temporality: any, index: number = 0) {
  * @typedef {Object} getValues
  */
 export function getValues(series: any[]) {
-  console.log("series received", series);
   const ret = {};
+  if(!series) return ret;
   series.forEach((s) => {
     const x = moment(s.date).seconds(0).milliseconds(0).valueOf();
     ret[x] = s.value;

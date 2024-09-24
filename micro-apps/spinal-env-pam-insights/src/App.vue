@@ -64,22 +64,6 @@ with this file. If not, see
         class="viewerContainer"
         :class="{ active3D: isActive3D }"
       ></viewerApp>
-      <!-- <sc-line-card
-        v-if="vueChart"
-        class="viewerContainer"
-        :class="{ active3D: isActive3D }"
-        :title="title"
-        :labels="labelDisplay"
-        :datasets="chartData"
-        :step="labels.length / 4"
-        :tooltipCallbacks="{
-          title: (context) => toTooltipDate(context[0].raw.x),
-          label: (tooltipItem) =>
-            `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(2)} ${unit}`,
-          footer: (data) => {
-          }
-        }"
-      ></sc-line-card> -->
       <InsightApp
         class="appContainer"
         :DActive="isActive3D"
@@ -90,7 +74,6 @@ with this file. If not, see
         :selectedTime="temporalitySelected"
         :data="displayedData"
         :vueChart="vueChart"
-        @clickOnDataView="onDataViewClicked"
         @buttonClicked="toggleActive"
         @buttonClicked3D="toggleActive3D"
         @chartView="switchView"
@@ -234,68 +217,6 @@ class App extends Vue {
 
   public get selectedItem() {
     return this.$store.state.appDataStore.itemSelected;
-  }
-
-  public get title() {
-    return `${this.$store.state.appDataStore.selectedSource.profileName}/${this.$store.state.appDataStore.selectedSource.name}`
-  }
-  public get unit() {
-    return this.$store.state.appDataStore.selectedSource.unit;
-  }
-
-  public get t_index(){
-    return this.$store.state.appDataStore.t_index;
-  }
-
-  public get labels() {
-    //const firstItem = this.selectedChartItems[0];
-    return getLabels(
-      this.$store.state.appDataStore.temporalitySelected,
-      this.t_index
-    );
-  }
-
-  public get labelDisplay() {
-    return this.labels.map((label) => this.toDate(label));
-  }
-
-  // public get chartData() {
-  //   const result : any [] = [];
-  //   const t_index = this.t_index
-  //   const items = this.selectedChartItems;
-  //   for(const item of items) {
-  //     console.log("item", item);
-  //     const vals = getValues(item.series);
-  //     const labels = getLabels(this.$store.state.appDataStore.temporalitySelected, t_index);
-  //     const data = labels.map((lab) => ({
-  //       x: lab,
-  //       y: vals[lab] || "NaN",
-  //     }))
-  //     console.log("data", data);
-  //     const color = item.color;
-  //     result.push({ label: item.name, data, color });
-  //   }
-  //   return result;
-  // }
-
-  updateChartData(){
-    const result: any[] = [];
-    const t_index = this.t_index;
-    const items = this.selectedChartItems;
-    for (const item of items) {
-      console.log("item", item);
-      const vals = getValues(item.series);
-      const labels = getLabels(this.$store.state.appDataStore.temporalitySelected, t_index);
-      const data = labels.map((lab) => ({
-        x: lab,
-        y: vals[lab] ?? "NaN",
-      }));
-      console.log("data", data);
-      const color = item.color;
-      result.push({ label: item.name, data, color, tension:0.1 });
-    }
-    // Assign the result to a reactive property (if necessary)
-    this.chartData = result;
   }
 
   toggleActive() {
@@ -510,14 +431,11 @@ class App extends Vue {
     if (parent) this.selectedZone = parent;
   }
 
-  async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
-    console.log("test ???", item);
-
-    if (!item) return;
-    this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
-    this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
-    this.$store.dispatch(ActionTypes.SELECT_ITEMS, item);
-  }
+  // async onDataViewClicked(item) {
+  //   if (!item) return;
+  //   this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
+  //   this.$store.dispatch(ActionTypes.SELECT_ITEMS, item);
+  // }
 
   onActionClick({ button, item }) {
     const data = {
@@ -565,7 +483,7 @@ class App extends Vue {
 
   @Watch("selectedChartItems",  {deep: true })
   async watchSelectedChartItems(newVal,oldVal) {
-    this.updateChartData();
+    //this.updateChartData();
     if(newVal.length >= oldVal.length){
       this.isActive = true;
     }
@@ -573,12 +491,6 @@ class App extends Vue {
       this.isActive = false;
     }
   }
-
-  // @Watch("t_index", { immediate: true })
-  // async watchTIndex(newval,oldVal) {
-  //   console.log("t_index", newval, oldVal);
-  //   this.updateChartData();
-  // }
 
   public get displayedData() {
     return this.$store.state.appDataStore.data;

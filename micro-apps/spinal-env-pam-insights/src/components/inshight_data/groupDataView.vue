@@ -23,7 +23,8 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="div_container">
+  <div class="div_container"
+  :style="{ borderColor: isSelectedGroupDataView ? 'blue' : '#dbe7ed' }">
     <div class="_title">
       <DataView
         :color="getItemColor(data)"
@@ -67,8 +68,14 @@ class GroupDataView extends Vue {
   @Prop({}) unit;
   @Prop({}) legend;
   @Prop({ default: false }) percent;
+  @Prop({ default: null }) selectedItem;
 
   noDataItem = { name: "Aucune donnée", displayValue: "" };
+
+
+  public get isSelectedGroupDataView(){
+    return this.selectedItem?.dynamicId === this.data.dynamicId
+  }
   getItemColor(item) {
     const color = getColor(item, this.legend, this.percent);
     item.color = color;
@@ -88,7 +95,8 @@ export { GroupDataView };
 .div_container {
   width: calc(100% - 10px);
   min-height: 50px;
-  border: 3px dashed #dbe7ed;
+  border: 3px dashed;
+  border-color: #dbe7ed;
   border-radius: 10px;
   padding: 10px;
   margin: auto;

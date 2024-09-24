@@ -58,7 +58,7 @@
             :options="{
               pointStyle: false,
               spanGaps: true,
-              tension: 0.3,
+              tension: 0.1,
               plugins: {
                 title: {
                   display: false,
@@ -179,10 +179,12 @@ export default {
         : "";
     },
     displayChart() {
+      //console.log('---> item selected', store.state.appDataStore.itemSelected)
       return (
         this.isClicked &&
         store.state.appDataStore.temporalitySelected.name !==
-          ITemporality.currentValue
+          ITemporality.currentValue && 
+          !store.state.appDataStore.itemSelected.children
       );
     },
     labels() {

@@ -240,7 +240,7 @@ export class ViewerManager {
 	}
 
 	private async _fctViewerIteract(eventName: keyof ViewerEventWithData, playload: (IPlayload | string) | (IPlayload | string)[], isolateConfig?: any,): Promise<any> {
-		console.log('TOTO', eventName, playload);
+		//console.log('TOTO', eventName, playload);
 
 		const emitter = EmitterViewerHandler.getInstance();
 		if (eventName === (VIEWER_EVENTS.UNLOAD as any)) {
@@ -259,7 +259,7 @@ export class ViewerManager {
 
 			return;
 		}
-		console.log('aa');
+		//console.log('aa');
 
 
 		let data: IViewInfoItemRes[];
@@ -283,7 +283,7 @@ export class ViewerManager {
 				modelId: (playload as IPlayload).floorId || (playload as IPlayload).id || (playload as IPlayload).dynamicId,
 			};
 		});
-		console.log('aaaaaaaaaaaaaa', eventName, res);
+		//console.log('aaaaaaaaaaaaaa', eventName, res);
 
 
 		try {
@@ -291,7 +291,7 @@ export class ViewerManager {
 		} catch (error) {
 			console.error('Erreur dans emitter.emit :', error);
 		}
-		console.log('saaaasassasasassasass');
+		//console.log('saaaasassasasassasass');
 	}
 
 	private _addViewLoaded(nodeId: string, models: any[]) {

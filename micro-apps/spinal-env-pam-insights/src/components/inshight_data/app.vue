@@ -300,6 +300,7 @@ with this file. If not, see
               :data="d"
               :config="config"
               :calculMode="calculMode"
+              :selectedItem="selectedItem"
               :unit="unit"
               :legend="legend"
               :percent="percent"
@@ -381,7 +382,9 @@ import { MutationTypes } from '../../services/store/appDataStore/mutations';
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
+  VIEWER_AGGREGATE_SELECTION_CHANGED
 } from 'spinal-viewer-event-manager';
+import { ViewerManager } from '../viewer';
 import moment from 'moment';
 import { getLabels, getValues } from '../../services/calcul/computeChart';
 import 'moment/locale/fr';
@@ -464,6 +467,8 @@ class InsightApp extends Vue {
   retry: Function;
   timeoutId: any;
   chartData: any[] = [];
+  //emitterHandler: EmitterViewerHandler | undefined = undefined;
+  // viewerManager: ViewerManager | undefined = undefined;
 
   public get sourceSelected() {
     return this.config.source.find((el) => el.name === this.sourceSelectedName);
@@ -495,6 +500,7 @@ class InsightApp extends Vue {
   public get labelDisplay() {
     return this.labels.map((label) => this.toDate(label));
   }
+
 
   toDate(date) {
     switch (this.$store.state.appDataStore.temporalitySelected.name) {
@@ -535,7 +541,6 @@ class InsightApp extends Vue {
     const t_index = this.t_index;
     const items = this.selectedChartItems;
     for (const item of items) {
-      console.log('item', item);
       const vals = getValues(item.series);
       const labels = getLabels(
         this.$store.state.appDataStore.temporalitySelected,
@@ -545,7 +550,6 @@ class InsightApp extends Vue {
         x: lab,
         y: vals[lab] ?? 'NaN',
       }));
-      console.log('data', data);
       const color = item.color;
       result.push({ label: item.name, data, color, tension: 0.1 });
     }
@@ -554,6 +558,16 @@ class InsightApp extends Vue {
   }
 
   async mounted() {
+    const emitterHandler = EmitterViewerHandler.getInstance();
+
+    // emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
+      
+    //   if(data && !data[0]) {
+    //     console.log('viewer aggr selection : ',data)
+    //     console.log('no data')
+    //     this.selectedItem = null; 
+    //   }
+    // });
     this.sourceSelectedName = this.config.source[0].name;
     const source = this.config.source.find(
       (el) => el.name === this.sourceSelectedName
@@ -699,6 +713,7 @@ class InsightApp extends Vue {
   }
 
   updateSelected(item) {
+    //console.log('----> selected item : ', item);
     // item.detail is the item clicked in the viewer (sprite), item is the item clicked in the data view
     this.selectedItem = item.detail || item;
   }
@@ -766,7 +781,6 @@ class InsightApp extends Vue {
       el.unit = this.sourceSelected.unit;
       el.navIndex = this.t_index;
     });
-
     if (this.sprites) {
       await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
 
@@ -823,10 +837,26 @@ class InsightApp extends Vue {
 
   // selection d'un element dans la vue de données au click
   selectDataView(item) {
-    console.log(item, 'etape 1');
     this.updateSelected(item);
-    this.$store.dispatch(ActionTypes.SELECT_ITEMS, item.children || item);
-    this.$emit('clickOnDataView', item);
+    this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
+    
+    // select the sprites (highlight) , opens the charts only if item is singular
+    if(item.children) {
+      const multipleSelection = item.children.map((el) => el.dynamicId);
+      this.$store.dispatch(ActionTypes.SELECT_SPRITES, multipleSelection); 
+    }else {
+      this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
+    }
+
+    this.$store.dispatch(ActionTypes.SELECT_ITEMS, item.children || item); // select the item(s) in the viewer
+    
+    
+    
+    //this.$emit('clickOnDataView', item);
+    // if(item.children) {
+    //   const multipleSelection = item.children.map((el) => el.dynamicId);
+    //   this.$store.dispatch(ActionTypes.SELECT_SPRITES, multipleSelection);
+    // }
   }
 
   /**
@@ -956,6 +986,7 @@ class InsightApp extends Vue {
     this.timeoutId = setTimeout(async () => {
       await this.updateDataOnTimeChanged();
       this.updateChartSprite();
+      this.updateChartData();
     }, 500);
   }
 
@@ -968,11 +999,6 @@ class InsightApp extends Vue {
   @Watch('selectedChartItems', { deep: true })
   async watchSelectedChartItems(select) {
     this.updateChartData();
-    if (select.length > 0) {
-      this.vueChart = true;
-    } else {
-      this.vueChart = false;
-    }
   }
 
   /**
@@ -1119,7 +1145,6 @@ export default InsightApp;
     height: 100%;
     display: flex; /* Enables flexible layout */
     padding: 10px;
-    // align-items: stretch; /* Ensures children grow to full height */
   }
   .graphDataContainer .line-card {
     border-top-right-radius: 0px !important; /* Removes the rounding on the top-right */
