@@ -61,11 +61,10 @@ with this file. If not, see
 
     <div class="dataBody">
       <viewerApp
-        v-show="!vueChart"
         class="viewerContainer"
         :class="{ active3D: isActive3D }"
       ></viewerApp>
-      <sc-line-card
+      <!-- <sc-line-card
         v-if="vueChart"
         class="viewerContainer"
         :class="{ active3D: isActive3D }"
@@ -80,7 +79,7 @@ with this file. If not, see
           footer: (data) => {
           }
         }"
-      ></sc-line-card>
+      ></sc-line-card> -->
       <InsightApp
         class="appContainer"
         :DActive="isActive3D"
@@ -130,7 +129,7 @@ import type {
   TGeoItem,
 } from "./components/SpaceSelector/interfaces/IBuildingItem";
 import { DataTable } from "./components/data-table";
-import viewerApp from "./components/viewer_old/viewer.vue";
+import viewerApp from "./components/viewer/viewer.vue";
 import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
 import { IConfig, ITemporality } from "./interfaces/IConfig";
@@ -298,6 +297,7 @@ class App extends Vue {
     // Assign the result to a reactive property (if necessary)
     this.chartData = result;
   }
+
   toggleActive() {
     if (this.isActive3D) this.isActive3D = false;
     this.isActive = !this.isActive;
@@ -564,13 +564,13 @@ class App extends Vue {
   }
 
   @Watch("selectedChartItems",  {deep: true })
-  async watchSelectedChartItems(select) {
+  async watchSelectedChartItems(newVal,oldVal) {
     this.updateChartData();
-    if (select.length > 0) {
-      this.vueChart = true;
+    if(newVal.length >= oldVal.length){
+      this.isActive = true;
     }
-    else {
-      this.vueChart = false;
+    if(newVal.length == 0){
+      this.isActive = false;
     }
   }
 

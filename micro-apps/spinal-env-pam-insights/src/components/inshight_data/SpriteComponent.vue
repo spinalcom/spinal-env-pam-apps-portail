@@ -195,7 +195,7 @@ export default {
       const vals = getValues(this.data.series);
       return this.labels.map((label) => ({
         x: label,
-        y: vals[label] || undefined,
+        y: vals[label] ?? undefined,
       }));
     },
   },

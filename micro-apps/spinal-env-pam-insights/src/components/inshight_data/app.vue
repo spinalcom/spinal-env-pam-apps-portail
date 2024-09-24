@@ -27,7 +27,7 @@ with this file. If not, see
     <v-card elevation="4" class="cardContainer">
       <!-- configuration de la légende (affichage et couleur des sprites)-->
       <v-card
-        v-if="!vueChart && !ActiveData"
+        v-if="!ActiveData"
         class="d-flex flex-column justify-space-around align-center"
         style="
           position: absolute;
@@ -38,8 +38,13 @@ with this file. If not, see
         "
       >
         <!-- <v-switch dense v-model="sprites"></v-switch> -->
-        <div class="switch" >
-          <input id="toggle" type="checkbox" :checked="sprites" @change="updateSpritesModel($event)" />
+        <div class="switch">
+          <input
+            id="toggle"
+            type="checkbox"
+            :checked="sprites"
+            @change="updateSpritesModel($event)"
+          />
           <label class="toggle" for="toggle">
             <i></i>
           </label>
@@ -138,184 +143,204 @@ with this file. If not, see
         <v-icon v-else>mdi-chevron-right</v-icon>
       </button>
 
-      <!-- affichage des données -->
-      <div
-        class="dataContainer"
-        @onSpriteClick="updateSelected"
-        v-show="ActiveData || !DActive"
-      >
+      <div class="graphDataContainer">
+        <div v-if="ActiveData" class="graphContainer">
+          <sc-line-card
+            :title="title"
+            :labels="labelDisplay"
+            :datasets="chartData"
+            :step="labels.length / 4"
+            :tooltipCallbacks="{
+              title: (context) => toTooltipDate(context[0].raw.x),
+              label: (tooltipItem) =>
+                `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
+                  2
+                )} ${unit}`,
+              footer: (data) => {},
+            }"
+          ></sc-line-card>
+        </div>
         
-        <div class="detail_header">
-          <div class="title_date">
-            <div class="_title">{{ config.title }}</div>
-            <!-- navigation temporelle-->
-            <div v-if="navigable">
-              <v-btn elevation="0" fab small @click="t_index--">
-                <v-icon>mdi-chevron-left</v-icon>
-              </v-btn>
-              {{ displayDate }}
-              <v-btn
-                elevation="0"
-                fab
-                small
-                :disabled="!t_index"
-                @click="t_index++"
-              >
-                <v-icon>mdi-chevron-right</v-icon>
-              </v-btn>
+        <div
+          class="dataContainer"
+          :style="{ width: ActiveData ? '40%' : '100%' }"
+          @onSpriteClick="updateSelected"
+          v-show="ActiveData || !DActive"
+        >
+          <div class="detail_header">
+            <div class="title_date">
+              <div class="_title">{{ config.title }}</div>
+              <!-- navigation temporelle-->
+              <div v-if="navigable">
+                <v-btn elevation="0" fab small @click="t_index--">
+                  <v-icon>mdi-chevron-left</v-icon>
+                </v-btn>
+                {{ displayDate }}
+                <v-btn
+                  elevation="0"
+                  fab
+                  small
+                  :disabled="!t_index"
+                  @click="t_index++"
+                >
+                  <v-icon>mdi-chevron-right</v-icon>
+                </v-btn>
+              </div>
+              <!-- rafraichissement des données -->
+              <div v-else>
+                <v-progress-circular
+                  :rotate="-90"
+                  :size="40"
+                  :width="2"
+                  color="purple"
+                  :value="reload_countdown"
+                  @click="reload()"
+                >
+                  <v-icon>mdi-reload</v-icon>
+                </v-progress-circular>
+              </div>
             </div>
-            <!-- rafraichissement des données -->
-            <div v-else>
-              <v-progress-circular
-                :rotate="-90"
-                :size="40"
-                :width="2"
-                color="purple"
-                :value="reload_countdown"
-                @click="reload()"
-              >
-                <v-icon>mdi-reload</v-icon>
-              </v-progress-circular>
-            </div>
-          </div>
 
-          <!-- selection de la source et du regroupement -->
-          <v-row class="source_regroupement_select">
-            <v-col>
-              <v-autocomplete
-                v-model="sourceSelectedName"
-                item-text="name"
-                outlined
-                dense
-                rounded
-                flat
-                :hide-details="true"
-                :items="sources"
-                label="Source"
-              ></v-autocomplete>
-            </v-col>
-
-            <v-col>
-              <v-autocomplete
-                v-model="regroupementSelected"
-                item-text="name"
-                item-value="value"
-                outlined
-                dense
-                rounded
-                flat
-                :hide-details="true"
-                :items="regroupements"
-                label="Regroupement"
-              ></v-autocomplete>
-            </v-col>
-          </v-row>
-
-          <!-- selection du type de calcul -->
-          <div class="calcul_content">
-            <div class="calcul">
-              <div class="select">
-                <v-select
-                  v-model="calculMode"
-                  :items="calculItems"
-                  height="30"
-                  background-color="#eaeef0"
+            <!-- selection de la source et du regroupement -->
+            <v-row class="source_regroupement_select">
+              <v-col>
+                <v-autocomplete
+                  v-model="sourceSelectedName"
+                  item-text="name"
+                  outlined
                   dense
-                  append-icon=""
-                  solo
+                  rounded
                   flat
                   :hide-details="true"
-                >
-                  <template v-slot:item="{ item, index }">
-                    <div style="display: flex; align-items: center">
-                      <div
-                        class="color"
-                        :style="{
-                          background: '#14202c',
-                          width: '8px',
-                          height: '15px',
-                          marginRight: '5px',
-                        }"
-                      ></div>
-                      <div style="font-size: 13px">{{ item }}</div>
-                    </div>
-                  </template>
+                  :items="sources"
+                  label="Source"
+                ></v-autocomplete>
+              </v-col>
 
-                  <template v-slot:selection="{ item, index }">
-                    <div style="display: flex; align-items: center">
-                      <div
-                        class="color"
-                        :style="{
-                          height: '15px',
-                          background: '#14202c',
-                          borderRadius: '3px',
-                        }"
-                      ></div>
-                      <div style="font-size: 13px">{{ item }}</div>
-                    </div>
-                  </template>
-                </v-select>
-              </div>
+              <v-col>
+                <v-autocomplete
+                  v-model="regroupementSelected"
+                  item-text="name"
+                  item-value="value"
+                  outlined
+                  dense
+                  rounded
+                  flat
+                  :hide-details="true"
+                  :items="regroupements"
+                  label="Regroupement"
+                ></v-autocomplete>
+              </v-col>
+            </v-row>
 
-              <div class="calculResult">
-                <div class="color" :style="{ background: toltalColor }"></div>
-                <div class="value">{{ total | round }}</div>
-                <div class="value">{{ unit }}</div>
-                <div class="text">Pour l'étage {{ selectedZone.name }}</div>
+            <!-- selection du type de calcul -->
+            <div class="calcul_content">
+              <div class="calcul">
+                <div class="select">
+                  <v-select
+                    v-model="calculMode"
+                    :items="calculItems"
+                    height="30"
+                    background-color="#eaeef0"
+                    dense
+                    append-icon=""
+                    solo
+                    flat
+                    :hide-details="true"
+                  >
+                    <template v-slot:item="{ item, index }">
+                      <div style="display: flex; align-items: center">
+                        <div
+                          class="color"
+                          :style="{
+                            background: '#14202c',
+                            width: '8px',
+                            height: '15px',
+                            marginRight: '5px',
+                          }"
+                        ></div>
+                        <div style="font-size: 13px">{{ item }}</div>
+                      </div>
+                    </template>
+
+                    <template v-slot:selection="{ item, index }">
+                      <div style="display: flex; align-items: center">
+                        <div
+                          class="color"
+                          :style="{
+                            height: '15px',
+                            background: '#14202c',
+                            borderRadius: '3px',
+                          }"
+                        ></div>
+                        <div style="font-size: 13px">{{ item }}</div>
+                      </div>
+                    </template>
+                  </v-select>
+                </div>
+
+                <div class="calculResult">
+                  <div class="color" :style="{ background: toltalColor }"></div>
+                  <div class="value">{{ total | round }}</div>
+                  <div class="value">{{ unit }}</div>
+                  <div class="text">Pour l'étage {{ selectedZone.name }}</div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- affichage des données -->
-        <div
-          v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected"
-          class="detail_container"
-        >
-          <GroupDataView
-            v-for="(d, i) in data"
-            :key="i"
-            :data="d"
-            :config="config"
-            :calculMode="calculMode"
-            :unit="unit"
-            :legend="legend"
-            :percent="percent"
-            @onClick="selectDataView"
-          />
-        </div>
-
-        <!-- page chargée avec succès (zone non selectionnée) -->
-        <div
-          class="centered"
-          v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected"
-        >
-          <p>
-            Aucune donnée à afficher ! veuillez selectionner un étage ou une
-            pièce.
-          </p>
-        </div>
-
-        <!-- animation de rafraichissement -->
-        <div class="centered" v-else-if="pageSate === PAGE_STATES.loading">
-          <v-progress-circular
-            :size="70"
-            :width="3"
-            color="purple"
-            indeterminate
-          ></v-progress-circular>
-        </div>
-
-        <!-- bouton de relance en cas d'erreur -->
-        <div class="centered" v-else-if="pageSate === PAGE_STATES.error">
-          <div>
-            <v-icon color="red" style="font-size: 5em"
-              >mdi-alert-circle-outline</v-icon
-            >
+          <!-- affichage des données -->
+          <div
+            v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected"
+            class="detail_container"
+          >
+            <GroupDataView
+              v-for="(d, i) in data"
+              :key="i"
+              :data="d"
+              :config="config"
+              :calculMode="calculMode"
+              :unit="unit"
+              :legend="legend"
+              :percent="percent"
+              @onClick="selectDataView"
+            />
           </div>
-          <div color="red">
-            Quelque chose s'est mal passé ! Veuillez
-            <v-btn small outlined color="red" @click="retry">réessayer </v-btn>
+
+          <!-- page chargée avec succès (zone non selectionnée) -->
+          <div
+            class="centered"
+            v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected"
+          >
+            <p>
+              Aucune donnée à afficher ! veuillez selectionner un étage ou une
+              pièce.
+            </p>
+          </div>
+
+          <!-- animation de rafraichissement -->
+          <div class="centered" v-else-if="pageSate === PAGE_STATES.loading">
+            <v-progress-circular
+              :size="70"
+              :width="3"
+              color="purple"
+              indeterminate
+            ></v-progress-circular>
+          </div>
+
+          <!-- bouton de relance en cas d'erreur -->
+          <div class="centered" v-else-if="pageSate === PAGE_STATES.error">
+            <div>
+              <v-icon color="red" style="font-size: 5em"
+                >mdi-alert-circle-outline</v-icon
+              >
+            </div>
+            <div color="red">
+              Quelque chose s'est mal passé ! Veuillez
+              <v-btn small outlined color="red" @click="retry"
+                >réessayer
+              </v-btn>
+            </div>
           </div>
         </div>
       </div>
@@ -330,50 +355,51 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import { Prop, Vue, Watch } from "vue-property-decorator";
-import { PAGE_STATES } from "../../interfaces/pageStates";
-import GroupDataView from "./groupDataView.vue";
-import ConfigLegend from "./configLegend.vue";
-import Component from "vue-class-component";
+import { Prop, Vue, Watch } from 'vue-property-decorator';
+import { PAGE_STATES } from '../../interfaces/pageStates';
+import GroupDataView from './groupDataView.vue';
+import ConfigLegend from './configLegend.vue';
+import Component from 'vue-class-component';
 import {
   IConfig,
   calculTypes,
   ISource,
   IRegroupement,
   ITemporality,
-} from "../../interfaces/IConfig";
-import { ISpaceSelectorItem } from "global-components";
-import { ActionTypes } from "../../interfaces/vuexStoreTypes";
+} from '../../interfaces/IConfig';
+import { ISpaceSelectorItem } from 'global-components';
+import { ActionTypes } from '../../interfaces/vuexStoreTypes';
 import {
   calculItemsValue,
   getColor,
   calculateTotal,
-} from "../../services/calcul/calculItems";
-import SpriteComponent from "./SpriteComponent.vue";
-import ChartSpriteComponent from "./ChartSpriteComponent.vue";
-import lodash from "lodash";
-import { MutationTypes } from "../../services/store/appDataStore/mutations";
+} from '../../services/calcul/calculItems';
+import SpriteComponent from './SpriteComponent.vue';
+import ChartSpriteComponent from './ChartSpriteComponent.vue';
+import lodash from 'lodash';
+import { MutationTypes } from '../../services/store/appDataStore/mutations';
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
-} from "spinal-viewer-event-manager";
-import moment from "moment";
-import "moment/locale/fr";
+} from 'spinal-viewer-event-manager';
+import moment from 'moment';
+import { getLabels, getValues } from '../../services/calcul/computeChart';
+import 'moment/locale/fr';
 
-moment.updateLocale("fr", {
+moment.updateLocale('fr', {
   months: [
-    "Janvier",
-    "Février",
-    "Mars",
-    "Avril",
-    "Mai",
-    "Juin",
-    "Juillet",
-    "Août",
-    "Septembre",
-    "Octobre",
-    "Novembre",
-    "Décembre",
+    'Janvier',
+    'Février',
+    'Mars',
+    'Avril',
+    'Mai',
+    'Juin',
+    'Juillet',
+    'Août',
+    'Septembre',
+    'Octobre',
+    'Novembre',
+    'Décembre',
   ],
 });
 
@@ -390,7 +416,7 @@ moment.updateLocale("fr", {
         return Number(rounded);
       } catch (error) {
         console.error(error);
-        return "-";
+        return '-';
       }
     },
   },
@@ -410,8 +436,8 @@ class InsightApp extends Vue {
   sprites: boolean = true;
   reload_countdown: number = 0;
   t_index: number = 0;
-  sourceSelectedName: string = "";
-  regroupementSelected: "floors" | "rooms" | IRegroupement =
+  sourceSelectedName: string = '';
+  regroupementSelected: 'floors' | 'rooms' | IRegroupement =
     this.config.regroupement[0];
   legend: any = this.config.source[0].legend;
   dialog: boolean = false;
@@ -437,6 +463,7 @@ class InsightApp extends Vue {
   total: number = 0;
   retry: Function;
   timeoutId: any;
+  chartData: any[] = [];
 
   public get sourceSelected() {
     return this.config.source.find((el) => el.name === this.sourceSelectedName);
@@ -449,11 +476,89 @@ class InsightApp extends Vue {
     );
   }
 
+  public get selectedChartItems() {
+    return this.$store.state.appDataStore.selectedChartItems;
+  }
+
+  public get title() {
+    return `${this.$store.state.appDataStore.selectedSource.profileName}/${this.$store.state.appDataStore.selectedSource.name}`
+  }
+
+  public get labels() {
+    //const firstItem = this.selectedChartItems[0];
+    return getLabels(
+      this.$store.state.appDataStore.temporalitySelected,
+      this.t_index
+    );
+  }
+
+  public get labelDisplay() {
+    return this.labels.map((label) => this.toDate(label));
+  }
+
+  toDate(date) {
+    switch (this.$store.state.appDataStore.temporalitySelected.name) {
+      case ITemporality.hour:
+        return moment(date).format('HH:mm');
+      case ITemporality.day:
+        return moment(date).format('HH[h]');
+      case ITemporality.week:
+        return moment(date).format('dd');
+      case ITemporality.month:
+        return moment(date).format('D/M/YY');
+      case ITemporality.year:
+        return moment(date).format('MMM');
+      case ITemporality.custom:
+        const { begin, end } =
+          this.$store.state.appDataStore.temporalitySelected.range;
+        const duration = moment.duration(
+          moment(end, 'DD-MM-YYYY HH:mm:ss').diff(
+            moment(begin, 'DD-MM-YYYY HH:mm:ss')
+          )
+        );
+        console.log(moment(end, 'DD-MM-YYYY HH:mm:ss'), duration);
+        if (duration.asMonths() > 2) return moment(date).format('MMM');
+        if (duration.asDays() > 1) return moment(date).format('D/M/YY');
+        if (duration.asHours() > 1) return moment(date).format('HH[h]');
+        return moment(date).format('HH:mm');
+      default:
+        return moment(date).format('D/M/YY');
+    }
+  }
+
+  toTooltipDate(date) {
+    return moment(date).format('DD/MM/YYYY HH:mm');
+  }
+
+  updateChartData() {
+    const result: any[] = [];
+    const t_index = this.t_index;
+    const items = this.selectedChartItems;
+    for (const item of items) {
+      console.log('item', item);
+      const vals = getValues(item.series);
+      const labels = getLabels(
+        this.$store.state.appDataStore.temporalitySelected,
+        t_index
+      );
+      const data = labels.map((lab) => ({
+        x: lab,
+        y: vals[lab] ?? 'NaN',
+      }));
+      console.log('data', data);
+      const color = item.color;
+      result.push({ label: item.name, data, color, tension: 0.1 });
+    }
+    // Assign the result to a reactive property (if necessary)
+    this.chartData = result;
+  }
 
   async mounted() {
-    this.sourceSelectedName =this.config.source[0].name;
-    const source = this.config.source.find((el) => el.name === this.sourceSelectedName);
-    if(source){
+    this.sourceSelectedName = this.config.source[0].name;
+    const source = this.config.source.find(
+      (el) => el.name === this.sourceSelectedName
+    );
+    if (source) {
       this.$store.commit(MutationTypes.SET_SOURCE, source);
     }
     await this.retriveData();
@@ -472,36 +577,36 @@ class InsightApp extends Vue {
     switch (this.selectedTime.name) {
       case ITemporality.custom:
         return `${moment(this.selectedTime.range.begin).format(
-          "DD/MM/YYYY HH:mm"
-        )} - ${moment(this.selectedTime.range.end).format("DD/MM/YYYY HH:mm")}`;
+          'DD/MM/YYYY HH:mm'
+        )} - ${moment(this.selectedTime.range.end).format('DD/MM/YYYY HH:mm')}`;
       case ITemporality.hour:
-        if (!this.t_index) return "Dernière heure";
-        currentDay.add(this.t_index, "hours");
-        end = moment(currentDay).add(1, "hours");
+        if (!this.t_index) return 'Dernière heure';
+        currentDay.add(this.t_index, 'hours');
+        end = moment(currentDay).add(1, 'hours');
         return (
-          currentDay.format("DD/MM/YY HH[h]") + " - " + end.format("HH[h]")
+          currentDay.format('DD/MM/YY HH[h]') + ' - ' + end.format('HH[h]')
         );
       case ITemporality.day:
         if (!this.t_index) return "Aujourd'hui";
-        currentDay.add(this.t_index, "days");
-        return currentDay.format("DD/MM/YYYY");
+        currentDay.add(this.t_index, 'days');
+        return currentDay.format('DD/MM/YYYY');
       case ITemporality.week:
-        if (!this.t_index) return "Cette semaine";
-        currentDay.add(this.t_index, "week");
-        end = moment(currentDay).endOf("week");
-        return `${moment(end).add(-6, "days").format("DD MMMM")} - ${end.format(
-          "DD MMMM"
+        if (!this.t_index) return 'Cette semaine';
+        currentDay.add(this.t_index, 'week');
+        end = moment(currentDay).endOf('week');
+        return `${moment(end).add(-6, 'days').format('DD MMMM')} - ${end.format(
+          'DD MMMM'
         )}`;
       case ITemporality.month:
-        if (!this.t_index) return "Ce mois";
-        currentDay.add(this.t_index, "months");
-        return currentDay.format("MMMM YYYY");
+        if (!this.t_index) return 'Ce mois';
+        currentDay.add(this.t_index, 'months');
+        return currentDay.format('MMMM YYYY');
       case ITemporality.year:
-        if (!this.t_index) return "Cette année";
-        currentDay.add(this.t_index, "years");
-        return currentDay.format("YYYY");
+        if (!this.t_index) return 'Cette année';
+        currentDay.add(this.t_index, 'years');
+        return currentDay.format('YYYY');
       default:
-        return "";
+        return '';
     }
   }
 
@@ -511,7 +616,7 @@ class InsightApp extends Vue {
   // }
   resize() {
     setTimeout(() => {
-      window.dispatchEvent(new Event("resize"));
+      window.dispatchEvent(new Event('resize'));
     }, 1);
   }
 
@@ -530,7 +635,7 @@ class InsightApp extends Vue {
   async retriveData() {
     try {
       this.pageSate = PAGE_STATES.loading;
-      const buildingId = localStorage.getItem("idBuilding");
+      const buildingId = localStorage.getItem('idBuilding');
       const promises = [
         this.$store.dispatch(ActionTypes.GET_GROUPS_ITEMS, {
           config: this.config,
@@ -538,7 +643,7 @@ class InsightApp extends Vue {
           forceUpdate: true,
         }),
       ];
-      if (!["rooms", "equipments"].includes(this.regroupementSelected as any)) {
+      if (!['rooms', 'equipments'].includes(this.regroupementSelected as any)) {
         promises.push(
           this.$store.dispatch(ActionTypes.GET_CATEGORIES_TREE, {
             buildingId,
@@ -600,45 +705,45 @@ class InsightApp extends Vue {
 
   // MAJ des données en fonction de la temporalité de la navigation temporelle
   async updateDataOnTimeChanged() {
-    this.selectedItem = null ;
+    this.selectedItem = null;
     const end = moment().minutes(59).seconds(59);
     switch (this.selectedTime.name) {
       case ITemporality.currentValue:
         this.time = null;
         break;
       case ITemporality.hour:
-        end.add(this.t_index, "hours");
+        end.add(this.t_index, 'hours');
         this.time = {
-          begin: moment(end).startOf("hour").format("DD-MM-YYYY HH:mm:ss"),
-          end: end.format("DD-MM-YYYY HH:mm:ss"),
+          begin: moment(end).startOf('hour').format('DD-MM-YYYY HH:mm:ss'),
+          end: end.format('DD-MM-YYYY HH:mm:ss'),
         };
         break;
       case ITemporality.day:
-        end.endOf("day").add(this.t_index, "days");
+        end.endOf('day').add(this.t_index, 'days');
         this.time = {
-          begin: moment(end).startOf("day").format("DD-MM-YYYY HH:mm:ss"),
-          end: end.format("DD-MM-YYYY HH:mm:ss"),
+          begin: moment(end).startOf('day').format('DD-MM-YYYY HH:mm:ss'),
+          end: end.format('DD-MM-YYYY HH:mm:ss'),
         };
         break;
       case ITemporality.week:
-        end.endOf("week").add(this.t_index, "weeks");
+        end.endOf('week').add(this.t_index, 'weeks');
         this.time = {
-          begin: moment(end).startOf("week").format("DD-MM-YYYY HH:mm:ss"),
-          end: end.format("DD-MM-YYYY HH:mm:ss"),
+          begin: moment(end).startOf('week').format('DD-MM-YYYY HH:mm:ss'),
+          end: end.format('DD-MM-YYYY HH:mm:ss'),
         };
         break;
       case ITemporality.month:
-        end.endOf("month").add(this.t_index, "months");
+        end.endOf('month').add(this.t_index, 'months');
         this.time = {
-          begin: moment(end).startOf("month").format("DD-MM-YYYY HH:mm:ss"),
-          end: end.format("DD-MM-YYYY HH:mm:ss"),
+          begin: moment(end).startOf('month').format('DD-MM-YYYY HH:mm:ss'),
+          end: end.format('DD-MM-YYYY HH:mm:ss'),
         };
         break;
       case ITemporality.year:
-        end.endOf("year").add(this.t_index, "years");
+        end.endOf('year').add(this.t_index, 'years');
         this.time = {
-          begin: moment(end).startOf("year").format("DD-MM-YYYY HH:mm:ss"),
-          end: end.format("DD-MM-YYYY HH:mm:ss"),
+          begin: moment(end).startOf('year').format('DD-MM-YYYY HH:mm:ss'),
+          end: end.format('DD-MM-YYYY HH:mm:ss'),
         };
         break;
       case ITemporality.custom:
@@ -653,7 +758,7 @@ class InsightApp extends Vue {
   }
 
   async updateSprites() {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = localStorage.getItem('idBuilding');
 
     // Récuperation des zones à afficher dans le viewer + données utiles
     const itemsToColor = this.data.flatMap((el) => el.children || []);
@@ -671,12 +776,12 @@ class InsightApp extends Vue {
         component: SpriteComponent,
       });
 
-       // si on affiche les sprites, on enlève la heatmap
+      // si on affiche les sprites, on enlève la heatmap
       this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
         items: itemsToColor.map((el) => ({ ...el, color: null })),
         buildingId,
       });
-      if (!this.selectedItem) return; 
+      if (!this.selectedItem) return;
       // envoi de l'evenement de click sur le sprite selectionné
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.selectedItem });
@@ -688,7 +793,6 @@ class InsightApp extends Vue {
       setTimeout(() => {
         this.$store.dispatch(ActionTypes.SELECT_SPRITES, selectedIds);
       }, 500);
-
     } else {
       // coloration des espaces si on n'affiche pas les sprites
       this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
@@ -712,24 +816,24 @@ class InsightApp extends Vue {
       return;
     this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
       items: [{ ...this.selectedItem, navIndex: this.t_index }],
-      buildingId: localStorage.getItem("idBuilding"),
+      buildingId: localStorage.getItem('idBuilding'),
       component: ChartSpriteComponent,
     });
   }
 
   // selection d'un element dans la vue de données au click
   selectDataView(item) {
-    console.log(item, "etape 1");
+    console.log(item, 'etape 1');
     this.updateSelected(item);
     this.$store.dispatch(ActionTypes.SELECT_ITEMS, item.children || item);
-    this.$emit("clickOnDataView", item);
+    this.$emit('clickOnDataView', item);
   }
 
   /**
    * Watchers
    */
 
-  @Watch("pageSate")
+  @Watch('pageSate')
   watchPageState(state) {
     if (state === PAGE_STATES.error) {
       clearInterval(this.intervalId);
@@ -738,15 +842,15 @@ class InsightApp extends Vue {
   }
 
   // watch sprites
-  @Watch("sprites")
+  @Watch('sprites')
   watchSprites() {
     this.updateSprites();
     this.updateChartSprite();
   }
 
-  @Watch("selectedZone")
+  @Watch('selectedZone')
   watchSelectedZone() {
-    if (this.selectedZone.type === "building") {
+    if (this.selectedZone.type === 'building') {
       this.isBuildingSelected = true;
       this.$store.commit(MutationTypes.SET_DATA, []);
       this.reload = function () {};
@@ -768,19 +872,17 @@ class InsightApp extends Vue {
   }
 
   // watch selectedItem
-  @Watch("selectedItem")
+  @Watch('selectedItem')
   watchSelectedItem() {
     this.updateChartSprite();
   }
 
-
-
-  @Watch("reload_countdown")
+  @Watch('reload_countdown')
   watchReloadCountdown() {
     if (this.reload_countdown > 100) this.reload();
   }
 
-  @Watch("calculMode")
+  @Watch('calculMode')
   async watchCaculMode(mode) {
     this.percent = mode === calculTypes.MoyennePercent;
     if (this.isBuildingSelected) return;
@@ -798,7 +900,7 @@ class InsightApp extends Vue {
     await this.updateSprites();
   }
 
-  @Watch("data")
+  @Watch('data')
   watchData() {
     if (this.isBuildingSelected) return;
 
@@ -811,7 +913,7 @@ class InsightApp extends Vue {
     }
   }
 
-  @Watch("sourceSelectedName")
+  @Watch('sourceSelectedName')
   async watchSource(newVal) {
     if (!newVal) return;
     this.legend = this.config.source.find((el) => el.name === newVal).legend;
@@ -821,17 +923,16 @@ class InsightApp extends Vue {
     await this.regroupItemsAndCalculate(true);
     await this.updateSprites();
     this.updateChartSprite();
-
   }
 
-  @Watch("regroupementSelected")
+  @Watch('regroupementSelected')
   watchRegroupement() {
     if (this.isBuildingSelected) return;
     this.regroupItemsAndCalculateDebounced();
     this.updateChartSprite();
   }
 
-  @Watch("selectedTime")
+  @Watch('selectedTime')
   async watchSelectedTime(newVal) {
     if (this.isBuildingSelected) return;
     if (!this.t_index) await this.updateDataOnTimeChanged();
@@ -847,7 +948,7 @@ class InsightApp extends Vue {
     this.updateChartSprite();
   }
 
-  @Watch("t_index")
+  @Watch('t_index')
   async watchTIndex() {
     this.$store.commit(MutationTypes.SET_T_INDEX, this.t_index);
     if (this.isBuildingSelected) return;
@@ -858,10 +959,20 @@ class InsightApp extends Vue {
     }, 500);
   }
 
-  @Watch("legend")
+  @Watch('legend')
   async watchLegend() {
     if (this.isBuildingSelected) return;
     await this.updateSprites();
+  }
+
+  @Watch('selectedChartItems', { deep: true })
+  async watchSelectedChartItems(select) {
+    this.updateChartData();
+    if (select.length > 0) {
+      this.vueChart = true;
+    } else {
+      this.vueChart = false;
+    }
   }
 
   /**
@@ -875,7 +986,7 @@ class InsightApp extends Vue {
   }
 
   public get unit() {
-    return this.sourceSelected?.unit || "";
+    return this.sourceSelected?.unit || '';
   }
 
   public get toltalColor() {
@@ -892,7 +1003,7 @@ class InsightApp extends Vue {
 
   public get regroupements(): {
     name: string;
-    value: "floors" | "rooms" | IRegroupement;
+    value: 'floors' | 'rooms' | IRegroupement;
   }[] {
     if (this.config && this.config.regroupement) {
       const arr = Array.isArray(this.config.regroupement)
@@ -914,18 +1025,18 @@ export { InsightApp };
 export default InsightApp;
 </script>
 <style lang="css">
-/* From Uiverse.io by elijahgummer */ 
+/* From Uiverse.io by elijahgummer */
 .switch {
   position: relative;
   width: 90%;
   height: 30px;
   box-sizing: border-box;
   padding: 3px;
-  background: #EAEEF0;
+  background: #eaeef0;
   border-radius: 6px;
   margin-bottom: 3px;
 }
-.switch input[type="checkbox"] {
+.switch input[type='checkbox'] {
   position: absolute;
   z-index: 1;
   width: 100%;
@@ -933,7 +1044,7 @@ export default InsightApp;
   opacity: 0;
   cursor: pointer;
 }
-.switch input[type="checkbox"] + label {
+.switch input[type='checkbox'] + label {
   position: relative;
   display: block;
   left: 0;
@@ -944,14 +1055,14 @@ export default InsightApp;
   box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
   transition: all 0.5s ease-in-out;
 }
-.switch input[type="checkbox"] + label:after {
-  content: "";
+.switch input[type='checkbox'] + label:after {
+  content: '';
   display: inline-block;
   width: 0;
   height: 100%;
   vertical-align: middle;
 }
-.switch input[type="checkbox"] + label i {
+.switch input[type='checkbox'] + label i {
   display: block;
   position: absolute;
   top: 50%;
@@ -963,9 +1074,9 @@ export default InsightApp;
   background: #ffffff;
   box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
 }
-.switch input[type="checkbox"] + label i:before,
-.switch input[type="checkbox"] + label i:after {
-  content: "";
+.switch input[type='checkbox'] + label i:before,
+.switch input[type='checkbox'] + label i:after {
+  content: '';
   display: block;
   position: absolute;
   width: 100%;
@@ -974,17 +1085,18 @@ export default InsightApp;
   background: #ffffff;
   box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
 }
-.switch input[type="checkbox"] + label i:before {
+.switch input[type='checkbox'] + label i:before {
   left: -7px;
 }
-.switch input[type="checkbox"] + label i:after {
+.switch input[type='checkbox'] + label i:after {
   left: 7px;
 }
-.switch input[type="checkbox"]:checked + label {
+.switch input[type='checkbox']:checked + label {
   left: 50%;
 }
 </style>
 <style lang="scss">
+
 .cardContainer {
   width: 100%;
   height: 100%;
@@ -994,8 +1106,27 @@ export default InsightApp;
   $calculContentHeight: 50px;
   $selectionHeight: 60px;
 
-  .dataContainer {
+  .graphDataContainer {
+    display: flex; /* Enables flexbox layout */
+    justify-content: space-between; /* Creates space between the two components */
     width: 100%;
+    height: 100%;
+    
+  }
+  .graphContainer {
+    border-radius: 0px;
+    width: 60%;
+    height: 100%;
+    display: flex; /* Enables flexible layout */
+    padding: 10px;
+    // align-items: stretch; /* Ensures children grow to full height */
+  }
+  .graphDataContainer .line-card {
+    border-top-right-radius: 0px !important; /* Removes the rounding on the top-right */
+  }
+
+  .dataContainer {
+    width: 40%;
     height: 100%;
     border-radius: 10px;
     padding: 10px;
@@ -1112,4 +1243,8 @@ export default InsightApp;
     text-align: center;
   }
 }
+</style>
+
+<style scoped lang="scss">
+
 </style>
