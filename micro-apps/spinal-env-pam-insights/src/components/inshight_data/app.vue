@@ -536,26 +536,52 @@ class InsightApp extends Vue {
     return moment(date).format('DD/MM/YYYY HH:mm');
   }
 
+  findClosestPastTimestamp(label, timestamps) {
+    // Filter the timestamps to only include those less than or equal to the label
+    const pastTimestamps = timestamps.filter((timestamp) => timestamp <= label);
+      
+      // If there are no past timestamps, return null
+      if (pastTimestamps.length === 0) return null;
+      
+      // Return the largest timestamp (the closest in the past)
+      return pastTimestamps.reduce((prev, curr) => (curr > prev ? curr : prev));
+  }
+
   updateChartData() {
     const result: any[] = [];
     const t_index = this.t_index;
     const items = this.selectedChartItems;
     for (const item of items) {
       const vals = getValues(item.series);
+      console.log('vals : ', vals);
       const labels = getLabels(
         this.$store.state.appDataStore.temporalitySelected,
         t_index
       );
-      const data = labels.map((lab) => ({
-        x: lab,
-        y: vals[lab] ?? 'NaN',
-      }));
+      console.log('labels : ', labels);
+       // Convert the vals object keys to an array of timestamps
+      const valTimestamps = Object.keys(vals).map((key) => parseInt(key));
+
+      // Build the chart data using the labels and the closest past timestamp in vals
+      const data = labels.map((lab) => {
+        // Find the closest past timestamp to the current label
+        const closestTimestamp = this.findClosestPastTimestamp(lab, valTimestamps);
+
+        // If a valid closest past timestamp was found, use its value; otherwise, use NaN
+        const yValue = closestTimestamp !== null ? vals[closestTimestamp] : 'NaN';
+        
+        return { x: lab, y: yValue };
+      }); 
+
+      console.log('data : ', data);
       const color = item.color;
       result.push({ label: item.name, data, color, tension: 0.1 });
     }
     // Assign the result to a reactive property (if necessary)
     this.chartData = result;
   }
+
+
 
   async mounted() {
     const emitterHandler = EmitterViewerHandler.getInstance();

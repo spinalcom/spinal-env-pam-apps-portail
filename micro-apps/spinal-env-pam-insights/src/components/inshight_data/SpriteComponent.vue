@@ -194,15 +194,40 @@ export default {
       );
     },
     values() {
+      const result = [];
       const vals = getValues(this.data.series);
-      return this.labels.map((label) => ({
-        x: label,
-        y: vals[label] ?? undefined,
-      }));
+      const valTimestamps = Object.keys(vals).map((key) => parseInt(key));
+      // Build the chart data using the labels and the closest past timestamp in vals
+      const data = this.labels.map((lab) => {
+        // Find the closest past timestamp to the current label
+        const closestTimestamp = this.findClosestPastTimestamp(lab, valTimestamps);
+
+        // If a valid closest past timestamp was found, use its value; otherwise, use NaN
+        const yValue = closestTimestamp !== null ? vals[closestTimestamp] : 'NaN';
+        
+        return { x: lab, y: yValue };
+      }); 
+
+      //result.push(data)
+      return data;
+      // return this.labels.map((label) => ({
+      //   x: label,
+      //   y: vals[label] ?? undefined,
+      // }));
     },
   },
   mounted() {},
   methods: {
+    findClosestPastTimestamp(label, timestamps) {
+    // Filter the timestamps to only include those less than or equal to the label
+    const pastTimestamps = timestamps.filter((timestamp) => timestamp <= label);
+      
+      // If there are no past timestamps, return null
+      if (pastTimestamps.length === 0) return null;
+      
+      // Return the largest timestamp (the closest in the past)
+      return pastTimestamps.reduce((prev, curr) => (curr > prev ? curr : prev));
+  },
     onClick() {
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
