@@ -45,7 +45,7 @@ const routes: Array<RouteConfig> = [
     name: '_Home',
   },
   {
-    path: '/login/admin',
+    path: '/admin',
     name: 'AdminLogin',
     component: LoginView,
   },
@@ -84,9 +84,11 @@ const router = new VueRouter({
 
 
 router.beforeEach(async (to, from, next) => {
+  console.log('beforeEach', to.name);
   const auth = await isAuthenticate();
-  if (to.name === 'Login' && auth) return next({ name: 'Home' });
-  if (!auth && to.name !== 'Login') return next({ name: 'Login' });
+  const isConnectionPage = ['Login', 'AdminLogin'].indexOf(to.name) !== -1;
+  if (isConnectionPage && auth) return next({ name: 'Home' });
+  if (!auth && !isConnectionPage) return next({ name: 'Login' });
   return next();
 });
 
