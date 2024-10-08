@@ -39,7 +39,7 @@ with this file. If not, see
             <span>Données</span>
             <div class="icons-container">
               <div class="download-icons icon-csv">
-                <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()"
+                <ScDownloadButton :fileName="'network_data'" :csv="true" :data="getDataFormatted()"
                   style="opacity: 0;" />
               </div>
               <div class="download-icons icon-json"></div>
