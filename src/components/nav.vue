@@ -175,7 +175,7 @@ export default {
 
     logOut() {
       this.clearLocalStorage();
-
+      this.clearAllCookies();
       this.$router.push({ name: "Login" });
     },
 

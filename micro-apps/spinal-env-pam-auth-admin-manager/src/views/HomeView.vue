@@ -23,22 +23,14 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="_container"
-               fluid>
-    <RegisterForm v-if="page === pages.creation"
-                  :showError="showError"
-                  @submit="registerAuthPlateform" />
+  <v-container class="_container" fluid>
+    <RegisterForm v-if="page === pages.creation" :showError="showError" @submit="registerAuthPlateform" />
 
-    <PlateformeInfo v-else-if="page === pages.info"
-                    @delete="deletePlatform"
-                    @update="updatePlatform"
-                    :data="authPlatformInfo" />
+    <PlateformeInfo v-else-if="page === pages.info" @delete="deletePlatform" @update="updatePlatform"
+      :data="authPlatformInfo" />
 
-    <div class="loading"
-         v-else-if="page === pages.loading">
-      <v-progress-circular :size="70"
-                           color="primary"
-                           indeterminate></v-progress-circular>
+    <div class="loading" v-else-if="page === pages.loading">
+      <v-progress-circular :size="70" color="primary" indeterminate></v-progress-circular>
     </div>
   </v-container>
 </template>
