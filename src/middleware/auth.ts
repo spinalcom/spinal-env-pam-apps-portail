@@ -51,7 +51,19 @@ const getTokenInCookie = async () => {
     }
 }
 
+const compareLocalTokenAndCookies = async () => {
+    let localStorageToken = localStorage.getItem("token");
+    const cookieToken = getCookieValue("token");
+
+    if (cookieToken && cookieToken !== localStorageToken) {
+        clearLocalStorage();
+        localStorageToken = cookieToken;
+    }
+
+}
+
 export async function isAuthenticate(): Promise<boolean> {
+    await compareLocalTokenAndCookies();
     const token = await getTokenInLocalStorage() || await getTokenInCookie();
 
     if (token) return true;
