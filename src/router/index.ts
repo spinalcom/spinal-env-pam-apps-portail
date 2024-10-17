@@ -27,6 +27,7 @@ import VueRouter, { RouteConfig } from 'vue-router';
 // import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue';
 import HomeLayout from '../layout/HomeLayout.vue';
+import { create } from 'domain';
 
 export function routerInit(vue: any) {
   vue.use(VueRouter);
@@ -74,7 +75,7 @@ const routes: Array<RouteConfig> = [
 ];
 
 const router = new VueRouter({
-  mode: 'history',
+  // mode: 'history',
   routes,
 });
 
