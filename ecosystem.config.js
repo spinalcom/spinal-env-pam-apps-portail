@@ -1,6 +1,6 @@
 const port = 9070;
-const ssl_cert = "";
-const ssl_key = "";
+const ssl_cert = "/home/spinalcom/Desktop/test_sso/cert/cert.pem";
+const ssl_key = "/home/spinalcom/Desktop/test_sso/cert/key.pem";
 
 module.exports = {
   apps: [
