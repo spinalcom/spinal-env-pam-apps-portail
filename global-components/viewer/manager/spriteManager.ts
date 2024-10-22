@@ -71,9 +71,7 @@ export class SpriteManager {
 	}
 
 	public async addComponentAsSprite(viewer: Autodesk.Viewing.Viewer3D, data: ISpriteData | ISpriteData[]) {
-		data = Array.isArray(data) ? data : [data];
-		// console.warn(data);
-		
+		data = Array.isArray(data) ? data : [data];		
 
 		for (const d of data) {
 			if (!d.component) continue;

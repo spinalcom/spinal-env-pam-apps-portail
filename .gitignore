@@ -1,8 +1,9 @@
+config.json
 node_modules/
 dist/
 .idea
 .vscode
 .env
-.env.*
+*.env
 .parcel-cache
 package-lock.json

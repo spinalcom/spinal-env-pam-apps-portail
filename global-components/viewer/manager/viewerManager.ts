@@ -128,7 +128,6 @@ export class ViewerManager {
 
 
 		const items = Array.isArray(argItem) ? argItem : [argItem];
-		console.log(items);
 		const buildingId = argBuildingId || items[0].buildingId;
 		const ids = items.map((el) => el.dynamicId);
 		const res: any[] = [];
@@ -154,7 +153,6 @@ export class ViewerManager {
 			}
 		}
 
-		console.log('icici');
 		return res;
 
 		async function* generator(data): AsyncGenerator<Awaited<any>> {
@@ -180,7 +178,6 @@ export class ViewerManager {
 	
 
 	public isolate(item: IPlayload) {
-		console.log(item, 'tututututu');
 
 		this.hide(item) //TODO A BASCULER SUR UNE AUTRE ACTION ........  GABRIEL
 
@@ -241,12 +238,9 @@ export class ViewerManager {
 	}
 
 	private async _fctViewerIteract(eventName: keyof ViewerEventWithData, playload: (IPlayload | string) | (IPlayload | string)[], isolateConfig?: any,): Promise<any> {
-		console.log('TOTO', eventName, playload);
 
 		const emitter = EmitterViewerHandler.getInstance();
 		if (eventName === (VIEWER_EVENTS.UNLOAD as any)) {
-
-			console.log('HAAAAAAAAAAAA');
 			
 			playload = Array.isArray(playload) ? playload : [playload];
 			const obj = {};
@@ -261,7 +255,6 @@ export class ViewerManager {
 
 			return;
 		}
-		console.log('aa');
 
 
 		let data: IViewInfoItemRes[];
@@ -285,7 +278,6 @@ export class ViewerManager {
 				modelId: (playload as IPlayload).floorId || (playload as IPlayload).id || (playload as IPlayload).dynamicId,
 			};
 		});
-		console.log('aaaaaaaaaaaaaa', eventName, res);
 
 
 		try {
@@ -293,7 +285,6 @@ export class ViewerManager {
 		} catch (error) {
 			console.error('Erreur dans emitter.emit :', error);
 		}
-		console.log('saaaasassasasassasass');
 	}
 
 	private _addViewLoaded(nodeId: string, models: any[]) {

@@ -61,7 +61,6 @@ export class EventManager {
 			});
 
 			// emitterHandler.on(VIEWER_HIDE_ELEMENT, (data: any) => {
-			// 	console.warn('toto888888888888888888888888888888');
 
 			// 	if (data && data.length > 0) return viewerUtils.viewerIsolation(viewer, data);
 			// 	viewerUtils.hideElementsByDbIds(viewer , []);
@@ -132,17 +131,11 @@ export class EventManager {
 			});
 
 			emitterHandler.on(VIEWER_REM_SPHERE, (data: any) => {
-				console.error('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', data.itemToHIde);
 				
 				// const $store = store
 				// const storedItem = $store.state.appDataStore.itemToHide
-				// console.warn(data , storedItem);
-				console.error('RAAAAAAAAAAAAAAAAAAAYAANEEEE' , data.itemToHIde);
-
 				viewerUtils.hideElementsByDbIds(viewer, data.itemToHIde);
-				// if (data && data.length > 0) {
-				// 	console.error('RAAAAAAAAAAAAAAAAAAAYAANEEEE');
-					
+				// if (data && data.length > 0) {					
 					
 				// } 
 			});
