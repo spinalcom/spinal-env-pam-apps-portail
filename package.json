@@ -4,9 +4,9 @@
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "scripts": {
     "watch": "rm -rf dist && parcel watch index.html micro-apps/*/index.html --dist-dir dist/",
-    "dev": "rm -rf dist && parcel serve index.html micro-apps/*/index.html --dist-dir dist/",
+    "dev": "rm -rf dist .parcel-cache && parcel serve index.html micro-apps/*/index.html --dist-dir dist/",
     "dev2": "npm run watch && npx http-server -p 8080 --proxy http://localhost:8080\\? dist",
-    "build": "rm -rf dist && parcel build index.html micro-apps/*/index.html --no-optimize --dist-dir dist/ --no-scope-hoist"
+    "build": "rm -rf dist .parcel-cache && parcel build index.html micro-apps/*/index.html --no-optimize --dist-dir dist/ --no-scope-hoist"
   },
   "dependencies": {
     "@mdi/font": "^7.0.96",
