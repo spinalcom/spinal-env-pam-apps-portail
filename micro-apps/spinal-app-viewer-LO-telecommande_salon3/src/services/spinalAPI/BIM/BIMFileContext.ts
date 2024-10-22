@@ -22,13 +22,16 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
+import { SpinalAPI } from "../SpinalAPI";
 
-export interface IloadModelTask {
-   path: string;
-   dbids?: number[];
-   aecPath?: string;
-   id: string;
-   name: string;
-   bimFileId?: string;
-   offset?: any;
- }
+let bimFiles;
+
+export async function getBIMFileContext(platformId: string) {
+   if (bimFiles) return bimFiles;
+
+   const spinalAPI = SpinalAPI.getInstance();
+   const url = spinalAPI.createUrlWithPlatformId(platformId, 'api/v1/BIM/BIMFileContext/list');
+   let result = await spinalAPI.get<any[]>(url);
+   bimFiles = result.data;
+   return result.data;
+}

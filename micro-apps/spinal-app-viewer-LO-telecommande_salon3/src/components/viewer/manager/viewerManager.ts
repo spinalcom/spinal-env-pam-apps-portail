@@ -30,7 +30,8 @@ import { VIEWER_EVENTS } from "../events";
 import { ViewerUtils } from "../utils/viewerUtils";
 import Vue from "vue";
 import { log, warn } from "console";
-const emitterHandler = EmitterViewerHandler.getInstance();
+import { MutationTypes } from "../../../services/store/appDataStore/mutations";
+import { store } from "../../../services/store";
 
 export class ViewerManager {
 	private static _instance: ViewerManager;
@@ -78,6 +79,7 @@ export class ViewerManager {
 
 	public async loadInViewer(item: IPlayload, loadOnlyThisModel: boolean = true, body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }) {
 		// if (this._viewerStartedList[item.staticId]) return;
+
 		if (this._viewerStartedList[item.dynamicId]) {
 			this.showAllObjects();
 			return;
@@ -93,6 +95,9 @@ export class ViewerManager {
 		emitter.once(VIEWER_INITIALIZED, async () => {
 			const buildingId = item.buildingId;
 			const dynamicId = item.dynamicId;
+
+			
+			
 			if (!body) body = { dynamicId: [dynamicId], floorRef: true, roomRef: true, equipements: true };
 
 			const res = await this.getViewerInfoMerged(item, body);
@@ -103,11 +108,13 @@ export class ViewerManager {
 
 			const viewerInfo = await getViewInfoFormatted(buildingId, res, item);
 			emitter.emit(VIEWER_START_LOAD_MODEL, viewerInfo);
+			
 		});
 	}
 
 	public async getViewerInfoMerged(argItem: IPlayload | IPlayload[], body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }): Promise<IViewInfoItemRes[]> {
 		const datas = await this.getViewerInfo(argItem, undefined, body);
+
 		const res = [];
 
 		for (const _item of datas) {
@@ -128,12 +135,12 @@ export class ViewerManager {
 
 
 		const items = Array.isArray(argItem) ? argItem : [argItem];
-		console.log(items);
 		const buildingId = argBuildingId || items[0].buildingId;
 		const ids = items.map((el) => el.dynamicId);
 		const res: any[] = [];
 		const nodeTofetech: number[] = [];
-
+		
+		
 		for (const dynId of ids) {
 			if (this._viewerStores["GET_VIEWER_INFO"][dynId]) {
 				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;
@@ -154,7 +161,6 @@ export class ViewerManager {
 			}
 		}
 
-		console.log('icici');
 		return res;
 
 		async function* generator(data): AsyncGenerator<Awaited<any>> {
@@ -173,17 +179,13 @@ export class ViewerManager {
 
 
 	public hide(item: IPlayload) {
-		emitterHandler.emit(VIEWER_REM_SPHERE, item.items);
-		// return this._fctViewerIteract(VIEWER_REM_SPHERE, item.items, item.config);
+		return this._fctViewerIteract(VIEWER_REM_SPHERE, item.items, item.config);
 	}
 
-	
+
 
 	public isolate(item: IPlayload) {
-		console.log(item, 'tututututu');
-
-		this.hide(item) //TODO A BASCULER SUR UNE AUTRE ACTION ........  GABRIEL
-
+		this.hide(item) 
 		return this._fctViewerIteract(VIEWER_OBJ_ISOLATE, item.item, item.config);
 	}
 
@@ -241,13 +243,11 @@ export class ViewerManager {
 	}
 
 	private async _fctViewerIteract(eventName: keyof ViewerEventWithData, playload: (IPlayload | string) | (IPlayload | string)[], isolateConfig?: any,): Promise<any> {
-		console.log('TOTO', eventName, playload);
 
 		const emitter = EmitterViewerHandler.getInstance();
 		if (eventName === (VIEWER_EVENTS.UNLOAD as any)) {
 
-			console.log('HAAAAAAAAAAAA');
-			
+
 			playload = Array.isArray(playload) ? playload : [playload];
 			const obj = {};
 			const modelIds = playload.map((item) => {
@@ -261,7 +261,6 @@ export class ViewerManager {
 
 			return;
 		}
-		console.log('aa');
 
 
 		let data: IViewInfoItemRes[];
@@ -285,15 +284,12 @@ export class ViewerManager {
 				modelId: (playload as IPlayload).floorId || (playload as IPlayload).id || (playload as IPlayload).dynamicId,
 			};
 		});
-		console.log('aaaaaaaaaaaaaa', eventName, res);
-
 
 		try {
 			emitter.emit(eventName, res);
 		} catch (error) {
 			console.error('Erreur dans emitter.emit :', error);
 		}
-		console.log('saaaasassasasassasass');
 	}
 
 	private _addViewLoaded(nodeId: string, models: any[]) {

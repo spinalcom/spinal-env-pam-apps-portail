@@ -25,7 +25,13 @@ import { VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_C
 import { ViewerUtils } from "../utils/viewerUtils";
 import ModelManager from "./modelManager";
 import { VIEWER_EVENTS } from "../events";
-// import { store } from "../../../services/store";
+
+import { MutationTypes } from "../../../services/store/appDataStore/mutations";
+import { store } from "../../../services/store";
+// import { store } from "../../../../services/store";
+
+// const store = Store;
+
 const emitterHandler = EmitterViewerHandler.getInstance();
 emitterHandler.setTarget(window.parent, "viewer");
 
@@ -51,22 +57,24 @@ export class EventManager {
 
 			emitterHandler.on(VIEWER_START_LOAD_MODEL, async (data: any) => {
 				const models = await viewerUtils.load3DModels(viewer, data);
-				// emitterHandler.emit(<any>VIEWER_EVENTS.LOADED,{id: data.item.staticId, models})
 				emitterHandler.emit(<any>VIEWER_EVENTS.LOADED, { id: data.item.dynamicId, models });
+				store.commit(MutationTypes.SET_LOADED, localStorage.getItem('room_tablette'));
+				viewer.unloadExtension("Autodesk.ViewCubeUi");
+				window.viewer = viewer
+
+				console.log(window.viewer, 'inséré dnas window vierwer');
+				
+				// viewer.navigation.setLock(true);
+				setInterval(()=>{
+					viewer.setNavigationLock(true);
+				} , 1000)
+				
 			});
 
 			emitterHandler.on(VIEWER_OBJ_ISOLATE, (data: any) => {
 				if (data && data.length > 0) return viewerUtils.viewerIsolation(viewer, data);
 				viewerUtils.showAllObject(viewer);
 			});
-
-			// emitterHandler.on(VIEWER_HIDE_ELEMENT, (data: any) => {
-			// 	console.warn('toto888888888888888888888888888888');
-
-			// 	if (data && data.length > 0) return viewerUtils.viewerIsolation(viewer, data);
-			// 	viewerUtils.hideElementsByDbIds(viewer , []);
-
-			// });
 
 
 			emitterHandler.on(VIEWER_OBJ_SELECT, (data: any) => {
@@ -131,20 +139,41 @@ export class EventManager {
 				viewerUtils.addSphere(viewer, data);
 			});
 
+			// const store = Store;
+			// Code dans eventManager.ts
 			emitterHandler.on(VIEWER_REM_SPHERE, (data: any) => {
-				console.error('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', data.itemToHIde);
-				
-				// const $store = store
-				// const storedItem = $store.state.appDataStore.itemToHide
-				// console.warn(data , storedItem);
-				console.error('RAAAAAAAAAAAAAAAAAAAYAANEEEE' , data.itemToHIde);
 
-				viewerUtils.hideElementsByDbIds(viewer, data.itemToHIde);
-				// if (data && data.length > 0) {
-				// 	console.error('RAAAAAAAAAAAAAAAAAAAYAANEEEE');
-					
-					
-				// } 
+				console.log('ICI SALUT ,,,', '///////////////////////////////////////////////////////////////////');
+				
+				const $store = store;
+
+				console.log($store);
+				console.log('ICI SALUT ,,,', '///////////////////////////////////////////////////////////////////');
+
+				const storedNumbers = localStorage.getItem('Hidendbid');
+				let numbersArray = [];
+
+				if (storedNumbers !== null) {
+					try {
+						// Vérifier si la chaîne est valide
+						if (storedNumbers.startsWith('[') && storedNumbers.endsWith(']')) {
+							numbersArray = JSON.parse(storedNumbers);
+						} else {
+							// Essayer de corriger la chaîne si possible
+							const correctedString = '[' + storedNumbers.split(',').map(Number).join(',') + ']';
+							numbersArray = JSON.parse(correctedString);
+						}
+					} catch (e) {
+						console.error("Erreur de parsing JSON:", e);
+					}
+				}
+
+
+				if (data && data.length > 0) {
+					viewerUtils.hideElementsByDbIds(viewer, numbersArray);
+				} else {
+					viewerUtils.hideElementsByDbIds(viewer, [4247]);
+				}
 			});
 
 

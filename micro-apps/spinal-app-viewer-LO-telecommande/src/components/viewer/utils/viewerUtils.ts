@@ -118,18 +118,13 @@ export class ViewerUtils {
 	}
 
 	public viewerSelect(viewer: Autodesk.Viewing.Viewer3D, data: IDbIdModelAggregate[]): void {
-		//this.clearSelect(viewer);
+		this.clearSelect(viewer);
 
 		const datas = this._classifyDbIdsByModel(data);
 
-		const res = datas.map(el => {
-			return { model : el.model , ids: el.dbIds}
-		})
-		viewer.setAggregateSelection(res)
-
-		// for (const { model, dbIds } of datas) {
-		// 	model.selector.setSelection(dbIds, "selectOnly");
-		// }
+		for (const { model, dbIds } of datas) {
+			model.selector.setSelection(dbIds, "selectOnly");
+		}
 
 		// if (data.length === 1) {
 		//   const d = data[0];
@@ -160,36 +155,29 @@ export class ViewerUtils {
 		this.setWaitBeforeDisplaySprites(true);
 
 		const datas = this._classifyDbIdsByModel(data);
-		const res = datas.map(el => {
-			return { model : el.model , selection: el.dbIds}
-		})
-
-		// @ts-ignore
-		viewer.impl.visibilityManager.aggregateIsolate(res)
 
 
+		for (const { model, dbIds } of datas) {
+			if (dbIds.length > 0) {
+				if (model.visibilityManager) model.visibilityManager.isolate(dbIds);
 
-		// for (const { model, dbIds } of datas) {
-		// 	if (dbIds.length > 0) {
-		// 		if (model.visibilityManager) model.visibilityManager.isolate(dbIds);
-
-		// 	} 
-		// 	else {
-		// 		isolateAll(model);
-		// 	}
-		// }
+			} 
+			else {
+				isolateAll(model);
+			}
+		}
 
 		this.setWaitBeforeDisplaySprites(false);
 
 		this.viewerFitToView(viewer, data);
 
-		// function isolateAll(m: Autodesk.Viewing.Model) {
-		// 	let rootId = m.getRootId();
-		// 	m.getObjectTree((tree) => {
-		// 		let dbidRoot = tree.nodeAccess.dbIdToIndex[rootId];
-		// 		viewer.isolate([dbidRoot], m);
-		// 	});
-		// }
+		function isolateAll(m: Autodesk.Viewing.Model) {
+			let rootId = m.getRootId();
+			m.getObjectTree((tree) => {
+				let dbidRoot = tree.nodeAccess.dbIdToIndex[rootId];
+				viewer.isolate([dbidRoot], m);
+			});
+		}
 	}
 
 	public showAllObject(viewer: Autodesk.Viewing.Viewer3D) {
@@ -228,7 +216,13 @@ export class ViewerUtils {
 
 		const viewcuiext = viewer.getExtension("Autodesk.ViewCubeUi");
 		if (viewcuiext) viewcuiext.setViewCube(dataFormatted.join(", "));
-
+		// viewer.unloadExtension("Autodesk.ViewCubeUi");
+		// setTimeout(()=>{
+		// 	viewer.unloadExtension("Autodesk.ViewCubeUi");
+		// 	console.log('LLL');
+			
+		// }, 5000)
+		
 		// viewcuiext.setViewCube(display);
 	}
 
@@ -297,27 +291,22 @@ export class ViewerUtils {
 		});
 	}
 
-	public async hideElementsByDbIds(viewer: Autodesk.Viewing.Viewer3D, dbIdObject: any) {
+	public async hideElementsByDbIds(viewer: Autodesk.Viewing.Viewer3D, dbIds: number[]) {
+
 		await this._waitModelIsLoading();
-	
 		const models = viewer.getVisibleModels();
+	
 		
 		models.forEach((model) => {
-			const bimFileId = model.bimFileId;
-	
-			if (dbIdObject[bimFileId]) {
-				const dbIds = dbIdObject[bimFileId];
-				dbIds.forEach((dbId) => {
-					if (viewer.isNodeVisible(dbId, model)) {
-						viewer.hide(dbId, model);
-					} else {
-						viewer.show(dbId, model);
-					}
-				});
-			}
+			dbIds.forEach((dbId) => {
+				if (viewer.isNodeVisible(dbId, model)) {
+					viewer.hide(dbId, model);
+				} else {
+					viewer.show(dbId, model);
+				}
+			});
 		});
 	}
-	
 	
 
 	// public removeSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
@@ -362,7 +351,6 @@ export class ViewerUtils {
 			const path = getAPINormalisePath(urlpath, buildingId);
 			const model = await this._loadModel(modelId, viewer, path, option, this._isFirstModel);
 			if (this._isFirstModel) this._isFirstModel = false;
-
 			return model;
 		} catch (error) { }
 	}
@@ -530,6 +518,7 @@ export class ViewerUtils {
 	}
 
 	private _allModelsAreLoaded() {
+
 		return ModelManager.getInstance().allModelAreLoaded();
 	}
 }
