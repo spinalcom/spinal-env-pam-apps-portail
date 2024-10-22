@@ -112,7 +112,7 @@ import type {
   TGeoItem,
 } from "./components/SpaceSelector/interfaces/IBuildingItem";
 import { DataTable } from "./components/data-table";
-import viewerApp from "./components/viewer/viewer.vue";
+import viewerApp from "../../../global-components/viewer/viewer.vue"
 import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
 import { IConfig, ITemporality } from "./interfaces/IConfig";

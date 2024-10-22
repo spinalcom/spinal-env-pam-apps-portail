@@ -385,7 +385,7 @@ import {
   VIEWER_SPRITE_CLICK,
   VIEWER_AGGREGATE_SELECTION_CHANGED
 } from 'spinal-viewer-event-manager';
-import { ViewerManager } from '../viewer';
+import { ViewerManager } from '../../../../../global-components/viewer'
 import moment from 'moment';
 import { getLabels, getValues } from '../../services/calcul/computeChart';
 import 'moment/locale/fr';

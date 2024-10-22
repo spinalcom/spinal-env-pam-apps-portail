@@ -129,7 +129,7 @@ import SpriteComponent from "./SpriteComponent.vue"
 import SpriteComponent2 from "./SpriteComponent2.vue"
 import { IRoom } from "@/interfaces";
 import { Emit } from "vue-property-decorator";
-import { ViewerManager } from "../viewer";
+import { ViewerManager } from "../../../../../global-components/viewer";
 
 @Component({
   components: {},

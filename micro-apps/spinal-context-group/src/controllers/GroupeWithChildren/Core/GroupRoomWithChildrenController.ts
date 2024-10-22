@@ -36,7 +36,7 @@ import { RoomsGroupAPI } from "../../../services";
 import { GroupContextApi } from "../../../services";
 
 // * Singleton
-import { ViewerManager } from "../../../components/viewer/manager/viewerManager";
+import { ViewerManager } from "../../../../../../global-components/viewer/manager/viewerManager"
 
 // * Type
 import {

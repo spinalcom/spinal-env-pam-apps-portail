@@ -147,7 +147,7 @@ import {
 } from './components/SpaceSelector/index';
 import ScDownloadButton from 'spinal-components/src/components/DownloadButton.vue';
 import { ViewerButtons } from './components/SpaceSelector/spaceSelectorButtons';
-import viewerApp from './components/viewer/viewer.vue';
+import viewerApp from '../../../global-components/viewer/viewer.vue';
 import dataSideApp from './components/data-side/App.vue';
 import ModaleEditGroup from './components/data-side/Modales/EditGroupModale.vue';
 import LegendVue from './components/data-side/Legend.vue';
@@ -190,7 +190,7 @@ import {
 } from 'spinal-viewer-event-manager';
 import { RoomManager } from './services/RoomsManager';
 import { INodeItem, IRoom } from './interfaces';
-import { ViewerManager } from './components/viewer';
+import { ViewerManager } from '../../../global-components/viewer';
 
 /**
  * * Services

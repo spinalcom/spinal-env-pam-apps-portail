@@ -32,8 +32,8 @@ import { INodeItem } from "../../../interfaces/INodeItem";
 import { IViewInfoBody, IViewInfoItemRes } from "../../spinalAPI/GeographicContext/getViewInfo";
 import { ActionTypes, ApiIteratorStoreRecordNumberType, ApiIteratorStoreRecordStringType, ApiIteratorStoreType, AugmentedActionContextAppData } from "../../../interfaces/vuexStoreTypes";
 import { getGroupsItems, getAllCategoriesTree } from "../../spinalAPI/GeographicContext/groupsItems";
-import SpriteManager from "../../../components/viewer/manager/spriteManager";
-import ViewerManager from "../../../components/viewer/manager/viewerManager";
+import SpriteManager from "../../../../../../global-components/viewer/manager/spriteManager";
+import ViewerManager from "../../../../../../global-components/viewer/manager/viewerManager";
 import { IConfig } from "../../../interfaces/IConfig";
 import { classifyItemByBimFileId } from "./utils/openViewer";
 
