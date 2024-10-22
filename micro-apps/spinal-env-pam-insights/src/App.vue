@@ -593,9 +593,10 @@ export default App;
       width: 0%;
       height: 91%;
       right: 0px;
-      transition: 0.1;
     }
 
+  
+    
     .active3D {
       width: 99vw;
       height: 100%;

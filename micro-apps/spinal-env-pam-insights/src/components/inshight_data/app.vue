@@ -33,8 +33,10 @@ with this file. If not, see
           position: absolute;
           left: -75px;
           width: 70px;
+          min-width: 70px !important;
           height: 175px;
           z-index: 2;
+          
         "
       >
         <!-- <v-switch dense v-model="sprites"></v-switch> -->
@@ -49,7 +51,7 @@ with this file. If not, see
             <i></i>
           </label>
         </div>
-
+  
         <div style="display: flex; align-items: center">
           <div
             class="rounded mr-2"
@@ -85,7 +87,6 @@ with this file. If not, see
         </div>
         <v-btn icon @click="dialog = true"><v-icon>mdi-cog</v-icon></v-btn>
       </v-card>
-
       <!-- affichage scindé ou complet (dataapp viewer)-->
       <button
         @click="
@@ -445,7 +446,7 @@ class InsightApp extends Vue {
   legend: any = this.config.source[0].legend;
   dialog: boolean = false;
   reload = function () {};
-
+  ignoreViewerSelection: boolean = false;
   initiated: boolean = false;
 
   selectedItem: any = null;
@@ -547,38 +548,129 @@ class InsightApp extends Vue {
       return pastTimestamps.reduce((prev, curr) => (curr > prev ? curr : prev));
   }
 
-  updateChartData() {
-    const result: any[] = [];
-    const t_index = this.t_index;
-    const items = this.selectedChartItems;
-    for (const item of items) {
-      const vals = getValues(item.series);
-      console.log('vals : ', vals);
-      const labels = getLabels(
-        this.$store.state.appDataStore.temporalitySelected,
-        t_index
-      );
-      console.log('labels : ', labels);
-       // Convert the vals object keys to an array of timestamps
-      const valTimestamps = Object.keys(vals).map((key) => parseInt(key));
+  getValueAtTimestamp(timestamp, series){
+    const timestamps = Object.keys(series).map((key) => parseInt(key));
+    const ts = this.findClosestPastTimestamp(timestamp, timestamps);
+    return ts !== null ? series[ts] : null;
 
+  }
+
+  getMean(values) {
+    return values.reduce((acc, val) => acc + val, 0) / values.length;
+  }
+
+  // updateChartData() {
+  //   const result: any[] = [];
+  //   const t_index = this.t_index;
+  //   const items = this.selectedChartItems;
+  //   for (const item of items) {
+  //     const vals = getValues(item.series);
+  //     console.log('vals : ', vals);
+  //     const labels = getLabels(
+  //       this.$store.state.appDataStore.temporalitySelected,
+  //       t_index
+  //     );
+  //     console.log('labels : ', labels);
+  //      // Convert the vals object keys to an array of timestamps
+  //     const valTimestamps = Object.keys(vals).map((key) => parseInt(key));
+
+  //     // Build the chart data using the labels and the closest past timestamp in vals
+  //     const data = labels.map((lab) => {
+  //       // Find the closest past timestamp to the current label
+  //       const closestTimestamp = this.findClosestPastTimestamp(lab, valTimestamps);
+
+  //       // If a valid closest past timestamp was found, use its value; otherwise, use NaN
+  //       const yValue = closestTimestamp !== null ? vals[closestTimestamp] : 'NaN';
+        
+  //       return { x: lab, y: yValue };
+  //     }); 
+
+  //     console.log('data : ', data);
+  //     const color = item.color;
+  //     result.push({ label: item.name, data, color, tension: 0.1 });
+  //   }
+  //   // Assign the result to a reactive property (if necessary)
+  //   this.chartData = result;
+  // }
+
+  updateChartData() {
+  const result :any[]= [];
+  const t_index = this.t_index;
+  const items = this.selectedChartItems;
+    console.log("Chart items : ", items)
+  for (const item of items) {
+    const labels = getLabels(
+      this.$store.state.appDataStore.temporalitySelected,
+      t_index
+    );
+
+    if(item.children){// item is a group of items
+      const values : any[] = [];
+      for (const child of item.children){
+        const vals = getValues(child.series)
+        values.push(vals)
+        //values.push(child.series)
+      }
+      const data = labels.map((lab) => { // pour chaque timestamp
+        let timestampValues :any[] = [];
+
+        for(const series of values){ // on récupère le tableau de timeseries de chaque enfant 
+          const valueAtTimestamp = this.getValueAtTimestamp(lab,series);
+          if(valueAtTimestamp !== null) {
+            timestampValues.push(valueAtTimestamp);
+
+          }
+          console.log('series : ', series);
+        }
+        // const obj = {}
+        // obj[lab] = timestampValues;
+        // return obj;
+        return { x: lab, y: this.getMean(timestampValues) };
+      })
+
+      //console.log('data!!! : ', data);
+      const color = "#ffffff";
+      result.push({ label: item.name, data, color, tension: 0.3 })
+    }
+    else {
+      const vals = getValues(item.series);
+      console.log('labels : ', labels);
+      console.log('vals : ', vals);
+  
+      // Convert the vals object keys to an array of timestamps
+      const valTimestamps = Object.keys(vals).map((key) => parseInt(key));
+  
+      let lastUsedTimestamp = null; // To track the last projected timestamp
+  
       // Build the chart data using the labels and the closest past timestamp in vals
       const data = labels.map((lab) => {
         // Find the closest past timestamp to the current label
         const closestTimestamp = this.findClosestPastTimestamp(lab, valTimestamps);
-
-        // If a valid closest past timestamp was found, use its value; otherwise, use NaN
-        const yValue = closestTimestamp !== null ? vals[closestTimestamp] : 'NaN';
-        
-        return { x: lab, y: yValue };
-      }); 
-
-      console.log('data : ', data);
+  
+        // Check if this timestamp is new, i.e., different from the last projected timestamp
+        if (closestTimestamp !== null && closestTimestamp !== lastUsedTimestamp) {
+          // Update the last used timestamp
+          lastUsedTimestamp = closestTimestamp;
+  
+          // Use the value for the closest past timestamp
+          const yValue = vals[closestTimestamp] ?? 'NaN';
+  
+          return { x: lab, y: yValue };
+        }
+  
+        // Return NaN if no new timestamp is encountered
+        return { x: lab, y: 'NaN' };
+      }).filter((point) => point !== null); // Filter out null values
+  
       const color = item.color;
       result.push({ label: item.name, data, color, tension: 0.1 });
+
     }
-    // Assign the result to a reactive property (if necessary)
-    this.chartData = result;
+
+  }
+
+  // Assign the result to a reactive property (if necessary)
+  this.chartData = result;
   }
 
 
@@ -586,14 +678,57 @@ class InsightApp extends Vue {
   async mounted() {
     const emitterHandler = EmitterViewerHandler.getInstance();
 
-    // emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
-      
-    //   if(data && !data[0]) {
-    //     console.log('viewer aggr selection : ',data)
-    //     console.log('no data')
-    //     this.selectedItem = null; 
-    //   }
-    // });
+    emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, async (data) => {
+      if(this.ignoreViewerSelection) return;
+      if(data && !data[0]) {
+        //console.log('viewer aggr selection : ',data)
+        console.log('no data inside viewer selection')
+        this.clearSelection()
+        //this.selectedItem = null; 
+      }
+      if( data && data[0]) {
+        const buildingId = localStorage.getItem('idBuilding');
+        const vselected_bimFileId = data[0].modelId.bimFileId;
+        const vselected_dbIds = data[0].dbIds;
+        for(const group of this.data){
+          let rooms = group.children;
+          if(!rooms) continue;
+          //console.log('viewer_selected_items : ', viewer_selected_items);
+          rooms = rooms.map(el => { return {...el , buildingId }})
+          // console.log('rooms : ', rooms);
+          const viewer_info_rooms = await ViewerManager.getInstance().getViewerInfo(rooms);
+          for(const viewer_info_room of viewer_info_rooms){
+            for(const viewer_info_room_data of viewer_info_room.data){
+              const room_bimFileId = viewer_info_room_data.bimFileId;
+              const room_dbIds = viewer_info_room_data.dbIds;
+              if( room_bimFileId === vselected_bimFileId && room_dbIds.includes(vselected_dbIds[0])){
+                const matching_room = rooms.find(el => el.dynamicId === viewer_info_room.dynamicId)
+                // console.log('matching_room : ', matching_room);
+                this.ignoreViewerSelection=true;
+                this.selectedItem = matching_room;
+                this.$store.commit(MutationTypes.SET_ITEM_SELECTED, matching_room);
+                await this.$store.dispatch(ActionTypes.SELECT_SPRITES, [matching_room.dynamicId]);
+                this.ignoreViewerSelection=false;
+              }
+            }
+  
+  
+            // console.log('viewer_info_room : ', viewer_info_room);
+            // console.log('vselected_bimFileId : ', vselected_bimFileId);
+            // console.log('vselected_dbIds : ', vselected_dbIds);
+  
+  
+          }
+
+        }
+
+        
+
+
+      }
+
+    });
+
     this.sourceSelectedName = this.config.source[0].name;
     const source = this.config.source.find(
       (el) => el.name === this.sourceSelectedName
@@ -861,8 +996,15 @@ class InsightApp extends Vue {
     });
   }
 
+  clearSelection(){
+    this.selectedItem = null;
+    this.$store.commit(MutationTypes.SET_ITEM_SELECTED, null);
+    this.$store.dispatch(ActionTypes.SELECT_SPRITES, []);
+    //this.$store.dispatch(ActionTypes.SELECT_ITEMS,[]); // select the item(s) in the viewer
+  }
   // selection d'un element dans la vue de données au click
   selectDataView(item) {
+    console.log('selectDataView :', item);
     this.updateSelected(item);
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     
@@ -874,7 +1016,8 @@ class InsightApp extends Vue {
       this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
     }
 
-    this.$store.dispatch(ActionTypes.SELECT_ITEMS, item.children || item); // select the item(s) in the viewer
+    //console.log('selectDataView :', item.children || item);
+     this.$store.dispatch(ActionTypes.SELECT_ITEMS, item.children || item); // select the item(s) in the viewer
     
     
     
@@ -1293,6 +1436,10 @@ export default InsightApp;
     justify-content: center;
     text-align: center;
   }
+}
+
+.test {
+  width: 100%;
 }
 </style>
 

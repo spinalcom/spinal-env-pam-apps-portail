@@ -37,7 +37,7 @@ with this file. If not, see
       <div>{{ unit }}</div>
     </div>
     <div class="name">{{ item.name }}</div>
-    <div v-if="!isTitle && isChartPossible">
+    <div v-if="isChartPossible">
       <v-btn
         icon
         x-small

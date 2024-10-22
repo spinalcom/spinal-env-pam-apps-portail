@@ -16,47 +16,48 @@ export function getLabels(temporality: any, index: number = 0) {
   switch (temporality.name) {
     case ITemporality.hour:
       begin = moment().startOf("hour").add(index, "hours");
-      return Array(12)
+      // return Array(12 )
+      return Array( 60 )
         .fill(0)
         .map((_, i) =>
           moment(begin)
-            .add(i * 5, "minutes")
+            .add(i, "minutes")
             .valueOf()
         );
     case ITemporality.day:
       begin = moment().startOf("day").add(index, "days");
-      return Array(12 * 24)
+      return Array(60 * 24)
         .fill(0)
         .map((_, i) =>
           moment(begin)
-            .add(i * 5, "minutes")
+            .add(i, "minutes")
             .valueOf()
         );
     case ITemporality.week:
       begin = moment().startOf("week").add(index, "weeks");
-      return Array(12 * 24 * 7)
+      return Array(60 * 24 * 7)
         .fill(0)
         .map((_, i) =>
           moment(begin)
-            .add(i * 5, "minutes")
+            .add(i, "minutes")
             .valueOf()
         );
     case ITemporality.month:
       begin = moment().startOf("month").add(index, "months");
-      return Array(12 * 24 * begin.daysInMonth())
+      return Array(60 * 24 * begin.daysInMonth())
         .fill(0)
         .map((_, i) =>
           moment(begin)
-            .add(i * 5, "minutes")
+            .add(i, "minutes")
             .valueOf()
         );
     case ITemporality.year:
       begin = moment().startOf("year").add(index, "years");
-      return Array(12 * 24 * moment().endOf("year").dayOfYear())
+      return Array(60 * 24 * moment().endOf("year").dayOfYear())
         .fill(0)
         .map((_, i) =>
           moment(begin)
-            .add(i * 5, "minutes")
+            .add(i, "minutes")
             .valueOf()
         );
     case ITemporality.custom:
@@ -95,4 +96,8 @@ export function getValues(series: any[]) {
     ret[x] = s.value;
   });
   return ret;
+}
+
+export function preProcessData(data, timestamps){
+
 }

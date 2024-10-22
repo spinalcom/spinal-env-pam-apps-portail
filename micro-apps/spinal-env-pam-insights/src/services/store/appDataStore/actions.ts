@@ -216,7 +216,7 @@ export const actions = {
       ApiIteratorStore[ActionTypes.GET_GROUPS_ITEMS][buildingId] =
         spinalAPI.createIteratorCall(getGroupsItems, config, buildingId);
     }
-
+    
     const items = await ApiIteratorStore[ActionTypes.GET_GROUPS_ITEMS][
       buildingId
     ].next();
@@ -301,8 +301,7 @@ export const actions = {
       context: regroupement.context,
     });
     const groups = Object.assign([], obj[regroupement.category] || []);
-
-    return regroupByGeograhicGroup(groups, itemsToRegroup);
+    return regroupByGeograhicGroup(groups, itemsToRegroup); 
   },
 
   ////////////////////////////////////////////////////////
@@ -387,6 +386,10 @@ export const actions = {
   ) {
     return ViewerManager.getInstance().colorItems(items, buildingId);
   },
+
+  
+
+
 
   [ActionTypes.ADD_SPRITES](
     { commit, dispatch, state },
