@@ -205,7 +205,7 @@ export async function getAttributeListMultiple(buildingId: string, roomIds: stri
     const spinalAPI = SpinalAPI.getInstance();
     const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/node/attribute_list_multiple');
     try {
-        const response = await spinalAPI.post<IRoomPositionRes[]>(url, roomIds); // Envoyer le tableau d'identifiants
+        const response = await spinalAPI.post<IRoomPositionRes[]>(url, roomIds); 
         return response.data;
     } catch (error) {
         console.error('Erreur lors de la récupération des positions des pièces:', error);
@@ -235,22 +235,18 @@ function createUnifiedNomenclature(dataArray: any[]): any {
 
 function getRoomsByFloor(floorId: number, rooms: any, roomFloorInfos: any): any[] {
 
-    // Filtrer les informations de l'étage pour obtenir uniquement les ID de pièces de l'étage spécifique
     const roomIdsOnFloor = roomFloorInfos
         .filter(info => info.floorDynamicId === floorId)
         .map(info => info.roomDynamicId);
 
-    // Filtrer la liste des pièces pour retourner celles qui sont sur l'étage spécifié
     return rooms.filter(room => roomIdsOnFloor.includes(room.dynamicId));
 }
 
 function getElByFloor(floorId: number, rooms: any, roomFloorInfos: any): any[] {
 
-    // Filtrer les informations de l'étage pour obtenir uniquement les ID de pièces de l'étage spécifique
     const roomIdsOnFloor = roomFloorInfos
         .filter(info => info.RDynamicId === floorId)
         .map(info => info.roomDynamicId);
-    // Filtrer la liste des pièces pour retourner celles qui sont sur l'étage spécifié
     return rooms.filter(room => roomIdsOnFloor.includes(room.dynamicId));
 }
 
@@ -267,7 +263,7 @@ export async function getRoomPositions(buildingId: string, roomIds: string[]): P
     const spinalAPI = SpinalAPI.getInstance();
     const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/room/get_position_multiple');
     try {
-        const response = await spinalAPI.post<IRoomPositionRes[]>(url, roomIds); // Envoyer le tableau d'identifiants
+        const response = await spinalAPI.post<IRoomPositionRes[]>(url, roomIds);
         return response.data;
     } catch (error) {
         console.error('Erreur lors de la récupération des positions des pièces:', error);

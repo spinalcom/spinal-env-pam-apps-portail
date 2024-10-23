@@ -46,7 +46,7 @@ export async function getFloors(patrimoineId: string, buildingId: string): Promi
   const url = spinalAPI.createUrlWithPlatformId(buildingId, 'api/v1/floor/list');
   let result = await spinalAPI.get<IZoneItem[]>(url);
   const res = result.data.map((obj) => {
-    Object.assign(obj, { buildingId, patrimoineId, color: '#D138DE' });
+    Object.assign(obj, {buildingId, patrimoineId, color: '#D138DE' });
     return obj;
   });
   return res;

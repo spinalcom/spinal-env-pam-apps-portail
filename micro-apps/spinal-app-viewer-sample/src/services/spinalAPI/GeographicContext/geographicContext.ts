@@ -52,6 +52,144 @@ export async function getFloors(patrimoineId: string, buildingId: string): Promi
   return res;
 }
 
+export async function getStaticDetails(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/room/${roomDynId}/read_static_details`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+export async function getNodeRead(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${roomDynId}/read`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+export async function getpositionEquipement(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipment/${roomDynId}/get_position`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+export async function getpositionRoom(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/room/${roomDynId}/get_position`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+export async function getStaticDetailsEquipement(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipment/${roomDynId}/read_static_details`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+
+export async function getFloorStaticDetails(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/floor/${roomDynId}/read_static_details`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+
+export async function getBuildingInfo(buildingId: string): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/building/read`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+
+export async function getBuildingStaticDetails(buildingId: string, referenceIds: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/building/${referenceIds}/read_static_details`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+
+  return result.data;
+}
+
+export async function getDocumentation(buildingId: string, referenceIds: number): Promise<IZoneItem[]> {
+  
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${referenceIds}/file_list`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+export async function getTicket(buildingId: string, referenceIds: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${referenceIds}/ticket_list`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+export async function getParent(buildingId: string, referenceIds: number): Promise<IZoneItem[]> {
+  
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${referenceIds}/parents`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+
+export async function getAttributListMultiple(buildingId: string, referenceIds: number[]): Promise<any> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/node/attribute_list_multiple');
+  try {
+    const response = await spinalAPI.post<any>(url, referenceIds);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des objets de référence:', error);
+    throw error;
+  }
+}
+
+
+
+export async function getMultipleInventory(buildingId: string, referenceIds: number[]): Promise<any> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/room/inventory_multiple');
+  try {
+    const response = await spinalAPI.post<any>(url, referenceIds);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des objets de référence:', error);
+    throw error;
+  }
+}
+
+
+export async function postBIMObjectInfo(buildingId: string, referenceIds: any): Promise<any> {
+  console.log('arrivé dans la fonction post');
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/BIM/getBimObjectsInfo');
+  try {
+    const response = await spinalAPI.post<any>(url, referenceIds);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des objets de référence:', error);
+    throw error;
+  }
+}
+export async function postDownloadFile(buildingId: string, referenceIds: any): Promise<Blob> {
+  console.log('arrivé dans la fonction post');
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/node/${referenceIds}/download_file`);
+  try {
+    // Assurez-vous de spécifier que la réponse doit être un 'blob'
+    const response = await spinalAPI.post(url, referenceIds, { responseType: 'blob' });
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des objets de référence:', error);
+    throw error;
+  }
+}
+
+
+
 export async function getRooms(patrimoineId: string, buildingId: string, floorId: string, floorDynId: number): Promise<IZoneItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/floor/${floorDynId}/room_list`);
