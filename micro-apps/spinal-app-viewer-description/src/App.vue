@@ -30,7 +30,7 @@ with this file. If not, see
       <div class="DButton">
         <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()" />
       </div>
-      
+
       <!-- <div class="temporality">
         <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
           :GetChildrenFct="onTemporalitySelectOpen" :maxDepth="0" v-model="temporalitySelected" label="TEMPORALITÉ" />
@@ -80,11 +80,14 @@ import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
 import { IConfig } from "./interfaces/IConfig";
 import { PAGE_STATES } from "./interfaces/pageStates";
+import { EventBus } from './components/SpaceSelector/eventBus';
+import { ViewerManager } from '../../../global-components/viewer';
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
   VIEWER_AGGREGATE_SELECTION_CHANGED,
 } from "spinal-viewer-event-manager";
+// import { EventBus } from './bus';
 
 import {
   VIEWER_REM_SPHERE,
@@ -125,6 +128,7 @@ class App extends Vue {
   isActive: boolean = false;
   isActive3D: boolean = false;
   dataTable: IZoneItem[] = [];
+  viewerManager: ViewerManager | undefined = undefined;
   $refs: { spaceSelector };
   query: { app: string; mode: string; name: string; spaceSelectedId: string; buildingId: string } = {
     app: '',
@@ -133,15 +137,65 @@ class App extends Vue {
     spaceSelectedId: '',
     buildingId: ''
   };
+  coloredRoom: null
   floor: any = null
   async mounted() {
-
+    this.viewerManager = ViewerManager.getInstance();
     //refresh de l'instace pour VIEWER_REM_SPHERE
     // const emitterHandler = EmitterViewerHandler.getInstance();
     // emitterHandler.off(VIEWER_REM_SPHERE);
 
     this.initializeEventHandlers();
 
+    EventBus.$on('colorRoom', (dynamicId) => {
+      const buildingId = localStorage.getItem("idBuilding");
+
+      const itemsToColor = [{
+        buildingId: buildingId,
+        color: "#24CBD9",
+        dynamicId: dynamicId,
+        endpoint: {},
+        floorId: this.query.spaceSelectedId,
+        name: "122-Bureau 1 B5",
+        navIndex: 0,
+        position: {},
+        roomId: undefined,
+        staticId: undefined,
+        type: "geographicRoom",
+        unit: "%"
+      }]
+
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: buildingId,
+      });
+
+    });
+
+    EventBus.$on('descolorRoom', (dynamicId) => {
+      const buildingId = localStorage.getItem("idBuilding");
+
+      const itemsToColor = [{
+        buildingId: buildingId,
+        color: null,
+        dynamicId: dynamicId,
+        endpoint: {},
+        floorId: this.query.spaceSelectedId,
+        name: "122-Bureau 1 B5",
+        navIndex: 0,
+        position: {},
+        roomId: undefined,
+        staticId: undefined,
+        type: "geographicRoom",
+        unit: "%"
+      }]
+
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: buildingId,
+      });
+
+    });
 
     if (window.innerWidth < 900) {
       // console.log(window.innerWidth);
@@ -160,7 +214,7 @@ class App extends Vue {
 
     this.$nextTick(() => {
 
-      
+
       this.query.app = this.config.idAppDescription
       // console.warn('/////////////////////////////////////////////////////');
       // console.log(window.parent.router.query);

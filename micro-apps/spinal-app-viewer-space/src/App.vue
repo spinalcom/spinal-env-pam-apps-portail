@@ -174,7 +174,6 @@ import type {
   TGeoItem,
 } from './components/SpaceSelector/interfaces/IBuildingItem';
 import { ExpansionMode, IItemV1 } from './interfaces';
-
 /**
  * * Other
  */
