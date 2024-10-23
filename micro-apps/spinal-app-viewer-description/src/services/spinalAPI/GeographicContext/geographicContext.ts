@@ -201,12 +201,12 @@ export async function getRooms(patrimoineId: string, buildingId: string, floorId
   return res;
 }
 
-export async function getEquipments(patrimoineId: string, buildingId: string, floorId: string, roomId: string, roomDynId: number): Promise<IEquipmentItem[]> {
+export async function getEquipments(patrimoineId: string, buildingId: string,floorId: string, roomId : string, roomDynId: number): Promise<IEquipmentItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/room/${roomDynId}/equipement_list`);
   let result = await spinalAPI.get<IEquipmentItem[]>(url);
   const res = result.data.map((obj) => {
-    Object.assign(obj, { patrimoineId, buildingId, floorId, roomId, color: '#2693ff' });
+    Object.assign(obj, {patrimoineId, buildingId,floorId, roomId, color: '#2693ff' });
     return obj;
   });
   return res;

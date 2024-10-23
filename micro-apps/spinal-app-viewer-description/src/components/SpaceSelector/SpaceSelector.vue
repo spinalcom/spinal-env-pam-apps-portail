@@ -115,6 +115,9 @@ class SpaceSelector extends Vue {
   selectorHeight = 0;
 
   get selectedZoneName() {
+    if (this.buildingStructure[0]?.type == "building") {
+      return this.buildingStructure[0]?.name || "Bâtiments";
+    }
     return this.selectedZone?.name || "Sélectionnez une zone";
   }
 
@@ -130,6 +133,7 @@ class SpaceSelector extends Vue {
 
   @Watch("selectedZone")
   async onSelectedChange() {
+    console.warn(this.selectedZone , 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb');
     for (let idx = 0; idx < this.buildingStructure.length; idx++) {
       const item = this.buildingStructure[idx];
       let found = false;

@@ -5,10 +5,10 @@
     <!-- <span class="mdi mdi-abjad-arabic"></span> -->
     <div v-if="isopen" ref="container" class="container">
 
-      <div @click="close()"
-        style="justify-content: center;align-items: center;display: flex;background-color: white;cursor: pointer;border-radius: 25px;width: 20px; height: 20px;position: absolute;right: -8px;font-size: 13px;z-index: 9;top: 3px;font-weight: bold;border: 1px solid gray;color: #14202c;">
+      <v-button ref="closeButton" @click="close()"
+        style="justify-content: center;align-items: center;display: flex;background-color: white;cursor: pointer;border-radius: 25px;width: 20px; height: 20px;position: absolute;right: -8px;font-size: 13px;z-index: 99999;top: 3px;font-weight: bold;border: 1px solid gray;color: #14202c;">
         <span class="mdi mdi-close"></span>
-      </div>
+      </v-button>
       <div class="card">
         <div class="top-section">
           <div class="border"></div>
@@ -16,15 +16,15 @@
             <div :title="data.name" class="logo">
               {{ data.name }}
             </div>
-            <div
+            <v-button ref="navigationButton"
               style="justify-content: center;align-items: center;display: flex;background-color: #14202c;cursor: pointer;width: 16px; height: 16px;position: absolute;right: 80px;font-size: 17px;transform: translateY(-3px);margin-top: 10px ;"
               @click="onClickNavigate()">
               &#x21AA;
-            </div>
+            </v-button>
 
             <div class="social-media">
               <div v-if="useFullDAta && useFullDAta.attributsList">
-                <div v-for="attribut in useFullDAta.attributsList" :key="attribut.label">
+                <div v-for="attribut in useFullDAta.attributsList">
                   <div style="margin-top: 2px;" v-if="attribut.label === 'area'">
                     {{ parseFloat(attribut.value).toFixed(1) }}m²
                   </div>
@@ -103,22 +103,26 @@
           </div> -->
 
           <div id="attr_id"
-            style="display: flex; flex-wrap: wrap; overflow-y: scroll; justify-content: center; gap: 5px;  border-radius: 5px;  ">
-            <div v-for="attribut in useFullDAta.attributsList" :key="attribut.label"
-              style="border: 1px solid #14202c; border-radius: 5px; font-size: 11px; font-weight: bold; width: calc(50% - 20px); margin: 5px; overflow: hidden; max-height: 100px; flex-grow: 1; flex-basis: calc(50% - 20px);">
+            style="display: flex; flex-wrap: wrap; overflow-y: scroll; justify-content: center;  border-radius: 5px;  ">
+            <div v-for="attribut in useFullDAta.attributsList"
+              style="border: 1px solid #14202c; border-radius: 5px; font-size: 11px; font-weight: bold; width: calc(50% - 20px); margin: 5px; max-height: 100px; flex-grow: 1; flex-basis: calc(50% - 20px);">
               <div
                 style="display: flex; justify-content: center; align-items: center; color: white; background: #14202c;">
                 {{ attribut.label.toUpperCase() }}
               </div>
-              <div :title="attribut.value" style="display: flex; justify-content: center; align-items: center; color: #14202c; font-size: 13px; background-color: white; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px;white-space: nowrap;
-  text-overflow: ellipsis; overflow: hidden;">
+              <div
+                v-if="typeof attribut.value === 'string' && (attribut.value.startsWith('http://') || attribut.value.startsWith('https://'))">
+                <a :href="attribut.value" target="_blank" rel="noopener noreferrer" style="display: flex; justify-content: center; align-items: center; color: #14202c; font-size: 13px; background-color: white; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px;white-space: nowrap;
+  text-overflow: ellipsis;overflow: hidden;">
+                  {{ attribut.value }}
+                </a>
+              </div>
+              <div v-else :title="attribut.value" style="display: flex; justify-content: center; align-items: center; color: #14202c; font-size: 13px; background-color: white; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px;white-space: nowrap;
+  text-overflow: ellipsis;overflow: hidden;">
                 {{ attribut.value }}
               </div>
             </div>
           </div>
-
-
-
 
 
 
@@ -243,7 +247,29 @@ export default {
     isClicked: false,
     useFullDAta: false,
   }),
+  beforeDestroy() {
+
+    const button = this.$refs.closeButton;
+    const navigation = this.$refs.navigationButton;
+    if (button) {
+      button.removeEventListener('click', this.close);
+    }
+    if (navigation) {
+      navigation.removeEventListener('click', this.onClickNavigate);
+    }
+  },
   mounted() {
+    //pour la correction du bug de fermeture
+    setTimeout(() => {
+      const button = this.$refs.closeButton;
+      const navigation = this.$refs.navigationButton;
+      if (button) {
+        button.addEventListener('click', this.close);
+      }
+      if (navigation) {
+        navigation.addEventListener('click', this.onClickNavigate);
+      }
+    }, 1);
 
     console.log('totot l element est monté avec ,', this.data.config.SpriteComponent, this.data.data);
     this.extractUsefulData(this.data.config.SpriteComponent, this.data.data)
@@ -325,6 +351,8 @@ export default {
     ,
 
     close() {
+      console.log('aaa');
+
       this.isopen = false;
     },
     changeRoute(route) {
@@ -371,8 +399,8 @@ export default {
       const emitterHandler = EmitterViewerHandler.getInstance();
       console.log(this.data);
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { navigate: 'la page', node: this.data });
-      
-      
+
+
       const query = {
         app: window.parent.router.query.app, // ou une autre valeur selon votre logique
         buildingId: this.data.buildingId,
