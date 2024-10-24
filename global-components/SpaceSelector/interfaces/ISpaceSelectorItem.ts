@@ -22,16 +22,15 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import {IZoneItem} from './IBuildingItem';
+import { IZoneItem } from './IBuildingItem';
 export interface ISpaceSelectorItem extends IZoneItem {
   level: number;
   isOpen: boolean;
   loading?: boolean;
-  platformId: string;
+  buildingId: string;
   patrimoineId: string;
-  parents: string[];
+  parents: any[];
   isLastInGrp: boolean;
   drawLink: number[];
   haveChildren: boolean;
-  disabled?: boolean;
 }

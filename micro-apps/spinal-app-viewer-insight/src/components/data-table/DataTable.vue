@@ -76,7 +76,7 @@ import {
   convertZonesToISpaceSelectorItems,
   ISpaceSelectorItem,
   TGeoItem,
-} from '../SpaceSelector';
+} from '../../../../../global-components/SpaceSelector';
 import DataTableItem from './DataTableItem.vue';
 
 @Component({

@@ -25,7 +25,7 @@
 import type {
   IEquipmentItem,
   IZoneItem,
-} from "../../../components/SpaceSelector";
+} from "../../../../../../global-components/SpaceSelector";
 import type { IViewInfoItemRes } from "../../../services/spinalAPI/GeographicContext/getViewInfo";
 import type { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import {

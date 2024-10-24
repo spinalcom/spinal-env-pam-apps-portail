@@ -57,7 +57,7 @@ with this file. If not, see
 
 <script lang="ts">
 import { Vue, Component, Prop } from 'vue-property-decorator';
-import type { TGeoItem } from '../SpaceSelector';
+import type { TGeoItem } from '../../../../../global-components/SpaceSelector';
 
 @Component
 class DataTableItem extends Vue {

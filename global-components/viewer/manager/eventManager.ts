@@ -134,7 +134,7 @@ export class EventManager {
 				
 				// const $store = store
 				// const storedItem = $store.state.appDataStore.itemToHide
-				viewerUtils.hideElementsByDbIds(viewer, data.itemToHIde);
+				viewerUtils.hideElementsByDbIds(viewer, data?.itemToHIde);
 				// if (data && data.length > 0) {					
 					
 				// } 

@@ -25,6 +25,7 @@
 import { IConfig, ITemporality, calculTypes } from "./interfaces/IConfig";
 
 export const config: IConfig = {
+  viewButtons: "advanced",
   // entryPoint: { context: "Contexte équipement capteur", category: "Ubigreen", group: "All" },
   // source: { name: "Ubigreen", profileName: "Ubigreen", type: "controlPoint", objectType: "equipments", unit : "" },
   // entryPoint: {

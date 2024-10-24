@@ -386,6 +386,7 @@ import {
   VIEWER_AGGREGATE_SELECTION_CHANGED
 } from 'spinal-viewer-event-manager';
 import { ViewerManager } from '../../../../../global-components/viewer'
+// import { ViewerManager } from '../viewer'
 import moment from 'moment';
 import { getLabels, getValues } from '../../services/calcul/computeChart';
 import 'moment/locale/fr';
@@ -1377,12 +1378,10 @@ export default InsightApp;
       }
 
       .calcul_content {
-        width: 100%;
-        height: $calculContentHeight;
+        width: 100%;        
 
         .calcul {
           width: 100%;
-          height: 30px;
           display: flex;
 
           .select {
@@ -1394,22 +1393,29 @@ export default InsightApp;
           .calculResult {
             display: flex;
             align-items: center;
-            font-size: 13px;
+            height: 10px;
 
             .value {
               margin-right: 1px;
-              font-weight: 900;
+              font-weight: 500;
+              height: 10px;
             }
 
             .text {
               margin-left: 2px;
+              padding : 0px;
+              font-size: 16px;
+              height: 10px;
+              
+              
+              
             }
           }
         }
 
         .color {
           width: 8px;
-          height: 15px;
+          height: 20px;
           margin-right: 5px;
           border-radius: 3px;
         }

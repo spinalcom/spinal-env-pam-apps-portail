@@ -22,7 +22,7 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { ISpaceSelectorItem } from "../../../../components/SpaceSelector";
+import { ISpaceSelectorItem } from "../../../../../../../global-components/SpaceSelector";
 import { IConfig } from "../../../../interfaces/IConfig";
 
 

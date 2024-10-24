@@ -39,7 +39,7 @@ import type {
   IEquipmentItem,
   ISpaceSelectorItem,
   IZoneItem,
-} from "../../../components/SpaceSelector";
+} from "../../../../../../global-components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
 import { IViewInfoItemRes } from "../../spinalAPI/GeographicContext/getViewInfo";
 import {
@@ -55,6 +55,8 @@ import {
 } from "../../spinalAPI/GeographicContext/groupsItems";
 import SpriteManager from "../../../../../../global-components/viewer/manager/spriteManager"
 import ViewerManager from "../../../../../../global-components/viewer/manager/viewerManager";
+// import SpriteManager from "../../../components/viewer/manager/spriteManager";
+// import ViewerManager from "../../../components/viewer/manager/viewerManager";
 import { IConfig } from "../../../interfaces/IConfig";
 import { getSourceValue } from "../../spinalAPI/endpoints/getEndpoints";
 import {

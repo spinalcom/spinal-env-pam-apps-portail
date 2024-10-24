@@ -23,14 +23,14 @@
  */
 
 import { IButton } from "../../interfaces/IConfig";
-import { ActionTypes } from "../../interfaces/vuexStoreTypes";
+import { ActionTypes } from "../VueStore/interfaces/ActionTypes";
 import { config } from "../../config";
 
 const spaceSelectorButtons: { [key: string]: IButton } = {
   load: {
     title: "charger",
     icon: "mdi-video-3d",
-    onclickEvent: ActionTypes.OPEN_VIEWER,
+    onclickEvent: "OPEN_VIEWER",
     isShownTypes: ["geographicFloor"],
   },
 

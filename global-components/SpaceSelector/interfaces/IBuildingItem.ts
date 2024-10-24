@@ -62,3 +62,11 @@ export interface IRefItem extends INodeItem {
 }
 
 export type TGeoItem = IZoneItem | IEquipmentItem;
+
+
+export interface IButton {
+   title: string;
+   icon: string;
+   isShownTypes?: string[]; 
+   onclickEvent?: string;
+}

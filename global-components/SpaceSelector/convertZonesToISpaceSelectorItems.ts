@@ -25,29 +25,26 @@
 import type { TGeoItem } from './interfaces/IBuildingItem';
 import type { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
 
-export function convertZonesToISpaceSelectorItems(
-  arr: TGeoItem[],
-  parent?: ISpaceSelectorItem
-): ISpaceSelectorItem[] {
+export function convertZonesToISpaceSelectorItems(arr: TGeoItem[], parent?: ISpaceSelectorItem): ISpaceSelectorItem[] {
   let drawLink = parent?.drawLink.map((x) => x + 1) || [];
   if (parent?.isLastInGrp === true) drawLink.unshift(1);
   const res = arr.map((item) => {
-    let platformId, patrimoineId;
+    let buildingId, patrimoineId;
     const level = parent ? parent.level + 1 : 0;
-    const parents = parent ? parent.parents.concat(parent?.staticId) : [];
+    const parents = parent ? parent.parents.concat(parent?.dynamicId) : [];
     if (item.type === 'patrimoine') {
       patrimoineId = parent?.staticId || '';
-      platformId = '';
-    } else if (item.type === 'platform') {
+      buildingId = '';
+    } else if (item.type === 'building') {
       patrimoineId = parent?.staticId || '';
-      platformId = item.staticId;
+      buildingId = item.staticId;
     } else {
       patrimoineId = parent?.patrimoineId || '';
-      platformId = parent?.platformId || '';
+      buildingId = parent?.buildingId || '';
     }
     return createISpaceselectorItem(
       item,
-      platformId,
+      buildingId,
       patrimoineId,
       level,
       parents,
@@ -65,16 +62,17 @@ export function convertZonesToISpaceSelectorItems(
 
 export function createISpaceselectorItem(
   item: TGeoItem,
-  platformId: string,
+  buildingId: string,
   patrimoineId: string,
   level: number,
   parents: string[],
   drawLink: number[]
 ): ISpaceSelectorItem {
   return {
+    ...item,
     staticId: item.staticId!,
     name: item.name!,
-    platformId,
+    buildingId,
     patrimoineId,
     level,
     isOpen: false,

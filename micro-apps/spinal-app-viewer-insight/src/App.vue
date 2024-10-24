@@ -100,7 +100,7 @@ with this file. If not, see
 import {
   ISpaceSelectorItem,
   SpaceSelector,
-} from "./components/SpaceSelector/index";
+} from "../../../global-components/SpaceSelector/index";
 import { Vue, Watch } from "vue-property-decorator";
 import { ActionTypes } from "./interfaces/vuexStoreTypes";
 import Component from "vue-class-component";
@@ -110,10 +110,11 @@ import type {
   IButton,
   IZoneItem,
   TGeoItem,
-} from "./components/SpaceSelector/interfaces/IBuildingItem";
+} from "../../../global-components/SpaceSelector/interfaces/IBuildingItem";
 import { DataTable } from "./components/data-table";
-import viewerApp from "../../../global-components/viewer/viewer.vue"
-import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
+ import viewerApp from "../../../global-components/viewer/viewer.vue"
+//import viewerApp from "./components/viewer/viewer.vue";
+import { ViewerButtons } from "../../../global-components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
 import { IConfig, ITemporality } from "./interfaces/IConfig";
 import InsightApp from "./components/inshight_data/app.vue";
