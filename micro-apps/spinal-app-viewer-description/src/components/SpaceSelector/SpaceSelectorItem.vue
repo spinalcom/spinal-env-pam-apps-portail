@@ -101,6 +101,7 @@ class SpaceSelectorItem extends Vue {
   }
 
   onSelect() {
+    this.onMouseLeave()
     if (this.viewButtonsType === 'base') {
       const button = this.getButton();
       if (button) this.$emit("onActionClick", { button, item: this.item });
@@ -109,6 +110,8 @@ class SpaceSelectorItem extends Vue {
   }
 
   onMouseEnter() {
+    console.log(this.item);
+    
     const dynamicId = this.item.dynamicId;
     // Vérifier si l'ID est valide avant d'émettre l'événement
     if (dynamicId) {

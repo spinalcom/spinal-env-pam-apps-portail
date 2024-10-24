@@ -129,6 +129,7 @@ export class ViewerManager {
 	}
 
 	public async getViewerInfo(argItem: IPlayload | IPlayload[], argBuildingId?: string, body?: IViewInfoBody): Promise<any[]> {
+		console.log("dskdskdsklskd")
 		if (typeof this._viewerStores["GET_VIEWER_INFO"] === "undefined") {
 			this._viewerStores["GET_VIEWER_INFO"] = {};
 		}

@@ -89,7 +89,7 @@ import ticketDetails from "./components/data-side/TicketDetails.vue";
 import SpriteComponent from "./components/data-side/FloorSpriteComponent.vue";
 import { SpinalAPI } from "./services/spinalAPI/SpinalAPI";
 import { log } from "console";
-
+import { EventBus } from './components/SpaceSelector/eventBus';
 const COLORS = ["#FF0000", "#FFA500", "#008000"];
 const buildingId = localStorage.getItem("idBuilding") || "";
 const token = localStorage.getItem("token") || "";
@@ -132,7 +132,6 @@ class App extends Vue {
 
 
 
-
   showDetails(ticket) {
     console.log(ticket);
 
@@ -147,6 +146,41 @@ class App extends Vue {
       this.isActive = true;
       this.isActive3D = false;
     }
+
+
+  EventBus.$on('colorRoom', (dynamicId) => {
+      const buildingId = localStorage.getItem("idBuilding");
+
+      const itemsToColor = [{
+        buildingId: buildingId,
+        color: "#24CBD9",
+        dynamicId: dynamicId,
+        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+      }]
+
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: buildingId,
+      });
+
+    });
+
+    EventBus.$on('descolorRoom', (dynamicId) => {
+      const buildingId = localStorage.getItem("idBuilding");
+      
+      const itemsToColor = [{
+        buildingId: buildingId,
+        color: null,
+        dynamicId: dynamicId,
+        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+      }]
+
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: buildingId,
+      });
+
+    });
 
 
     try {

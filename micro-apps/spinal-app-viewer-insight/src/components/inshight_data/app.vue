@@ -711,8 +711,7 @@ class InsightApp extends Vue {
                 this.ignoreViewerSelection=false;
               }
             }
-  
-  
+
             // console.log('viewer_info_room : ', viewer_info_room);
             // console.log('vselected_bimFileId : ', vselected_bimFileId);
             // console.log('vselected_dbIds : ', vselected_dbIds);

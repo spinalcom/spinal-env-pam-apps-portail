@@ -386,12 +386,10 @@ export const actions = {
     }
   },
 
-  [ActionTypes.COLOR_ITEMS](
-    { commit, dispatch, state },
-    { items, buildingId }: any
-  ) {
-    return ViewerManager.getInstance().colorItems(items, buildingId);
-  },
+	[ActionTypes.COLOR_ITEMS]({ commit, dispatch, state }, { items, buildingId }: any) {
+    console.warn(items);
+		return ViewerManager.getInstance().colorItems(items, buildingId);
+	},
 
   [ActionTypes.ADD_SPRITES](
     { commit, dispatch, state },
