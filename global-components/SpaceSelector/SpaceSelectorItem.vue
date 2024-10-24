@@ -101,6 +101,7 @@ class SpaceSelectorItem extends Vue {
   }
 
   onSelect() {
+    this.onMouseLeave()
     if (this.viewButtonsType === 'base') {
       const button = this.getButton();
       if (button) this.$emit("onActionClick", { button, item: this.item });

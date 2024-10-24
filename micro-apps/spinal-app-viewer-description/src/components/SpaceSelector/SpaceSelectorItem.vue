@@ -110,8 +110,6 @@ class SpaceSelectorItem extends Vue {
   }
 
   onMouseEnter() {
-    console.log(this.item);
-    
     const dynamicId = this.item.dynamicId;
     // Vérifier si l'ID est valide avant d'émettre l'événement
     if (dynamicId) {
