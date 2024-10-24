@@ -22,7 +22,7 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import type { IEquipmentItem, IZoneItem } from "../../../components/SpaceSelector";
+import type { IEquipmentItem, IZoneItem } from "../../../../../../global-components/SpaceSelector";
 import type { IViewInfoItemRes } from "../../../services/spinalAPI/GeographicContext/getViewInfo";
 import type { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { defaultTemporalitySelected, defaultZoneSelected } from "./utils/defaultZoneSelected";
