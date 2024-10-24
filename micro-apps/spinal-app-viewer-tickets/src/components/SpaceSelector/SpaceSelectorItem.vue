@@ -31,6 +31,8 @@ with this file. If not, see
     }"
     :style="{ 'margin-left': '' + ((item.level - 1) * 20 + 30) + 'px' }"
     @click.stop="onSelect"
+    @mouseenter="onMouseEnter"
+    @mouseleave="onMouseLeave"
   >
     <!-- link to parent template -->
     <template v-if="item.level > 0">
@@ -110,6 +112,7 @@ import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 import { Vue, Component, Prop } from "vue-property-decorator";
 import { IButton } from "./interfaces/IBuildingItem";
 import { ISpaceSelectorItem } from "./interfaces/ISpaceSelectorItem";
+import { EventBus } from './eventBus';
 
 @Component
 class SpaceSelectorItem extends Vue {
@@ -145,7 +148,23 @@ class SpaceSelectorItem extends Vue {
       : false;
   }
 
+  onMouseEnter() {
+    const dynamicId = this.item.dynamicId;
+    // Vérifier si l'ID est valide avant d'émettre l'événement
+    if (dynamicId) {
+      EventBus.$emit('colorRoom', dynamicId);
+    }
+  }
+  onMouseLeave() {
+    const dynamicId = this.item.dynamicId;
+    // Vérifier si l'ID est valide avant d'émettre l'événement
+    if (dynamicId) {
+      EventBus.$emit('descolorRoom', dynamicId);
+    }
+  }
+
   onSelect() {
+    this.onMouseLeave()
     if (this.viewButtonsType === "base") {
       const button = this.getButton();
       if (button) this.$emit("onActionClick", { button, item: this.item });

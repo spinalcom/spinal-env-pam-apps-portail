@@ -359,7 +359,6 @@ export const actions = {
 
 	async [ActionTypes.OPEN_VIEWER]({ commit, dispatch, state }: AugmentedActionContextAppData, playload: { onlyThisModel: boolean; config: IConfig; item: any }): Promise<void> {		
 		try {
-			console.log('????????????????????????????????');
 			const viewerInfo = playload.config.viewerInfo;
 			const body = {
 				dynamicId: [playload.item.dynamicId],

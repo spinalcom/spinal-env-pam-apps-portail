@@ -107,6 +107,9 @@ export class ViewerManager {
 	}
 
 	public async getViewerInfoMerged(argItem: IPlayload | IPlayload[], body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }): Promise<IViewInfoItemRes[]> {
+		
+		console.log('merged');
+		
 		const datas = await this.getViewerInfo(argItem, undefined, body);
 		const res = [];
 
@@ -125,8 +128,6 @@ export class ViewerManager {
 		if (typeof this._viewerStores["GET_VIEWER_INFO"] === "undefined") {
 			this._viewerStores["GET_VIEWER_INFO"] = {};
 		}
-
-
 		const items = Array.isArray(argItem) ? argItem : [argItem];
 		const buildingId = argBuildingId || items[0].buildingId;
 		const ids = items.map((el) => el.dynamicId);

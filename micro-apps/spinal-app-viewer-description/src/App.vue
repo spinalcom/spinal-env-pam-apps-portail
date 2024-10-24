@@ -150,12 +150,14 @@ class App extends Vue {
     EventBus.$on('colorRoom', (dynamicId) => {
       const buildingId = localStorage.getItem("idBuilding");
 
+
+      console.log('ID de la pièce à colorer:', dynamicId);
       const itemsToColor = [{
         buildingId: buildingId,
         color: "#24CBD9",
         dynamicId: dynamicId,
         endpoint: {},
-        floorId: this.query.spaceSelectedId,
+        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
         name: "122-Bureau 1 B5",
         navIndex: 0,
         position: {},
@@ -180,7 +182,7 @@ class App extends Vue {
         color: null,
         dynamicId: dynamicId,
         endpoint: {},
-        floorId: this.query.spaceSelectedId,
+        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
         name: "122-Bureau 1 B5",
         navIndex: 0,
         position: {},
@@ -302,7 +304,8 @@ class App extends Vue {
       console.warn(button, '/////////////////////////////////////////////////////////////////////////////////////////////////////////');
 
       this.onActionClick({ button, item })
-
+      console.log('totot');
+      
 
       const itemToSelect = {
         "isOpen": false,
