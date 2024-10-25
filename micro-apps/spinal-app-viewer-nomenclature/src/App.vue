@@ -41,9 +41,11 @@ with this file. If not, see
             <label for="checkbox"></label> -->
 
             <!-- <v-checkbox v-model="dataFromTab" label="Séléctionner les données avec tout les attributs"></v-checkbox> -->
-            <v-radio-group  class="ml-4" v-model="dataFromTab">
-              <v-radio label="Télécharger les données du tableau, sans appliquer les filtres d'attributs." value="all"></v-radio>
-              <v-radio class="mb-1" label="Télécharger les données du tableau en appliquant les filtres d'attributs." value="tab"></v-radio>
+            <v-radio-group class="ml-4" v-model="dataFromTab">
+              <v-radio label="Télécharger les données du tableau, sans appliquer les filtres d'attributs."
+                value="all"></v-radio>
+              <v-radio class="mb-1" label="Télécharger les données du tableau en appliquant les filtres d'attributs."
+                value="tab"></v-radio>
             </v-radio-group>
 
           </div>
@@ -92,7 +94,7 @@ with this file. If not, see
 import {
   ISpaceSelectorItem,
   SpaceSelector,
-} from "./components/SpaceSelector/index";
+} from "../../../global-components/SpaceSelector/index";
 import { Vue, Watch } from "vue-property-decorator";
 import { ActionTypes } from "./interfaces/vuexStoreTypes";
 import Component from "vue-class-component";
@@ -102,10 +104,11 @@ import type {
   IButton,
   IZoneItem,
   TGeoItem,
-} from "./components/SpaceSelector/interfaces/IBuildingItem";
+} from "../../../global-components/SpaceSelector/interfaces/IBuildingItem";
 import viewerApp from "../../../global-components/viewer/viewer.vue";
 import ScDownloadButton from "spinal-components/src/components/DownloadButton.vue";
-import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
+import { ViewerButtons } from "../../../global-components/SpaceSelector/spaceSelectorButtons";
+import { EventBus } from '../../../global-components/SpaceSelector/eventBus';
 import { config } from "./config";
 import { IConfig } from "./interfaces/IConfig";
 import { PAGE_STATES } from "./interfaces/pageStates";
@@ -158,6 +161,41 @@ class App extends Vue {
   DownloadCsv: string = "XLS";
 
   async mounted() {
+
+    EventBus.$on('colorRoom', (dynamicId) => {
+      const buildingId = localStorage.getItem("idBuilding");
+
+      const itemsToColor = [{
+        buildingId: buildingId,
+        color: "#24CBD9",
+        dynamicId: dynamicId,
+        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+      }]
+
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: buildingId,
+      });
+
+    });
+
+    EventBus.$on('descolorRoom', (dynamicId) => {
+      const buildingId = localStorage.getItem("idBuilding");
+
+      const itemsToColor = [{
+        buildingId: buildingId,
+        color: null,
+        dynamicId: dynamicId,
+        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+      }]
+
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: buildingId,
+      });
+
+    });
+
     try {
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();
@@ -183,7 +221,6 @@ class App extends Vue {
 
   public set selectedZone(v: ISpaceSelectorItem) {
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
-
     // if (v.type.includes("geographic")) {
     //   this.$store.dispatch(ActionTypes.OPEN_VIEWER, v);
     // }
@@ -224,7 +261,7 @@ class App extends Vue {
         ];
 
         const [building, items] = await Promise.all(promises);
-        
+
         return [
           {
             name: building.name,
@@ -298,8 +335,6 @@ class App extends Vue {
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
     if (!item) return;
 
-    console.log(item , 'check');
-    
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
@@ -317,13 +352,13 @@ class App extends Vue {
   onActionClick({ button, item }) {
     console.warn("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", item);
     // button.onclickEvent = "OPEN_VIEWER"
-    
+
     const data = {
       buildingId: item.buildingId, //important viewer
       // staticId: item.staticId,//can
       // id: item.dynamicId,
       dynamicId: item.dynamicId,//important viewer
-      parents:item.parents
+      parents: item.parents
       // floorId: item.floorId,//can
       // roomId: item.roomId,//can
       // type: item.type,//can
@@ -331,7 +366,7 @@ class App extends Vue {
 
     switch (button.onclickEvent) {
       case ActionTypes.OPEN_VIEWER:
-      console.log('laaaaaaaaaaaalalaalallalalalalalalalala');
+        console.log('laaaaaaaaaaaalalaalallalalalalalalalala');
         this.$store.dispatch(button.onclickEvent, {
           onlyThisModel: true,
           config: this.config,
@@ -347,7 +382,7 @@ class App extends Vue {
         });
         break;
       case "OPEN_VIEWER_PLUS":
-      console.log('uvuvuvuvvuuvvuvuvuvuvuuvvuvuvuvuvuvuvuuvv');
+        console.log('uvuvuvuvvuuvvuvuvuvuvuuvvuvuvuvuvuvuvuuvv');
         this.$store.dispatch(ActionTypes.OPEN_VIEWER, {
           onlyThisModel: false,
           config: this.config,
@@ -380,8 +415,8 @@ class App extends Vue {
   public getDataFormatted() {
     const d = [this._getHeader(), ...this._getRows(this.$store.state.appDataStore.dlData)];
     return this.$store.state.appDataStore.dlData || [];
-   
-    
+
+
   }
 
   private _getHeader() {
@@ -455,7 +490,7 @@ export default App;
 
 // ::v-deep .v-input--radio-group--column .v-input--radio-group__input 
 
-::v-deep > div > div.selectors > div:nth-child(2) > div > div.v-input.ml-4.v-input--is-label-active.v-input--is-dirty.theme--light.v-input--selection-controls.v-input--radio-group.v-input--radio-group--column > div > div.v-input__slot > div{
+::v-deep>div>div.selectors>div:nth-child(2)>div>div.v-input.ml-4.v-input--is-label-active.v-input--is-dirty.theme--light.v-input--selection-controls.v-input--radio-group.v-input--radio-group--column>div>div.v-input__slot>div {
   flex-direction: row;
 }
 
@@ -522,7 +557,7 @@ export default App;
       width: 100px;
       height: 30px;
       border-radius: 5px;
-      transform: translate(0,-10px);
+      transform: translate(0, -10px);
       // bottom: ;
       right: 10px;
       align-self: flex-end;

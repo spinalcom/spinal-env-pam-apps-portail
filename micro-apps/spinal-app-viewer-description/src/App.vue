@@ -159,10 +159,13 @@ class App extends Vue {
         floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
       }]
 
-      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
-        items: itemsToColor,
-        buildingId: buildingId,
-      });
+      if (this.$store.state.appDataStore.zoneSelected.dynamicId != dynamicId) {
+        this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+          items: itemsToColor,
+          buildingId: buildingId,
+        });
+      }
+
 
     });
 

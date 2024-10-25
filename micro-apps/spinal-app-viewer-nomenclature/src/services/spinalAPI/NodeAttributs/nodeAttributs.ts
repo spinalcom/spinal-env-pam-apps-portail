@@ -3,12 +3,6 @@ import { store } from '../../store/index';
 import { MutationTypes } from '../../store/appDataStore/mutations';
 
 
-import type {
-    IZoneItem,
-    IRoomPositionRes,
-
-} from '../../../components/SpaceSelector/interfaces/IBuildingItem';
-
 export async function updateMultipleAttributes(buildingId: string, formattedData: any[]): Promise<any> {
     // console.log('arrivé dans node attribut');
     

@@ -37,7 +37,8 @@ import type {
     IZoneItem,
     IRoomPositionRes,
 
-} from '../../../components/SpaceSelector/interfaces/IBuildingItem';
+} from '../../../../../../global-components/SpaceSelector/interfaces/IBuildingItem';
+
 import { error, log, warn } from 'console';
 import { logTypes } from "micro-apps/spinal-env-pam-websocket-state/src/store/constants";
 

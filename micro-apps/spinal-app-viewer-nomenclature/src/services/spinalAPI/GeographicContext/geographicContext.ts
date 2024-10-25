@@ -28,7 +28,7 @@ import type {
   IZoneItem,
   IEquipmentItem,
   IRefItem,
-} from '../../../components/SpaceSelector/interfaces/IBuildingItem';
+} from '../../../../../../global-components/SpaceSelector/interfaces/IBuildingItem';
 
 export async function getBuilding(platformId: string) {
   const spinalAPI = SpinalAPI.getInstance();

@@ -28,7 +28,7 @@ import type {
     IEquipmentItem,
     IBuildingItem,
     IZoneItem
-} from '../../../components/SpaceSelector/interfaces/IBuildingItem';
+} from '../../../../../../global-components/SpaceSelector/interfaces/IBuildingItem';
 
 
 
