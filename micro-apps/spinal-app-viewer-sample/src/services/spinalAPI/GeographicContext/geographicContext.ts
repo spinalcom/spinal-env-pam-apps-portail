@@ -28,7 +28,7 @@ import type {
   IZoneItem,
   IEquipmentItem,
   IRefItem,
-} from '../../../../../../global-components/SpaceSelector/interfaces/IBuildingItem';;
+} from '../../../../../../global-components/SpaceSelector/interfaces/IBuildingItem';
 
 export async function getBuilding(platformId: string) {
   const spinalAPI = SpinalAPI.getInstance();
@@ -193,6 +193,19 @@ export async function postDownloadFile(buildingId: string, referenceIds: any): P
 export async function getRooms(patrimoineId: string, buildingId: string, floorId: string, floorDynId: number): Promise<IZoneItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/floor/${floorDynId}/room_list`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  const res = result.data.map((obj) => {
+    Object.assign(obj, { patrimoineId, buildingId, floorId, color: '#ded638' });
+    return obj;
+  });
+  return res;
+}
+
+export async function getEquipmentGroup(patrimoineId: string, buildingId: string, floorId: string, floorDynId: number): Promise<IZoneItem[]> {
+  // console.log('TESSSST55555');
+  
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipementsGroup/list`);
   let result = await spinalAPI.get<IZoneItem[]>(url);
   const res = result.data.map((obj) => {
     Object.assign(obj, { patrimoineId, buildingId, floorId, color: '#ded638' });

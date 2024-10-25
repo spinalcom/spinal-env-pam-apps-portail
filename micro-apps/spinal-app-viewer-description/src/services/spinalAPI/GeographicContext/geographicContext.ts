@@ -201,6 +201,19 @@ export async function getRooms(patrimoineId: string, buildingId: string, floorId
   return res;
 }
 
+export async function getEquipmentGroup(patrimoineId: string, buildingId: string, floorId: string, floorDynId: number): Promise<IZoneItem[]> {
+  // console.log('TESSSST55555');
+  
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipementsGroup/list`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  const res = result.data.map((obj) => {
+    Object.assign(obj, { patrimoineId, buildingId, floorId, color: '#ded638' });
+    return obj;
+  });
+  return res;
+}
+
 export async function getEquipments(patrimoineId: string, buildingId: string,floorId: string, roomId : string, roomDynId: number): Promise<IEquipmentItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/room/${roomDynId}/equipement_list`);

@@ -23,9 +23,9 @@
  */
 
 import { SpinalAPI } from '../SpinalAPI';
-import { sceneDefaut } from '../../../services/spinalAPI/BIM/sceneDefault';
-import { getBIMFileContext } from '../../../services/spinalAPI/BIM/BIMFileContext';
-import { ISpaceSelectorItem } from '../../../../../../global-components/SpaceSelector';
+import { sceneDefaut } from '../BIM/sceneDefault';
+import { getBIMFileContext } from '../BIM/BIMFileContext';
+import type { IEquipmentItem, IZoneItem, ISpaceSelectorItem } from "../../../../../../global-components/SpaceSelector";
 
 export interface IViewInfoBody {
   dynamicId: number | number[];

@@ -1,5 +1,6 @@
 <template>
   <div style="cursor: pointer;" @click="onClick" ref="container" class="sprite_container">
+
     <div class="sprite_color" :style="{ ...dynamicStyle }"></div>
     <div v-if="data.attr"
       style="border-radius: 10px;top: 2px;left: 5px;text-overflow: ellipsis;max-width: 140px;white-space: nowrap;overflow: hidden;position: absolute;border-radius: 10px !important;min-width: 20px;height: 12px;background-color: rgb(255, 255, 255);color: black;padding-bottom: 4px;padding-left: 15px;font-size: 12px;padding-right: 5px;z-index: -1;"
@@ -18,8 +19,8 @@
         style="background-color: white;position: absolute;right:0px;top: 50%;transform: translate(80%,-50%);width: 28px;display: flex;justify-content: center;align-items: center;border-radius: 30px;font-size: 18px;">
         > </div>
       <div style="display: flex;flex-direction: column;padding-right: 5px;" class="mt-4 ml-4">
-        <span @click.stop="onClose"
-          style="font-size:15px; color: rgb(0, 0, 0);position: absolute;right: 15px;top:12px; font-weight:bold;">X</span>
+        <v-button @click.stop="onClose"
+          style="font-size:15px; color: rgb(0, 0, 0);position: absolute;right: 15px;top:12px; font-weight:bold;">X</v-button>
 
         <span style="font-size: 16px;font-weight: bold;padding-bottom: 20px;">{{ data.name }}</span>
       </div>
@@ -105,6 +106,17 @@ export default {
       }
     });
 
+    setTimeout(() => {
+      const button = this.$refs.container;
+      // const navigation = this.$refs.navigationButton;
+      if (button) {
+        button.addEventListener('click', this.onClick);
+      }
+      // if (navigation) {
+      //   navigation.addEventListener('click', this.onClickNavigate);
+      // }
+    }, 1);
+
     // document.addEventListener('click', this.handleOutsideClick);
 
   },
@@ -154,6 +166,8 @@ export default {
       this.showAttr = false;
       this._isNotSelected();
     },
+
+
 
     onClick() {
       this.isClicked = true;
@@ -347,7 +361,7 @@ export default {
   transition: 0.2s
 }
 
-.sprite_color:hover{
+.sprite_color:hover {
   transform: scale(1.5);
 }
 

@@ -147,8 +147,6 @@ class App extends Vue {
 
     this.initializeEventHandlers();
 
-
-
     EventBus.$on('colorRoom', (dynamicId) => {
       const buildingId = localStorage.getItem("idBuilding");
 
@@ -165,8 +163,6 @@ class App extends Vue {
           buildingId: buildingId,
         });
       }
-
-
     });
 
     EventBus.$on('descolorRoom', (dynamicId) => {
