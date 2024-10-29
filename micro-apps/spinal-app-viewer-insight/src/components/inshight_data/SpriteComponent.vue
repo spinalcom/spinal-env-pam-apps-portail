@@ -330,7 +330,7 @@ export default {
   padding-left: 15px;
   padding-right: 5px;
   padding-bottom: 1px;
-  height: 15px;
+  height: 20px;
   font-size: 14px;
   background: #f9f9f9;
   z-index: 1;

@@ -31,10 +31,11 @@ with this file. If not, see
         class="d-flex flex-column justify-space-around align-center"
         style="
           position: absolute;
+          top: 0px;
           left: -75px;
           width: 70px;
           min-width: 70px !important;
-          height: 175px;
+          height: 160px;
           z-index: 2;
           
         "
@@ -560,6 +561,8 @@ class InsightApp extends Vue {
     return values.reduce((acc, val) => acc + val, 0) / values.length;
   }
 
+
+
   // updateChartData() {
   //   const result: any[] = [];
   //   const t_index = this.t_index;
@@ -623,10 +626,8 @@ class InsightApp extends Vue {
           }
           console.log('series : ', series);
         }
-        // const obj = {}
-        // obj[lab] = timestampValues;
-        // return obj;
-        return { x: lab, y: this.getMean(timestampValues) };
+        console.log('calculTotal : ', calculateTotal(timestampValues,this.calculMode));
+        return { x: lab, y: calculateTotal(timestampValues,this.calculMode) };
       })
 
       //console.log('data!!! : ', data);
@@ -705,14 +706,13 @@ class InsightApp extends Vue {
               if( room_bimFileId === vselected_bimFileId && room_dbIds.includes(vselected_dbIds[0])){
                 const matching_room = rooms.find(el => el.dynamicId === viewer_info_room.dynamicId)
                 // console.log('matching_room : ', matching_room);
-                this.ignoreViewerSelection=true;
+                
                 this.selectedItem = matching_room;
                 this.$store.commit(MutationTypes.SET_ITEM_SELECTED, matching_room);
                 await this.$store.dispatch(ActionTypes.SELECT_SPRITES, [matching_room.dynamicId]);
-                this.ignoreViewerSelection=false;
+                
               }
             }
-
             // console.log('viewer_info_room : ', viewer_info_room);
             // console.log('vselected_bimFileId : ', vselected_bimFileId);
             // console.log('vselected_dbIds : ', vselected_dbIds);
@@ -1015,11 +1015,11 @@ class InsightApp extends Vue {
     }else {
       this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
     }
-
-    //console.log('selectDataView :', item.children || item);
-     this.$store.dispatch(ActionTypes.SELECT_ITEMS, item.children || item); // select the item(s) in the viewer
-    
-    
+    this.ignoreViewerSelection=true;
+    this.$store.dispatch(ActionTypes.SELECT_ITEMS, item.children || item); // select the item(s) in the viewer
+    setTimeout(() => {
+      this.ignoreViewerSelection=false;
+    }, 500);
     
     //this.$emit('clickOnDataView', item);
     // if(item.children) {
@@ -1332,6 +1332,7 @@ export default InsightApp;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      padding:10px;
 
       .title_date {
         width: 100%;
@@ -1397,14 +1398,14 @@ export default InsightApp;
             .value {
               margin-right: 1px;
               font-weight: 500;
-              height: 10px;
+              height: 15px;
             }
 
             .text {
               margin-left: 2px;
               padding : 0px;
-              font-size: 16px;
-              height: 10px;
+              font-size: 15px;
+              height: 15px;
               
               
               

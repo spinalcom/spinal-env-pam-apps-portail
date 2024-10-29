@@ -141,12 +141,13 @@ import { GroupRoomWithChildrenController } from './controllers';
 /**
  * * Components
  */
+
 import {
   ISpaceSelectorItem,
   SpaceSelector,
-} from './components/SpaceSelector/index';
+} from '../../../global-components/SpaceSelector/index';
 import ScDownloadButton from 'spinal-components/src/components/DownloadButton.vue';
-import { ViewerButtons } from './components/SpaceSelector/spaceSelectorButtons';
+import { ViewerButtons } from '../../../global-components/SpaceSelector/spaceSelectorButtons';
 import viewerApp from '../../../global-components/viewer/viewer.vue';
 import dataSideApp from './components/data-side/App.vue';
 import ModaleEditGroup from './components/data-side/Modales/EditGroupModale.vue';
@@ -168,11 +169,6 @@ import RoomsGroupTable from './components/data-side/RoomsGroup/RoomsGroupTable.v
 import { ActionTypes } from './interfaces/vuexStoreTypes';
 import { IConfig } from './interfaces/IConfig';
 import { PAGE_STATES } from './interfaces/pageStates';
-import type {
-  IButton,
-  IZoneItem,
-  TGeoItem,
-} from './components/SpaceSelector/interfaces/IBuildingItem';
 import { ExpansionMode, IItemV1 } from './interfaces';
 /**
  * * Other

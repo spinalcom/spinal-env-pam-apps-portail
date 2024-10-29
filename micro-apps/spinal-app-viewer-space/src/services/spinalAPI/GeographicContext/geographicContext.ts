@@ -23,12 +23,7 @@
  */
 
 import { SpinalAPI } from "../SpinalAPI";
-import type {
-  IBuildingItem,
-  IZoneItem,
-  IEquipmentItem,
-  IRefItem,
-} from "../../../components/SpaceSelector/interfaces/IBuildingItem";
+
 
 export async function getBuilding(platformId: string) {
   const spinalAPI = SpinalAPI.getInstance();

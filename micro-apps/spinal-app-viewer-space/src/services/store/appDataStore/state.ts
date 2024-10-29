@@ -22,7 +22,6 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import type { IEquipmentItem, IZoneItem } from "../../../components/SpaceSelector";
 import type { IViewInfoItemRes } from "../../spinalAPI/GeographicContext/getViewInfo";
 import type { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { defaultTemporalitySelected, defaultZoneSelected } from "./utils/defaultZoneSelected";
