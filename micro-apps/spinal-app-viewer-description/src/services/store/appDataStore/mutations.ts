@@ -22,7 +22,7 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import type { IEquipmentItem, IZoneItem, ISpaceSelectorItem } from "../../../components/SpaceSelector";
+import type { IEquipmentItem, IZoneItem, ISpaceSelectorItem } from "../../../../../../global-components/SpaceSelector";
 import type { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { IViewInfoItemRes } from "../../../services/spinalAPI/GeographicContext/getViewInfo";
 import type { MutationTree } from "vuex";

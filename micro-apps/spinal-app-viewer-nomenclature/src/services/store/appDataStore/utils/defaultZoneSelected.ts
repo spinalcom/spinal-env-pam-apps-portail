@@ -22,11 +22,6 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import type {
-  ICategoriesItem,
-  ISpaceSelectorItem,
-} from 'src/components/SpaceSelector';
-
 export function defaultZoneSelected(): ISpaceSelectorItem {
   return {
     buildingId: '',

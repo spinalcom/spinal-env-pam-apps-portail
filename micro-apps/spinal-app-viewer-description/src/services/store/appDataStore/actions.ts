@@ -27,7 +27,7 @@ import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
 import { getEquipments, getFloors, getRooms, getStaticDetails, getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails, postBIMObjectInfo, getBuildingInfo, getBuildingStaticDetails,getDocumentation, postDownloadFile , getParent , getAttributListMultiple , getNodeRead  , getTicket , getpositionEquipement , getpositionRoom} from "../../spinalAPI/GeographicContext/geographicContext";
-import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../components/SpaceSelector";
+import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../../../../global-components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
 import { getMultipleReferenceObjects } from "../../spinalAPI/GeographicContext/getObjectList";
 import { getBIMObjectInfo } from "../../spinalAPI/BIM/BIMFileContext";

@@ -33,7 +33,7 @@ import { getGroupContext, getGroupContextCategoryList, getGroupContextGroupList,
 import {updateMultipleAttributes } from "../../spinalAPI/NodeAttributs/nodeAttributs";
 
 import { getEquipmentGroup, getCategoryList, getGroupList, getequipementList } from "../../spinalAPI/EquipementsGroup/equipementsGroup";
-import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../components/SpaceSelector";
+import type { IEquipmentItem, IZoneItem, ISpaceSelectorItem } from "../../../../../../global-components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
 import { IViewInfoBody, IViewInfoItemRes } from "../../spinalAPI/GeographicContext/getViewInfo";
 import { ActionTypes, ApiIteratorStoreRecordNumberType, ApiIteratorStoreRecordStringType, ApiIteratorStoreType, AugmentedActionContextAppData } from "../../../interfaces/vuexStoreTypes";

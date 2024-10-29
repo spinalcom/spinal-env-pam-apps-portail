@@ -59,7 +59,7 @@ with this file. If not, see
 import {
   ISpaceSelectorItem,
   SpaceSelector,
-} from "./components/SpaceSelector/index";
+} from "../../../global-components/SpaceSelector/index";
 import { Vue, Watch } from "vue-property-decorator";
 import { ActionTypes } from "./interfaces/vuexStoreTypes";
 import Component from "vue-class-component";
@@ -69,13 +69,14 @@ import type {
   IButton,
   IZoneItem,
   TGeoItem,
-} from "./components/SpaceSelector/interfaces/IBuildingItem";
+} from "../../../global-components/SpaceSelector/interfaces/IBuildingItem";
 // import viewerApp from "./components/viewer/viewer.vue";
 import viewerApp from "../../../global-components/viewer/viewer.vue";
 import ScDownloadButton from "spinal-components/src/components/DownloadButton.vue";
-import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
+import { ViewerButtons } from "../../../global-components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
 import { IConfig } from "./interfaces/IConfig";
+import { EventBus } from '../../../global-components/SpaceSelector/eventBus';
 import { PAGE_STATES } from "./interfaces/pageStates";
 import {
   EmitterViewerHandler,
@@ -125,6 +126,40 @@ class App extends Vue {
     buildingId: ''
   };
   async mounted() {
+
+    EventBus.$on('colorRoom', (dynamicId) => {
+      const buildingId = localStorage.getItem("idBuilding");
+
+      const itemsToColor = [{
+        buildingId: buildingId,
+        color: "#24CBD9",
+        dynamicId: dynamicId,
+        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+      }]
+
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: buildingId,
+      });
+
+    });
+
+    EventBus.$on('descolorRoom', (dynamicId) => {
+      const buildingId = localStorage.getItem("idBuilding");
+
+      const itemsToColor = [{
+        buildingId: buildingId,
+        color: null,
+        dynamicId: dynamicId,
+        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+      }]
+
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: buildingId,
+      });
+
+    });
 
     try {
       this.pageSate = PAGE_STATES.loading;
