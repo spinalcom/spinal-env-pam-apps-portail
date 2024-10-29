@@ -122,6 +122,7 @@ export default SelectComponent;
 .headerSelect {
   width: 100%;
   height: 100%;
+  position: relative;
   // display: flex;
   // align-items: center;
   // border-radius: 10px;
