@@ -137,6 +137,7 @@ class App extends Vue {
     spaceSelectedId: '',
     buildingId: ''
   };
+  firstCOlor: boolean = false;
   coloredRoom: null
   floor: any = null
   async mounted() {
@@ -157,11 +158,15 @@ class App extends Vue {
         floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
       }]
 
-      if (this.$store.state.appDataStore.zoneSelected.dynamicId != dynamicId) {
-        this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
-          items: itemsToColor,
-          buildingId: buildingId,
-        });
+      if (this.firstCOlor == false) {
+        this.firstCOlor = true
+      } else {
+        if (this.$store.state.appDataStore.zoneSelected.dynamicId != dynamicId) {
+          this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+            items: itemsToColor,
+            buildingId: buildingId,
+          });
+        }
       }
     });
 
@@ -253,8 +258,6 @@ class App extends Vue {
   }
 
   applyURLParam(query) {
-    console.log('apply url parame ??');
-
 
     this.query.mode = query.mode
     this.query.buildingId = query.buildingId

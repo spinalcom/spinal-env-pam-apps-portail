@@ -111,14 +111,12 @@ class SpaceSelectorItem extends Vue {
 
   onMouseEnter() {
     const dynamicId = this.item.dynamicId;
-    // Vérifier si l'ID est valide avant d'émettre l'événement
     if (dynamicId) {
       EventBus.$emit('colorRoom', dynamicId);
     }
   }
   onMouseLeave() {
     const dynamicId = this.item.dynamicId;
-    // Vérifier si l'ID est valide avant d'émettre l'événement
     if (dynamicId) {
       EventBus.$emit('descolorRoom', dynamicId);
     }

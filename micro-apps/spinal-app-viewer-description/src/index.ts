@@ -32,11 +32,14 @@ import Vuetify from "vuetify";
 import { store } from "./services/store";
 import FloatingVue from "floating-vue";
 import "floating-vue/dist/style.css";
-
+import SpinalComponents from "spinal-components";
+import "spinal-components/dist/spinal-components.css";
 import "vuetify/dist/vuetify.min.css";
 
 Vue.use(FloatingVue);
 Vue.use(Vuetify);
+Vue.use(SpinalComponents, {});
+
 const vuetify = new Vuetify({
 	theme: {
 		themes: {

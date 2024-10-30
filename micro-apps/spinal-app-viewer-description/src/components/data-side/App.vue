@@ -107,6 +107,7 @@ with this file. If not, see
       </div>
     </div>
 
+
     <div class="inventory">
       <div v-if="selection == 'Vue Globale'">
         <div v-if="inventoyList">
@@ -229,7 +230,8 @@ with this file. If not, see
                 </h3>
                 <div class="category-attributes"
                   style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
-                  <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{ attr.value
+                  <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
+                    attr.value
                     }}
                   </li>
                 </div>
@@ -294,23 +296,39 @@ with this file. If not, see
       <!-- {{ floorstaticDetails }} -->
 
       <!-- ONGLET INDICATEUR (controleEndpoint) indicateur -->
-      <div v-if="selection == 'Indicateur'">
-        <div v-for="(item, index) in floorstaticDetails[0].controlEndpoint" class="blocInformation">
-          <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">{{
-            item.profileName }}</span>
-          <div v-if="floorstaticDetails[0].controlEndpoint == null"
-            style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px ; margin-bottom: 10px;">
-            <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
-          </div>
-          <div v-else class="inventory-container">
-            <div class="inventory-item"
-              style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
-              v-for="(item, index2) in floorstaticDetails[0].controlEndpoint[index].endpoints">
-              <li> {{ item.name }}: {{ item.value }}</li>
+      <div style="display: flex">
+        <!-- <div v-if="ActiveData && selection == 'Indicateur'" class="graphContainer">
+          <sc-line-card :title="'title'" :labels="'labelDisplay'" :datasets="'chartData'" :step="'labels.length / 4'"
+            :tooltipCallbacks="{
+              title: (context) => { },
+              label: (tooltipItem) => { },
+              footer: (data) => { },
+            }"></sc-line-card>
+        </div> -->
+
+        <div style="width: 100%;" v-if="selection == 'Indicateur'">
+          <div v-for="(item, index) in floorstaticDetails[0].controlEndpoint" class="blocInformation">
+            <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">{{
+              item.profileName }}</span>
+            <div v-if="floorstaticDetails[0].controlEndpoint == null"
+              style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px ; margin-bottom: 10px;">
+              <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
+            </div>
+            <div v-else>
+              <div class="inventory-container"
+                v-for="(item, index2) in floorstaticDetails[0].controlEndpoint[index].endpoints" :key="index2">
+                <div @click="graphInfoCp(item.dynamicId)" class="inventory-item"
+                  :style="{ width: '100%', color: '#14202c', padding: '16px', borderRadius: '5px', paddingLeft: '6px', cursor: cpIdToDraw.includes(item.dynamicId) ? '' : '', backgroundColor: cpIdToDraw.includes(item.dynamicId) ? '' : '', boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px' }">
+
+                  <li>{{ item.name }}: {{ item.value }}</li>
+
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
 
       <!-- ONGLET DOCUMENTATION -->
       <div v-if="selection == 'Documentation'">
@@ -374,8 +392,8 @@ with this file. If not, see
         </div>
       </div>
     </div>
-  </div>
 
+  </div>
 </template>
 
 <script lang="ts">
@@ -441,6 +459,7 @@ class dataSideApp extends Vue {
   eyes: [] = [];
   referencedId: any = 0;
   referencedType: any = 'building';
+  cpIdToDraw: []
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
@@ -459,6 +478,7 @@ class dataSideApp extends Vue {
 
     return items;
   }
+
 
   resize() {
     setTimeout(() => {
@@ -481,12 +501,12 @@ class dataSideApp extends Vue {
     this.$store.commit(MutationTypes.SET_ITEM_TO_HIDE, numbers);
 
     console.error(numbers);
-    
+
     const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query };
     const data = {
       buildingId: this.selectedZone.staticId,
       dynamicId: currentQuery.spaceSelectedId,
-      itemToHIde : numbers
+      itemToHIde: numbers
     };
 
     this.$store.dispatch(ActionTypes.HIDE_ITEMS, {
@@ -753,7 +773,7 @@ class dataSideApp extends Vue {
     this.createApp(result)
     this.$forceUpdate();
   }
-  //TODO , ici l'erreur , de getroomstaticdetails
+
   async getroomstaticdetails(id) {
 
     const buildingId = localStorage.getItem("idBuilding");
@@ -911,7 +931,7 @@ class dataSideApp extends Vue {
 
 
   filtredAttribut(type) {
-    console.log('%c Oh lllllllllles textttt! ', 'background: #222; color: #bada55', type);
+    // console.log('%c Oh lllllllllles textttt! ', 'background: #222; color: #bada55', type);
     this.getParentAttribut();
     let data = this.floorstaticDetails[0].attributsList
     let attributProfil = [];
@@ -1091,6 +1111,23 @@ class dataSideApp extends Vue {
 
   }
 
+  graphInfoCp(dyn) {
+
+    if (this.cpIdToDraw.includes(dyn)) {
+      console.log('aaaa',dyn);
+      const buildingId = localStorage.getItem("idBuilding");
+      const promises = [
+      this.$store.dispatch(ActionTypes.GET_TIMES_SERIES, {
+        buildingId,
+        referenceIds
+      }),
+    ];
+
+    }
+
+  }
+
+
   closeeyes(index) {
     const indexPosition = this.eyes.indexOf(index);
     if (indexPosition === -1) {
@@ -1173,6 +1210,35 @@ class dataSideApp extends Vue {
     }
   }
 
+  @Watch("floorstaticDetails")
+  async watchFloorstaticDetails(newVal, oldVal) {
+    console.warn('toto ', newVal[0].controlEndpoint);
+
+    const dynamicIds = newVal[0].controlEndpoint.flatMap(profile => profile.endpoints.map(endpoint => endpoint.dynamicId));
+    console.warn('toto ', dynamicIds);
+    const buildingId = localStorage.getItem("idBuilding");
+    const parentDocPromise = [
+      this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
+        buildingId,
+        referenceIds: dynamicIds,
+      }),
+    ];
+    const attribut = await Promise.all(parentDocPromise);
+    console.warn('les attribut des nodes : -------------------------', attribut[0]);
+
+    const attributs = attribut[0]
+      .filter(element =>
+        element.categoryAttributes.some(category =>
+          category.attributs.some(attribute => attribute.label === "saveTimeSeries" && attribute.value === 1)
+        )
+      )
+      .map(element => element.dynamicId);
+
+    console.warn('-------------------------------AAATTTRRRR', attributs);
+    this.cpIdToDraw = attributs
+
+  }
+
   @Watch("data")
   watchData() {
     this.referencedId = 0;
@@ -1227,6 +1293,26 @@ export { dataSideApp };
 export default dataSideApp;
 </script>
 <style lang="scss">
+.graphDataContainer {
+  display: flex;
+  /* Enables flexbox layout */
+  justify-content: space-between;
+  /* Creates space between the two components */
+  width: 100%;
+  height: 100%;
+
+}
+
+.graphContainer {
+  border-radius: 0px;
+  width: 160%;
+  height: 100%;
+  display: flex;
+  /* Enables flexible layout */
+  padding: 10px;
+}
+
+
 .back_blanc {
   margin: 6px;
   color: #14202c;
