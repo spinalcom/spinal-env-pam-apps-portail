@@ -155,8 +155,12 @@ class SpaceSelectorItem extends Vue {
   }
 
   getButton() {
-    console.error(this.item.type, '////////////////////////////////////////////////////////////////////////////////////////////////////////////////');
-    if (this.item.type === "building") return;
+    console.log("Space Selector button pressed on item : ",this.item, " of type", this.item.type );
+    if (this.item.type === "building") {
+      return;
+      //return this.spaceSelectorItemButtons.find(el => el.onclickEvent === "OPEN_VIEWER");
+      //!! Add logic to load building
+    }
 
 
 

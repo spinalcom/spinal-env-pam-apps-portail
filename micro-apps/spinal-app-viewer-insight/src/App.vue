@@ -439,6 +439,7 @@ class App extends Vue {
   // }
 
   onActionClick({ button, item }) {
+   // console.log(" insight onActionClick", button, item);
     const data = {
       buildingId: item.buildingId,
       staticId: item.staticId,
