@@ -25,9 +25,7 @@ with this file. If not, see
   <v-list-item tabindex="-1" class="space-selector-list-item card-hover fade"
     :class="{ ['space-selector-list-item-level-' + item.level]: true, 'space-selector-list-item-isopen': item.isOpen && item.haveChildren, 'space-selector-list-item-isSelected': isSelected }"
     :style="{ 'margin-left': '' + ((item.level - 1) * 20 + 30) + 'px', }" @click.stop="onSelect"
-    @mouseenter="onMouseEnter"
-    @mouseleave="onMouseLeave"
-    >
+    @mouseenter="onMouseEnter" @mouseleave="onMouseLeave">
     <!-- link to parent template -->
     <template v-if="item.level > 0">
       <div class="space-selector-list-item-angle"></div>
@@ -101,6 +99,7 @@ class SpaceSelectorItem extends Vue {
   }
 
   onSelect() {
+    // localStorage.setItem("viewer_loaded", 'unload');
     this.onMouseLeave()
     if (this.viewButtonsType === 'base') {
       const button = this.getButton();
@@ -121,6 +120,7 @@ class SpaceSelectorItem extends Vue {
       EventBus.$emit('descolorRoom', dynamicId);
     }
   }
+  
 
   onActionClick(button: IButton) {
     this.$emit("onActionClick", { button, item: this.item });
@@ -155,7 +155,7 @@ class SpaceSelectorItem extends Vue {
   }
 
   getButton() {
-    console.log("Space Selector button pressed on item : ",this.item, " of type", this.item.type );
+    console.log("Space Selector button pressed on item : ", this.item, " of type", this.item.type);
     if (this.item.type === "building") {
       //!! Add logic to load building
       //return;
@@ -167,7 +167,7 @@ class SpaceSelectorItem extends Vue {
     if (this.item.type === "geographicFloor")
       return this.spaceSelectorItemButtons.find(el => el.onclickEvent === "OPEN_VIEWER");
 
-     return this.spaceSelectorItemButtons.find(el => el.onclickEvent === ActionTypes.ISOLATE_ITEMS);
+    return this.spaceSelectorItemButtons.find(el => el.onclickEvent === ActionTypes.ISOLATE_ITEMS);
   }
 }
 export default SpaceSelectorItem;

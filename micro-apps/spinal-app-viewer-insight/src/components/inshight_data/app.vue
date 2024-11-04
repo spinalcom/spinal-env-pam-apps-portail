@@ -501,6 +501,8 @@ class InsightApp extends Vue {
   }
 
   public get labelDisplay() {
+    console.warn(this.labels.map((label) => this.toDate(label)) , 'LE LABELESS DES RAYAES' ,this.labels );
+    
     return this.labels.map((label) => this.toDate(label));
   }
 
@@ -670,9 +672,11 @@ class InsightApp extends Vue {
     }
 
   }
-
+  
+  
   // Assign the result to a reactive property (if necessary)
-  this.chartData = result;
+  this.chartData= result;
+  console.log(this.chartData , 'gab');
   }
 
 

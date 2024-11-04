@@ -69,7 +69,8 @@ export enum ActionTypes {
 	GET_PARENT = "GET_PARENT",
 	GET_TICKET = "GET_TICKET",
 	GET_ATTRIBUT_LIST_MULTIPLE = "GET_ATTRIBUT_LIST_MULTIPLE",
-	HIDE_ITEMS = "HIDE_ITEMS"
+	HIDE_ITEMS = "HIDE_ITEMS",
+	GET_TIMES_SERIES = "GET_TIMES_SERIES"
 }
 
 export type TFctViewerIteract = (stateContext: AugmentedActionContextAppData, payload: { buildingId: string; id: number | number[] }) => Promise<void>;
