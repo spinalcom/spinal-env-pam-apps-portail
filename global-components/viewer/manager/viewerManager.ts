@@ -96,21 +96,24 @@ export class ViewerManager {
 			if (!body) body = { dynamicId: [dynamicId], floorRef: true, roomRef: true, equipements: true };
 
 			const res = await this.getViewerInfoMerged(item, body);
-
+			// console.log('------>item :', item);
+			// console.log('------>body :', body);
+			// console.log('------>viewerInfoMerged :', res);
 			emitter.once(<any>VIEWER_EVENTS.LOADED, (data) => {
+				//console.log('LOADED data about to be added', data);
 				this._addViewLoaded(data.id, data.models);
 			});
 
 			const viewerInfo = await getViewInfoFormatted(buildingId, res, item);
+			//console.log('viewerInfo data about to be loaded', viewerInfo);
 			emitter.emit(VIEWER_START_LOAD_MODEL, viewerInfo);
 		});
 	}
 
 	public async getViewerInfoMerged(argItem: IPlayload | IPlayload[], body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }): Promise<IViewInfoItemRes[]> {
 		
-		console.log('merged');
-		
 		const datas = await this.getViewerInfo(argItem, undefined, body);
+		console.log('------> datas inside getViewerInfoMerged', datas);
 		const res = [];
 
 		for (const _item of datas) {

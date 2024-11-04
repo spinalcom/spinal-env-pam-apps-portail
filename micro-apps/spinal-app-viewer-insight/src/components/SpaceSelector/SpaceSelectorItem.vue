@@ -22,37 +22,61 @@ with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
 <template>
-  <v-list-item tabindex="-1" class="space-selector-list-item card-hover fade"
+  <v-list-item
+    class="space-selector-list-item card-hover fade"
     :class="{ ['space-selector-list-item-level-' + item.level]: true, 'space-selector-list-item-isopen': item.isOpen && item.haveChildren, 'space-selector-list-item-isSelected': isSelected }"
-    :style="{ 'margin-left': '' + ((item.level - 1) * 20 + 30) + 'px', }" @click.stop="onSelect"
-    @mouseenter="onMouseEnter"
-    @mouseleave="onMouseLeave"
-    >
+    :style="{'margin-left': '' + ((item.level - 1) * 20 + 30) + 'px', }"
+    @click.stop="onSelect"
+  >
     <!-- link to parent template -->
     <template v-if="item.level > 0">
       <div class="space-selector-list-item-angle"></div>
       <div class="space-selector-list-item-angle-extend"></div>
-      <div class="parent-link" v-for="depth in item.level - 1" :key="depth" v-show="drawParentLink(depth)"
-        :style="{ 'margin-left': '-' + (depth * 20 + 11) + 'px' }"></div>
+      <div
+        class="parent-link"
+        v-for="depth in item.level - 1"
+        :key="depth"
+        v-show="drawParentLink(depth)"
+        :style="{ 'margin-left': '-' + (depth * 20 + 11) + 'px' }"
+      ></div>
     </template>
 
     <div class="color-square" :style="{ 'background-color': color }"></div>
     <v-list-item-content style="margin-left: 21px">
-      <v-list-item-title v-tooltip="item.name">{{ item.name }}
+      <v-list-item-title v-tooltip="item.name"
+        >{{ item.name }}
       </v-list-item-title>
     </v-list-item-content>
 
     <v-list-item-action class="actionsDiv">
 
-      <v-btn tabindex="-1" v-if="viewButtonsType === 'advanced'" v-for="(button, index) in spaceSelectorItemButtons"
-        :key="index" x-small elevation="0" fab icon style="color: #bfbfbf" dark :loading="item.loading"
-        :title="button.title" @click.stop="onActionClick(button)" v-show="display(button)"
+      <v-btn v-if="viewButtonsType === 'advanced'" 
+        v-for="(button,index) in spaceSelectorItemButtons" 
+        :key="index"
+        x-small
+        elevation="0" fab
+        icon
+        style="color: #bfbfbf"
+        dark
+        :loading="item.loading" 
+        :title="button.title"
+        @click.stop="onActionClick(button)"
+        v-show="display(button)" 
         :disabled="disableBtn(button)">
         <v-icon>{{ button.icon }}</v-icon>
       </v-btn>
 
-      <v-btn tabindex="-1" elevation="0" fab icon style="color: #bfbfbf" dark :loading="item.loading"
-        :disabled="item.loading" @click.stop="onOpenClose" v-show="item.level != maxDepth">
+      <v-btn
+        elevation="0"
+        fab
+        icon
+        style="color: #bfbfbf"
+        dark
+        :loading="item.loading"
+        :disabled="item.loading"
+        @click.stop="onOpenClose"
+        v-show="item.level != maxDepth"
+      >
         <v-icon dark> {{ icon }} </v-icon>
       </v-btn>
 
@@ -61,11 +85,10 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import { ActionTypes } from "../VueStore/interfaces/ActionTypes";
+import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 import { Vue, Component, Prop } from 'vue-property-decorator';
 import { IButton } from './interfaces/IBuildingItem';
 import { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
-import { EventBus } from './eventBus';
 
 @Component
 class SpaceSelectorItem extends Vue {
@@ -90,7 +113,7 @@ class SpaceSelectorItem extends Vue {
     return this.item.color as string
   }
 
-
+  
   public get icon(): string {
     return this.item?.isOpen ? 'mdi-chevron-down' : 'mdi-chevron-up';
   }
@@ -101,25 +124,11 @@ class SpaceSelectorItem extends Vue {
   }
 
   onSelect() {
-    this.onMouseLeave()
     if (this.viewButtonsType === 'base') {
       const button = this.getButton();
-      if (button) this.$emit("onActionClick", { button, item: this.item });
+      if(button) this.$emit("onActionClick", { button, item: this.item });
     }
     this.$emit('onSelect');
-  }
-
-  onMouseEnter() {
-    const dynamicId = this.item.dynamicId;
-    if (dynamicId) {
-      EventBus.$emit('colorRoom', dynamicId);
-    }
-  }
-  onMouseLeave() {
-    const dynamicId = this.item.dynamicId;
-    if (dynamicId) {
-      EventBus.$emit('descolorRoom', dynamicId);
-    }
   }
 
   onActionClick(button: IButton) {
@@ -131,6 +140,7 @@ class SpaceSelectorItem extends Vue {
   }
 
   onOpenClose() {
+
     this.$emit('onOpenClose');
   }
 
@@ -145,7 +155,7 @@ class SpaceSelectorItem extends Vue {
       case ActionTypes.OPEN_VIEWER:
       case "OPEN_VIEWER_PLUS":
         return this.isLoaded(this.item);
-
+    
       case ActionTypes.UNLOAD_MODEL:
       case ActionTypes.FIT_TO_VIEW_ITEMS:
       case ActionTypes.SELECT_ITEMS:
@@ -155,19 +165,12 @@ class SpaceSelectorItem extends Vue {
   }
 
   getButton() {
-    console.log("Space Selector button pressed on item : ",this.item, " of type", this.item.type );
-    if (this.item.type === "building") {
-      //!! Add logic to load building
-      //return;
-      return this.spaceSelectorItemButtons.find(el => el.onclickEvent === "OPEN_VIEWER");
-    }
-
-
+    if (this.item.type === "building") return;
 
     if (this.item.type === "geographicFloor")
-      return this.spaceSelectorItemButtons.find(el => el.onclickEvent === "OPEN_VIEWER");
+      return this.spaceSelectorItemButtons.find(el => el.onclickEvent === ActionTypes.OPEN_VIEWER);
 
-     return this.spaceSelectorItemButtons.find(el => el.onclickEvent === ActionTypes.ISOLATE_ITEMS);
+    return this.spaceSelectorItemButtons.find(el => el.onclickEvent === ActionTypes.ISOLATE_ITEMS);
   }
 }
 export default SpaceSelectorItem;
@@ -200,15 +203,22 @@ export default SpaceSelectorItem;
   border-radius: 0 0 0 6px;
   pointer-events: none;
 }
-
-.space-selector-list-item.space-selector-list-item-level-0+.space-selector-list-item-level-1,
-.space-selector-list-item.space-selector-list-item-level-1+.space-selector-list-item-level-2,
-.space-selector-list-item.space-selector-list-item-level-2+.space-selector-list-item-level-3,
-.space-selector-list-item.space-selector-list-item-level-3+.space-selector-list-item-level-4,
-.space-selector-list-item.space-selector-list-item-level-4+.space-selector-list-item-level-5,
-.space-selector-list-item.space-selector-list-item-level-5+.space-selector-list-item-level-6,
-.space-selector-list-item.space-selector-list-item-level-6+.space-selector-list-item-level-7,
-.space-selector-list-item.space-selector-list-item-level-7+.space-selector-list-item-level-8 {
+.space-selector-list-item.space-selector-list-item-level-0
+  + .space-selector-list-item-level-1,
+.space-selector-list-item.space-selector-list-item-level-1
+  + .space-selector-list-item-level-2,
+.space-selector-list-item.space-selector-list-item-level-2
+  + .space-selector-list-item-level-3,
+.space-selector-list-item.space-selector-list-item-level-3
+  + .space-selector-list-item-level-4,
+.space-selector-list-item.space-selector-list-item-level-4
+  + .space-selector-list-item-level-5,
+.space-selector-list-item.space-selector-list-item-level-5
+  + .space-selector-list-item-level-6,
+.space-selector-list-item.space-selector-list-item-level-6
+  + .space-selector-list-item-level-7,
+.space-selector-list-item.space-selector-list-item-level-7
+  + .space-selector-list-item-level-8 {
   margin-top: -1px;
 }
 
@@ -246,7 +256,6 @@ export default SpaceSelectorItem;
   border-top-left-radius: 0;
   pointer-events: none;
 }
-
 .color-square {
   margin-left: 8px;
   border-radius: 2px;
@@ -266,7 +275,9 @@ export default SpaceSelectorItem;
   align-items: center;
 }
 
-.space-selector-list-item.space-selector-list-item-isopen+.space-selector-list-item .space-selector-list-item-angle-extend {
+.space-selector-list-item.space-selector-list-item-isopen
+  + .space-selector-list-item
+  .space-selector-list-item-angle-extend {
   display: none;
 }
 </style>

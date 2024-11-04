@@ -85,7 +85,7 @@ with this file. If not, see
           <SpaceSelectorItem
             class="staggered-fade-item"
             v-for="(item, index) in buildingStructure"
-            :key="`${index}-${item.dynamicId}-${item.platformId}-${item.patrimoineId}`"
+            :key="`${index}-${item.staticId}-${item.platformId}-${item.patrimoineId}`"
             :item="item"
             v-bind:data-index="index"
             :maxDepth="maxDepth"
@@ -99,6 +99,7 @@ with this file. If not, see
         </transition-group>
       </v-card>
     </div>
+
     <!-- Boite de dialogue pour la selection personnalisée de la temporalité -->
     <v-dialog v-model="pickDate" width="80%" persistent>
       <v-card>
@@ -163,13 +164,13 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import Velocity from 'velocity-animate';
-import { Vue, Component, Prop, VModel, Watch } from 'vue-property-decorator';
-import type { IZoneItem, IButton } from './interfaces/IBuildingItem';
-import type { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
-import SpaceSelectorItem from './SpaceSelectorItem.vue';
-import { convertZonesToISpaceSelectorItems } from './convertZonesToISpaceSelectorItems';
-import moment from 'moment';
+import Velocity from "velocity-animate";
+import { Vue, Component, Prop, VModel, Watch } from "vue-property-decorator";
+import type { IZoneItem, IButton } from "./interfaces/IBuildingItem";
+import type { ISpaceSelectorItem } from "./interfaces/ISpaceSelectorItem";
+import SpaceSelectorItem from "./SpaceSelectorItem.vue";
+import { convertZonesToISpaceSelectorItems } from "./convertZonesToISpaceSelectorItems";
+import moment from "moment";
 
 @Component({
   components: {
@@ -200,27 +201,18 @@ class SpaceSelector extends Vue {
   @Prop({ type: String, required: true })
   label: string;
 
-  localOpen = this.open;
   selectorHeight = 0;
   pickDate = false;
-  dateBegin: string = '';
-  timeBegin: string = '';
-  dateEnd: string = '';
-  timeEnd: string = '';
+  dateBegin: string = "";
+  timeBegin: string = "";
+  dateEnd: string = "";
+  timeEnd: string = "";
 
   get selectedZoneName() {
-    console.log(this.selectedZone.type != 'building');
-
-    if (
-      this.buildingStructure[0]?.type == 'building' &&
-      this.selectedZone.type == 'building'
-    ) {
-      return this.buildingStructure[0]?.name || 'Bâtiments';
-    }
-    return this.selectedZone?.name || 'Sélectionnez une zone';
+    return this.selectedZone?.name || "Sélectionnez une zone";
   }
-  
-  isFill = 'hidden';
+
+  isFill = "hidden";
 
   buildingStructure: ISpaceSelectorItem[] = [];
 
@@ -228,12 +220,7 @@ class SpaceSelector extends Vue {
     return this.dateBegin && this.dateEnd && this.timeBegin && this.timeEnd;
   }
 
-  @Watch('open')
-  onopen(newVal) {
-    this.localOpen = newVal;
-  }
-
- @Watch("selectedZone")
+  @Watch("selectedZone")
   async onSelectedChange() {
     for (let idx = 0; idx < this.buildingStructure.length; idx++) {
       const item = this.buildingStructure[idx];
@@ -306,13 +293,13 @@ class SpaceSelector extends Vue {
 
   private myDiv!: HTMLDivElement;
   checkingOverflow() {
-    const myDiv = document.getElementById('myDiv');
+    const myDiv = document.getElementById("myDiv");
     const windowHeight = window.innerHeight;
     const divHeight = myDiv!.offsetHeight;
     if (divHeight >= windowHeight - 421) {
-      this.isFill = 'auto';
+      this.isFill = "auto";
     } else {
-      this.isFill = 'hidden';
+      this.isFill = "hidden";
     }
   }
 
@@ -337,6 +324,7 @@ class SpaceSelector extends Vue {
     } else {
       await this.openItem(item, index);
     }
+
     this.selectorHeight = this.buildingStructure.length * 56 + 60 + 30;
     this.checkingOverflow();
   }
@@ -352,23 +340,19 @@ class SpaceSelector extends Vue {
         ...convertZonesToISpaceSelectorItems(children, item)
       );
     } catch (error) {
-      console.error('error fetch childrens.', error);
+      console.error("error fetch childrens.", error);
     }
     item.loading = false;
     this.checkingOverflow();
   }
 
   private closeItem(item: ISpaceSelectorItem) {
-    console.log('OPEN CLOSE ???');
-
     item.isOpen = false;
-    console.log(item.isOpen);
-
     const toRm: typeof this.buildingStructure = [];
     for (const it of this.buildingStructure) {
       if (
-        (it.platformId === item.platformId || item.type === 'patrimoine') &&
-        it.parents.includes(item.dynamicId)
+        (it.platformId === item.platformId || item.type === "patrimoine") &&
+        it.parents.includes(item.staticId)
       ) {
         toRm.push(it);
       }
@@ -378,7 +362,7 @@ class SpaceSelector extends Vue {
         return (
           struct.patrimoineId === it.patrimoineId &&
           struct.platformId === it.platformId &&
-          struct.dynamicId === it.dynamicId
+          struct.staticId === it.staticId
         );
       });
       this.buildingStructure.splice(idx, 1);
@@ -417,12 +401,12 @@ class SpaceSelector extends Vue {
   enter(el: { dataset: { index: number } }, done: any) {
     var delay = el.dataset.index * 5;
     setTimeout(function () {
-      Velocity(el, { opacity: 1, height: '50px' }, { complete: done });
+      Velocity(el, { opacity: 1, height: "50px" }, { complete: done });
     }, delay);
   }
 
   onActionClick(data) {
-    this.$emit('onActionClick', data);
+    this.$emit("onActionClick", data);
   }
 }
 export default SpaceSelector;
@@ -460,7 +444,6 @@ export default SpaceSelector;
   transition: height 0.2s ease-in;
   box-shadow: none !important;
 }
-
 .space-selector-container {
   position: absolute;
   max-height: calc(100vh - 10px);
@@ -468,7 +451,6 @@ export default SpaceSelector;
   right: 0;
   overflow: hidden;
 }
-
 .space-selector-container.isopen {
   width: 100%;
 }
@@ -480,7 +462,6 @@ export default SpaceSelector;
   height: 59px;
   background-color: #14202c;
   cursor: pointer;
-  z-index: 99;
 }
 
 .space-selector-header-title {
@@ -503,7 +484,6 @@ export default SpaceSelector;
   padding: 0 10px;
   font-size: 20px;
 }
-
 .space-selector-open {
   /* padding-bottom: 10px; */
   overflow-y: auto;
@@ -532,13 +512,11 @@ export default SpaceSelector;
   width: 0;
   height: 1px;
 }
-
 .spinal-scrollbar::-webkit-scrollbar-thumb {
   -webkit-border-radius: 5px;
   border-radius: 5px;
   background: rgba(169, 169, 169, 0.9);
 }
-
 .spinal-scrollbar::-webkit-scrollbar-track {
   /* -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
   box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3); */

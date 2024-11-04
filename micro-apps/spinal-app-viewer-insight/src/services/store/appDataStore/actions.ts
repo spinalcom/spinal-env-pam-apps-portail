@@ -34,6 +34,7 @@ import {
   getFloors,
   getRooms,
   getRoomsRefMultiple,
+  getBuilding
 } from "../../spinalAPI/GeographicContext/geographicContext";
 import type {
   IEquipmentItem,
@@ -117,6 +118,32 @@ export const actions = {
     }
 
     const building = await ApiIteratorStore[ActionTypes.GET_BUILDING_BY_ID][
+      buildingId
+    ]!.next();
+    return building.value;
+  },
+
+  async [ActionTypes.GET_BOS_BUILDING](
+    { commit, state }: AugmentedActionContextAppData,
+    { buildingId, forceUpdate }
+  ): Promise<IGetAllBuildingsRes> {
+    const spinalAPI = SpinalAPI.getInstance();
+    if (
+      typeof ApiIteratorStore[ActionTypes.GET_BOS_BUILDING] === "undefined"
+    ) {
+      ApiIteratorStore[ActionTypes.GET_BOS_BUILDING] = {};
+    }
+
+    if (
+      typeof ApiIteratorStore[ActionTypes.GET_BOS_BUILDING][buildingId] ===
+        "undefined" ||
+      forceUpdate === true
+    ) {
+      ApiIteratorStore[ActionTypes.GET_BOS_BUILDING][buildingId] =
+        spinalAPI.createIteratorCall(getBuilding, buildingId);
+    }
+
+    const building = await ApiIteratorStore[ActionTypes.GET_BOS_BUILDING][
       buildingId
     ]!.next();
     return building.value;
@@ -315,6 +342,48 @@ export const actions = {
     playload: { onlyThisModel: boolean; config: IConfig; item: any }
   ): Promise<void> {
     try {
+      console.log("OPEN_VIEWER", playload);
+      if(playload.item.type ==="building"){
+        // display all floor reference objects
+        // const floors = await dispatch(ActionTypes.GET_FLOORS, {
+        //   buildingId: playload.item.buildingId,
+        //   forceUpdate: false,
+        // });
+        // const ids = floors.map(floor => floor.dynamicId)
+        // console.log('/////////////ids', ids)
+        const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
+          buildingId: playload.item.buildingId,
+          forceUpdate: false,
+        })
+        console.log("//////////////////////////////// building", building)
+
+        // payload for building dei
+
+        playload.item = {
+          buildingId: "5932-6086-9e1a-18506478460",
+          dynamicId: building.dynamicId,
+          floorId: undefined,
+          id: building.dynamicId,
+          roomId: undefined,
+          staticId: building.staticId,
+          type: "building"
+        }
+        const body = {
+          //dynamicId: ids,
+          dynamicId:[playload.item.dynamicId],
+          roomRef: false,
+          floorRef: true,
+          equipements: false,
+          dbIdsToAdd: [],
+        }
+        await ViewerManager.getInstance().loadInViewer(
+          playload.item,
+          playload.onlyThisModel,
+          body
+        );
+        return;
+
+      }
       const viewerInfo = playload.config.viewerInfo;
       const body = {
         dynamicId: [playload.item.dynamicId],
@@ -323,7 +392,6 @@ export const actions = {
         equipements: false,
         dbIdsToAdd: [],
       };
-
       if (viewerInfo.equipments === "all") {
         body.equipements = true;
         body.dbIdsToAdd = [];
@@ -339,7 +407,7 @@ export const actions = {
           playload.item.type
         );
       }
-
+      // console.log('Sending load in viewer with body : ', body);
       await ViewerManager.getInstance().loadInViewer(
         playload.item,
         playload.onlyThisModel,

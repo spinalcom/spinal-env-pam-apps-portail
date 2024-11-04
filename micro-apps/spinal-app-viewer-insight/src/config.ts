@@ -25,7 +25,7 @@
 import { IConfig, ITemporality, calculTypes } from "./interfaces/IConfig";
 
 export const config: IConfig = {
-  viewButtons: "advanced",
+  viewButtons: "base",
   // entryPoint: { context: "Contexte équipement capteur", category: "Ubigreen", group: "All" },
   // source: { name: "Ubigreen", profileName: "Ubigreen", type: "controlPoint", objectType: "equipments", unit : "" },
   // entryPoint: {
@@ -158,7 +158,6 @@ export const config: IConfig = {
 
   // FIN Config Gienah
 
-  viewButtons: "base",
   title: "Insights sur les multicapteurs",
   calculs: [
     calculTypes.Maximum,

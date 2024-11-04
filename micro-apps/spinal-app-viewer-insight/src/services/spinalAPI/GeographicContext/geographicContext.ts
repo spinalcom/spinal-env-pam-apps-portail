@@ -46,6 +46,7 @@ export async function getFloors(
   buildingId: string
 ): Promise<IZoneItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
+  console.log("getFloors", "patrimoineId",patrimoineId,"buildingId", buildingId);
   const url = spinalAPI.createUrlWithPlatformId(
     buildingId,
     "api/v1/floor/list"

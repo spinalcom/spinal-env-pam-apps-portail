@@ -349,12 +349,12 @@ class App extends Vue {
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<IZoneItem[]> {
     switch (item?.type) {
       case undefined:
+        console.log('Récuperation des données batiment : ', item);
         const buildingId = localStorage.getItem("idBuilding");
         const building = await this.$store.dispatch(
           ActionTypes.GET_BUILDING_BY_ID,
           { buildingId }
         );
-
         return [
           {
             name: building.name,
@@ -366,6 +366,7 @@ class App extends Vue {
           },
         ];
       case "building":
+        console.log('hahahahhaahahahah')
         return await this.$store.dispatch(ActionTypes.GET_FLOORS, {
           buildingId: item.staticId,
           patrimoineId: item.patrimoineId,
