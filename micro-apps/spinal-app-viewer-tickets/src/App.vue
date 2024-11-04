@@ -140,6 +140,7 @@ class App extends Vue {
   }
 
   async mounted() {
+    localStorage.setItem("viewer_loaded", 'unload');
     if (window.innerWidth < 900) {
       console.log(window.innerWidth);
 
@@ -148,9 +149,8 @@ class App extends Vue {
     }
 
 
-  EventBus.$on('colorRoom', (dynamicId) => {
+    EventBus.$on('colorRoom', (dynamicId) => {
       const buildingId = localStorage.getItem("idBuilding");
-
       const itemsToColor = [{
         buildingId: buildingId,
         color: "#24CBD9",
@@ -158,16 +158,20 @@ class App extends Vue {
         floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
       }]
 
-      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
-        items: itemsToColor,
-        buildingId: buildingId,
-      });
+      const statviewer = localStorage.getItem("viewer_loaded");
+      if (statviewer == "loaded") {
+        this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+          items: itemsToColor,
+          buildingId: buildingId,
+        });
+      }
 
     });
 
+
     EventBus.$on('descolorRoom', (dynamicId) => {
       const buildingId = localStorage.getItem("idBuilding");
-      
+
       const itemsToColor = [{
         buildingId: buildingId,
         color: null,
@@ -543,7 +547,7 @@ export default App;
 
     }
 
-    
+
 
 
     .temporality {

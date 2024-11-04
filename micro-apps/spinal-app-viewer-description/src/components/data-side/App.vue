@@ -297,15 +297,20 @@ with this file. If not, see
 
       <!-- ONGLET INDICATEUR (controleEndpoint) indicateur -->
       <div style="display: flex">
-        <!-- <div v-if="ActiveData && selection == 'Indicateur'" class="graphContainer">
-          <sc-line-card :title="'title'" :labels="'labelDisplay'" :datasets="'chartData'" :step="'labels.length / 4'"
+        <div v-if="ActiveData && selection == 'Indicateur' && labelsChart" class="graphContainer">
+          <sc-line-card :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData" :step="labelsChart.length"
             :tooltipCallbacks="{
               title: (context) => { },
-              label: (tooltipItem) => { },
+              label: (tooltipItem) =>
+                `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
+                  2
+                )} `,
               footer: (data) => { },
             }"></sc-line-card>
+        </div>
+        <!-- <div v-if="ActiveData && selection == 'Indicateur'" class="graphContainer">
+          <linecharts :dataTable="dataTable" :begin="beginDate" :end="endDate"></linecharts>
         </div> -->
-
         <div style="width: 100%;" v-if="selection == 'Indicateur'">
           <div v-for="(item, index) in floorstaticDetails[0].controlEndpoint" class="blocInformation">
             <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">{{
@@ -317,8 +322,12 @@ with this file. If not, see
             <div v-else>
               <div class="inventory-container"
                 v-for="(item, index2) in floorstaticDetails[0].controlEndpoint[index].endpoints" :key="index2">
-                <div @click="graphInfoCp(item.dynamicId)" class="inventory-item"
-                  :style="{ width: '100%', color: '#14202c', padding: '16px', borderRadius: '5px', paddingLeft: '6px', cursor: cpIdToDraw.includes(item.dynamicId) ? '' : '', backgroundColor: cpIdToDraw.includes(item.dynamicId) ? '' : '', boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px' }">
+                <div @click="() => {
+                  fullData()
+                  addOrRemove(item.dynamicId);
+                  resize();
+                }" class=" inventory-item"
+                  :style="{ width: '100%', color: '#14202c', padding: '16px', borderRadius: '5px', paddingLeft: '6px', cursor: cpIdToDraw.includes(item.dynamicId) ? 'pointer' : '', border: cpIdToDraw.includes(item.dynamicId) ? '1px solid blue' : '', boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px' }">
 
                   <li>{{ item.name }}: {{ item.value }}</li>
 
@@ -401,7 +410,7 @@ import { Prop, Vue, Watch } from "vue-property-decorator";
 import { PAGE_STATES } from "../../interfaces/pageStates";
 import Component from "vue-class-component";
 import SpriteComponentMobile from "./SpriteComponentMobile.vue";
-import { IConfig } from "../../interfaces/IConfig";
+import { IConfig, ITemporality } from "../../interfaces/IConfig";
 import { ISpaceSelectorItem } from "global-components";
 import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 import lodash from "lodash";
@@ -418,12 +427,15 @@ import {
 } from "spinal-viewer-event-manager";
 import { log, warn } from "console";
 import { getParent } from "../../services/spinalAPI/GeographicContext/geographicContext";
+import linecharts from "./linecharts.vue";
+import moment from 'moment';
 
 @Component({
   components: {
     GroupDataView,
     SpriteComponentMobile,
     BreadcrumbSelector,
+    linecharts
   },
   filters: {},
 })
@@ -459,7 +471,13 @@ class dataSideApp extends Vue {
   eyes: [] = [];
   referencedId: any = 0;
   referencedType: any = 'building';
-  cpIdToDraw: []
+  cpIdToDraw: [];
+  beginDate: any = null
+  endDate: any = null
+  dataTable: any = [];
+  activeChart: any = []
+  labelsChart: any = null
+  chartData: any = null
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
@@ -478,6 +496,7 @@ class dataSideApp extends Vue {
 
     return items;
   }
+
 
 
   resize() {
@@ -630,6 +649,14 @@ class dataSideApp extends Vue {
     };
 
     this.$forceUpdate();
+  }
+
+  fullData() {
+    const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query };
+
+    if (currentQuery.mode != 'data') {
+      this.$emit('buttonClicked');
+    }
   }
 
 
@@ -1111,20 +1138,147 @@ class dataSideApp extends Vue {
 
   }
 
-  graphInfoCp(dyn) {
+  async addOrRemove(dyn) {
 
+    if (this.activeChart.includes(dyn)) {
+      console.log('EXISTE DEJA ----------- REMOVE');
+      console.warn(this.dataTable, "----------le data table avant le remove");
+      this.dataTable = this.dataTable.filter(item => item.dynamicId !== dyn);
+      console.warn(this.dataTable, "----------le data table apres le remove");
+      this.activeChart = this.activeChart.filter(id => id !== dyn);
+      this.removegraphInfoCp(dyn)
+      console.warn(this.activeChart, "----------le active charts'");
+      // console.warn(this.chartData, "----------le active chartsData'");
+    }
+    else {
+      console.log('EXISTE PAS ----------- ADD');
+      console.warn(this.dataTable, "----------le data table avant l'ajout'");
+      this.addgraphInfoCp(dyn)
+      console.warn(this.dataTable, "----------le data table apres l'ajout'");
+      this.activeChart.push(dyn);
+      console.warn(this.activeChart, "----------le active charts'");
+      // console.warn(this.chartData, "----------le active chartsData'");
+    }
+  }
+  async removegraphInfoCp(dyn) {
+    const datatable = this.dataTable
+    this.chartData = this.chartDataObject(datatable)
+    console.warn(this.chartData, "----------le active chartsData'");
+  }
+  async addgraphInfoCp(dyn) {
     if (this.cpIdToDraw.includes(dyn)) {
-      console.log('aaaa',dyn);
-      const buildingId = localStorage.getItem("idBuilding");
-      const promises = [
-      this.$store.dispatch(ActionTypes.GET_TIMES_SERIES, {
-        buildingId,
-        referenceIds
-      }),
-    ];
+      console.log('---- récupération du dynamic id :', dyn);
+      const begintime = '23-09-2024 00:00:00';
+      const endtime = '29-09-2024 23:59:59';
 
+      const buildingId = localStorage.getItem("idBuilding");
+      const result = await this.$store.dispatch(ActionTypes.GET_TIMES_SERIES, {
+        buildingId,
+        referenceIds: dyn,
+        begin: begintime,
+        end: endtime,
+      });
+
+      const datatableCopy = [...this.dataTable]; // Copie de la dataTable
+
+      const actuelleTable = {
+        dynamicId: dyn,
+        data: result.map(item => ({
+          x: item.date,
+          y: item.value,
+        })), // Copie des valeurs pour éviter les références partagées
+        unit: 'kwh',
+        name: 'le nom du graph',
+      };
+
+      console.warn('---------la copie de ----- après le push', actuelleTable.data);
+
+      datatableCopy.push(actuelleTable);
+
+      // Génération des labels
+      this.labelsChart = this.labels(begintime, endtime).map((label) => this.toDate(label));
+
+      // Assignation d'une copie pour éviter les références partagées
+      this.dataTable = [...datatableCopy];
+      console.warn('--------- this datatable avant l’envoi dans chartsdataobjets-', datatableCopy);
+      this.chartData = this.chartDataObject(datatableCopy); // Mise à jour de chartData avec une copie de datatableCopy
+
+      console.warn(this.chartData, "----------le active chartsData'");
+    }
+  }
+
+  toDate(date) {
+    switch (this.$store.state.appDataStore.temporalitySelected.name) {
+      case ITemporality.hour:
+        return moment(date).format('HH:mm');
+      case ITemporality.day:
+        return moment(date).format('HH[h]');
+      case ITemporality.week:
+        return moment(date).format('dd');
+      case ITemporality.month:
+        return moment(date).format('D/M/YY');
+      case ITemporality.year:
+        return moment(date).format('MMM');
+      case ITemporality.custom:
+        const { begin, end } =
+          this.$store.state.appDataStore.temporalitySelected.range;
+        const duration = moment.duration(
+          moment(end, 'DD-MM-YYYY HH:mm:ss').diff(
+            moment(begin, 'DD-MM-YYYY HH:mm:ss')
+          )
+        );
+        console.log(moment(end, 'DD-MM-YYYY HH:mm:ss'), duration);
+        if (duration.asMonths() > 2) return moment(date).format('MMM');
+        if (duration.asDays() > 1) return moment(date).format('D/M/YY');
+        if (duration.asHours() > 1) return moment(date).format('HH[h]');
+        return moment(date).format('HH:mm');
+      default:
+        return moment(date).format('D/M/YY');
+    }
+  }
+
+  labels(begin, end) {
+    if (!this.dataTable) {
+      return [];
     }
 
+    const parseDate = (dateStr) => {
+      const [day, month, yearTime] = dateStr.split('-');
+      const [year, time] = yearTime.split(' ');
+      const [hours, minutes, seconds] = time.split(':');
+
+      // Crée un objet Date avec des valeurs numériques
+      return new Date(
+        parseInt(year, 10),      // Année
+        parseInt(month, 10) - 1, // Mois (0 = janvier, donc on soustrait 1)
+        parseInt(day, 10),       // Jour
+        parseInt(hours, 10),     // Heures
+        parseInt(minutes, 10),   // Minutes
+        parseInt(seconds, 10)    // Secondes
+      );
+    };
+
+    const beginDate = parseDate(begin);
+    const endDate = parseDate(end);
+
+    const dates = [];
+    const interval = 60 * 1000; // Intervalle d'une journée en millisecondes
+
+    for (let date = beginDate; date <= endDate; date = new Date(date.getTime() + interval)) {
+      dates.push(new Date(date)); // Ajoute une nouvelle date au tableau
+    }
+
+    return dates;
+  }
+
+
+  chartDataObject(dataTable) {
+    const l1: any = []
+    dataTable.forEach((el, index) => {
+      l1.push({ data: [...el.data], label: 'graph 1' + index, color: 'blue', dynamicId: el.dynamicId });
+    });
+
+    return l1;
   }
 
 
@@ -1243,7 +1397,6 @@ class dataSideApp extends Vue {
   watchData() {
     this.referencedId = 0;
     this.referencedType = ''
-    //TOTO ICI L ERREUR 
     if (this.selectedZone.type != "building") {
       if (this.data.length == 0) {
         this.getroomstaticdetails(this.selectedZone.dynamicId)

@@ -31,10 +31,10 @@ with this file. If not, see
         <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()" />
       </div>
 
-      <!-- <div class="temporality">
+      <div class="temporality">
         <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
           :GetChildrenFct="onTemporalitySelectOpen" :maxDepth="0" v-model="temporalitySelected" label="TEMPORALITÉ" />
-      </div> -->
+      </div>
 
       <div class="space">
         <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"
@@ -141,6 +141,8 @@ class App extends Vue {
   coloredRoom: null
   floor: any = null
   async mounted() {
+    localStorage.setItem("viewer_loaded", 'unload');
+
     this.viewerManager = ViewerManager.getInstance();
     //refresh de l'instace pour VIEWER_REM_SPHERE
     // const emitterHandler = EmitterViewerHandler.getInstance();
@@ -161,17 +163,28 @@ class App extends Vue {
       if (this.firstCOlor == false) {
         this.firstCOlor = true
       } else {
-        if (this.$store.state.appDataStore.zoneSelected.dynamicId != dynamicId) {
+
+        const statviewer = localStorage.getItem("viewer_loaded");
+        if (statviewer == "loaded") {
           this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
             items: itemsToColor,
             buildingId: buildingId,
           });
         }
+        else{
+          // console.warn('TU NE PASSERA PASSSS !!');
+          
+        }
       }
     });
 
+
+
+
     EventBus.$on('descolorRoom', (dynamicId) => {
       const buildingId = localStorage.getItem("idBuilding");
+      console.warn('aaaaaaaaaaaaa descolor');
+
 
       const itemsToColor = [{
         buildingId: buildingId,
@@ -225,6 +238,8 @@ class App extends Vue {
 
 
   }
+
+
 
   changeApp(e) {
     this.query.app = e
