@@ -342,35 +342,13 @@ export const actions = {
     playload: { onlyThisModel: boolean; config: IConfig; item: any }
   ): Promise<void> {
     try {
-      console.log("OPEN_VIEWER", playload);
       if(playload.item.type ==="building"){
-        // display all floor reference objects
-        // const floors = await dispatch(ActionTypes.GET_FLOORS, {
-        //   buildingId: playload.item.buildingId,
-        //   forceUpdate: false,
-        // });
-        // const ids = floors.map(floor => floor.dynamicId)
-        // console.log('/////////////ids', ids)
         const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
           buildingId: playload.item.buildingId,
           forceUpdate: false,
         })
-        console.log("//////////////////////////////// building", building)
-
-        // payload for building dei
-
-        playload.item = {
-          buildingId: "5932-6086-9e1a-18506478460",
-          dynamicId: building.dynamicId,
-          floorId: undefined,
-          id: building.dynamicId,
-          roomId: undefined,
-          staticId: building.staticId,
-          type: "building"
-        }
         const body = {
-          //dynamicId: ids,
-          dynamicId:[playload.item.dynamicId],
+          dynamicId:[building.dynamicId],
           roomRef: false,
           floorRef: true,
           equipements: false,
