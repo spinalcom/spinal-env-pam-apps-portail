@@ -342,7 +342,10 @@ export const actions = {
     playload: { onlyThisModel: boolean; config: IConfig; item: any }
   ): Promise<void> {
     try {
+      console.log('AAAAA');
       if(playload.item.type ==="building"){
+        console.log('AAAAA');
+        
         const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
           buildingId: playload.item.buildingId,
           forceUpdate: false,

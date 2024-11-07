@@ -141,18 +141,12 @@ class App extends Vue {
   coloredRoom: null
   floor: any = null
   async mounted() {
-    localStorage.setItem("viewer_loaded", 'unload');
-
+    localStorage.setItem("viewer_loaded", 'initialize');
     this.viewerManager = ViewerManager.getInstance();
-    //refresh de l'instace pour VIEWER_REM_SPHERE
-    // const emitterHandler = EmitterViewerHandler.getInstance();
-    // emitterHandler.off(VIEWER_REM_SPHERE);
-
-    this.initializeEventHandlers();
+    this.RemoveEventHandlers();
 
     EventBus.$on('colorRoom', (dynamicId) => {
       const buildingId = localStorage.getItem("idBuilding");
-
       const itemsToColor = [{
         buildingId: buildingId,
         color: "#24CBD9",
@@ -171,20 +165,10 @@ class App extends Vue {
             buildingId: buildingId,
           });
         }
-        else{
-          // console.warn('TU NE PASSERA PASSSS !!');
-          
-        }
       }
     });
-
-
-
-
     EventBus.$on('descolorRoom', (dynamicId) => {
       const buildingId = localStorage.getItem("idBuilding");
-      console.warn('aaaaaaaaaaaaa descolor');
-
 
       const itemsToColor = [{
         buildingId: buildingId,
@@ -232,11 +216,10 @@ class App extends Vue {
     });
   }
 
-  initializeEventHandlers() {
+  RemoveEventHandlers() {
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.off(VIEWER_REM_SPHERE);
-
-
+    emitterHandler.off(VIEWER_SPRITE_CLICK);
   }
 
 
@@ -303,11 +286,8 @@ class App extends Vue {
         ]
       }
 
-      console.warn(button, '/////////////////////////////////////////////////////////////////////////////////////////////////////////');
 
       this.onActionClick({ button, item })
-      console.log('totot');
-
 
       const itemToSelect = {
         "isOpen": false,
@@ -364,11 +344,9 @@ class App extends Vue {
   }
 
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<IZoneItem[]> {
-    console.log("APPPPPPPPPPLY 2222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222");
 
     switch (item?.type) {
       case undefined:
-        console.warn(item?.type, '////////////////////////');
 
         const buildingId = localStorage.getItem("idBuilding");
         const playload = {
@@ -399,7 +377,6 @@ class App extends Vue {
           patrimoineId: item.patrimoineId,
         });
       case "geographicFloor":
-        console.warn(item?.type, '////////////////////////');
         //@ts-ignore
         return await this.$store.dispatch(ActionTypes.GET_ROOMS, {
           floorId: item.dynamicId,
@@ -413,7 +390,6 @@ class App extends Vue {
   }
 
   onTemporalitySelectOpen(item?: any) {
-    console.log('APPPPPPPPPPPPPLY 333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333');
 
     switch (item?.type) {
       case undefined:
@@ -471,10 +447,6 @@ class App extends Vue {
 
 
   onActionClick({ button, item }) {
-
-    console.warn("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa555", item, button);
-
-
     // const data = {
     //   "isOpen": false,
     //   "loading": false,
@@ -496,14 +468,13 @@ class App extends Vue {
       parents: item.parents,
       // floorId: item.floorId,//can
       // roomId: item.roomId,//can
-      // type: item.type,//can
+      type: item.type,
     };
 
-
+    
     switch (button.onclickEvent) {
-
+      
       case ActionTypes.OPEN_VIEWER:
-        // console.log('laaaaaaaaaaaalalaalallalalalalalalalala');
         this.$store.dispatch(button.onclickEvent, {
           onlyThisModel: true,
           config: this.config,
@@ -511,7 +482,6 @@ class App extends Vue {
         });
         break;
       case ActionTypes.ISOLATE_ITEMS:
-        // console.log('totototototototototototoototototot');
         this.$store.dispatch(button.onclickEvent, {
           onlyThisModel: true,
           config: this.config,
@@ -519,7 +489,6 @@ class App extends Vue {
         });
         break;
       case "OPEN_VIEWER_PLUS":
-        // console.log('uvuvuvuvvuuvvuvuvuvuvuuvvuvuvuvuvuvuvuuvv');
         this.$store.dispatch(ActionTypes.OPEN_VIEWER, {
           onlyThisModel: false,
           config: this.config,
@@ -533,13 +502,13 @@ class App extends Vue {
   }
 
   listenSpritesEvent() {
+    
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
+
       this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
-      // console.warn('uuujuuuu', result.navigate, 'test');
       if (result.navigate) {
-        // console.warn('information');
-        // console.log(result.node);
+
         this.query.spaceSelectedId = result.node.dynamicId
         this.query.name = result.node.name
         this.query.buildingId = result.node.buildingId
@@ -573,24 +542,7 @@ class App extends Vue {
           this.$refs['space-selector'].select(itemToSelect);
           // this.$refs['space-selector'].closeItem(itemToSelect);
         }
-
-
-        // // this.replaceRoute();
-        // console.log("ttototo ?", this.query);
-
-        // const item = {
-        //   buildingId: result.node.buildingId,
-        //   dynamicId:  result.node.dynamicId,
-        // };
-        // const button = {
-        //   "title": "charger",
-        //   "icon": "mdi-video-3d",
-        //   "onclickEvent": "OPEN_VIEWER",
-        //   "isShownTypes": [
-        //     "geographicFloor"
-        //   ]
-        // }
-        // this.onActionClick({ button, item })
+        this.openSpaceSelector = false
       }
       else if (result.node?.dynamicId) {
         const a = document.createElement("a");

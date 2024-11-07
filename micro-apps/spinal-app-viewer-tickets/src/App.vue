@@ -140,7 +140,7 @@ class App extends Vue {
   }
 
   async mounted() {
-    localStorage.setItem("viewer_loaded", 'unload');
+    localStorage.setItem("viewer_loaded", 'initialize');
     if (window.innerWidth < 900) {
       console.log(window.innerWidth);
 

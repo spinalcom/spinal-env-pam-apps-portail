@@ -96,7 +96,8 @@ with this file. If not, see
           <v-select label="Details" v-model="selection" :items="dynamicItems"></v-select>
         </div>
 
-        <div style="width: 20%; justify-content: flex-end;align-items: center;display: flex;padding-right: 26px;"
+        <div
+          style="justify-content: flex-end;align-items: center;display: flex;padding-right: 12px;white-space: nowrap;"
           v-if="floorstaticDetails.length && floorstaticDetails[0].attributsList.length">
           <div style="" v-for="(item, index) in floorstaticDetails[0].attributsList[0].attributs">
             <div v-if="item.label == 'area'">
@@ -123,6 +124,10 @@ with this file. If not, see
                 <div v-for="(item, index) in inventoyList" :key="index" class="inventory-item">
                   <li>{{ item }}</li>
                   <div style="margin-left: 5px;">
+                    <!-- <v-icon v-if="ink.indexOf(index) === -1" @click="() => { colorelement(item); closeink(index) }"
+                      style="cursor: pointer">mdi-invert-colors</v-icon>
+                    <v-icon v-else @click="() => { colorelement(item); closeink(index) }"
+                      style="cursor: pointer">mdi-invert-colors-off</v-icon> -->
                     <v-icon v-if="eyes.indexOf(index) === -1" @click="() => { hideelement(item); closeeyes(index) }"
                       style="cursor: pointer">mdi-eye-outline</v-icon>
                     <v-icon v-else @click="() => { hideelement(item); closeeyes(index) }"
@@ -154,10 +159,6 @@ with this file. If not, see
           <!-- endpoint -->
           <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Indicateur
           </span>
-          <!-- {{ selectedZone.type }} -->
-          <!-- <span v-if="selectedZone.type == 'geographicRoom'"
-            style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Points de mesures
-            ({{ config.profileNameRoom }})</span> -->
           <div class="inventory-container">
             <div v-if="endpointProfil == null"
               style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px; margin-bottom: 10px;">
@@ -232,7 +233,7 @@ with this file. If not, see
                   style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                   <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                     attr.value
-                    }}
+                  }}
                   </li>
                 </div>
               </div>
@@ -253,7 +254,6 @@ with this file. If not, see
                 <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;"> {{
                   ticket.name }}</span>
                 <div class="back_blanc">
-                  <!-- <li class="back_blanc"> <strong>Nom :</strong> {{ }}</li> -->
                   <li><strong>Description :</strong> {{ ticket.description }}</li>
                   <li><strong>Date de création :</strong> {{ new Date(ticket.creationDate).toLocaleString() }}</li>
                   <li><strong>Priorité :</strong> {{ ticket.priority }}</li>
@@ -293,12 +293,10 @@ with this file. If not, see
         </div>
       </div>
 
-      <!-- {{ floorstaticDetails }} -->
-
       <!-- ONGLET INDICATEUR (controleEndpoint) indicateur -->
       <div style="display: flex">
         <div v-if="ActiveData && selection == 'Indicateur' && labelsChart" class="graphContainer">
-          <sc-line-card :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData" :step="labelsChart.length"
+          <lineCard :stacked="true" :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData" :step="labelsChart.length"
             :tooltipCallbacks="{
               title: (context) => { },
               label: (tooltipItem) =>
@@ -306,11 +304,8 @@ with this file. If not, see
                   2
                 )} `,
               footer: (data) => { },
-            }"></sc-line-card>
+            }"></lineCard>
         </div>
-        <!-- <div v-if="ActiveData && selection == 'Indicateur'" class="graphContainer">
-          <linecharts :dataTable="dataTable" :begin="beginDate" :end="endDate"></linecharts>
-        </div> -->
         <div style="width: 100%;" v-if="selection == 'Indicateur'">
           <div v-for="(item, index) in floorstaticDetails[0].controlEndpoint" class="blocInformation">
             <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">{{
@@ -427,7 +422,7 @@ import {
 } from "spinal-viewer-event-manager";
 import { log, warn } from "console";
 import { getParent } from "../../services/spinalAPI/GeographicContext/geographicContext";
-import linecharts from "./linecharts.vue";
+import lineCharts from "./LineCardComponent.vue";
 import moment from 'moment';
 
 @Component({
@@ -435,7 +430,7 @@ import moment from 'moment';
     GroupDataView,
     SpriteComponentMobile,
     BreadcrumbSelector,
-    linecharts
+    lineCharts
   },
   filters: {},
 })
@@ -469,6 +464,7 @@ class dataSideApp extends Vue {
   parentAttribut: any = [];
   ticketsList: any = [];
   eyes: [] = [];
+  ink: [] = [];
   referencedId: any = 0;
   referencedType: any = 'building';
   cpIdToDraw: [];
@@ -516,11 +512,10 @@ class dataSideApp extends Vue {
   hideelement(item) {
     this.$store.commit(MutationTypes.REMOVE_ITEM_TO_HIDE);
     const itemType = item.substring(item.indexOf(' ') + 1);
+    console.log(item, 'AZER');
+
     const numbers = this.inventoryDbids[itemType] || [];
     this.$store.commit(MutationTypes.SET_ITEM_TO_HIDE, numbers);
-
-    console.error(numbers);
-
     const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query };
     const data = {
       buildingId: this.selectedZone.staticId,
@@ -532,6 +527,10 @@ class dataSideApp extends Vue {
       items: data,
       buildingId: this.selectedZone.staticId,
     });
+  }
+
+  colorelement(item) {
+    //a faire
   }
 
 
@@ -547,8 +546,6 @@ class dataSideApp extends Vue {
 
 
   async mounted() {
-
-
 
     if (this.selectedZone.type == "building") {
       this.loadBuildingInfo()
@@ -659,7 +656,6 @@ class dataSideApp extends Vue {
     }
   }
 
-
   async getBuildingStaticDetails() {
 
     const promises = [
@@ -696,7 +692,6 @@ class dataSideApp extends Vue {
   }
 
 
-
   async getBuildingInfo() {
     const buildingId = localStorage.getItem("idBuilding");
 
@@ -708,7 +703,6 @@ class dataSideApp extends Vue {
     const result = await Promise.all(promises);
     this.buildingInfo = [...result]
   }
-
 
 
   async getBIMInfo(referenceIds) {
@@ -757,7 +751,6 @@ class dataSideApp extends Vue {
               const result = await Promise.all(promises);
               this.forgeItem(result, buildingId, ref.dbid, obj.bimFileId, data.center)
               return;
-
             }
           }
         }
@@ -779,8 +772,6 @@ class dataSideApp extends Vue {
       return;
     }
   }
-
-
 
   async getfloorstaticdetails(id) {
     const buildingId = localStorage.getItem("idBuilding");
@@ -804,8 +795,6 @@ class dataSideApp extends Vue {
   async getroomstaticdetails(id) {
 
     const buildingId = localStorage.getItem("idBuilding");
-
-
     const promises_node = [
       this.$store.dispatch(ActionTypes.GET_NODE_READ, {
         buildingId,
@@ -861,8 +850,6 @@ class dataSideApp extends Vue {
       this.referencedType = 'etage'
       this.referencedId = id
     }
-
-
 
   }
 
@@ -955,10 +942,7 @@ class dataSideApp extends Vue {
 
   }
 
-
-
   filtredAttribut(type) {
-    // console.log('%c Oh lllllllllles textttt! ', 'background: #222; color: #bada55', type);
     this.getParentAttribut();
     let data = this.floorstaticDetails[0].attributsList
     let attributProfil = [];
@@ -1005,8 +989,7 @@ class dataSideApp extends Vue {
     } else {
       const profile = this.floorstaticDetails[0].controlEndpoint.find(profile => profile.profileName === this.config.room.profileNameControlePts);
       this.endpointProfil = profile ? profile.endpoints : [];
-    }//TODO POUR EQUIPEMENT profil + enpoint type
-
+    }
   }
 
   forgeItem(result, buildingId, dbid, bimFileId, center) {
@@ -1014,19 +997,6 @@ class dataSideApp extends Vue {
     let X = center.x;
     let Y = center.y;
     let Z = center.z;
-
-    // result[0].attributsList.forEach(category => {
-    //   category.attributs.forEach(attribute => {
-    //     if (attribute.label === "XYZ center") {
-    //       const coordinates = attribute.value.split(";");
-    //       X = coordinates[0];
-    //       Y = coordinates[1];
-    //       Z = coordinates[2];
-    //     }
-    //   });
-    // });
-
-    // const [X, Y, Z] = result[key]["XYZ center"].split(";");
 
     const item = {
       color: '#ded638',
@@ -1041,7 +1011,6 @@ class dataSideApp extends Vue {
     }
     this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
 
-
     const screenWidth = window.innerWidth;
     if (screenWidth <= 700) {
       this.displaySprite = false;
@@ -1054,8 +1023,6 @@ class dataSideApp extends Vue {
         component: SpriteComponent,
       });
     }
-
-
   }
 
   handleClose() {
@@ -1079,9 +1046,12 @@ class dataSideApp extends Vue {
 
   async retriveData() {
     try {
+      console.log(this.$store.state.appDataStore.temporalitySelected.name);
       this.pageSate = PAGE_STATES.loading;
       const buildingId = localStorage.getItem("idBuilding");
       const patrimoineId = JSON.parse(localStorage.getItem("patrimoine")).id;
+      console.log(this.selectedZone, 'apres planté');
+
       const promises = [
         this.$store.dispatch(ActionTypes.GET_ROOMS, {
           buildingId,
@@ -1091,6 +1061,7 @@ class dataSideApp extends Vue {
         }),
       ];
       const result = await Promise.all(promises);
+
       this.$store.commit(MutationTypes.SET_DATA, result[0]);
       this.pageSate = PAGE_STATES.loaded;
     } catch (err) {
@@ -1106,7 +1077,6 @@ class dataSideApp extends Vue {
 
   getDataDynamicIdtab() {
     const dynamicIds = this.data.map(obj => obj.dynamicId);
-    console.log(dynamicIds, this.data, ' les dynamica ID //////////////////////////////////////');
 
     this.fetchReferenceObjects(dynamicIds)
     this.getInventoryObject(dynamicIds)
@@ -1135,29 +1105,18 @@ class dataSideApp extends Vue {
     const result = await Promise.all(promises);
     this.inventory = [...result];
     this.countInventoryTypes([...result]);
-
   }
 
   async addOrRemove(dyn) {
 
     if (this.activeChart.includes(dyn)) {
-      console.log('EXISTE DEJA ----------- REMOVE');
-      console.warn(this.dataTable, "----------le data table avant le remove");
       this.dataTable = this.dataTable.filter(item => item.dynamicId !== dyn);
-      console.warn(this.dataTable, "----------le data table apres le remove");
       this.activeChart = this.activeChart.filter(id => id !== dyn);
       this.removegraphInfoCp(dyn)
-      console.warn(this.activeChart, "----------le active charts'");
-      // console.warn(this.chartData, "----------le active chartsData'");
     }
     else {
-      console.log('EXISTE PAS ----------- ADD');
-      console.warn(this.dataTable, "----------le data table avant l'ajout'");
       this.addgraphInfoCp(dyn)
-      console.warn(this.dataTable, "----------le data table apres l'ajout'");
       this.activeChart.push(dyn);
-      console.warn(this.activeChart, "----------le active charts'");
-      // console.warn(this.chartData, "----------le active chartsData'");
     }
   }
   async removegraphInfoCp(dyn) {
@@ -1167,7 +1126,6 @@ class dataSideApp extends Vue {
   }
   async addgraphInfoCp(dyn) {
     if (this.cpIdToDraw.includes(dyn)) {
-      console.log('---- récupération du dynamic id :', dyn);
       const begintime = '23-09-2024 00:00:00';
       const endtime = '29-09-2024 23:59:59';
 
@@ -1186,24 +1144,15 @@ class dataSideApp extends Vue {
         data: result.map(item => ({
           x: item.date,
           y: item.value,
-        })), // Copie des valeurs pour éviter les références partagées
+        })),
         unit: 'kwh',
         name: 'le nom du graph',
       };
 
-      console.warn('---------la copie de ----- après le push', actuelleTable.data);
-
       datatableCopy.push(actuelleTable);
-
-      // Génération des labels
       this.labelsChart = this.labels(begintime, endtime).map((label) => this.toDate(label));
-
-      // Assignation d'une copie pour éviter les références partagées
       this.dataTable = [...datatableCopy];
-      console.warn('--------- this datatable avant l’envoi dans chartsdataobjets-', datatableCopy);
-      this.chartData = this.chartDataObject(datatableCopy); // Mise à jour de chartData avec une copie de datatableCopy
-
-      console.warn(this.chartData, "----------le active chartsData'");
+      this.chartData = this.chartDataObject(datatableCopy);
     }
   }
 
@@ -1290,10 +1239,18 @@ class dataSideApp extends Vue {
       this.eyes.splice(indexPosition, 1);
     }
   }
+  closeink(index) {
+    const indexPosition = this.ink.indexOf(index);
+    if (indexPosition === -1) {
+      this.ink.push(index);
+    } else {
+      this.ink.splice(indexPosition, 1);
+    }
+  }
 
   countInventoryTypes(floors) {
     const inventoryCounts = {};
-    const inventoryDbids = {}; // Pour stocker les dbids regroupés par bimFileId et type d'inventaire
+    const inventoryDbids = {};
 
     floors[0].forEach(floor => {
       if (floor.inventories) {
@@ -1307,21 +1264,17 @@ class dataSideApp extends Vue {
               inventoryCounts[group.name] = group.equipments.length;
             }
 
-            // Collecter les dbids regroupés par bimFileId pour chaque type d'inventaire
             group.equipments.forEach(equipment => {
               const bimFileId = equipment.bimFileId;
 
-              // S'assurer que l'objet pour ce group.name existe
               if (!inventoryDbids[group.name]) {
                 inventoryDbids[group.name] = {};
               }
 
-              // S'assurer que l'objet pour ce bimFileId existe
               if (!inventoryDbids[group.name][bimFileId]) {
                 inventoryDbids[group.name][bimFileId] = [];
               }
 
-              // Ajouter le dbid de l'équipement dans le bon bimFileId
               inventoryDbids[group.name][bimFileId].push(equipment.dbid);
             });
           });
@@ -1339,9 +1292,11 @@ class dataSideApp extends Vue {
     }
 
     this.inventoyList = results;
+    console.warn(this.inventoyList, 'aaa');
+
     this.inventoryDbids = inventoryDbids;
+    console.warn(this.inventoryDbids, 'aaa');
     this.$forceUpdate();
-    console.warn(inventoryDbids, 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASSSSSSSSSSSSSSSSSSSSSASASAAAAAAA');
 
     return results;
   }
@@ -1353,6 +1308,8 @@ class dataSideApp extends Vue {
 
   @Watch("selectedZone")
   watchSelectedZone() {
+    console.log(this.selectedZone, 'aaaaaa faker');
+
     if (this.selectedZone.type === "building") {
       this.loadBuildingInfo()
       this.isBuildingSelected = true;
@@ -1366,10 +1323,7 @@ class dataSideApp extends Vue {
 
   @Watch("floorstaticDetails")
   async watchFloorstaticDetails(newVal, oldVal) {
-    console.warn('toto ', newVal[0].controlEndpoint);
-
     const dynamicIds = newVal[0].controlEndpoint.flatMap(profile => profile.endpoints.map(endpoint => endpoint.dynamicId));
-    console.warn('toto ', dynamicIds);
     const buildingId = localStorage.getItem("idBuilding");
     const parentDocPromise = [
       this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
@@ -1378,8 +1332,6 @@ class dataSideApp extends Vue {
       }),
     ];
     const attribut = await Promise.all(parentDocPromise);
-    console.warn('les attribut des nodes : -------------------------', attribut[0]);
-
     const attributs = attribut[0]
       .filter(element =>
         element.categoryAttributes.some(category =>
@@ -1388,7 +1340,6 @@ class dataSideApp extends Vue {
       )
       .map(element => element.dynamicId);
 
-    console.warn('-------------------------------AAATTTRRRR', attributs);
     this.cpIdToDraw = attributs
 
   }
@@ -1400,45 +1351,15 @@ class dataSideApp extends Vue {
     if (this.selectedZone.type != "building") {
       if (this.data.length == 0) {
         this.getroomstaticdetails(this.selectedZone.dynamicId)
-
         this.getInventoryObject([this.selectedZone.dynamicId])
-        // this.watchfloor()
       } else {
         this.getfloorstaticdetails(this.floor)
         this.getDataDynamicIdtab()
       }
     }
     else {
-
       this.inventoyList = []
     }
-
-
-    // this.getDataDynamicIdtab()
-
-
-
-
-    // if (this.config.sprites)
-    //   this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-
-    // if (this.isBuildingSelected) return;
-
-
-    // if (this.config.sprites) {
-    //   this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-    //     items: [],
-    //     buildingId: undefined,
-    //     component: SpriteComponent,
-    //   });
-    //   return;
-    // }
-    // const buildingId = localStorage.getItem("idBuilding");
-
-    // this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
-    //   items: [],
-    //   buildingId: buildingId || this.selectedZone.staticId,
-    // });
   }
 }
 
@@ -1448,9 +1369,7 @@ export default dataSideApp;
 <style lang="scss">
 .graphDataContainer {
   display: flex;
-  /* Enables flexbox layout */
   justify-content: space-between;
-  /* Creates space between the two components */
   width: 100%;
   height: 100%;
 
@@ -1461,7 +1380,6 @@ export default dataSideApp;
   width: 160%;
   height: 100%;
   display: flex;
-  /* Enables flexible layout */
   padding: 10px;
 }
 
@@ -1561,10 +1479,7 @@ a {
   font-weight: bold;
   font-family: Arial, Helvetica, sans-serif;
   padding-left: 20px;
-
-  // background-color: red;
   cursor: pointer;
-  /* espace pour la bordure inclinée */
 }
 
 .attribut::before {
@@ -1576,11 +1491,8 @@ a {
   width: 2px;
   height: 176%;
   background-color: rgb(223, 223, 223);
-
   transform: rotate(25deg);
-  /* Inclinez l'élément ici */
   transform-origin: left top;
-  // transform: translate(-100px);
 }
 
 .inventory-item {
@@ -1626,7 +1538,6 @@ a {
   margin-left: 11px;
 }
 
-//Spinal_card
 .Spinal_card {
   font-family: Charlevoix Pro !important;
   cursor: pointer;
@@ -1642,20 +1553,6 @@ a {
   margin: 5px
 }
 
-// .Spinal_card::before {
-//   content: "";
-//   height: 40px;
-//   width: 100px;
-//   position: absolute;
-//   top: -40%;
-//   left: -20%;
-//   border-radius: 50%;
-//   border: 35px solid rgba(240, 18, 18, 0.102);
-//   transition: all .8s ease;
-//   filter: blur(.5rem);
-// }
-
-
 .inventory:before {
   content: "";
   position: absolute;
@@ -1664,9 +1561,7 @@ a {
   right: 120px;
   border-top: 2px solid rgb(235, 234, 234);
   width: auto;
-
 }
-
 
 .Spinal_card::before {
   content: "";
@@ -1742,7 +1637,6 @@ a {
   height: 50px;
   position: relative;
   right: 0px;
-
 }
 
 .svg-icon {
@@ -1756,8 +1650,6 @@ a {
 }
 
 .button {
-  // background-color: rgb(224, 224, 224);
-  // box-shadow: 10px 10px 0 rgba(0, 0, 0, .5);
   display: inline-block;
   padding: 5px;
   text-decoration: none;
@@ -1765,7 +1657,6 @@ a {
   padding-left: 10px;
   padding-right: 10px;
   transition: 0.2s;
-  // border-left: 1px solid rgb(196, 196, 196);
   white-space: nowrap;
   margin-left: 20px;
   margin-top: 6px;
@@ -1777,13 +1668,7 @@ a {
 
 .button:hover {
   background-color: rgb(228, 228, 228);
-  // box-shadow: 0 0 0;
 }
-
-
-// >>> .v-input__slot::before {
-//   border-style: none !important;
-// }
 
 .v-text-field>.v-input__control>.v-input__slot:before {
   border-style: none !important;
@@ -1799,7 +1684,6 @@ a {
   font-size: 14px;
 }
 
-
 .appli {
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
   background-color: white;
@@ -1810,15 +1694,10 @@ a {
   flex-direction: column;
 }
 
-.container {}
-
 .title {
   position: relative;
-  //background-color: RED;
   width: 100%;
   display: flex;
-  // justify-content: space-between;
-  // padding: 10px;
 }
 
 .inventory {
@@ -1826,46 +1705,35 @@ a {
   padding: 10px;
   height: 70%;
   overflow: auto;
-
   overflow-x: hidden
-    /* border-top: 2px solid rgb(235, 234, 234); */
-
 }
 
 .inventory:before {
   content: "";
-  /* Nécessaire pour que le pseudo-élément soit généré */
   position: absolute;
   left: 0;
   top: 0;
   border-top: 1px solid rgb(212, 212, 212);
   width: 100%;
-
 }
 
 .description {
   padding: 10px;
   padding-top: 15px;
   background-color: rgb(255, 255, 255);
-  /* box-shadow: rgb(217, 226, 235) 3px 3px 6px 0px inset, rgba(255, 255, 255, 0.596) -3px -3px 6px 1px inset; */
   border-top: 2px solid rgb(201, 201, 201);
   overflow: auto;
   height: 25%;
 }
-
-
-
 
 .container_cards {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   margin-top: 10px;
-  /* Cette propriété ajuste l'espacement entre les cartes */
 }
 
 .cardDescription {
-
   cursor: pointer;
   -webkit-user-select: none;
   user-select: none;
@@ -1883,8 +1751,6 @@ a {
   margin-left: 10px;
 }
 
-
-
 @media (max-width: 970px) {
   .cardDescription {
     width: 100vw;
@@ -1897,8 +1763,6 @@ a {
     visibility: hidden;
   }
 }
-
-
 
 .cardDescription:hover {
   background-color: rgb(221, 221, 221);
@@ -1928,12 +1792,9 @@ a {
   z-index: 1;
 }
 
-
 .nombre_data_cardDescription {
-  /* background-color: red; */
   width: 40%;
   display: flex;
-  // justify-content: center;
   align-items: center;
   font-size: 40px;
   height: 100%;
@@ -1947,11 +1808,7 @@ a {
   display: flex;
   color: #14202c;
   padding-right: 5px;
-  // border-left: 1px solid black;
-
 }
-
-
 
 .microinfo {
   margin-bottom: 40px;
@@ -1968,7 +1825,6 @@ a {
   position: absolute;
   top: -100%;
   left: 100%;
-  // background: url('../../assets/tets.svg') no-repeat center center;
   background-size: contain;
   transition: all .4s ease;
   filter: invert(1) saturate(5) hue-rotate(200deg) opacity(0.1);
