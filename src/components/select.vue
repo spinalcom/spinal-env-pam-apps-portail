@@ -197,8 +197,10 @@ export default {
 
 <style lang="scss">
 .headerSelect {
-  width: 100%;
+  width: 40%;
+  position: absolute;
   height: 70px;
+  right: 0px;
   // display: flex;
   // align-items: center;
   // border-radius: 10px;

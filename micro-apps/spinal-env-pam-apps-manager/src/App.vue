@@ -50,6 +50,7 @@ export default Vue.extend({
 .appContainer {
   width: 100vw;
   height: 100vh;
+  overflow: auto;
   background: linear-gradient(121deg, #f8fafa, #d6e2e6) !important;
 }
 </style>

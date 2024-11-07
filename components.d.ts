@@ -65,5 +65,6 @@ declare module '@vue/runtime-core' {
     VSelect: typeof import('vuetify/lib')['VSelect'];
     VTextarea: typeof import('vuetify/lib')['VTextarea'];
     VTextField: typeof import('vuetify/lib')['VTextField'];
+    VTooltip: typeof import('vuetify/lib')['VTooltip'];
   }
 }
