@@ -74,14 +74,25 @@ with this file. If not, see
         :selectedTime="temporalitySelected"
         :data="displayedData"
         :vueChart="vueChart"
+        :isFullGraph="mobileDisplayMode===2"
+        :isMobileDisplay="isMobileDisplay"
         @buttonClicked="toggleActive"
         @buttonClicked3D="toggleActive3D"
         @chartView="switchView"
         @sourceChanged="onSourceChange"
       ></InsightApp>
     </div>
+    <div class="hide" @click="() => {
+      gestionBouton()
+    }"
+      style="background-color: white;width: 50px;height: 50px;position: absolute;bottom: 20px;right: 20px;z-index: 9999;border-radius: 5px;border: 2px solid #14202c;justify-content: center;align-items: center;display: flex;">
+      <v-icon v-if="mobileDisplayMode===0">mdi-text-box</v-icon>
+      <v-icon v-if="mobileDisplayMode===1">mdi-video-3d</v-icon>
+      <!-- <v-icon v-else>mdi-close-circle-outline</v-icon> -->
+    </div>
   </v-app>
 
+  
   <v-container
     class="loading"
     v-else-if="pageSate === PAGE_STATES.loading"
@@ -94,6 +105,8 @@ with this file. If not, see
       indeterminate
     ></v-progress-circular>
   </v-container>
+
+  
 </template>
 
 <script lang="ts">
@@ -189,6 +202,9 @@ class App extends Vue {
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
   isActive: boolean = false;
   isActive3D: boolean = false;
+  isMobileDisplay: boolean = false;
+  mobileDisplayMode: number = 0;
+
   dataTable: IZoneItem[] = [];
   $refs: { spaceSelector };
   query: {
@@ -220,14 +236,27 @@ class App extends Vue {
     return this.$store.state.appDataStore.itemSelected;
   }
 
+  handleRouteChange() {
+    if (this.isActive3D && !this.isActive) {
+      this.query.mode = '3d'
+    } else if (!this.isActive3D && this.isActive) {
+      this.query.mode = 'data'
+    } else {
+      this.query.mode = 'none'
+    }
+    this.replaceRoute();
+  }
+
   toggleActive() {
     if (this.isActive3D) this.isActive3D = false;
     this.isActive = !this.isActive;
+    this.handleRouteChange();
   }
 
   toggleActive3D() {
     if (this.isActive) this.isActive = false;
     this.isActive3D = !this.isActive3D;
+    this.handleRouteChange();
   }
 
   toDate(date) {
@@ -269,6 +298,13 @@ class App extends Vue {
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();
       this.pageSate = PAGE_STATES.loaded;
+      
+      if (window.innerWidth < 900) {
+        this.isMobileDisplay = true;
+        this.mobileDisplayMode =  1; 
+        this.isActive = true;
+        this.isActive3D = false;
+    }
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
@@ -279,49 +315,86 @@ class App extends Vue {
     });
   }
 
-  applyURLParam(query) {
-    this.query.mode = query.mode;
-    this.query.buildingId = query.buildingId;
-    this.query.spaceSelectedId = query.spaceSelectedId;
-    this.query.name = query.name;
-    this.query.app = query.app;
-
-    if (query.mode == "3d") {
+  gestionBouton() {
+    this.mobileDisplayMode = (this.mobileDisplayMode+=1)%2;
+    if(this.mobileDisplayMode == 0){
+      this.isActive = false;
       this.isActive3D = true;
-    } else if (query.mode == "data") {
+    }
+    if(this.mobileDisplayMode == 1){
       this.isActive = true;
+      this.isActive3D = false;
     }
-    console.warn(query.spaceSelectedId);
-
-    if (query.spaceSelectedId) {
-      const item = {
-        buildingId: query.buildingId,
-        dynamicId: query.spaceSelectedId,
-      };
-      const button = {
-        title: "charger",
-        icon: "mdi-video-3d",
-        onclickEvent: "OPEN_VIEWER",
-        isShownTypes: ["geographicFloor"],
-      };
-      this.onActionClick({ button, item });
-
-      const itemToSelect = {
-        isOpen: false,
-        loading: false,
-        dynamicId: parseInt(query.spaceSelectedId),
-        name: query.name,
-        buildingId: query.buildingId,
-        parents: ["5932-6086-9e1a-18506478460"],
-        type: "geographicFloor",
-        staticId: "SpinalNode-6cd64ff8-a126-1aa3-80b7-f9d4fc5690bf-186df7cd2a5", //nan
-      };
-
-      if (this.$refs["space-selector"]) {
-        this.$refs["space-selector"].select(itemToSelect);
-      }
+    if(this.mobileDisplayMode == 2){
+      this.isActive = true;
+      this.isActive3D = false;
     }
-    this.openSpaceSelector = false;
+    this.resize();
+  }
+
+  // changeIcon() {
+  //   this.modefull = !this.modefull
+  // }
+
+  applyURLParam(query) {
+
+this.query.mode = query.mode
+this.query.buildingId = query.buildingId
+this.query.spaceSelectedId = query.spaceSelectedId
+this.query.name = query.name
+this.query.app = query.app
+
+if (query.mode == "3d") {
+  this.isActive3D = true
+} else if (query.mode == "data") {
+  this.isActive = true
+}
+// console.warn(query.spaceSelectedId);
+
+
+if (query.spaceSelectedId) {
+
+  const item = {
+    buildingId: query.buildingId,
+    dynamicId: query.spaceSelectedId,
+  };
+  const button = {
+    "title": "charger",
+    "icon": "mdi-video-3d",
+    "onclickEvent": "OPEN_VIEWER",
+    "isShownTypes": [
+      "geographicFloor"
+    ]
+  }
+
+  console.warn(button, '/////////////////////////////////////////////////////////////////////////////////////////////////////////');
+
+  this.onActionClick({ button, item })
+  console.log('totot');
+
+
+  const itemToSelect = {
+    "isOpen": false,
+    "loading": false,
+    "dynamicId": parseInt(query.spaceSelectedId),
+    "name": query.name,
+    "buildingId": query.buildingId,
+    "type": "geographicFloor",
+  }
+  // this.$refs['space-selector'].getButton();
+
+  if (this.$refs['space-selector']) {
+    this.$refs['space-selector'].select(itemToSelect);
+  }
+}
+this.openSpaceSelector = false
+}
+
+  replaceRoute() {
+    window.parent.routerFontion.customReplace(window.parent.router.path, this.query);
+  }
+  changeRoute() {
+    window.parent.routerFontion.customPush(window.parent.router.path, this.query);
   }
 
   onSourceChange(newVal){
@@ -334,6 +407,15 @@ class App extends Vue {
   }
 
   public set selectedZone(v: ISpaceSelectorItem) {
+    if (this.query.spaceSelectedId != v.dynamicId.toString()) {
+      this.query.name = v.name
+      this.query.buildingId = v.buildingId
+      this.query.spaceSelectedId = v.dynamicId.toString()
+      this.replaceRoute();
+    }
+
+    // if (v.type == "geographicFloor")
+    //   this.floor = this.query.spaceSelectedId
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
   }
 
@@ -365,7 +447,6 @@ class App extends Vue {
           },
         ];
       case "building":
-        console.log('hahahahhaahahahah')
         return await this.$store.dispatch(ActionTypes.GET_FLOORS, {
           buildingId: item.staticId,
           patrimoineId: item.patrimoineId,
@@ -402,41 +483,17 @@ class App extends Vue {
       default:
         return [];
     }
-
-    // if (item) {
-    //   if (item.name == 'Journée') {
-    //     this.selectedTime.next = 'Jour suivant';
-    //     this.selectedTime.prev = 'Jour précédent';
-    //   }
-    //   if (item.name == 'Semaine') {
-    //     this.selectedTime.next = 'Semaine suivante';
-    //     this.selectedTime.prev = 'Semaine précédente';
-    //   }
-    //   if (item.name == 'Mois') {
-    //     this.selectedTime.next = 'Mois suivant';
-    //     this.selectedTime.prev = 'Mois précédent';
-    //   }
-    //   else if (item.name == 'Trimestre') {
-    //     this.selectedTime.next = 'Trimestre suivant';
-    //     this.selectedTime.prev = 'Trimestre précédent';
-    //   }
-    //   else if (item.name == 'Année') {
-    //     this.selectedTime.next = 'Année suivante';
-    //     this.selectedTime.prev = 'Année précédente';
-    //   }
-    //   return [];
   }
 
+  resize() {
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 1);
+  }
   onGoBack() {
     const parent = this.$refs["space-selector"].getParentOfSelected();
     if (parent) this.selectedZone = parent;
   }
-
-  // async onDataViewClicked(item) {
-  //   if (!item) return;
-  //   this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
-  //   this.$store.dispatch(ActionTypes.SELECT_ITEMS, item);
-  // }
 
   onActionClick({ button, item }) {
    // console.log(" insight onActionClick", button, item);
@@ -534,6 +591,13 @@ export default App;
   width: 100%;
   height: 100%;
 
+  @media (min-width: 970px) {
+  .hide {
+    display: none;
+    visibility: hidden;
+  }
+}
+
   $selectorHeight: 60px;
 
   .selectors {
@@ -588,7 +652,15 @@ export default App;
       margin-right: 6px;
       height: 91%;
     }
+    @media (max-width: 960px) {
+      .active {
+        height: 83vh;
+      }
 
+      .inactive {
+        height: 83vh !important;
+    }
+  }
     .inactive {
       // display: none;
       position: absolute;

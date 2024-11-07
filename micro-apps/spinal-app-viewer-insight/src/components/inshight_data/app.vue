@@ -145,8 +145,9 @@ with this file. If not, see
         <v-icon v-else>mdi-chevron-right</v-icon>
       </button>
 
-      <div class="graphDataContainer">
-        <div v-if="ActiveData" class="graphContainer">
+      <div class="graphDataContainer" v-show="(ActiveData || !DActive)" >
+        <div  class="graphContainer" v-if="(!isMobileDisplay && ActiveData) || (isMobileDisplay && isFullGraph && ActiveData)"
+        :class="[{ 'full-width': isMobileDisplay && isFullGraph }]">
           <sc-line-card
             :title="title"
             :labels="labelDisplay"
@@ -164,10 +165,11 @@ with this file. If not, see
         </div>
         
         <div
+          v-if="!isFullGraph"
           class="dataContainer"
           :style="{ width: ActiveData ? '40%' : '100%' }"
+          :class="[{ 'full-width': isMobileDisplay && !isFullGraph }]"
           @onSpriteClick="updateSelected"
-          v-show="ActiveData || !DActive"
         >
           <div class="detail_header">
             <div class="title_date">
@@ -437,6 +439,8 @@ class InsightApp extends Vue {
   @Prop() DActive: boolean;
   @Prop() ActiveData: boolean;
   @Prop() vueChart: boolean;
+  @Prop() isFullGraph: boolean;
+  @Prop() isMobileDisplay: boolean;
 
   time: any = null;
   sprites: boolean = true;
@@ -558,46 +562,6 @@ class InsightApp extends Vue {
     return ts !== null ? series[ts] : null;
 
   }
-
-  getMean(values) {
-    return values.reduce((acc, val) => acc + val, 0) / values.length;
-  }
-
-
-
-  // updateChartData() {
-  //   const result: any[] = [];
-  //   const t_index = this.t_index;
-  //   const items = this.selectedChartItems;
-  //   for (const item of items) {
-  //     const vals = getValues(item.series);
-  //     console.log('vals : ', vals);
-  //     const labels = getLabels(
-  //       this.$store.state.appDataStore.temporalitySelected,
-  //       t_index
-  //     );
-  //     console.log('labels : ', labels);
-  //      // Convert the vals object keys to an array of timestamps
-  //     const valTimestamps = Object.keys(vals).map((key) => parseInt(key));
-
-  //     // Build the chart data using the labels and the closest past timestamp in vals
-  //     const data = labels.map((lab) => {
-  //       // Find the closest past timestamp to the current label
-  //       const closestTimestamp = this.findClosestPastTimestamp(lab, valTimestamps);
-
-  //       // If a valid closest past timestamp was found, use its value; otherwise, use NaN
-  //       const yValue = closestTimestamp !== null ? vals[closestTimestamp] : 'NaN';
-        
-  //       return { x: lab, y: yValue };
-  //     }); 
-
-  //     console.log('data : ', data);
-  //     const color = item.color;
-  //     result.push({ label: item.name, data, color, tension: 0.1 });
-  //   }
-  //   // Assign the result to a reactive property (if necessary)
-  //   this.chartData = result;
-  // }
 
   updateChartData() {
   const result :any[]= [];
@@ -1446,6 +1410,10 @@ export default InsightApp;
     justify-content: center;
     text-align: center;
   }
+
+  .full-width {
+  width: 100% !important;
+}
 }
 
 .test {
