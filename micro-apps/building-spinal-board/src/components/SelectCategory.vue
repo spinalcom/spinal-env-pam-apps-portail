@@ -1,8 +1,7 @@
 <template>
     <div>
-        <v-select class="selectCategory"  :items="controls_point" outlined @change="change_endpoint" v-model="localControlValue" item-value="" item-text="title">
+        <v-select class="selectCategory"  :items="controls_point" outlined @change="change_endpoint" v-model="localControlValue" item-value="" item-text="title" style="cursor: pointer;">
         </v-select>
-        <span v-if="localControlValue">{{ localControlValue.title }}</span>
     </div>
   </template>
 

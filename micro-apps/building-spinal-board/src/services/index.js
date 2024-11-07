@@ -168,7 +168,6 @@ export async function getData(timestamp, period, buildings, cp, cp_batiment, id_
   let i = 0;
   let degree = 0;
   let lightness = 50;
-//   console.log("floors data: ", floors.data);
   for (const floor of floors.data) {
     if (degree <= 360) {
       degree = degree + 60;
@@ -188,7 +187,6 @@ export async function getData(timestamp, period, buildings, cp, cp_batiment, id_
     if(cpList.data && cpList.data[0] && cpList.data[0].endpoints){ 
     const foundEndpoint = cpList.data[0].endpoints.find(endpoint => endpoint.name === cp);
      if(foundEndpoint){
-        // console.log('endpoint found', foundEndpoint);
         timeSeries1 = await HTTP.get(`/building/${id_batiment}/endpoint/${foundEndpoint.dynamicId}/timeSeries/read/${periodArray1[1]}/${periodArray1[2]}`);
 
         let processedTimeSeries1 = processTimeSeries(timeSeries1, label1, period);
@@ -213,9 +211,6 @@ export async function getData(timestamp, period, buildings, cp, cp_batiment, id_
     // const endpoints = cpList.data[0].endpoints;
     // const endpoint = endpoints.find(endpoint => endpoint.name === cp);
 
-     
-      
-    //   console.log(data1);
     
   
   }

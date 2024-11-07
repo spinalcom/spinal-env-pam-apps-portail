@@ -20,9 +20,9 @@
           }}<v-icon icon>mdi-chevron-right</v-icon></v-btn>
       </div>
     </v-card-title>
-    <!-- <v-progress-circular style="position: absolute;left: 52.5%; top: 77px;" v-if="lineChartData.datasets.length == 1"
-      :size="25" color="#14202c" indeterminate /> -->
-    <div class="d-flex flex-column flex-grow-1 flex-shrink-1" style="height:0">
+    <div class="d-flex flex-column flex-grow-1 flex-shrink-1" style="height:0; position: relative;">
+    <v-progress-circular style="position: absolute;left: 52.5%; top: 8px; transform: translateX(-50%);" v-if="lineChartData.datasets.length == 1"
+      :size="25" color="#14202c" indeterminate /> 
       <LineChart ref="chart" :key="chartKey" :data="lineChartData" :chart-id="'99'" :options="lineChartOptions"
         class="bar-height" />
     </div>
@@ -255,7 +255,7 @@ export default {
     return {
       chartKey: 0,
       switchValue: this.stacked,
-      controls_points: [config.config.lighting, config.config.sanitary_water],
+      controls_points: [config.config.lighting, config.config.sanitary_water, config.config.global_energy, config.config.cvc],
       select_control: this.$store.state.appDataStore.config_endpoint
     }
   },
@@ -274,7 +274,7 @@ export default {
     },
     select_changed_control(value) {
 
-      value === config.config.lighting.title ? this.$store.commit('SET_CONFIG', config.config.lighting) : this.$store.commit('SET_CONFIG', config.config.sanitary_water)
+      value === config.config.lighting.title ? this.$store.commit('SET_CONFIG', config.config.lighting) : (value === config.config.sanitary_water.title ? this.$store.commit('SET_CONFIG', config.config.sanitary_water) : (value === config.config.global_energy.title ? this.$store.commit('SET_CONFIG', config.config.global_energy) : this.$store.commit('SET_CONFIG', config.config.cvc)));
       this.select_control = this.$store.state.appDataStore.config_endpoint;
       this.$emit('change_endpoint', this.select_control)
       

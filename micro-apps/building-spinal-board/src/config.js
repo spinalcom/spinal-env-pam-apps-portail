@@ -1,14 +1,32 @@
+import { title } from "process";
 
 
 export default {
     config: {
-      
+          global_energy: {
+            title: 'Consommation energie globale',
+            label: 'Consommation',
+            labelIndicators:"consommée",
+            buildingApiUrl: "Energie globale",
+            floorApiUrl: "Energie globale",
+            unit: "kWh",
+            color:'#14202c',
+          },
           lighting : {
-            title: 'Consommation d\'électricité éclairage',
+            title: 'Consommation d\'électricité (éclairage)',
             label: 'Consommation',
             labelIndicators:"consommée",
             buildingApiUrl: "Eclairage",
             floorApiUrl: "Eclairage",
+            unit: "kWh",
+            color:'#14202c',
+          },
+          cvc: {
+            title: 'Consommation d\'électricité (CVC)',
+            label: 'Consommation',
+            labelIndicators:"consommée",
+            buildingApiUrl: "CVC",
+            floorApiUrl: "CVC",
             unit: "kWh",
             color:'#14202c',
           },

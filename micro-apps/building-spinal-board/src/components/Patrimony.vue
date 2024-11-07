@@ -12,7 +12,7 @@
         <sc-stat-card :value="stats.totalConsumptionSquareMeter" :unit="config_change.unit"
           :title="config_change.labelIndicators + ' au m²'" class="flex-grow-1 pa-4" />
       </div>
-      <SpinalTable :label="config_change.label"
+      <SpinalTable :label="config_change.label "
         :reference="config_change.buildingApiUrl === config_change.floorApiUrl ? '' : reference"
         :unit="config_change.unit" :context="patrimonyTable" :temporality="temporality" />
     </div>
@@ -162,7 +162,6 @@ export default {
       let res;
       this.loaded = false;
       res = await getData(this.currentTimestamp.valueTime, this.temporality.name, this.buildingsInTheList, this.config_change.floorApiUrl, this.config_change.buildingApiUrl, this.id_batiment, this.config_change.color);
-      console.log("res", res[1].length);
       this.barLabels = res[0];
       this.stats = res[2];
       this.tooltipinfo = res[3];
