@@ -69,7 +69,7 @@ with this file. If not, see
       <v-icon v-else-if="DActive">mdi-chevron-left</v-icon>
       <v-icon v-else>mdi-chevron-right</v-icon>
     </button>
-    <div class="dataContainer" v-if="1 === 1">
+    <div class="dataContainer" >
       <SpinalTable class="entrence" :class="{ 'inactiveTable': DActive, 'displaydataCss': displaydata }"
         :selectedItemTab="element_clicked" @item-selected="selectDataView" @allFiltredData="putAllFiltredData"
         @update:selectedItem="handleAttributeChange" @updateSuccess="updateData"
@@ -134,7 +134,7 @@ class dataSideApp extends Vue {
   }
 
   async mounted() {
-    localStorage.setItem("viewer_loaded", 'unload');
+    localStorage.setItem("viewer_loaded", 'initialize');
     await this.retriveData();
     this.pageSate = PAGE_STATES.loaded;
     this.isBuildingSelected = true;
@@ -381,7 +381,7 @@ export default dataSideApp;
 
 .dataContainer {
   overflow: hidden;
-
+  width: 100% !important
 }
 
 .displaydataCss {

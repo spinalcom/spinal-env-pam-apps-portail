@@ -43,7 +43,9 @@ export enum MutationTypes {
 	SET_ITEM_SELECTED = "SET_ITEM_SELECTED",
 	SET_DATA = "SET_DATA",
 	SET_ITEM_TO_HIDE = "SET_ITEM_TO_HIDE",
-	REMOVE_ITEM_TO_HIDE = "REMOVE_ITEM_TO_HIDE"
+	REMOVE_ITEM_TO_HIDE = "REMOVE_ITEM_TO_HIDE",
+	SET_ITEM_TO_COLOR = "SET_ITEM_TO_COLOR",
+	REMOVE_ITEM_TO_COLOR = "REMOVE_ITEM_TO_COLOR"
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -59,6 +61,8 @@ export type MutationsAppData<S = StateAppData> = {
 	[MutationTypes.SET_DATA](state: StateAppData, data: INodeItemTree[]): void;
 	[MutationTypes.SET_ITEM_TO_HIDE](state: StateAppData, data: any): void;
 	[MutationTypes.REMOVE_ITEM_TO_HIDE](state: StateAppData): void;
+	[MutationTypes.SET_ITEM_TO_COLOR](state: StateAppData, data: any): void;
+	[MutationTypes.REMOVE_ITEM_TO_COLOR](state: StateAppData): void;
 };
 
 export const mutations: MutationTree<StateAppData> & MutationsAppData = {
@@ -113,6 +117,14 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 
 	[MutationTypes.REMOVE_ITEM_TO_HIDE](state: StateAppData): void {
 		state.itemToHide = null; // ou [] ou {} en fonction de la structure attendue
-	  }
-	  
+	},
+
+	[MutationTypes.SET_ITEM_TO_COLOR](state: StateAppData, data: any): void {
+		state.itemToColor = data;
+	},
+
+	[MutationTypes.REMOVE_ITEM_TO_COLOR](state: StateAppData): void {
+		state.itemToColor = null; // ou [] ou {} en fonction de la structure attendue
+	}
+
 };

@@ -1,21 +1,19 @@
 <template>
-  <v-breadcrumbs v-if="etage"  divider=">">
-    <!-- Affiche le premier niveau (étage) si 'etage' est défini -->
+  <v-breadcrumbs v-if="etage" divider=">">
     <v-breadcrumbs-item v-if="etage" @click="setPosition(id_etage, etage)" class="breadcrumb-item">
       {{ etage }}
     </v-breadcrumbs-item>
 
-    <!-- Affiche le deuxième niveau (pièce) si 'piece' est défini -->
     <v-breadcrumbs-item v-if="piece" @click="setPosition(id_piece, piece)" class="breadcrumb-item">
       {{ piece }}
     </v-breadcrumbs-item>
 
-    <!-- Affiche le troisième niveau (équipement) si 'equipement' est défini -->
     <v-breadcrumbs-item v-if="equipement" @click="setPosition('equipement')" class="breadcrumb-item">
       {{ equipement }}
     </v-breadcrumbs-item>
   </v-breadcrumbs>
 </template>
+
 
 <style scoped>
 .v-breadcrumbs {
@@ -25,34 +23,33 @@
   align-items: center;
   margin-top: 20px;
   margin-left: 19px;
-  padding: 0px;
+  margin-right: 10px;
+  padding: 0;
 }
 
 .v-breadcrumbs__divider {
   color: #9e9e9e;
   margin: 0 8px;
 }
+
 .breadcrumb-item {
   cursor: pointer;
   color: #14202C;
   transition: color 0.3s ease;
-  text-decoration: none;
-  max-width: 400px;
-  padding-left: 7px;
-  padding-right: 7px;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
-  display: flex; /* On garde flex */
-  justify-content: center; /* Centre le contenu horizontalement */
-  align-items: center; /* Centre le contenu verticalement */
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   border: 1px solid rgb(206, 206, 206);
   height: 40px;
   background-color: rgb(241, 241, 241);
-  /* border-radius: 3px; */
-  
+  flex: 1 1 0;
+  min-width: 0;
+  width: 20px;
 }
-
-
 
 .breadcrumb-item:hover {
   color: #14202C;
@@ -63,14 +60,12 @@
 .breadcrumb-item:active {
   color: #0d47a1;
 }
-
 </style>
-
 
 
 <script lang="ts">
 import { defineComponent, watch } from 'vue';
-import { ActionTypes } from "../../interfaces/vuexStoreTypes";// Assurez-vous que l'import des actions est correct
+import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
@@ -90,8 +85,8 @@ export default defineComponent({
   },
   data() {
     return {
-      currentPosition: '', // Valeur par défaut pour la position actuelle
-      elementDynamicId: null,// Exemple d'ID dynamique, à ajuster selon votre contexte
+      currentPosition: '',
+      elementDynamicId: null,
       etage: null,
       piece: null,
       equipement: null,
@@ -99,18 +94,14 @@ export default defineComponent({
       id_piece: null,
     };
   },
-  async mounted() {
-    // console.error('////////////////////////////////////////////////');
-    // console.error('////////////////////////////////////////////////');
-  },
+  // async mounted() {
+  //   // console.error('////////////////////////////////////////////////');
+  //   // console.error('////////////////////////////////////////////////');
+  // },
   watch: {
     ids: {
       handler: async function (newIds) {
         const buildingId = localStorage.getItem("idBuilding");
-        console.log('%c Oh my heavens! ', 'background: yellow; color: #bada55');
-
-        console.log('Le changement de ids a été effectué :', newIds);
-        console.log('Le changement de ids a été effectué :', this.type);
 
         try {
           if (this.type === 'BIMObject') {
@@ -142,8 +133,7 @@ export default defineComponent({
             this.id_piece = resultParent[0].dynamicId
             this.piece = resultParent[0].name;
             this.equipement = null;
-            console.log('Résultat Room:', resultParent);
-          }else{
+          } else {
             this.etage = null
             this.piece = null
             this.equipement = null
@@ -152,7 +142,7 @@ export default defineComponent({
           console.error('Erreur lors de la récupération des données:', error);
         }
       },
-      immediate: true // Ceci déclenchera le watch dès que le composant est monté
+      immediate: true
     }
   }
   ,
@@ -166,9 +156,6 @@ export default defineComponent({
         // dbid: dbid,
         // bimFileId: bimFileId,
         name: position,
-        // position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
-        // data: result[0],
-        // config: this.config
       }
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { navigate: 'la page', node: item });
@@ -183,7 +170,6 @@ export default defineComponent({
         name: position
       };
 
-      // Remplacer ou pousser la nouvelle URL
       window.parent.routerFontion.customPush(window.parent.router.path, query)
 
     }

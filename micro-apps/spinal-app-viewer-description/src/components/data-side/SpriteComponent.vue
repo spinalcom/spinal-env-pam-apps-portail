@@ -5,10 +5,10 @@
     <!-- <span class="mdi mdi-abjad-arabic"></span> -->
     <div v-if="isopen" ref="container" class="container">
 
-      <v-button ref="closeButton" @click="close()"
+      <div ref="closeButton" @click="close()"
         style="justify-content: center;align-items: center;display: flex;background-color: white;cursor: pointer;border-radius: 25px;width: 20px; height: 20px;position: absolute;right: -8px;font-size: 13px;z-index: 99999;top: 3px;font-weight: bold;border: 1px solid gray;color: #14202c;">
         <span class="mdi mdi-close"></span>
-      </v-button>
+      </div>
       <div class="card">
         <div class="top-section">
           <div class="border"></div>
@@ -16,11 +16,10 @@
             <div :title="data.name" class="logo">
               {{ data.name }}
             </div>
-            <v-button ref="navigationButton"
-              style="justify-content: center;align-items: center;display: flex;background-color: #14202c;cursor: pointer;width: 16px; height: 16px;position: absolute;right: 80px;font-size: 17px;transform: translateY(-3px);margin-top: 10px ;"
-              @click="onClickNavigate()">
+            <div ref="navigationButton"
+              style="justify-content: center;align-items: center;display: flex;background-color: #14202c;cursor: pointer;width: 16px; height: 16px;position: absolute;right: 80px;font-size: 17px;transform: translateY(-3px);margin-top: 10px ;">
               &#x21AA;
-            </v-button>
+            </div>
 
             <div class="social-media">
               <div v-if="useFullDAta && useFullDAta.attributsList">
@@ -33,74 +32,6 @@
             </div>
           </div>
 
-
-
-          <!-- <div style="display : flex ; flex-direction: column ; width: 100%;">
-            <div style="width: 100%;">
-              <div style="display: flex;margin-top: 10px">
-                <div
-                  style="border: 1px solid  #14202c;border-radius: 5px;color: orange; font-size: 11px;font-weight: bold;width: 50%;">
-                  <div
-                    style="display: flex;justify-content: center; align-items: center;color: white;background: #14202c">
-                    PRÉSENCE</div>
-                  <div
-                    style="display: flex;justify-content: center; align-items: center;color: #14202c; font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
-                    {{ data.data.controlEndpoint[0].endpoints[0].value }}
-                  </div>
-                </div>
-                <div
-                  style="border: 1px solid  #14202c;border-radius: 5px;color: orange; font-size: 11px;font-weight: bold;width: 50%;margin-left:10px ">
-                  <div
-                    style="display: flex;justify-content: center; align-items: center;color: white;background: #14202c">
-                    occupation</div>
-                  <div
-                    style="display: flex;justify-content: center; align-items: center;;color: #14202c;font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
-                    {{ parseFloat(data.data.controlEndpoint[0].endpoints[1].value.toFixed(1)) }}%
-                  </div>
-                </div>
-                <div
-                style="border: 1px solid green;border-radius: 5px;color:green ; padding : 2px; font-size: 11px;font-weight: bold;margin-left:10px ;width: 50%;">
-                taux d'occupation : {{ parseFloat(data.data.controlEndpoint[0].endpoints[1].value.toFixed(1)) }}%</div>
-              </div>
-              <div style="display: flex;margin-top : 10px;margin-bottom: 10px">
-
-
-                <div
-                  style="border: 1px solid  #14202c;border-radius: 5px;color: orange; font-size: 11px;font-weight: bold;width: 50%;">
-                  <div
-                    style="display: flex;justify-content: center; align-items: center;color: white;background: #14202c">
-                    TEMPERATURE</div>
-                  <div
-                    style="display: flex;justify-content: center; align-items: center;;color: #14202c;font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
-                    {{ data.data.controlEndpoint[1].endpoints[0].value }}C°
-                  </div>
-                </div>
-
-
-
-                <div
-                  style="border: 1px solid  #14202c;border-radius: 5px;color: orange; font-size: 11px;font-weight: bold;width: 50%;margin-left:10px ">
-                  <div
-                    style="display: flex;justify-content: center; align-items: center;color: white;background: #14202c">
-                    AIR</div>
-                  <div
-                    style="display: flex;justify-content: center; align-items: center;;color: #14202c;font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
-                    xx</div>
-                </div>
-
-
-
-
-                <div
-                style="border: 1px solid blue;border-radius: 5px;color: blue ; padding : 2px; font-size: 11px;font-weight: bold;width: 50%;">
-                temperature : {{ data.data.controlEndpoint[1].endpoints[0].value }}C°</div>
-              <div
-                style="border: 1px solid yellow;border-radius: 5px;color : yellow ; padding : 2px; font-size: 11px;font-weight: bold;margin-left:10px; width: 50%;">
-                CO2/QUALITÉ D'AIRE</div>
-              </div>
-
-            </div>
-          </div> -->
 
           <div id="attr_id"
             style="display: flex; flex-wrap: wrap; overflow-y: scroll; justify-content: center;  border-radius: 5px;  ">
@@ -139,22 +70,6 @@
         </div>
 
 
-
-        <!-- <div
-          style="display:flex;align-items: center; flex-direction: row;width: 100%;justify-content: space-around;transform: translate(0,10px);">
-          <button
-            style="background-color: #14202c ;color: white; width:50%; font-weight: bold;border-radius: 5px;font-size: 12px;width: 35%;"
-            @click.stop="changeRoute('ticket')">
-            Tickets
-          </button>
-          <button
-            style="background-color: #14202c ;color: white;width:50%; font-weight: bold;border-radius: 5px;font-size: 12px;width: 35%;"
-            @click.stop="changeRoute('insight')">
-            Insight
-          </button>
-        </div> -->
-
-
         <div class="bottom-section">
 
           <div v-if="useFullDAta.bimObjects"
@@ -164,28 +79,6 @@
 
           <span v-if="useFullDAta.controlEndpoint" class="title">Points de mesures</span>
 
-
-          <!-- <div class="row row1">
-            <div
-              style="border-right:1px solid  rgb(215, 215, 215);;border-top:1px solid  rgb(215, 215, 215); background-color: rgb(230, 230, 230);"
-              class="item">
-              <span class="big-text">XX</span>
-              <span class="regular-text">luminaires</span>
-            </div>
-            <div
-              style="border-right:1px solid  rgb(215, 215, 215);;border-top:1px solid rgb(215, 215, 215);background-color: rgb(230, 230, 230);"
-              class="item">
-              <span class="big-text">XX</span>align-items: center;
-              <span class="regular-text">multicapteurs</span>
-            </div>
-            <div
-              style="border-right:1px solid  rgb(215, 215, 215);border-top:1px solid  rgb(215, 215, 215); ; background-color: rgb(230, 230, 230);"
-              class="item">
-              <span class="big-text">XX</span>
-              <span class="regular-text">Ventilo-convecteur</span>
-            </div>
-            
-          </div> -->
 
           <div v-if="useFullDAta.controlEndpoint" class="row row1">
             <div v-for="(item, index) in useFullDAta.controlEndpoint" :key="index" :style="{
@@ -198,7 +91,6 @@
               <span class="regular-text">{{ item.name }} {{ item.unit }}</span>
             </div>
           </div>
-
 
         </div>
       </div>
@@ -259,7 +151,6 @@ export default {
     }
   },
   mounted() {
-    //pour la correction du bug de fermeture
     setTimeout(() => {
       const button = this.$refs.closeButton;
       const navigation = this.$refs.navigationButton;
@@ -271,32 +162,8 @@ export default {
       }
     }, 1);
 
-    console.log('totot l element est monté avec ,', this.data.config.SpriteComponent, this.data.data);
     this.extractUsefulData(this.data.config.SpriteComponent, this.data.data)
-    // document.addEventListener("click", (evt) => {
-    //   evt.stopPropagation();
-    //   const flyoutEl = this.$refs.container;
-    //   let targetEl = evt.target;
-    //   console.warn(targetEl , 'la target');
-    //   while (targetEl) {
-    //     if (targetEl === flyoutEl) {
-    //       console.warn('tototot');
-    //       return;
-    //     } else if (targetEl.classList && targetEl.classList.contains('sprite_container') && targetEl !== flyoutEl) {
-    //       console.warn('tatata');
-    //       this._isNotSelected();
-    //       return;
-    //     }
-    //     console.warn('adadadad');
-    //     targetEl = targetEl.parentNode;
-    //   }
-    // });
-    // document.addEventListener("click", (evt) => {
-    //   evt.stopImmediatePropagation(); // Cela empêche l'événement de se propager plus loin dans la phase de capture et de bouillonnement
-    //   if (evt.target.tagName === 'CANVAS') {
-    //     console.log("salut");
-    //   }
-    // }, true);
+
 
   },
   methods: {
@@ -341,7 +208,6 @@ export default {
         }
       });
 
-      console.log(usefulData);
       this.useFullDAta = usefulData;
     }
     ,
@@ -351,8 +217,6 @@ export default {
     ,
 
     close() {
-      console.log('aaa');
-
       this.isopen = false;
     },
     changeRoute(route) {
@@ -397,18 +261,14 @@ export default {
 
     onClickNavigate() {
       const emitterHandler = EmitterViewerHandler.getInstance();
-      console.log(this.data);
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { navigate: 'la page', node: this.data });
-
-
       const query = {
-        app: window.parent.router.query.app, // ou une autre valeur selon votre logique
+        app: window.parent.router.query.app,
         buildingId: this.data.buildingId,
         spaceSelectedId: this.data.dynamicId,
         name: this.data.name
       };
 
-      // Remplacer ou pousser la nouvelle URL
       window.parent.routerFontion.customPush(window.parent.router.path, query);
     },
 
@@ -417,7 +277,6 @@ export default {
     //   ev.preventDefault();
     //   ev.stopImmediatePropagation();
 
-    //   console.log(this, ev)
     //   this.isClicked = true;
     //   const emitterHandler = EmitterViewerHandler.getInstance();
     //   emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });

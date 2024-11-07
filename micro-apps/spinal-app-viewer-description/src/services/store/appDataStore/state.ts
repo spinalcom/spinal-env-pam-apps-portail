@@ -42,4 +42,5 @@ export const state = {
 	dataVizExtn: undefined,
 	data: undefined as any,
 	itemToHide : undefined as any,
+	itemToColor : undefined as any,
 };

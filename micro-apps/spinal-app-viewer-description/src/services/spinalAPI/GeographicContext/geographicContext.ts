@@ -30,6 +30,7 @@ import type {
   IRefItem,
 } from '../../../../../../global-components/SpaceSelector/interfaces/IBuildingItem';
 
+
 export async function getBuilding(platformId: string) {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(
