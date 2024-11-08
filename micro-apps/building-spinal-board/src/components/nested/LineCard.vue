@@ -3,8 +3,10 @@
     style="border-radius: 10px !important;">
     <v-card-title class="card-title pa-3 text-uppercase flex-shrink-1 justify-space-between"
       style="height: fit-content !important ; ">
-      <SelectCategory :controls_point="controls_points" :control_value="control_value" @change_endpoint="select_changed_control"/>
       <!-- <p class="mb-0">{{ title }} <b>{{ titleDetails }}</b></p> -->
+       <div style="width: max-content;">
+         <SelectCategory :controls_point="controls_points" :control_value="control_value" @change_endpoint="select_changed_control"/>
+       </div>
       <div class="d-flex align-center mln6" style="position: absolute; right: calc(50% - 55px)">
         <v-icon icon class="pr-3" size="default">mdi-chart-line</v-icon>
         <v-switch @click="$emit('stack', switchValue)" style="margin-top: 1px; padding: 0px;height: 24px;"
@@ -21,7 +23,7 @@
       </div>
     </v-card-title>
     <div class="d-flex flex-column flex-grow-1 flex-shrink-1" style="height:0; position: relative;">
-    <v-progress-circular style="position: absolute;left: 52.5%; top: 8px; transform: translateX(-50%);" v-if="lineChartData.datasets.length == 1"
+    <v-progress-circular style="position: absolute;left: 53.5%; top: 8px; transform: translateX(-50%);" v-if="lineChartData.datasets.length == 1"
       :size="25" color="#14202c" indeterminate /> 
       <LineChart ref="chart" :key="chartKey" :data="lineChartData" :chart-id="'99'" :options="lineChartOptions"
         class="bar-height" />
@@ -249,15 +251,20 @@ export default {
       set.borderRadius = borderRadius;
       set.borderWidth = 1;
     });
-    // console.log(this.select_control)
   },
   data() {
     return {
       chartKey: 0,
       switchValue: this.stacked,
-      controls_points: [config.config.lighting, config.config.sanitary_water, config.config.global_energy, config.config.cvc],
+      controls_points: [],
       select_control: this.$store.state.appDataStore.config_endpoint
     }
+  },
+  mounted(){
+    config.config.forEach((element) => {
+      this.controls_points.push(element)
+    })
+  
   },
   methods: {
     toggleHidden(index) {
@@ -273,9 +280,9 @@ export default {
       this.$refs.lineChart.update();
     },
     select_changed_control(value) {
-
-      value === config.config.lighting.title ? this.$store.commit('SET_CONFIG', config.config.lighting) : (value === config.config.sanitary_water.title ? this.$store.commit('SET_CONFIG', config.config.sanitary_water) : (value === config.config.global_energy.title ? this.$store.commit('SET_CONFIG', config.config.global_energy) : this.$store.commit('SET_CONFIG', config.config.cvc)));
-      this.select_control = this.$store.state.appDataStore.config_endpoint;
+      this.$store.commit('SET_CONFIG', value);
+      
+      this.select_control = value;
       this.$emit('change_endpoint', this.select_control)
       
 

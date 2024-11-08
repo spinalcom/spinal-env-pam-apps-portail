@@ -58,5 +58,5 @@ export const state = {
   floors: {} as Record<string, IZoneItem[]>,
   rooms: {} as Record<number, IZoneItem[]>,
   roomBimObj: {} as Record<number, IEquipmentItem[]>,
-  config_endpoint: config.config.lighting,
+  config_endpoint: config.config[0],
 };

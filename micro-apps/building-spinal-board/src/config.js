@@ -2,43 +2,59 @@ import { title } from "process";
 
 
 export default {
-    config: {
-          global_energy: {
-            title: 'Consommation energie globale',
-            label: 'Consommation',
-            labelIndicators:"consommée",
-            buildingApiUrl: "Energie globale",
-            floorApiUrl: "Energie globale",
-            unit: "kWh",
-            color:'#14202c',
+    config: [
+      {
+      title: "Consommation d'énergie globale", // titre affiché dans le sélecteur
+      label: "Consommation",
+      labelIndicators: "consommés", // String affiché dans les 3 petites cartes sous le graph 
+      source:{
+          building:{
+              profileName: "KPI", // nom du controlendpoint / profile name associé au bâtiment pour ce sélecteur
+              name:"Energie globale" // nom du endpoint associé au batiment pour ce sélecteur
           },
-          lighting : {
-            title: 'Consommation d\'électricité (éclairage)',
-            label: 'Consommation',
-            labelIndicators:"consommée",
-            buildingApiUrl: "Eclairage",
-            floorApiUrl: "Eclairage",
-            unit: "kWh",
-            color:'#14202c',
-          },
-          cvc: {
-            title: 'Consommation d\'électricité (CVC)',
-            label: 'Consommation',
-            labelIndicators:"consommée",
-            buildingApiUrl: "CVC",
-            floorApiUrl: "CVC",
-            unit: "kWh",
-            color:'#14202c',
-          },
-          sanitary_water: {
-            title: 'Consommation d\'eau sanitaire',
-            label: 'Consommation',
-            labelIndicators:"consommée",
-            buildingApiUrl: "Eau globale",
-            floorApiUrl: "Eau sanitaire",
-            unit:'L',
-            color:'#14202c',
+          floors:{
+              profileName: "KPI USI", // nom du controlendpoint / profile name pour l'étage
+              name:"Energie globale" // nom du endpoint pour l'étage
           }
+      },
+      unit:"kWh", // unité
+      color:"#14202C" // => couleur de la chip dans le sélecteur
+  },
+  {
+    title: "Consommation d'éclairage",
+    label: "Consommation",
+    labelIndicators: "consommés",
+    source:{
+        building:{
+            profileName: "KPI",
+            name:"Eclairage"
+        },
+        floors:{
+            profileName: "KPI USI",
+            name:"Eclairage"
+        }
+    },
+    unit:"kWh",
+    color:"#FFFF00"
+},
+{
+    title: "Consommation d'eau",
+    label: "Consommation",
+    labelIndicators: "consommés",
+    source:{
+        building:{
+            profileName: "KPI",
+            name:"Eau globale"
+        },
+        floors:{
+            profileName: "KPI USI",
+            name:"Eau sanitaire"
+        }
+    },
+    unit:"L",
+    color:"#0000FF"
+}
+  ]
 
        
 
@@ -52,7 +68,7 @@ export default {
         // unit:'L',
         // color:'#14202c',
         
-      },
+      
       // exemple: {
         //   title: 'Consommation d\'eau sanitaire',
         //   label: 'Consommation',

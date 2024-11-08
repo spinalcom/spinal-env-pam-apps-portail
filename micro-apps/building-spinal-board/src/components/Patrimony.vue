@@ -1,19 +1,19 @@
 <template>
   <div class="RC" style="min-height: 480px">
     <div class="MC" v-if="loaded">
-      <LineCard :title="config.config.lighting.title" :titleDetails="currentTimestamp.stringTime" :hidden="hiddenelement" :labels="barLabels" :tooltipdate="tooltipinfo"
+      <LineCard :title="config_change.title" :titleDetails="currentTimestamp.stringTime" :hidden="hiddenelement" :labels="barLabels" :tooltipdate="tooltipinfo"
         :datasets="barChartData" :optional="lineOptions" :next="temporality.next" :prev="temporality.prev" @nav="nav"
         @stack="stack" :stacked="stackState" @update:hidden="hiddenelement = $event" class="BR" :control_value="config_change" @change_endpoint="changeConfig"/>
       <div class="d-flex cards">
         <sc-stat-card :value="stats.totalArea" :unit="'m²'" :title="`Superficie totale (${stats.buildings} Étages)`"
           class="flex-grow-1 pa-4" />
         <sc-stat-card :value="stats.totalConsumption" :unit="config_change.unit"
-          :title="config_change.labelIndicators + ' par le bâtiment btatat'" class="flex-grow-1 pa-4" />
+          :title="config_change.labelIndicators + ' par le bâtiment'" class="flex-grow-1 pa-4" />
         <sc-stat-card :value="stats.totalConsumptionSquareMeter" :unit="config_change.unit"
           :title="config_change.labelIndicators + ' au m²'" class="flex-grow-1 pa-4" />
       </div>
       <SpinalTable :label="config_change.label "
-        :reference="config_change.buildingApiUrl === config_change.floorApiUrl ? '' : reference"
+        :reference="config_change.source.building.name != config_change.source.floors.name ? '' : reference"
         :unit="config_change.unit" :context="patrimonyTable" :temporality="temporality" />
     </div>
     <div class="MC" v-else>
@@ -59,7 +59,7 @@ export default {
     buildingList: null,
     barLabels: [],
     barChartData: [],
-    lineOptions: { unit: config.config.lighting.unit, footer: 'Consommation totale du bâtiment' },
+    lineOptions: { unit: '', footer: 'Consommation totale du bâtiment' },
     buildingsInTheList: 0,
     currentTimestamp: { stringTime: '', valueTime: 0 },
     id_batiment: '',
@@ -69,6 +69,7 @@ export default {
 
   async mounted() {
     this.config_change = this.$store.state.appDataStore.config_endpoint;
+    this.lineOptions.unit = this.config_change.unit;
    
     moment.locale("fr");
     if (this.temporality.name == 'Mois') {
@@ -92,6 +93,8 @@ export default {
     else this.currentTimestamp = { stringTime: '', valueTime: 0 };
     const patrimoine = localStorage.getItem("patrimoine");
     this.id_batiment = localStorage.getItem("idBuilding");
+   
+
 
     let patrimoineObject = JSON.parse(patrimoine);
     this.buildingsInTheList = patrimoineObject.buildings;
@@ -161,19 +164,21 @@ export default {
     async onRequest() {
       let res;
       this.loaded = false;
-      res = await getData(this.currentTimestamp.valueTime, this.temporality.name, this.buildingsInTheList, this.config_change.floorApiUrl, this.config_change.buildingApiUrl, this.id_batiment, this.config_change.color);
+      res = await getData(this.currentTimestamp.valueTime, this.temporality.name, this.config_change.source.floors.profileName, this.config_change.source.floors.name, this.config_change.source.building.name, this.id_batiment, this.config_change.color);
       this.barLabels = res[0];
       this.stats = res[2];
       this.tooltipinfo = res[3];
       this.patrimonyTable = res[1];
       this.barChartData = [];
       for (let i = 0; i < res[1].length; i++) {
+        const bat = res[1].find(el  => el.staticId === this.id_batiment);
         this.barChartData.push(
           {
             label: res[1][i].name,
-            backgroundColor: res[1][i].color,
+          
+            backgroundColor: res[1][i].name === bat.name ? '#14202C' : res[1][i].color,
             data: res[1][i].timeSeries,
-            borderColor: res[1][i].color,
+            borderColor: res[1][i].name === bat.name ? '#14202C' : res[1][i].color,
             pointRadius: 0,
             // data: this.shuffleArray(res[1][i].timeSeries),
             // fill: true
@@ -185,7 +190,7 @@ export default {
     async onRequestBatiement() {
       let res;
       this.loaded = false;
-      res = await getDataBuilding(this.currentTimestamp.valueTime, this.temporality.name, this.buildingsInTheList, this.config_change.floorApiUrl, this.config_change.buildingApiUrl, this.id_batiment, this.config_change.color);
+      res = await getDataBuilding(this.currentTimestamp.valueTime, this.temporality.name, this.buildingsInTheList, this.config_change.source.building.profileName, this.config_change.source.building.name, this.id_batiment, this.config_change.color);
       this.barLabels = res[0];
       this.stats = res[2];
       this.patrimonyTable = res[1];
@@ -195,9 +200,9 @@ export default {
         this.barChartData.push(
           {
             label: res[1][i].name,
-            backgroundColor: res[1][i].color,
+            backgroundColor: "#14202C",
             data: res[1][i].timeSeries,
-            borderColor: res[1][i].color,
+            borderColor: "#14202C",
             pointRadius: 0,
           }
         )
