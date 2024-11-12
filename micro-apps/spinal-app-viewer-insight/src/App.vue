@@ -25,88 +25,46 @@ with this file. If not, see
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
     <div class="selectors">
       <div class="DButton">
-        <sc-download-button
-          fileName="insight_data"
-          csv
-          :data="getDataFormatted()"
-        ></sc-download-button>
+        <sc-download-button fileName="insight_data" csv :data="getDataFormatted()"></sc-download-button>
       </div>
 
       <div class="temporality">
-        <space-selector
-          :edge="false"
-          ref="space-selector2"
-          :open.sync="openTemporalitySelector"
-          :GetChildrenFct="onTemporalitySelectOpen"
-          :maxDepth="0"
-          v-model="temporalitySelected"
-          label="TEMPORALITÉ"
-        />
+        <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
+          :GetChildrenFct="onTemporalitySelectOpen" :maxDepth="0" v-model="temporalitySelected" label="TEMPORALITÉ" />
       </div>
 
       <div class="space">
-        <space-selector
-          ref="space-selector"
-          :open.sync="openSpaceSelector"
-          :maxDepth="2"
-          :GetChildrenFct="onSpaceSelectOpen"
-          v-model="selectedZone"
-          label="ESPACE"
-          :spaceSelectorItemButtons="spaceSelectorButtons"
-          :viewButtonsType="config.viewButtons"
-          @onActionClick="onActionClick"
-        />
+        <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"
+          :GetChildrenFct="onSpaceSelectOpen" v-model="selectedZone" label="ESPACE"
+          :spaceSelectorItemButtons="spaceSelectorButtons" :viewButtonsType="config.viewButtons"
+          @onActionClick="onActionClick" />
       </div>
     </div>
 
     <div class="dataBody">
-      <viewerApp
-        class="viewerContainer"
-        :class="{ active3D: isActive3D }"
-      ></viewerApp>
-      <InsightApp
-        class="appContainer"
-        :DActive="isActive3D"
-        :ActiveData="isActive"
-        :class="{ active: isActive, inactive: isActive3D }"
-        :config="config"
-        :selectedZone="selectedZone"
-        :selectedTime="temporalitySelected"
-        :data="displayedData"
-        :vueChart="vueChart"
-        :isFullGraph="mobileDisplayMode===2"
-        :isMobileDisplay="isMobileDisplay"
-        @buttonClicked="toggleActive"
-        @buttonClicked3D="toggleActive3D"
-        @chartView="switchView"
-        @sourceChanged="onSourceChange"
-      ></InsightApp>
+      <viewerApp class="viewerContainer" :class="{ active3D: isActive3D }"></viewerApp>
+      <InsightApp class="appContainer" :DActive="isActive3D" :ActiveData="isActive"
+        :class="{ active: isActive, inactive: isActive3D }" :config="config" :selectedZone="selectedZone"
+        :selectedTime="temporalitySelected" :data="displayedData" :vueChart="vueChart"
+        :isFullGraph="mobileDisplayMode === 2" :isMobileDisplay="isMobileDisplay" @buttonClicked="toggleActive"
+        @buttonClicked3D="toggleActive3D" @chartView="switchView" @sourceChanged="onSourceChange"></InsightApp>
     </div>
     <div class="hide" @click="() => {
       gestionBouton()
     }"
-      style="background-color: white;width: 50px;height: 50px;position: absolute;bottom: 20px;right: 20px;z-index: 9999;border-radius: 5px;border: 2px solid #14202c;justify-content: center;align-items: center;display: flex;">
-      <v-icon v-if="mobileDisplayMode===0">mdi-text-box</v-icon>
-      <v-icon v-if="mobileDisplayMode===1">mdi-video-3d</v-icon>
+      style="background-color: white;width: 50px;height: 50px;position: absolute;bottom: 60px;right: 20px;z-index: 9999;border-radius: 5px;border: 2px solid #14202c;justify-content: center;align-items: center;display: flex;">
+      <v-icon v-if="mobileDisplayMode === 0">mdi-text-box</v-icon>
+      <v-icon v-if="mobileDisplayMode === 1">mdi-video-3d</v-icon>
       <!-- <v-icon v-else>mdi-close-circle-outline</v-icon> -->
     </div>
   </v-app>
 
-  
-  <v-container
-    class="loading"
-    v-else-if="pageSate === PAGE_STATES.loading"
-    fluid
-  >
-    <v-progress-circular
-      :size="70"
-      :width="3"
-      color="purple"
-      indeterminate
-    ></v-progress-circular>
+
+  <v-container class="loading" v-else-if="pageSate === PAGE_STATES.loading" fluid>
+    <v-progress-circular :size="70" :width="3" color="purple" indeterminate></v-progress-circular>
   </v-container>
 
-  
+
 </template>
 
 <script lang="ts">
@@ -125,7 +83,7 @@ import type {
   TGeoItem,
 } from "../../../global-components/SpaceSelector/interfaces/IBuildingItem";
 import { DataTable } from "./components/data-table";
- import viewerApp from "../../../global-components/viewer/viewer.vue"
+import viewerApp from "../../../global-components/viewer/viewer.vue"
 //import viewerApp from "./components/viewer/viewer.vue";
 import { ViewerButtons } from "../../../global-components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
@@ -214,14 +172,14 @@ class App extends Vue {
     spaceSelectedId: string;
     buildingId: string;
   } = {
-    app: "",
-    mode: "null",
-    name: "",
-    spaceSelectedId: "",
-    buildingId: "",
-  };
+      app: "",
+      mode: "null",
+      name: "",
+      spaceSelectedId: "",
+      buildingId: "",
+    };
   vueChart: boolean = false;
-  
+
 
   switchView(item) {
     this.vueChart = item.display;
@@ -298,13 +256,13 @@ class App extends Vue {
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();
       this.pageSate = PAGE_STATES.loaded;
-      
+
       if (window.innerWidth < 900) {
         this.isMobileDisplay = true;
-        this.mobileDisplayMode =  1; 
+        this.mobileDisplayMode = 1;
         this.isActive = true;
         this.isActive3D = false;
-    }
+      }
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
@@ -316,16 +274,16 @@ class App extends Vue {
   }
 
   gestionBouton() {
-    this.mobileDisplayMode = (this.mobileDisplayMode+=1)%2;
-    if(this.mobileDisplayMode == 0){
+    this.mobileDisplayMode = (this.mobileDisplayMode += 1) % 2;
+    if (this.mobileDisplayMode == 0) {
       this.isActive = false;
       this.isActive3D = true;
     }
-    if(this.mobileDisplayMode == 1){
+    if (this.mobileDisplayMode == 1) {
       this.isActive = true;
       this.isActive3D = false;
     }
-    if(this.mobileDisplayMode == 2){
+    if (this.mobileDisplayMode == 2) {
       this.isActive = true;
       this.isActive3D = false;
     }
@@ -338,57 +296,57 @@ class App extends Vue {
 
   applyURLParam(query) {
 
-this.query.mode = query.mode
-this.query.buildingId = query.buildingId
-this.query.spaceSelectedId = query.spaceSelectedId
-this.query.name = query.name
-this.query.app = query.app
+    this.query.mode = query.mode
+    this.query.buildingId = query.buildingId
+    this.query.spaceSelectedId = query.spaceSelectedId
+    this.query.name = query.name
+    this.query.app = query.app
 
-if (query.mode == "3d") {
-  this.isActive3D = true
-} else if (query.mode == "data") {
-  this.isActive = true
-}
-// console.warn(query.spaceSelectedId);
+    if (query.mode == "3d") {
+      this.isActive3D = true
+    } else if (query.mode == "data") {
+      this.isActive = true
+    }
+    // console.warn(query.spaceSelectedId);
 
 
-if (query.spaceSelectedId) {
+    if (query.spaceSelectedId) {
 
-  const item = {
-    buildingId: query.buildingId,
-    dynamicId: query.spaceSelectedId,
-  };
-  const button = {
-    "title": "charger",
-    "icon": "mdi-video-3d",
-    "onclickEvent": "OPEN_VIEWER",
-    "isShownTypes": [
-      "geographicFloor"
-    ]
+      const item = {
+        buildingId: query.buildingId,
+        dynamicId: query.spaceSelectedId,
+      };
+      const button = {
+        "title": "charger",
+        "icon": "mdi-video-3d",
+        "onclickEvent": "OPEN_VIEWER",
+        "isShownTypes": [
+          "geographicFloor"
+        ]
+      }
+
+      console.warn(button, '/////////////////////////////////////////////////////////////////////////////////////////////////////////');
+
+      this.onActionClick({ button, item })
+      console.log('totot');
+
+
+      const itemToSelect = {
+        "isOpen": false,
+        "loading": false,
+        "dynamicId": parseInt(query.spaceSelectedId),
+        "name": query.name,
+        "buildingId": query.buildingId,
+        "type": "geographicFloor",
+      }
+      // this.$refs['space-selector'].getButton();
+
+      if (this.$refs['space-selector']) {
+        this.$refs['space-selector'].select(itemToSelect);
+      }
+    }
+    this.openSpaceSelector = false
   }
-
-  console.warn(button, '/////////////////////////////////////////////////////////////////////////////////////////////////////////');
-
-  this.onActionClick({ button, item })
-  console.log('totot');
-
-
-  const itemToSelect = {
-    "isOpen": false,
-    "loading": false,
-    "dynamicId": parseInt(query.spaceSelectedId),
-    "name": query.name,
-    "buildingId": query.buildingId,
-    "type": "geographicFloor",
-  }
-  // this.$refs['space-selector'].getButton();
-
-  if (this.$refs['space-selector']) {
-    this.$refs['space-selector'].select(itemToSelect);
-  }
-}
-this.openSpaceSelector = false
-}
 
   replaceRoute() {
     window.parent.routerFontion.customReplace(window.parent.router.path, this.query);
@@ -397,7 +355,7 @@ this.openSpaceSelector = false
     window.parent.routerFontion.customPush(window.parent.router.path, this.query);
   }
 
-  onSourceChange(newVal){
+  onSourceChange(newVal) {
     this.chartTitle = newVal;
     console.log()
   }
@@ -539,13 +497,13 @@ this.openSpaceSelector = false
     });
   }
 
-  @Watch("selectedChartItems",  {deep: true })
-  async watchSelectedChartItems(newVal,oldVal) {
+  @Watch("selectedChartItems", { deep: true })
+  async watchSelectedChartItems(newVal, oldVal) {
     //this.updateChartData();
-    if(newVal.length >= oldVal.length){
+    if (newVal.length >= oldVal.length) {
       this.isActive = true;
     }
-    if(newVal.length == 0){
+    if (newVal.length == 0) {
       this.isActive = false;
     }
   }
@@ -575,7 +533,7 @@ this.openSpaceSelector = false
       ];
     });
   }
-  
+
 }
 
 export default App;
@@ -586,16 +544,17 @@ export default App;
   background-color: #14202c !important;
   border-radius: 10px !important;
 }
+
 .app {
   width: 100%;
   height: 100%;
 
   @media (min-width: 970px) {
-  .hide {
-    display: none;
-    visibility: hidden;
+    .hide {
+      display: none;
+      visibility: hidden;
+    }
   }
-}
 
   $selectorHeight: 60px;
 
@@ -609,15 +568,31 @@ export default App;
     width: 100%;
     border: 1px solid #f5f5f5;
     border-radius: 12px;
+
     .DButton {
       width: 60px;
       height: 60px;
+      transform: translate(-50px, 0px);
     }
 
     .temporality {
       position: relative;
       width: 200px;
       height: $selectorHeight;
+    }
+
+    @media (max-width: 500px) {
+      .temporality {
+        top: 60px;
+        height: 20px;
+        right: 0px;
+        position: absolute
+      }
+
+      .DButton {
+        transform: translate(0 , 0);
+      }
+
     }
 
     .space {
@@ -630,6 +605,7 @@ export default App;
   .dataBody {
     height: calc(100% - #{$selectorHeight + 30px});
     margin: 80px 8px 0 8px;
+
     .viewerContainer {
       width: calc(60% - 4px);
       height: 100%;
@@ -651,6 +627,7 @@ export default App;
       margin-right: 6px;
       height: 91%;
     }
+
     @media (max-width: 960px) {
       .active {
         height: 83vh;
@@ -658,8 +635,9 @@ export default App;
 
       .inactive {
         height: 83vh !important;
+      }
     }
-  }
+
     .inactive {
       // display: none;
       position: absolute;
@@ -668,8 +646,8 @@ export default App;
       right: 0px;
     }
 
-  
-    
+
+
     .active3D {
       width: 99vw;
       height: 100%;
@@ -719,6 +697,7 @@ body {
   position: relative;
   margin: 80px 8px 8px 8px;
 }
+
 .list-container {
   overflow-y: auto;
   height: calc(100% - 51px);
@@ -729,11 +708,13 @@ body {
   width: 8px;
   height: 8px;
 }
+
 .spinal-scrollbar::-webkit-scrollbar-thumb {
   -webkit-border-radius: 5px;
   border-radius: 5px;
   background: rgba(169, 169, 169, 0.9);
 }
+
 .spinal-scrollbar::-webkit-scrollbar-track {
   -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
   box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
@@ -741,13 +722,7 @@ body {
   border-radius: 5px;
 }
 
-.appContainer
-  .dataContainer
-  .calcul_content
-  .calcul
-  .select
-  .v-text-field.v-text-field--solo
-  .v-input__control {
+.appContainer .dataContainer .calcul_content .calcul .select .v-text-field.v-text-field--solo .v-input__control {
   min-height: unset !important;
 }
 </style>
