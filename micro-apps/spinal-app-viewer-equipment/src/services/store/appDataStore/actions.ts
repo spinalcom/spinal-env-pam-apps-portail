@@ -319,7 +319,7 @@ export const actions = {
 				  dynamicId:[building.dynamicId],
 				  roomRef: false,
 				  floorRef: true,
-				  equipements: false,
+				  equipements: true,
 				  dbIdsToAdd: [],
 				}
 				console.log('building', building);
