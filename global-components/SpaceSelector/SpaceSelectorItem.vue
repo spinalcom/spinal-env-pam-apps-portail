@@ -42,7 +42,7 @@ with this file. If not, see
 
     <v-list-item-action class="actionsDiv">
       <v-progress-circular v-if="!loading_viewer" :size="25" color="white" indeterminate></v-progress-circular>
-      
+
       <v-btn tabindex="-1" v-if="viewButtonsType === 'advanced'" v-for="(button, index) in spaceSelectorItemButtons"
         :key="index" x-small elevation="0" fab icon style="color: #bfbfbf" dark :loading="item.loading"
         :title="button.title" @click.stop="onActionClick(button)" v-show="display(button)"
@@ -73,7 +73,7 @@ class SpaceSelectorItem extends Vue {
   @Prop({ type: Object, required: true }) selected: ISpaceSelectorItem;
   @Prop({ type: Array<IButton>, required: false, default: () => [] }) spaceSelectorItemButtons!: IButton[];
   @Prop({ type: String, required: false }) viewButtonsType!: string;
-
+  @Prop({ type: String, required: false }) label: string;
   public get isSelected(): boolean {
     return (
       this.item.patrimoineId === this.selected.patrimoineId &&
@@ -118,10 +118,10 @@ class SpaceSelectorItem extends Vue {
     this.onMouseLeave()
     if (this.viewButtonsType === 'base') {
       console.log('HAHAHHAHA');
-      
+
       const button = this.getButton();
-      console.log(button , 'hihi');
-      
+      console.log(button, 'hihi');
+
       if (button) this.$emit("onActionClick", { button, item: this.item });
     }
     this.$emit('onSelect');
@@ -129,13 +129,15 @@ class SpaceSelectorItem extends Vue {
 
   onMouseEnter() {
     const dynamicId = this.item.dynamicId;
-    if (dynamicId) {
+    if (dynamicId && this.label == 'ESPACE') {
+      console.log('ESPACE');
+      
       EventBus.$emit('colorRoom', dynamicId);
     }
   }
   onMouseLeave() {
     const dynamicId = this.item.dynamicId;
-    if (dynamicId) {
+    if (dynamicId && this.label == 'ESPACE') {
       EventBus.$emit('descolorRoom', dynamicId);
     }
   }

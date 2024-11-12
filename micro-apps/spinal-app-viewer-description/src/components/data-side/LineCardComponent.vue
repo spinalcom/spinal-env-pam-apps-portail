@@ -1,66 +1,40 @@
 <template>
-  <v-card
-    class="line-card pa-1 rounded-lg d-flex flex-column flex-grow-1"
-    outlined
-  >
-    <v-card-title
-      style="font-size: 20px; height: 56px"
-      class="card-title pa-3 text-uppercase justify-space-between"
-    >
+  <v-card class="line-card pa-1 rounded-lg d-flex flex-column flex-grow-1" outlined>
+    <v-card-title style="font-size: 20px; height: 56px" class="card-title pa-3 text-uppercase justify-space-between">
       <p>
         {{ title }} <b>{{ titleDetails }}</b>
       </p>
-      <div
-        class="d-flex align-center ml-n6"
-        style="position: absolute; right: calc(50% - 55px)"
-      >
+      <div class="d-flex align-center ml-n6" style="position: absolute; right: calc(50% - 55px)">
         <div v-if="switchEnabled" class="d-flex flex-row justify-space-between">
           <v-icon icon class="pr-3" size="default">{{
             switchFalseIcon
-          }}</v-icon>
-          <v-switch
-            :value="switchValue"
-            @click="switchClicked()"
-            inset
-            color="blue-grey"
-            dense
-          />
+            }}</v-icon>
+          <v-switch :value="switchValue" @click="switchClicked()" inset color="blue-grey" dense />
           <v-icon icon size="default">{{ switchTrueIcon }}</v-icon>
         </div>
       </div>
       <div v-if="navEnabled" style="height: 40px">
-        <v-btn
-          @click="$emit('nav', -1)"
-          style="
+        <v-btn @click="$emit('nav', -1)" style="
             font-size: 14px !important;
             border-radius: 10px;
             min-width: 36px !important;
             box-shadow: none;
-          "
-        >
+          ">
           <v-icon icon>mdi-chevron-left</v-icon>
         </v-btn>
         {{ navText }}
-        <v-btn
-          @click="$emit('nav', +1)"
-          style="
+        <v-btn @click="$emit('nav', +1)" style="
             font-size: 14px !important;
             border-radius: 10px;
             min-width: 36px !important;
             box-shadow: none;
-          "
-        >
+          ">
           <v-icon icon>mdi-chevron-right</v-icon>
         </v-btn>
       </div>
     </v-card-title>
     <div class="d-flex flex-column flex-grow-1 flex-shrink-1" style="height: 0">
-      <LineChart
-        :data="lineChartData"
-        :chart-id="'2'"
-        :options="lineChartOptions"
-        class="bar-height"
-      />
+      <LineChart :data="lineChartData" :chart-id="'2'" :options="lineChartOptions" class="bar-height" />
     </div>
   </v-card>
 </template>
@@ -178,6 +152,55 @@ export default {
       };
     },
     lineChartOptions() {
+      const yAxes = {
+        y: {
+          stacked: this.stacked,
+          border: {
+            display: false,
+          },
+          type: this.scaleType,
+          position: 'left',
+          grid: {
+            color: "#f9f9f9",
+            lineWidth: 2,
+          },
+          ticks: {
+            callback: (val) => `${val}${this.optional?.unit || ""}`,
+            font: {
+              family: "Charlevoix Pro",
+              size: 11,
+            },
+            color: this.datasets[0]?.borderColor || "#214353",
+          },
+        },
+      };
+
+      // Générer dynamiquement des axes Y si nécessaire
+      this.datasets.forEach((dataset, index) => {
+        if (dataset.specialAxis) {
+          const axisId = `y${index + 1}`;
+          dataset.yAxisID = axisId;
+
+          yAxes[axisId] = {
+            type: 'linear',
+            position: 'right',
+            grid: {
+              drawOnChartArea: false, 
+            },
+            ticks: {
+              callback: (val) => `${val}${this.optional?.unit || ""}`,
+              font: {
+                family: "Charlevoix Pro",
+                size: 11,
+              },
+              color: dataset.borderColor || "#214353",
+            },
+          };
+        } else {
+          dataset.yAxisID = 'y';
+        }
+      });
+
       return {
         id: "line-chart-id",
         pointStyle: this.pointStyle,
@@ -186,43 +209,10 @@ export default {
         labelStep: this.step,
         maintainAspectRatio: false,
         borderWidth: 2,
+        animations: false,
         tension: 0.3,
-        transitions: {
-          show: {
-            animations: {
-              y: {
-                from: 1000,
-              },
-            },
-          },
-          hide: {
-            animations: {
-              y: {
-                to: 1000,
-              },
-            },
-          },
-        },
         scales: {
-          y: {
-            stacked: this.stacked,
-            border: {
-              display: false,
-            },
-            type: this.scaleType,
-            grid: {
-              color: "#f9f9f9",
-              lineWidth: 2,
-            },
-            ticks: {
-              callback: (val) => `${val}${this.optional?.unit || ""}`,
-              font: {
-                family: "Charlevoix Pro",
-                size: 11,
-              },
-              color: "#214353",
-            },
-          },
+          ...yAxes,
           x: {
             stacked: this.stacked,
             border: {
@@ -268,14 +258,12 @@ export default {
           intersect: false,
           callbacks: {
             label: (tooltipItem) =>
-              `${tooltipItem.dataset.label}: ${tooltipItem.raw} ${
-                this.optional?.unit || ""
+              `${tooltipItem.dataset.label}: ${tooltipItem.raw} ${this.optional?.unit || ""
               }`,
             footer: (data) => {
               let total = data.reduce((a, b) => a + b.raw, 0);
-              return `${this.optional?.footer || "Total"}: ${total} ${
-                this.optional?.unit || ""
-              }`;
+              return `${this.optional?.footer || "Total"}: ${total} ${this.optional?.unit || ""
+                }`;
             },
             labelColor: (context) => ({
               borderColor: "rgba(0,0,0,0)",
@@ -285,7 +273,7 @@ export default {
           },
         },
       };
-    },
+    }
   },
 
   created() {
@@ -293,9 +281,9 @@ export default {
       this.datasets.length <= 3
         ? defaultColor(3)
         : gradiant(this.datasets.length).map((color) => {
-            const col = HSVtoRGB(color / 100, 1, 1);
-            return RGBtoHexa(col.r, col.g, col.b);
-          });
+          const col = HSVtoRGB(color / 100, 1, 1);
+          return RGBtoHexa(col.r, col.g, col.b);
+        });
     this.datasets.forEach((set) => {
       set.borderColor = set.borderColor || colors.shift();
       set.pointBackgroundColor = set.borderColor;
@@ -317,9 +305,9 @@ export default {
         this.datasets.length <= 3
           ? defaultColor(3)
           : gradiant(this.datasets.length).map((color) => {
-              const col = HSVtoRGB(color / 100, 1, 1);
-              return RGBtoHexa(col.r, col.g, col.b);
-            });
+            const col = HSVtoRGB(color / 100, 1, 1);
+            return RGBtoHexa(col.r, col.g, col.b);
+          });
       this.datasets.forEach((set) => {
         set.borderColor = set.borderColor || colors.shift();
         set.pointBackgroundColor = set.borderColor;
@@ -335,15 +323,18 @@ export default {
 .line-card {
   background-color: #f9f9f9;
 }
+
 .card-title {
   letter-spacing: 1.1px;
   color: #214353;
   opacity: 1;
   font-size: 20px !important;
 }
+
 .bar-height {
   height: 100%;
 }
+
 ::v-deep .theme--light.v-input--switch .v-input--switch__thumb,
 .theme--light.v-input--switch .v-input--switch__track {
   color: #607d8b !important;

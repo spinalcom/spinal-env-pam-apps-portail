@@ -146,6 +146,8 @@ class App extends Vue {
     this.RemoveEventHandlers();
 
     EventBus.$on('colorRoom', (dynamicId) => {
+      console.log('aa');
+      
       const buildingId = localStorage.getItem("idBuilding");
       const itemsToColor = [{
         buildingId: buildingId,

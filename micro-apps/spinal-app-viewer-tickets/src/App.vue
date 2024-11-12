@@ -218,8 +218,6 @@ class App extends Vue {
     // } else if (query.mode == "data") {
     //   this.isActive = true
     // }
-    console.warn(query.spaceSelectedId);
-
 
     if (query.spaceSelectedId) {
 
