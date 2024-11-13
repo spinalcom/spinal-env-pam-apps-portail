@@ -181,6 +181,9 @@ export async function getData(timestamp, period, profileName, endpoint_name, cp_
     const floorId = floor.dynamicId;
     const floorName = floor.name;
     const attributsResponse = await HTTP.get(`/building/${id_batiment}/node/${floorId}/attributslist`);
+    if(attributsResponse.data.length !== 0){
+
+   
     const attributs = attributsResponse.data[0].attributs;
     const surfaceAttribut = attributs.find(attribut => attribut.label === 'area');
     let floorSurface = surfaceAttribut ? surfaceAttribut.value : '';
@@ -213,6 +216,7 @@ export async function getData(timestamp, period, profileName, endpoint_name, cp_
         // const endpoint = endpoints.find(endpoint => endpoint.name === cp);
         
       }
+    }
     
   
   }

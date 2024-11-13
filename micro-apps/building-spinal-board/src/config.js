@@ -9,7 +9,7 @@ export default {
       labelIndicators: "consommés", // String affiché dans les 3 petites cartes sous le graph 
       source:{
           building:{
-              profileName: "KPI", // nom du controlendpoint / profile name associé au bâtiment pour ce sélecteur
+              profileName: "KPI USI", // nom du controlendpoint / profile name associé au bâtiment pour ce sélecteur
               name:"Energie globale" // nom du endpoint associé au batiment pour ce sélecteur
           },
           floors:{
@@ -26,7 +26,7 @@ export default {
     labelIndicators: "consommés",
     source:{
         building:{
-            profileName: "KPI",
+            profileName: "KPI USI",
             name:"Eclairage"
         },
         floors:{
@@ -43,7 +43,7 @@ export default {
     labelIndicators: "consommés",
     source:{
         building:{
-            profileName: "KPI",
+            profileName: "KPI USI",
             name:"Eau globale"
         },
         floors:{
