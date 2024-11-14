@@ -152,7 +152,13 @@
         :stacked="false" 
         style="max-height: 530px;"
         class="BR"
-        />
+        >
+        <template v-slot:title>
+        <SelectCategory  :controls_point="controlEndpoints" :control_value="select_endpoint" @changeEndpoint="changeEndpoint" />
+
+        </template>
+      
+      </LineChart>
       <BarChart
         v-else-if="chart.label && chart.data"
         :labels="chart.label" 
@@ -478,6 +484,7 @@ class App extends Vue {
       }
       else if (this.temporality.name === 'Année'){      
         let res1 = await getSolo(this.space, this.temporality.name, ft.value, 'YYYY', this.select_endpoint, ft.color, this.totalCard);
+        console.log("année Data: ", res1);
         if (this.selectedReference === index) {
           res1[1].root = true;
           res1[1].subtitle = ' ';

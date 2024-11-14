@@ -7,9 +7,9 @@
   >
   <v-card-title class="card-title flex-shrink-1 justify-space-between" style="height: fit-content !important; padding: 0 !important">
       <p class="mb-0" style="padding: 10px;">
-        {{ title }}
+        <slot name="title"></slot>
         <br>
-        <span class="desc">{{ subtitle }}</span>
+        <slot name="subtitle"></slot>
       </p>
       <!-- <div class="d-flex align-center mln6" style="position: absolute; right: calc(50% - 55px)">
         <v-icon  icon class="pr-3" size="default">mdi-chart-line</v-icon>

@@ -76,6 +76,8 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
   var labelLegend = '';
   var calendar = [];
   var calendarObject;
+  var control_point;
+  var endpointDynamicId;
   const buildingId = localStorage.getItem("idBuilding");
   let avg = [], total = [], meter = [];
   let periodArray = getPeriodArray(currentTimestamp, tempo);
@@ -86,11 +88,15 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
   try {
 
     cpList = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/control_endpoint_list`);
-    const control_point = cpList.data.find(e => e.profileName === controlEndpoints.source.building.profileName);
+    
+     space.type == "building" ? control_point = cpList.data.find(e => e.profileName === controlEndpoints.source.building.profileName): 
+     control_point = cpList.data.find(e => e.profileName === controlEndpoints.source.floor.profileName);
   
-    const endpoint_dynamicId = control_point.endpoints.find(e => e.name === controlEndpoints.source.building.name).dynamicId;
-    if (endpoint_dynamicId) {
-      timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${endpoint_dynamicId}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`);
+   space.type == "building" ? endpointDynamicId = control_point.endpoints.find(e => e.name === controlEndpoints.source.building.name).dynamicId :
+   endpointDynamicId = control_point.endpoints.find(e => e.name === controlEndpoints.source.floor.name).dynamicId;
+
+    if (endpointDynamicId) {
+      timeSeries = await HTTP.get(`/building/${buildingId}/endpoint/${endpointDynamicId}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`);
       timeSeries = timeSeries.data;
       let processedTimeSeries = [];
       if (tempo === 'Journée') {
@@ -745,7 +751,6 @@ export async function getSolo(space, tempo, currentTimestamp, format, controlEnd
       case 'T4': ts = moment(`01/10/${t[1]}`, 'DD/MM/YYYY'); break;
     }
   }
-  console.log("solo: " , controlEndpoints)
   let res = await getData(space, tempo, ts, controlEndpoints);
   res[1][0].stack = currentTimestamp;
   res[1][0].backgroundColor = color;
