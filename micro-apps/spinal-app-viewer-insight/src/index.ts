@@ -22,6 +22,8 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
+import "@mdi/font/css/materialdesignicons.css";
+
 import "./polyfills";
 import { SpinalAPI } from "./services/spinalAPI/SpinalAPI";
 // setup SpinalAPI

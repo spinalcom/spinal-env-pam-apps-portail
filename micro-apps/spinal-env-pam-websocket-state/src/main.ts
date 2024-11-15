@@ -21,6 +21,7 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
+import "@mdi/font/css/materialdesignicons.css";
 
 import Vue from "vue";
 import App from "./App.vue";

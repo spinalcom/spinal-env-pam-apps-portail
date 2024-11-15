@@ -34,6 +34,7 @@ import FloatingVue from "floating-vue";
 import "floating-vue/dist/style.css";
 
 import "vuetify/dist/vuetify.min.css";
+import "@mdi/font/css/materialdesignicons.css";
 
 Vue.use(FloatingVue);
 Vue.use(Vuetify);

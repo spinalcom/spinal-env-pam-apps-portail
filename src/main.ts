@@ -35,6 +35,7 @@ import "../assets/css/basic/reset.css";
 import "../assets/css/basic/main.less";
 import "../assets/css/component/navPickerApp.css";
 import "material-design-icons-iconfont";
+import "@mdi/font/css/materialdesignicons.css";
 
 vuetifyInit(Vue);
 routerInit(Vue);

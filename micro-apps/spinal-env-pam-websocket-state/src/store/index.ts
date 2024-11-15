@@ -22,6 +22,8 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
+import "@mdi/font/css/materialdesignicons.css";
+
 import Vue from 'vue';
 import Vuex from 'vuex';
 import {
@@ -61,7 +63,7 @@ function classifyDataByDate(logs): {
   const weekBegin = toDayBegin - 86400000 * 7;
   const yearBegin = toDayBegin - 86400000 * 365;
 
-  const data = {year: [], week: [], toDay: [], yesterday: []};
+  const data = { year: [], week: [], toDay: [], yesterday: [] };
 
   for (const log of logs) {
     const date = log.date;
@@ -88,8 +90,8 @@ export default new Vuex.Store({
     },
     portofolios: undefined,
     selectedBuilding: undefined,
-    websocketState: {state: 'unknow', since: 0},
-    clients: {numberOfClientConnected: 0},
+    websocketState: { state: 'unknow', since: 0 },
+    clients: { numberOfClientConnected: 0 },
   },
   mutations: {
     [SET_WEBSOCKET_STATE](state: any, playload) {
@@ -102,7 +104,7 @@ export default new Vuex.Store({
     },
 
     [SET_YEAR_LOGS](state: any, playload) {
-      const {year, week, toDay, yesterday} = classifyDataByDate(playload);
+      const { year, week, toDay, yesterday } = classifyDataByDate(playload);
       state.webSocketLogs.toDay = toDay;
       state.webSocketLogs.yesterday = yesterday;
       state.webSocketLogs.week = week;
@@ -110,7 +112,7 @@ export default new Vuex.Store({
     },
 
     [SET_WEEK_LOGS](state: any, playload) {
-      const {week, toDay, yesterday} = classifyDataByDate(playload);
+      const { week, toDay, yesterday } = classifyDataByDate(playload);
       state.webSocketLogs.toDay = toDay;
       state.webSocketLogs.yesterday = yesterday;
       state.webSocketLogs.week = week;
@@ -149,14 +151,14 @@ export default new Vuex.Store({
     },
   },
   actions: {
-    async getWebsocketState({commit}, buildingId: string) {
+    async getWebsocketState({ commit }, buildingId: string) {
       const response = await getWebsocketStateRequest(buildingId);
       commit(SET_WEBSOCKET_STATE, response.data);
     },
 
     async readWebsocketLogs(
-      {commit},
-      data: {buildingId: string; begin?: number; end: number}
+      { commit },
+      data: { buildingId: string; begin?: number; end: number }
     ) {
       const response = await readWebsocketLogsRequest(
         data.buildingId,
@@ -165,32 +167,32 @@ export default new Vuex.Store({
       );
     },
 
-    async readToDayWebsocketLogs({commit}, buildingId) {
+    async readToDayWebsocketLogs({ commit }, buildingId) {
       const response = await readWebsocketLogsRequest(buildingId);
       commit(SET_TODAY_LOGS, response.data);
     },
 
-    async readCurrentWeekLogs({commit}, buildingId: string) {
+    async readCurrentWeekLogs({ commit }, buildingId: string) {
       const response = await readCurrentWeekLogsRequest(buildingId);
       commit(SET_WEEK_LOGS, response.data);
     },
 
-    async readCurrentYearLogs({commit}, buildingId: string) {
+    async readCurrentYearLogs({ commit }, buildingId: string) {
       const response = await readCurrentYearLogsRequest(buildingId);
       commit(SET_YEAR_LOGS, response.data);
     },
 
-    async readLast24hLogs({commit}, buildingId: string) {
+    async readLast24hLogs({ commit }, buildingId: string) {
       const response = await readLast24hLogsRequest(buildingId);
       commit(SET_YESTERDAY_LOGS, response.data);
     },
     /////////////////////////////////////
-    async getPortofolios({commit, dispatch, state}: any) {
+    async getPortofolios({ commit, dispatch, state }: any) {
       try {
         const profileId = await dispatch('getProfileId');
         const portofolios = await getPortofoliosRequest(profileId);
         commit(SET_PORTOFOLIOS, portofolios);
-      } catch (error) {}
+      } catch (error) { }
     },
 
     getProfileId() {
@@ -199,7 +201,7 @@ export default new Vuex.Store({
       // send request
     },
 
-    async getWebsocketClientCount({commit}, buildingId) {
+    async getWebsocketClientCount({ commit }, buildingId) {
       const response = await getWebsocketClientCountRequest(buildingId);
       commit(SET_CLIENT_CONNECTED_COUNT, response.data);
     },

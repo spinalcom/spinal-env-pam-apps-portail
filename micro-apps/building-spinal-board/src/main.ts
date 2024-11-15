@@ -27,7 +27,7 @@ import App from './App.vue'
 import { store } from './services/store';
 import vuetify from './plugins/vuetify'
 import 'vuetify/dist/vuetify.min.css'
-import '@mdi/font/css/materialdesignicons.css'
+import "@mdi/font/css/materialdesignicons.css";
 
 
 // import SpinalComponents from 'spinal-components'

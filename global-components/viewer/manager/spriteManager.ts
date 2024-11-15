@@ -66,12 +66,12 @@ export class SpriteManager {
 			this._viewableType = this.DataVizCore.ViewableType.SPRITE;
 		}
 
-		viewer.addEventListener(this.DataVizCore.MOUSE_CLICK, () =>{/*viewer.clearSelection();*/ this._onSpriteClicked.bind(this); });
+		viewer.addEventListener(this.DataVizCore.MOUSE_CLICK, () => {/*viewer.clearSelection();*/ this._onSpriteClicked.bind(this); });
 		viewer.addEventListener(this.DataVizCore.MOUSE_HOVERING, this._onSpriteHovering.bind(this));
 	}
 
 	public async addComponentAsSprite(viewer: Autodesk.Viewing.Viewer3D, data: ISpriteData | ISpriteData[]) {
-		data = Array.isArray(data) ? data : [data];		
+		data = Array.isArray(data) ? data : [data];
 
 		for (const d of data) {
 			if (!d.component) continue;
@@ -92,11 +92,11 @@ export class SpriteManager {
 	}
 
 	public async selectSprites(dynamicIds: Array<number>) {
-		for(let label of this.label3Ds){
-			if(dynamicIds.includes(label.dynamicId)){
+		for (let label of this.label3Ds) {
+			if (dynamicIds.includes(label.dynamicId)) {
 				label.component._isSelected();
 			}
-			else{
+			else {
 				label.component._isNotSelected();
 			}
 		}

@@ -39,6 +39,7 @@ Vue.config.productionTip = false
 import "../../../assets/css/basic/reset.css";
 import "../../../assets/css/basic/main.css";
 import "../../../assets/css/component/navPickerApp.css";
+import "@mdi/font/css/materialdesignicons.css";
 
 new Vue({
   store,

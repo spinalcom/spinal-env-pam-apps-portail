@@ -1,4 +1,4 @@
-SPINAL_API_URL="http://localhost:2023"
+SPINAL_API_URL="https://localhost:2023"
 PORT=
 PROTOCOL= http | https
 SSL_CERT=

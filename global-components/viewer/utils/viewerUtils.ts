@@ -124,7 +124,7 @@ export class ViewerUtils {
 		const datas = this._classifyDbIdsByModel(data);
 
 		const res = datas.map(el => {
-			return { model : el.model , ids: el.dbIds}
+			return { model: el.model, ids: el.dbIds }
 		})
 		viewer.setAggregateSelection(res)
 
@@ -162,7 +162,7 @@ export class ViewerUtils {
 
 		const datas = this._classifyDbIdsByModel(data);
 		const res = datas.map(el => {
-			return { model : el.model , selection: el.dbIds}
+			return { model: el.model, selection: el.dbIds }
 		})
 
 		// @ts-ignore
@@ -300,12 +300,12 @@ export class ViewerUtils {
 
 	public async hideElementsByDbIds(viewer: Autodesk.Viewing.Viewer3D, dbIdObject: any) {
 		await this._waitModelIsLoading();
-	
+
 		const models = viewer.getVisibleModels();
-		
+
 		models.forEach((model) => {
 			const bimFileId = model.bimFileId;
-	
+
 			if (dbIdObject[bimFileId]) {
 				const dbIds = dbIdObject[bimFileId];
 				dbIds.forEach((dbId) => {
@@ -318,8 +318,8 @@ export class ViewerUtils {
 			}
 		});
 	}
-	
-	
+
+
 
 	// public removeSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
 
@@ -343,7 +343,7 @@ export class ViewerUtils {
 	//                            PRIVATE                            //
 	///////////////////////////////////////////////////////////////////
 
-	private async _loadBimFile(viewer: Autodesk.Viewing.Viewer3D,sceneAlignMethod: number, modelData : IloadModelTask, buildingId?: string): Promise<Autodesk.Viewing.Model> {
+	private async _loadBimFile(viewer: Autodesk.Viewing.Viewer3D, sceneAlignMethod: number, modelData: IloadModelTask, buildingId?: string): Promise<Autodesk.Viewing.Model> {
 		try {
 			const option: {
 				globalOffset?: THREE.Vector3;
@@ -360,13 +360,13 @@ export class ViewerUtils {
 			}
 			console.log("modelData.offset", modelData.offset)
 
-			if(modelData.offset) {
-				if(sceneAlignMethod === SceneAlignMethod.ShareCoordinates) option.applyRefPoint = true;
+			if (modelData.offset) {
+				if (sceneAlignMethod === SceneAlignMethod.ShareCoordinates) option.applyRefPoint = true;
 				option.globalOffset = modelData.offset;
 
 			} else if (sceneAlignMethod === SceneAlignMethod.OriginToOrigin) {
-				option.globalOffset = await getGlobalOffset(viewer, buildingId as any, modelData.aecPath);				
-			
+				option.globalOffset = await getGlobalOffset(viewer, buildingId as any, modelData.aecPath);
+
 			} else if (sceneAlignMethod === SceneAlignMethod.ShareCoordinates && modelData.aecPath) {
 				option.applyRefPoint = true;
 				option.globalOffset = await addOffsetFromAEC(modelData.aecPath, viewer, buildingId as any);
@@ -377,7 +377,7 @@ export class ViewerUtils {
 			if (this._isFirstModel) this._isFirstModel = false;
 
 			return model;
-		} catch (error) {}
+		} catch (error) { }
 	}
 	private _addSlash(path: string): string {
 		if (path) return path[0] === "/" ? path : "/" + path;

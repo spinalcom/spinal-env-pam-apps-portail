@@ -22,14 +22,16 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
+import "@mdi/font/css/materialdesignicons.css";
+
 import './polyfills';
-import {SpinalAPI} from './services/spinalAPI/SpinalAPI';
+import { SpinalAPI } from './services/spinalAPI/SpinalAPI';
 // Setup SpinalAPI
 SpinalAPI.getInstance(process.env.SPINAL_API_URL);
 import Vue from 'vue';
 import App from './App.vue';
 import Vuetify from "vuetify";
-import {store} from './services/store';
+import { store } from './services/store';
 import FloatingVue from 'floating-vue';
 import 'floating-vue/dist/style.css';
 import './index.css';
