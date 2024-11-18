@@ -24,23 +24,16 @@ with this file. If not, see
 
 <template>
   <div class="headerSelect" v-if="portofolios">
-    <space-selector
-      ref="space-selector"
-      :open.sync="openSpaceSelector"
-      :maxDepth="1"
-      :GetChildrenFct="onSpaceSelectOpen"
-      @input="getSelectedItem"
-      :value="selectedZone"
-      :isMobile="isMobile"
-    >
+    <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="1"
+      :GetChildrenFct="onSpaceSelectOpen" @input="getSelectedItem" :value="selectedZone" :isMobile="isMobile">
     </space-selector>
   </div>
 </template>
 
 <script>
-import {SELECT_PORTOFOLIO} from '../store/appDataStore';
-import {mapState} from 'vuex';
-import {SpaceSelector} from '../../global-components';
+import { SELECT_PORTOFOLIO } from '../store/appDataStore';
+import { mapState } from 'vuex';
+import { SpaceSelector } from '../../global-components';
 
 export default {
   components: {
@@ -82,17 +75,17 @@ export default {
 
     async onSpaceSelectOpen(item) {
 
-      if(!item) {
+      if (!item) {
         return this.portofolios.map((portofolio) => ({
-            name: portofolio.name,
-            categories: portofolio.buildings,
-            staticId: portofolio.id,
-            dynamicId: 0,
-            type: this.TYPES.portofolio,
-          })
+          name: portofolio.name,
+          categories: portofolio.buildings,
+          staticId: portofolio.id,
+          dynamicId: 0,
+          type: this.TYPES.portofolio,
+        })
         )
       }
-      
+
       if (item.type === this.TYPES.portofolio) {
         return (item.categories || []).map((building) => {
           return {
@@ -107,9 +100,9 @@ export default {
       }
 
       return [];
-      
 
-      
+
+
     },
 
     getSelectedItem(item) {
@@ -120,7 +113,7 @@ export default {
       const realItem = this.getInfos(item);
 
       if (realItem.type === this.TYPES.portofolio) {
-        localStorage.setItem('patrimoine', JSON.stringify({id: realItem.staticId, name: realItem.name, buildings: realItem.categories }));
+        localStorage.setItem('patrimoine', JSON.stringify({ id: realItem.staticId, name: realItem.name, buildings: realItem.categories }));
         portofolioId = realItem.staticId;
       } else if (realItem.type === this.TYPES.building) {
         localStorage.setItem('idBuilding', realItem.staticId);
@@ -128,7 +121,7 @@ export default {
         buildingId = realItem.staticId;
       }
 
-      this.$emit('selected', {portofolioId, buildingId});
+      this.$emit('selected', { portofolioId, buildingId });
     },
 
     close() {
@@ -137,20 +130,20 @@ export default {
 
     getInfos(item) {
       return this.portofolios.reduce((temp, portofolio) => {
-        if(portofolio.id === item.staticId) {
+        if (portofolio.id === item.staticId) {
           temp = {
-            name : portofolio.name,
-            type : this.TYPES.portofolio,
+            name: portofolio.name,
+            type: this.TYPES.portofolio,
             staticId: portofolio.id,
             categories: portofolio.buildings
           }
         } else {
           const found = portofolio.buildings.find(el => el.id === item.staticId);
-          if(found) {
+          if (found) {
             temp = {
               type: this.TYPES.building,
               staticId: found.id,
-              name : found.name,
+              name: found.name,
               parents: [portofolio.id]
             }
           }
@@ -197,9 +190,9 @@ export default {
 
 <style lang="scss">
 .headerSelect {
-  width: 40%;
-  position: absolute;
-  height: 70px;
+  width: 40% !important;
+  position: absolute !important;
+  height: 70px !important;
   right: 0px;
   // display: flex;
   // align-items: center;
@@ -215,11 +208,11 @@ export default {
 </style>
 
 <style>
-.theme--light.v-text-field > .v-input__control > .v-input__slot:before {
+.theme--light.v-text-field>.v-input__control>.v-input__slot:before {
   border: none !important;
 }
 
-.v-text-field > .v-input__control > .v-input__slot:after {
+.v-text-field>.v-input__control>.v-input__slot:after {
   border: none !important;
 }
 

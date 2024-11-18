@@ -7,7 +7,7 @@ const args = `dist/ -p ${port} `;
 
 
 if (protocol === 'https') {
-  args += `--ssl --cert ${ssl_cert} --key ${ssl_key}`;
+  args += `--ssl --cert ${ssl_cert} --key ${ssl_key} --proxy https://localhost:${port}? --proxy-options.secure false`;
 }
 
 

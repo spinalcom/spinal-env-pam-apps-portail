@@ -22,10 +22,13 @@ with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
 <template>
+
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
+
+
     <div class="selectors">
       <div class="DButton">
-        <sc-download-button fileName="insight_data" csv :data="getDataFormatted()"></sc-download-button>
+        <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()" />
       </div>
 
       <div class="temporality">
@@ -42,29 +45,18 @@ with this file. If not, see
     </div>
 
     <div class="dataBody">
-      <viewerApp class="viewerContainer" :class="{ active3D: isActive3D }"></viewerApp>
-      <InsightApp class="appContainer" :DActive="isActive3D" :ActiveData="isActive"
-        :class="{ active: isActive, inactive: isActive3D }" :config="config" :selectedZone="selectedZone"
-        :selectedTime="temporalitySelected" :data="displayedData" :vueChart="vueChart"
-        :isFullGraph="mobileDisplayMode === 2" :isMobileDisplay="isMobileDisplay" @buttonClicked="toggleActive"
-        @buttonClicked3D="toggleActive3D" @chartView="switchView" @sourceChanged="onSourceChange"></InsightApp>
-    </div>
-    <div class="hide" @click="() => {
-      gestionBouton()
-    }"
-      style="background-color: white;width: 50px;height: 50px;position: absolute;bottom: 60px;right: 20px;z-index: 9999;border-radius: 5px;border: 2px solid #14202c;justify-content: center;align-items: center;display: flex;">
-      <v-icon v-if="mobileDisplayMode === 0">mdi-text-box</v-icon>
-      <v-icon v-if="mobileDisplayMode === 1">mdi-video-3d</v-icon>
-      <!-- <v-icon v-else>mdi-close-circle-outline</v-icon> -->
+      <viewerApp :class="{ 'active3D': isActive3D }" class="viewerContainer"></viewerApp>
+      <dataSideApp :floor="floor" :DActive="isActive3D" :ActiveData="isActive"
+        :class="{ 'active': isActive, 'inactive': isActive3D }" class="appContainer" :config="config"
+        :selectedZone="selectedZone" :data="displayedData" @changeRoute="changeApp" @clickOnDataView="onDataViewClicked"
+        @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D" @full3D="full3D()">
+      </dataSideApp>
     </div>
   </v-app>
-
 
   <v-container class="loading" v-else-if="pageSate === PAGE_STATES.loading" fluid>
     <v-progress-circular :size="70" :width="3" color="purple" indeterminate></v-progress-circular>
   </v-container>
-
-
 </template>
 
 <script lang="ts">
@@ -82,69 +74,47 @@ import type {
   IZoneItem,
   TGeoItem,
 } from "../../../global-components/SpaceSelector/interfaces/IBuildingItem";
-import { DataTable } from "./components/data-table";
-import viewerApp from "../../../global-components/viewer/viewer.vue"
-//import viewerApp from "./components/viewer/viewer.vue";
+import viewerApp from "../../../global-components/viewer/viewer.vue";
+import ScDownloadButton from "spinal-components/src/components/DownloadButton.vue";
 import { ViewerButtons } from "../../../global-components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
-import { IConfig, ITemporality } from "./interfaces/IConfig";
-import InsightApp from "./components/inshight_data/app.vue";
+import { IConfig } from "./interfaces/IConfig";
 import { PAGE_STATES } from "./interfaces/pageStates";
+import { EventBus } from '../../../global-components/SpaceSelector/eventBus';
+import { ViewerManager } from '../../../global-components/viewer';
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
+  VIEWER_AGGREGATE_SELECTION_CHANGED,
 } from "spinal-viewer-event-manager";
-import { getLabels, getValues } from "./services/calcul/computeChart";
-import moment from "moment";
+// import { EventBus } from './bus';
 
-moment.locale("fr", {
-  months: [
-    "Janvier",
-    "Février",
-    "Mars",
-    "Avril",
-    "Mai",
-    "Juin",
-    "Juillet",
-    "Août",
-    "Septembre",
-    "Octobre",
-    "Novembre",
-    "Décembre",
-  ],
-  monthsShort: [
-    "Jan",
-    "Fév",
-    "Mar",
-    "Avr",
-    "Mai",
-    "Juin",
-    "Juil",
-    "Août",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Déc",
-  ],
-  weekdays: [
-    "Dimanche",
-    "Lundi",
-    "Mardi",
-    "Mercredi",
-    "Jeudi",
-    "Vendredi",
-    "Samedi",
-  ],
-  weekdaysShort: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
-  weekdaysMin: ["Di", "Lu", "Ma", "Me", "Je", "Ve", "Sa"],
-});
+import {
+  VIEWER_REM_SPHERE,
+
+} from "spinal-viewer-event-manager";
+
+import "spinal-components/dist/spinal-components.css";
+
+import dataSideApp from "./components/data-side/App.vue";
+
+
+interface IItemData {
+  platformId: string;
+  id: number | number[];
+}
+
+interface IItemDatatmp {
+  platformId: string;
+  id: Set<number>;
+}
 
 @Component({
   components: {
     SpaceSelector,
-    DataTable,
     viewerApp,
-    InsightApp,
+    ScDownloadButton,
+    dataSideApp
   },
 })
 class App extends Vue {
@@ -153,146 +123,137 @@ class App extends Vue {
   $store: Store;
   openSpaceSelector: boolean = false;
   openTemporalitySelector: boolean = false;
-  chartTitle: string = "";
-  chartLabel = "";
-  chartData: any[] = [];
   config: IConfig = config;
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
   isActive: boolean = false;
   isActive3D: boolean = false;
-  isMobileDisplay: boolean = false;
-  mobileDisplayMode: number = 0;
-
   dataTable: IZoneItem[] = [];
+  viewerManager: ViewerManager | undefined = undefined;
   $refs: { spaceSelector };
-  query: {
-    app: string;
-    mode: string;
-    name: string;
-    spaceSelectedId: string;
-    buildingId: string;
-  } = {
-      app: "",
-      mode: "null",
-      name: "",
-      spaceSelectedId: "",
-      buildingId: "",
-    };
-  vueChart: boolean = false;
-
-
-  switchView(item) {
-    this.vueChart = item.display;
-    this.chartLabel = item.source;
-  }
-
-  public get selectedChartItems() {
-    return this.$store.state.appDataStore.selectedChartItems;
-  }
-
-  public get selectedItem() {
-    return this.$store.state.appDataStore.itemSelected;
-  }
-
-  handleRouteChange() {
-    if (this.isActive3D && !this.isActive) {
-      this.query.mode = '3d'
-    } else if (!this.isActive3D && this.isActive) {
-      this.query.mode = 'data'
-    } else {
-      this.query.mode = 'none'
-    }
-    this.replaceRoute();
-  }
-
-  toggleActive() {
-    if (this.isActive3D) this.isActive3D = false;
-    this.isActive = !this.isActive;
-    this.handleRouteChange();
-  }
-
-  toggleActive3D() {
-    if (this.isActive) this.isActive = false;
-    this.isActive3D = !this.isActive3D;
-    this.handleRouteChange();
-  }
-
-  toDate(date) {
-    switch (this.$store.state.appDataStore.temporalitySelected.name) {
-      case ITemporality.hour:
-        return moment(date).format("HH:mm");
-      case ITemporality.day:
-        return moment(date).format("HH[h]");
-      case ITemporality.week:
-        return moment(date).format("dd");
-      case ITemporality.month:
-        return moment(date).format("D/M/YY");
-      case ITemporality.year:
-        return moment(date).format("MMM");
-      case ITemporality.custom:
-        const { begin, end } =
-          this.$store.state.appDataStore.temporalitySelected.range;
-        const duration = moment.duration(
-          moment(end, "DD-MM-YYYY HH:mm:ss").diff(
-            moment(begin, "DD-MM-YYYY HH:mm:ss")
-          )
-        );
-        console.log(moment(end, "DD-MM-YYYY HH:mm:ss"), duration);
-        if (duration.asMonths() > 2) return moment(date).format("MMM");
-        if (duration.asDays() > 1) return moment(date).format("D/M/YY");
-        if (duration.asHours() > 1) return moment(date).format("HH[h]");
-        return moment(date).format("HH:mm");
-      default:
-        return moment(date).format("D/M/YY");
-    }
-  }
-
-  toTooltipDate(date) {
-    return moment(date).format("DD/MM/YYYY HH:mm");
-  }
-
+  query: { app: string; mode: string; name: string; spaceSelectedId: string; buildingId: string } = {
+    app: '',
+    mode: 'null',
+    name: '',
+    spaceSelectedId: '',
+    buildingId: ''
+  };
+  firstCOlor: boolean = false;
+  coloredRoom: null
+  floor: any = null
   async mounted() {
+    localStorage.setItem("viewer_loaded", 'initialize');
+    this.viewerManager = ViewerManager.getInstance();
+    this.RemoveEventHandlers();
+
+    EventBus.$on('colorRoom', (dynamicId) => {
+      const buildingId = localStorage.getItem("idBuilding");
+      const itemsToColor = [{
+        buildingId: buildingId,
+        color: "#24CBD9",
+        dynamicId: dynamicId,
+        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+      }]
+
+      if (this.firstCOlor == false) {
+        this.firstCOlor = true
+      } else {
+
+        const statviewer = localStorage.getItem("viewer_loaded");
+        if (statviewer == "loaded") {
+          this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+            items: itemsToColor,
+            buildingId: buildingId,
+          });
+        }
+      }
+    });
+    EventBus.$on('descolorRoom', (dynamicId) => {
+      const buildingId = localStorage.getItem("idBuilding");
+
+      const itemsToColor = [{
+        buildingId: buildingId,
+        color: null,
+        dynamicId: dynamicId,
+        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+      }]
+
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: buildingId,
+      });
+
+    });
+
+
+    if (window.innerWidth < 900) {
+      // console.log(window.innerWidth);
+
+      this.isActive = true;
+      this.isActive3D = false;
+    }
+
     try {
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();
       this.pageSate = PAGE_STATES.loaded;
-
-      if (window.innerWidth < 900) {
-        this.isMobileDisplay = true;
-        this.mobileDisplayMode = 1;
-        this.isActive = true;
-        this.isActive3D = false;
-      }
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
 
     this.$nextTick(() => {
-      const currentQuery = window.parent.routerFontion.apps[0]._route.query;
+
+
+      this.query.app = this.config.idAppDescription
+      // console.warn('/////////////////////////////////////////////////////');
+      // console.log(window.parent.router.query);
+      window.parent.router.query.app = this.query.app
+      // console.log(window.parent.router.query);
+
+      console.warn('/////////////////////////////////////////////////////');
+
+      const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
       this.applyURLParam(currentQuery);
     });
   }
 
-  gestionBouton() {
-    this.mobileDisplayMode = (this.mobileDisplayMode += 1) % 2;
-    if (this.mobileDisplayMode == 0) {
-      this.isActive = false;
-      this.isActive3D = true;
-    }
-    if (this.mobileDisplayMode == 1) {
-      this.isActive = true;
-      this.isActive3D = false;
-    }
-    if (this.mobileDisplayMode == 2) {
-      this.isActive = true;
-      this.isActive3D = false;
-    }
-    this.resize();
+  RemoveEventHandlers() {
+    const emitterHandler = EmitterViewerHandler.getInstance();
+    emitterHandler.off(VIEWER_REM_SPHERE);
+    emitterHandler.off(VIEWER_SPRITE_CLICK);
   }
 
-  // changeIcon() {
-  //   this.modefull = !this.modefull
-  // }
+
+
+  changeApp(e) {
+    this.query.app = e
+    this.changeRoute();
+  }
+
+  public get selectedZone(): ISpaceSelectorItem {
+    return this.$store.state.appDataStore.zoneSelected;
+  }
+
+  public set selectedZone(v: ISpaceSelectorItem) {
+    if (this.query.spaceSelectedId != v.dynamicId.toString()) {
+      this.query.name = v.name
+      this.query.buildingId = v.buildingId
+      this.query.spaceSelectedId = v.dynamicId.toString()
+      this.replaceRoute();
+    }
+
+    if (v.type == "geographicFloor")
+      this.floor = this.query.spaceSelectedId
+
+    this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
+  }
+
+  public get temporalitySelected(): ISpaceSelectorItem {
+    return this.$store.state.appDataStore.temporalitySelected;
+  }
+
+  public set temporalitySelected(v: ISpaceSelectorItem) {
+    this.$store.commit(MutationTypes.SET_TEMPORALITY, v);
+  }
 
   applyURLParam(query) {
 
@@ -325,11 +286,8 @@ class App extends Vue {
         ]
       }
 
-      console.warn(button, '/////////////////////////////////////////////////////////////////////////////////////////////////////////');
 
       this.onActionClick({ button, item })
-      console.log('totot');
-
 
       const itemToSelect = {
         "isOpen": false,
@@ -355,45 +313,53 @@ class App extends Vue {
     window.parent.routerFontion.customPush(window.parent.router.path, this.query);
   }
 
-  onSourceChange(newVal) {
-    this.chartTitle = newVal;
-    console.log()
+
+  toggleActive() {
+    if (this.isActive3D) {
+      this.isActive3D = false
+    }
+    this.isActive = !this.isActive;
+    this.handleRouteChange();
   }
 
-  public get selectedZone(): ISpaceSelectorItem {
-    return this.$store.state.appDataStore.zoneSelected;
+
+  toggleActive3D() {
+    if (this.isActive)
+      this.isActive = false
+    this.isActive3D = !this.isActive3D;
+    this.handleRouteChange();
   }
 
-  public set selectedZone(v: ISpaceSelectorItem) {
-    if (this.query.spaceSelectedId != v.dynamicId.toString()) {
-      this.query.name = v.name
-      this.query.buildingId = v.buildingId
-      this.query.spaceSelectedId = v.dynamicId.toString()
-      this.replaceRoute();
+  full3D() {
+    if (this.isActive) {
+      this.isActive = false
+      this.isActive3D = true;
+    } else {
+      this.isActive = true
+      this.isActive3D = false
     }
 
-    // if (v.type == "geographicFloor")
-    //   this.floor = this.query.spaceSelectedId
-    this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
-  }
 
-  public get temporalitySelected(): ISpaceSelectorItem {
-    return this.$store.state.appDataStore.temporalitySelected;
-  }
-
-  public set temporalitySelected(v: ISpaceSelectorItem) {
-    console.log("temporalitySelected", v);
-    this.$store.commit(MutationTypes.SET_TEMPORALITY, v);
+    this.handleRouteChange();
   }
 
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<IZoneItem[]> {
+
     switch (item?.type) {
       case undefined:
+
         const buildingId = localStorage.getItem("idBuilding");
-        const building = await this.$store.dispatch(
-          ActionTypes.GET_BUILDING_BY_ID,
-          { buildingId }
-        );
+        const playload = {
+          config,
+          item: { buildingId, type: "building" },
+        };
+
+        const promises = [
+          this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }),
+        ];
+
+        const [building, items] = await Promise.all(promises);
+
         return [
           {
             name: building.name,
@@ -405,11 +371,13 @@ class App extends Vue {
           },
         ];
       case "building":
+        console.warn(item?.type, '////////////////////////');
         return await this.$store.dispatch(ActionTypes.GET_FLOORS, {
           buildingId: item.staticId,
           patrimoineId: item.patrimoineId,
         });
       case "geographicFloor":
+        //@ts-ignore
         return await this.$store.dispatch(ActionTypes.GET_ROOMS, {
           floorId: item.dynamicId,
           buildingId: item.buildingId,
@@ -422,9 +390,9 @@ class App extends Vue {
   }
 
   onTemporalitySelectOpen(item?: any) {
+
     switch (item?.type) {
       case undefined:
-        // return ['Journée', "Semaine", "Mois", "Trimestre", "Année", 'Décennie'].map((temp, index) => ({
         return config.temporality.map((temp, index) => ({
           name: temp,
           staticId: index,
@@ -441,31 +409,79 @@ class App extends Vue {
       default:
         return [];
     }
+
   }
 
-  resize() {
-    setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 1);
-  }
   onGoBack() {
     const parent = this.$refs["space-selector"].getParentOfSelected();
     if (parent) this.selectedZone = parent;
   }
 
+  private getItemData(item: TGeoItem | TGeoItem[]): IItemData {
+    const res: IItemDatatmp = {
+      platformId: this.selectedZone.platformId,
+      id: new Set(),
+    };
+    const datas = Array.isArray(item) ? item : [item];
+    for (const data of datas) {
+      res.id.add(data.dynamicId!);
+    }
+    return {
+      platformId: res.platformId,
+      id: res.id.size > 0 ? Array.from(res.id) : res.id.values().next().value,
+    };
+  }
+
+
+  async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
+    if (!item) return;
+    this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
+    this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
+  }
+
+
+  async onColor(item: TGeoItem | TGeoItem[]) {
+    // TBD
+  }
+
+
+
   onActionClick({ button, item }) {
+    // const data = {
+    //   "isOpen": false,
+    //   "loading": false,
+    //   "dynamicId": 44035200,
+    //   "name": "194-Hall d'accueil",
+    //   "buildingId": "5932-6086-9e1a-18506478460",
+    //   "type": "geographicFloor"
+    // }
+
+    const buildingId = localStorage.getItem("idBuilding");
+
     const data = {
-      buildingId: item.buildingId,
-      staticId: item.staticId,
-      id: item.dynamicId,
-      dynamicId: item.dynamicId,
-      floorId: item.floorId,
-      roomId: item.roomId,
+      "isOpen": false,
+      "loading": false,
+      buildingId: buildingId, //important viewer
+      // staticId: item.staticId,//can
+      // id: item.dynamicId,
+      dynamicId: item.dynamicId,//important viewer
+      parents: item.parents,
+      // floorId: item.floorId,//can
+      // roomId: item.roomId,//can
       type: item.type,
     };
 
+    
     switch (button.onclickEvent) {
+      
       case ActionTypes.OPEN_VIEWER:
+        this.$store.dispatch(button.onclickEvent, {
+          onlyThisModel: true,
+          config: this.config,
+          item: data,
+        });
+        break;
+      case ActionTypes.ISOLATE_ITEMS:
         this.$store.dispatch(button.onclickEvent, {
           onlyThisModel: true,
           config: this.config,
@@ -486,26 +502,55 @@ class App extends Vue {
   }
 
   listenSpritesEvent() {
+    
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
+
       this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
-      if (result.node.dynamicId) {
+      if (result.navigate) {
+
+        this.query.spaceSelectedId = result.node.dynamicId
+        this.query.name = result.node.name
+        this.query.buildingId = result.node.buildingId
+
+
+        const item = {
+          buildingId: result.node.buildingId,
+          dynamicId: result.node.dynamicId,
+          name: result.node.name
+        };
+        const button = {
+          "title": "charger",
+          "icon": "mdi-video-3d",
+          "onclickEvent": "OPEN_VIEWER",
+          "isShownTypes": [
+            "geographicFloor"
+          ]
+        }
+        this.onActionClick({ button, item })
+
+        const itemToSelect = {
+          "isOpen": false,
+          "loading": false,
+          "dynamicId": result.node.dynamicId,
+          "name": result.node.name,
+          "buildingId": result.node.buildingId,
+          "type": "geographicFloor",
+        }
+
+        if (this.$refs['space-selector']) {
+          this.$refs['space-selector'].select(itemToSelect);
+          // this.$refs['space-selector'].closeItem(itemToSelect);
+        }
+        this.openSpaceSelector = false
+      }
+      else if (result.node?.dynamicId) {
         const a = document.createElement("a");
         a.setAttribute("href", `#${result.node.dynamicId}`);
         a.click();
       }
-    });
-  }
 
-  @Watch("selectedChartItems", { deep: true })
-  async watchSelectedChartItems(newVal, oldVal) {
-    //this.updateChartData();
-    if (newVal.length >= oldVal.length) {
-      this.isActive = true;
-    }
-    if (newVal.length == 0) {
-      this.isActive = false;
-    }
+    });
   }
 
   public get displayedData() {
@@ -514,24 +559,42 @@ class App extends Vue {
 
   public getDataFormatted() {
     // color displayedValue name staticId type
-    const d = this._getRows(this.displayedData);
+    const d = [this._getHeader(), ...this._getRows(this.displayedData)];
     return d;
   }
+
+  private _getHeader() {
+    return {
+      id: "id",
+      name: "name",
+      type: "type",
+      value: "value",
+    };
+  }
+
+
+
 
   private _getRows(list: any[]) {
     if (!list) return [];
 
-    return list.flatMap((el) => {
-      return [
-        {
-          name: el.name,
-          type: el.type,
-          value: Number.parseFloat(el.displayValue).toFixed(2),
-          id: el.staticId,
-        },
-        ...this._getRows(el.children),
-      ];
-    });
+    return list.map(({ color, displayValue, name, staticId, type }) => ({
+      name,
+      type,
+      value: Number.parseFloat(displayValue).toFixed(2),
+      id: staticId,
+    }));
+  }
+
+  handleRouteChange() {
+    if (this.isActive3D && !this.isActive) {
+      this.query.mode = '3d'
+    } else if (!this.isActive3D && this.isActive) {
+      this.query.mode = 'data'
+    } else {
+      this.query.mode = 'none'
+    }
+    this.replaceRoute();
   }
 
 }
@@ -539,24 +602,18 @@ class App extends Vue {
 export default App;
 </script>
 
-<style scoped lang="scss">
-::v-deep .card-colored {
-  background-color: #14202c !important;
-  border-radius: 10px !important;
-}
 
+<style scoped lang="scss">
 .app {
   width: 100%;
   height: 100%;
-
-  @media (min-width: 970px) {
-    .hide {
-      display: none;
-      visibility: hidden;
-    }
-  }
-
   $selectorHeight: 60px;
+  overflow: hidden;
+
+  ::v-deep .card-colored {
+    background-color: #14202c !important;
+    border-radius: 8px !important;
+  }
 
   .selectors {
     position: absolute;
@@ -572,8 +629,15 @@ export default App;
     .DButton {
       width: 60px;
       height: 60px;
-      transform: translate(-50px, 0px);
     }
+
+    @media (max-width: 960px) {
+      .DButton {
+        display: none;
+      }
+
+    }
+
 
     .temporality {
       position: relative;
@@ -581,41 +645,52 @@ export default App;
       height: $selectorHeight;
     }
 
-    @media (max-width: 500px) {
-      .temporality {
-        top: 60px;
-        height: 20px;
-        right: 0px;
-        position: absolute
-      }
-
-      .DButton {
-        transform: translate(0 , 0);
-      }
-
-    }
-
     .space {
       position: relative;
       width: 40%;
       height: $selectorHeight;
     }
+
+
+
+
+    @media (max-width: 960px) {
+      .space {
+        position: relative;
+        width: 80%;
+        height: $selectorHeight;
+        margin-top: 2px;
+      }
+
+    }
+
+
+
   }
+
+
 
   .dataBody {
     height: calc(100% - #{$selectorHeight + 30px});
     margin: 80px 8px 0 8px;
 
     .viewerContainer {
-      width: calc(60% - 4px);
+      width: 60%;
       height: 100%;
       float: left;
     }
 
+
+
     .appContainer {
       width: 40%;
-      height: 100%;
+      z-index: 7;
       float: right;
+      transition: 0.5s;
+      position: absolute;
+      margin-right: 6px;
+      height: 91%;
+      right: 0px;
     }
 
     .active {
@@ -625,7 +700,7 @@ export default App;
       z-index: 7;
       right: 0px;
       margin-right: 6px;
-      height: 91%;
+      height: 92%;
     }
 
     @media (max-width: 960px) {
@@ -642,11 +717,10 @@ export default App;
       // display: none;
       position: absolute;
       width: 0%;
-      height: 91%;
+      height: 92%;
       right: 0px;
+      transition: 0.1;
     }
-
-
 
     .active3D {
       width: 99vw;
@@ -654,6 +728,7 @@ export default App;
       float: left;
       position: absolute;
     }
+
   }
 }
 
@@ -666,6 +741,25 @@ export default App;
 </style>
 
 <style>
+.forge-spinner {
+  /* background-color: rgba(146, 70, 70, 0.63) !important; */
+  width: 800px !important;
+}
+
+.forge-spinner img {
+  display: none !important;
+}
+
+#app>div>div.dataBody>div.viewer-div-container.viewerContainer>div>div.forge-spinner {
+  width: 800px !important;
+}
+
+.forge-spinner {
+  background: url('./assets/spinalcore.png') center/contain no-repeat !important;
+  width: 1500px;
+  height: 800px;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

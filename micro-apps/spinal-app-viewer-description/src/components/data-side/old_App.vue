@@ -96,17 +96,6 @@ with this file. If not, see
           <v-select label="Details" v-model="selection" :items="dynamicItems"></v-select>
         </div>
 
-        <div v-if="ActiveData && selection == 'Indicateur' && labelsChart"
-          style="display: flex ; flex-wrap: nowrap ; align-items: center;margin-left: 15px; margin-right: 15px;">
-          <v-btn style="margin: 10px;" elevation="0" fab small @click="t_index--">
-            <v-icon>mdi-chevron-left</v-icon>
-          </v-btn>
-          <div style="white-space: nowrap;">la date {{ t_index }}</div>
-          <v-btn style="margin: 10px;" elevation="0" fab small @click="t_index++">
-            <v-icon>mdi-chevron-right</v-icon>
-          </v-btn>
-        </div>
-
         <div
           style="justify-content: flex-end;align-items: center;display: flex;padding-right: 12px;white-space: nowrap;"
           v-if="floorstaticDetails.length && floorstaticDetails[0].attributsList.length">
@@ -244,7 +233,7 @@ with this file. If not, see
                   style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                   <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                     attr.value
-                    }}
+                  }}
                   </li>
                 </div>
               </div>
@@ -286,36 +275,36 @@ with this file. If not, see
 
       <!-- ONGLET POINT DE MESURE (endpoints)-->
       <div v-if="selection == 'Points de mesures'">
-        <div v-for="(item, index) in floorstaticDetails[0].endpoints" :key="index" class="blocInformation">
-          <div v-if="!floorstaticDetails[0].endpoints">
+        <!-- {{ floorstaticDetails }} -->
+        <div v-for="(item, index) in floorstaticDetails[0].endpoints" class="blocInformation">
+          <div v-if="floorstaticDetails[0].endpoints == null"
+            style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px ; margin-bottom: 10px;">
             <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
           </div>
           <div v-else class="inventory-container">
+
             <div class="inventory-item"
-              style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;width: 100%;">
-              <li> {{ item.name }}: {{ item.value }} {{ item.unit || '' }}</li>
+              style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
+              v-for="(item, index2) in floorstaticDetails[0].endpoints[index]">
+              <li> {{ item.name }}: {{ item.value }} {{ item.unit }}</li>
             </div>
           </div>
+
         </div>
       </div>
-
 
       <!-- ONGLET INDICATEUR (controleEndpoint) indicateur -->
       <div style="display: flex">
         <div v-if="ActiveData && selection == 'Indicateur' && labelsChart" class="graphContainer">
-
-
-
-          <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
-            :step="labelsChart.length" :tooltipCallbacks="{
+          <lineCard :stacked="true" :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData" :step="labelsChart.length"
+            :tooltipCallbacks="{
               title: (context) => { },
               label: (tooltipItem) =>
                 `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
                   2
                 )} `,
               footer: (data) => { },
-            }"></LineCardComponent>
-          <!-- </sc-line-card> -->
+            }"></lineCard>
         </div>
         <div style="width: 100%;" v-if="selection == 'Indicateur'">
           <div v-for="(item, index) in floorstaticDetails[0].controlEndpoint" class="blocInformation">
@@ -328,18 +317,15 @@ with this file. If not, see
             <div v-else>
               <div class="inventory-container"
                 v-for="(item, index2) in floorstaticDetails[0].controlEndpoint[index].endpoints" :key="index2">
-                <div class=" inventory-item"
-                  :style="{ width: '100%', color: '#14202c', padding: '16px', borderRadius: '5px', paddingLeft: '6px', boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px' }">
+                <div @click="() => {
+                  fullData()
+                  addOrRemove(item.dynamicId);
+                  resize();
+                }" class=" inventory-item"
+                  :style="{ width: '100%', color: '#14202c', padding: '16px', borderRadius: '5px', paddingLeft: '6px', cursor: cpIdToDraw.includes(item.dynamicId) ? 'pointer' : '', border: cpIdToDraw.includes(item.dynamicId) ? '1px solid blue' : '', boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px' }">
+
                   <li>{{ item.name }}: {{ item.value }}</li>
-                  <v-icon @click="() => {
-                    fullData()
-                    addOrRemove(item.dynamicId);
-                    resize();
-                  }"
-                    v-if="cpIdToDraw.includes(item.dynamicId) && !activeChart.includes(item.dynamicId)">mdi-chart-line</v-icon>
-                  <v-icon @click="() => {
-                    addOrRemove(item.dynamicId);
-                  }" v-if="activeChart.includes(item.dynamicId)">mdi-close</v-icon>
+
                 </div>
               </div>
             </div>
@@ -436,7 +422,7 @@ import {
 } from "spinal-viewer-event-manager";
 import { log, warn } from "console";
 import { getParent } from "../../services/spinalAPI/GeographicContext/geographicContext";
-import LineCardComponent from "./LineCardComponent.vue";
+import lineCharts from "./LineCardComponent.vue";
 import moment from 'moment';
 
 @Component({
@@ -444,7 +430,7 @@ import moment from 'moment';
     GroupDataView,
     SpriteComponentMobile,
     BreadcrumbSelector,
-    LineCardComponent
+    lineCharts
   },
   filters: {},
 })
@@ -488,7 +474,6 @@ class dataSideApp extends Vue {
   activeChart: any = []
   labelsChart: any = null
   chartData: any = null
-  t_index: number = 0;
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
@@ -1139,14 +1124,10 @@ class dataSideApp extends Vue {
     this.chartData = this.chartDataObject(datatable)
     console.warn(this.chartData, "----------le active chartsData'");
   }
-
   async addgraphInfoCp(dyn) {
     if (this.cpIdToDraw.includes(dyn)) {
-      const begintime = this.getBeginAndEndTime().begintime;
-      const endtime = this.getBeginAndEndTime().endtime;
-      
-      console.log(begintime, endtime, 'la temporatlité selectionné ?');
-
+      const begintime = '23-09-2024 00:00:00';
+      const endtime = '29-09-2024 23:59:59';
 
       const buildingId = localStorage.getItem("idBuilding");
       const result = await this.$store.dispatch(ActionTypes.GET_TIMES_SERIES, {
@@ -1155,10 +1136,8 @@ class dataSideApp extends Vue {
         begin: begintime,
         end: endtime,
       });
-      //recuperer un seul resultat par minute , supprimer le plus petit , ajouter le plus grand à la minute supperieur 
-      console.warn(result , '///////////////////////////////////////////////////////////////////////');
 
-      const datatableCopy = [...this.dataTable];
+      const datatableCopy = [...this.dataTable]; // Copie de la dataTable
 
       const actuelleTable = {
         dynamicId: dyn,
@@ -1174,48 +1153,8 @@ class dataSideApp extends Vue {
       this.labelsChart = this.labels(begintime, endtime).map((label) => this.toDate(label));
       this.dataTable = [...datatableCopy];
       this.chartData = this.chartDataObject(datatableCopy);
-      console.log(this.chartData);
-
     }
   }
-  //fonction pour retourner la date string ( beging et end )
-  getBeginAndEndTime() {
-    const temporality = this.$store.state.appDataStore.temporalitySelected.name;
-    const t_index = this.t_index || 0; // Assurer une valeur par défaut de 0 si t_index n'est pas défini
-    let begintime, endtime;
-
-    switch (temporality) {
-      case ITemporality.hour:
-        begintime = moment().add(t_index, 'hours').startOf('hour').format('DD-MM-YYYY HH:mm:ss');
-        endtime = moment().add(t_index, 'hours').endOf('hour').format('DD-MM-YYYY HH:mm:ss');
-        break;
-      case ITemporality.day:
-        begintime = moment().add(t_index, 'days').startOf('day').format('DD-MM-YYYY HH:mm:ss');
-        endtime = moment().add(t_index, 'days').endOf('day').format('DD-MM-YYYY HH:mm:ss');
-        break;
-      case ITemporality.week:
-        begintime = moment().add(t_index, 'weeks').startOf('week').format('DD-MM-YYYY HH:mm:ss');
-        endtime = moment().add(t_index, 'weeks').endOf('week').format('DD-MM-YYYY HH:mm:ss');
-        break;
-      case ITemporality.month:
-        begintime = moment().add(t_index, 'months').startOf('month').format('DD-MM-YYYY HH:mm:ss');
-        endtime = moment().add(t_index, 'months').endOf('month').format('DD-MM-YYYY HH:mm:ss');
-        break;
-      case ITemporality.year:
-        begintime = moment().add(t_index, 'years').startOf('year').format('DD-MM-YYYY HH:mm:ss');
-        endtime = moment().add(t_index, 'years').endOf('year').format('DD-MM-YYYY HH:mm:ss');
-        break;
-      default:
-        // Retourner la journée actuelle par défaut, ajustée avec t_index
-        begintime = moment().add(t_index, 'days').startOf('day').format('DD-MM-YYYY HH:mm:ss');
-        endtime = moment().add(t_index, 'days').endOf('day').format('DD-MM-YYYY HH:mm:ss');
-        break;
-    }
-
-    return { begintime, endtime };
-  }
-
-
 
   toDate(date) {
     switch (this.$store.state.appDataStore.temporalitySelected.name) {
@@ -1257,7 +1196,7 @@ class dataSideApp extends Vue {
       const [year, time] = yearTime.split(' ');
       const [hours, minutes, seconds] = time.split(':');
 
-     
+      // Crée un objet Date avec des valeurs numériques
       return new Date(
         parseInt(year, 10),      // Année
         parseInt(month, 10) - 1, // Mois (0 = janvier, donc on soustrait 1)
@@ -1277,8 +1216,7 @@ class dataSideApp extends Vue {
     for (let date = beginDate; date <= endDate; date = new Date(date.getTime() + interval)) {
       dates.push(new Date(date)); // Ajoute une nouvelle date au tableau
     }
-    console.log(dates , 'les labels');
-    
+
     return dates;
   }
 
@@ -1286,7 +1224,7 @@ class dataSideApp extends Vue {
   chartDataObject(dataTable) {
     const l1: any = []
     dataTable.forEach((el, index) => {
-      l1.push({ data: [...el.data], label: 'graph 1' + index, color: 'blue', dynamicId: el.dynamicId, specialAxis: index });
+      l1.push({ data: [...el.data], label: 'graph 1' + index, color: 'blue', dynamicId: el.dynamicId });
     });
 
     return l1;
@@ -1567,7 +1505,6 @@ a {
   white-space: nowrap;
   overflow: hidden;
   justify-content: space-between;
-  background-color: white;
 }
 
 .v-select__selection--comma {
@@ -1592,15 +1529,13 @@ a {
 }
 
 .blocInformation {
-  background-color: #f8f8f8d0;
-  border-radius: 2px;
-  margin-top: 10px;
-  margin-bottom: 20px;
-  margin-left: 11px;
+  background-color: #ebebeb;
   padding: 5px;
-  box-shadow: 0 6px 24px #0000000d, 0 0 0 1px #00000014;
-  border: 2px dashed #dbdbdb;
-  border-radius: 6px;
+  border-radius: 2px;
+  margin-bottom: 20px;
+  margin-top: 10px;
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+  margin-left: 11px;
 }
 
 .Spinal_card {

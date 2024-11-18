@@ -65,9 +65,9 @@ const compareLocalTokenAndCookies = async () => {
 export async function isAuthenticate(): Promise<boolean> {
     await compareLocalTokenAndCookies();
     const token = await getTokenInLocalStorage() || await getTokenInCookie();
-
     if (token) return true;
 
+    clearLocalStorage();
     return false;
 }
 

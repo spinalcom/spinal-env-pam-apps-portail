@@ -46,7 +46,6 @@ with this file. If not, see
         " class="space-selector-header" :style="{ cursor: maxDepth !== -1 ? 'pointer' : 'default' }">
           <span class="legend">{{ label }}</span>
           <p class="space-selector-header-title">
-
             <v-icon :style="[
               { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
               { width: maxDepth !== -1 ? 'auto' : '0 !important' },
@@ -56,16 +55,12 @@ with this file. If not, see
             </v-icon>
 
             {{ selectedZoneName.toUpperCase() }}
-
-
           </p>
-          <v-progress-circular style="margin-right: 10px;" v-if="!viewerLoaded && label == 'ESPACE'" :size="25"
-            color="white" indeterminate></v-progress-circular>
         </div>
         <transition-group id="myDiv" name="staggered-fade" class="card-list spinal-scrollbar"
           :style="[{ 'overflow-y': 'auto' + ' !important' }]" tag="div" v-bind:css="false"
           v-on:before-enter="beforeEnter" v-on:enter="enter">
-          <SpaceSelectorItem :label="label" :loading_viewer="viewerLoaded" class="staggered-fade-item"
+          <SpaceSelectorItem :loading_viewer="viewerLoaded" class="staggered-fade-item"
             v-for="(item, index) in buildingStructure"
             :key="`${index}-${item.dynamicId}-${item.platformId}-${item.patrimoineId}`" :item="item"
             v-bind:data-index="index" :maxDepth="maxDepth" @onSelect="select(item)" :selected="selectedZone"
@@ -161,6 +156,8 @@ class SpaceSelector extends Vue {
   timeEnd: string = '';
 
   get selectedZoneName() {
+    console.log(this.selectedZone.type != 'building');
+
     if (
       this.buildingStructure[0]?.type == 'building' &&
       this.selectedZone.type == 'building'
@@ -390,6 +387,8 @@ class SpaceSelector extends Vue {
   }
 
   onActionClick(data) {
+    console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+    
     this.$emit('onActionClick', data);
   }
 }
@@ -435,7 +434,6 @@ export default SpaceSelector;
   width: 100%;
   right: 0;
   overflow: hidden;
-  min-width: 250px;
 }
 
 .space-selector-container.isopen {
