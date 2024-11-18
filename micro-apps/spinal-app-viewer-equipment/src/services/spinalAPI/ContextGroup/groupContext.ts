@@ -43,8 +43,7 @@ import { error, log, warn } from 'console';
 import { logTypes } from "micro-apps/spinal-env-pam-websocket-state/src/store/constants";
 
 
-export async function getGroupContext(patrimoineId: string, buildingId: string, position_type: any): Promise<any | null> { 
-    console.log('Call getGroupContext function')
+export async function getGroupContext(patrimoineId: string, buildingId: string, position_type: any, getAllCategoryEquipments = true): Promise<any | null> { 
     const spinalAPI = SpinalAPI.getInstance();
     const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/groupContext/list`);
     let result = await spinalAPI.get<IZoneItem[]>(url);
@@ -63,26 +62,43 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
     let type;
     let List: IZoneItem[] | null = null;
 
-    // if user has selected a context
+    // if user selected a context
     if (matchedContext) {
 
         let tree = await getGroupContextCategoryList(patrimoineId, buildingId, matchedContext.dynamicId);
         store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy.data, "cat": tree });
         const matchedCategory = tree.find(context => context.name === store.state.appDataStore.user_selected.cat);
-        // use has selected a category
+        // if user selected a category
         if (matchedCategory) {
+
             let grpList = await getGroupContextGroupList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId);
+            console.log('grpList', grpList);
             store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy.data, "cat": tree, "grp": grpList });
+
             let allLists = [];
-            for (const selectedGroupName of store.state.appDataStore.user_selected.grp) {
-                const matchedGrpList = grpList.find(context => context.name === selectedGroupName);
-                if (matchedGrpList) {
+            if(!getAllCategoryEquipments){
+                for (const selectedGroupName of store.state.appDataStore.user_selected.grp) {
+                    const matchedGrpList = grpList.find(context => context.name === selectedGroupName);
+                    if (matchedGrpList) {
+                        let list;
+                        type = matchedGrpList.type;
+                        if (matchedGrpList.type === "BIMObjectGroup") {
+                            list = await getequipementList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, matchedGrpList.dynamicId);
+                        }
+                        if (list) {
+                            allLists.push(...list);
+                        }
+                    }
+                }
+            }
+            else {
+                // get all equipments of all groups
+                for (const selectedGroupName of grpList) {
                     let list;
-                    type = matchedGrpList.type;
-                    if (matchedGrpList.type === "BIMObjectGroup") {
-                        list = await getequipementList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, matchedGrpList.dynamicId);
-                    } else if (matchedGrpList.type === "geographicRoomGroup") {
-                        list = await getroomList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, matchedGrpList.dynamicId);
+                    type = selectedGroupName.type;
+                    if (selectedGroupName.type === "BIMObjectGroup") {
+                        list = await getequipementList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, selectedGroupName.dynamicId);
+                        list = list.map((obj) => {return {...obj,color:selectedGroupName.color}})
                     }
                     if (list) {
                         allLists.push(...list);

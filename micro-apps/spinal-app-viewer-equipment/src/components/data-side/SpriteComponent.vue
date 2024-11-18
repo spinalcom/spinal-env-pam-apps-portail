@@ -87,11 +87,13 @@ export default {
     dynamicStyle: {
       border: "3px solid #F9F9F9",
       boxShadow: "none",
-      background: '#13A9E0'
+      background: "red"
     },
     isClicked: false,
   }),
   mounted() {
+    console.log(this.data);
+    this.dynamicStyle.background = this.data.color;
     document.addEventListener("click", (evt) => {
       const flyoutEl = this.$refs.container;
       let targetEl = evt.target;

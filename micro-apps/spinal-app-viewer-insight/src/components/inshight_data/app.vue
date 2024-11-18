@@ -684,17 +684,9 @@ class InsightApp extends Vue {
             // console.log('viewer_info_room : ', viewer_info_room);
             // console.log('vselected_bimFileId : ', vselected_bimFileId);
             // console.log('vselected_dbIds : ', vselected_dbIds);
-  
-  
           }
-
         }
-
-        
-
-
       }
-
     });
 
     this.sourceSelectedName = this.config.source[0].name;

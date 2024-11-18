@@ -26,137 +26,101 @@ import { IConfig, ITemporality, calculTypes } from "./interfaces/IConfig";
 
 export const config: IConfig = {
   viewButtons: "base",
-  // entryPoint: { context: "Contexte équipement capteur", category: "Ubigreen", group: "All" },
-  // source: { name: "Ubigreen", profileName: "Ubigreen", type: "controlPoint", objectType: "equipments", unit : "" },
-  // entryPoint: {
-  // 	context: "Intégration équipements communicants",
-  // 	category: "Multicapteurs",
-  // 	group: "Avec convention de nommage",
-  // },
-  // source: [{
-  // 	name: "Température",
-  // 	profileName: "KPI",
-  // 	type: "controlPoint",
-  // 	objectType: "equipments",
-  // 	unit: "°C",
-  // }],
+  entryPoint: { context: "Gestion des équipements", category: "Typologie", group: "CVC" },
+  source: [{
+  	name: "Maintenance CVC",
+  	profileName: "Control point",
+  	type: "controlPoint",
+  	objectType: "equipments",
+  	unit: "",
+    legend: {
+            min: { value: 0, color: "#24CBD9" },
+            median: { value: 50, color: "#2077CE" },
+            max: { value: 100, color: "#112C9D" },
+          },
+  }],
+  regroupement: [
+      {
+        context: "Gestion des équipements",
+        category: "Typologie"
+      }
+    ],
 
-  /*entryPoint: {
-    context: "integration juin 2022",
-    category: "generation hardware context",
-    group: "valid items",
-  },*/
+
 
   // Config DEI
-  entryPoint: {
-    context: "Gestion des espaces",
-    category: "Typologie",
-    group: "Bureaux",
-  },
-  source: [
-    {
-      name: "Taux d'occupation",
-      profileName: "Occupation",
-      type: "controlPoint",
-      objectType: "rooms",
-      unit: "%",
-      legend: {
-        min: { value: 0, color: "#24CBD9" },
-        median: { value: 50, color: "#2077CE" },
-        max: { value: 100, color: "#112C9D" },
-      },
-    },
-    {
-      name: "Présence",
-      profileName: "Occupation",
-      type: "controlPoint",
-      objectType: "rooms",
-      unit: "",
-      legend: {
-        min: { value: 0, color: "#00FF00" },
-        median: { value: 0.5, color: "#FFFF00" },
-        max: { value: 1, color: "#FF0000" },
-      },
-    },
-    {
-      name: "Nombre de personnes",
-      profileName: "Occupation",
-      type: "controlPoint",
-      objectType: "rooms",
-      unit: "",
-      legend: {
-        min: { value: 0, color: "#00FF00" },
-        median: { value: 10, color: "#FFFF00" },
-        max: { value: 20, color: "#FF0000" },
-      },
-    }
-  ],
-  regroupement: [
-    {
-      context: "Gestion des espaces",
-      category: "Typologie"
-    },
-    {	
-      context: "Gestion des espaces",
-      category: "Affectation par entreprise"
-    },
-    {
-      context: "Gestion des espaces",
-      category: "Gestion des locations"
-    },
-    {
-      context: "Gestion des espaces",
-      category: "Affectation par service"
-    }
-  ],
-  // FIN Config DEI
-
-  // Config Gienah
-
   // entryPoint: {
-  //   context: "Contexte de pièces intégration",
-  //   category: "Toutes les pièces",
-  //   group: "Toutes les pièces",
+  //   context: "Gestion des espaces",
+  //   category: "Typologie",
+  //   group: "Bureaux",
   // },
   // source: [
   //   {
-  //     name: "T° ambiante",
-  //     type: "endpoint",
+  //     name: "Taux d'occupation",
+  //     profileName: "Occupation",
+  //     type: "controlPoint",
   //     objectType: "rooms",
-  //     unit: "°C",
+  //     unit: "%",
   //     legend: {
-  //       min: { value: 15, color: "#0074FF" },
-  //       median: { value: 20, color: "#FFFF00" },
-  //       max: { value: 25, color: "#FF004B" },
+  //       min: { value: 0, color: "#24CBD9" },
+  //       median: { value: 50, color: "#2077CE" },
+  //       max: { value: 100, color: "#112C9D" },
   //     },
   //   },
   //   {
-  //     name: "Marche/arrêt",
-  //     type: "endpoint",
+  //     name: "Présence",
+  //     profileName: "Occupation",
+  //     type: "controlPoint",
   //     objectType: "rooms",
   //     unit: "",
   //     legend: {
-  //       min: { value: 0, color: "#FF0000" },
+  //       min: { value: 0, color: "#00FF00" },
   //       median: { value: 0.5, color: "#FFFF00" },
-  //       max: { value: 1, color: "#00FF00" },
+  //       max: { value: 1, color: "#FF0000" },
   //     },
   //   },
   //   {
-  //     name: "Consigne de température identifiée",
-  //     profileName: "Nobatek - Cassette CVC",
+  //     name: "Nombre de personnes",
+  //     profileName: "Occupation",
   //     type: "controlPoint",
   //     objectType: "rooms",
-  //     unit: "°C",
+  //     unit: "",
   //     legend: {
-  //       min: { value: 0, color: "#0074FF" },
+  //       min: { value: 0, color: "#00FF00" },
   //       median: { value: 10, color: "#FFFF00" },
-  //       max: { value: 20, color: "#FF004B" },
+  //       max: { value: 20, color: "#FF0000" },
   //     },
-  //   },
+  //   }
   // ],
-  // regroupement: ["floors"],
+  // regroupement: [
+  //   {
+  //     context: "Gestion des espaces",
+  //     category: "Typologie"
+  //   },
+  //   {	
+  //     context: "Gestion des espaces",
+  //     category: "Affectation par entreprise"
+  //   },
+  //   {
+  //     context: "Gestion des espaces",
+  //     category: "Gestion des locations"
+  //   },
+  //   {
+  //     context: "Gestion des espaces",
+  //     category: "Affectation par service"
+  //   }
+  // ],
 
-  // FIN Config Gienah
+
+
+
+
+
+  // FIN Config DEI
+
+  // Config LO
+
+
 
   title: "Insights sur les multicapteurs",
   calculs: [
@@ -168,7 +132,7 @@ export const config: IConfig = {
     calculTypes.MeanTime,
   ],
   //sprites: true,
-  viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },
+  viewerInfo: { roomRef: true, floorRef: true, equipments: "groupItem" },
   temporality: [
     ITemporality.currentValue,
     ITemporality.hour,

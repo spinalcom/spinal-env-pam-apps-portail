@@ -97,6 +97,7 @@ import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import { mapState } from "vuex";
 import SpriteComponent from "./SpriteComponent.vue"
 import { WASI } from "wasi";
+import { get } from "http";
 
 @Component({
   components: {
@@ -145,7 +146,6 @@ class dataSideApp extends Vue {
 
   async handleItemSelected(payload) {
 
-
     if (payload.listType == "ctx") {
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "ctx", value: payload.value.name });
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "cat", value: null });
@@ -157,12 +157,14 @@ class dataSideApp extends Vue {
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: [] });
     }
 
-    if (payload.listType == "grp")
-      // payload.value.forEach(element => {
-      //   this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: element});
-      // });
-
+    if (payload.listType == "grp"){
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: payload.value });
+      if(payload.value.length == 0) {
+        // Load all equipments of category
+        await this.retriveData(true);
+        return;
+      }
+    }
 
 
 
@@ -176,13 +178,13 @@ class dataSideApp extends Vue {
   }
 
 
-  async retriveData() {
-
+  async retriveData(getAllCategoryEquipments = false) {
     let actionType = ActionTypes.GET_GROUP_CONTEXT
     let dispatchObject = {
       buildingId: localStorage.getItem("idBuilding"),
       patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
       position_type: this.selectedZone,
+      getAllCategoryEquipments : getAllCategoryEquipments
     } as any;
     dispatchObject.forceUpdate = true;
 
@@ -193,6 +195,7 @@ class dataSideApp extends Vue {
         this.$store.dispatch(actionType, dispatchObject),
       ];
       const result = await Promise.all(promises);
+      console.log('retriveData:',result);
       this.$store.commit(MutationTypes.SET_DATA, result);
       this.pageSate = PAGE_STATES.loaded;
     } catch (err) {
@@ -201,6 +204,8 @@ class dataSideApp extends Vue {
       this.pageSate = PAGE_STATES.error;
     }
   }
+
+
 
   async putAllFiltredData(allFilteredData) {
     this.allFilteredData = allFilteredData
@@ -308,7 +313,8 @@ class dataSideApp extends Vue {
     }
 
     this.isBuildingSelected = false;
-    this.retriveData();
+    const shouldGetAllEquipments = this.$store.state.appDataStore.user_selected.grp.length == 0;
+    this.retriveData(shouldGetAllEquipments);
   }
 
   @Watch('element_clicked', { immediate: true, deep: true })
@@ -351,9 +357,10 @@ class dataSideApp extends Vue {
           position = { x, y, z };
         }
       }
-      return { ...item, position: position || null, color: "#0074FF", displayValue: "-", toto: position, attr: this.selected_attr };
+      return { ...item, position: position || null, displayValue: "-", toto: position, attr: this.selected_attr };
     });
 
+    console.log('-------- newArray',newArray);
     if (this.config.sprites) {
       this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
         items: newArray,

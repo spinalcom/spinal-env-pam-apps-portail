@@ -34,7 +34,19 @@
     <template v-slot:item="{ item }">
       <tr @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave" :ref="`row-${item.dynamicId}`"
         @click="selectDataView(item)">
-        <td :class="selected_id == item.dynamicId ? 'colortd' : ''">{{ item.name }}</td>
+        <td :class="selected_id == item.dynamicId ? 'colortd' : ''">
+          <span 
+        :style="{ 
+          backgroundColor: item.color, 
+          display: 'inline-block', 
+          width: '10px', 
+          height: '10px', 
+          borderRadius: '50%', 
+          marginRight: '8px' 
+        }"
+      ></span>
+          {{ item.name }}
+        </td>
         <td style="white-space: nowrap;" :class="selected_id == item.dynamicId ? 'colortd' : ''"
           v-for="(header, index) in headers" :key="`td-${index}-${item.id}`" v-if="header.value !== 'name'">
           <template v-if="isUrl(getAttributeValue(item, header.value))">

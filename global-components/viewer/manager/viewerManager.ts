@@ -114,7 +114,7 @@ export class ViewerManager {
 	public async getViewerInfoMerged(argItem: IPlayload | IPlayload[], body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }): Promise<IViewInfoItemRes[]> {
 		
 		const datas = await this.getViewerInfo(argItem, undefined, body);
-		console.log('------> datas inside getViewerInfoMerged', datas);
+		// console.log('------> datas inside getViewerInfoMerged', datas);
 		const res = [];
 
 		for (const _item of datas) {

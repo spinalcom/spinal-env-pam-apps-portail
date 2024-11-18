@@ -74,7 +74,7 @@ with this file. If not, see
         :selectedTime="temporalitySelected"
         :data="displayedData"
         :vueChart="vueChart"
-        :isFullGraph="mobileDisplayMode===2"
+        :isFullGraph="mobileDisplayMode === 2"
         :isMobileDisplay="isMobileDisplay"
         @buttonClicked="toggleActive"
         @buttonClicked3D="toggleActive3D"
@@ -82,17 +82,34 @@ with this file. If not, see
         @sourceChanged="onSourceChange"
       ></InsightApp>
     </div>
-    <div class="hide" @click="() => {
-      gestionBouton()
-    }"
-      style="background-color: white;width: 50px;height: 50px;position: absolute;bottom: 20px;right: 20px;z-index: 9999;border-radius: 5px;border: 2px solid #14202c;justify-content: center;align-items: center;display: flex;">
-      <v-icon v-if="mobileDisplayMode===0">mdi-text-box</v-icon>
-      <v-icon v-if="mobileDisplayMode===1">mdi-video-3d</v-icon>
+    <div
+      class="hide"
+      @click="
+        () => {
+          gestionBouton();
+        }
+      "
+      style="
+        background-color: white;
+        width: 50px;
+        height: 50px;
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        border-radius: 5px;
+        border: 2px solid #14202c;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+      "
+    >
+      <v-icon v-if="mobileDisplayMode === 0">mdi-text-box</v-icon>
+      <v-icon v-if="mobileDisplayMode === 1">mdi-video-3d</v-icon>
       <!-- <v-icon v-else>mdi-close-circle-outline</v-icon> -->
     </div>
   </v-app>
 
-  
   <v-container
     class="loading"
     v-else-if="pageSate === PAGE_STATES.loading"
@@ -105,80 +122,78 @@ with this file. If not, see
       indeterminate
     ></v-progress-circular>
   </v-container>
-
-  
 </template>
 
 <script lang="ts">
 import {
   ISpaceSelectorItem,
   SpaceSelector,
-} from "../../../global-components/SpaceSelector/index";
-import { Vue, Watch } from "vue-property-decorator";
-import { ActionTypes } from "./interfaces/vuexStoreTypes";
-import Component from "vue-class-component";
-import type { Store } from "./services/store";
-import { MutationTypes } from "./services/store/appDataStore/mutations";
+} from '../../../global-components/SpaceSelector/index';
+import { Vue, Watch } from 'vue-property-decorator';
+import { ActionTypes } from './interfaces/vuexStoreTypes';
+import Component from 'vue-class-component';
+import type { Store } from './services/store';
+import { MutationTypes } from './services/store/appDataStore/mutations';
 import type {
   IButton,
   IZoneItem,
   TGeoItem,
-} from "../../../global-components/SpaceSelector/interfaces/IBuildingItem";
-import { DataTable } from "./components/data-table";
- import viewerApp from "../../../global-components/viewer/viewer.vue"
+} from '../../../global-components/SpaceSelector/interfaces/IBuildingItem';
+import { DataTable } from './components/data-table';
+import viewerApp from '../../../global-components/viewer/viewer.vue';
 //import viewerApp from "./components/viewer/viewer.vue";
-import { ViewerButtons } from "../../../global-components/SpaceSelector/spaceSelectorButtons";
-import { config } from "./config";
-import { IConfig, ITemporality } from "./interfaces/IConfig";
-import InsightApp from "./components/inshight_data/app.vue";
-import { PAGE_STATES } from "./interfaces/pageStates";
+import { ViewerButtons } from '../../../global-components/SpaceSelector/spaceSelectorButtons';
+import { config } from './config';
+import { IConfig, ITemporality } from './interfaces/IConfig';
+import InsightApp from './components/inshight_data/app.vue';
+import { PAGE_STATES } from './interfaces/pageStates';
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
-} from "spinal-viewer-event-manager";
-import { getLabels, getValues } from "./services/calcul/computeChart";
-import moment from "moment";
+} from 'spinal-viewer-event-manager';
+import { getLabels, getValues } from './services/calcul/computeChart';
+import moment from 'moment';
 
-moment.locale("fr", {
+moment.locale('fr', {
   months: [
-    "Janvier",
-    "Février",
-    "Mars",
-    "Avril",
-    "Mai",
-    "Juin",
-    "Juillet",
-    "Août",
-    "Septembre",
-    "Octobre",
-    "Novembre",
-    "Décembre",
+    'Janvier',
+    'Février',
+    'Mars',
+    'Avril',
+    'Mai',
+    'Juin',
+    'Juillet',
+    'Août',
+    'Septembre',
+    'Octobre',
+    'Novembre',
+    'Décembre',
   ],
   monthsShort: [
-    "Jan",
-    "Fév",
-    "Mar",
-    "Avr",
-    "Mai",
-    "Juin",
-    "Juil",
-    "Août",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Déc",
+    'Jan',
+    'Fév',
+    'Mar',
+    'Avr',
+    'Mai',
+    'Juin',
+    'Juil',
+    'Août',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Déc',
   ],
   weekdays: [
-    "Dimanche",
-    "Lundi",
-    "Mardi",
-    "Mercredi",
-    "Jeudi",
-    "Vendredi",
-    "Samedi",
+    'Dimanche',
+    'Lundi',
+    'Mardi',
+    'Mercredi',
+    'Jeudi',
+    'Vendredi',
+    'Samedi',
   ],
-  weekdaysShort: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
-  weekdaysMin: ["Di", "Lu", "Ma", "Me", "Je", "Ve", "Sa"],
+  weekdaysShort: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
+  weekdaysMin: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
 });
 
 @Component({
@@ -195,8 +210,8 @@ class App extends Vue {
   $store: Store;
   openSpaceSelector: boolean = false;
   openTemporalitySelector: boolean = false;
-  chartTitle: string = "";
-  chartLabel = "";
+  chartTitle: string = '';
+  chartLabel = '';
   chartData: any[] = [];
   config: IConfig = config;
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
@@ -214,14 +229,13 @@ class App extends Vue {
     spaceSelectedId: string;
     buildingId: string;
   } = {
-    app: "",
-    mode: "null",
-    name: "",
-    spaceSelectedId: "",
-    buildingId: "",
+    app: '',
+    mode: 'null',
+    name: '',
+    spaceSelectedId: '',
+    buildingId: '',
   };
   vueChart: boolean = false;
-  
 
   switchView(item) {
     this.vueChart = item.display;
@@ -238,11 +252,11 @@ class App extends Vue {
 
   handleRouteChange() {
     if (this.isActive3D && !this.isActive) {
-      this.query.mode = '3d'
+      this.query.mode = '3d';
     } else if (!this.isActive3D && this.isActive) {
-      this.query.mode = 'data'
+      this.query.mode = 'data';
     } else {
-      this.query.mode = 'none'
+      this.query.mode = 'none';
     }
     this.replaceRoute();
   }
@@ -262,35 +276,35 @@ class App extends Vue {
   toDate(date) {
     switch (this.$store.state.appDataStore.temporalitySelected.name) {
       case ITemporality.hour:
-        return moment(date).format("HH:mm");
+        return moment(date).format('HH:mm');
       case ITemporality.day:
-        return moment(date).format("HH[h]");
+        return moment(date).format('HH[h]');
       case ITemporality.week:
-        return moment(date).format("dd");
+        return moment(date).format('dd');
       case ITemporality.month:
-        return moment(date).format("D/M/YY");
+        return moment(date).format('D/M/YY');
       case ITemporality.year:
-        return moment(date).format("MMM");
+        return moment(date).format('MMM');
       case ITemporality.custom:
         const { begin, end } =
           this.$store.state.appDataStore.temporalitySelected.range;
         const duration = moment.duration(
-          moment(end, "DD-MM-YYYY HH:mm:ss").diff(
-            moment(begin, "DD-MM-YYYY HH:mm:ss")
+          moment(end, 'DD-MM-YYYY HH:mm:ss').diff(
+            moment(begin, 'DD-MM-YYYY HH:mm:ss')
           )
         );
-        console.log(moment(end, "DD-MM-YYYY HH:mm:ss"), duration);
-        if (duration.asMonths() > 2) return moment(date).format("MMM");
-        if (duration.asDays() > 1) return moment(date).format("D/M/YY");
-        if (duration.asHours() > 1) return moment(date).format("HH[h]");
-        return moment(date).format("HH:mm");
+        console.log(moment(end, 'DD-MM-YYYY HH:mm:ss'), duration);
+        if (duration.asMonths() > 2) return moment(date).format('MMM');
+        if (duration.asDays() > 1) return moment(date).format('D/M/YY');
+        if (duration.asHours() > 1) return moment(date).format('HH[h]');
+        return moment(date).format('HH:mm');
       default:
-        return moment(date).format("D/M/YY");
+        return moment(date).format('D/M/YY');
     }
   }
 
   toTooltipDate(date) {
-    return moment(date).format("DD/MM/YYYY HH:mm");
+    return moment(date).format('DD/MM/YYYY HH:mm');
   }
 
   async mounted() {
@@ -298,13 +312,13 @@ class App extends Vue {
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();
       this.pageSate = PAGE_STATES.loaded;
-      
+
       if (window.innerWidth < 900) {
         this.isMobileDisplay = true;
-        this.mobileDisplayMode =  1; 
+        this.mobileDisplayMode = 1;
         this.isActive = true;
         this.isActive3D = false;
-    }
+      }
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
@@ -316,16 +330,16 @@ class App extends Vue {
   }
 
   gestionBouton() {
-    this.mobileDisplayMode = (this.mobileDisplayMode+=1)%2;
-    if(this.mobileDisplayMode == 0){
+    this.mobileDisplayMode = (this.mobileDisplayMode += 1) % 2;
+    if (this.mobileDisplayMode == 0) {
       this.isActive = false;
       this.isActive3D = true;
     }
-    if(this.mobileDisplayMode == 1){
+    if (this.mobileDisplayMode == 1) {
       this.isActive = true;
       this.isActive3D = false;
     }
-    if(this.mobileDisplayMode == 2){
+    if (this.mobileDisplayMode == 2) {
       this.isActive = true;
       this.isActive3D = false;
     }
@@ -337,69 +351,64 @@ class App extends Vue {
   // }
 
   applyURLParam(query) {
+    this.query.mode = query.mode;
+    this.query.buildingId = query.buildingId;
+    this.query.spaceSelectedId = query.spaceSelectedId;
+    this.query.name = query.name;
+    this.query.app = query.app;
 
-this.query.mode = query.mode
-this.query.buildingId = query.buildingId
-this.query.spaceSelectedId = query.spaceSelectedId
-this.query.name = query.name
-this.query.app = query.app
+    if (query.mode == '3d') {
+      this.isActive3D = true;
+    } else if (query.mode == 'data') {
+      this.isActive = true;
+    }
+    // console.warn(query.spaceSelectedId);
 
-if (query.mode == "3d") {
-  this.isActive3D = true
-} else if (query.mode == "data") {
-  this.isActive = true
-}
-// console.warn(query.spaceSelectedId);
+    if (query.spaceSelectedId) {
+      const item = {
+        buildingId: query.buildingId,
+        dynamicId: query.spaceSelectedId,
+      };
+      const button = {
+        title: 'charger',
+        icon: 'mdi-video-3d',
+        onclickEvent: 'OPEN_VIEWER',
+        isShownTypes: ['geographicFloor'],
+      };
+      this.onActionClick({ button, item });
+      const itemToSelect = {
+        isOpen: false,
+        loading: false,
+        dynamicId: parseInt(query.spaceSelectedId),
+        name: query.name,
+        buildingId: query.buildingId,
+        type: 'geographicFloor',
+      };
+      // this.$refs['space-selector'].getButton();
 
-
-if (query.spaceSelectedId) {
-
-  const item = {
-    buildingId: query.buildingId,
-    dynamicId: query.spaceSelectedId,
-  };
-  const button = {
-    "title": "charger",
-    "icon": "mdi-video-3d",
-    "onclickEvent": "OPEN_VIEWER",
-    "isShownTypes": [
-      "geographicFloor"
-    ]
+      if (this.$refs['space-selector']) {
+        this.$refs['space-selector'].select(itemToSelect);
+      }
+    }
+    this.openSpaceSelector = false;
   }
-
-  console.warn(button, '/////////////////////////////////////////////////////////////////////////////////////////////////////////');
-
-  this.onActionClick({ button, item })
-  console.log('totot');
-
-
-  const itemToSelect = {
-    "isOpen": false,
-    "loading": false,
-    "dynamicId": parseInt(query.spaceSelectedId),
-    "name": query.name,
-    "buildingId": query.buildingId,
-    "type": "geographicFloor",
-  }
-  // this.$refs['space-selector'].getButton();
-
-  if (this.$refs['space-selector']) {
-    this.$refs['space-selector'].select(itemToSelect);
-  }
-}
-this.openSpaceSelector = false
-}
 
   replaceRoute() {
-    window.parent.routerFontion.customReplace(window.parent.router.path, this.query);
+    window.parent.routerFontion.customReplace(
+      window.parent.router.path,
+      this.query
+    );
   }
   changeRoute() {
-    window.parent.routerFontion.customPush(window.parent.router.path, this.query);
+    window.parent.routerFontion.customPush(
+      window.parent.router.path,
+      this.query
+    );
   }
 
-  onSourceChange(newVal){
+  onSourceChange(newVal) {
     this.chartTitle = newVal;
-    console.log()
+    console.log();
   }
 
   public get selectedZone(): ISpaceSelectorItem {
@@ -408,9 +417,9 @@ this.openSpaceSelector = false
 
   public set selectedZone(v: ISpaceSelectorItem) {
     if (this.query.spaceSelectedId != v.dynamicId.toString()) {
-      this.query.name = v.name
-      this.query.buildingId = v.buildingId
-      this.query.spaceSelectedId = v.dynamicId.toString()
+      this.query.name = v.name;
+      this.query.buildingId = v.buildingId;
+      this.query.spaceSelectedId = v.dynamicId.toString();
       this.replaceRoute();
     }
 
@@ -424,14 +433,14 @@ this.openSpaceSelector = false
   }
 
   public set temporalitySelected(v: ISpaceSelectorItem) {
-    console.log("temporalitySelected", v);
+    console.log('temporalitySelected', v);
     this.$store.commit(MutationTypes.SET_TEMPORALITY, v);
   }
 
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<IZoneItem[]> {
     switch (item?.type) {
       case undefined:
-        const buildingId = localStorage.getItem("idBuilding");
+        const buildingId = localStorage.getItem('idBuilding');
         const building = await this.$store.dispatch(
           ActionTypes.GET_BUILDING_BY_ID,
           { buildingId }
@@ -441,17 +450,17 @@ this.openSpaceSelector = false
             name: building.name,
             staticId: building.id,
             categories: [],
-            color: "#35CAE5",
+            color: '#35CAE5',
             dynamicId: 0,
-            type: "building",
+            type: 'building',
           },
         ];
-      case "building":
+      case 'building':
         return await this.$store.dispatch(ActionTypes.GET_FLOORS, {
           buildingId: item.staticId,
           patrimoineId: item.patrimoineId,
         });
-      case "geographicFloor":
+      case 'geographicFloor':
         return await this.$store.dispatch(ActionTypes.GET_ROOMS, {
           floorId: item.dynamicId,
           buildingId: item.buildingId,
@@ -477,7 +486,7 @@ this.openSpaceSelector = false
           parents: [],
           drawLink: [],
           haveChildren: false,
-          type: "time",
+          type: 'time',
         }));
 
       default:
@@ -491,11 +500,12 @@ this.openSpaceSelector = false
     }, 1);
   }
   onGoBack() {
-    const parent = this.$refs["space-selector"].getParentOfSelected();
+    const parent = this.$refs['space-selector'].getParentOfSelected();
     if (parent) this.selectedZone = parent;
   }
 
   onActionClick({ button, item }) {
+    console.log('onActionClick', button, item);
     const data = {
       buildingId: item.buildingId,
       staticId: item.staticId,
@@ -514,7 +524,7 @@ this.openSpaceSelector = false
           item: data,
         });
         break;
-      case "OPEN_VIEWER_PLUS":
+      case 'OPEN_VIEWER_PLUS':
         this.$store.dispatch(ActionTypes.OPEN_VIEWER, {
           onlyThisModel: false,
           config: this.config,
@@ -532,20 +542,20 @@ this.openSpaceSelector = false
     emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
       this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
       if (result.node.dynamicId) {
-        const a = document.createElement("a");
-        a.setAttribute("href", `#${result.node.dynamicId}`);
+        const a = document.createElement('a');
+        a.setAttribute('href', `#${result.node.dynamicId}`);
         a.click();
       }
     });
   }
 
-  @Watch("selectedChartItems",  {deep: true })
-  async watchSelectedChartItems(newVal,oldVal) {
+  @Watch('selectedChartItems', { deep: true })
+  async watchSelectedChartItems(newVal, oldVal) {
     //this.updateChartData();
-    if(newVal.length >= oldVal.length){
+    if (newVal.length >= oldVal.length) {
       this.isActive = true;
     }
-    if(newVal.length == 0){
+    if (newVal.length == 0) {
       this.isActive = false;
     }
   }
@@ -575,7 +585,6 @@ this.openSpaceSelector = false
       ];
     });
   }
-  
 }
 
 export default App;
@@ -591,11 +600,11 @@ export default App;
   height: 100%;
 
   @media (min-width: 970px) {
-  .hide {
-    display: none;
-    visibility: hidden;
+    .hide {
+      display: none;
+      visibility: hidden;
+    }
   }
-}
 
   $selectorHeight: 60px;
 
@@ -658,8 +667,8 @@ export default App;
 
       .inactive {
         height: 83vh !important;
+      }
     }
-  }
     .inactive {
       // display: none;
       position: absolute;
@@ -668,8 +677,6 @@ export default App;
       right: 0px;
     }
 
-  
-    
     .active3D {
       width: 99vw;
       height: 100%;

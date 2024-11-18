@@ -89,7 +89,7 @@ export const actions = {
 		return floors.value;
 	},
 
-	async [ActionTypes.GET_GROUP_CONTEXT]({ commit }: AugmentedActionContextAppData, { buildingId, patrimoineId, position_type, id, forceUpdate }: any): Promise<any[]> {
+	async [ActionTypes.GET_GROUP_CONTEXT]({ commit }: AugmentedActionContextAppData, { buildingId, patrimoineId, position_type, getAllCategoryEquipments, id, forceUpdate }: any): Promise<any[]> {
 
 		const spinalAPI = SpinalAPI.getInstance();
 		if (typeof ApiIteratorStore[ActionTypes.GET_GROUP_CONTEXT] === "undefined") {
@@ -98,7 +98,7 @@ export const actions = {
 		const floorObjStore = ApiIteratorStore[ActionTypes.GET_GROUP_CONTEXT]!;
 
 		if (typeof floorObjStore[id] === "undefined" || forceUpdate === true) {
-			floorObjStore[id] = spinalAPI.createIteratorCall( getGroupContext, patrimoineId, buildingId, position_type);
+			floorObjStore[id] = spinalAPI.createIteratorCall( getGroupContext, patrimoineId, buildingId, position_type, getAllCategoryEquipments);
 		}
 		const floors = await floorObjStore[id].next();
 
