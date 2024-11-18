@@ -25,19 +25,37 @@ with this file. If not, see
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
     <div class="selectors">
       <div class="DButton">
-        <sc-download-button fileName="insight_data" csv :data="getDataFormatted()"></sc-download-button>
+        <sc-download-button
+          fileName="insight_data"
+          csv
+          :data="getDataFormatted()"
+        ></sc-download-button>
       </div>
 
       <div class="temporality">
-        <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
-          :GetChildrenFct="onTemporalitySelectOpen" :maxDepth="0" v-model="temporalitySelected" label="TEMPORALITÉ" />
+        <space-selector
+          :edge="false"
+          ref="space-selector2"
+          :open.sync="openTemporalitySelector"
+          :GetChildrenFct="onTemporalitySelectOpen"
+          :maxDepth="0"
+          v-model="temporalitySelected"
+          label="TEMPORALITÉ"
+        />
       </div>
 
       <div class="space">
-        <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"
-          :GetChildrenFct="onSpaceSelectOpen" v-model="selectedZone" label="ESPACE"
-          :spaceSelectorItemButtons="spaceSelectorButtons" :viewButtonsType="config.viewButtons"
-          @onActionClick="onActionClick" />
+        <space-selector
+          ref="space-selector"
+          :open.sync="openSpaceSelector"
+          :maxDepth="2"
+          :GetChildrenFct="onSpaceSelectOpen"
+          v-model="selectedZone"
+          label="ESPACE"
+          :spaceSelectorItemButtons="spaceSelectorButtons"
+          :viewButtonsType="config.viewButtons"
+          @onActionClick="onActionClick"
+        />
       </div>
     </div>
 
@@ -619,13 +637,12 @@ export default App;
         top: 60px;
         height: 20px;
         right: 0px;
-        position: absolute
+        position: absolute;
       }
 
       .DButton {
-        transform: translate(0 , 0);
+        transform: translate(0, 0);
       }
-
     }
 
     .space {
@@ -677,8 +694,6 @@ export default App;
       height: 91%;
       right: 0px;
     }
-
-
 
     .active3D {
       width: 99vw;
@@ -754,7 +769,13 @@ body {
   border-radius: 5px;
 }
 
-.appContainer .dataContainer .calcul_content .calcul .select .v-text-field.v-text-field--solo .v-input__control {
+.appContainer
+  .dataContainer
+  .calcul_content
+  .calcul
+  .select
+  .v-text-field.v-text-field--solo
+  .v-input__control {
   min-height: unset !important;
 }
 </style>
