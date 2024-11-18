@@ -25,37 +25,19 @@ with this file. If not, see
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
     <div class="selectors">
       <div class="DButton">
-        <sc-download-button
-          fileName="insight_data"
-          csv
-          :data="getDataFormatted()"
-        ></sc-download-button>
+        <sc-download-button fileName="insight_data" csv :data="getDataFormatted()"></sc-download-button>
       </div>
 
       <div class="temporality">
-        <space-selector
-          :edge="false"
-          ref="space-selector2"
-          :open.sync="openTemporalitySelector"
-          :GetChildrenFct="onTemporalitySelectOpen"
-          :maxDepth="0"
-          v-model="temporalitySelected"
-          label="TEMPORALITÉ"
-        />
+        <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
+          :GetChildrenFct="onTemporalitySelectOpen" :maxDepth="0" v-model="temporalitySelected" label="TEMPORALITÉ" />
       </div>
 
       <div class="space">
-        <space-selector
-          ref="space-selector"
-          :open.sync="openSpaceSelector"
-          :maxDepth="2"
-          :GetChildrenFct="onSpaceSelectOpen"
-          v-model="selectedZone"
-          label="ESPACE"
-          :spaceSelectorItemButtons="spaceSelectorButtons"
-          :viewButtonsType="config.viewButtons"
-          @onActionClick="onActionClick"
-        />
+        <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"
+          :GetChildrenFct="onSpaceSelectOpen" v-model="selectedZone" label="ESPACE"
+          :spaceSelectorItemButtons="spaceSelectorButtons" :viewButtonsType="config.viewButtons"
+          @onActionClick="onActionClick" />
       </div>
     </div>
 
@@ -595,6 +577,7 @@ export default App;
   background-color: #14202c !important;
   border-radius: 10px !important;
 }
+
 .app {
   width: 100%;
   height: 100%;
@@ -618,15 +601,31 @@ export default App;
     width: 100%;
     border: 1px solid #f5f5f5;
     border-radius: 12px;
+
     .DButton {
       width: 60px;
       height: 60px;
+      transform: translate(-50px, 0px);
     }
 
     .temporality {
       position: relative;
       width: 200px;
       height: $selectorHeight;
+    }
+
+    @media (max-width: 500px) {
+      .temporality {
+        top: 60px;
+        height: 20px;
+        right: 0px;
+        position: absolute
+      }
+
+      .DButton {
+        transform: translate(0 , 0);
+      }
+
     }
 
     .space {
@@ -639,6 +638,7 @@ export default App;
   .dataBody {
     height: calc(100% - #{$selectorHeight + 30px});
     margin: 80px 8px 0 8px;
+
     .viewerContainer {
       width: calc(60% - 4px);
       height: 100%;
@@ -660,6 +660,7 @@ export default App;
       margin-right: 6px;
       height: 91%;
     }
+
     @media (max-width: 960px) {
       .active {
         height: 83vh;
@@ -676,6 +677,8 @@ export default App;
       height: 91%;
       right: 0px;
     }
+
+
 
     .active3D {
       width: 99vw;
@@ -726,6 +729,7 @@ body {
   position: relative;
   margin: 80px 8px 8px 8px;
 }
+
 .list-container {
   overflow-y: auto;
   height: calc(100% - 51px);
@@ -736,11 +740,13 @@ body {
   width: 8px;
   height: 8px;
 }
+
 .spinal-scrollbar::-webkit-scrollbar-thumb {
   -webkit-border-radius: 5px;
   border-radius: 5px;
   background: rgba(169, 169, 169, 0.9);
 }
+
 .spinal-scrollbar::-webkit-scrollbar-track {
   -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
   box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
@@ -748,13 +754,7 @@ body {
   border-radius: 5px;
 }
 
-.appContainer
-  .dataContainer
-  .calcul_content
-  .calcul
-  .select
-  .v-text-field.v-text-field--solo
-  .v-input__control {
+.appContainer .dataContainer .calcul_content .calcul .select .v-text-field.v-text-field--solo .v-input__control {
   min-height: unset !important;
 }
 </style>

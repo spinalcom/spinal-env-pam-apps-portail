@@ -436,6 +436,7 @@ export default SpaceSelector;
   width: 100%;
   right: 0;
   overflow: hidden;
+  min-width: 250px;
 }
 
 .space-selector-container.isopen {
