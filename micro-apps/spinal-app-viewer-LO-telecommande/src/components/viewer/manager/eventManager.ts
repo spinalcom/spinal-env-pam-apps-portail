@@ -25,7 +25,7 @@ import { VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_C
 import { ViewerUtils } from "../utils/viewerUtils";
 import ModelManager from "./modelManager";
 import { VIEWER_EVENTS } from "../events";
-
+import { ActionTypes } from "../../../interfaces/vuexStoreTypes";
 import { MutationTypes } from "../../../services/store/appDataStore/mutations";
 import { store } from "../../../services/store";
 // import { store } from "../../../../services/store";
@@ -62,13 +62,28 @@ export class EventManager {
 				viewer.unloadExtension("Autodesk.ViewCubeUi");
 				window.viewer = viewer
 
-				console.log(window.viewer, 'inséré dnas window vierwer');
-				
-				// viewer.navigation.setLock(true);
-				setInterval(()=>{
+				const roomTablette = localStorage.getItem('room_tablette');
+				const item = {
+					"dynamicId": roomTablette,
+					"staticId": "SpinalNode-4be0192e-562d-1f3c-2d9c-1d558ca6b5ff-186df7cd6ff",
+					"name": "Sol [415087]",
+					"type": "BIMObject",
+					// "version": 1,
+					// "externalId": "154cec60-8d56-4126-8ada-aac07f24c66e-0006556f",
+					// "dbid": 11181,
+					// "buildingId": "5932-6086-9e1a-18506478460",
+				}
+
+				setTimeout(() => {
+
+					store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
+
+					
+				}, 400);
+				setTimeout(() => {
 					viewer.setNavigationLock(true);
-				} , 1000)
-				
+				}, 1500);
+
 			});
 
 			emitterHandler.on(VIEWER_OBJ_ISOLATE, (data: any) => {
@@ -144,7 +159,7 @@ export class EventManager {
 			emitterHandler.on(VIEWER_REM_SPHERE, (data: any) => {
 
 				console.log('ICI SALUT ,,,', '///////////////////////////////////////////////////////////////////');
-				
+
 				const $store = store;
 
 				console.log($store);

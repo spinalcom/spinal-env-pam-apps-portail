@@ -32,7 +32,7 @@ import Vuetify from "vuetify";
 import { store } from "./services/store";
 import FloatingVue from "floating-vue";
 import "floating-vue/dist/style.css";
-
+import "@mdi/font/css/materialdesignicons.css";
 import "vuetify/dist/vuetify.min.css";
 
 Vue.use(FloatingVue);

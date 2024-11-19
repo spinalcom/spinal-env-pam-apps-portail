@@ -35,6 +35,7 @@ import "floating-vue/dist/style.css";
 import SpinalComponents from "spinal-components";
 import "spinal-components/dist/spinal-components.css";
 import "vuetify/dist/vuetify.min.css";
+import "@mdi/font/css/materialdesignicons.css";
 
 Vue.use(FloatingVue);
 Vue.use(Vuetify);

@@ -174,8 +174,6 @@ export const actions = {
 		}
 	},
 	async [ActionTypes.GET_BUILDING_STATIC_DETAILS]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
-		console.log(buildingId, referenceIds, 'RR');
-
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
 			const result = await getBuildingStaticDetails(buildingId, referenceIds);

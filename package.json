@@ -8,7 +8,8 @@
     "dev": "rm -rf dist .parcel-cache && parcel serve index.html micro-apps/*/index.html --dist-dir dist/",
     "devs": "rm -rf dist && parcel serve index.html micro-apps/*/index.html --dist-dir dist/",
     "dev2": "npm run watch && npx http-server -p 8080 --proxy http://localhost:8080\\? dist",
-    "build": "rm -rf dist .parcel-cache && parcel build index.html micro-apps/*/index.html --no-optimize --dist-dir dist/ --no-scope-hoist"
+    "build": "rm -rf dist .parcel-cache && parcel build index.html micro-apps/*/index.html --no-optimize --dist-dir dist/ --no-scope-hoist  && npm run copy",
+    "copy": "cp -r global-components/offline/viewer dist/micro-apps/viewer"
   },
   "resolutions": {
     "sass": "1.32.12"

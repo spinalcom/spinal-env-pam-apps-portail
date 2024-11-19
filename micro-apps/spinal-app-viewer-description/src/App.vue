@@ -27,14 +27,14 @@ with this file. If not, see
 
 
     <div class="selectors">
-      <div class="DButton">
+      <!-- <div class="DButton">
         <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()" />
-      </div>
+      </div> -->
 
-      <!-- <div class="temporality">
+      <div class="temporality">
         <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
           :GetChildrenFct="onTemporalitySelectOpen" :maxDepth="0" v-model="temporalitySelected" label="TEMPORALITÉ" />
-      </div> -->
+      </div>
 
       <div class="space">
         <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"
@@ -146,8 +146,6 @@ class App extends Vue {
     this.RemoveEventHandlers();
 
     EventBus.$on('colorRoom', (dynamicId) => {
-      console.log('aa');
-      
       const buildingId = localStorage.getItem("idBuilding");
       const itemsToColor = [{
         buildingId: buildingId,
@@ -188,8 +186,6 @@ class App extends Vue {
 
 
     if (window.innerWidth < 900) {
-      // console.log(window.innerWidth);
-
       this.isActive = true;
       this.isActive3D = false;
     }
@@ -203,16 +199,8 @@ class App extends Vue {
     }
 
     this.$nextTick(() => {
-
-
       this.query.app = this.config.idAppDescription
-      // console.warn('/////////////////////////////////////////////////////');
-      // console.log(window.parent.router.query);
       window.parent.router.query.app = this.query.app
-      // console.log(window.parent.router.query);
-
-      console.warn('/////////////////////////////////////////////////////');
-
       const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
       this.applyURLParam(currentQuery);
     });

@@ -101,7 +101,7 @@ with this file. If not, see
           <v-btn style="margin: 10px;" elevation="0" fab small @click="t_index--">
             <v-icon>mdi-chevron-left</v-icon>
           </v-btn>
-          <div style="white-space: nowrap;">la date {{ t_index }}</div>
+          <div style="white-space: nowrap;">{{ timeactuelle }}</div>
           <v-btn style="margin: 10px;" elevation="0" fab small @click="t_index++">
             <v-icon>mdi-chevron-right</v-icon>
           </v-btn>
@@ -244,7 +244,7 @@ with this file. If not, see
                   style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                   <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                     attr.value
-                    }}
+                  }}
                   </li>
                 </div>
               </div>
@@ -303,8 +303,6 @@ with this file. If not, see
       <!-- ONGLET INDICATEUR (controleEndpoint) indicateur -->
       <div style="display: flex">
         <div v-if="ActiveData && selection == 'Indicateur' && labelsChart" class="graphContainer">
-
-
 
           <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
             :step="labelsChart.length" :tooltipCallbacks="{
@@ -489,6 +487,7 @@ class dataSideApp extends Vue {
   labelsChart: any = null
   chartData: any = null
   t_index: number = 0;
+  timeactuelle: string = "date ?"
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
@@ -507,7 +506,9 @@ class dataSideApp extends Vue {
 
     return items;
   }
-
+  get temporality() {
+    return this.$store.state.appDataStore.temporalitySelected.name;
+  }
 
 
   resize() {
@@ -527,8 +528,6 @@ class dataSideApp extends Vue {
   hideelement(item) {
     this.$store.commit(MutationTypes.REMOVE_ITEM_TO_HIDE);
     const itemType = item.substring(item.indexOf(' ') + 1);
-    console.log(item, 'AZER');
-
     const numbers = this.inventoryDbids[itemType] || [];
     this.$store.commit(MutationTypes.SET_ITEM_TO_HIDE, numbers);
     const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query };
@@ -562,16 +561,14 @@ class dataSideApp extends Vue {
 
   async mounted() {
 
+    this.timeactuelle = this.getFormattedDateFromTemporalData();
+
     if (this.selectedZone.type == "building") {
       this.loadBuildingInfo()
     }
 
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
-
-      console.log(data);
-
-
       if (data)
         this.findDynamicIdByDbid(data[0].dbIds[0], data[0]);
 
@@ -736,6 +733,8 @@ class dataSideApp extends Vue {
   checkForReferenceObjectRoom(list) {
     return list.some(item => item.name === "hasReferenceObject.ROOM");
   }
+
+
 
 
   async findDynamicIdByDbid(dbidToFind, data) {
@@ -1061,12 +1060,9 @@ class dataSideApp extends Vue {
 
   async retriveData() {
     try {
-      console.log(this.$store.state.appDataStore.temporalitySelected.name);
       this.pageSate = PAGE_STATES.loading;
       const buildingId = localStorage.getItem("idBuilding");
       const patrimoineId = JSON.parse(localStorage.getItem("patrimoine")).id;
-      console.log(this.selectedZone, 'apres planté');
-
       const promises = [
         this.$store.dispatch(ActionTypes.GET_ROOMS, {
           buildingId,
@@ -1137,51 +1133,76 @@ class dataSideApp extends Vue {
   async removegraphInfoCp(dyn) {
     const datatable = this.dataTable
     this.chartData = this.chartDataObject(datatable)
-    console.warn(this.chartData, "----------le active chartsData'");
   }
 
-  async addgraphInfoCp(dyn) {
-    if (this.cpIdToDraw.includes(dyn)) {
-      const begintime = this.getBeginAndEndTime().begintime;
-      const endtime = this.getBeginAndEndTime().endtime;
-      
-      console.log(begintime, endtime, 'la temporatlité selectionné ?');
 
+  parseDateString(dateString) {
+    const [datePart, timePart] = dateString.split(' ');
+    const [day, month, year] = datePart.split('-');
+    return new Date(`${year}-${month}-${day}T${timePart}`);
+  }
 
-      const buildingId = localStorage.getItem("idBuilding");
-      const result = await this.$store.dispatch(ActionTypes.GET_TIMES_SERIES, {
-        buildingId,
-        referenceIds: dyn,
-        begin: begintime,
-        end: endtime,
-      });
-      //recuperer un seul resultat par minute , supprimer le plus petit , ajouter le plus grand à la minute supperieur 
-      console.warn(result , '///////////////////////////////////////////////////////////////////////');
+  async reloadNewChartData() {
+    console.log(this.activeChart, '5');
+    this.dataTable = [];
 
-      const datatableCopy = [...this.dataTable];
-
-      const actuelleTable = {
-        dynamicId: dyn,
-        data: result.map(item => ({
-          x: item.date,
-          y: item.value,
-        })),
-        unit: 'kwh',
-        name: 'le nom du graph',
-      };
-
-      datatableCopy.push(actuelleTable);
-      this.labelsChart = this.labels(begintime, endtime).map((label) => this.toDate(label));
-      this.dataTable = [...datatableCopy];
-      this.chartData = this.chartDataObject(datatableCopy);
-      console.log(this.chartData);
-
+    for (const id of this.activeChart) {
+      await this.addgraphInfoCp(id);
     }
   }
+
+
+  async addgraphInfoCp(dyn) {
+    if (!this.cpIdToDraw.includes(dyn)) return;
+
+    const { begintime, endtime } = this.getBeginAndEndTime();
+    const buildingId = localStorage.getItem("idBuilding");
+    const beginTimestamp = this.parseDateString(begintime).getTime();
+    const endTimestamp = this.parseDateString(endtime).getTime();
+
+    const result = await this.$store.dispatch(ActionTypes.GET_TIMES_SERIES, {
+      buildingId,
+      referenceIds: dyn,
+      begin: begintime,
+      end: endtime,
+    });
+
+    const timeStep = 60000; // Une minute en millisecondes
+    const seenMinutes = new Map();
+
+    result.forEach(({ date, value }) => {
+      const minuteTimestamp = Math.floor(new Date(date).getTime() / timeStep) * timeStep;
+      seenMinutes.set(minuteTimestamp, value);
+    });
+
+    const processedResult = Array.from({ length: Math.floor((endTimestamp - beginTimestamp) / timeStep) + 1 }, (_, i) => {
+      const date = beginTimestamp + i * timeStep;
+      return {
+        date,
+        value: seenMinutes.get(date) ?? NaN,
+      };
+    });
+
+
+    // Mettre à jour le tableau de données
+    const actuelleTable = {
+      dynamicId: dyn,
+      data: processedResult.map(({ date, value }) => ({ x: date, y: value })),
+      unit: "kwh",
+      name: "le nom du graph",
+    };
+
+    this.dataTable = [...this.dataTable, actuelleTable];
+    this.labelsChart = this.labels(begintime, endtime).map(this.toDate);
+    this.chartData = this.chartDataObject(this.dataTable);
+  }
+
+
+
   //fonction pour retourner la date string ( beging et end )
   getBeginAndEndTime() {
     const temporality = this.$store.state.appDataStore.temporalitySelected.name;
-    const t_index = this.t_index || 0; // Assurer une valeur par défaut de 0 si t_index n'est pas défini
+    const t_index = this.t_index || 0;
     let begintime, endtime;
 
     switch (temporality) {
@@ -1215,6 +1236,43 @@ class dataSideApp extends Vue {
     return { begintime, endtime };
   }
 
+  getFormattedDateFromTemporalData() {
+    // Assurer une valeur par défaut de 0 pour t_index si ce n'est pas défini
+    const temporality = this.$store.state.appDataStore.temporalitySelected.name;
+    const t_index = this.t_index || 0;
+    let formattedDate;
+
+    switch (temporality) {
+      case ITemporality.hour:
+        formattedDate = moment().add(t_index, 'hours').startOf('hour').format('DD-MM-YYYY HH:mm:ss');
+        break;
+      case ITemporality.day:
+        formattedDate = moment().add(t_index, 'days').startOf('day').format('DD-MM-YYYY');
+        break;
+      case ITemporality.week:
+        // Pour les semaines, afficher la semaine entière, ex: "15-11-2024 au 21-11-2024"
+        const weekStart = moment().add(t_index, 'weeks').startOf('week').format('DD-MM-YYYY');
+        const weekEnd = moment().add(t_index, 'weeks').endOf('week').format('DD-MM-YYYY');
+        formattedDate = `${weekStart} au ${weekEnd}`;
+        break;
+      case ITemporality.month:
+        // Afficher le mois et l'année, ex: "Novembre 2023"
+        formattedDate = moment().add(t_index, 'months').startOf('month').format('MMMM YYYY');
+        break;
+      case ITemporality.year:
+        // Afficher uniquement l'année, ex: "2024"
+        formattedDate = moment().add(t_index, 'years').format('YYYY');
+        break;
+      default:
+        // Si la temporalité est inconnue, retourner la date du jour par défaut
+        formattedDate = moment().add(t_index, 'days').startOf('day').format('DD-MM-YYYY');
+        break;
+    }
+
+    return formattedDate;
+  }
+
+
 
 
   toDate(date) {
@@ -1237,7 +1295,6 @@ class dataSideApp extends Vue {
             moment(begin, 'DD-MM-YYYY HH:mm:ss')
           )
         );
-        console.log(moment(end, 'DD-MM-YYYY HH:mm:ss'), duration);
         if (duration.asMonths() > 2) return moment(date).format('MMM');
         if (duration.asDays() > 1) return moment(date).format('D/M/YY');
         if (duration.asHours() > 1) return moment(date).format('HH[h]');
@@ -1257,7 +1314,6 @@ class dataSideApp extends Vue {
       const [year, time] = yearTime.split(' ');
       const [hours, minutes, seconds] = time.split(':');
 
-     
       return new Date(
         parseInt(year, 10),      // Année
         parseInt(month, 10) - 1, // Mois (0 = janvier, donc on soustrait 1)
@@ -1277,20 +1333,20 @@ class dataSideApp extends Vue {
     for (let date = beginDate; date <= endDate; date = new Date(date.getTime() + interval)) {
       dates.push(new Date(date)); // Ajoute une nouvelle date au tableau
     }
-    console.log(dates , 'les labels');
-    
     return dates;
   }
 
 
   chartDataObject(dataTable) {
-    const l1: any = []
-    dataTable.forEach((el, index) => {
-      l1.push({ data: [...el.data], label: 'graph 1' + index, color: 'blue', dynamicId: el.dynamicId, specialAxis: index });
-    });
-
-    return l1;
+    return dataTable.map((el, index) => ({
+      data: [...el.data],
+      label: `graph 1${index}`,
+      color: 'blue',
+      dynamicId: el.dynamicId,
+      specialAxis: index
+    }));
   }
+
 
 
   closeeyes(index) {
@@ -1370,8 +1426,6 @@ class dataSideApp extends Vue {
 
   @Watch("selectedZone")
   watchSelectedZone() {
-    console.log(this.selectedZone, 'aaaaaa faker');
-
     if (this.selectedZone.type === "building") {
       this.loadBuildingInfo()
       this.isBuildingSelected = true;
@@ -1404,6 +1458,14 @@ class dataSideApp extends Vue {
 
     this.cpIdToDraw = attributs
 
+  }
+
+  @Watch('temporality')
+  @Watch('t_index')
+  onTemporalDataChanged() {
+    this.timeactuelle = this.getFormattedDateFromTemporalData();
+    //ajouter le nouvelle fonction qui va chercher ledonnées 
+    this.reloadNewChartData();
   }
 
   @Watch("data")
@@ -1568,6 +1630,7 @@ a {
   overflow: hidden;
   justify-content: space-between;
   background-color: white;
+  border-radius: 5px;
 }
 
 .v-select__selection--comma {
