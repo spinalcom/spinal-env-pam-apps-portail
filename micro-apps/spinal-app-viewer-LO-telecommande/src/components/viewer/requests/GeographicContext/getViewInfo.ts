@@ -70,6 +70,7 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   let result = await spinalAPI.get<{ [key: string]: any[] }>(url);
 
   localStorage.setItem('room_tablette', result.data.info.room.dynamicId);
+  localStorage.setItem('room_tablette_dbid', result.data.info.room.dbId);
   localStorage.setItem('room_tablette_name', result.data.info.room.name);
   localStorage.setItem('floor_tablette_id', result.data.info.floor.dynamicId);
   localStorage.setItem('floor_tablette_name', result.data.info.floor.name);

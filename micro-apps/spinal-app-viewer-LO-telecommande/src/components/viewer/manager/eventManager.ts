@@ -63,26 +63,28 @@ export class EventManager {
 				window.viewer = viewer
 
 				const roomTablette = localStorage.getItem('room_tablette');
+				const room_tablette_dbid = localStorage.getItem('room_tablette_dbid');
 				const item = {
 					"dynamicId": roomTablette,
 					"staticId": "SpinalNode-4be0192e-562d-1f3c-2d9c-1d558ca6b5ff-186df7cd6ff",
 					"name": "Sol [415087]",
 					"type": "BIMObject",
-					// "version": 1,
-					// "externalId": "154cec60-8d56-4126-8ada-aac07f24c66e-0006556f",
-					// "dbid": 11181,
-					// "buildingId": "5932-6086-9e1a-18506478460",
+					"version": 1,
+					"externalId": "154cec60-8d56-4126-8ada-aac07f24c66e-0006556f",
+					"dbid": room_tablette_dbid,
+					"buildingId": "5932-6086-9e1a-18506478460",
 				}
 
-				setTimeout(() => {
+				store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
 
-					store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
+				// setTimeout(() => {
 
 					
-				}, 400);
-				setTimeout(() => {
-					viewer.setNavigationLock(true);
-				}, 1500);
+					
+				// }, 400);
+				// setTimeout(() => {
+				// 	viewer.setNavigationLock(true);
+				// }, 1500);
 
 			});
 
