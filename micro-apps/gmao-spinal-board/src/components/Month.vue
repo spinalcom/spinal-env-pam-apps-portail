@@ -1,7 +1,11 @@
 
 <template>
   <div class="calendar-plan" ref="calendar" @scroll="onScroll">
-    <div :style="[{ 'width': planWidth + 30 + 'px' }, { 'height': planHeight + 60 + 'px' }]" class="plan">
+    <div :style="[
+      { 'width': planWidth + 30 + 'px' },
+      { 'height': planHeight + 60 + 'px' },
+      { 'min-height': planHeight + 'px' },
+    ]" class="plan">
     <!--
     <div :style="{ 'width': '100%' }" class="plan">
     -->
@@ -212,10 +216,10 @@ export default {
   max-width: 100%;
 }
 .plan {
-  min-height: 100%;
   position: relative;
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
 }
 .month-strip {
   position: sticky;
