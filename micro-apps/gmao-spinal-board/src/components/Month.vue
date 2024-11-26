@@ -25,6 +25,7 @@
           <div
             v-for="day in month.days"
             :key="day + '/' + month.name + '/' + month.year"
+            :class="{ today: currentMarker === day + '/' + month.name + '/' + month.year }"
             class="day full-center">
             {{ day }}
             <div
@@ -54,6 +55,7 @@ export default {
     CalendarContent,
   },
   data: () => ({
+    currentMarker: null,
     planHeight: 0,
     PERIODINTERVAL: 3, // 3 months
     current: null,
@@ -77,6 +79,7 @@ export default {
   },
   mounted() {
     console.log('mounted');
+    this.currentMarker = moment().format('DD/MMMM/YYYY');
     this.planDimensions = {
       height: this.$refs.calendar.offsetHeight,
       width: this.$refs.calendar.offsetWidth
@@ -189,6 +192,7 @@ export default {
   left: 0;
   display: flex;
   align-items: center;
+  font-size: 12px;
   padding-left: 10px;
   background: linear-gradient(to left, white 98.5%, transparent);
 }
@@ -240,6 +244,7 @@ export default {
   position: relative;
   height: 30px;
   width: 30px;
+  font-size: 10px;
   z-index: 100;
 }
 .top-bar {
@@ -275,18 +280,22 @@ export default {
 }
 .dot {
   position: absolute;
-  top: 27px;
+  top: 25px;
   height: 7px;
   width: 7px;
   border-radius: 10px;
   background: #FF3A3A;
   z-index: 400;
 }
-          
+.today {
+  font-weight: bold;
+  color: #FF3A3A;
+}
+
 /*
 .calendar-plan::-webkit-scrollbar {
   width: 5px;
-  height: 5px;
+  height: 7px;
 }
 
 .calendar-plan::-webkit-scrollbar-thumb {
