@@ -33,9 +33,11 @@ export function routerInit(vue: any) {
 }
 
 const getLoginRedirect = () => {
-  let url = process.env.SPINAL_API_URL;
-  url = url?.endsWith('/') ? url.substring(0, url.length - 1) : url;
-  return url + '/login';
+  // let url = process.env.SPINAL_API_URL;
+  // url = url?.endsWith('/') ? url.substring(0, url.length - 1) : url;
+  // return url + '/login';
+  const url = location.hostname;
+  return url + "/login";
 }
 
 
@@ -74,7 +76,7 @@ const routes: Array<RouteConfig> = [
 ];
 
 const router = new VueRouter({
-  // mode: 'history',
+  mode: 'history',
   routes,
 });
 
@@ -83,12 +85,15 @@ router.beforeEach(async (to, from, next) => {
   const auth = await isAuthenticate();
   const isConnectionPage = ['Login', 'AdminLogin'].includes(to.name);
 
-  if (to.name === 'Login' && !auth) {
-    location.href = getLoginRedirect();
-    return;
-  }
   if (!auth && !isConnectionPage) return next({ name: 'Login' });
   if (isConnectionPage && auth) return next({ name: "Home" });
+
+  if (to.name === 'Login' && !auth) {
+    // location.href = getLoginRedirect();
+    location.href = location.origin + '/login';
+    return;
+  }
+
 
 
   return next();

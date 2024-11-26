@@ -9,7 +9,8 @@
 		"devs": "rm -rf dist && parcel serve index.html micro-apps/*/index.html --dist-dir dist/",
 		"dev2": "npm run watch && npx http-server -p 8080 --proxy http://localhost:8080\\? dist",
 		"copy": "cp -r global-components/offline/viewer dist/micro-apps/viewer",
-		"build": "rm -rf dist .parcel-cache && parcel build index.html micro-apps/*/index.html --no-optimize --dist-dir dist/ --no-scope-hoist && npm run copy"
+		"build": "rm -rf dist .parcel-cache && parcel build index.html micro-apps/*/index.html --no-optimize --dist-dir dist/ --no-scope-hoist && npm run copy",
+		"express": "node server.js"
 	},
 	"resolutions": {
 		"sass": "1.32.12"
@@ -17,8 +18,14 @@
 	"dependencies": {
 		"@mdi/font": "^7.0.96",
 		"@mdi/js": "^7.4.47",
+		"body-parser": "^1.20.3",
 		"chart.js": "^4.2.1",
+		"connect-history-api-fallback": "^2.0.0",
+		"cookie-parser": "^1.4.7",
+		"cors": "^2.8.5",
 		"dateformat": "^5.0.3",
+		"dotenv": "^16.4.5",
+		"express": "^4.21.1",
 		"fs": "0.0.1-security",
 		"http-server": "^14.1.1",
 		"javascript-color-gradient": "^2.4.4",

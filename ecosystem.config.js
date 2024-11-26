@@ -1,5 +1,20 @@
 require('dotenv').config();
 const port = process.env.PORT;
+
+module.exports = {
+  apps: [
+    {
+      name: `portail-applicatif-pam-${port}`,
+      script: 'server.js',
+      cwd: '.',
+    },
+  ],
+};
+
+
+/*
+require('dotenv').config();
+const port = process.env.PORT;
 const protocol = process.env.PROTOCOL || 'http';
 const ssl_cert = process.env.SSL_CERT || '';
 const ssl_key = process.env.SSL_KEY || '';
@@ -21,5 +36,4 @@ module.exports = {
     },
   ],
 };
-
-
+*/

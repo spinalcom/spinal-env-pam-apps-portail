@@ -22,7 +22,7 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { clearLocalStorage, saveToLocalStorage, deleteAllCookies } from "../utils";
+import { clearLocalStorage, saveToLocalStorage, deleteAllCookies, setCookie } from "../utils";
 import { loginRequest } from "../requests/login";
 
 
@@ -57,6 +57,7 @@ export const logingStore = {
 
         storeCookie({ state }: any, vueCookieInstance: any) {
             // vueCookieInstance.set('token', state.data.token, { expires: state.data.expieres });
+            setCookie('token', state.data.token, state.data.expieredToken);
             saveToLocalStorage(state.data);
         },
 

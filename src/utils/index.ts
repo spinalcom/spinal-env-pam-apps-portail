@@ -54,9 +54,11 @@ export function getCookieValue(name) {
     return (value != null) ? unescape(value[1]) : null;
 }
 
-export function setCookie(cname, cvalue, exdays = 1) {
-    const d = new Date();
-    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+export function setCookie(cname, cvalue, expiresDate) {
+    let d = new Date();
+    if (!expiresDate) expiresDate = d.getTime() + (24 * 60 * 60 * 1000);
+
+    d.setTime(expiresDate);
     let expires = "expires=" + d.toUTCString();
     document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 }
