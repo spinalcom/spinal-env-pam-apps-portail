@@ -82,7 +82,6 @@ export default {
     this.prependPeriod();
   },
   mounted() {
-    console.log('mounted');
     this.currentMarker = moment().format('DD/MMMM/YYYY');
     this.planDimensions = {
       height: this.$refs.calendar.offsetHeight,

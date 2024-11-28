@@ -223,7 +223,6 @@ export default {
     },
   },
   mounted() {
-    console.log(this.taskList.length);
     this.$emit('planHeight', (this.taskList.length) * 30.8);
   },
   methods: {
