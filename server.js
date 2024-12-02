@@ -28,7 +28,7 @@ app.use("/login", async (req, res) => {
     let spinal_api_url = process.env.SPINAL_API_URL;
 
     if (token) {
-        const { error } = await checkTokenValidity(token);
+        const { error } = await checkTokenValidity(spinal_api_url, token);
         if (!error) return res.redirect("/home");
     }
 
