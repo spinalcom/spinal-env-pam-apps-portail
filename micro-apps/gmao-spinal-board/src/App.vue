@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts">
-import { getBuildingName } from "./services/index.js";
+import { getBuildingName } from "./services/getBuilding";
 import {
   ISpaceSelectorItem,
   SpaceSelector,
@@ -35,7 +35,6 @@ import type {
   TGeoItem,
 } from './components/SpaceSelector/interfaces/IBuildingItem';
 import MicroApp from './components/Main.vue';
-// import MicroApp from './components/Main.vue';
 import { getBuilding, getFloors, getRooms } from './services/getBuilding.js';
 interface IItemData {
   platformId: string;
@@ -52,6 +51,7 @@ interface IItemDatatmp {
     MicroApp
   },
 })
+
 class App extends Vue {
   building !: any;
   time = { name: "SEMAINE", value: 'week' }
@@ -115,28 +115,16 @@ class App extends Vue {
 
   async mounted() {
     this.building = await getBuilding();
-    // console.log(this.building);
 
     const patrimoine = localStorage.getItem("patrimoine");
     let patrimoineObject = JSON.parse(patrimoine!);
     const idBuilding = localStorage.getItem("idBuilding");
     const buildingName = await getBuildingName(idBuilding)
-    // for (var i = 0; i < patrimoineObject.buildings.length; i++) {
-    //   // Vérifier si l'ID du bâtiment correspond à celui stocké dans le Local Storage
-    //   if (patrimoineObject.buildings[i].id === idBuilding) {
-    //     // Récupérer le nom du bâtiment correspondant
-    //     var buildingName = patrimoineObject.buildings[i].name;
-    //     console.log("Nom du bâtiment : " + buildingName);
-    //     break; // Sortir de la boucle car on a trouvé le bâtiment correspondant
-    //   }
-    // }
-
 
     this.defaultSelected.name = buildingName;
-    // let res = await getBuilding();
-    // this.defaultSelected.dynamicId = res.dynamicId;
     this.selectedZone = this.defaultSelected;
   }
+
   onTimeSelectOpen(item?: any): { name: string; staticId: string; dynamicId: number; level: number; isOpen: boolean; loading: boolean; patrimoineId: string; parents: never[]; isLastInGrp: boolean; drawLink: never[]; haveChildren: boolean; }[] {
     if (item) {
       if (item.name == 'Mois') {
@@ -224,11 +212,12 @@ class App extends Vue {
     });
     return timeOptions;
   }
+
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<any> {
     var source = [
       {
         title: 'Energie globale',
-        type: 'controlEndpoint', // [controlEndpoint, endpoint]
+        type: 'controlEndpoint',
         name: 'Energie globale',
         profile: 'KPI',
         capacity: 500,
@@ -242,7 +231,6 @@ class App extends Vue {
       case undefined:
         this.building = await getBuilding();
         const building = this.building;
-        // console.log('lebuilding',building);
 
         return [{
           name: building.name,
@@ -263,7 +251,6 @@ class App extends Vue {
         }];
       case 'building':
         const floors = await getFloors();
-        // console.log('ici');
 
         for (let floor of floors) {
           floorList.push({
@@ -284,16 +271,13 @@ class App extends Vue {
             source: floor.sources
           })
         }
-        // console.log(floorList);
 
         return floorList;
       default:
         return [];
     }
   }
-  // test(){
-  //   console.log(this.defaultSelected);
-  // }
+
   onGoBack() {
     const parent = this.$refs['spaceSelector'].getParentOfSelected();
     if (parent) this.selectedZone = parent;
@@ -313,6 +297,7 @@ class App extends Vue {
       id: res.id.size > 0 ? Array.from(res.id) : res.id.values().next().value,
     };
   }
+
   async onSelect(item: TGeoItem | TGeoItem[]) {
     if (!item) return;
     const it = this.getItemData(item);
@@ -320,8 +305,6 @@ class App extends Vue {
   }
 
 }
-
-
 
 export default App;
 </script>
@@ -373,3 +356,4 @@ html {
   font-family: 'charlevoix' !important;
 }
 </style>
+

@@ -6,20 +6,24 @@
 </template>
 
 <script>
-  import MonthView from './Month';
-  export default {
-    name: 'MainComponent',
-    components: {
-      MonthView,
-    },
-    computed: { },
-    data: () => ({
-      temporality: null,
-    }),
-    created() {
-      this.temporality = 'month';
-    }
+import tickets from '../services/tickets';
+import MonthView from './Month';
+export default {
+  name: 'MainComponent',
+  components: {
+    MonthView,
+  },
+  computed: { },
+  data: () => ({
+    temporality: null,
+  }),
+  created() {
+    this.temporality = 'month';
+  },
+  async mounted () {
+    const res = await tickets();
   }
+}
 </script>
 
 <style>

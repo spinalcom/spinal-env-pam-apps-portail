@@ -1,14 +1,7 @@
 
 # Workflow List
-
-### **Request**
-
-**Endpoint**: `/workflow/list`
-
-This endpoint retrieves a list of available workflows.
-
-### **Response**
-
+**Request** `/workflow/list`
+**Response**
 ```json
 [
   {
@@ -25,20 +18,10 @@ This endpoint retrieves a list of available workflows.
   }
 ]
 ```
-This response contains an array of workflows with details like `dynamicId`, `staticId`, `name`, and `type`.
 
 # Workflow Tree
-
-### **Request**
-
-**Endpoint**:  `/workflow/${workflow.dynamicId}/tree`
-
-This endpoint retrieves the structure or "tree" for a specific workflow using its  `dynamicId`.
-
-### **Response**
-
-#### **Model**
-
+**Request** `/workflow/${workflow.dynamicId}/tree`
+**Response**
 ```json
 {
   "dynamicId": 74211712,
@@ -52,24 +35,95 @@ This endpoint retrieves the structure or "tree" for a specific workflow using it
       "name": "BATIMENT/SECOND ŒUVRE/CLOS COU",
       "type": "SpinalServiceTicketProcess",
       "color": "#ff00d0",
-      "children": [...]
+      "children": [{
+          "dynamicId": 74206624,
+          "staticId": "c8ae-a599-43cc-187236e92ed",
+          "name": "Attente de lect.avant Execution",
+          "type": "SpinalSystemServiceTicketTypeStep",
+          "color": "#0804ef",
+          "children": [
+            {
+              "dynamicId": 74203872,
+              "staticId": "477b-b382-ecfb-1874d67e9e0",
+              "name": "démo",
+              "type": "SpinalSystemServiceTicketTypeTicket",
+              "color": "#0066ff",
+              "children": []
+            },
+            {
+              "dynamicId": 180524128,
+              "staticId": "7b34-875a-3244-1874dda3af6",
+              "name": "Demande d'intervention",
+              "type": "SpinalSystemServiceTicketTypeTicket",
+              "color": "#cc00ff",
+              "children": []
+            },
+            {
+              "dynamicId": 180579072,
+              "staticId": "a7cc-73fe-8670-1874dda4a9e",
+              "name": "Demande d'intervention",
+              "type": "SpinalSystemServiceTicketTypeTicket",
+              "color": "#ff0098",
+              "children": []
+            }
+          ]
+        }
+      ]
     }
   ]
 }
 ```
-#### **Explanation**
 
--   `dynamicId`: Unique identifier for the workflow.
--   `staticId`: Static identifier of the workflow.
--   `name`: Name of the workflow.
--   `type`: Type of the workflow (e.g., service ticket).
--   `children`: An array of child processes or tickets within the workflow, which may also have their own  `children`.
+**Logic**
+Loop over the children of the object of type `SpinalServiceTicketProcess` and exclude closed, refused and archived types. Then take only the children of the other types.
 
-### **Logic**
+# Reading details
+**Request** `/ticket/${t.dynamicId}/read_details`
+**Response** 
+```json
+{
+  "dynamicId": 180579072,
+  "staticId": "a7cc-73fe-8670-1874dda4a9e",
+  "name": "Demande d'intervention",
+  "type": "SpinalSystemServiceTicketTypeTicket",
+  "priority": 2,
+  "creationDate": 1680638364318,
+  "description": "Demande",
+  "declarer_id": "APPS",
+  "elementSelected": {
+    "dynamicId": 24061184,
+    "staticId": "SpinalNode-6cd64ff8-a126-1aa3-80b7-f9d4fc5690bf-186df7cd2a5",
+    "name": "RDC",
+    "type": "geographicFloor"
+  },
+  "userName": "SPINAL Bos",
+  "gmaoId": 185,
+  "gmaoDateCreation": 1680638340000,
+  "process": {
+    "dynamicId": 74209120,
+    "staticId": "5bca-f47b-165a-187236e92ea",
+    "name": "BATIMENT/SECOND ŒUVRE/CLOS COU",
+    "type": "SpinalServiceTicketProcess"
+  },
+  "step": {
+    "dynamicId": 74206624,
+    "staticId": "c8ae-a599-43cc-187236e92ed",
+    "name": "Attente de lect.avant Execution",
+    "type": "SpinalSystemServiceTicketTypeStep",
+    "color": "#0804ef",
+    "order": 0
+  },
+  "workflowId": 74211712,
+  "workflowName": "Demande d'intervention",
+  "annotation_list": [],
+  "file_list": [],
+  "log_list": [
+    {
+      "date": 1680638364320,
+      "event": "created",
+      "ticketStaticId": "a7cc-73fe-8670-1874dda4a9e"
+    }
+  ]
+}
+```
 
-1.  **Loop through each workflow process**:
-    -   For each process in the workflow tree, check if it is not closed (`cloturee`), rejected (`refusee`), or archived (`archivee`).
-2.  **Get Children (Tickets)**:
-    -   If the process is still active (not closed, rejected, or archived), retrieve its children (which may represent individual tickets or further processes).
-
-This allows us to dynamically render only the active workflows and their associated tickets, ensuring that we do not show closed or archived workflows.

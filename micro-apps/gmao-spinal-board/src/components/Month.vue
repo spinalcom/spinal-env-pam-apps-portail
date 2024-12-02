@@ -156,7 +156,6 @@ export default {
       }
     },
     onScroll: throttle(function (event) {
-      console.log('scroll');
       const parent = event.target;
       const child = parent.querySelector('.plan-background');
       

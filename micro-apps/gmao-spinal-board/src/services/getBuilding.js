@@ -1,5 +1,10 @@
 import { HTTP } from './http-constants';
 
+export async function getBuildingName(id_batiment) {
+  let building = await HTTP.get(`/building/${id_batiment}/building/read`);
+  return building.data.name
+}
+
 export async function getBuilding() {
   const buildingId = localStorage.getItem('idBuilding');
   return await HTTP.get(`/building/${buildingId}/building/read`).then((resp) => {
