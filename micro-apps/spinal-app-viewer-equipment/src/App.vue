@@ -24,23 +24,19 @@ with this file. If not, see
 <template>
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
     <div class="selectors">
-      <div class="mr-2">
+      <!-- <div class="mr-2">
         <div @click.prevent="showDlOption = !showDlOption"
           style="width: 59px;height: 59px;position: absolute;z-index: 1;">
         </div>
         <ScDownloadButton ref="ThedownloadButton" :fileName="'insight_data'" :xls="true" :data="getDataFormatted()" />
-      </div>
-      <div @click="showDlOption = !showDlOption" DButton
+      </div> -->
+      <!-- <div @click="showDlOption = !showDlOption" DButton
         style="z-index: 9999;display: flex;justify-content: center;align-items: center;position: fixed;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.156);top: 0;left:0"
         v-if="showDlOption">
 
         <div class="Dlmenu" style="" @click.stop>
           <span class="titleDl">Type de données</span>
           <div class="">
-            <!-- <input type="checkbox" id="checkbox" v-model="dataFromTab" />
-            <label for="checkbox"></label> -->
-
-            <!-- <v-checkbox v-model="dataFromTab" label="Séléctionner les données avec tout les attributs"></v-checkbox> -->
             <v-radio-group class="ml-4" v-model="dataFromTab">
               <v-radio label="Télécharger les données du tableau, sans appliquer les filtres d'attributs."
                 value="all"></v-radio>
@@ -59,12 +55,12 @@ with this file. If not, see
           <button class="validateBtn" @click="downloadData">Téléchager</button>
         </div>
 
-      </div>
+      </div> -->
 
-      <!-- <div class="temporality">
+      <div class="temporality">
         <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
           :GetChildrenFct="onTemporalitySelectOpen" :maxDepth="0" v-model="temporalitySelected" label="TEMPORALITÉ" />
-      </div> -->
+      </div>
 
       <div class="space">
         <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"

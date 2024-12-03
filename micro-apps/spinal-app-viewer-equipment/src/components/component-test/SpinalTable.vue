@@ -981,6 +981,7 @@ export default {
         this.activeChart.push(dyn);
       }
     },
+    
     async removegraphInfoCp(dyn) {
       const datatable = this.dataTable
       this.chartData = this.chartDataObject(datatable)
