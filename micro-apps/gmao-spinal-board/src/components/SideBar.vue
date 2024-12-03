@@ -1,10 +1,10 @@
 
 <template>
   <div class="side-bar" ref="sideBar">
-    <div v-for="(task, index) in taskList" :key="task.name + index" class="task">
-      <Status :status="task.status"/>
+    <div v-for="(ticket, index) in ticketList" :key="ticket.name + index" class="ticket">
+      <Status :status="ticket.status"/>
       <span class="ellipsis">
-        {{ task.name }}
+        {{ ticket.name }}
       </span>
     </div>
   </div>
@@ -14,7 +14,7 @@
 import Status from './Status.vue';
 export default {
   name: 'SideBar',
-  props: ['taskList'],
+  props: ['ticketList'],
   components: {
     Status
   },
@@ -52,7 +52,7 @@ export default {
   border-right: 1px solid #E2E2E2;
 }
 
-.task {
+.ticket {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;

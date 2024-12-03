@@ -1,14 +1,28 @@
 
 <template>
   <div class="calendar-plan" ref="calendar" @scroll="onScroll">
+    <div class="action-bar">
+      <div class="action-group">
+        <v-icon class="action-icon icon">mdi-chevron-left</v-icon>
+        <v-icon class="action-icon icon">mdi-chevron-right</v-icon>
+      </div>
+      <div class="action-button" @click="bringToday()">
+        Aujourd'hui
+      </div>
+      <div class="action-group">
+        <v-icon class="action-icon icon">mdi-sort</v-icon>
+        Trier
+      </div>
+      <div class="action-group">
+        <v-icon class="action-icon icon">mdi-filter</v-icon>
+        Filter
+      </div>
+    </div>
     <div :style="[
       { 'width': planWidth + 30 + 'px' },
       { 'height': planHeight + 60 + 'px' },
       { 'min-height': planHeight + 'px' },
     ]" class="plan">
-    <!--
-    <div :style="{ 'width': '100%' }" class="plan">
-    -->
 
       <div class="month-strip top-bar">
         <div
@@ -16,7 +30,7 @@
           :key="month.name + '/' + month.year"
           class="month-placement"
           :style="[{ 'width': month.days * 30 + 'px' }, { 'z-index': index }]">
-          {{ month.name.charAt(0).toUpperCase() + month.name.slice(1) }}
+          {{ month.name.charAt(0).toUpperCase() + month.name.slice(1) }} {{ month.year }}
         </div>
       </div>
 
@@ -42,7 +56,13 @@
       </div>
 
         <div class="plan-background" :style="{ 'height': planHeight  + 'px' }">
-        <CalendarContent :separator="separator" :start="start" :end="end" @resizedSideBar="resizedSideBar" @planHeight="planH" />
+        <CalendarContent
+          :ticketList="ticketList"
+          :separator="separator"
+          :start="start"
+          :end="end"
+          @resizedSideBar="resizedSideBar"
+          @planHeight="planH" />
       </div>
     </div>
   </div>
@@ -55,6 +75,7 @@ import moment from 'moment';
 moment.locale('fr');
 export default {
   name: 'MonthView',
+  props: ['ticketList'],
   components: {
     CalendarContent,
   },
@@ -87,8 +108,7 @@ export default {
       height: this.$refs.calendar.offsetHeight,
       width: this.$refs.calendar.offsetWidth
     };
-    this.$refs.calendar.scrollLeft = this.current.diff(this.start, 'days') * 30 - 300 - ( (this.$refs.calendar.offsetWidth - 300) / 2 );
-    // this.$refs.calendar.scrollLeft = 3360 - 300;
+    this.bringToday();
   },
   computed: {
     markerOffset() {
@@ -183,7 +203,11 @@ export default {
     },
     planH(event) {
       this.planHeight =  event;
-    }
+    },
+    bringToday() {
+      console.log('Bring the day');
+      this.$refs.calendar.scrollLeft = this.current.diff(this.start, 'days') * 30 - 300 - ( (this.$refs.calendar.offsetWidth - 300) / 2 );
+    },
   }
 }
 </script>
@@ -204,6 +228,7 @@ export default {
   justify-content: center;
 }
 .calendar-plan {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: calc(100%);
@@ -293,26 +318,50 @@ export default {
   font-weight: bold;
   color: #FF3A3A;
 }
-
-/*
 .calendar-plan::-webkit-scrollbar {
-  width: 5px;
+  width: 7px;
   height: 7px;
 }
-
 .calendar-plan::-webkit-scrollbar-thumb {
   background-color: #888;
-  border-radius: 10px;
+  border-radius: 1px;
 }
-
 .calendar-plan::-webkit-scrollbar-thumb:hover {
   background-color: #555;
 }
-
 .calendar-plan::-webkit-scrollbar-track {
   background-color: #e0e0e0;
-  border-radius: 10px;
+  border-radius: 1px;
 }
-*/
+
+.action-bar {
+  display: flex;
+  position: fixed;
+  flex-direction: row-reverse;
+  align-items: center; 
+  gap: 20px;
+  padding: 0 10px;
+  right: 17px;
+  height: 30px;
+  background: green;
+  z-index: 111;
+  background: linear-gradient(to left, #fff 96%, transparent);
+  font-size: 12px;
+}
+.action-group {
+  display: flex;
+  align-items: center; 
+  justify-content: center;
+  gap: 5px;
+}
+.action-button {
+  display: flex;
+  align-items: center; 
+  justify-content: center;
+  height: 30px !important;
+}
+.action-icon {
+  font-size: 16px !important;
+}
 </style>
 

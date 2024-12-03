@@ -1,7 +1,7 @@
 
 <template>
-    <div class="main">
-      <MonthView v-if="temporality === 'month'" />
+    <div class="main" v-if="loaded">
+        <MonthView v-if="temporality === 'month'" :ticketList="ticketList" />
     </div>
 </template>
 
@@ -15,13 +15,16 @@ export default {
   },
   computed: { },
   data: () => ({
+    loaded: false,
+    ticketList: null,
     temporality: null,
   }),
   created() {
     this.temporality = 'month';
   },
   async mounted () {
-    const res = await tickets();
+    this.ticketList = await tickets();
+    this.loaded = true;
   }
 }
 </script>

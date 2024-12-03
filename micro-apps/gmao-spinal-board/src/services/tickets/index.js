@@ -11,6 +11,7 @@ export default async function () {
   const processList = await process.getProcesses(bid, workflowList);
   const stepList = await step.getSteps(bid, processList);
   const ticketList = await ticket.getTickets(bid, stepList);
-  console.log(ticketList);
+
+  return ticketList;
 }
 
