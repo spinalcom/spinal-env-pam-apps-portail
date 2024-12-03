@@ -60,6 +60,8 @@ export interface IViewInfoTmpRes {
 
 export async function fetchAdditionalData(config: IConfig, buildingId: string): Promise<Map<string, any>> {
 
+  console.log('LES POSITION ,,,,,,,,,,');
+  
   let tabletteId = window.parent.router.query.spaceSelectedId
   
   if (tabletteId == undefined)
@@ -127,7 +129,8 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
 const buildingDefaultScenes = {};
 
 export async function getViewInfo(buildingId: string, options: IViewInfoBody): Promise<IViewInfoRes[]> {
-
+  console.log('aaa');
+  
   const Add_value = await fetchAdditionalData(config, buildingId);
 
   const modifiedOptions = {

@@ -35,6 +35,7 @@ export interface IConfig {
 	tabletteId2: Number;
 	profileName: string;
 	profileNameRoom: string;
+	idBuilding: string;
 	categorieAttributRoom: string;
 	batiment: { profileNameControlePts: string, profileNameAttribut: string }
 	floor: { profileNameControlePts: string, profileNameAttribut: string }

@@ -32,10 +32,11 @@ with this file. If not, see
     </div>
 
     <div class="navbar" style="">
-      <div><span  class="mdi mdi-map-marker"></span>{{ spaceName }}</div>
+      <div><span class="mdi mdi-map-marker"></span>{{ spaceName }}</div>
 
       <div style="color: #DDECF4;">
-        <div style="font-size: 65px;height: 70px;font-weight: bold ;display: flex;justify-content:flex-end">{{ currentTime }}</div>
+        <div style="font-size: 65px;height: 70px;font-weight: bold ;display: flex;justify-content:flex-end">{{
+          currentTime }}</div>
         <div style="font-size: 25px;">{{ currentDate }}</div>
       </div>
 
@@ -165,6 +166,7 @@ class App extends Vue {
       referenceIds = window.parent.router.query.spaceSelectedId
 
 
+   
     const buildingId = localStorage.getItem("idBuilding");
     const promises = [
       this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
@@ -176,7 +178,7 @@ class App extends Vue {
     this.setTabletteSprite(result, buildingId)
   }
   async mounted() {
-
+    localStorage.setItem('idBuilding', 'ecfc-b241-a8a7-1933fdaa2d7')
     this.updateTime();
     this.updateDate();
     setInterval(this.updateTime, 60000);
@@ -470,7 +472,7 @@ class App extends Vue {
   applyURLParam(query) {
 
     const buildingId = localStorage.getItem("idBuilding");
-    const dynamicId = localStorage.getItem("floor_tablette_id");
+    const dynamicId = '969065616' || localStorage.getItem("floor_tablette_id");
     const name = localStorage.getItem("floor_tablette_name");
     const item = {
       buildingId: buildingId,

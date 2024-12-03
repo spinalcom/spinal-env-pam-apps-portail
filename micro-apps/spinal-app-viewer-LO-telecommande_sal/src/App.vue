@@ -190,11 +190,25 @@ class App extends Vue {
     ];
     const resultid2 = await Promise.all(promises2);
     console.warn(resultid2, 'aaaa');
-    
+
     this.setTabletteSprite(resultid2, buildingId)
 
   }
   async mounted() {
+    localStorage.setItem('idBuilding', this.config.idBuilding)    
+    localStorage.setItem('floor_tablette_id', '960438368')
+    const newIds = window.parent.router.query.spaceSelectedId
+
+
+    const parentPromise = [
+      this.$store.dispatch(ActionTypes.GET_POSTION_EQUIPEMENT, {
+        buildingId: this.config.idBuilding,
+        referenceIds: newIds,
+      }),
+    ];
+    const resultParent = await Promise.all(parentPromise);
+    const id_etage = resultParent[0].info.floor.dynamicId
+    localStorage.setItem('floor_tablette_id', id_etage)
 
     this.updateTime();
     this.updateDate();
@@ -366,8 +380,8 @@ class App extends Vue {
   }
 
   setTabletteSprite(result, buildingId) {
-    console.log(result[0] , 'aa');
-    
+    console.log(result[0], 'aa');
+
 
     let X;
     let Y;
@@ -398,7 +412,7 @@ class App extends Vue {
       config: this.config
     }
     // this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-    console.log(item , 'aaa');
+    console.log(item, 'aaa');
     this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
       items: item,
       buildingId: buildingId,

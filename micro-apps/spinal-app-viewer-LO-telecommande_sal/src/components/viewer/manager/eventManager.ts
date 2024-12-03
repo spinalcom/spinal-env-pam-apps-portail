@@ -56,22 +56,29 @@ export class EventManager {
 			const viewerUtils = ViewerUtils.getInstance();
 			
 			emitterHandler.on(VIEWER_START_LOAD_MODEL, async (data: any) => {
+				console.warn('//////////////////////////////////////////////// la fin du open VIEWER_START_LOAD_MODEL');
 				const models = await viewerUtils.load3DModels(viewer, data);
 				emitterHandler.emit(<any>VIEWER_EVENTS.LOADED, { id: data.item.dynamicId, models });
 				store.commit(MutationTypes.SET_LOADED, localStorage.getItem('room_tablette'));
-				setTimeout(() => {
-					setViewCubeAndFit(viewer);
-				}, 1500);
+				
+				
+				setViewCubeAndFit(viewer);
 			});
 
 			async function setViewCubeAndFit(viewer) {
 				try {
-					const viewCubeUi = await viewer.loadExtension("Autodesk.ViewCubeUi");
 					viewer.navigation.setRequestTransition(false);
-					viewCubeUi.setViewCube("[top],[right]");
-					await new Promise(resolve => setTimeout(resolve, 1000));
-					viewCubeUi.setViewCube('top');
-					await new Promise(resolve => setTimeout(resolve, 1000));
+					setTimeout(async () => {
+						const a = await viewer.loadExtension('Autodesk.ViewCubeUi')
+						a.displayViewCube(true, true)
+						a.setViewCube('right');
+					}, 3000);
+					setTimeout(async () => {
+						const a = await viewer.loadExtension('Autodesk.ViewCubeUi')
+						a.displayViewCube(true, true)
+						a.setViewCube('top');
+					}, 4000);
+					await new Promise(resolve => setTimeout(resolve, 5000));
 					viewer.unloadExtension("Autodesk.ViewCubeUi");
 					viewer.navigation.fitBounds(true, viewer.impl.getFitBounds());
 					viewer.setNavigationLock(true);
