@@ -200,6 +200,14 @@ class App extends Vue {
 
     });
 
+    const item = {
+      buildingId: localStorage.getItem("idBuilding"),
+      dynamicId: 0,
+      parents : [],
+      type: "building",
+    }
+    this.onActionClick({ button: { onclickEvent: ActionTypes.OPEN_VIEWER }, item: item });
+
     try {
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();
@@ -354,8 +362,8 @@ class App extends Vue {
 
 
   onActionClick({ button, item }) {
-    console.warn("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", item);
     // button.onclickEvent = "OPEN_VIEWER"
+    
 
     const data = {
       buildingId: item.buildingId, //important viewer
@@ -367,10 +375,10 @@ class App extends Vue {
       // roomId: item.roomId,//can
       type: item.type,//can
     };
+    console.log('onActionClick data', data);
 
     switch (button.onclickEvent) {
       case ActionTypes.OPEN_VIEWER:
-        console.log('laaaaaaaaaaaalalaalallalalalalalalalala');
         this.$store.dispatch(button.onclickEvent, {
           onlyThisModel: true,
           config: this.config,
@@ -378,7 +386,6 @@ class App extends Vue {
         });
         break;
       case ActionTypes.ISOLATE_ITEMS:
-        console.log('totototototototototototoototototot');
         this.$store.dispatch(button.onclickEvent, {
           onlyThisModel: true,
           config: this.config,
@@ -386,7 +393,6 @@ class App extends Vue {
         });
         break;
       case "OPEN_VIEWER_PLUS":
-        console.log('uvuvuvuvvuuvvuvuvuvuvuuvvuvuvuvuvuvuvuuvv');
         this.$store.dispatch(ActionTypes.OPEN_VIEWER, {
           onlyThisModel: false,
           config: this.config,

@@ -104,6 +104,7 @@ export default {
 
     selectDataView(item) {
       this.selected_id = item.dynamicId
+      // console.log('item', item);
       this.$emit('item-selected', item);
     },
     handleTableClick() {
@@ -165,9 +166,10 @@ export default {
           }
         }
       } else {
+
         return item[attrLabel];
       }
-      return '';
+      return item[attrLabel] || '';
     },
     handleMouseEnter(event) {
       const children = event.target.querySelectorAll('.colortd');

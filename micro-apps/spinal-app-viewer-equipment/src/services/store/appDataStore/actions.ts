@@ -26,7 +26,7 @@ import { getBuildings, getBuildingById } from "../../spinalAPI/GeographicContext
 import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
-import { getEquipments, getFloors, getRooms, getBuilding } from "../../spinalAPI/GeographicContext/geographicContext";
+import { getEquipments, getFloors, getRooms, getBuilding , getAttributListMultiple, getDocumentation ,postDownloadFile ,getTicket, getNotes, getNodeEndpointList, getNodeControlEndpointList ,getTimeSeriesAsync} from "../../spinalAPI/GeographicContext/geographicContext";
 
 import { getGroupContext, getGroupContextCategoryList, getGroupContextGroupList, getGroupContextread } from "../../spinalAPI/ContextGroup/groupContext";
 
@@ -58,6 +58,106 @@ export const actions = {
             throw error;
         }
     },
+
+	async [ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }): Promise<any> {
+		try {
+			const result = await getAttributListMultiple(buildingId, referenceIds);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
+	async [ActionTypes.GET_DOCUMENTATION]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getDocumentation(buildingId, referenceIds);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
+	async [ActionTypes.POST_DOWNLOAD_FILE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: any }): Promise<any> {
+		try {
+			const result = await postDownloadFile(buildingId, referenceIds);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
+	async [ActionTypes.GET_TICKET]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+		// console.log(buildingId , referenceIds , 'RR');
+
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getTicket(buildingId, referenceIds);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
+	async [ActionTypes.GET_NOTES]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+		// console.log(buildingId , referenceIds , 'RR');
+
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getNotes(buildingId, referenceIds);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
+
+	async [ActionTypes.GET_NODE_ENDPOINT_LIST]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+		// console.log(buildingId , referenceIds , 'RR');
+
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getNodeEndpointList(buildingId, referenceIds);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
+	async [ActionTypes.GET_NODE_CONTROL_ENDPOINT_LIST]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+		// console.log(buildingId , referenceIds , 'RR');
+
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getNodeControlEndpointList(buildingId, referenceIds);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
+	async [ActionTypes.GET_TIMES_SERIES]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds, begin, end }: { buildingId: string; referenceIds: number; begin: number; end: number }): Promise<any> {
+		// console.log(buildingId , referenceIds , 'RR');
+		const endpointId = referenceIds.toString();
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getTimeSeriesAsync(buildingId, endpointId, begin, end);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
+
+
 
 	async [ActionTypes.GET_GROUP_CONTEXT_GROUP_LIST]({ commit }: AugmentedActionContextAppData, { buildingId, patrimoineId, contextDynId, categoryDynId, id, forceUpdate }: any): Promise<IZoneItem[]> {
 		const spinalAPI = SpinalAPI.getInstance();
@@ -322,8 +422,8 @@ export const actions = {
 				  equipements: true,
 				  dbIdsToAdd: [],
 				}
-				console.log('building', building);
-				console.log('payload', playload);
+				// console.log('body to load -----> : ', body);
+			    // console.log('playload item to load -----> : ', playload.item);
 				await ViewerManager.getInstance().loadInViewer(
 				  playload.item,
 				  playload.onlyThisModel,
@@ -331,7 +431,7 @@ export const actions = {
 				);
 				return;
 		
-			  }
+			}
 			const viewerInfo = playload.config.viewerInfo;
 			const body = {
 				dynamicId: [playload.item.dynamicId],
@@ -347,8 +447,12 @@ export const actions = {
 			} else if (viewerInfo.equipments === "groupItem") {
 				body.equipements = false;
 				const map = await dispatch(ActionTypes.GET_GROUPS_ITEMS, { config: playload.config, buildingId: playload.item.buildingId });
+				console.log('Get group items : ', map);
 				body.dbIdsToAdd = classifyItemByBimFileId(map, playload.item.dynamicId, playload.item.type);
 			}
+			// console.log('body to load -----> : ', body);
+			// console.log('playload item to load -----> : ', playload.item);
+			//playload.item.dynamicId = -555;
 			await ViewerManager.getInstance().loadInViewer(playload.item, playload.onlyThisModel, body);
 			if (playload.onlyThisModel) state.viewerStartedList = {};
 			commit(MutationTypes.ADD_VIEWER_LOADED, { id: playload.item.dynamicId });

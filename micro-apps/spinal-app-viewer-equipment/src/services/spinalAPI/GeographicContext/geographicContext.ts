@@ -29,6 +29,7 @@ import type {
   IEquipmentItem,
   IRefItem,
 } from '../../../../../../global-components/SpaceSelector/interfaces/IBuildingItem';
+import { AxiosRequestConfig } from 'axios';
 
 export async function getBuilding(platformId: string) {
   const spinalAPI = SpinalAPI.getInstance();
@@ -62,6 +63,19 @@ export async function getNodeRead(buildingId: string, roomDynId: number): Promis
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${roomDynId}/read`);
   let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+export async function getNodeReadMultiple(buildingId: string, dynamicIds: number [], includeChildrenRelations = true, includeParentRelations = true): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/read_multiple`);
+  let config: AxiosRequestConfig = {
+    params: {
+      includeChildrenRelations,
+      includeParentRelations
+    }
+  };
+  let result = await spinalAPI.post<IZoneItem[]>(url,dynamicIds,config);
   return result.data;
 }
 
@@ -126,6 +140,27 @@ export async function getTicket(buildingId: string, referenceIds: number): Promi
   return result.data;
 }
 
+export async function getNotes(buildingId: string, referenceIds: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${referenceIds}/note_list`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+export async function getNodeEndpointList(buildingId: string, referenceIds: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${referenceIds}/endpoint_list`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+export async function getNodeControlEndpointList(buildingId: string, referenceIds: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${referenceIds}/control_endpoint_list`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
 export async function getParent(buildingId: string, referenceIds: number): Promise<IZoneItem[]> {
   
   const spinalAPI = SpinalAPI.getInstance();
@@ -147,7 +182,12 @@ export async function getAttributListMultiple(buildingId: string, referenceIds: 
   }
 }
 
-
+export async function getTimeSeriesAsync(buildingId: string, endpointId: string, begin: number, end: number) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/endpoint/${endpointId}/timeSeries/read/${begin}/${end}`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
 
 export async function getMultipleInventory(buildingId: string, referenceIds: number[]): Promise<any> {
   const spinalAPI = SpinalAPI.getInstance();

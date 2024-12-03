@@ -97,16 +97,11 @@ export class ViewerManager {
 			if (!body) body = { dynamicId: [dynamicId], floorRef: true, roomRef: true, equipements: true };
 
 			const res = await this.getViewerInfoMerged(item, body);
-			// console.log('------>item :', item);
-			// console.log('------>body :', body);
-			// console.log('------>viewerInfoMerged :', res);
 			emitter.once(<any>VIEWER_EVENTS.LOADED, (data) => {
-				//console.log('LOADED data about to be added', data);
 				this._addViewLoaded(data.id, data.models);
 			});
 
 			const viewerInfo = await getViewInfoFormatted(buildingId, res, item);
-			//console.log('viewerInfo data about to be loaded', viewerInfo);
 			emitter.emit(VIEWER_START_LOAD_MODEL, viewerInfo);
 		});
 	}
@@ -114,7 +109,6 @@ export class ViewerManager {
 	public async getViewerInfoMerged(argItem: IPlayload | IPlayload[], body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }): Promise<IViewInfoItemRes[]> {
 		
 		const datas = await this.getViewerInfo(argItem, undefined, body);
-		// console.log('------> datas inside getViewerInfoMerged', datas);
 		const res = [];
 
 		for (const _item of datas) {
@@ -133,7 +127,7 @@ export class ViewerManager {
 			this._viewerStores["GET_VIEWER_INFO"] = {};
 		}
 		const items = Array.isArray(argItem) ? argItem : [argItem];
-		const buildingId = argBuildingId || items[0].buildingId;
+		const buildingId = argBuildingId || items[0]?.buildingId;
 		const ids = items.map((el) => el.dynamicId);
 		const res: any[] = [];
 		const nodeTofetech: number[] = [];
@@ -153,7 +147,7 @@ export class ViewerManager {
 			const datas = await getViewInfo(buildingId, body);
 
 			for (const _item of datas) {
-				this._viewerStores["GET_VIEWER_INFO"][_item.dynamicId] = generator(_item);
+				//this._viewerStores["GET_VIEWER_INFO"][_item.dynamicId] = generator(_item);
 				res.push(_item);
 			}
 		}

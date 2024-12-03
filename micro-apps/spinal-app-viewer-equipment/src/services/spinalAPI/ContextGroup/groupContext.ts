@@ -30,6 +30,7 @@ import { config } from '../../../config';
 import { store } from '../../store/index';
 import { INodeItemTree } from "../../interfaces/INodeItem";
 import { MutationTypes } from '../../store/appDataStore/mutations';
+import { getNodeReadMultiple } from '../GeographicContext/geographicContext'
 
 import type {
     IEquipmentItem,
@@ -39,11 +40,9 @@ import type {
 
 } from '../../../../../../global-components/SpaceSelector/interfaces/IBuildingItem';
 
-import { error, log, warn } from 'console';
-import { logTypes } from "micro-apps/spinal-env-pam-websocket-state/src/store/constants";
-
 
 export async function getGroupContext(patrimoineId: string, buildingId: string, position_type: any, getAllCategoryEquipments = true): Promise<any | null> { 
+    console.log('getGroupContext', position_type);
     const spinalAPI = SpinalAPI.getInstance();
     const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/groupContext/list`);
     let result = await spinalAPI.get<IZoneItem[]>(url);
@@ -72,7 +71,7 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
         if (matchedCategory) {
 
             let grpList = await getGroupContextGroupList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId);
-            console.log('grpList', grpList);
+            // console.log('grpList', grpList);
             store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy.data, "cat": tree, "grp": grpList });
 
             let allLists = [];
@@ -84,6 +83,9 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
                         type = matchedGrpList.type;
                         if (matchedGrpList.type === "BIMObjectGroup") {
                             list = await getequipementList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, matchedGrpList.dynamicId);
+                            if(store.state.appDataStore.user_selected.grp.length > 1){
+                                list = list.map((obj) => {return {...obj,color:matchedGrpList.color, group:matchedGrpList.name}});
+                            }
                         }
                         if (list) {
                             allLists.push(...list);
@@ -98,7 +100,7 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
                     type = selectedGroupName.type;
                     if (selectedGroupName.type === "BIMObjectGroup") {
                         list = await getequipementList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, selectedGroupName.dynamicId);
-                        list = list.map((obj) => {return {...obj,color:selectedGroupName.color}})
+                        list = list.map((obj) => {return {...obj,color:selectedGroupName.color, group:selectedGroupName.name}});
                     }
                     if (list) {
                         allLists.push(...list);
@@ -106,96 +108,61 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
                 }
             }
 
-            if (position_type.type === 'building') {
-
-                return allLists;
-            } else if (position_type.type === 'geographicFloor') {
-                const roomIds = allLists.map(room => room.dynamicId.toString());
-                let position;
-                if (type === "geographicRoomGroup") {
-                    position = await getRoomPositions(buildingId, roomIds);
-                } else {
-                    position = await getEquipementPositions(buildingId, roomIds);
-                }
-                const List_floor = get_element_floor(position);
-
-
-                const roomsOnFloor = getRoomsByFloor(position_type.dynamicId, allLists, List_floor);
-
-
-                // const attribut = await getAttributeListMultiple(buildingId, roomIds);
-
-                const chunkedRoomIds = lodash.chunk(roomIds, 500);
-                const promises = chunkedRoomIds.map(ids => getAttributeListMultiple(buildingId, ids));
-                const results = await Promise.allSettled(promises);
-
-                const attribut = results.reduce((acc, result) => {
-                    if (result.status === "fulfilled") {
-                        acc.push(...result.value);
-                    }
-                    return acc;
-                }, []);
-
-                const nomenclature = createUnifiedNomenclature(attribut);
-                let alldataBimObject = {
-                    data: enrichBIMObjects(roomsOnFloor, attribut),
-                    nomenclature: nomenclature
-                };
-
-                return alldataBimObject;
-            } else if (position_type.type === "geographicRoom") {
-
-                // console.log('ça rentre dans la 222222222222222222223*');
-
-                const roomIds = allLists.map(room => room.dynamicId.toString());
-                let position;
-                if (type === "geographicRoomGroup") {
-                    position = await getRoomPositions(buildingId, roomIds);
-                } else {
-                    position = await getEquipementPositions(buildingId, roomIds);
-                }
-                const List_floor = get_element_floor(position);
-                // console.log(List_floor);
-
-
-                const roomsOnFloor = getElByFloor(position_type.dynamicId, allLists, List_floor);
-                const toto = [{
-                    roomDynamicId: position_type.dynamicId
-                }]
-
-                // console.warn(List_floor, 'dzdzdzdz///////////////////////////////////');
-                // console.warn(roomsOnFloor, 'dzdzdzdz///////////////////////////////////');
-                // console.warn(position_type, 'dzdzdzdz//////////////////////////////////');
-                // const attribut = await getAttributeListMultiple(buildingId, roomIds);
-
-                const chunkedRoomIds = lodash.chunk(roomIds, 500);
-                const promises = chunkedRoomIds.map(ids => getAttributeListMultiple(buildingId, ids));
-                const results = await Promise.allSettled(promises);
-
-                const attribut = results.reduce((acc, result) => {
-                    if (result.status === "fulfilled") {
-                        acc.push(...result.value);
-                    }
-                    return acc;
-                }, []);
-
-                const nomenclature = createUnifiedNomenclature(attribut);
-                let alldataBimObject = {
-                    data: enrichBIMObjects(roomsOnFloor, attribut),
-                    nomenclature: nomenclature
-                };
-
-                return alldataBimObject;
-
-            }
-            else {
-
-                // console.warn('RESTE', position_type);
-                return allLists;
-            }
+            const result = await processPositionType(position_type, buildingId, allLists);
+            return result;
         }
     }
 
+}
+
+async function processPositionType(position_type, buildingId, allLists) {
+    // position_type is from space selector ( building, geographicFloor, geographicRoom)
+    const roomIds = allLists.map(room => room.dynamicId.toString());
+    const position = await getEquipementPositions(buildingId, roomIds);
+    //const nodeReads = await getNodeReadMultiple(buildingId, roomIds,true,false);
+    //console.log('------------------nodeReads', nodeReads);
+    
+    
+
+    let roomsOnFloor;
+    if (position_type.type === 'building') {
+        roomsOnFloor = allLists.map(obj => {
+            const pos = position.find(pos => pos.dynamicId === obj.dynamicId);
+            return { ...obj, floor: pos?.info?.floor?.name, room: pos?.info?.room?.name };
+        });
+    } else if (position_type.type === 'geographicFloor') {
+        const List_floor = get_element_floor(position);
+        roomsOnFloor = getRoomsByFloor(position_type.dynamicId, allLists, List_floor).map(obj => {
+            const pos = position.find(pos => pos.dynamicId === obj.dynamicId);
+            return { ...obj, floor: pos?.info?.floor?.name, room: pos?.info?.room?.name };
+        });
+    } else if (position_type.type === 'geographicRoom') {
+        const List_floor = get_element_floor(position);
+        roomsOnFloor = getElByFloor(position_type.dynamicId, allLists, List_floor).map(obj => {
+            const pos = position.find(pos => pos.dynamicId === obj.dynamicId);
+            return { ...obj, floor: pos?.info?.floor?.name, room: pos?.info?.room?.name };
+        });
+    } else {
+        return allLists; // Fallback for unhandled types
+    }
+
+    const chunkedRoomIds = lodash.chunk(roomIds, 500);
+    const promises = chunkedRoomIds.map(ids => getAttributeListMultiple(buildingId, ids));
+    const results = await Promise.allSettled(promises);
+
+    const attribut = results.reduce((acc, result) => {
+        if (result.status === 'fulfilled') {
+            acc.push(...result.value);
+        }
+        return acc;
+    }, []);
+
+    const nomenclature = createUnifiedNomenclature(attribut);
+
+    return {
+        data: enrichBIMObjects(roomsOnFloor, attribut),
+        nomenclature: nomenclature,
+    };
 }
 
 function enrichBIMObjects(bimObjects: any[], dataObjects: any[]): any[] {

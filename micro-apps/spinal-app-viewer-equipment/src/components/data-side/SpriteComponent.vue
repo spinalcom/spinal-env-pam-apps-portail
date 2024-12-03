@@ -1,7 +1,7 @@
 <template>
   <div style="cursor: pointer;" @click="onClick" ref="container" class="sprite_container">
 
-    <div class="sprite_color" :style="{ ...dynamicStyle }"></div>
+    <div class="equipment_sprite_color" :style="{ ...dynamicStyle }"></div>
     <div v-if="data.attr"
       style="border-radius: 10px;top: 2px;left: 5px;text-overflow: ellipsis;max-width: 140px;white-space: nowrap;overflow: hidden;position: absolute;border-radius: 10px !important;min-width: 20px;height: 12px;background-color: rgb(255, 255, 255);color: black;padding-bottom: 4px;padding-left: 15px;font-size: 12px;padding-right: 5px;z-index: -1;"
       :title="findValueByLabel()">
@@ -13,7 +13,6 @@
       </template>
     </div>
     <div class="card-menu" v-if="isClicked">
-      <!-- <ul class="cards"> -->
       <p style="" href="" class="card">
       <div @click="showAttr = !showAttr" v-if="showAttr"
         style="background-color: white;position: absolute;right:0px;top: 50%;transform: translate(80%,-50%);width: 28px;display: flex;justify-content: center;align-items: center;border-radius: 30px;font-size: 18px;">
@@ -30,15 +29,7 @@
       <div v-else @click="showAttr = !showAttr"
         style="color: rgb(129, 14, 14);width: 105px;position: absolute;left: 59%; bottom: 10px;border:1px solid rgb(187, 27, 27) ; padding-left : 5px ; border-radius : 4px ; cursor : pointer">
         Masquer les attributs</div>
-      <!-- <div @click="showAttr = !showAttr" class="card__overlay">
-            
-          </div> -->
       </p>
-      <!-- </ul> -->
-      <!-- <div @click="showAttr = !showAttr" v-if="showAttr"
-        style="font-weight: bold;border: 1px solid rgb(255, 255, 255);font-size: 16px;justify-content: center;align-items: center;display: flex;z-index: 99;width: 30px;height: 30px;border-radius: 30px;background-color: rgb(246, 246, 246);position: relative;top: 53%;left: 100%;transform: translate(-50%,-50%);">
-        ></div> -->
-
       <div class="dropleft" v-if="showAttr"
         style="color: black;width: 300px;background-color: rgb(255, 255, 255);left: 340px;position: absolute;border-radius: 10px;padding-left: 7px;padding-right: 7px;padding-bottom: 7px;transform: translate(0, -100%) !important;">
         <div v-for="category in data.categoryAttributes" :key="category.dynamicId" class="category">
@@ -87,13 +78,12 @@ export default {
     dynamicStyle: {
       border: "3px solid #F9F9F9",
       boxShadow: "none",
-      background: "red"
+      background: "#13a9e0"
     },
     isClicked: false,
   }),
   mounted() {
-    console.log(this.data);
-    this.dynamicStyle.background = this.data.color;
+    this.dynamicStyle.background = this.data.color || '#13a9e0';
     document.addEventListener("click", (evt) => {
       const flyoutEl = this.$refs.container;
       let targetEl = evt.target;
@@ -110,29 +100,14 @@ export default {
 
     setTimeout(() => {
       const button = this.$refs.container;
-      // const navigation = this.$refs.navigationButton;
       if (button) {
         button.addEventListener('click', this.onClick);
       }
-      // if (navigation) {
-      //   navigation.addEventListener('click', this.onClickNavigate);
-      // }
     }, 1);
-
-    // document.addEventListener('click', this.handleOutsideClick);
 
   },
 
-  // beforeDestroy() {
-  //   document.removeEventListener('click', this.handleOutsideClick);
-  // },
   methods: {
-    // handleOutsideClick(event) {
-    //   const container = this.$refs.container;
-    //   if (container && !container.contains(event.target) && event.target.nodeName === 'CANVAS') {
-    //     this.isClicked = false;
-    //   }
-    // },
     isUrl(value) {
       return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
     },
@@ -182,7 +157,7 @@ export default {
       }
     },
     _isSelected() {
-      this.data.color = 'cyan'
+      //this.data.color = 'cyan'
       this.isClicked = true;
       const enfant = this.$refs.container;
       if (enfant && enfant.parentElement) {
@@ -190,13 +165,14 @@ export default {
       }
 
       this.dynamicStyle = {
+        background: this.data.color || '#13a9e0',
         border: "3px solid #00A2FF",
         boxShadow: "0px 0px 10px 2px #00A2FF",
       };
     },
     _isNotSelected() {
       this.showAttr = false;
-      this.data.color = 'blue'
+      //this.data.color = 'blue'
       this.isClicked = false;
       const enfant = this.$refs.container;
       if (enfant && enfant.parentElement) {
@@ -206,6 +182,7 @@ export default {
       this.dynamicStyle = {
         border: "3px solid #F9F9F9",
         boxShadow: "none",
+        background: this.data.color || '#13a9e0',
       };
     },
   },
@@ -354,8 +331,7 @@ export default {
   height: 200px;
 }
 
-.sprite_color {
-  background-color: #13A9E0;
+.equipment_sprite_color {
   width: 13px;
   height: 13px;
   border-radius: 100%;

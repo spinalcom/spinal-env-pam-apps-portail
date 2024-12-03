@@ -76,7 +76,12 @@ with this file. If not, see
         @update:selectedAttribute="handleAttributeChange" :headers="[]" :id="0" :label="'test'" :reference="''"
         :unit="''" :contexts="data" :temporality="''" :ctx_list="$store.state.appDataStore.user_selection_list.ctx"
         :cat_list="$store.state.appDataStore.user_selection_list.cat"
-        :grp_list="$store.state.appDataStore.user_selection_list.grp" @itemSelected="handleItemSelected" />
+        :grp_list="$store.state.appDataStore.user_selection_list.grp" 
+        :ActiveData="ActiveData" :DActive="DActive"
+        @itemSelected="handleItemSelected"
+        @buttonClicked="fullData"
+        
+        />
 
     </div>
 
@@ -133,6 +138,10 @@ class dataSideApp extends Vue {
       window.dispatchEvent(new Event('resize'));
     }, 1);
   }
+  
+  fullData() {
+    this.$emit('buttonClicked');
+  }
 
   async mounted() {
     localStorage.setItem("viewer_loaded", 'initialize');
@@ -166,13 +175,10 @@ class dataSideApp extends Vue {
       }
     }
 
-
-
     await this.retriveData();
   }
 
   async updateData() {
-    // console.log('upload ??');
 
     await this.retriveData();
   }
@@ -195,7 +201,6 @@ class dataSideApp extends Vue {
         this.$store.dispatch(actionType, dispatchObject),
       ];
       const result = await Promise.all(promises);
-      console.log('retriveData:',result);
       this.$store.commit(MutationTypes.SET_DATA, result);
       this.pageSate = PAGE_STATES.loaded;
     } catch (err) {
@@ -209,7 +214,6 @@ class dataSideApp extends Vue {
 
   async putAllFiltredData(allFilteredData) {
     this.allFilteredData = allFilteredData
-    // console.log('TEST ,,');
 
     setTimeout(() => {
       this.watchData(allFilteredData, 'AllFiltredData');
@@ -297,7 +301,6 @@ class dataSideApp extends Vue {
 
   @Watch('selected_attr')
   onSelectedAttrChange(newVal, oldVal) {
-    // console.log('selected attr ???');
     if (this.allFilteredData) {
       this.watchData(this.allFilteredData, 'AllFiltredData');
     } else
@@ -309,10 +312,10 @@ class dataSideApp extends Vue {
     if (this.selectedZone.type === "building") {
       this.isBuildingSelected = true;
       this.$store.commit(MutationTypes.SET_DATA, []);
-      return;
     }
-
-    this.isBuildingSelected = false;
+    else {
+      this.isBuildingSelected = false;
+    }
     const shouldGetAllEquipments = this.$store.state.appDataStore.user_selected.grp.length == 0;
     this.retriveData(shouldGetAllEquipments);
   }
@@ -325,17 +328,15 @@ class dataSideApp extends Vue {
 
   // @Watch('data')
   // onDataChange(newVal, oldVal) {
-  // console.log('watch data de log');
   // }
 
 
 
   async watchData(newVal, changedProperty) {
-    // console.log('toto?' , newVal);
 
     if (this.config.sprites)
       this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-    if (this.isBuildingSelected) return;
+    //if (this.isBuildingSelected) return; // If building is selected don't add sprites
 
     let itemsToColor, originalArray;
 
@@ -359,8 +360,6 @@ class dataSideApp extends Vue {
       }
       return { ...item, position: position || null, displayValue: "-", toto: position, attr: this.selected_attr };
     });
-
-    console.log('-------- newArray',newArray);
     if (this.config.sprites) {
       this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
         items: newArray,
