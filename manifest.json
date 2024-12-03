@@ -1,0 +1,16 @@
+{
+    "name": "PAM Micro-Apps",
+    "short_name": "PAM",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#4CAF50",
+    "icons": [
+      {
+        "src": "assets/img/favicon.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      }
+    ]
+  }
+  

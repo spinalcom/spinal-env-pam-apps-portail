@@ -32,7 +32,7 @@ import Vuetify from "vuetify";
 import { store } from "./services/store";
 import FloatingVue from "floating-vue";
 import "floating-vue/dist/style.css";
-
+import "@mdi/font/css/materialdesignicons.css";
 
 import SpinalComponents from "spinal-components";
 import "spinal-components/dist/spinal-components.css";

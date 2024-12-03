@@ -25,7 +25,7 @@
 import { ActionContext } from "vuex";
 import { MutationsAppData } from "../services/store/appDataStore/mutations";
 import type { StateAppData } from "../services/store/appDataStore/state";
-import { INodeItem } from "../interfaces/INodeItem";
+import { INodeItem } from "./INodeItem";
 
 export type AugmentedActionContextAppData = {
 	commit<K extends keyof MutationsAppData>(key: K, payload: Parameters<MutationsAppData[K]>[1]): ReturnType<MutationsAppData[K]>;
