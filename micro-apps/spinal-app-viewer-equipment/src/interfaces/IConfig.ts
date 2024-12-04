@@ -34,7 +34,7 @@ export interface IConfig {
 
 export const enum ITemporality {
 	currentValue = "Valeur courante",
-	day = "journée",
+	day = "Journée",
 	week = "Semaine",
 	month = "Mois",
 	year = "Année",

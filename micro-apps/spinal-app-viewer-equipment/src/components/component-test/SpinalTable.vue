@@ -18,12 +18,49 @@
       :selected_item="selected_data_item_name"
     ></SpinalbreadCrumb>
 
-    <v-select
-      style="width: 70%; display: flex; margin-top: 10px; position: relative"
-      v-model="vSelectedTab"
-      :items="vSelectTabs"
-      label="Select"
-    ></v-select>
+    
+    <!-- Vselect + t_index selector -->
+    <div>
+      <div class="title">
+        <div class="button adaptative" style="">
+          <v-select
+            v-model="vSelectedTab"
+            :items="vSelectTabs"
+            label="Select"
+          ></v-select>
+        </div>
+        <div
+          v-if="ActiveData && vSelectedTab == 'Indicateur' && labelsChart"
+          style="
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            margin-left: 15px;
+            margin-right: 15px;
+          "
+        >
+          <v-btn
+            style="margin: 10px"
+            elevation="0"
+            fab
+            small
+            @click="t_index--"
+          >
+            <v-icon>mdi-chevron-left</v-icon>
+          </v-btn>
+          <div style="white-space: nowrap">{{ timeactuelle }}</div>
+          <v-btn
+            style="margin: 10px"
+            elevation="0"
+            fab
+            small
+            @click="t_index++"
+          >
+            <v-icon>mdi-chevron-right</v-icon>
+          </v-btn>
+        </div>
+      </div>
+    </div>
 
     <!-- LE TREEVIEW -->
     <!-- <div title="Sélection de la catégory d'attribut / attribut" style="width: 70%; display: flex; margin-top: 10px; position: relative;">
@@ -64,8 +101,7 @@
     <!-- LE DATA TABLE -->
     <!-- items = filtred items / headers = headers / contexts = global items / selection = items du select / -->
 
-    <div
-      v-if="vSelectedTab === 'Equipements'"
+    <div v-if="vSelectedTab === 'Equipements'"
       style="padding: 2px; margin-top: 25px"
       class="scrollable-table-container"
     >
@@ -294,20 +330,15 @@
         v-if="ActiveData && vSelectedTab == 'Indicateur' && labelsChart"
         class="graphContainer"
       >
-        <LineCardComponent
-          :title="'Données indicateur(s)'"
-          :labels="labelsChart"
-          :datasets="chartData"
-          :step="labelsChart.length"
-          :tooltipCallbacks="{
-            title: (context) => {},
-            label: (tooltipItem) =>
-              `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
-                2
-              )} `,
-            footer: (data) => {},
-          }"
-        ></LineCardComponent>
+      <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
+            :step="labelsChart.length" :tooltipCallbacks="{
+              title: (context) => { },
+              label: (tooltipItem) =>
+                `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
+                  2
+                )} `,
+              footer: (data) => { },
+      }"></LineCardComponent>
       </div>
       <div style="width: 100%" v-if="vSelectedTab == 'Indicateur'">
         <div
@@ -364,7 +395,7 @@
                 <v-icon
                   @click="
                     () => {
-                      fullData()
+                      fullData();
                       addOrRemove(item.dynamicId);
                       resize();
                     }
@@ -399,10 +430,10 @@ import { MutationTypes } from '../../services/store/appDataStore/mutations';
 import SpinalComparaison from './SpinalComparaison.vue';
 import SpinalbreadCrumb from './SpinalbreadCrumb.vue';
 import DataTable from './SpinalDataTable';
-import { ActionTypes } from "../../interfaces/vuexStoreTypes";
-import LineCardComponent from "./LineCardComponent.vue";
-import { IConfig, ITemporality } from "../../interfaces/IConfig";
-import moment from "moment";
+import { ActionTypes } from '../../interfaces/vuexStoreTypes';
+import LineCardComponent from './LineCardComponent.vue';
+import { IConfig, ITemporality } from '../../interfaces/IConfig';
+import moment from 'moment';
 
 export default {
   components: {
@@ -423,7 +454,7 @@ export default {
     'cat_list',
     'grp_list',
     'ActiveData',
-    'DActive'
+    'DActive',
   ],
   data: () => ({
     selections: {},
@@ -443,26 +474,34 @@ export default {
     currentfilter: null,
     order: false,
     vSelectedItemId: null,
-    vSelectTabs: ['Equipements', 'Attributs','Documentation','Notes','Tickets','Indicateur','Points de mesures'],
+    vSelectTabs: [
+      'Equipements',
+      'Attributs',
+      'Documentation',
+      'Notes',
+      'Tickets',
+      'Indicateur',
+      'Points de mesures',
+    ],
     vSelectedTab: 'Equipements',
     vSelectItemAttributes: [],
     vSelectItemDocumentation: [],
     vSelectItemNotes: [],
     vSelectItemTickets: [],
     vSelectItemInsights: [],
-    vSelectItemEndpoints:[],
+    vSelectItemEndpoints: [],
     cpIdToDraw: [],
-    beginDate: any = null,
-    endDate: any = null,
-    dataTable: any = [],
-    activeChart: any = [],
-    labelsChart: any = null,
-    chartData: any = null,
-    t_index: number = 0,
-
-
+    beginDate: (any = null),
+    endDate: (any = null),
+    dataTable: (any = []),
+    activeChart: (any = []),
+    labelsChart: (any = null),
+    chartData: (any = null),
+    t_index: (number = 0),
+    timeactuelle: (string = 'date ?'),
   }),
   mounted() {
+    this.timeactuelle = this.getFormattedDateFromTemporalData();
     this.$nextTick(() => {
       const headers = document.querySelectorAll(
         '#my-data-table .v-data-table-header '
@@ -656,12 +695,17 @@ export default {
         }
       }
     },
+
+    temporality() {
+      return this.$store.state.appDataStore.temporalitySelected.name;
+    },
   },
 
   methods: {
-
     fullData() {
-      const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query };
+      const currentQuery = {
+        ...window.parent.routerFontion.apps[0]._route.query,
+      };
 
       if (currentQuery.mode != 'data') {
         this.$emit('buttonClicked');
@@ -732,7 +776,7 @@ export default {
     },
 
     emitValue(listType, value) {
-      if(listType == 'item'){
+      if (listType == 'item') {
         this.selected_id = null;
         this.selected_data_item_name = null;
         return;
@@ -946,196 +990,313 @@ export default {
       return headers;
     },
 
-    async downloadFile(referenceIds,filename) {
-    const promises = [
-      this.$store.dispatch(ActionTypes.POST_DOWNLOAD_FILE, {
-        buildingId: localStorage.getItem("idBuilding"),
-        referenceIds: referenceIds
-      }),
-    ];
-    const result = await Promise.all(promises);
+    async downloadFile(referenceIds, filename) {
+      const promises = [
+        this.$store.dispatch(ActionTypes.POST_DOWNLOAD_FILE, {
+          buildingId: localStorage.getItem('idBuilding'),
+          referenceIds: referenceIds,
+        }),
+      ];
+      const result = await Promise.all(promises);
 
-    result.forEach(blob => {
-      const type = blob.type.split('/', 2);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `${filename}`);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    });
+      result.forEach((blob) => {
+        const type = blob.type.split('/', 2);
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${filename}`);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      });
 
-    return result;
+      return result;
     },
 
     async addOrRemove(dyn) {
       if (this.activeChart.includes(dyn)) {
-        this.dataTable = this.dataTable.filter(item => item.dynamicId !== dyn);
-        this.activeChart = this.activeChart.filter(id => id !== dyn);
-        this.removegraphInfoCp(dyn)
-      }
-      else {
-        this.addgraphInfoCp(dyn)
+        this.dataTable = this.dataTable.filter(
+          (item) => item.dynamicId !== dyn
+        );
+        this.activeChart = this.activeChart.filter((id) => id !== dyn);
+        this.removegraphInfoCp(dyn);
+      } else {
+        this.addgraphInfoCp(dyn);
         this.activeChart.push(dyn);
       }
     },
-    
     async removegraphInfoCp(dyn) {
-      const datatable = this.dataTable
-      this.chartData = this.chartDataObject(datatable)
-      console.warn(this.chartData, "----------le active chartsData'");
+      const datatable = this.dataTable;
+      this.chartData = this.chartDataObject(datatable);
+    },
+
+    parseDateString(dateString) {
+      const [datePart, timePart] = dateString.split(' ');
+      const [day, month, year] = datePart.split('-');
+      return new Date(`${year}-${month}-${day}T${timePart}`);
+    },
+
+    async reloadNewChartData() {
+      console.log(this.activeChart, '5');
+      this.dataTable = [];
+
+      for (const id of this.activeChart) {
+        await this.addgraphInfoCp(id);
+      }
     },
 
     async addgraphInfoCp(dyn) {
-      if (this.cpIdToDraw.includes(dyn)) {
-        const begintime = this.getBeginAndEndTime().begintime;
-        const endtime = this.getBeginAndEndTime().endtime;
+      if (!this.cpIdToDraw.includes(dyn)) return;
 
-        console.log(begintime, endtime, 'la temporatlité selectionné ?');
+      const { begintime, endtime } = this.getBeginAndEndTime();
+      const buildingId = localStorage.getItem('idBuilding');
+      const beginTimestamp = this.parseDateString(begintime).getTime();
+      const endTimestamp = this.parseDateString(endtime).getTime();
 
+      const result = await this.$store.dispatch(ActionTypes.GET_TIMES_SERIES, {
+        buildingId,
+        referenceIds: dyn,
+        begin: begintime,
+        end: endtime,
+      });
 
-        const buildingId = localStorage.getItem("idBuilding");
-        const result = await this.$store.dispatch(ActionTypes.GET_TIMES_SERIES, {
-          buildingId,
-          referenceIds: dyn,
-          begin: begintime,
-          end: endtime,
-        });
-        //recuperer un seul resultat par minute , supprimer le plus petit , ajouter le plus grand à la minute supperieur
-        console.warn(result , '///////////////////////////////////////////////////////////////////////');
+      const timeStep = 60000; // Une minute en millisecondes
+      const seenMinutes = new Map();
 
-        const datatableCopy = [...this.dataTable];
+      result.forEach(({ date, value }) => {
+        const minuteTimestamp =
+          Math.floor(new Date(date).getTime() / timeStep) * timeStep;
+        seenMinutes.set(minuteTimestamp, value);
+      });
 
-        const actuelleTable = {
-          dynamicId: dyn,
-          data: result.map(item => ({
-            x: item.date,
-            y: item.value,
-          })),
-          unit: 'kwh',
-          name: 'le nom du graph',
-        };
+      const processedResult = Array.from(
+        { length: Math.floor((endTimestamp - beginTimestamp) / timeStep) + 1 },
+        (_, i) => {
+          const date = beginTimestamp + i * timeStep;
+          return {
+            date,
+            value: seenMinutes.get(date) ?? NaN,
+          };
+        }
+      );
 
-        datatableCopy.push(actuelleTable);
-        this.labelsChart = this.labels(begintime, endtime).map((label) => this.toDate(label));
-        this.dataTable = [...datatableCopy];
-        this.chartData = this.chartDataObject(datatableCopy);
-        console.log(this.chartData);
+      // Mettre à jour le tableau de données
+      const actuelleTable = {
+        dynamicId: dyn,
+        data: processedResult.map(({ date, value }) => ({ x: date, y: value })),
+        unit: 'kwh',
+        name: 'le nom du graph',
+      };
 
-      }
+      this.dataTable = [...this.dataTable, actuelleTable];
+      this.labelsChart = this.labels(begintime, endtime).map(this.toDate);
+      this.chartData = this.chartDataObject(this.dataTable);
     },
-  //   //fonction pour retourner la date string ( beging et end )
+
+    //fonction pour retourner la date string ( beging et end )
     getBeginAndEndTime() {
-      const temporality = this.$store.state.appDataStore.temporalitySelected.name;
-      const t_index = this.t_index || 0; // Assurer une valeur par défaut de 0 si t_index n'est pas défini
+      const temporality =
+        this.$store.state.appDataStore.temporalitySelected.name;
+      const t_index = this.t_index || 0;
       let begintime, endtime;
 
       switch (temporality) {
         case ITemporality.hour:
-          begintime = moment().add(t_index, 'hours').startOf('hour').format('DD-MM-YYYY HH:mm:ss');
-          endtime = moment().add(t_index, 'hours').endOf('hour').format('DD-MM-YYYY HH:mm:ss');
+          begintime = moment()
+            .add(t_index, 'hours')
+            .startOf('hour')
+            .format('DD-MM-YYYY HH:mm:ss');
+          endtime = moment()
+            .add(t_index, 'hours')
+            .endOf('hour')
+            .format('DD-MM-YYYY HH:mm:ss');
           break;
         case ITemporality.day:
-          begintime = moment().add(t_index, 'days').startOf('day').format('DD-MM-YYYY HH:mm:ss');
-          endtime = moment().add(t_index, 'days').endOf('day').format('DD-MM-YYYY HH:mm:ss');
+          begintime = moment()
+            .add(t_index, 'days')
+            .startOf('day')
+            .format('DD-MM-YYYY HH:mm:ss');
+          endtime = moment()
+            .add(t_index, 'days')
+            .endOf('day')
+            .format('DD-MM-YYYY HH:mm:ss');
           break;
         case ITemporality.week:
-          begintime = moment().add(t_index, 'weeks').startOf('week').format('DD-MM-YYYY HH:mm:ss');
-          endtime = moment().add(t_index, 'weeks').endOf('week').format('DD-MM-YYYY HH:mm:ss');
+          begintime = moment()
+            .add(t_index, 'weeks')
+            .startOf('week')
+            .format('DD-MM-YYYY HH:mm:ss');
+          endtime = moment()
+            .add(t_index, 'weeks')
+            .endOf('week')
+            .format('DD-MM-YYYY HH:mm:ss');
           break;
         case ITemporality.month:
-          begintime = moment().add(t_index, 'months').startOf('month').format('DD-MM-YYYY HH:mm:ss');
-          endtime = moment().add(t_index, 'months').endOf('month').format('DD-MM-YYYY HH:mm:ss');
+          begintime = moment()
+            .add(t_index, 'months')
+            .startOf('month')
+            .format('DD-MM-YYYY HH:mm:ss');
+          endtime = moment()
+            .add(t_index, 'months')
+            .endOf('month')
+            .format('DD-MM-YYYY HH:mm:ss');
           break;
         case ITemporality.year:
-          begintime = moment().add(t_index, 'years').startOf('year').format('DD-MM-YYYY HH:mm:ss');
-          endtime = moment().add(t_index, 'years').endOf('year').format('DD-MM-YYYY HH:mm:ss');
+          begintime = moment()
+            .add(t_index, 'years')
+            .startOf('year')
+            .format('DD-MM-YYYY HH:mm:ss');
+          endtime = moment()
+            .add(t_index, 'years')
+            .endOf('year')
+            .format('DD-MM-YYYY HH:mm:ss');
           break;
         default:
           // Retourner la journée actuelle par défaut, ajustée avec t_index
-          begintime = moment().add(t_index, 'days').startOf('day').format('DD-MM-YYYY HH:mm:ss');
-          endtime = moment().add(t_index, 'days').endOf('day').format('DD-MM-YYYY HH:mm:ss');
+          begintime = moment()
+            .add(t_index, 'days')
+            .startOf('day')
+            .format('DD-MM-YYYY HH:mm:ss');
+          endtime = moment()
+            .add(t_index, 'days')
+            .endOf('day')
+            .format('DD-MM-YYYY HH:mm:ss');
           break;
       }
 
       return { begintime, endtime };
     },
 
+    getFormattedDateFromTemporalData() {
+      // Assurer une valeur par défaut de 0 pour t_index si ce n'est pas défini
+      const temporality =
+        this.$store.state.appDataStore.temporalitySelected.name;
+      const t_index = this.t_index || 0;
+      let formattedDate;
+
+      switch (temporality) {
+        case ITemporality.hour:
+          formattedDate = moment()
+            .add(t_index, 'hours')
+            .startOf('hour')
+            .format('DD-MM-YYYY HH:mm:ss');
+          break;
+        case ITemporality.day:
+          formattedDate = moment()
+            .add(t_index, 'days')
+            .startOf('day')
+            .format('DD-MM-YYYY');
+          break;
+        case ITemporality.week:
+          // Pour les semaines, afficher la semaine entière, ex: "15-11-2024 au 21-11-2024"
+          const weekStart = moment()
+            .add(t_index, 'weeks')
+            .startOf('week')
+            .format('DD-MM-YYYY');
+          const weekEnd = moment()
+            .add(t_index, 'weeks')
+            .endOf('week')
+            .format('DD-MM-YYYY');
+          formattedDate = `${weekStart} au ${weekEnd}`;
+          break;
+        case ITemporality.month:
+          // Afficher le mois et l'année, ex: "Novembre 2023"
+          formattedDate = moment()
+            .add(t_index, 'months')
+            .startOf('month')
+            .format('MMMM YYYY');
+          break;
+        case ITemporality.year:
+          // Afficher uniquement l'année, ex: "2024"
+          formattedDate = moment().add(t_index, 'years').format('YYYY');
+          break;
+        default:
+          // Si la temporalité est inconnue, retourner la date du jour par défaut
+          formattedDate = moment()
+            .add(t_index, 'days')
+            .startOf('day')
+            .format('DD-MM-YYYY');
+          break;
+      }
+
+      return formattedDate;
+    },
+
     toDate(date) {
-    switch (this.$store.state.appDataStore.temporalitySelected.name) {
-      case ITemporality.hour:
-        return moment(date).format('HH:mm');
-      case ITemporality.day:
-        return moment(date).format('HH[h]');
-      case ITemporality.week:
-        return moment(date).format('dd');
-      case ITemporality.month:
-        return moment(date).format('D/M/YY');
-      case ITemporality.year:
-        return moment(date).format('MMM');
-      case ITemporality.custom:
-        const { begin, end } =
-          this.$store.state.appDataStore.temporalitySelected.range;
-        const duration = moment.duration(
-          moment(end, 'DD-MM-YYYY HH:mm:ss').diff(
-            moment(begin, 'DD-MM-YYYY HH:mm:ss')
-          )
-        );
-        console.log(moment(end, 'DD-MM-YYYY HH:mm:ss'), duration);
-        if (duration.asMonths() > 2) return moment(date).format('MMM');
-        if (duration.asDays() > 1) return moment(date).format('D/M/YY');
-        if (duration.asHours() > 1) return moment(date).format('HH[h]');
-        return moment(date).format('HH:mm');
-      default:
-        return moment(date).format('D/M/YY');
-    }
+      switch (this.$store.state.appDataStore.temporalitySelected.name) {
+        case ITemporality.hour:
+          return moment(date).format('HH:mm');
+        case ITemporality.day:
+          return moment(date).format('HH[h]');
+        case ITemporality.week:
+          return moment(date).format('dd');
+        case ITemporality.month:
+          return moment(date).format('D/M/YY');
+        case ITemporality.year:
+          return moment(date).format('MMM');
+        case ITemporality.custom:
+          const { begin, end } =
+            this.$store.state.appDataStore.temporalitySelected.range;
+          const duration = moment.duration(
+            moment(end, 'DD-MM-YYYY HH:mm:ss').diff(
+              moment(begin, 'DD-MM-YYYY HH:mm:ss')
+            )
+          );
+          if (duration.asMonths() > 2) return moment(date).format('MMM');
+          if (duration.asDays() > 1) return moment(date).format('D/M/YY');
+          if (duration.asHours() > 1) return moment(date).format('HH[h]');
+          return moment(date).format('HH:mm');
+        default:
+          return moment(date).format('D/M/YY');
+      }
     },
 
     labels(begin, end) {
-    if (!this.dataTable) {
-      return [];
-    }
+      if (!this.dataTable) {
+        return [];
+      }
 
-  const parseDate = (dateStr) => {
-    const [day, month, yearTime] = dateStr.split('-');
-    const [year, time] = yearTime.split(' ');
-    const [hours, minutes, seconds] = time.split(':');
+      const parseDate = (dateStr) => {
+        const [day, month, yearTime] = dateStr.split('-');
+        const [year, time] = yearTime.split(' ');
+        const [hours, minutes, seconds] = time.split(':');
 
+        return new Date(
+          parseInt(year, 10), // Année
+          parseInt(month, 10) - 1, // Mois (0 = janvier, donc on soustrait 1)
+          parseInt(day, 10), // Jour
+          parseInt(hours, 10), // Heures
+          parseInt(minutes, 10), // Minutes
+          parseInt(seconds, 10) // Secondes
+        );
+      };
 
-    return new Date(
-      parseInt(year, 10),      // Année
-      parseInt(month, 10) - 1, // Mois (0 = janvier, donc on soustrait 1)
-      parseInt(day, 10),       // Jour
-      parseInt(hours, 10),     // Heures
-      parseInt(minutes, 10),   // Minutes
-      parseInt(seconds, 10)    // Secondes
-    );
-  };
+      const beginDate = parseDate(begin);
+      const endDate = parseDate(end);
 
-  const beginDate = parseDate(begin);
-  const endDate = parseDate(end);
+      const dates = [];
+      const interval = 60 * 1000; // Intervalle d'une journée en millisecondes
 
-  const dates = [];
-  const interval = 60 * 1000; // Intervalle d'une journée en millisecondes
-
-  for (let date = beginDate; date <= endDate; date = new Date(date.getTime() + interval)) {
-    dates.push(new Date(date)); // Ajoute une nouvelle date au tableau
-  }
-  console.log(dates , 'les labels');
-
-  return dates;
+      for (
+        let date = beginDate;
+        date <= endDate;
+        date = new Date(date.getTime() + interval)
+      ) {
+        dates.push(new Date(date)); // Ajoute une nouvelle date au tableau
+      }
+      return dates;
     },
 
     chartDataObject(dataTable) {
-    const l1 = []
-    dataTable.forEach((el, index) => {
-      l1.push({ data: [...el.data], label: 'graph 1' + index, color: 'blue', dynamicId: el.dynamicId, specialAxis: index });
-    });
-
-    return l1;
-    }
+      return dataTable.map((el, index) => ({
+        data: [...el.data],
+        label: `graph 1${index}`,
+        color: 'blue',
+        dynamicId: el.dynamicId,
+        specialAxis: index,
+      }));
+    },
   },
 
   watch: {
@@ -1144,125 +1305,165 @@ export default {
     },
 
     async vSelectedTab(newVal, oldVal) {
-     console.log('vSelectedTab', newVal);
-     // get the dynamic id of the current item
-     let dynamicId = null;
-     if (this.selected_id) {
-      dynamicId = this.selected_id
-     }
-     else if(this.$store.state.appDataStore.user_selected.grp.length > 0){
-        let found  = this.grp_list.find((grp) => grp.name === this.$store.state.appDataStore.user_selected.grp[0])
-        dynamicId = found.dynamicId
-     }
+      console.log('vSelectedTab', newVal);
+      // get the dynamic id of the current item
+      let dynamicId = null;
+      if (this.selected_id) {
+        dynamicId = this.selected_id;
+      } else if (this.$store.state.appDataStore.user_selected.grp.length > 0) {
+        let found = this.grp_list.find(
+          (grp) =>
+            grp.name === this.$store.state.appDataStore.user_selected.grp[0]
+        );
+        dynamicId = found.dynamicId;
+      } else if (this.$store.state.appDataStore.user_selected.cat) {
+        let found = this.cat_list.find(
+          (cat) => cat.name === this.$store.state.appDataStore.user_selected.cat
+        );
+        dynamicId = found.dynamicId;
+      } else if (this.$store.state.appDataStore.user_selected.ctx) {
+        let found = this.ctx_list.find(
+          (ctx) => ctx.name === this.$store.state.appDataStore.user_selected.ctx
+        );
+        dynamicId = found.dynamicId;
+      }
 
-     else if (this.$store.state.appDataStore.user_selected.cat) {
-      let found  = this.cat_list.find((cat) => cat.name === this.$store.state.appDataStore.user_selected.cat)
-      dynamicId = found.dynamicId
-     }
-
-     else if (this.$store.state.appDataStore.user_selected.ctx) {
-      let found  = this.ctx_list.find((ctx) => ctx.name === this.$store.state.appDataStore.user_selected.ctx)
-      dynamicId = found.dynamicId
-     }
-
-     const buildingId = localStorage.getItem("idBuilding");
-     if(newVal === 'Attributs'){
-      const attributs = await (this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
-        buildingId,
-        referenceIds: [dynamicId],
-      }))
-
-      const response = attributs.find((response) => response.dynamicId === dynamicId)
-      this.vSelectItemAttributes = response.categoryAttributes
-      // this.$forceUpdate()
-     }
-     if(newVal === 'Documentation'){
-      const documentation = await this.$store.dispatch(ActionTypes.GET_DOCUMENTATION, {
-        buildingId: buildingId,
-        referenceIds: dynamicId,
-      });
-      this.vSelectItemDocumentation = await Promise.all(
-      documentation.map(async (item) => {
-        // Check for image file extensions
-        const isImage = /\.(png|jpe?g|gif|bmp|webp|svg)$/i.test(item.Name);
-
-        if (isImage) {
-          const fileBlob = await this.$store.dispatch(ActionTypes.POST_DOWNLOAD_FILE, {
-            buildingId: buildingId,
-            referenceIds: item.dynamicId,
-          });
-          return {
-            ...item,
-            fileUrl: URL.createObjectURL(fileBlob), // Attach fileUrl for image preview
-          };
-        }
-
-      // Return the item as-is for non-image files
-      return item;
-    })
-  );
-
-     }
-     if(newVal === 'Notes'){
-      const notes = await this.$store.dispatch(ActionTypes.GET_NOTES, {
-          buildingId: buildingId,
-          referenceIds: dynamicId,
-      })
-
-      const documentation = await this.$store.dispatch(ActionTypes.GET_DOCUMENTATION, {
-        buildingId: buildingId,
-        referenceIds: dynamicId,
-      });
-
-
-      this.vSelectItemNotes = await Promise.all(
-        notes.map(async (item) => {
-          if(item.type=="img"){
-            const findDoc = documentation.find((doc) => doc.Name === item.message);
-            const fileBlob = await this.$store.dispatch(ActionTypes.POST_DOWNLOAD_FILE, {
-              buildingId: buildingId,
-              referenceIds: findDoc.dynamicId,
-            });
-            return {
-              ...item,
-              fileUrl: URL.createObjectURL(fileBlob), // Attach fileUrl for image preview
-            };
+      const buildingId = localStorage.getItem('idBuilding');
+      if (newVal === 'Attributs') {
+        const attributs = await this.$store.dispatch(
+          ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE,
+          {
+            buildingId,
+            referenceIds: [dynamicId],
           }
-          return item;
-        })
-      );
-      console.log('vSelectItemNotes', this.vSelectItemNotes)
-     }
-     if(newVal === 'Tickets'){
-      const tickets = await this.$store.dispatch(ActionTypes.GET_TICKET, {
+        );
+
+        const response = attributs.find(
+          (response) => response.dynamicId === dynamicId
+        );
+        this.vSelectItemAttributes = response.categoryAttributes;
+        // this.$forceUpdate()
+      }
+      if (newVal === 'Documentation') {
+        const documentation = await this.$store.dispatch(
+          ActionTypes.GET_DOCUMENTATION,
+          {
+            buildingId: buildingId,
+            referenceIds: dynamicId,
+          }
+        );
+        this.vSelectItemDocumentation = await Promise.all(
+          documentation.map(async (item) => {
+            // Check for image file extensions
+            const isImage = /\.(png|jpe?g|gif|bmp|webp|svg)$/i.test(item.Name);
+
+            if (isImage) {
+              const fileBlob = await this.$store.dispatch(
+                ActionTypes.POST_DOWNLOAD_FILE,
+                {
+                  buildingId: buildingId,
+                  referenceIds: item.dynamicId,
+                }
+              );
+              return {
+                ...item,
+                fileUrl: URL.createObjectURL(fileBlob), // Attach fileUrl for image preview
+              };
+            }
+
+            // Return the item as-is for non-image files
+            return item;
+          })
+        );
+      }
+      if (newVal === 'Notes') {
+        const notes = await this.$store.dispatch(ActionTypes.GET_NOTES, {
           buildingId: buildingId,
           referenceIds: dynamicId,
-        })
-      this.vSelectItemTickets = tickets;
-     }
-     if(newVal === 'Indicateur'){
-      const control_endpoints = await this.$store.dispatch(ActionTypes.GET_NODE_CONTROL_ENDPOINT_LIST, {
-        buildingId: buildingId,
-        referenceIds: dynamicId,
-      })
-      const tmpLst = [];
-      
-      control_endpoints.map((profil) => profil.endpoints.filter(ep => ep.saveTimeSeries==1).map((item) => (tmpLst.push(item.dynamicId))));
-      this.cpIdToDraw= tmpLst;
-      console.log('cpIdToDraw', this.cpIdToDraw);
-      this.vSelectItemInsights = control_endpoints;
-      console.log('control_endpoints', this.vSelectItemInsights)
+        });
 
-     }
-     if(newVal === 'Points de mesures'){
-      const endpoints = await this.$store.dispatch(ActionTypes.GET_NODE_ENDPOINT_LIST, {
-        buildingId: buildingId,
-        referenceIds: dynamicId,
-      })
-      this.vSelectItemEndpoints = endpoints;
-     }
+        const documentation = await this.$store.dispatch(
+          ActionTypes.GET_DOCUMENTATION,
+          {
+            buildingId: buildingId,
+            referenceIds: dynamicId,
+          }
+        );
 
+        this.vSelectItemNotes = await Promise.all(
+          notes.map(async (item) => {
+            if (item.type == 'img') {
+              const findDoc = documentation.find(
+                (doc) => doc.Name === item.message
+              );
+              const fileBlob = await this.$store.dispatch(
+                ActionTypes.POST_DOWNLOAD_FILE,
+                {
+                  buildingId: buildingId,
+                  referenceIds: findDoc.dynamicId,
+                }
+              );
+              return {
+                ...item,
+                fileUrl: URL.createObjectURL(fileBlob), // Attach fileUrl for image preview
+              };
+            }
+            return item;
+          })
+        );
+        console.log('vSelectItemNotes', this.vSelectItemNotes);
+      }
+      if (newVal === 'Tickets') {
+        const tickets = await this.$store.dispatch(ActionTypes.GET_TICKET, {
+          buildingId: buildingId,
+          referenceIds: dynamicId,
+        });
+        this.vSelectItemTickets = tickets;
+      }
+      if (newVal === 'Indicateur') {
+        const control_endpoints = await this.$store.dispatch(
+          ActionTypes.GET_NODE_CONTROL_ENDPOINT_LIST,
+          {
+            buildingId: buildingId,
+            referenceIds: dynamicId,
+          }
+        );
+        const tmpLst = [];
+
+        control_endpoints.map((profil) =>
+          profil.endpoints
+            .filter((ep) => ep.saveTimeSeries == 1)
+            .map((item) => tmpLst.push(item.dynamicId))
+        );
+        this.cpIdToDraw = tmpLst;
+        console.log('cpIdToDraw', this.cpIdToDraw);
+        this.vSelectItemInsights = control_endpoints;
+        console.log('control_endpoints', this.vSelectItemInsights);
+      }
+      if (newVal === 'Points de mesures') {
+        const endpoints = await this.$store.dispatch(
+          ActionTypes.GET_NODE_ENDPOINT_LIST,
+          {
+            buildingId: buildingId,
+            referenceIds: dynamicId,
+          }
+        );
+        this.vSelectItemEndpoints = endpoints;
+      }
     },
+
+    temporality(newVal, oldVal) {
+      this.timeactuelle = this.getFormattedDateFromTemporalData();
+      this.reloadNewChartData();
+    },
+
+    t_index(newVal,oldVal) {
+      this.timeactuelle = this.getFormattedDateFromTemporalData();
+      this.reloadNewChartData();
+    },
+
+
+
 
     '$store.state.appDataStore.dl_data_option': {
       handler(newValue, oldValue) {
@@ -1334,6 +1535,7 @@ export default {
   border-radius: 0px;
   width: 160%;
   height: 100%;
+  min-height: 700px;
   display: flex;
   padding: 10px;
 }
@@ -1778,5 +1980,44 @@ td {
   overflow: hidden;
   justify-content: space-between;
   background-color: white;
+}
+
+.button {
+  display: inline-block;
+  padding: 5px;
+  text-decoration: none;
+  height: 59px;
+  padding-left: 10px;
+  padding-right: 10px;
+  transition: 0.2s;
+  white-space: nowrap;
+  margin-left: 20px;
+  margin-top: 6px;
+  margin-bottom: 18px;
+  font-size: xx-large;
+  cursor: pointer;
+  padding-left: 0px;
+}
+
+.button:hover {
+  background-color: rgb(228, 228, 228);
+}
+
+.btn:hover {
+  background-color: rgb(199, 199, 199);
+}
+
+.adaptative {
+  width: 80%;
+  overflow: hidden;
+  height: 50px;
+  position: relative;
+  right: 0px;
+}
+
+.title {
+  position: relative;
+  width: 100%;
+  display: flex;
 }
 </style>

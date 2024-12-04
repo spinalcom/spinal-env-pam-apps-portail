@@ -332,7 +332,7 @@ export default {
 }
 
 .breadcrumbs__item {
-  min-height: 63px;
+  min-height: 75px;
   min-width: 128px;
   background: #fff;
   color: #333;
