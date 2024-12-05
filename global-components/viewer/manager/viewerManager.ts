@@ -147,7 +147,7 @@ export class ViewerManager {
 			const datas = await getViewInfo(buildingId, body);
 
 			for (const _item of datas) {
-				//this._viewerStores["GET_VIEWER_INFO"][_item.dynamicId] = generator(_item);
+				this._viewerStores["GET_VIEWER_INFO"][_item.dynamicId] = generator(_item);
 				res.push(_item);
 			}
 		}
