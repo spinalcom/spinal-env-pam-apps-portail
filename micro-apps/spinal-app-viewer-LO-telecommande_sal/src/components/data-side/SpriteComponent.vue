@@ -32,8 +32,6 @@
               </div>
             </div>
 
-
-
             <!-- <div style="display : flex ; flex-direction: column ; width: 100%;">
             <div style="width: 100%;">
               <div style="display: flex;margin-top: 10px">
@@ -76,7 +74,6 @@
                 </div>
 
 
-
                 <div
                   style="border: 1px solid  #14202c;border-radius: 5px;color: orange; font-size: 11px;font-weight: bold;width: 50%;margin-left:10px ">
                   <div
@@ -86,8 +83,6 @@
                     style="display: flex;justify-content: center; align-items: center;;color: #14202c;font-size: 13px;background-color: white;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
                     xx</div>
                 </div>
-
-
 
 
                 <div
@@ -115,10 +110,6 @@
                 </div>
               </div>
             </div>
-
-
-
-
 
 
           </div>

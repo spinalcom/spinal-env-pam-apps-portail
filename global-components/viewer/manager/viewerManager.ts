@@ -23,7 +23,7 @@
  */
 
 import { ModelManager } from "./modelManager";
-import { getViewInfo, getViewInfoFormatted, IViewInfoBody, IViewInfoItemRes, IViewInfoTmpRes, mergeIViewInfo } from "../requests/GeographicContext/getViewInfo";
+import { getViewInfo, getViewInfoFormatted, IViewInfoBody, IViewInfoItemRes, IViewInfoRes, IViewInfoTmpRes, mergeIViewInfo } from "../requests/GeographicContext/getViewInfo";
 import { IPlayload, IPlayloadWithComponent } from "../interfaces/IPlayload";
 import { EmitterViewerHandler, VIEWER_ADD_SPRITE, VIEWER_INITIALIZED, VIEWER_OBJ_COLOR, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_START_LOAD_MODEL, ViewerEventWithData, VIEWER_REM_SPHERE } from "spinal-viewer-event-manager";
 import { VIEWER_EVENTS } from "../events";
@@ -38,6 +38,7 @@ export class ViewerManager {
 	public modelManager: ModelManager = ModelManager.getInstance();
 	private _buildingInfo: any = {};
 	private _viewerStores = {};
+	private _viewerIdStocked = [];
 	private _viewerStartedList: { [key: string]: Set<string> } = {};
 
 	private constructor() { }
@@ -77,6 +78,9 @@ export class ViewerManager {
 	}
 
 	public async loadInViewer(item: IPlayload, loadOnlyThisModel: boolean = true, body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }) {
+		console.log(body?.dynamicId[0] , '////////////////////////////////////////////');
+		
+
 		localStorage.setItem("viewer_loaded", 'unload');
 		// if (this._viewerStartedList[item.staticId]) return;
 		if (this._viewerStartedList[item.dynamicId]) {
@@ -107,7 +111,7 @@ export class ViewerManager {
 	}
 
 	public async getViewerInfoMerged(argItem: IPlayload | IPlayload[], body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }): Promise<IViewInfoItemRes[]> {
-		
+
 		const datas = await this.getViewerInfo(argItem, undefined, body);
 		const res = [];
 
@@ -137,26 +141,51 @@ export class ViewerManager {
 				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;
 				if (itemData) res.push(itemData);
 			} else {
-				nodeTofetech.push(dynId);
+				
+				this._viewerStores["GET_VIEWER_INFO"][dynId] = generator(dynId, body?.floorRef!, body?.roomRef!, body?.equipements!);
+				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;
+				if (itemData) res.push(itemData);
+				// nodeTofetech.push(dynId);
 			}
 		}
+		// const itemstacked = this._viewerIdStocked;
 
-		if (nodeTofetech.length > 0) {
+		// if (nodeTofetech.length > 0) {
+		// 	if (!body) body = { dynamicId: nodeTofetech, floorRef: true, roomRef: true, equipements: true };
+		// 	const dynIds = Array.isArray(body.dynamicId) ? body.dynamicId : [body.dynamicId];
+		// 	// const datas = await getViewInfo(buildingId, body);
 
-			if (!body) body = { dynamicId: nodeTofetech, floorRef: true, roomRef: true, equipements: true };
-			const datas = await getViewInfo(buildingId, body);
+		// 	for (const dnyid of dynIds) {
+		// 		this._viewerStores["GET_VIEWER_INFO"][dnyid] = generator(dnyid, body.floorRef!, body.roomRef!, body.equipements!);
+		// 		// res.push(dnyid);
+		// 		const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dnyid].next())?.value;
+		// 		if (itemData) res.push(itemData);
+		// 	}
+		// }
+		// const idsToAdd = ids.filter(id => !itemstacked.includes(id));
 
-			for (const _item of datas) {
-				this._viewerStores["GET_VIEWER_INFO"][_item.dynamicId] = generator(_item);
-				res.push(_item);
-			}
-		}
+
+		// if (idsToAdd.length > 0) {
+		// 	itemstacked.push(...idsToAdd);
+		// }
+		// console.log(itemstacked, 'stacked ');
 
 		return res;
 
-		async function* generator(data): AsyncGenerator<Awaited<any>> {
+		async function* generator(data: number, floorRef: boolean = true, roomRef: boolean = true, equipements: boolean = true): AsyncGenerator<Awaited<any>> {
+			let d: IViewInfoRes | undefined = undefined;
 			while (true) {
-				yield data;
+				if (!d) {
+					const datas = await getViewInfo(buildingId, {
+						dynamicId: [data],
+						floorRef,
+						equipements,
+						roomRef
+					});
+					d = datas.find((e) => e.dynamicId == data)
+				} else
+					yield d;
+				// add timeout				
 			}
 		}
 
@@ -174,7 +203,7 @@ export class ViewerManager {
 		// return this._fctViewerIteract(VIEWER_REM_SPHERE, item.items, item.config);
 	}
 
-	
+
 
 	public isolate(item: IPlayload) {
 
@@ -240,7 +269,7 @@ export class ViewerManager {
 
 		const emitter = EmitterViewerHandler.getInstance();
 		if (eventName === (VIEWER_EVENTS.UNLOAD as any)) {
-			
+
 			playload = Array.isArray(playload) ? playload : [playload];
 			const obj = {};
 			const modelIds = playload.map((item) => {

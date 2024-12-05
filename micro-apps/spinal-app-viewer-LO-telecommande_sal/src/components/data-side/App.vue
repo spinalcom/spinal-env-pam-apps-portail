@@ -96,8 +96,8 @@ with this file. If not, see
           <v-select label="Details" v-model="selection" :items="dynamicItems"></v-select>
         </div>
 
-        <div style="width: 20%; justify-content: flex-end;align-items: center;display: flex;padding-right: 26px;"
-          v-if="floorstaticDetails.length && floorstaticDetails[0].attributsList.length">
+        <div v-if="floorstaticDetails.length && floorstaticDetails[0].attributsList.length"
+          style="width: 20%; justify-content: flex-end;align-items: center;display: flex;padding-right: 26px;">
           <div style="" v-for="(item, index) in floorstaticDetails[0].attributsList[0].attributs">
             <div v-if="item.label == 'area'">
               {{ item.value }} m²
@@ -509,7 +509,7 @@ class dataSideApp extends Vue {
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
 
       console.log(data);
-      
+
 
       if (data)
         this.findDynamicIdByDbid(data[0].dbIds[0], data[0]);
