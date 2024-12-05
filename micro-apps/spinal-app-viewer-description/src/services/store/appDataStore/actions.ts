@@ -396,17 +396,14 @@ export const actions = {
 
 	async [ActionTypes.OPEN_VIEWER]({ commit, dispatch, state }: AugmentedActionContextAppData, playload: { onlyThisModel: boolean; config: IConfig; item: any }): Promise<void> {
 		try {
-			console.log('aa1');
 
 			if (playload.item.type === "building") {
-				console.log('aa');
-				
+
 				const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
 					buildingId: playload.item.buildingId,
 					forceUpdate: false,
 				})
 
-				console.log("//////////////////////////////// building", building)
 				const body = {
 					//dynamicId: ids,
 					dynamicId: [building.dynamicId],
@@ -415,6 +412,7 @@ export const actions = {
 					equipements: false,
 					dbIdsToAdd: [],
 				}
+				playload.item.dynamicId=building.dynamicId
 				await ViewerManager.getInstance().loadInViewer(
 					playload.item,
 					playload.onlyThisModel,
@@ -440,6 +438,7 @@ export const actions = {
 				const map = await dispatch(ActionTypes.GET_GROUPS_ITEMS, { config: playload.config, buildingId: playload.item.buildingId });
 				body.dbIdsToAdd = classifyItemByBimFileId(map, playload.item.dynamicId, playload.item.type);
 			}
+
 			await ViewerManager.getInstance().loadInViewer(playload.item, playload.onlyThisModel, body);
 
 			if (playload.onlyThisModel) state.viewerStartedList = {};

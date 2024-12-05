@@ -174,14 +174,12 @@ class App extends Vue {
       }),
     ];
     const result = await Promise.all(promises);
-    console.log(result);
 
     this.setTabletteSprite(result, buildingId)
 
 
 
     let referenceIds2 = this.config.tabletteId2
-    console.log(referenceIds2, "idd de tablette");
     const promises2 = [
       this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
         buildingId,
@@ -189,13 +187,11 @@ class App extends Vue {
       }),
     ];
     const resultid2 = await Promise.all(promises2);
-    console.warn(resultid2, 'aaaa');
-
     this.setTabletteSprite(resultid2, buildingId)
 
   }
   async mounted() {
-    localStorage.setItem('idBuilding', this.config.idBuilding)    
+    localStorage.setItem('idBuilding', this.config.idBuilding)
     localStorage.setItem('floor_tablette_id', '960438368')
     const newIds = window.parent.router.query.spaceSelectedId
 
@@ -207,7 +203,7 @@ class App extends Vue {
       }),
     ];
     const resultParent = await Promise.all(parentPromise);
-    const id_etage = resultParent[0].info.floor.dynamicId
+    const id_etage = resultParent[0].info.floor.dynamicId;
     localStorage.setItem('floor_tablette_id', id_etage)
 
     this.updateTime();
@@ -256,9 +252,7 @@ class App extends Vue {
     }
 
     this.$nextTick(() => {
-
       this.query.app = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC10ZWxlY29tbWFuZGUiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6Ijg0ZDgtNzgyMS0yZTI2LTE5MjAwNmI4MDJmIiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcyNjU4MzkxOTM1NSwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzI2NTgzODk4MTU5LCJpY29uIjoiIiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLXRlbGVjb21tYW5kZSIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
-
       window.parent.router.query.app = this.query.app
       const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
       this.applyURLParam(currentQuery);
@@ -302,9 +296,6 @@ class App extends Vue {
 
     if (matchingObject) {
       const { name, dynamicId, groupParentType } = matchingObject;
-      console.log('Nom:', name);
-      console.log('Dynamic ID:', dynamicId);
-      console.log('Type:', groupParentType);
       this.floorType = groupParentType
       this.selectedItem = dynamicId;
       this.displaySprite = true
@@ -380,13 +371,10 @@ class App extends Vue {
   }
 
   setTabletteSprite(result, buildingId) {
-    console.log(result[0], 'aa');
-
 
     let X;
     let Y;
     let Z;
-
 
     result[0].attributsList.forEach(category => {
       category.attributs.forEach(attribute => {
@@ -398,10 +386,14 @@ class App extends Vue {
         }
       });
     });
-
+    let color
+    if (result[0].dynamicId == window.parent.router.query.spaceSelectedId)
+      color = '#F0715C'
+    else
+      color = '#FFCF54'
 
     const item = {
-      color: 'red',
+      color: color,
       dynamicId: result[0].dynamicId,
       buildingId: buildingId,
       dbid: result[0].dbid,
@@ -412,7 +404,6 @@ class App extends Vue {
       config: this.config
     }
     // this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-    console.log(item, 'aaa');
     this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
       items: item,
       buildingId: buildingId,

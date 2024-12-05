@@ -178,7 +178,7 @@ class App extends Vue {
     this.setTabletteSprite(result, buildingId)
   }
   async mounted() {
-    localStorage.setItem('idBuilding', 'ecfc-b241-a8a7-1933fdaa2d7')
+    localStorage.setItem('idBuilding', this.config.idBuilding)
     this.updateTime();
     this.updateDate();
     setInterval(this.updateTime, 60000);

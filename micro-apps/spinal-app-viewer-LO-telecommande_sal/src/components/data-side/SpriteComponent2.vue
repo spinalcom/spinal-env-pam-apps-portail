@@ -1,8 +1,12 @@
 <template>
-  <div style="position: relative;width: 100px;height: 100px;font-size: 50px;display: flex ; justify-content: center;align-items: center;color: #F0715C;">
-    <span  class="mdi mdi-map-marker"></span>
+  <div style="position: relative; width: 100px; height: 100px; font-size: 50px; display: flex; justify-content: center; align-items: center;">
+    <span 
+      class="mdi mdi-map-marker" 
+      :style="{ color: data.color }">
+    </span>
   </div>
 </template>
+
 <script>
 
 import {
@@ -27,17 +31,12 @@ export default {
       background: '#13A9E0'
     },
     isClicked: false,
+    color: '#FFCF54',
   }),
   mounted() {
-   
-
-    // document.addEventListener('click', this.handleOutsideClick);
-
+    this.color = this.data.color
   },
 
-  // beforeDestroy() {
-  //   document.removeEventListener('click', this.handleOutsideClick);
-  // },
   methods: {
     // handleOutsideClick(event) {
     //   const container = this.$refs.container;

@@ -130,8 +130,7 @@ class SpaceSelectorItem extends Vue {
   onMouseEnter() {
     const dynamicId = this.item.dynamicId;
     if (dynamicId && this.label == 'ESPACE') {
-      console.log('ESPACE');
-      
+
       EventBus.$emit('colorRoom', dynamicId);
     }
   }
