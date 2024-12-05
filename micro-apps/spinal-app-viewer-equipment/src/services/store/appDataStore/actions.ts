@@ -424,6 +424,7 @@ export const actions = {
 				}
 				// console.log('body to load -----> : ', body);
 			    // console.log('playload item to load -----> : ', playload.item);
+				playload.item.dynamicId = building.dynamicId;
 				await ViewerManager.getInstance().loadInViewer(
 				  playload.item,
 				  playload.onlyThisModel,

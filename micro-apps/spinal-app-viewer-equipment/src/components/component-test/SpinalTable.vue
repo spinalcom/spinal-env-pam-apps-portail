@@ -22,15 +22,16 @@
     <!-- Vselect + t_index selector -->
     <div>
       <div class="title">
-        <div class="button adaptative" style="">
+        <div class="button" style="">
           <v-select
             v-model="vSelectedTab"
             :items="vSelectTabs"
             label="Select"
           ></v-select>
         </div>
+
         <div
-          v-if="ActiveData && vSelectedTab == 'Indicateur' && labelsChart"
+          v-if="ActiveData && labelsChart && [ 'Indicateur', 'Points de mesures'].includes(vSelectedTab)"
           style="
             display: flex;
             flex-wrap: nowrap;
@@ -101,6 +102,7 @@
     <!-- LE DATA TABLE -->
     <!-- items = filtred items / headers = headers / contexts = global items / selection = items du select / -->
 
+    
     <div v-if="vSelectedTab === 'Equipements'"
       style="padding: 2px; margin-top: 25px"
       class="scrollable-table-container"
@@ -288,46 +290,12 @@
       </div>
     </div>
 
-    <!-- ONGLET POINT DE MESURE (endpoints)-->
-    <div v-if="vSelectedTab == 'Points de mesures'">
-      <div
-        v-for="(item, index) in vSelectItemEndpoints"
-        :key="index"
-        class="blocInformation"
-      >
-        <div v-if="!vSelectItemEndpoints">
-          <v-progress-circular
-            :size="50"
-            color="primary"
-            indeterminate
-          ></v-progress-circular>
-        </div>
-        <div v-else class="inventory-container">
-          <div
-            class="inventory-item"
-            style="
-              color: #14202c;
-              padding: 16px;
-              border-radius: 5px;
-              padding-left: 6px;
-              background-color: #f9f9f9;
-              box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px,
-                rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
-              width: 100%;
-            "
-          >
-            <li>
-              {{ item.name }}: {{ item.currentValue }} {{ item.unit || '' }}</li
-            >
-          </div>
-        </div>
-      </div>
-    </div>
+    
 
-    <!-- ONGLET INDICATEUR (controleEndpoint) indicateur -->
-    <div style="display: flex">
-      <div
-        v-if="ActiveData && vSelectedTab == 'Indicateur' && labelsChart"
+    <!-- ONGLET INDICATEUR (controleEndpoint) et Points de mesures -->
+    <div v-if="vSelectedTab == 'Indicateur' || vSelectedTab =='Points de mesures'" style="display: flex">
+      
+      <div v-if="ActiveData && labelsChart"
         class="graphContainer"
       >
       <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
@@ -340,6 +308,8 @@
               footer: (data) => { },
       }"></LineCardComponent>
       </div>
+
+      <!-- ONGLET INDICATEUR -->
       <div style="width: 100%" v-if="vSelectedTab == 'Indicateur'">
         <div
           v-for="(item, index) in vSelectItemInsights"
@@ -353,8 +323,8 @@
             "
             >{{ item.profileName }}</span
           >
-          <div
-            v-if="vSelectItemInsights == null"
+          <div v-if="vSelectItemInsights == null"
+            
             style="
               justify-content: center;
               align-items: center;
@@ -371,9 +341,8 @@
             ></v-progress-circular>
           </div>
           <div v-else>
-            <div
+            <div v-for="(item, index2) in vSelectItemInsights[index].endpoints"
               class="inventory-container"
-              v-for="(item, index2) in vSelectItemInsights[index].endpoints"
               :key="index2"
             >
               <div
@@ -420,7 +389,68 @@
           </div>
         </div>
       </div>
+
+      <!-- ONGLET POINT DE MESURE (endpoints)-->
+    <div style="width: 100%" v-if="vSelectedTab == 'Points de mesures'">
+      <div
+        v-for="(item, index) in vSelectItemEndpoints"
+        :key="index"
+        class="blocInformation"
+      >
+        <div v-if="!vSelectItemEndpoints">
+          <v-progress-circular
+            :size="50"
+            color="primary"
+            indeterminate
+          ></v-progress-circular>
+        </div>
+        <div v-else class="inventory-container">
+          <div
+            class="inventory-item"
+            style="
+              color: #14202c;
+              padding: 16px;
+              border-radius: 5px;
+              padding-left: 6px;
+              background-color: #f9f9f9;
+              box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px,
+                rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+              width: 100%;
+            "
+          >
+            <li>
+              {{ item.name }}: {{ item.currentValue }} {{ item.unit || '' }}</li
+            >
+            <v-icon
+                  @click="
+                    () => {
+                      fullData();
+                      addOrRemove(item.dynamicId);
+                      resize();
+                    }
+                  "
+                  v-if="
+                    cpIdToDraw.includes(item.dynamicId) &&
+                    !activeChart.includes(item.dynamicId)
+                  "
+                  >mdi-chart-line</v-icon
+                >
+                <v-icon
+                  @click="
+                    () => {
+                      addOrRemove(item.dynamicId);
+                    }
+                  "
+                  v-if="activeChart.includes(item.dynamicId)"
+                  >mdi-close</v-icon
+                >
+          </div>
+        </div>
+      </div>
     </div>
+    </div>
+
+    
   </div>
 </template>
 
@@ -703,14 +733,13 @@ export default {
 
   methods: {
     fullData() {
-      const currentQuery = {
-        ...window.parent.routerFontion.apps[0]._route.query,
-      };
-
-      if (currentQuery.mode != 'data') {
+      if (!this.ActiveData) {
         this.$emit('buttonClicked');
       }
     },
+
+
+
 
     resize() {
       setTimeout(() => {
@@ -1021,6 +1050,9 @@ export default {
         );
         this.activeChart = this.activeChart.filter((id) => id !== dyn);
         this.removegraphInfoCp(dyn);
+        if(this.activeChart.length == 0){
+          this.$emit('buttonClicked');
+        }
       } else {
         this.addgraphInfoCp(dyn);
         this.activeChart.push(dyn);
@@ -1080,13 +1112,19 @@ export default {
           };
         }
       );
-
+      let findEp = this.vSelectItemEndpoints.find((item) => item.dynamicId == dyn);
+      if (!findEp) {
+        for(const profil of this.vSelectItemInsights){
+          findEp = profil.endpoints.find((ep) => ep.dynamicId == dyn);
+          if(findEp) break;
+        }
+      }
       // Mettre à jour le tableau de données
       const actuelleTable = {
         dynamicId: dyn,
         data: processedResult.map(({ date, value }) => ({ x: date, y: value })),
-        unit: 'kwh',
-        name: 'le nom du graph',
+        unit: findEp.unit,
+        name: findEp.name,
       };
 
       this.dataTable = [...this.dataTable, actuelleTable];
@@ -1289,9 +1327,10 @@ export default {
     },
 
     chartDataObject(dataTable) {
+      console.log('dataTable', dataTable);
       return dataTable.map((el, index) => ({
         data: [...el.data],
-        label: `graph 1${index}`,
+        label: `${el.name} ${el.unit || ''}`,
         color: 'blue',
         dynamicId: el.dynamicId,
         specialAxis: index,
@@ -1429,16 +1468,13 @@ export default {
           }
         );
         const tmpLst = [];
-
         control_endpoints.map((profil) =>
           profil.endpoints
             .filter((ep) => ep.saveTimeSeries == 1)
             .map((item) => tmpLst.push(item.dynamicId))
         );
         this.cpIdToDraw = tmpLst;
-        console.log('cpIdToDraw', this.cpIdToDraw);
         this.vSelectItemInsights = control_endpoints;
-        console.log('control_endpoints', this.vSelectItemInsights);
       }
       if (newVal === 'Points de mesures') {
         const endpoints = await this.$store.dispatch(
@@ -1448,16 +1484,27 @@ export default {
             referenceIds: dynamicId,
           }
         );
+        
+        const tmpLst = [];
+        endpoints.filter((ep) => ep.saveTimeSeries == 1).map((item) => tmpLst.push(item.dynamicId));
+        this.cpIdToDraw = tmpLst;
         this.vSelectItemEndpoints = endpoints;
       }
     },
 
     temporality(newVal, oldVal) {
+      
+      if(this.t_index!= 0) {
+        this.t_index = 0;
+        return;
+      } 
+
       this.timeactuelle = this.getFormattedDateFromTemporalData();
       this.reloadNewChartData();
     },
 
     t_index(newVal,oldVal) {
+      
       this.timeactuelle = this.getFormattedDateFromTemporalData();
       this.reloadNewChartData();
     },
@@ -2008,9 +2055,9 @@ td {
 }
 
 .adaptative {
-  width: 80%;
+  /* width: 80%; */
   overflow: hidden;
-  height: 50px;
+  /* height: 50px; */
   position: relative;
   right: 0px;
 }

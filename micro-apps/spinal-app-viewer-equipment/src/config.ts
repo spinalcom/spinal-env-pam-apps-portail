@@ -34,5 +34,5 @@ export const config: IConfig = {
 	viewButtons: "base",
 	sprites: true,
 	viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },
-	temporality: [ITemporality.currentValue, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
+	temporality: [ITemporality.currentValue, ITemporality.hour, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
 };

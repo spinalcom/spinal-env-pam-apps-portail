@@ -405,7 +405,6 @@ export default {
   background-color: rgb(229, 229, 229);
   border-radius: 5px;
 }
-
 .selected {
   background-color: #e9e9e98f;
   border-radius: 5px;
