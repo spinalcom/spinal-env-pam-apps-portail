@@ -23,7 +23,7 @@
                         <div class="file-content">
                             <div class="file" v-for="(item, idx) in files" :class="{'animation-remove-file': remove_animation == idx}">
                                     <div style="width: 100%; display: flex; gap: 10px;">
-                                        <v-icon style="color: #14202C;" >{{ iconFile(item.name) }}</v-icon>
+                                        <v-icon :style="{ 'color': iconFile(item.name).color }" >{{ iconFile(item.name).name }}</v-icon>
                                         <span>{{ item.name }}</span>
                                     </div>
                                     <div >
@@ -46,9 +46,9 @@
 
 
 <script lang="ts">
-import { remove } from 'lodash';
+import { get } from 'http';
 import { ActionTypes } from '../interfaces/vuexStoreTypes';
-import { get } from 'lodash';
+import getIcon from '../services/function/getIcon';
 
     export default {
         name: 'form-doc',
@@ -68,7 +68,8 @@ import { get } from 'lodash';
                 files: Array(),
                 valid_message: '',
                 isValid: false,
-                remove_animation: null
+                remove_animation: null,
+                getIcon: getIcon,
             }
         },
 
@@ -77,7 +78,6 @@ import { get } from 'lodash';
                 this.show = newVal;
             },
             remove_animation(newVal: number) {
-                console.log(newVal, 'newVal')
                 if (newVal != null) {
                     setTimeout(() => {
                         this.remove_animation = null;
@@ -103,12 +103,10 @@ import { get } from 'lodash';
             if(filesData.length != 0) {
                 const buildingId = localStorage.getItem('idBuilding')
                 const res = await this.$store.dispatch(ActionTypes.ADD_DOC, {buildingId, referenceId:  referenceid,  file: filesData })
-                console.log(res, 'res in uploadDoc')
                 if (res[0].status) {
                     this.resetForm()
                     this.$emit('add-doc', {message: 'Document ajouté avec succès', status: 'success', context: 'document'})
                 } else {
-                    console.log('Erreur lors de l\'ajout du document');
                     this.$emit('add-doc', {message: 'Erreur lors de l\'ajout du document', status: 'error', context: 'document'})
                 }
             } else {
@@ -117,14 +115,16 @@ import { get } from 'lodash';
             }
            
             },
+            getExtension(fileName: string){
+                return fileName.match(/\.[0-9a-z]+$/i);
+            },
             pushFile(){
                 const files_types = ['png', 'jpg', 'jpeg', 'pdf', 'xls', 'xlsx', 'csv', 'mp4', 'avi', 'webm'];
             
                 const files = this.$refs.fileInput.files;
                 for (let index = 0; index < files.length; index++) {
                     const type_file = files_types.find(type => files[index].name.includes(type));
-                    console.log(type_file, 'type_file')
-                    if (type_file) {
+                    if (type_file != undefined) {
                         this.files.push(files[index]);
                         this.isValid = false;
                         this.valid_message = '';
@@ -132,7 +132,6 @@ import { get } from 'lodash';
                         this.isValid = true;
                         this.valid_message = 'Les fichiers ' + this.getExtension(files[index].name)[0] + ' ne sont pas prise en charge';
                     }
-                    // this.files.push(files[index]);
                 }
             },
             filesSize(size: number){
@@ -155,32 +154,9 @@ import { get } from 'lodash';
             this.$refs.fileInput.value = '';
         }, 500);
     },
-        getExtension(file: string) {
-            return file.match(/\.([^.]+)$/);
-        },
-     iconFile(type: string) {
-        const extension = this.getExtension(type);
-        console.log(extension, 'extension')
-      switch (extension![1]) {
-        case 'pdf':
-          return 'mdi-file-pdf-box';
-        case 'xlsx':
-        case 'xls':
-        case 'csv':
-          return 'mdi-file-excel-box';
-        case 'jpg':
-        case 'jpeg':
-          return 'mdi-file-jpg-box';
-        case 'png':
-          return 'mdi-file-png-box';
-        case 'mp4':
-        case 'avi':
-        case 'webm':
-          return 'mdi-movie-outline';
-        default:
-          return 'mdi-file';
-      }
-    }
+        iconFile(fileName: string){
+            return getIcon(fileName);
+        }
   
  }
     

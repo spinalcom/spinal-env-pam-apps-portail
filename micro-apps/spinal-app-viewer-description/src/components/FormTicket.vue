@@ -77,7 +77,7 @@
               <div class="file-content">
                             <div class="file" v-for="(item, idx) in files" :class="{'animation-remove-file': remove_animation == idx}">
                                     <div style="width: 100%; display: flex; gap: 10px;">
-                                        <v-icon style="color: #14202C;" >{{ iconFile(item.name) }}</v-icon>
+                                        <v-icon :style="{'color': getIcon(item.name).color}" >{{ getIcon(item.name).name }}</v-icon>
                                         <span>{{ item.name }}</span>
                                     </div>
                                     <div >
@@ -100,8 +100,10 @@
   </template>
   
   <script lang="ts">
+import { get } from 'http';
 import { ActionTypes } from '../interfaces/vuexStoreTypes';
 import { WorkflowInterface } from '../interfaces/Workflow';
+import getIcon from '../services/function/getIcon';
 
 
   export default {
@@ -153,6 +155,7 @@ import { WorkflowInterface } from '../interfaces/Workflow';
         remove_animation: null,
         isValid: false,
         valid_message: '',
+        getIcon : getIcon,
       };
 
     },
@@ -167,7 +170,6 @@ import { WorkflowInterface } from '../interfaces/Workflow';
         this.$emit('input', newVal);
       },
       remove_animation(newVal: number) {
-                console.log(newVal, 'newVal')
                 if (newVal != null) {
                     setTimeout(() => {
                         this.remove_animation = null;
@@ -264,7 +266,6 @@ import { WorkflowInterface } from '../interfaces/Workflow';
 
       const buildingId = localStorage.getItem("idBuilding");
       const res = await this.$store.dispatch(ActionTypes.ADD_TICKET, { buildingId, data, file});
-      console.log(res);
       if(res) {
         this.resetForm();
         this.closeDialog();

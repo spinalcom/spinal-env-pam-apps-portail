@@ -322,10 +322,13 @@ class App extends Vue {
     }
     this.isActive = !this.isActive;
     if(value === 'vueDoc'){
-      console.log('buttonClicked', value);
       this.isActive = true
       this.isActive3D = false
       this.query.mode = 'data'
+    }else if(value === 'vueDocClose'){
+      this.isActive = false
+      this.isActive3D = false
+      this.query.mode = 'none'
     }
     else {
       this.handleRouteChange();

@@ -1,21 +1,26 @@
 <template>
    
         <div class="content">
-            <v-row class="top-bar">
-                <span class="name-file" v-if="fileName">Nom: {{ this.fileName }}</span>
-                
-                <vb-btn 
-                    flat
-                    class="btn-closed"
-                    @click="closeDialog"
-                >
-                    Fermer
-                </vb-btn>
-
+            <div class="top-bar">
                
-            </v-row>
+            <div style="width: 100%; text-align: center;">
+                <span class="name-file" v-if="fileName"> 
+                    <v-icon :style="{'color': getIcon(fileName_with_ext).color}" >{{ getIcon(fileName_with_ext).name }}</v-icon>
+                     {{ this.fileName }}</span>
+            </div>
+            <div>
+                   <vb-btn 
+                   flat
+                   class="btn-closed"
+                   @click="closeDialog"
+                   >
+                   Fermer
+               </vb-btn>
+            </div> 
+               
+        </div>
             <div v-if="loader" style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
-                <div class="loader"></div>
+                <div class="loader-doc"></div>
             </div>
                 <!-- Affichage de l'image -->
             <div v-if="show[0].image.show">
@@ -61,6 +66,7 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
 import VuePdfApp from 'vue-pdf-app'
 import "vue-pdf-app/dist/icons/main.css";
 import {read, utils } from 'xlsx';
+import getIcon from '../services/function/getIcon';
 
 // Configuration de la vue-pdf
 const getToolbarViewerLeft = () => ({
@@ -107,6 +113,7 @@ const getToolbar = () => ({
         data() {
             return {
                 fileName : '',
+                fileName_with_ext: '',
                 url_init: '',
                 numPages: 0,
                 curentpage: 1,
@@ -134,16 +141,18 @@ const getToolbar = () => ({
                 }],
                 vue_pdfConfig: {
                     toolbar: getToolbar(),
-                }
+                },
+                getIcon: getIcon,
             };
         },
        watch: {
           
             referenceId: async function  (val){
+                this.loader = true;
             this.fileName = this.file_prop;
+            this.fileName_with_ext = this.fileName;
             this.fileName = this.fileName.replace(/\.[^/.]+$/, "");
             const fileExtension = this.file_prop.split('.').pop();
-            console.log('fileName: ', this.fileName)
                 const buildingId = localStorage.getItem("idBuilding");
                 this.referenceId = val;
                 const file = [this.$store.dispatch(ActionTypes.GET_FILE, {
@@ -156,11 +165,10 @@ const getToolbar = () => ({
                      type = blob.type.split('/')[1]
                     this.url_init = window.URL.createObjectURL(blob)
                 })
+              
                 this.showFile(fileExtension, this.url_init) 
                 this.loader = false;
             },
-            url : function (val){
-            }
         },
         mounted() {
             this.curentpage = 1;
@@ -178,10 +186,7 @@ const getToolbar = () => ({
            
 
             showFile(type: string, url: string){
-                this.loader = true;
-                setTimeout(() => {
-                    this.loader = false;
-                }, 2000);
+              
                this.show.map(async (item, index)=> {
                     if(type === 'pdf'){
                         item.pdf.show = true;
@@ -245,6 +250,7 @@ const getToolbar = () => ({
         display: flex;
         justify-content: space-between;
         position: relative;
+        padding-bottom: 20px;
     }
    
        .content {
@@ -366,7 +372,7 @@ const getToolbar = () => ({
         height: 100%;
         display: flex;
         justify-content: center;
-        align-items: center;
+        /* align-items: center; */
         overflow: hidden;
         overflow-y: auto;
     }
@@ -390,7 +396,7 @@ const getToolbar = () => ({
         background-color: #14202C;
     }
    
-.loader {
+.loader-doc {
   width: 50px;
   --b: 8px; 
   aspect-ratio: 1;

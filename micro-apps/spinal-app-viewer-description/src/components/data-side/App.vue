@@ -374,7 +374,9 @@ with this file. If not, see
               <div class="inventory-item"
               style="width: 100%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
               
-              <li>
+              <li style="list-style: none;">
+                <v-icon :style="{'color': getIcon(item.Name).color}">{{ getIcon(item.Name).name }}</v-icon>
+
                 {{ item.Name }}
                
               </li>
@@ -408,7 +410,9 @@ with this file. If not, see
               <div style="display: flex;" v-for="(item, index2) in parent.documentation" :key="index2">
                 <div class="inventory-item"
                 style="max-width: 100%; width: 99%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
-                  <li>{{ item.Name }}</li>
+                  <li style="list-style: none;" >
+                    <v-icon :style="{'color': getIcon(item.Name).color}" >{{ getIcon(item.Name).name }}</v-icon>
+                    {{ item.Name }}</li>
                 </div>
                 <v-row style="display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; padding: 10px; width: max-content; gap: 10px">
                   <v-icon style="width: max-content; height: max-content; background-color: rgba(203 213 225 0.5); border-radius: 50%; padding: 4px; color: #14202c; cursor: pointer;" @click="showDoc(item.dynamicId, item.Name)" >
@@ -486,6 +490,7 @@ import FormDoc from "../FormDoc.vue";
 import AddBtn from '../ButtonAdd.vue';
 import Loader from "../Loader.vue";
 import Loader from "../Loader.vue";
+import getIcon from "../../services/function/getIcon";
 
 @Component({
   components: {
@@ -554,6 +559,7 @@ class dataSideApp extends Vue {
   nameFile = ''
   show_formdoc = false
   showLoader = false
+  getIcon = getIcon
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
@@ -660,14 +666,12 @@ class dataSideApp extends Vue {
        this.$emit('buttonClicked', 'vueDoc')
     }
     this.nameFile = nameFile
-    console.log('Doc name: ', nameFile);
-    console.log('Doc id: ', referencedId);
     this.idDoc = referencedId
     this.showDocvalue = true;
   }
   closeVueDoc() {
-    console.log('closeVueDoc');
       this.showDocvalue = false;
+      this.$emit('buttonClicked', 'vueDocClose')
     }
   resize() {
     setTimeout(() => {
@@ -749,7 +753,6 @@ class dataSideApp extends Vue {
       this.floorstaticDetails = result
       this.filteredEndpoints('building')
       this.getDocumentation(result)
-      console.log('building info: ', result );
       this.getTicket(result)
       this.filtredAttribut('building')
       this.$forceUpdate();
@@ -772,8 +775,7 @@ class dataSideApp extends Vue {
 
     const tickets = resultParent;
     this.ticketsList = tickets[0].reverse();
-    // console.error(this.ticketsList);
-    console.log(this.ticketsList, '-> tickets');
+   
 
   }
 

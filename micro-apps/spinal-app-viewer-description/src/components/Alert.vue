@@ -49,7 +49,6 @@ export default {
                 setTimeout(() => {
                     this.show_alert = false;
                     this.$emit('update:show', false);
-                    console.log('hide -> alert in Alert.vue');
                 }, 5000); // Notification disparait après 5 secondes
             }
         }
