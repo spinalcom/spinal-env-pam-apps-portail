@@ -31,12 +31,16 @@ justify-content: space-between !important;
     opacity: 1;
     box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
 }
+.title-button::first-letter{
+    text-transform: uppercase;
+}
 .title-button{
 text-align: left !important;
-font: normal normal normal 11px/13px Charlevoix Pro !important;
+font: normal normal normal  Charlevoix Pro !important;
 text-transform: lowercase !important;
 color: #14202C !important;
-font-size: 13px !important;
+font-size: 16px !important;
+font-weight: 600;
 text-align: start;
 padding-left: 10px;
 letter-spacing: 1.1px !important; 
@@ -54,3 +58,25 @@ color: #14202C;
     
 }
 
+/* Animation */
+.animation-remove-file {
+    animation: delete-file 0.5s linear;
+   }
+  
+/* KeyFrame */
+@keyframes delete-file {
+    0% {
+        transform:translateX(0px);
+        opacity: 1;
+    }
+    50% {
+        
+        transform: translateX(300px);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    
+   }

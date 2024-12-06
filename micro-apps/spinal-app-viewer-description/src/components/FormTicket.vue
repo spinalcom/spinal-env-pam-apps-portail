@@ -1,7 +1,7 @@
 <template>
     <v-dialog v-model="isDialogOpen" persistent max-width="65%" style="display: flex !important;gap: 20px !important; font-size: 12px !important; overflow: hidden; background: white !important;   border-radius: 20px !important;">
       <form @submit.prevent="createTicket"  class="content">
-        <div style="padding: 10px;" class="w-full flex justify-between border-bottom">
+        <div style="padding: 10px; align-items: center;" class="w-full flex justify-between border-bottom">
               <span class="headline">Ajouter un ticket</span>
               <div style="display: flex; gap: 10px;">
                 <button type="submit" class="save-btn">
@@ -50,8 +50,8 @@
             <div class="col">
               <v-text-field label="Nom du ticket" v-model="ticketname" outlined></v-text-field>
               <v-textarea label="Description" v-model="description" outlined></v-textarea>
-              <v-row v-if="showalert">
-                  <v-icon  style=" color: red;">mdi-alert-circle-outline</v-icon>
+              <v-row v-if="showalert" style="width: 100%; display: flex; gap: 10px;  justify-content: center; align-items: center; ">
+                  <v-icon  style=" color:rgba(133, 27, 27, 0.757);">mdi-alert-circle-outline</v-icon>
                   <span class="text-alert">Veuillez remplir tous les champs</span>
               </v-row>
               <v-row class="flex justify-center items-center" style="padding: 10px">
@@ -73,23 +73,20 @@
                     <input type="file" name="images" id="" multiple @change="uploadsFile">
                 </div>
               </div>
-              <v-col class="flex justify-center items-center" v-if="files.length != 0" v-for="(image, index) in files">
-                <v-row class="file"
-                  >
-                  <div class="flex flex-col justify-start items-center w-1/2" >
-                      <div style="width: 100%;height: max-content; display: flex; align-items: center; gap: 10px;">
-                      <v-icon >{{ iconFile(image.type) }}</v-icon>
-                      <span style="font-size: 16px !important;">{{ image.name }}</span>
-                      </div>
-                    <div style="width: 100%;">
-                      <span style="margin-left: 45px; font-size: 17px; text-align: left;">{{ filesSize(image.size) }}</span>
-                    </div>
-                  </div>
-                  <v-icon style="width: max-content; height: max-content; border-radius: 50%;" class="pointer" @click="removeFile(index)">
-                           mdi-close
-              </v-icon>
-                </v-row>
-              </v-col>
+              <p v-if="isValid" class="valid_formText">{{ valid_message }}</p>
+              <div class="file-content">
+                            <div class="file" v-for="(item, idx) in files" :class="{'animation-remove-file': remove_animation == idx}">
+                                    <div style="width: 100%; display: flex; gap: 10px;">
+                                        <v-icon style="color: #14202C;" >{{ iconFile(item.name) }}</v-icon>
+                                        <span>{{ item.name }}</span>
+                                    </div>
+                                    <div >
+                                        <span style="padding-left: 30px;">{{ filesSize(item.size) }}</span>
+                                    </div>
+                             
+                                    <v-icon class="close" @click="removeFile(idx)" >mdi-close</v-icon>
+                            </div> 
+                        </div>
              
               
             </v-card-text>
@@ -146,12 +143,16 @@ import { WorkflowInterface } from '../interfaces/Workflow';
             color: 'red',
             value: 2,
             checked: false,
+
           },
         ],
         workflowlist: [{}],
         process: [],
         files : Array(),
         priority: null,
+        remove_animation: null,
+        isValid: false,
+        valid_message: '',
       };
 
     },
@@ -165,6 +166,14 @@ import { WorkflowInterface } from '../interfaces/Workflow';
       isDialogOpen(newVal) {
         this.$emit('input', newVal);
       },
+      remove_animation(newVal: number) {
+                console.log(newVal, 'newVal')
+                if (newVal != null) {
+                    setTimeout(() => {
+                        this.remove_animation = null;
+                    }, 500);
+                }
+            }
     },
     methods: {
       closeDialog() {
@@ -194,9 +203,19 @@ import { WorkflowInterface } from '../interfaces/Workflow';
       this.process = res.children;
     },
    async uploadsFile(e: any) {
-  
+    const files_types = ['png', 'jpg', 'jpeg', 'pdf', 'xls', 'xlsx', 'csv', 'mp4', 'avi', 'webm'];
     for (let i = 0; i < e.target.files.length; i++) {
-      this.files.push(e.target.files[i]);
+      const extension = e.target.files[i].name.match(/\.([^.]+)$/);
+      const type_file = files_types.includes(extension![1]);
+      if (type_file) {
+        this.files.push(e.target.files[i]);
+        this.isValid = false;
+        this.valid_message = '';
+      } 
+      else {
+        this.isValid = true;
+        this.valid_message = 'Veuillez choisir un fichier valide';
+      }
     }
 
     },
@@ -210,7 +229,11 @@ import { WorkflowInterface } from '../interfaces/Workflow';
       this.priority = null;
     },
     removeFile(index: number) {
-      this.files.splice(index, 1);
+      this.remove_animation = index;
+      setTimeout(() => {
+        this.remove_animation = null;
+        this.files.splice(index, 1);
+      }, 500);
     },
     filesSize(size: number){
       if (size < 1024) {
@@ -259,31 +282,28 @@ import { WorkflowInterface } from '../interfaces/Workflow';
       
     },
     iconFile(type: string) {
-      switch (type) {
-        case 'image/pdf':
+        const extension = type.match(/\.([^.]+)$/);
+      switch (extension![1]) {
+        case 'pdf':
           return 'mdi-file-pdf-box';
-        case 'image/doc':
-          return 'mdi-file-word-box';
-        case 'image/docx':
-          return 'mdi-file-word-box';
-        case 'image/xls':
+        case 'xlsx':
+        case 'xls':
+        case 'csv':
           return 'mdi-file-excel-box';
-        case 'image/xlsx':
-          return 'mdi-file-excel-box';
-        case 'image/ppt':
-          return 'mdi-file-powerpoint-box';
-        case 'image/pptx':
-          return 'mdi-file-powerpoint-box';
-        case 'image/jpg':
+        case 'jpg':
+        case 'jpeg':
           return 'mdi-file-jpg-box';
-        case 'image/jpeg':
-          return 'mdi-file-jpg-box';
-        case 'image/png':
+        case 'png':
           return 'mdi-file-png-box';
+        case 'mp4':
+        case 'avi':
+        case 'webm':
+          return 'mdi-movie-outline';
         default:
           return 'mdi-file';
       }
     }
+  
   }
   };
   </script>
@@ -378,6 +398,21 @@ import { WorkflowInterface } from '../interfaces/Workflow';
         opacity: 0;
         cursor: pointer;
       }
+
+      .file-content {
+        margin-top: 10px;
+        height: calc(100% - 10px);
+        width: calc(100% - 150px);
+        min-height: 25px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        overflow: hidden;
+        overflow-y: auto;
+        background-color: rgb(255, 255, 255);
+        margin: auto;
+    }
+
       .pointer {
         cursor: pointer;
       }
@@ -419,14 +454,20 @@ import { WorkflowInterface } from '../interfaces/Workflow';
           overflow: hidden;
       }
       .file {
-        width: calc(100% - 200px);
-        height: max-content;
-        border: 1px solid #14202C;
-        border-radius: 20px;
-        padding: 10px;
+        width: 100%;
+        min-height: 40px;
+        height:40px;
         overflow: hidden;
+        border-radius: 16px;
+        border: 1px solid #14202C;
+        padding: 10px;
         display: flex;
-      }
+        font-size: 14px;
+        flex-direction: column;
+        position: relative;
+        color: #14202C;
+
+    }
       .progress-bar {
         width: calc(100% - 40px);
         height: 4px;
@@ -464,10 +505,21 @@ import { WorkflowInterface } from '../interfaces/Workflow';
         font-weight: 700;
       }
       .text-alert {
-        color: rgba(228, 11, 11, 0.801);
-        font-size: 12px;
+        color: rgba(133, 27, 27, 0.757);
+        font-size: 14px;
         font-weight: 700;
+        text-align: center;
+        font-family: charlevoix-pro, sans-serif;
       }
+      .valid_formText {
+    color: rgba(133, 27, 27, 0.757);
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 10px;
+    margin: auto;
+    text-align: center;
+    font-family: Charlevoix Pro, sans-serif;
+   }
       .chip{
         width: 120px;
         height: 30px;

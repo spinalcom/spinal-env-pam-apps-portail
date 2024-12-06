@@ -1,10 +1,10 @@
 <template>
 
-<v-dialog v-model="show" persistent max-width="75%" style="display: flex !important;gap: 20px !important; font-size: 12px !important; overflow: hidden; background: white !important; border-radius: 20px !important;">
+<v-dialog class="dialog-content" v-model="show" persistent width="75%" style="display: flex !important;gap: 20px !important; font-size: 12px !important; overflow: hidden; background: white !important; border-radius: 20px !important;">
         <div class="content-form">
                 <form style="width: 100%; height: 100%;" @submit.prevent="uploadDoc">
                     <div class="header">
-                            <h2>Ajout d'un document</h2>
+                            <h2>Ajout de document</h2>
                             <div>
                                 <button type="submit" class="save-btn">Enregistrer</button>
                                 <button type="reset" class="cancel-btn" @click="closeDialog">Fermer</button>
@@ -21,9 +21,9 @@
                         </div>
                         <p v-if="isValid" class="valid_formText">{{ valid_message }}</p>
                         <div class="file-content">
-                            <div class="file" v-for="(item, idx) in files">
+                            <div class="file" v-for="(item, idx) in files" :class="{'animation-remove-file': remove_animation == idx}">
                                     <div style="width: 100%; display: flex; gap: 10px;">
-                                        <v-icon >{{ iconFile(item.name) }}</v-icon>
+                                        <v-icon style="color: #14202C;" >{{ iconFile(item.name) }}</v-icon>
                                         <span>{{ item.name }}</span>
                                     </div>
                                     <div >
@@ -46,7 +46,9 @@
 
 
 <script lang="ts">
+import { remove } from 'lodash';
 import { ActionTypes } from '../interfaces/vuexStoreTypes';
+import { get } from 'lodash';
 
     export default {
         name: 'form-doc',
@@ -65,13 +67,22 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
                 show: this.isDialogOpen,
                 files: Array(),
                 valid_message: '',
-                isValid: false
+                isValid: false,
+                remove_animation: null
             }
         },
 
         watch: {
             isDialogOpen(newVal: boolean) {
                 this.show = newVal;
+            },
+            remove_animation(newVal: number) {
+                console.log(newVal, 'newVal')
+                if (newVal != null) {
+                    setTimeout(() => {
+                        this.remove_animation = null;
+                    }, 500);
+                }
             }
         },
         destroyed() {
@@ -107,9 +118,21 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
            
             },
             pushFile(){
+                const files_types = ['png', 'jpg', 'jpeg', 'pdf', 'xls', 'xlsx', 'csv', 'mp4', 'avi', 'webm'];
+            
                 const files = this.$refs.fileInput.files;
                 for (let index = 0; index < files.length; index++) {
-                    this.files.push(files[index]);
+                    const type_file = files_types.find(type => files[index].name.includes(type));
+                    console.log(type_file, 'type_file')
+                    if (type_file) {
+                        this.files.push(files[index]);
+                        this.isValid = false;
+                        this.valid_message = '';
+                    } else {
+                        this.isValid = true;
+                        this.valid_message = 'Les fichiers ' + this.getExtension(files[index].name)[0] + ' ne sont pas prise en charge';
+                    }
+                    // this.files.push(files[index]);
                 }
             },
             filesSize(size: number){
@@ -125,25 +148,35 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
 
     },
     removeFile(index: number) {
-        this.$refs.fileInput.value = '';
-        this.files.splice(index, 1)
+        this.remove_animation = index;
+        setTimeout(() => {
+            this.remove_animation = null;
+            this.files.splice(index, 1)
+            this.$refs.fileInput.value = '';
+        }, 500);
     },
-    iconFile(type: string) {
-        const extension = type.match(/\.([^.]+)$/);
-        console.log(extension)
+        getExtension(file: string) {
+            return file.match(/\.([^.]+)$/);
+        },
+     iconFile(type: string) {
+        const extension = this.getExtension(type);
+        console.log(extension, 'extension')
       switch (extension![1]) {
         case 'pdf':
           return 'mdi-file-pdf-box';
-        case 'xls':
-          return 'mdi-file-excel-box';
         case 'xlsx':
+        case 'xls':
+        case 'csv':
           return 'mdi-file-excel-box';
         case 'jpg':
-          return 'mdi-file-jpg-box';
         case 'jpeg':
           return 'mdi-file-jpg-box';
         case 'png':
           return 'mdi-file-png-box';
+        case 'mp4':
+        case 'avi':
+        case 'webm':
+          return 'mdi-movie-outline';
         default:
           return 'mdi-file';
       }
@@ -152,6 +185,7 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
  }
     
     }
+        
 
 </script>
 
@@ -171,10 +205,17 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
     }
     .content-form .header {
         width: 100%;
-        padding: 10px;
+        padding: 20px;
         border-bottom: 1px solid #e8dfdf96;
         display: flex;
+        align-items: center;
         justify-content: space-between;
+    }
+    .content-form .header > h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: #14202C;
+        text-transform: uppercase;
     }
     .content-input {
         width: 100%;
@@ -228,24 +269,32 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
    
     .content-form .file-content {
         margin-top: 10px;
+        height: calc(100% - 10px);
         width: calc(100% - 450px);
         min-height: 25px;
         display: flex;
         flex-direction: column;
         gap: 10px;
+        overflow: hidden;
+        overflow-y: auto;
         background-color: rgb(255, 255, 255);
     }
     .file-content .file {
         width: 100%;
-        min-height: 25px;
+        min-height: 40px;
+        height:40px;
+        overflow: hidden;
         border-radius: 16px;
         border: 1px solid #14202C;
         padding: 10px;
         display: flex;
+        font-size: 14px;
         flex-direction: column;
         position: relative;
+        color: #14202C;
 
     }
+    
     .content-form  .upload-img input {
         width: 100%;
         height: 100%;
@@ -300,12 +349,10 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
     font-family: Charlevoix Pro, sans-serif;
    }
    .close {
-    width: max-content;
-     height: max-content;
+    width: 24px;
+     height: 24px;
       padding: 2px;
-       position: absolute;
-        right: 0; 
-        top: 50%;
+        translate: translateY(-50%);
      cursor: pointer;
    }
    .row {
@@ -314,5 +361,30 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
    .col {
     flex-direction: column;
    }
+   /* MediaQuery */
 
+
+   @media (min-width : 600px) and (max-width: 900px) {
+    .dialog-content {
+        width: 100% !important;
+        height: 100% !important;
+        gap: 10px !important;
+    }
+    .content-form header {
+        font-size: 14px;
+    }
+    .content-form .header > h2 {
+        font-size: 16px;
+    }
+    .content-form .upload-img {
+        width: calc(100% - 100px);
+        height: calc(100% - 240px);
+    }
+    .content-form .file-content {
+        width: calc(100% - 100px);
+    }
+    .content-form .file-content .file {
+        font-size: 12px;
+    }
+   }
 </style>

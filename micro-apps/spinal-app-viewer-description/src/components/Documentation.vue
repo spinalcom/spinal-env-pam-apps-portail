@@ -14,10 +14,12 @@
 
                
             </v-row>
+            <div v-if="loader" style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+                <div class="loader"></div>
+            </div>
                 <!-- Affichage de l'image -->
             <div v-if="show[0].image.show">
                 <div class="image-vue">
-                    <span :class="loader ? 'loader' : ''"></span>
                  
             <img :src="show[0].image.url" alt="" srcset="">
                 </div>
@@ -26,7 +28,7 @@
             <div v-if="show[0].pdf.show" style="width: 100%; height: 100%;">
                
                 <div class="pdf-vue">
-                    <VuePdfApp  style="height: 100%; width: 100%;" :pdf="show[0].pdf.url" />
+                    <VuePdfApp :config="vue_pdfConfig" style="height: 100%; width: 100%;" :pdf="show[0].pdf.url" />
                 </div>
             </div>
             <!-- Affichage des données du fichier excel -->
@@ -45,7 +47,9 @@
                 </table>
              </div>
              <div v-if="show[0].movie.show" class="movie-vue">
-                    <video :src="show[0].movie.url" controls > </video>
+                    <video  :src="show[0].movie.url" controls > 
+
+                    </video>
              </div>
         </div>
   
@@ -53,17 +57,41 @@
 
 <script lang="ts">
 
-import { url } from 'inspector';
 import { ActionTypes } from '../interfaces/vuexStoreTypes';
-// import pdf from 'vue-pdf-embed/dist/vue2-pdf-embed';
-// import VuepdfEmbed from 'vue-pdf-embed/dist/vue2-pdf-embed';
 import VuePdfApp from 'vue-pdf-app'
 import "vue-pdf-app/dist/icons/main.css";
 import {read, utils } from 'xlsx';
+
+// Configuration de la vue-pdf
+const getToolbarViewerLeft = () => ({
+  findbar: true,
+  previous: true,
+  next: true,
+  pageNumber: true,
+});
+const getToolbarViewerRight = () => ({
+  presentationMode: true,
+  openFile: false,
+  print: false,
+  download: true,
+  viewBookmark: false,
+});
+const getToolbarViewerMiddle = () => ({
+  zoomOut: true,
+  zoomIn: true,
+  scaleSelectContainer: false,
+});
+const getToolbar = () => ({
+  toolbarViewerLeft: getToolbarViewerLeft(),
+  toolbarViewerRight: getToolbarViewerRight(),
+  toolbarViewerMiddle: getToolbarViewerMiddle(),
+});
+
+
+
     export default {
         name: 'ShowDocumentation',
         components: {
-            // VuepdfEmbed,
             VuePdfApp,
         },
         props: {
@@ -101,8 +129,12 @@ import {read, utils } from 'xlsx';
                     movie: {
                         show: false,
                         url: '',
-                    }
-                }]
+                    },
+                  
+                }],
+                vue_pdfConfig: {
+                    toolbar: getToolbar(),
+                }
             };
         },
        watch: {
@@ -143,15 +175,20 @@ import {read, utils } from 'xlsx';
             
 
             },
+           
 
             showFile(type: string, url: string){
-                console.log('type: ', type)
+                this.loader = true;
+                setTimeout(() => {
+                    this.loader = false;
+                }, 2000);
                this.show.map(async (item, index)=> {
                     if(type === 'pdf'){
                         item.pdf.show = true;
                         item.pdf.url = url;
                         item.excel.show = false;
                         item.image.show = false; 
+                        item.movie.show = false;
                         
                     
                     }else if(type === 'png' || type === 'jpeg' || type === 'jpg'){
@@ -159,6 +196,7 @@ import {read, utils } from 'xlsx';
                         item.image.url = url;
                         item.pdf.show = false;  
                         item.excel.show = false;
+                        item.movie.show = false;
 
                     } else if(type === 'mp4' || type === 'mkv' || type === 'ogg' || type === 'avi' || type === 'mov' || type === 'flv' || type === 'wmv'){
                         item.movie.show = true;
@@ -185,17 +223,15 @@ import {read, utils } from 'xlsx';
                        load.forEach((row, index) => {
                             if(index === 0){
                                  this.headersTableExcel = Object.keys(row)
-                                 console.log('headers: ', this.headersTableExcel)
                             }
                             this.tableExcelData.push(Object.values(row))
-                            console.log('tableExcelData: ', this.tableExcelData)
                         })
                        
 
                     }
-                    console.log('item: ', item)
                })
-            }
+            },
+          
         }
     }
 
@@ -300,6 +336,7 @@ import {read, utils } from 'xlsx';
         padding: 20px;
         margin-top:  10px;
         overflow-y: auto;
+        overflow-x: auto;
     }
     .excel-vue table {
         width: 100%;
@@ -335,11 +372,13 @@ import {read, utils } from 'xlsx';
     }
     .movie-vue video {
         width: calc(100% - 40px); 
-        height: calc(100% - 40px);
+        height: calc(100% - 140px);
         object-fit: cover;
         border-radius: 10px;
         overflow: hidden;
+        object-position: center;
     }
+    
     .btn-closed {
         height: max-content;
         cursor: pointer;
@@ -357,7 +396,7 @@ import {read, utils } from 'xlsx';
   aspect-ratio: 1;
   border-radius: 50%;
   padding: 1px;
-  background: conic-gradient(#0000 10%,#f03355) content-box;
+  background: conic-gradient(#0000 10%,#14202C) content-box;
   -webkit-mask:
     repeating-conic-gradient(#0000 0deg,#000 1deg 20deg,#0000 21deg 36deg),
     radial-gradient(farthest-side,#0000 calc(100% - var(--b) - 1px),#000 calc(100% - var(--b)));

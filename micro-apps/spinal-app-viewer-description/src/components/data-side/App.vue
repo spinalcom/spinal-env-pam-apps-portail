@@ -261,12 +261,12 @@ with this file. If not, see
       <div v-if="selection == 'Tickets'">
         <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
         <!-- Vérification si les tickets existent -->
-        <div v-if="ticketsList && ticketsList[0]">
+        <div v-if="ticketsList">
           <FormTicket :value="showFormTicket"  @close-dialog="ShowDialog()" :selectedZone="selectedZone" @add-ticket="showAlert"/>
          <!-- Button d'ajout d'un ticket  -->
          <AddTicketBtn @open-dialog="ShowDialog()"/>
           <!-- Boucle sur chaque ticket -->
-          <div v-for="(ticket, index) in ticketsList[0]" :key="index" class="blocInformation" >
+          <div v-for="(ticket, index) in ticketsList" :key="index" class="blocInformation" >
             <div class="">
               <div>
                 <!-- Affichage des informations principales du ticket -->
@@ -372,7 +372,7 @@ with this file. If not, see
 
             <div style="display: flex; justify-content: space-between; align-items: center;  width: 100%;"  v-for="(item, index) in documentation.element">
               <div class="inventory-item"
-              style="max-width: 80%; width: 55%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
+              style="width: 100%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
               
               <li>
                 {{ item.Name }}
@@ -381,7 +381,7 @@ with this file. If not, see
              
             </div>
           
-            <v-row style="display: flex; align-items: center; justify-content: flex-end; padding-right: 30px; gap: 10px">
+            <v-row style="display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 10px; padding: 10px; width: max-content;">
               <v-icon style="width: max-content; height: max-content; background-color: rgba(203 213 225 0.5); border-radius: 50%; padding: 4px; color: #14202c; cursor: pointer;" @click="showDoc(item.dynamicId, item.Name) ;" >
                 mdi-eye
               </v-icon>
@@ -390,6 +390,7 @@ with this file. If not, see
               </v-icon>
             </v-row>
           </div>
+          <Loader :showLoader="showLoader" />
         </div>
         <div v-else style="width: 100%; text-align: center;"> 
             <p>Aucun document</p>
@@ -406,10 +407,10 @@ with this file. If not, see
             <div class="blocInformation">
               <div style="display: flex;" v-for="(item, index2) in parent.documentation" :key="index2">
                 <div class="inventory-item"
-                style="max-width: 80%; width: 50%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
+                style="max-width: 100%; width: 99%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                   <li>{{ item.Name }}</li>
                 </div>
-                <v-row style="display: flex; align-items: center; justify-content: flex-end; padding-right: 30px; gap: 10px">
+                <v-row style="display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; padding: 10px; width: max-content; gap: 10px">
                   <v-icon style="width: max-content; height: max-content; background-color: rgba(203 213 225 0.5); border-radius: 50%; padding: 4px; color: #14202c; cursor: pointer;" @click="showDoc(item.dynamicId, item.Name)" >
                     mdi-eye
                   </v-icon>
@@ -483,6 +484,8 @@ import FormTicket from "../FormTicket.vue";
 import AddTicketBtn from "../ButtonAddticket.vue";
 import FormDoc from "../FormDoc.vue";
 import AddBtn from '../ButtonAdd.vue';
+import Loader from "../Loader.vue";
+import Loader from "../Loader.vue";
 
 @Component({
   components: {
@@ -495,7 +498,8 @@ import AddBtn from '../ButtonAdd.vue';
     Alert,
     ShowDocumentation,
     FormDoc,
-    AddBtn
+    AddBtn,
+    Loader
   },
   filters: {},
 })
@@ -549,6 +553,7 @@ class dataSideApp extends Vue {
   idDoc: number = 0
   nameFile = ''
   show_formdoc = false
+  showLoader = false
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
@@ -596,7 +601,8 @@ class dataSideApp extends Vue {
     ];
     const resultParent = await Promise.all(parentPromise);
       const tickets = resultParent;
-      this.ticketsList = tickets;
+      // console.log('tickets: ', tickets[0].reverse());
+      this.ticketsList = tickets[0].reverse();
         break;
       case 'document':
         console.log('case: document')
@@ -765,9 +771,9 @@ class dataSideApp extends Vue {
     const resultParent = await Promise.all(parentPromise);
 
     const tickets = resultParent;
-    this.ticketsList = tickets;
+    this.ticketsList = tickets[0].reverse();
     // console.error(this.ticketsList);
-    console.log(this.ticketsList);
+    console.log(this.ticketsList, '-> tickets');
 
   }
 
@@ -1525,7 +1531,9 @@ class dataSideApp extends Vue {
   /**
    * Watch
    */
-  
+
+
+
    @Watch("documentation")
     watchDocumentation(newVal) {
       this.documentation = newVal;
@@ -1534,8 +1542,11 @@ class dataSideApp extends Vue {
   @Watch("alert")
   watchAlert(newVal) {
     if (newVal) {
+      this.showLoader = true;
       setTimeout(() => {
         this.alert = false;
+        console.log('hide alert in App.vue');
+        this.showLoader = false;
       }, 5000);
     }
   }

@@ -60,7 +60,6 @@ export const actions = {
 		}
 	},
 	async [ActionTypes.GET_BIM_OBJECT_INFO]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: any }): Promise<any> {
-		console.log('arrivé dans laction');
 
 		try {
 			const result = await postBIMObjectInfo(buildingId, referenceIds);
@@ -71,7 +70,6 @@ export const actions = {
 		}
 	},
 	async [ActionTypes.POST_DOWNLOAD_FILE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: any }): Promise<any> {
-		console.log('arrivé dans laction');
 
 		try {
 			const result = await postDownloadFile(buildingId, referenceIds);
@@ -82,7 +80,6 @@ export const actions = {
 		}
 	},
 	async [ActionTypes.GET_FILE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId}: { buildingId: string; referenceId: any }): Promise<any> {
-		console.log('referenceIds: ', referenceId);
 		try {
 			const result = await getFile(buildingId, referenceId);
 			return result;
@@ -186,7 +183,6 @@ export const actions = {
 		}
 	},
 	async [ActionTypes.GET_BUILDING_STATIC_DETAILS]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
-		console.log(buildingId, referenceIds, 'RR');
 
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
@@ -201,7 +197,6 @@ export const actions = {
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
 			const result = await getDocumentation(buildingId, referenceIds);
-			console.log('result in action', result);
 			return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des objets de référence:', error);
@@ -209,7 +204,6 @@ export const actions = {
 		}
 	},
 	async [ActionTypes.GET_PARENT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
-		// console.log(buildingId , referenceIds , 'RR');
 
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
@@ -221,7 +215,6 @@ export const actions = {
 		}
 	},
 	async [ActionTypes.GET_TICKET]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
-		// console.log(buildingId , referenceIds , 'RR');
 
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
@@ -233,7 +226,6 @@ export const actions = {
 		}
 	},
 	async [ActionTypes.GET_WORKFLOW_LIST]({ commit }: AugmentedActionContextAppData, { buildingId}: { buildingId: string; referenceIds: number }): Promise<any> {
-		// console.log(buildingId , referenceIds , 'RR');
 
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
@@ -245,10 +237,8 @@ export const actions = {
 		}
 	},
 	async [ActionTypes.GET_PROCESS_WORKFLOW]({ commit }: AugmentedActionContextAppData, { buildingId, workflowId}: { buildingId: string; referenceIds: number, workflowId: number }): Promise<any> {
-		// console.log(buildingId , referenceIds , 'RR');
 
 		const spinalAPI = SpinalAPI.getInstance();
-		console.log("workflowId in action: ", workflowId);
 		try {
 			const result = await getProcess(buildingId, workflowId);
 			return result;
@@ -265,7 +255,6 @@ export const actions = {
 				const file = new FormData();
 				file.append('file', element);
 				const adddoc = await addTicketDoc(buildingId, result.dynamicId, file);
-				console.log(adddoc, 'adddoc');
 			})
 			return result;
 		} catch (error){
@@ -289,7 +278,6 @@ export const actions = {
 	},
 
 	async [ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }): Promise<any> {
-		// console.log(buildingId , referenceIds , 'RR');
 
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
@@ -302,7 +290,6 @@ export const actions = {
 	},
 
 	async [ActionTypes.GET_TIMES_SERIES]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds, begin, end }: { buildingId: string; referenceIds: number; begin: number; end: number }): Promise<any> {
-		// console.log(buildingId , referenceIds , 'RR');
 		const endpointId = referenceIds.toString();
 		const spinalAPI = SpinalAPI.getInstance();
 		try {

@@ -3,7 +3,7 @@
     class="button-add-ticket" @click="$emit('open-dialog')">
         <v-icon class="icon">{{ icon }}</v-icon>
             <div class="text-button">
-                <span class="name-button">{{ name }}</span>
+                <span class="title-button">{{ name }}</span>
             </div>
         </button>
 
@@ -36,10 +36,8 @@ export default {
         border-radius: 6px !important;
         padding: 10px !important;
     }
-    .name-button {
-        font-size: 12px;
-        margin-left: 8px;
-        font-weight: 600;
-        text-transform: lowercase;
+    .name-button::first-letter {
+        text-transform: uppercase;
     }
+  
 </style>

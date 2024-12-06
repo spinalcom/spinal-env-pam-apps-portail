@@ -6,7 +6,7 @@
     class="button-add-ticket" @click="$emit('open-dialog')">
         <v-icon class="icon-add-ticket"></v-icon>
             <div class="text-button">
-                <span class="title-button">Déclarer un ticket</span>
+                <span class="title-button">Ajouter un ticket</span>
             </div>
         </button>
 </template>
