@@ -1,13 +1,13 @@
 
 <template>
   <div class="icon">
-    <v-icon v-if="status==='done'"
+    <v-icon v-if="status==='Clôturée' || status==='Solved'"
       class="done icon"
       >mdi-check-circle-outline</v-icon>
-    <v-icon v-else-if="status==='inProgress'" 
+    <v-icon v-else-if="status==='Réalisation partielle' || status === 'Raised'"
       class="pending icon"
       >mdi-vanish</v-icon>
-    <v-icon v-else-if="status==='pending'" 
+    <v-icon v-else-if="status==='Attente de lect.avant Execution'" 
       class="in-progress icon"
       >mdi-circle-small</v-icon>
   </div>

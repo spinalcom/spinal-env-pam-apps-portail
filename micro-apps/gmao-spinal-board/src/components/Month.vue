@@ -1,12 +1,14 @@
 
 <template>
-  <div class="calendar-plan" ref="calendar" @scroll="onScroll">
+  <div class="calendar-plan" ref="calendar" @scroll="onScroll"
+    :class="{ 'smooth-scroll': isScrolling }">
+
     <div class="action-bar">
       <div class="action-group">
-        <v-icon class="action-icon icon">mdi-chevron-left</v-icon>
-        <v-icon class="action-icon icon">mdi-chevron-right</v-icon>
+        <v-icon class="action-icon icon" @click="verticalScroll('left')">mdi-chevron-left</v-icon>
+        <v-icon class="action-icon icon" @click="verticalScroll('right')">mdi-chevron-right</v-icon>
       </div>
-      <div class="action-button" @click="bringToday()">
+      <div class="action-button pointer-hover" @click="bringToday()">
         Aujourd'hui
       </div>
       <div class="action-group">
@@ -18,6 +20,7 @@
         Filter
       </div>
     </div>
+
     <div :style="[
       { 'width': planWidth + 30 + 'px' },
       { 'height': planHeight + 60 + 'px' },
@@ -55,14 +58,17 @@
         <div class="dot" :style="{ 'left': markerOffset + 10 + 'px' }"></div>
       </div>
 
-        <div class="plan-background" :style="{ 'height': planHeight  + 'px' }">
+      <div class="plan-background" :style="{ 'height': planHeight  + 'px' }">
         <CalendarContent
           :ticketList="ticketList"
           :separator="separator"
           :start="start"
           :end="end"
-          @resizedSideBar="resizedSideBar"
-          @planHeight="planH" />
+          :viewPortEdges="viewPortEdges"
+          @bringDay="bringDay"
+          @goto="bringTheDay"
+          @planHeight="planH"
+          @resizedSideBar="resizedSideBar" />
       </div>
     </div>
   </div>
@@ -79,7 +85,10 @@ export default {
   components: {
     CalendarContent,
   },
+  computed: {
+  },
   data: () => ({
+    isScrolling: false,
     currentMarker: null,
     planHeight: 0,
     PERIODINTERVAL: 3, // 3 months
@@ -88,7 +97,11 @@ export default {
     end: null,
     diff: 0, // Days between the start and the end of the displayed calendar
     monthList: [],
-    planDimensions: {}, 
+    planDimensions: {},
+    viewPortEdges: { start: null, end: null },
+    sideBarWidthInDays: 0,
+    viewPortWidthInDays: 0,
+    margin: 300,
   }),
   created() {
     this.current = moment();
@@ -102,13 +115,15 @@ export default {
     this.appendPeriod();
     this.prependPeriod();
   },
-  mounted() {
+  async mounted() {
     this.currentMarker = moment().format('DD/MMMM/YYYY');
-    this.planDimensions = {
-      height: this.$refs.calendar.offsetHeight,
-      width: this.$refs.calendar.offsetWidth
-    };
-    this.bringToday();
+    this.updatePlanDimensions()
+    this.bringToday(false);
+
+    window.addEventListener('resize', this.handleResize);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.handleResize);
   },
   computed: {
     markerOffset() {
@@ -120,6 +135,10 @@ export default {
     },
     planWidth() {
       return this.diff * 30;
+    },
+    scrollWidth() {
+      const sideBarWidth = 300;
+      return Math.floor((this.planDimensions.width - sideBarWidth) / 30) * 30;
     }
   },
   methods: {
@@ -164,7 +183,8 @@ export default {
         this.diff = this.end.diff(this.start, 'days');
       }
     },
-    prependPeriod() {
+    async prependPeriod() {
+      let daysPrepended = 0;
       for(let i = 0; i < this.PERIODINTERVAL; i++) {
         this.start = this.setToStartOfMonth(this.subtractMonths(this.start, 1));
         this.monthList.unshift({
@@ -172,29 +192,40 @@ export default {
           year: this.start.format('YYYY'),
           days: this.countDaysInMonth(this.start),
         })
+        daysPrepended += this.monthList[0].days;
         this.diff = this.end.diff(this.start, 'days');
       }
+      this.isScrolling = false;
+      await this.$nextTick();
+      this.$refs.calendar.scrollLeft += daysPrepended * 30;
+      this.isScrolling = true;
+      return daysPrepended;
     },
     onScroll: throttle(function (event) {
+
       const parent = event.target;
       const child = parent.querySelector('.plan-background');
       
       const scrollLeft = parent.scrollLeft;
       const parentWidth = parent.clientWidth;
       const childWidth = child.offsetWidth;
+      // TODO: WRITE DOCUMENTATION
+      this.sideBarWidthInDays = 10;
+      this.viewPortWidthInDays = Math.floor((this.planDimensions.width - 10) / 30) - this.sideBarWidthInDays;
 
-      const margin = 400;
+      this.viewPortEdges.start = moment(this.start).add(Math.ceil(scrollLeft / 30) + this.sideBarWidthInDays, 'days');
+      this.viewPortEdges.end = moment(this.viewPortEdges.start).add(this.viewPortWidthInDays, 'days');
 
-      if (scrollLeft <= margin) {
+      if (scrollLeft <= this.margin) {
         this.triggerNearLeftEdge();
-      } else if (scrollLeft + parentWidth >= childWidth - margin) {
+      } else if (scrollLeft + parentWidth >= childWidth - this.margin) {
         this.triggerNearRightEdge();
       }
-    }, 1000),
+    }, 100),
     triggerNearLeftEdge() {
       const tempStart = this.start;
       this.prependPeriod();
-      this.$refs.calendar.scrollLeft = tempStart.diff(this.start, 'days') * 30;
+      // this.$refs.calendar.scrollLeft = tempStart.diff(this.start, 'days') * 30;
     },
     triggerNearRightEdge() {
       this.appendPeriod();
@@ -204,11 +235,80 @@ export default {
     planH(event) {
       this.planHeight =  event;
     },
-    bringToday() {
-      console.log('Bring the day');
-      this.$refs.calendar.scrollLeft = this.current.diff(this.start, 'days') * 30 - 300 - ( (this.$refs.calendar.offsetWidth - 300) / 2 );
+    async bringToday(animation = true) {
+      // console.log('Bring the day');
+      const date = this.current
+      this.isScrolling = animation;
+      await this.$nextTick();
+      this.$refs.calendar.scrollLeft = date.diff(this.start, 'days') * 30 - 300 - ( (this.$refs.calendar.offsetWidth - 300) / 2 );
+      await this.$nextTick();
+      this.isScrolling = true;
     },
-  }
+    bringTheDay(date) {
+    },
+    async bringDay(ticket) {
+      const { position, startDate } = ticket;
+      if (position === 'right') {
+        const diff = moment(startDate).diff(this.end, 'months');
+        if (diff > 0) {
+          for (let i = 0; i < (diff + 1); i += 3) {
+            await this.appendPeriod();
+          }
+        }
+      }
+      else if (position === 'left') {
+        const diff = moment(startDate).diff(this.start, 'months');
+        if (diff < 0) {
+          for (let i = 0; i < -(diff - 1); i += 3) {
+            await this.prependPeriod();
+          }
+        }
+      }
+      this.$refs.calendar.scrollLeft = moment(startDate).diff(this.start, 'days') * 30 - 300 - ( (this.$refs.calendar.offsetWidth - 300) / 2 );
+    },
+    async verticalScroll(direction) {
+      if (direction === 'right') {
+        if ((this.end.diff(this.viewPortEdges.end, 'days') - this.viewPortWidthInDays) < this.viewPortWidthInDays) {
+          await this.appendPeriod();
+        }
+        await this.$nextTick();
+        this.$refs.calendar.scrollLeft += this.viewPortEdges.end.diff(this.viewPortEdges.start, 'days') * 30;
+      }
+      else if (direction === 'left') {
+        if ((this.viewPortEdges.start.diff(this.start, 'days') - this.viewPortWidthInDays) < this.viewPortWidthInDays) {
+          await this.prependPeriod();
+        }
+
+        await this.$nextTick();
+        this.$refs.calendar.scrollLeft -= this.viewPortEdges.end.diff(this.viewPortEdges.start, 'days') * 30;
+      }
+    },
+    fallingIn(date) {
+      if (moment(date).isAfter(this.end)) {
+        return 'after';
+      }
+      else if (moment(date).isBefore(this.start)) {
+        return 'before';
+      }
+      else if (moment(date).isBetween(this.start, this.end)) {
+        return 'between';
+      }
+      else {
+        return 'unknown';
+      }
+    },
+    updatePlanDimensions() {
+      this.planDimensions = {
+        height: this.$refs.calendar.offsetHeight,
+        width: this.$refs.calendar.offsetWidth
+      };
+    },
+    handleResize() {
+      this.updatePlanDimensions();
+    },
+  },
+  watch: {
+  },
 }
 </script>
 
@@ -237,6 +337,9 @@ export default {
   overflow-y: auto;
   background: #f6f8fa;
   max-width: 100%;
+}
+.smooth-scroll {
+  scroll-behavior: smooth;
 }
 .plan {
   position: relative;
@@ -347,6 +450,7 @@ export default {
   z-index: 111;
   background: linear-gradient(to left, #fff 96%, transparent);
   font-size: 12px;
+  letter-spacing: 1.1px;
 }
 .action-group {
   display: flex;
@@ -361,7 +465,10 @@ export default {
   height: 30px !important;
 }
 .action-icon {
-  font-size: 16px !important;
+  font-size: 14px !important;
+}
+.pointer-hover {
+  cursor: pointer;
 }
 </style>
 

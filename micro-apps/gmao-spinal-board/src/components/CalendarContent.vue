@@ -3,7 +3,14 @@
   <div class="content-plan"
     :style="{ 'height': ticketList.length * 30  + 'px' }">
     <TodayMarker :height="markerHeight" :offset="markerOffset"/>
-    <SideBar class="side-bar" :ticketList="ticketList" @resizedSideBar="resizedSideBar"/>
+    <SideBar class="side-bar"
+      :ticketList="ticketList"
+      :start="start"
+      :end="end"
+      :viewPortEdges="viewPortEdges"
+      @bringDay="bringDay"
+      @resizedSideBar="resizedSideBar"
+      @goto="goto"/>
     <Task
       v-for="(task, index) in  ticketList" :key="task.name + index" class="task"
         :style="[{ 'top': index * 30 + 'px'}, ]"
@@ -20,10 +27,16 @@ import moment from 'moment';
 moment.locale('fr');
 export default {
   name: 'CalendarContent',
-  props: ['ticketList', 'separator', 'start', 'end'],
+  props: [
+    'ticketList',
+    'separator',
+    'start',
+    'end',
+    'viewPortEdges',
+  ],
   components: {
     Task,
-    SideBar, 
+    SideBar,
     TodayMarker,
   },
   data: () => ({
@@ -46,12 +59,17 @@ export default {
   },
   mounted() {
     this.$emit('planHeight', (this.ticketList.length) * 30);
-    console.log(this.ticketList);
   },
   methods: {
     resizedSideBar(event) {
       this.$emit('resizedSideBar', event);
-    }
+    },
+    goto(event) {
+      this.$emit('goto', event);
+    },
+    bringDay(ticket) {
+      this.$emit('bringDay', ticket);
+    },
   },
 }
 </script>
