@@ -136,12 +136,14 @@ export class ViewerManager {
 		const res: any[] = [];
 		const nodeTofetech: number[] = [];
 
-		for (const dynId of ids) {
+		for (let dynId of ids) {
 			if (this._viewerStores["GET_VIEWER_INFO"][dynId]) {
 				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;
 				if (itemData) res.push(itemData);
 			} else {
-				
+				if(!dynId){
+					dynId = body?.dynamicId
+				}
 				this._viewerStores["GET_VIEWER_INFO"][dynId] = generator(dynId, body?.floorRef!, body?.roomRef!, body?.equipements!);
 				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;
 				if (itemData) res.push(itemData);

@@ -27,9 +27,9 @@ with this file. If not, see
 
 
     <div class="selectors">
-      <!-- <div class="DButton">
+      <div class="DButton">
         <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()" />
-      </div> -->
+      </div>
 
       <div class="temporality">
         <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
@@ -146,6 +146,8 @@ class App extends Vue {
     this.RemoveEventHandlers();
 
     EventBus.$on('colorRoom', (dynamicId) => {
+      console.log('aa');
+      
       const buildingId = localStorage.getItem("idBuilding");
       const itemsToColor = [{
         buildingId: buildingId,
@@ -186,6 +188,8 @@ class App extends Vue {
 
 
     if (window.innerWidth < 900) {
+      // console.log(window.innerWidth);
+
       this.isActive = true;
       this.isActive3D = false;
     }
@@ -199,8 +203,16 @@ class App extends Vue {
     }
 
     this.$nextTick(() => {
+
+
       this.query.app = this.config.idAppDescription
+      // console.warn('/////////////////////////////////////////////////////');
+      // console.log(window.parent.router.query);
       window.parent.router.query.app = this.query.app
+      // console.log(window.parent.router.query);
+
+      console.warn('/////////////////////////////////////////////////////');
+
       const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
       this.applyURLParam(currentQuery);
     });
@@ -304,16 +316,29 @@ class App extends Vue {
   }
 
 
-  toggleActive() {
+  toggleActive(value) {
     if (this.isActive3D) {
       this.isActive3D = false
     }
     this.isActive = !this.isActive;
-    this.handleRouteChange();
+    if(value === 'vueDoc'){
+      this.isActive = true
+      this.isActive3D = false
+      this.query.mode = 'data'
+    }else if(value === 'vueDocClose'){
+      this.isActive = false
+      this.isActive3D = false
+      this.query.mode = 'none'
+    }
+    else {
+      this.handleRouteChange();
+    }
+    
   }
 
 
   toggleActive3D() {
+    console.log('buttonClicked3D');
     if (this.isActive)
       this.isActive = false
     this.isActive3D = !this.isActive3D;
@@ -445,8 +470,10 @@ class App extends Vue {
     //   "buildingId": "5932-6086-9e1a-18506478460",
     //   "type": "geographicFloor"
     // }
-
+ 
+    console.warn('test pour le crash' , item.parents);
     const buildingId = localStorage.getItem("idBuilding");
+    
 
     const data = {
       "isOpen": false,
@@ -579,10 +606,13 @@ class App extends Vue {
   handleRouteChange() {
     if (this.isActive3D && !this.isActive) {
       this.query.mode = '3d'
+      console.log('3d');
     } else if (!this.isActive3D && this.isActive) {
       this.query.mode = 'data'
+      console.log('data');
     } else {
       this.query.mode = 'none'
+      console.log('none');
     }
     this.replaceRoute();
   }
@@ -619,6 +649,7 @@ export default App;
     .DButton {
       width: 60px;
       height: 60px;
+      transform: translate(-50px, 0px);
     }
 
     @media (max-width: 960px) {
