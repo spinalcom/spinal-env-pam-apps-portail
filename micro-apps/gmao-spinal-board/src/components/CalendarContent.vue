@@ -91,9 +91,7 @@ export default {
   left: 0;
   background: white;
   height: 100%;
-  width: 300px;
   z-index: 101;
-  border-right: 1px solid #E2E2E2;
 }
 
 .task {

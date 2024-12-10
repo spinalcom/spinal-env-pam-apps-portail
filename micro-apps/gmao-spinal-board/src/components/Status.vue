@@ -23,6 +23,8 @@ export default {
 <style scoped>
 .icon {
   display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .icon {
   font-size: 16px !important;

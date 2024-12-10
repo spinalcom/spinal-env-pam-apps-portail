@@ -99,9 +99,11 @@ export default {
     monthList: [],
     planDimensions: {},
     viewPortEdges: { start: null, end: null },
-    sideBarWidthInDays: 0,
+    sidebarWidthInDays: 0,
     viewPortWidthInDays: 0,
     margin: 300,
+    sidebarWidth: 300,
+    scrollLeft: 0,
   }),
   created() {
     this.current = moment();
@@ -137,8 +139,7 @@ export default {
       return this.diff * 30;
     },
     scrollWidth() {
-      const sideBarWidth = 300;
-      return Math.floor((this.planDimensions.width - sideBarWidth) / 30) * 30;
+      return Math.floor((this.planDimensions.width - this.sidebarWidth) / 30) * 30;
     }
   },
   methods: {
@@ -206,19 +207,19 @@ export default {
       const parent = event.target;
       const child = parent.querySelector('.plan-background');
       
-      const scrollLeft = parent.scrollLeft;
+      this.scrollLeft = parent.scrollLeft;
       const parentWidth = parent.clientWidth;
       const childWidth = child.offsetWidth;
       // TODO: WRITE DOCUMENTATION
-      this.sideBarWidthInDays = 10;
-      this.viewPortWidthInDays = Math.floor((this.planDimensions.width - 10) / 30) - this.sideBarWidthInDays;
+      this.sidebarWidthInDays = this.sidebarWidth / 30;
+      this.viewPortWidthInDays = Math.floor((this.planDimensions.width - 10) / 30) - this.sidebarWidthInDays;
 
-      this.viewPortEdges.start = moment(this.start).add(Math.ceil(scrollLeft / 30) + this.sideBarWidthInDays, 'days');
+      this.viewPortEdges.start = moment(this.start).add(Math.ceil(this.scrollLeft / 30) + this.sidebarWidthInDays, 'days');
       this.viewPortEdges.end = moment(this.viewPortEdges.start).add(this.viewPortWidthInDays, 'days');
 
-      if (scrollLeft <= this.margin) {
+      if (this.scrollLeft <= this.margin) {
         this.triggerNearLeftEdge();
-      } else if (scrollLeft + parentWidth >= childWidth - this.margin) {
+      } else if (this.scrollLeft + parentWidth >= childWidth - this.margin) {
         this.triggerNearRightEdge();
       }
     }, 100),
@@ -230,17 +231,25 @@ export default {
     triggerNearRightEdge() {
       this.appendPeriod();
     },
-    resizedSideBar() {
+    resizedSideBar(sidebarWidth) {
+      this.sidebarWidth = sidebarWidth;
+      this.updateViewport();
+    },
+    updateViewport() {
+      // TODO: WRITE DOCUMENTATION
+      this.sidebarWidthInDays = this.sidebarWidth / 30;
+      this.viewPortWidthInDays = Math.floor((this.planDimensions.width - this.sidebarWidthInDays) / 30) - this.sidebarWidthInDays;
+      this.viewPortEdges.start = moment(this.start).add(Math.ceil(this.scrollLeft / 30) + this.sidebarWidthInDays, 'days');
+      this.viewPortEdges.end = moment(this.viewPortEdges.start).add(this.viewPortWidthInDays, 'days');
     },
     planH(event) {
       this.planHeight =  event;
     },
     async bringToday(animation = true) {
-      // console.log('Bring the day');
       const date = this.current
       this.isScrolling = animation;
       await this.$nextTick();
-      this.$refs.calendar.scrollLeft = date.diff(this.start, 'days') * 30 - 300 - ( (this.$refs.calendar.offsetWidth - 300) / 2 );
+      this.$refs.calendar.scrollLeft = date.diff(this.start, 'days') * 30 - this.sidebarWidth - ( (this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2 );
       await this.$nextTick();
       this.isScrolling = true;
     },
@@ -264,7 +273,7 @@ export default {
           }
         }
       }
-      this.$refs.calendar.scrollLeft = moment(startDate).diff(this.start, 'days') * 30 - 300 - ( (this.$refs.calendar.offsetWidth - 300) / 2 );
+      this.$refs.calendar.scrollLeft = moment(startDate).diff(this.start, 'days') * 30 - this.sidebarWidth - ( (this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2 );
     },
     async verticalScroll(direction) {
       if (direction === 'right') {

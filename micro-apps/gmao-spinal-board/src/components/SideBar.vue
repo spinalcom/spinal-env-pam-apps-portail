@@ -1,6 +1,16 @@
 
 <template>
-  <div class="side-bar" ref="sideBar">
+  <div class="side-bar" ref="sideBar"
+    :style="[
+    { width: sidebarWidth + 'px !important'},
+    ]">
+    <div class="sidebar-resize"
+      :style="[
+      { 'cursor': isResizing ? 'ew-resize !important' : 'normal'},
+      { 'border-right': isResizing ? '2px solid grey' : '1px solid #E2E2E2'},
+      ]"
+      @mousedown="startresize">
+    </div>
     <div v-for="(ticket, index) in ticketList" :key="ticket.name + index" class="ticket">
       <Status :status="ticket.status"/>
       <span class="ellipsis">
@@ -16,9 +26,10 @@
 </template>
 
 <script>
-import Status from './Status.vue';
+import { throttle } from 'lodash';
 import moment from 'moment';
 moment.locale('fr');
+import Status from './Status.vue';
 export default {
   name: 'SideBar',
   props: [
@@ -29,19 +40,40 @@ export default {
     Status
   },
   data: () => ({
-    sideBarWidth: 0,
+    sidebarWidth: 300,
+    endOfResizeWidth: 300,
+    startX: 0,
+    isResizing: false,
   }),
   mounted() {
     this.resizeObserver = new ResizeObserver((entries) => {
       for (let entry of entries) {
-        this.sideBarWidth = entry.contentRect.width;
-        this.$emit('resizedSideBar', this.sideBarWidth);
+        const contentRect = entry.contentRect.width;
+        this.$emit('resizedSideBar', this.sidebarWidth);
       }
     });
 
     this.resizeObserver.observe(this.$refs.sideBar);
   },
   methods:{
+    startresize: throttle( function (event) {
+      this.startX = event.clientX;
+      this.isResizing = true;
+      window.addEventListener('mousemove', this.resizeSidebar);
+      window.addEventListener('mouseup', this.stopResize);
+    }, 300),
+    resizeSidebar(event) {
+      this.sidebarWidth = this.endOfResizeWidth + event.clientX - this.startX;
+      if (this.sidebarWidth <= 42) {
+        this.sidebarWidth = 42;
+      }
+    },
+    stopResize(event) {
+      this.endOfResizeWidth = this.sidebarWidth;
+      this.isResizing = false;
+      window.removeEventListener('mousemove', this.resizeSidebar);
+      window.removeEventListener('mouseup', this.stopResize);
+    },
     bringDay(ticket, positionIconName) {
       const position = positionIconName.split('-')[2]; 
       this.$emit('bringDay', { ...ticket, position });
@@ -74,9 +106,9 @@ export default {
   left: 0;
   background: white;
   height: 100%;
-  width: 300px;
+  min-width: 42px;
   z-index: 101;
-  border-right: 1px solid #E2E2E2;
+  transition: width .2s;
 }
 
 .ticket {
@@ -115,6 +147,20 @@ export default {
   background: white;
   cursor: pointer;
 }
+.sidebar-resize {
+  cursor: ew-resize;
+  position: absolute;
+  right: 0;
+  height: 100%;
+  width: 2px;
+  z-index: 110;
+  transition: all .1s;
+}
+.sidebar-resize:hover {
+  border-right: 2px solid grey !important;
+  width: 5px;
+}
+
 .goto-icon {
   font-size: 12px !important;
 }
