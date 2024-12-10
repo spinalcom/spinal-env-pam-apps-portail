@@ -236,13 +236,22 @@ class App extends Vue {
   }
 
   public set selectedZone(v: ISpaceSelectorItem) {
+    console.warn(v, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" ,  this.selectedZone);
+    
     if (this.query.spaceSelectedId != v.dynamicId.toString()) {
       this.query.name = v.name
       this.query.buildingId = v.buildingId
       this.query.spaceSelectedId = v.dynamicId.toString()
+     
       this.replaceRoute();
     }
 
+    if(v.dynamicId == 0){
+        console.log('zaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa la' , this.selectedZone);
+        
+        this.query.spaceSelectedId = '24063840'
+        this.replaceRoute();
+      }
     if (v.type == "geographicFloor")
       this.floor = this.query.spaceSelectedId
 
@@ -259,6 +268,8 @@ class App extends Vue {
 
   applyURLParam(query) {
 
+    console.warn('apply !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+    
     this.query.mode = query.mode
     this.query.buildingId = query.buildingId
     this.query.spaceSelectedId = query.spaceSelectedId

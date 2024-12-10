@@ -79,7 +79,7 @@ export const actions = {
 			throw error;
 		}
 	},
-	async [ActionTypes.GET_FILE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId}: { buildingId: string; referenceId: any }): Promise<any> {
+	async [ActionTypes.GET_FILE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId }: { buildingId: string; referenceId: any }): Promise<any> {
 		try {
 			const result = await getFile(buildingId, referenceId);
 			return result;
@@ -225,7 +225,7 @@ export const actions = {
 			throw error;
 		}
 	},
-	async [ActionTypes.GET_WORKFLOW_LIST]({ commit }: AugmentedActionContextAppData, { buildingId}: { buildingId: string; referenceIds: number }): Promise<any> {
+	async [ActionTypes.GET_WORKFLOW_LIST]({ commit }: AugmentedActionContextAppData, { buildingId }: { buildingId: string; referenceIds: number }): Promise<any> {
 
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
@@ -236,7 +236,7 @@ export const actions = {
 			throw error;
 		}
 	},
-	async [ActionTypes.GET_PROCESS_WORKFLOW]({ commit }: AugmentedActionContextAppData, { buildingId, workflowId}: { buildingId: string; referenceIds: number, workflowId: number }): Promise<any> {
+	async [ActionTypes.GET_PROCESS_WORKFLOW]({ commit }: AugmentedActionContextAppData, { buildingId, workflowId }: { buildingId: string; referenceIds: number, workflowId: number }): Promise<any> {
 
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
@@ -247,34 +247,34 @@ export const actions = {
 			throw error;
 		}
 	},
-	async [ActionTypes.ADD_TICKET]({ commit }: AugmentedActionContextAppData, { buildingId, data, file}: { buildingId: string; data: any, file: any[] } ): Promise<any> { 
+	async [ActionTypes.ADD_TICKET]({ commit }: AugmentedActionContextAppData, { buildingId, data, file }: { buildingId: string; data: any, file: any[] }): Promise<any> {
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
 			const result = await createTicket(buildingId, data);
-			file.forEach(async (element) => { 
+			file.forEach(async (element) => {
 				const file = new FormData();
 				file.append('file', element);
 				const adddoc = await addTicketDoc(buildingId, result.dynamicId, file);
 			})
 			return result;
-		} catch (error){
+		} catch (error) {
 			console.error('Erreur lors de la création du ticket:', error);
 			throw error;
 		}
 	},
-	async [ActionTypes.ADD_DOC]({commit}: AugmentedActionContextAppData, {buildingId,  referenceId, file}: {buildingId: string, referenceId: number, file: any[]}) : Promise<any> {
-			try {	
-				const results = await Promise.all(file.map(async (element) => {
-					const file = new FormData();
-					file.append('file', element);
-					const result = await uploadDoc(buildingId, referenceId, file);
-				 return result;
-				 }))
-			
-				return results;
-			} catch (error) {
-					console.error('Erreur lors de l\'ajout d(u)(es) document')
-			}
+	async [ActionTypes.ADD_DOC]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId, file }: { buildingId: string, referenceId: number, file: any[] }): Promise<any> {
+		try {
+			const results = await Promise.all(file.map(async (element) => {
+				const file = new FormData();
+				file.append('file', element);
+				const result = await uploadDoc(buildingId, referenceId, file);
+				return result;
+			}))
+
+			return results;
+		} catch (error) {
+			console.error('Erreur lors de l\'ajout d(u)(es) document')
+		}
 	},
 
 	async [ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }): Promise<any> {
@@ -458,13 +458,16 @@ export const actions = {
 
 			if (playload.item.type === "building") {
 				console.log('aa');
-				
+
 				const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
 					buildingId: playload.item.buildingId,
 					forceUpdate: false,
 				})
 
 				console.log("//////////////////////////////// building", building)
+				window.parent.router.query.spaceSelectedId = building
+				console.log('///////////////////////////////// le test ');
+				
 				const body = {
 					//dynamicId: ids,
 					dynamicId: [building.dynamicId],

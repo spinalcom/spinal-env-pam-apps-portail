@@ -263,11 +263,12 @@ with this file. If not, see
         <div v-if="selection == 'Tickets'">
           <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
           <!-- Vérification si les tickets existent -->
+          <AddTicketBtn @open-dialog="ShowDialog()" />
           <div v-if="ticketsList">
             <FormTicket :value="showFormTicket" @close-dialog="ShowDialog()" :selectedZone="selectedZone"
               @add-ticket="showAlert" />
             <!-- Button d'ajout d'un ticket  -->
-            <AddTicketBtn @open-dialog="ShowDialog()" />
+            
             <!-- Boucle sur chaque ticket -->
             <div v-for="(ticket, index) in ticketsList" :key="index" class="blocInformation">
               <div class="">
@@ -289,10 +290,10 @@ with this file. If not, see
           </div>
 
           <!-- Affichage lorsqu'il n'y a pas de tickets -->
-          <div v-if="ticketsList[0].length == 0"
-            style="width: 100%; height: 200px; font-size: 20px ; display: flex; justify-content: center; align-items: center">
-            <p>Aucun ticket disponible.</p>
-          </div>
+          <div v-if="ticketsList && ticketsList.length === 0"
+  style="width: 100%; height: 200px; font-size: 20px ; display: flex; justify-content: center; align-items: center">
+  <p>Aucun ticket disponible.</p>
+</div>
         </div>
 
 

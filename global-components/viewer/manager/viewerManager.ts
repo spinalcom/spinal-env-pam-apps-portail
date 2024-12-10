@@ -135,7 +135,7 @@ export class ViewerManager {
 		const ids = items.map((el) => el.dynamicId);
 		const res: any[] = [];
 		const nodeTofetech: number[] = [];
-
+		
 		for (let dynId of ids) {
 			if (this._viewerStores["GET_VIEWER_INFO"][dynId]) {
 				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;
@@ -143,6 +143,7 @@ export class ViewerManager {
 			} else {
 				if(!dynId){
 					dynId = body?.dynamicId
+
 				}
 				this._viewerStores["GET_VIEWER_INFO"][dynId] = generator(dynId, body?.floorRef!, body?.roomRef!, body?.equipements!);
 				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;

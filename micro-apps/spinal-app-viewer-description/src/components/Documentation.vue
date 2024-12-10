@@ -9,13 +9,13 @@
                      {{ this.fileName }}</span>
             </div>
             <div>
-                   <vb-btn 
+                   <v-btn 
                    flat
                    class="btn-closed"
                    @click="closeDialog"
                    >
                    Fermer
-               </vb-btn>
+               </v-btn>
             </div> 
                
         </div>
