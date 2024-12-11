@@ -454,19 +454,17 @@ export const actions = {
 
 	async [ActionTypes.OPEN_VIEWER]({ commit, dispatch, state }: AugmentedActionContextAppData, playload: { onlyThisModel: boolean; config: IConfig; item: any }): Promise<void> {
 		try {
-			console.log('aa1');
 
 			if (playload.item.type === "building") {
-				console.log('aa');
 
 				const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
 					buildingId: playload.item.buildingId,
 					forceUpdate: false,
 				})
 
-				console.log("//////////////////////////////// building", building)
+				// console.log("//////////////////////////////// building", building)
 				window.parent.router.query.spaceSelectedId = building
-				console.log('///////////////////////////////// le test ');
+				// console.log('///////////////////////////////// le test ');
 				
 				const body = {
 					//dynamicId: ids,

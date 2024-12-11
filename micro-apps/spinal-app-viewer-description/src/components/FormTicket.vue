@@ -58,7 +58,7 @@
                   <span style="text-align: center; font-weight: 800; font-size: 16px;">Priorité: </span>
                   <span 
                   :class="['cursor-pointer chip', {'checked': item.checked}]"
-                  color=""
+                 
                 v-for="(item , index) in prioritie"
                   @click="checkPrioritie(index)"
                 >

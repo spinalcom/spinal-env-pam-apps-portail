@@ -78,8 +78,7 @@ export class ViewerManager {
 	}
 
 	public async loadInViewer(item: IPlayload, loadOnlyThisModel: boolean = true, body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }) {
-		console.log(body?.dynamicId[0] , '////////////////////////////////////////////');
-		
+
 
 		localStorage.setItem("viewer_loaded", 'unload');
 		// if (this._viewerStartedList[item.staticId]) return;

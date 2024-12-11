@@ -10,7 +10,7 @@
             </div>
             <div>
                    <v-btn 
-                   flat
+                   text
                    class="btn-closed"
                    @click="closeDialog"
                    >
@@ -109,6 +109,10 @@ const getToolbar = () => ({
                 type: Number,
                 required: true,
             },
+            closecomp: {
+                type: Boolean,
+                required: false,
+            },
         },
         data() {
             return {
@@ -169,6 +173,12 @@ const getToolbar = () => ({
                 this.showFile(fileExtension, this.url_init) 
                 this.loader = false;
             },
+            closecomp(newValue) {
+            if (newValue === false) {
+                this.closeDialog();
+            }
+        },
+
         },
         mounted() {
             this.curentpage = 1;

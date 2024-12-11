@@ -1,18 +1,20 @@
 <template>
-    <teleport to="body">
-        <div v-show="show_alert" class="alert-content">
-            <div style="width: 100%; padding: 10px; display: flex; align-items: center; gap: 10px;">
-                <v-icon :color="icons[type_alert].color" :style="{ border: '1px solid ' + icons[type_alert].color, borderRadius: '50%' }">
-                    mdi-check
-                </v-icon>
-                <span class="message">{{ text }}</span>
-                <v-icon @click="hideAlert" style="cursor: pointer;">
-                    mdi-close
-                </v-icon>
-            </div>
+    <div v-show="show_alert" class="alert-content">
+        <div style="width: 100%; padding: 10px; display: flex; align-items: center; gap: 10px;">
+            <v-icon
+                :color="currentIcon.color"
+                :style="{ border: '1px solid ' + currentIcon.color, borderRadius: '50%' }"
+            >
+                mdi-check
+            </v-icon>
+            <span class="message">{{ text }}</span>
+            <v-icon @click="hideAlert" style="cursor: pointer;">
+                mdi-close
+            </v-icon>
         </div>
-    </teleport>
+    </div>
 </template>
+
 
 <script lang="ts">
 export default {
@@ -42,6 +44,11 @@ export default {
             show_alert: this.show,
         }
     },
+    computed: {
+        currentIcon() {
+            return this.icons[this.type_alert] || { color: '#000000' }; // Couleur par défaut (noir)
+        }
+    },
     watch: {
         show(newVal: boolean) {
             this.show_alert = newVal;
@@ -61,6 +68,7 @@ export default {
     }
 }
 </script>
+
 
 <style scoped>
 .alert-content {

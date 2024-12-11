@@ -26,7 +26,7 @@ with this file. If not, see
 
   <div class="appli">
     <div style="width: 55%; height: 100%; background: #14202c;" v-show="showDocvalue">
-      <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" @closeDialog="closeVueDoc" />
+      <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" :closecomp="ActiveData" @closeDialog="closeVueDoc" />
     </div>
     <!-- style="['height: calc(100vh - 160px); background-color: red', " -->
     <div
@@ -141,10 +141,6 @@ with this file. If not, see
                   <div v-for="(item, index) in inventoyList" :key="index" class="inventory-item">
                     <li>{{ item }}</li>
                     <div style="margin-left: 5px;">
-                      <!-- <v-icon v-if="ink.indexOf(index) === -1" @click="() => { colorelement(item); closeink(index) }"
-                      style="cursor: pointer">mdi-invert-colors</v-icon>
-                    <v-icon v-else @click="() => { colorelement(item); closeink(index) }"
-                      style="cursor: pointer">mdi-invert-colors-off</v-icon> -->
                       <v-icon v-if="eyes.indexOf(index) === -1" @click="() => { hideelement(item); closeeyes(index) }"
                         style="cursor: pointer">mdi-eye-outline</v-icon>
                       <v-icon v-else @click="() => { hideelement(item); closeeyes(index) }"
@@ -171,9 +167,10 @@ with this file. If not, see
               </div>
             </div>
           </div>
+          <!-- endpoint -->
+          <div v-if="endpointProfil && endpointProfil.length > 0" class="blocInformation">
 
-          <div v-if="endpointProfil.length > 0" class="blocInformation">
-            <!-- endpoint -->
+
             <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Indicateur
             </span>
             <div class="inventory-container">
@@ -268,7 +265,7 @@ with this file. If not, see
             <FormTicket :value="showFormTicket" @close-dialog="ShowDialog()" :selectedZone="selectedZone"
               @add-ticket="showAlert" />
             <!-- Button d'ajout d'un ticket  -->
-            
+
             <!-- Boucle sur chaque ticket -->
             <div v-for="(ticket, index) in ticketsList" :key="index" class="blocInformation">
               <div class="">
@@ -291,9 +288,9 @@ with this file. If not, see
 
           <!-- Affichage lorsqu'il n'y a pas de tickets -->
           <div v-if="ticketsList && ticketsList.length === 0"
-  style="width: 100%; height: 200px; font-size: 20px ; display: flex; justify-content: center; align-items: center">
-  <p>Aucun ticket disponible.</p>
-</div>
+            style="width: 100%; height: 200px; font-size: 20px ; display: flex; justify-content: center; align-items: center">
+            <p>Aucun ticket disponible.</p>
+          </div>
         </div>
 
 
@@ -1111,7 +1108,7 @@ class dataSideApp extends Vue {
               console.warn("Aucun endpoint correspondant trouvé pour la targetValue donnée.");
             }
           } else {
-            appObject.value = matchedProfile.endpoints.length || 5
+            appObject.value = matchedProfile.endpoints?.length || 5
           }
         } else {
           console.warn('Pas de profil qui match');
@@ -1554,9 +1551,9 @@ class dataSideApp extends Vue {
         if (typologyInventory) {
           typologyInventory.inventory.forEach(group => {
             if (inventoryCounts[group.name]) {
-              inventoryCounts[group.name] += group.equipments.length;
+              inventoryCounts[group.name] += group.equipments?.length;
             } else {
-              inventoryCounts[group.name] = group.equipments.length;
+              inventoryCounts[group.name] = group.equipments?.length;
             }
 
             group.equipments.forEach(equipment => {
@@ -1587,10 +1584,7 @@ class dataSideApp extends Vue {
     }
 
     this.inventoyList = results;
-    console.warn(this.inventoyList, 'aaa');
-
     this.inventoryDbids = inventoryDbids;
-    console.warn(this.inventoryDbids, 'aaa');
     this.$forceUpdate();
 
     return results;
