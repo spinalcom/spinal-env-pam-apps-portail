@@ -10,6 +10,7 @@
       :taskHeight="taskHeight"
       :task="task"
       :start="start"
+      :fontSize="fontSize"
       class="period" />
     </div>
 </template>
@@ -25,6 +26,7 @@ export default {
     'start',
     'dayWidth',
     'taskHeight',
+    'fontSize',
   ],
   components: {
     Period,

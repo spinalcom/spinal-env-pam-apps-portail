@@ -12,6 +12,7 @@
       :viewPortEdges="viewPortEdges"
       :dayWidth="dayWidth"
       :taskHeight="taskHeight"
+      :fontSize="fontSize"
       @bringDay="bringDay"
       @resizedSideBar="resizedSideBar"
       @goto="goto"/>
@@ -19,14 +20,22 @@
     <Task
       v-for="(task, index) in  ticketList"
       :key="task.name + index"
-      :style="[{ 'top': index * taskHeight + 'px'}, ]"
+      :style="[{ 'top': index * taskHeight + 'px'}]"
       :level="index"
       :task="task"
       :start="start"
       :dayWidth="dayWidth"
       :taskHeight="taskHeight"
+      :fontSize="fontSize"
       class="task"/>
-    <div v-for="(offset, index) in weekLines" :key="index" :style="[{ 'left': offset + 'px' }, { 'height': markerHeight - 5 + 'px' }]" class="week-separator-long "></div>
+    <div v-for="(offset, index) in weekLines"
+      :key="index"
+      :style="[
+        { 'left': offset + 'px' },
+        { 'height': markerHeight - 5 + 'px' }
+      ]"
+      class="week-separator-long "
+      ></div>
   </div>
 </template>
 
@@ -46,6 +55,7 @@ export default {
     'viewPortEdges',
     'dayWidth',
     'taskHeight',
+    'fontSize',
   ],
   components: {
     Task,

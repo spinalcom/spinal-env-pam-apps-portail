@@ -1,6 +1,7 @@
 
 <template>
   <div :style="[
+    { 'font-size': fontSize.small + 'px' },
     { 'left': dayWidth * locate + 'px' },
     { 'height': (taskHeight - 8) + 'px' },
     { 'width': taskWidth * dayWidth - 12 + 'px' },
@@ -21,6 +22,7 @@ export default {
     'start',
     'dayWidth',
     'taskHeight',
+    'fontSize',
   ],
   components: {
     Status,
@@ -52,16 +54,10 @@ export default {
   background: white;
   left: 400px;
   padding-left: 10px;
-  font-size: 11px;
   border-radius: 5px;
   border: 1px solid #E2E2E2;
   box-shadow: 4px 3px 5px 0px #A0A0A024;
   white-space: nowrap;
-}
-
-.icon {
-  font-size: 16px;
-  color: #33A948;
 }
 </style>
 

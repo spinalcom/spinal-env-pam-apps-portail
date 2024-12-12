@@ -14,19 +14,25 @@
     <div
       v-for="(ticket, index) in ticketList"
       :key="ticket.name + index"
-      :style="{ height: taskHeight + 'px' }"
+      :style="[
+        { 'font-size': fontSize.medium + 'px' },
+        { height: taskHeight + 'px' },
+      ]"
       class="ticket">
-      <!-- STATUS COMPONENT -->
-      <Status :status="ticket.status"/>
+      <!-- STATUS COMPONENT --> <Status :status="ticket.status"/>
       <span class="ellipsis">
         {{ ticket.name }}
       </span>
       <div
         v-if="fallingIn(ticket.startDate)"
-        :style="{ height: (taskHeight - 5) + 'px' }"
+        :style="[
+          { height: (taskHeight - 5) + 'px' },
+        ]"
         class="goto-ticket"
         @click="bringDay(ticket, fallingIn(ticket.startDate))">
-        <v-icon class="goto-icon icon">
+        <v-icon 
+          :style="[{ 'font-size': fontSize.medium + 'px' }]"
+          class="goto-icon icon">
           {{ fallingIn(ticket.startDate) }}
         </v-icon>
       </div>
@@ -46,6 +52,7 @@ export default {
     'viewPortEdges',
     'dayWidth',
     'taskHeight',
+    'fontSize',
   ],
   components: {
     Status
@@ -134,7 +141,6 @@ export default {
   letter-spacing: 1.1px;
   padding: 0 10px;
   width: 100%;
-  font-size: 12px;
   border-bottom: 1px solid #E2E2E2;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -171,7 +177,6 @@ export default {
 }
 
 .goto-icon {
-  font-size: 12px !important;
 }
 </style>
 

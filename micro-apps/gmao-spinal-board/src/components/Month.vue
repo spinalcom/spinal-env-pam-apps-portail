@@ -12,8 +12,8 @@
         <v-icon class="action-icon icon" @click="verticalScroll('left')">mdi-magnify-plus-outline</v-icon>
           <v-slider
             v-model="zoom"
-            min="8"
-            max="50"
+            :min="minZoom"
+            :max="maxZoom"
             thumb-color="#14202c"
             track-fill-color="grey darken-1"
             track-color="grey lighten-3"
@@ -40,12 +40,20 @@
       { 'min-height': planHeight + 'px' },
     ]" class="plan">
 
-      <div class="month-strip top-bar">
+      <div 
+        :style="[
+          { 'font-size': fontSize.medium + 'px' },
+        ]"
+        class="month-strip top-bar">
         <div
           v-for="(month, index) in monthList"
           :key="month.name + '/' + month.year"
           class="month-placement"
-          :style="[{ 'width': month.days * dayWidth + 'px' }, { 'z-index': index }]">
+          :style="[
+            { 'width': month.days * dayWidth + 'px' },
+            { 'font-size': fontSize.medium + 'px' },
+            { 'z-index': index },
+          ]">
           {{ month.name.charAt(0).toUpperCase() + month.name.slice(1) }} {{ month.year }}
         </div>
       </div>
@@ -60,7 +68,10 @@
             v-for="day in month.days"
             :key="day + '/' + month.name + '/' + month.year"
             :class="{ today: currentMarker === day + '/' + month.name + '/' + month.year }"
-            :style="[{ 'width': dayWidth + 'px !important' }]"
+            :style="[
+              { 'font-size': fontSize.small + 'px' },
+              { 'width': dayWidth + 'px !important' },
+            ]"
             class="day full-center">
             {{ day }}
             <div
@@ -78,6 +89,7 @@
       </div>
 
       <div class="plan-background" :style="{ 'height': planHeight  + 'px' }">
+        <!-- CalendarContent component -->
         <CalendarContent
           :ticketList="ticketList"
           :separator="separator"
@@ -86,6 +98,7 @@
           :viewPortEdges="viewPortEdges"
           :dayWidth="dayWidth"
           :taskHeight="taskHeight"
+          :fontSize="fontSize"
           @bringDay="bringDay"
           @goto="bringTheDay"
           @planHeight="planH"
@@ -106,8 +119,6 @@ export default {
   components: {
     CalendarContent,
   },
-  computed: {
-  },
   data: () => ({
     isScrolling: false,
     currentMarker: null,
@@ -126,9 +137,14 @@ export default {
     sidebarWidth: 300,
     scrollLeft: 0,
     zoom: 30,
+    minZoom: 8,
+    maxZoom: 50,
     taskHeight: 30,
     dayWidth: 30,
-    fontSize: 12,
+    fontSize: {
+      medium: 12,
+      small: 10,
+    },
   }),
   created() {
     this.current = moment();
@@ -345,6 +361,24 @@ export default {
     zoom(v1) {
       this.taskHeight = v1;
       this.dayWidth = v1;
+      const minFontSize = 6;
+      const maxFontSize = 18;
+
+      // Calculate font size with a linear relationship between zoom and font size
+      this.fontSize.medium = minFontSize + ((v1 - this.minZoom) / (this.maxZoom - this.minZoom)) * (maxFontSize - minFontSize);
+
+      // Ensure the fontSize is within the bounds of 6 and 18
+      this.fontSize.medium  = Math.max(minFontSize, Math.min(this.fontSize.medium, maxFontSize));
+
+      // Calculate the smaller font size, starting from 10
+      const minSmallFontSize = 6;
+      const maxSmallFontSize = 12;
+      this.fontSize.small = minSmallFontSize + ((v1 - this.minZoom) / (this.maxZoom - this.minZoom)) * (maxSmallFontSize - minSmallFontSize);
+
+      // Ensure the fontSizeSmall is within the bounds of 6 and 12
+      this.fontSize.small = Math.max(minSmallFontSize, Math.min(this.fontSize.small, maxSmallFontSize));
+
+      this.updateViewport();
     }
   },
 }
@@ -356,7 +390,6 @@ export default {
   left: 0;
   display: flex;
   align-items: center;
-  font-size: 12px;
   padding-left: 10px;
   background: linear-gradient(to left, white 98.5%, transparent);
 }
@@ -394,7 +427,6 @@ export default {
   min-height: 30px !important;
   width: 100%;
   color: #888888;
-  font-size: 12px;
   z-index: 110;
   background: white;
 }
@@ -411,7 +443,6 @@ export default {
   justify-content: center;
   position: relative;
   height: 30px;
-  font-size: 10px;
   z-index: 100;
 }
 .top-bar {
