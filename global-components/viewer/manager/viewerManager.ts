@@ -78,8 +78,7 @@ export class ViewerManager {
 	}
 
 	public async loadInViewer(item: IPlayload, loadOnlyThisModel: boolean = true, body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }) {
-		console.log(body?.dynamicId[0] , '////////////////////////////////////////////');
-		
+
 
 		localStorage.setItem("viewer_loaded", 'unload');
 		// if (this._viewerStartedList[item.staticId]) return;
@@ -135,13 +134,16 @@ export class ViewerManager {
 		const ids = items.map((el) => el.dynamicId);
 		const res: any[] = [];
 		const nodeTofetech: number[] = [];
-
-		for (const dynId of ids) {
+		
+		for (let dynId of ids) {
 			if (this._viewerStores["GET_VIEWER_INFO"][dynId]) {
 				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;
 				if (itemData) res.push(itemData);
 			} else {
-				
+				if(!dynId){
+					dynId = body?.dynamicId
+
+				}
 				this._viewerStores["GET_VIEWER_INFO"][dynId] = generator(dynId, body?.floorRef!, body?.roomRef!, body?.equipements!);
 				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;
 				if (itemData) res.push(itemData);

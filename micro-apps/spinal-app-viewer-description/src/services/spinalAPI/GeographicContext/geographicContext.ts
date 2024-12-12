@@ -185,7 +185,6 @@ export async function postBIMObjectInfo(buildingId: string, referenceIds: any): 
 }
 
 export async function postDownloadFile(buildingId: string, referenceIds: any): Promise<Blob> {
-  console.log('arrivé dans la fonction post');
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/node/${referenceIds}/download_file`);
   try {
@@ -197,7 +196,17 @@ export async function postDownloadFile(buildingId: string, referenceIds: any): P
     throw error;
   }
 }
-
+export async function getFile(buildingId: string, referenceIds: any): Promise<Blob> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/node/${referenceIds}/download_file`);
+  try {
+    const response = await spinalAPI.post(url, referenceIds, { responseType: 'blob' });
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des objets de référence:', error);
+    throw error;
+  }
+}
 
 
 export async function getRooms(patrimoineId: string, buildingId: string, floorId: string, floorDynId: number): Promise<IZoneItem[]> {

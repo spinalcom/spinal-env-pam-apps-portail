@@ -29,8 +29,10 @@
     "spinal-viewer-event-manager": "git+https://github.com/spinalcom/spinal-viewer-event-manager.git",
     "uuid": "^9.0.1",
     "vue-chartjs": "^5.2.0",
+    "vue-pdf-app": "^2.1.0",
     "vue-sweetalert2": "^5.0.5",
-    "vuex-class": "^0.3.2"
+    "vuex-class": "^0.3.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.2",
