@@ -187,8 +187,6 @@ class App extends Vue {
 
 
     if (window.innerWidth < 900) {
-      // console.log(window.innerWidth);
-
       this.isActive = true;
       this.isActive3D = false;
     }
@@ -230,8 +228,6 @@ class App extends Vue {
   }
 
   public set selectedZone(v: ISpaceSelectorItem) {
-    console.warn(v, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", this.selectedZone);
-
     if (this.query.spaceSelectedId != v.dynamicId.toString()) {
       this.query.name = v.name
       this.query.buildingId = v.buildingId
@@ -241,8 +237,6 @@ class App extends Vue {
     }
 
     if (v.dynamicId == 0) {
-      console.log('zaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa la', this.selectedZone);
-
       this.query.spaceSelectedId = '24063840'
       this.replaceRoute();
     }
@@ -606,13 +600,10 @@ class App extends Vue {
   handleRouteChange() {
     if (this.isActive3D && !this.isActive) {
       this.query.mode = '3d'
-      // console.log('3d');
     } else if (!this.isActive3D && this.isActive) {
       this.query.mode = 'data'
-      // console.log('data');
     } else {
       this.query.mode = 'none'
-      // console.log('none');
     }
     this.replaceRoute();
   }

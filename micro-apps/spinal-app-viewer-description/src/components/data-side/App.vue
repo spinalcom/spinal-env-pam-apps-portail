@@ -623,7 +623,6 @@ class dataSideApp extends Vue {
           ];
           const resultParent = await Promise.all(parentPromise);
           const tickets = resultParent;
-          // console.log('tickets: ', tickets[0].reverse());
           this.ticketsList = tickets[0].reverse();
           break;
         case 'document':
@@ -720,11 +719,6 @@ class dataSideApp extends Vue {
     });
   }
 
-  colorelement(item) {
-    //a faire
-  }
-
-
   gestionBouton() {
     if (!this.displaySprite) {
       this.$emit('full3D');
@@ -738,11 +732,8 @@ class dataSideApp extends Vue {
 
   async mounted() {
     this.timeactuelle = this.getFormattedDateFromTemporalData();
-
     await this.getBuildingInfo();
 
-    console.warn("aaaaaaaaaaaaaaa", this.buildingInfo[0].dynamicId  );
-    
     if (this.selectedZone.type == "building" || window.parent.router.query.spaceSelectedId == this.buildingInfo[0].dynamicId) {
       this.loadBuildingInfo()
     }
@@ -836,7 +827,6 @@ class dataSideApp extends Vue {
 
     const buildingId = localStorage.getItem("idBuilding");
     const elementDynamicId = data[0].dynamicId;
-
 
     const parentPromise = [
       this.$store.dispatch(ActionTypes.GET_PARENT, {

@@ -462,10 +462,12 @@ export const actions = {
 					forceUpdate: false,
 				})
 
-				// console.log("//////////////////////////////// building", building)
-				window.parent.router.query.spaceSelectedId = building
+			
+	// console.log("//////////////////////////////// building", building)
+				if (window.parent.router.query.spaceSelectedId != building)
+					window.parent.router.query.spaceSelectedId = building
 				// console.log('///////////////////////////////// le test ');
-				
+
 				const body = {
 					//dynamicId: ids,
 					dynamicId: [building.dynamicId],
