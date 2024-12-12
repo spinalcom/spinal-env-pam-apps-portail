@@ -71,7 +71,11 @@ with this file. If not, see
     </button>
     <div class="dataContainer" >
       <SpinalTable class="entrence" :class="{ 'inactiveTable': DActive, 'displaydataCss': displaydata }"
-        :selectedItemTab="element_clicked" @item-selected="selectDataView" @allFiltredData="putAllFiltredData"
+        :selectedItemTab="element_clicked"
+        @item-selected="selectDataView"
+        @fit-to-view="fitToView"
+        @unselect-data-view="unselectDataView"
+        @allFiltredData="putAllFiltredData"
         @update:selectedItem="handleAttributeChange" @updateSuccess="updateData"
         @update:selectedAttribute="handleAttributeChange" :headers="[]" :id="0" :label="'test'" :reference="''"
         :unit="''" :contexts="data" :temporality="''" :ctx_list="$store.state.appDataStore.user_selection_list.ctx"
@@ -223,6 +227,12 @@ class dataSideApp extends Vue {
 
   selectDataView(item) {
     this.$emit("clickOnDataView", item);
+  }
+  unselectDataView(items){
+    this.$emit("unselect-data-view",items);
+  }
+  fitToView(item){
+    this.$emit("fit-to-view", item);
   }
 
 

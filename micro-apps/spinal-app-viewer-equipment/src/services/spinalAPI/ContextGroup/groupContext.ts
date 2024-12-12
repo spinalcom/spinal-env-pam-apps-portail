@@ -116,34 +116,56 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
 }
 
 async function processPositionType(position_type, buildingId, allLists) {
-    // position_type is from space selector ( building, geographicFloor, geographicRoom)
+    
     const roomIds = allLists.map(room => room.dynamicId.toString());
     const position = await getEquipementPositions(buildingId, roomIds);
-    //const nodeReads = await getNodeReadMultiple(buildingId, roomIds,true,false);
-    //console.log('------------------nodeReads', nodeReads);
-    
+    const nodeReads = await getNodeReadMultiple(buildingId, roomIds,true,false);
+    console.log('------------------allLists', allLists);
+    const newLists = allLists.map(obj => {
+        const correctNode = nodeReads.find(node => node.dynamicId === obj.dynamicId);
+        if (!correctNode) {
+            return obj;
+        }
+        const response = correctNode.children_relation_list;
+        console.log('response', response);
+        const relation_tickets = response.find(relation => relation.name === "SpinalSystemServiceTicketHasTicket")
+        const count_tickets = relation_tickets ? relation_tickets.children_number : 0;
+        const relation_ep = response.find(relation => relation.name === "hasEndPoint")
+        const count_ep = relation_ep ? relation_ep.children_number : 0;
+        const relation_cp = response.find(relation => relation.name === "hasControlPoints")
+        const count_cp = relation_cp ? relation_cp.children_number : 0;
+        const relation_notes = response.find(relation => relation.name === "hasNotes")
+        const count_notes = relation_notes ? relation_notes.children_number : 0;
+        const relation_category_attributes = response.find(relation => relation.name === "hasCategoryAttributes")
+        const count_category_attributes = relation_category_attributes ? relation_category_attributes.children_number : 0;
+        const relation_files = response.find(relation => relation.name === "hasFiles")
+        const count_files = relation_files ? relation_files.children_number : 0;
+        return { ...obj, nbr_tickets: count_tickets, nbr_ep: count_ep, nbr_cp: count_cp, nbr_notes: count_notes, nbr_category_attributes: count_category_attributes, nbr_files: count_files };
+    })
+
+    console.log('------------------newLists', newLists);
     
 
     let roomsOnFloor;
     if (position_type.type === 'building') {
-        roomsOnFloor = allLists.map(obj => {
+        roomsOnFloor = newLists.map(obj => {
             const pos = position.find(pos => pos.dynamicId === obj.dynamicId);
             return { ...obj, floor: pos?.info?.floor?.name, room: pos?.info?.room?.name };
         });
     } else if (position_type.type === 'geographicFloor') {
         const List_floor = get_element_floor(position);
-        roomsOnFloor = getRoomsByFloor(position_type.dynamicId, allLists, List_floor).map(obj => {
+        roomsOnFloor = getRoomsByFloor(position_type.dynamicId, newLists, List_floor).map(obj => {
             const pos = position.find(pos => pos.dynamicId === obj.dynamicId);
             return { ...obj, floor: pos?.info?.floor?.name, room: pos?.info?.room?.name };
         });
     } else if (position_type.type === 'geographicRoom') {
         const List_floor = get_element_floor(position);
-        roomsOnFloor = getElByFloor(position_type.dynamicId, allLists, List_floor).map(obj => {
+        roomsOnFloor = getElByFloor(position_type.dynamicId, newLists, List_floor).map(obj => {
             const pos = position.find(pos => pos.dynamicId === obj.dynamicId);
             return { ...obj, floor: pos?.info?.floor?.name, room: pos?.info?.room?.name };
         });
     } else {
-        return allLists; // Fallback for unhandled types
+        return newLists; // Fallback for unhandled types
     }
 
     const chunkedRoomIds = lodash.chunk(roomIds, 500);

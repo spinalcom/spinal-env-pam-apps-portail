@@ -74,7 +74,10 @@ with this file. If not, see
       <viewerApp :class="{ 'active3D': isActive3D }" class="viewerContainer"></viewerApp>
       <dataSideApp :DActive="isActive3D" :ActiveData="isActive" :class="{ 'active': isActive, 'inactive': isActive3D }"
         :selected_attr="$store.state.appDataStore.attr" class="appContainer" :element_clicked="el_clicked"
-        :config="config" :selectedZone="selectedZone" :data="displayedData" @clickOnDataView="onDataViewClicked"
+        :config="config" :selectedZone="selectedZone" :data="displayedData" 
+        @clickOnDataView="onDataViewClicked"
+        @unselect-data-view="unselectDataView"
+        @fit-to-view="fitToView"
         @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D">
       </dataSideApp>
     </div>
@@ -344,8 +347,19 @@ class App extends Vue {
     if (!item) return;
 
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
-    this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
+
+  }
+  async unselectDataView(items) {
+    if (!items) return;
+    this.$store.commit(MutationTypes.SET_ITEM_SELECTED, null);
+    this.$store.dispatch(ActionTypes.SELECT_SPRITES, []);
+    this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, items);
+  }
+
+  async fitToView(item: TGeoItem | TGeoItem[]) {
+    if (!item) return;
+    this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
   }
 
 
@@ -574,6 +588,7 @@ export default App;
 
   .dataBody {
     height: calc(100% - #{$selectorHeight + 30px});
+    max-height: calc(100% - #{$selectorHeight + 30px});
     margin: 80px 8px 0 8px;
 
     .viewerContainer {

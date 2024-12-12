@@ -1,41 +1,144 @@
 <template>
-  <v-data-table id="my-data-table" ref="table" @click="" class="fixed-first-column"
-    style="box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;overflow: auto;max-height: 75vh; background: transparent !important;overflow: hidden;"
-    mobile-breakpoint="0" no-data-text="Pas de données disponibles" :headers="headers" :items="items"
-    :items-per-page="8000" :height="height" fixed-header>
-
-    <template v-for="header in headers" v-slot:[`header.${header.value}`]="{ header }">
-      <div @click="headershow(header)" :class="{ 'selected-class': selected_header === header.text }"
-        style="display: flex;flex-direction: row;justify-content: space-between; align-items: center ; height: 40px;">
-        <div style="width: 35px; overflow: hidden;  transform: translate(-10px,-3px); ">
-          <v-select v-model="selections[header.text]" :menu-props="{ offsetY: true }" :label="' '" multiple
-            append-icon="mdi-chevron-down" color="#14202C" item-color="#14202C" class=" d-inline-block"
-            style="width:20px;min-width: 20px;font-size: 14px !important;transform: translate(-5%,10%) ;"
-            v-if="header.filterable" :items="getUniqueColumnValues(filteredContexts, header.text)">
+  <v-data-table
+    id="my-data-table"
+    ref="table"
+    @click=""
+    class="fixed-first-column"
+    style="
+      box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px,
+        rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+      overflow: auto;
+      max-height: 75vh;
+      background: transparent !important;
+      overflow: hidden;
+    "
+    mobile-breakpoint="0"
+    no-data-text="Pas de données disponibles"
+    :headers="headers"
+    :items="items"
+    :items-per-page="8000"
+    :height="height"
+    fixed-header
+  >
+    <!-- Header -->
+    <template
+      v-for="header in headers"
+      v-slot:[`header.${header.value}`]="{ header }"
+    >
+      <div
+        @click="headershow(header)"
+        :class="{ 'selected-class': selected_header === header.text }"
+        style="
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+          height: 40px;
+        "
+      >
+        <div
+          style="
+            width: 35px;
+            overflow: hidden;
+            transform: translate(-10px, -3px);
+          "
+        >
+          <v-select
+            v-model="selections[header.text]"
+            :menu-props="{ offsetY: true }"
+            :label="' '"
+            multiple
+            append-icon="mdi-chevron-down"
+            color="#14202C"
+            item-color="#14202C"
+            class="d-inline-block"
+            style="
+              width: 20px;
+              min-width: 20px;
+              font-size: 14px !important;
+              transform: translate(-5%, 10%);
+            "
+            v-if="header.filterable"
+            :items="getUniqueColumnValues(filteredContexts, header.text)"
+          >
             >
             <template v-slot:selection="{ item, index }">
-              <div v-if="index == 0"
-                style="position: absolute;background-color: #14202c;color: white;border-radius: 10px;width: 14px;height: 14px;font-size: 11px;display: flex;justify-content: center;align-items: center;transform: translate(20px,-8px);">
-                {{ selections[header.text].length }} </div>
+              <div
+                v-if="index == 0"
+                style="
+                  position: absolute;
+                  background-color: #14202c;
+                  color: white;
+                  border-radius: 10px;
+                  width: 14px;
+                  height: 14px;
+                  font-size: 11px;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  transform: translate(20px, -8px);
+                "
+              >
+                {{ selections[header.text].length }}
+              </div>
             </template>
           </v-select>
         </div>
-        <span title="Cliquez pour afficher les éléments dans la 3D" id="headerName">{{ header.text }}</span>
-        <div  title="Cliquez pour ordonner" style=" width: 30px;display: flex;justify-content: center;align-items: center;">
-          <v-icon  v-if="arrow == header.text" @click="sort(header)" color="black">mdi-arrow-up-thin</v-icon>
-          <v-icon v-if="arrow != header.text" @click="sort(header)" color="black">mdi-arrow-down-thin</v-icon>
+        <span
+          title="Cliquez pour afficher les éléments dans la 3D"
+          id="headerName"
+          >{{ header.text }}</span
+        >
+        <div
+          title="Cliquez pour ordonner"
+          style="
+            width: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <v-icon
+            v-if="arrow == header.text"
+            @click="sort(header)"
+            color="black"
+            >mdi-arrow-up-thin</v-icon
+          >
+          <v-icon
+            v-if="arrow != header.text"
+            @click="sort(header)"
+            color="black"
+            >mdi-arrow-down-thin</v-icon
+          >
         </div>
         <div
-          style="border-right: 2px solid #d9d9d9;height: 100%;background-color: white;position: absolute;transform: translate(-16px);">
+          style="
+            border-right: 2px solid #d9d9d9;
+            height: 100%;
+            background-color: white;
+            position: absolute;
+            transform: translate(-16px);
+          "
+        >
         </div>
       </div>
     </template>
 
+    <!-- Rows -->
     <template v-slot:item="{ item }">
-      <tr @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave" :ref="`row-${item.dynamicId}`"
-        @click="selectDataView(item)">
-        <td :class="selected_id == item.dynamicId ? 'colortd' : ''">
-          <span 
+  <tr :key="selected_id === item.dynamicId ? `selected-${item.dynamicId}` : `row-${item.dynamicId}`"
+      :class="{ colortd: selected_id === item.dynamicId }" 
+      @mouseenter="handleMouseEnter" 
+      @mouseleave="handleMouseLeave" 
+      :ref="`row-${item.dynamicId}`"
+      @click="selectDataView(item)"
+      @dblclick="fitToView(item)"
+      @contextmenu.prevent="handleRightClick(item, $event)"
+      >
+      
+    <!-- First Column -->
+    <td :class="{ colortd: selected_id === item.dynamicId, 'sticky-column': true }">
+      <span 
         :style="{ 
           backgroundColor: item.color, 
           display: 'inline-block', 
@@ -45,36 +148,50 @@
           marginRight: '8px' 
         }"
       ></span>
-          {{ item.name }}
-        </td>
-        <td style="white-space: nowrap;" :class="selected_id == item.dynamicId ? 'colortd' : ''"
-          v-for="(header, index) in headers" :key="`td-${index}-${item.id}`" v-if="header.value !== 'name'">
-          <template v-if="isUrl(getAttributeValue(item, header.value))">
-            <a :href="getAttributeValue(item, header.value)" target="_blank">
-              {{ getAttributeValue(item, header.value) }}
-            </a>
-          </template>
-          <template v-else>
-            {{ getAttributeValue(item, header.value) }}
-          </template>
-        </td>
-      </tr>
-    </template>
+      {{ item.name }}
+    </td>
 
+    <!-- Other Columns -->
+    <td v-for="(header, index) in headers" 
+        :key="`td-${index}-${item.id}`" 
+        :class="{ colortd: selected_id === item.dynamicId }" 
+        v-if="header.value !== 'name'">
+      <template v-if="isUrl(getAttributeValue(item, header.value))">
+        <a :href="getAttributeValue(item, header.value)" target="_blank">
+          {{ getAttributeValue(item, header.value) }}
+        </a>
+      </template>
+      <template v-else>
+        {{ getAttributeValue(item, header.value) }}
+      </template>
+    </td>
+  </tr>
+</template>
   </v-data-table>
 </template>
 
 <script>
-import { watch } from 'fs';
+
 
 export default {
-  props: ['items', 'headers', 'noDataText', 'itemsPerPage', 'tableHeight', 'shadow', 'selections', 'contexts', 'height', 'selectedItemTab'],
+  props: [
+    'items',
+    'headers',
+    'noDataText',
+    'itemsPerPage',
+    'tableHeight',
+    'shadow',
+    'selections',
+    'contexts',
+    'height',
+    'selectedItemTab',
+  ],
 
   data() {
     return {
       selected_id: null,
       selected_header: null,
-      arrow: false
+      arrow: false,
     };
   },
   computed: {
@@ -85,27 +202,41 @@ export default {
     },
     computedStyle() {
       return {
-        boxShadow: this.shadow ? "rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px" : "",
-        marginTop: "65px",
-        overflow: "auto",
-        maxHeight: "75vh",
-        background: "transparent",
-        overflowX: "hidden",
-
+        boxShadow: this.shadow
+          ? 'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px'
+          : '',
+        marginTop: '65px',
+        overflow: 'auto',
+        maxHeight: '75vh',
+        background: 'transparent',
+        overflowX: 'hidden',
       };
-    }
+    },
   },
   methods: {
-
     isUrl(value) {
       // Vérifie si la chaîne commence par http ou https
-      return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
+      return (
+        typeof value === 'string' &&
+        (value.startsWith('http://') || value.startsWith('https://'))
+      );
     },
 
     selectDataView(item) {
-      this.selected_id = item.dynamicId
+      this.selected_id = item.dynamicId;
       // console.log('item', item);
       this.$emit('item-selected', item);
+    },
+    fitToView(item){
+      this.$emit('fit-to-view', item);
+    },
+    handleRightClick(item, event) {
+      if(this.selected_id != item.dynamicId){
+        return
+      }
+      this.selected_id = null
+      console.log('Unselect item', this.items);
+      this.$emit('unselect-data-view', this.items);
     },
     handleTableClick() {
       this.$emit('table-click');
@@ -114,15 +245,14 @@ export default {
       this.$emit('item-selected', item);
     },
     headershow(header) {
-      this.selected_header = header.text
+      this.selected_header = header.text;
     },
 
     sort(header) {
       if (this.arrow != header.text) {
         this.arrow = header.text;
-      }
-      else {
-        this.arrow = null
+      } else {
+        this.arrow = null;
       }
       this.$emit('filter', header);
     },
@@ -134,11 +264,11 @@ export default {
       const [attributeName, categoryName] = columnName.split('/');
       const uniqueValues = new Set();
       let attributeNotFound = false;
-      context.forEach(item => {
+      context.forEach((item) => {
         let foundInItem = false;
-        item.categoryAttributes.forEach(category => {
+        item.categoryAttributes.forEach((category) => {
           if (category.name === categoryName) {
-            category.attributs.forEach(attribute => {
+            category.attributs.forEach((attribute) => {
               if (attribute.label === attributeName) {
                 uniqueValues.add(attribute.value);
                 foundInItem = true;
@@ -153,54 +283,81 @@ export default {
       });
 
       if (attributeNotFound) {
-        uniqueValues.add("<empty>");
+        uniqueValues.add('<empty>');
       }
       return uniqueValues.size >= 10 ? [] : [...uniqueValues];
     },
     getAttributeValue(item, attrLabel) {
       if (Array.isArray(item.categoryAttributes)) {
         for (const category of item.categoryAttributes) {
-          const attribute = category.attributs.find(a => a.label === attrLabel);
+          const attribute = category.attributs.find(
+            (a) => a.label === attrLabel
+          );
           if (attribute) {
             return attribute.value;
           }
         }
       } else {
-
         return item[attrLabel];
       }
-      return item[attrLabel] || '';
+      return item[attrLabel] ?? '';
     },
     handleMouseEnter(event) {
       const children = event.target.querySelectorAll('.colortd');
-      children.forEach(child => {
+      children.forEach((child) => {
         child.classList.add('custom-hover-color');
       });
     },
     handleMouseLeave(event) {
       const children = event.target.querySelectorAll('.colortd');
-      children.forEach(child => {
+      children.forEach((child) => {
         child.classList.remove('custom-hover-color');
       });
     },
-
-
-
-
   },
   watch: {
     selectedItemTab(newVal, oldVal) {
-      this.selected_id = newVal
+      this.selected_id = newVal;
       if (this.$refs[`row-${newVal}`]) {
-        this.$refs[`row-${newVal}`].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        this.$refs[`row-${newVal}`].scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
       }
     },
-  }
-}
+  },
+};
 </script>
 
 <style scoped>
-::v-deep .v-text-field.v-input--is-focused>.v-input__control>.v-input__slot:after {
+
+.sticky-column {
+  position: sticky;
+  left: 0;
+  z-index: 1; /* Ensure it appears above other content */
+}
+
+.sticky-column.colortd {
+  background-color: rgb(201, 232, 255); /* Same as the row's color */
+}
+
+tr .colortd {
+  background-color: rgb(201, 232, 255); /* Your blue color */
+}
+
+td.colortd, th.colortd {
+  background-color: rgb(201, 232, 255); /* Ensure all cells in the row are blue */
+}
+
+
+
+
+
+
+::v-deep
+  .v-text-field.v-input--is-focused
+  > .v-input__control
+  > .v-input__slot:after {
   color: rgba(255, 255, 255, 0) !important;
 }
 
@@ -213,7 +370,10 @@ export default {
   /* padding-left: 10px; */
 }
 
-::v-deep .theme--light.v-text-field>.v-input__control>.v-input__slot:before {
+::v-deep
+  .theme--light.v-text-field
+  > .v-input__control
+  > .v-input__slot:before {
   border-color: rgba(255, 255, 255, 0) !important;
 }
 
@@ -239,7 +399,7 @@ export default {
   background-color: red !important;
 }
 
-::v-deep .v-data-table__wrapper>table>thead>tr>th:nth-child(1) {
+::v-deep .v-data-table__wrapper > table > thead > tr > th:nth-child(1) {
   position: sticky;
   left: 0;
   z-index: 9;
@@ -288,7 +448,7 @@ td {
   display: none;
 }
 
-::v-deep div.v-data-table__wrapper>table>thead>tr>th>i {
+::v-deep div.v-data-table__wrapper > table > thead > tr > th > i {
   display: none;
 }
 
@@ -309,8 +469,9 @@ td {
 }
 
 .animate {
-  -webkit-animation: scale-in-ver-top 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-  animation: scale-in-ver-top 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  -webkit-animation: scale-in-ver-top 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+    both;
+  animation: scale-in-ver-top 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
 @-webkit-keyframes scale-in-ver-top {
@@ -350,7 +511,7 @@ td {
 }
 
 ::v-deep .v-treeview-node__children {
-  padding-left: 20px
+  padding-left: 20px;
 }
 
 ::v-deep .v-treeview-node__root {
@@ -373,7 +534,12 @@ td {
   z-index: 1;
 }
 
-::v-deep .v-data-table__wrapper>table>tbody>tr:nth-child(1)>td:nth-child(1) {
+::v-deep
+  .v-data-table__wrapper
+  > table
+  > tbody
+  > tr:nth-child(1)
+  > td:nth-child(1) {
   position: sticky;
   left: 0;
   z-index: 1;
@@ -391,8 +557,8 @@ td {
 }
 
 .select-attr {
-  -webkit-animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
-  animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+  -webkit-animation: fade-in 1.2s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+  animation: fade-in 1.2s cubic-bezier(0.39, 0.575, 0.565, 1) both;
 }
 
 @-webkit-keyframes fade-in {
@@ -433,7 +599,7 @@ td {
 .font-table {
   font: normal normal normal 16px/13px Charlevoix !important;
   letter-spacing: 1.1px;
-  color: #14202C;
+  color: #14202c;
   opacity: 1;
   box-shadow: none !important;
   overflow: hidden;
@@ -475,8 +641,8 @@ td {
 
 ::v-deep td {
   font-size: 14px !important;
-  color: #14202C !important;
-  background-color: #F4F4F4;
+  color: #14202c !important;
+  background-color: #f4f4f4;
   border-bottom: 1px solid white !important;
   border-right: 1px solid white !important;
 }
@@ -495,7 +661,10 @@ td {
   background-color: #2f5321 !important;
 }
 
-::v-deep .v-text-field.v-input--is-focused>.v-input__control>.v-input__slot:after {
+::v-deep
+  .v-text-field.v-input--is-focused
+  > .v-input__control
+  > .v-input__slot:after {
   color: #214353;
 }
 
@@ -504,8 +673,8 @@ td {
 }
 
 ::v-deep .v-application .primary--text {
-  color: #14202C !important;
-  caret-color: #14202C !important;
+  color: #14202c !important;
+  caret-color: #14202c !important;
   background-color: #1500ff !important;
 }
 
@@ -541,18 +710,17 @@ td {
   border-bottom-right-radius: 0px;
 }
 
-::v-deep tr>th:first-child {
+::v-deep tr > th:first-child {
   border-top-left-radius: 10px !important;
 }
 
-::v-deep tr>th:last-child {
+::v-deep tr > th:last-child {
   border-top-right-radius: 0px !important;
 }
 
-::v-deep tr>td.text-start {
+::v-deep tr > td.text-start {
   display: flex;
   align-items: center;
-
 }
 
 ::v-deep .v-data-table__wrapper::-webkit-scrollbar-thumb {
@@ -569,17 +737,7 @@ td {
 
 ::v-deep .v-data-table__wrapper::-webkit-scrollbar-track {
   background: #ffffff;
-
 }
-
-::v-deep .v-data-table__wrapper::-webkit-scrollbar-thumb {
-  background: #e8e8e8;
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-  border: 1px solid rgb(195, 195, 195);
-  transition: 1s;
-}
-
 ::v-deep .v-data-table__wrapper::-webkit-scrollbar-thumb:hover {
   background: #dedede;
 }

@@ -244,6 +244,10 @@ export class ViewerManager {
 		emitter.emit(<any>VIEWER_EVENTS.VIEWER_ADD_COMPONENT_SPRITE, formatted as any);
 	}
 
+	public async getObjectProperties(dbId : number) {
+		return ViewerUtils.getInstance().getObjectProperties(this.viewer,dbId)
+	}
+
 	//////////////////////////////////////////////////////////////////////////////
 
 	private async _getAndFormatViewerInfos(item: IPlayloadWithComponent | IPlayloadWithComponent[], buildingId?: string, component?: Vue) {
