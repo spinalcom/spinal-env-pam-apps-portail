@@ -235,7 +235,6 @@ export default {
         return
       }
       this.selected_id = null
-      console.log('Unselect item', this.items);
       this.$emit('unselect-data-view', this.items);
     },
     handleTableClick() {
@@ -245,7 +244,7 @@ export default {
       this.$emit('item-selected', item);
     },
     headershow(header) {
-      this.selected_header = header.text;
+      // this.selected_header = header.text;
     },
 
     sort(header) {

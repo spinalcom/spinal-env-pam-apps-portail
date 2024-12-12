@@ -472,6 +472,13 @@ import LineCardComponent from './LineCardComponent.vue';
 import { IConfig, ITemporality } from '../../interfaces/IConfig';
 import moment from 'moment';
 
+import Alert from './Alert.vue'
+import ShowDocumentation from './Documentation.vue'
+import FormDoc from "./FormDoc.vue";
+import AddBtn from './ButtonAdd.vue';
+import getIcon from "../../services/function/getIcon";
+import Loader from "./Loader.vue";
+
 export default {
   components: {
     SmallLegend,
@@ -479,6 +486,11 @@ export default {
     SpinalbreadCrumb,
     DataTable,
     LineCardComponent,
+    Alert,
+    ShowDocumentation,
+    FormDoc,
+    AddBtn,
+    Loader
   },
   props: [
     'contexts',

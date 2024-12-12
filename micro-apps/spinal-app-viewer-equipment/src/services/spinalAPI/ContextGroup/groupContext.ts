@@ -120,14 +120,12 @@ async function processPositionType(position_type, buildingId, allLists) {
     const roomIds = allLists.map(room => room.dynamicId.toString());
     const position = await getEquipementPositions(buildingId, roomIds);
     const nodeReads = await getNodeReadMultiple(buildingId, roomIds,true,false);
-    console.log('------------------allLists', allLists);
     const newLists = allLists.map(obj => {
         const correctNode = nodeReads.find(node => node.dynamicId === obj.dynamicId);
         if (!correctNode) {
             return obj;
         }
         const response = correctNode.children_relation_list;
-        console.log('response', response);
         const relation_tickets = response.find(relation => relation.name === "SpinalSystemServiceTicketHasTicket")
         const count_tickets = relation_tickets ? relation_tickets.children_number : 0;
         const relation_ep = response.find(relation => relation.name === "hasEndPoint")
@@ -142,8 +140,6 @@ async function processPositionType(position_type, buildingId, allLists) {
         const count_files = relation_files ? relation_files.children_number : 0;
         return { ...obj, nbr_tickets: count_tickets, nbr_ep: count_ep, nbr_cp: count_cp, nbr_notes: count_notes, nbr_category_attributes: count_category_attributes, nbr_files: count_files };
     })
-
-    console.log('------------------newLists', newLists);
     
 
     let roomsOnFloor;
