@@ -11,12 +11,21 @@
       ]"
       @mousedown="startresize">
     </div>
-    <div v-for="(ticket, index) in ticketList" :key="ticket.name + index" class="ticket">
+    <div
+      v-for="(ticket, index) in ticketList"
+      :key="ticket.name + index"
+      :style="{ height: taskHeight + 'px' }"
+      class="ticket">
+      <!-- STATUS COMPONENT -->
       <Status :status="ticket.status"/>
       <span class="ellipsis">
         {{ ticket.name }}
       </span>
-      <div v-if="fallingIn(ticket.startDate)" class="goto-ticket" @click="bringDay(ticket, fallingIn(ticket.startDate))">
+      <div
+        v-if="fallingIn(ticket.startDate)"
+        :style="{ height: (taskHeight - 5) + 'px' }"
+        class="goto-ticket"
+        @click="bringDay(ticket, fallingIn(ticket.startDate))">
         <v-icon class="goto-icon icon">
           {{ fallingIn(ticket.startDate) }}
         </v-icon>
@@ -35,6 +44,8 @@ export default {
   props: [
     'ticketList',
     'viewPortEdges',
+    'dayWidth',
+    'taskHeight',
   ],
   components: {
     Status
@@ -122,7 +133,6 @@ export default {
   color: #14202C;
   letter-spacing: 1.1px;
   padding: 0 10px;
-  height: 30px;
   width: 100%;
   font-size: 12px;
   border-bottom: 1px solid #E2E2E2;
@@ -140,7 +150,6 @@ export default {
   align-items: center;
   justify-content: center;
   right: -20px;
-  height: 25px;
   width: 15px;
   border: 1px solid #E2E2E2;
   border-radius: 3px;

@@ -1,20 +1,31 @@
 
 <template>
   <div class="content-plan"
-    :style="{ 'height': ticketList.length * 30  + 'px' }">
+    :style="{ 'height': ticketList.length * taskHeight  + 'px' }">
+    <!-- TodayMarker component -->
     <TodayMarker :height="markerHeight" :offset="markerOffset"/>
+    <!-- Sidebar component -->
     <SideBar class="side-bar"
       :ticketList="ticketList"
       :start="start"
       :end="end"
       :viewPortEdges="viewPortEdges"
+      :dayWidth="dayWidth"
+      :taskHeight="taskHeight"
       @bringDay="bringDay"
       @resizedSideBar="resizedSideBar"
       @goto="goto"/>
+    <!-- Task component -->
     <Task
-      v-for="(task, index) in  ticketList" :key="task.name + index" class="task"
-        :style="[{ 'top': index * 30 + 'px'}, ]"
-      :level="index" :task="task" :start="start"/>
+      v-for="(task, index) in  ticketList"
+      :key="task.name + index"
+      :style="[{ 'top': index * taskHeight + 'px'}, ]"
+      :level="index"
+      :task="task"
+      :start="start"
+      :dayWidth="dayWidth"
+      :taskHeight="taskHeight"
+      class="task"/>
     <div v-for="(offset, index) in weekLines" :key="index" :style="[{ 'left': offset + 'px' }, { 'height': markerHeight - 5 + 'px' }]" class="week-separator-long "></div>
   </div>
 </template>
@@ -33,6 +44,8 @@ export default {
     'start',
     'end',
     'viewPortEdges',
+    'dayWidth',
+    'taskHeight',
   ],
   components: {
     Task,
@@ -46,19 +59,19 @@ export default {
       const mondayLines = [];
       const diff = this.end.diff(this.start, 'days');
       for (let i = 8 - this.start.day(); i <= diff; i += 7) {
-        mondayLines.push(i * 30);
+        mondayLines.push(i * this.dayWidth);
       }
       return mondayLines;
     },
     markerHeight() {
-      return this.ticketList.length * 30 + 5;
+      return this.ticketList.length * this.taskHeight + 5;
     },
     markerOffset() {
-     return moment().diff(this.start, 'days') * 30 + 3;
+     return moment().diff(this.start, 'days') * this.dayWidth + this.dayWidth / 10;
     },
   },
   mounted() {
-    this.$emit('planHeight', (this.ticketList.length) * 30);
+    this.$emit('planHeight', (this.ticketList.length) * this.taskHeight);
   },
   methods: {
     resizedSideBar(event) {

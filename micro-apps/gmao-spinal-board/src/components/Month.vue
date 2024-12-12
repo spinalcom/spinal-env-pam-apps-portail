@@ -8,6 +8,19 @@
         <v-icon class="action-icon icon" @click="verticalScroll('left')">mdi-chevron-left</v-icon>
         <v-icon class="action-icon icon" @click="verticalScroll('right')">mdi-chevron-right</v-icon>
       </div>
+      <div class="slider-container">
+        <v-icon class="action-icon icon" @click="verticalScroll('left')">mdi-magnify-plus-outline</v-icon>
+          <v-slider
+            v-model="zoom"
+            min="8"
+            max="50"
+            thumb-color="#14202c"
+            track-fill-color="grey darken-1"
+            track-color="grey lighten-3"
+            class="slider"
+            ></v-slider>
+        <v-icon class="action-icon icon" @click="verticalScroll('right')">mdi-magnify-minus-outline</v-icon>
+      </div>
       <div class="action-button pointer-hover" @click="bringToday()">
         Aujourd'hui
       </div>
@@ -22,8 +35,8 @@
     </div>
 
     <div :style="[
-      { 'width': planWidth + 30 + 'px' },
-      { 'height': planHeight + 60 + 'px' },
+      { 'width': planWidth + dayWidth + 'px' },
+      { 'height': planHeight + (taskHeight * 2) + 'px' },
       { 'min-height': planHeight + 'px' },
     ]" class="plan">
 
@@ -32,7 +45,7 @@
           v-for="(month, index) in monthList"
           :key="month.name + '/' + month.year"
           class="month-placement"
-          :style="[{ 'width': month.days * 30 + 'px' }, { 'z-index': index }]">
+          :style="[{ 'width': month.days * dayWidth + 'px' }, { 'z-index': index }]">
           {{ month.name.charAt(0).toUpperCase() + month.name.slice(1) }} {{ month.year }}
         </div>
       </div>
@@ -42,11 +55,12 @@
           v-for="month in monthList"
           :key="month.name + '/' + month.year"
           class="day-strip"
-          :style="{ 'width': month.days * 30 + 'px' }">
+          :style="{ 'width': month.days * dayWidth + 'px' }">
           <div
             v-for="day in month.days"
             :key="day + '/' + month.name + '/' + month.year"
             :class="{ today: currentMarker === day + '/' + month.name + '/' + month.year }"
+            :style="[{ 'width': dayWidth + 'px !important' }]"
             class="day full-center">
             {{ day }}
             <div
@@ -55,7 +69,12 @@
               class="week-separator"></div>
           </div>
         </div>
-        <div class="dot" :style="{ 'left': markerOffset + 10 + 'px' }"></div>
+        <div class="dot" 
+          :style="[
+            { 'left': markerOffset + (dayWidth / 3) + 'px' },
+            { 'height': Math.ceil(dayWidth/5) + 'px' },
+            { 'width': Math.ceil(dayWidth/5) + 'px' },
+          ]"></div>
       </div>
 
       <div class="plan-background" :style="{ 'height': planHeight  + 'px' }">
@@ -65,6 +84,8 @@
           :start="start"
           :end="end"
           :viewPortEdges="viewPortEdges"
+          :dayWidth="dayWidth"
+          :taskHeight="taskHeight"
           @bringDay="bringDay"
           @goto="bringTheDay"
           @planHeight="planH"
@@ -104,6 +125,10 @@ export default {
     margin: 300,
     sidebarWidth: 300,
     scrollLeft: 0,
+    zoom: 30,
+    taskHeight: 30,
+    dayWidth: 30,
+    fontSize: 12,
   }),
   created() {
     this.current = moment();
@@ -129,17 +154,17 @@ export default {
   },
   computed: {
     markerOffset() {
-     return moment().diff(this.start, 'days') * 30 + 3;
+     return moment().diff(this.start, 'days') * this.dayWidth + 3;
     },
     separator() {
-      return this.planDimensions.height - 30 - this.planDimensions.height * .02;
+      return this.planDimensions.height - this.taskHeight - this.planDimensions.height * .02;
       // return this.planDimensions.height - 5;
     },
     planWidth() {
-      return this.diff * 30;
+      return this.diff * this.dayWidth;
     },
     scrollWidth() {
-      return Math.floor((this.planDimensions.width - this.sidebarWidth) / 30) * 30;
+      return Math.floor((this.planDimensions.width - this.sidebarWidth) / this.dayWidth) * this.dayWidth;
     }
   },
   methods: {
@@ -198,7 +223,7 @@ export default {
       }
       this.isScrolling = false;
       await this.$nextTick();
-      this.$refs.calendar.scrollLeft += daysPrepended * 30;
+      this.$refs.calendar.scrollLeft += daysPrepended * this.dayWidth;
       this.isScrolling = true;
       return daysPrepended;
     },
@@ -211,10 +236,10 @@ export default {
       const parentWidth = parent.clientWidth;
       const childWidth = child.offsetWidth;
       // TODO: WRITE DOCUMENTATION
-      this.sidebarWidthInDays = this.sidebarWidth / 30;
-      this.viewPortWidthInDays = Math.floor((this.planDimensions.width - 10) / 30) - this.sidebarWidthInDays;
+      this.sidebarWidthInDays = this.sidebarWidth / this.dayWidth;
+      this.viewPortWidthInDays = Math.floor((this.planDimensions.width - (this.dayWidth)/3) / this.dayWidth) - this.sidebarWidthInDays;
 
-      this.viewPortEdges.start = moment(this.start).add(Math.ceil(this.scrollLeft / 30) + this.sidebarWidthInDays, 'days');
+      this.viewPortEdges.start = moment(this.start).add(Math.ceil(this.scrollLeft / this.dayWidth) + this.sidebarWidthInDays, 'days');
       this.viewPortEdges.end = moment(this.viewPortEdges.start).add(this.viewPortWidthInDays, 'days');
 
       if (this.scrollLeft <= this.margin) {
@@ -237,9 +262,9 @@ export default {
     },
     updateViewport() {
       // TODO: WRITE DOCUMENTATION
-      this.sidebarWidthInDays = this.sidebarWidth / 30;
-      this.viewPortWidthInDays = Math.floor((this.planDimensions.width - this.sidebarWidthInDays) / 30) - this.sidebarWidthInDays;
-      this.viewPortEdges.start = moment(this.start).add(Math.ceil(this.scrollLeft / 30) + this.sidebarWidthInDays, 'days');
+      this.sidebarWidthInDays = this.sidebarWidth / this.dayWidth;
+      this.viewPortWidthInDays = Math.floor((this.planDimensions.width - this.sidebarWidthInDays) / this.dayWidth) - this.sidebarWidthInDays;
+      this.viewPortEdges.start = moment(this.start).add(Math.ceil(this.scrollLeft / this.dayWidth) + this.sidebarWidthInDays, 'days');
       this.viewPortEdges.end = moment(this.viewPortEdges.start).add(this.viewPortWidthInDays, 'days');
     },
     planH(event) {
@@ -249,7 +274,7 @@ export default {
       const date = this.current
       this.isScrolling = animation;
       await this.$nextTick();
-      this.$refs.calendar.scrollLeft = date.diff(this.start, 'days') * 30 - this.sidebarWidth - ( (this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2 );
+      this.$refs.calendar.scrollLeft = date.diff(this.start, 'days') * this.dayWidth - this.sidebarWidth - ( (this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2 );
       await this.$nextTick();
       this.isScrolling = true;
     },
@@ -273,7 +298,7 @@ export default {
           }
         }
       }
-      this.$refs.calendar.scrollLeft = moment(startDate).diff(this.start, 'days') * 30 - this.sidebarWidth - ( (this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2 );
+      this.$refs.calendar.scrollLeft = moment(startDate).diff(this.start, 'days') * this.dayWidth - this.sidebarWidth - ( (this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2 );
     },
     async verticalScroll(direction) {
       if (direction === 'right') {
@@ -281,7 +306,7 @@ export default {
           await this.appendPeriod();
         }
         await this.$nextTick();
-        this.$refs.calendar.scrollLeft += this.viewPortEdges.end.diff(this.viewPortEdges.start, 'days') * 30;
+        this.$refs.calendar.scrollLeft += this.viewPortEdges.end.diff(this.viewPortEdges.start, 'days') * this.dayWidth;
       }
       else if (direction === 'left') {
         if ((this.viewPortEdges.start.diff(this.start, 'days') - this.viewPortWidthInDays) < this.viewPortWidthInDays) {
@@ -289,7 +314,7 @@ export default {
         }
 
         await this.$nextTick();
-        this.$refs.calendar.scrollLeft -= this.viewPortEdges.end.diff(this.viewPortEdges.start, 'days') * 30;
+        this.$refs.calendar.scrollLeft -= this.viewPortEdges.end.diff(this.viewPortEdges.start, 'days') * this.dayWidth;
       }
     },
     fallingIn(date) {
@@ -317,6 +342,10 @@ export default {
     },
   },
   watch: {
+    zoom(v1) {
+      this.taskHeight = v1;
+      this.dayWidth = v1;
+    }
   },
 }
 </script>
@@ -382,7 +411,6 @@ export default {
   justify-content: center;
   position: relative;
   height: 30px;
-  width: 30px;
   font-size: 10px;
   z-index: 100;
 }
@@ -407,21 +435,9 @@ export default {
   width: 1px;
   border-left: 1px solid #E2E2E2;
 }
-.sunrise {
-  position: absolute;
-  top: 25px;
-  height: 5px;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  width: 6px;
-  background: green;
-  z-index: 185;
-}
 .dot {
   position: absolute;
   top: 25px;
-  height: 7px;
-  width: 7px;
   border-radius: 10px;
   background: #FF3A3A;
   z-index: 400;
@@ -476,8 +492,33 @@ export default {
 .action-icon {
   font-size: 14px !important;
 }
+.slider-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 150px;
+}
+.slider {
+  height: 33px !important;
+}
 .pointer-hover {
   cursor: pointer;
+}
+.v-slider__thumb:before {
+  background: transparent !important;
+}
+.v-slider__thumb-container--active .v-slider__thumb:before {
+  display: none !important;
+}
+.v-slider__thumb-container--active .v-slider__thumb:after {
+  display: none !important;
+}
+.v-slider__thumb-container--focused .v-slider__thumb:before {
+  display: none !important;
+}
+.v-slider__thumb-container--focused .v-slider__thumb:after {
+  display: none !important;
 }
 </style>
 

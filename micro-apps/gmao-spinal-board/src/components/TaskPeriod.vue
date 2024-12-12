@@ -1,8 +1,9 @@
 
 <template>
   <div :style="[
-    { 'left': 30 * locate + 'px' },
-    { 'width': taskWidth * 30 - 12+ 'px' }
+    { 'left': dayWidth * locate + 'px' },
+    { 'height': (taskHeight - 8) + 'px' },
+    { 'width': taskWidth * dayWidth - 12 + 'px' },
     ]"  class="period">
     <Status :status="task.status" />
    {{ task.name }} 
@@ -15,7 +16,12 @@ import moment from 'moment';
 moment.locale('fr');
 export default {
   name: 'TaskPeriod',
-  props: ['task', 'start'],
+  props: [
+    'task',
+    'start',
+    'dayWidth',
+    'taskHeight',
+  ],
   components: {
     Status,
   },
@@ -43,7 +49,6 @@ export default {
   align-items: center;
   gap: 10px;
   color: #474747;
-  height: 22px;
   background: white;
   left: 400px;
   padding-left: 10px;
