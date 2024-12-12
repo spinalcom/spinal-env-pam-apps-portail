@@ -40,6 +40,7 @@ import { ActionTypes, ApiIteratorStoreRecordNumberType, ApiIteratorStoreRecordSt
 import { getGroupsItems, getAllCategoriesTree } from "../../spinalAPI/GeographicContext/groupsItems";
 import SpriteManager from "../../../../../../global-components/viewer/manager/spriteManager";
 import ViewerManager from "../../../../../../global-components/viewer/manager/viewerManager";
+import ModelManager  from "../../../../../../global-components/viewer/manager/modelManager";
 import { IConfig } from "../../../interfaces/IConfig";
 import { classifyItemByBimFileId } from "./utils/openViewer";
 
@@ -527,5 +528,9 @@ export const actions = {
 	},
 	[ActionTypes.SELECT_SPRITES]({ commit, dispatch, state }, dynamicIds: Array<number>) {
 		return SpriteManager.getInstance().selectSprites(dynamicIds);
+	},
+
+	[ActionTypes.GET_VIEWER_OBJECT_PROPERTIES]({ commit, dispatch, state }, dbId: number) {
+		return ViewerManager.getInstance().getObjectProperties(dbId);
 	}
 };

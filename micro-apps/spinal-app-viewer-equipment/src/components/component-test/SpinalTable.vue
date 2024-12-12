@@ -104,7 +104,7 @@
 
     
     <div v-if="vSelectedTab === 'Equipements'"
-      style="padding: 2px; margin-top: 25px"
+      style="padding: 2px;"
       class="scrollable-table-container"
     >
       <DataTable
@@ -115,11 +115,13 @@
         :contexts="contexts"
         :selections="selections"
         @item-selected="selectDataView($event)"
+        @unselect-data-view="unselectDataView($event)"
+        @fit-to-view="fitToView($event)"
         @filter="filtercolumn($event)"
       />
     </div>
     <!-- ONGLET attribut (attribut)-->
-    <div v-if="vSelectedTab == 'Attributs'">
+    <div v-if="vSelectedTab == 'Attributs'" class="scrollable-content"  >
       <h3>Attribut de la selection</h3>
 
       <div
@@ -172,34 +174,39 @@
     </div>
 
     <!-- ONGLET Documentation -->
-    <div v-if="vSelectedTab == 'Documentation'">
-      <div class="blocInformation">
-        <div
-          v-for="(item, index) in vSelectItemDocumentation"
-          :key="index"
-          :class="['inventory-item', { 'inventory-item-image': item.fileUrl }]"
-        >
-          <li>{{ item.Name }}</li>
-          <!-- Display the image if fileUrl exists -->
-          <img
-            v-if="item.fileUrl"
-            :src="item.fileUrl"
-            alt="Preview"
-            class="item-preview-image"
-          />
-          <v-icon
-            @click="downloadFile(item.dynamicId, item.Name)"
-            style="cursor: pointer; font-size: 40px"
-            color="green"
+    <div v-if="vSelectedTab == 'Documentation'" class="scrollable-content">
+      <div v-if="vSelectItemDocumentation && vSelectItemDocumentation.length > 0">
+        <div class="blocInformation">
+          <div
+            v-for="(item, index) in vSelectItemDocumentation"
+            :key="index"
+            :class="['inventory-item', { 'inventory-item-image': item.fileUrl }]"
           >
-            mdi-download-box
-          </v-icon>
+            <li>{{ item.Name }}</li>
+            <!-- Display the image if fileUrl exists -->
+            <img
+              v-if="item.fileUrl"
+              :src="item.fileUrl"
+              alt="Preview"
+              class="item-preview-image"
+            />
+            <v-icon
+              @click="downloadFile(item.dynamicId, item.Name)"
+              style="cursor: pointer; font-size: 40px"
+              color="green"
+            >
+              mdi-download-box
+            </v-icon>
+          </div>
         </div>
+      </div>
+      <div v-else>
+        <p>Aucune documentation disponible.</p>
       </div>
     </div>
 
     <!-- ONGLET TICKETS -->
-    <div v-if="vSelectedTab == 'Tickets'">
+    <div v-if="vSelectedTab == 'Tickets'" class="scrollable-content">
       <!-- Vérification si les tickets existent -->
       <div v-if="vSelectItemTickets && vSelectItemTickets.length > 0">
         <!-- Boucle sur chaque ticket -->
@@ -248,7 +255,7 @@
     </div>
 
     <!-- ONGLET Notes -->
-    <div v-if="vSelectedTab == 'Notes'">
+    <div v-if="vSelectedTab == 'Notes'" class="scrollable-content">
       <!-- Vérification si les notes existent -->
       <div v-if="vSelectItemNotes && vSelectItemNotes.length > 0">
         <!-- Boucle sur chaque note -->
@@ -498,12 +505,13 @@ export default {
     showattribut: false,
     selected_id: null,
     selected_data_item_name: '',
+    selectedEquipement: null,
+
     importAttr: false,
     checked: false,
     allFilteredData: [],
     currentfilter: null,
     order: false,
-    vSelectedItemId: null,
     vSelectTabs: [
       'Equipements',
       'Attributs',
@@ -515,6 +523,7 @@ export default {
     ],
     vSelectedTab: 'Equipements',
     vSelectItemAttributes: [],
+    vSelectItemAutodeskAttributes: [],
     vSelectItemDocumentation: [],
     vSelectItemNotes: [],
     vSelectItemTickets: [],
@@ -729,6 +738,30 @@ export default {
     temporality() {
       return this.$store.state.appDataStore.temporalitySelected.name;
     },
+
+    currentTargetItemId() {
+      let dynamicId = null;
+      if (this.selected_id) {
+        dynamicId = this.selected_id;
+      } else if (this.$store.state.appDataStore.user_selected.grp.length > 0) {
+        let found = this.grp_list.find(
+          (grp) =>
+            grp.name === this.$store.state.appDataStore.user_selected.grp[0]
+        );
+        dynamicId = found.dynamicId;
+      } else if (this.$store.state.appDataStore.user_selected.cat) {
+        let found = this.cat_list.find(
+          (cat) => cat.name === this.$store.state.appDataStore.user_selected.cat
+        );
+        dynamicId = found.dynamicId;
+      } else if (this.$store.state.appDataStore.user_selected.ctx) {
+        let found = this.ctx_list.find(
+          (ctx) => ctx.name === this.$store.state.appDataStore.user_selected.ctx
+        );
+        dynamicId = found.dynamicId;
+      }
+      return dynamicId;
+    }
   },
 
   methods: {
@@ -737,9 +770,6 @@ export default {
         this.$emit('buttonClicked');
       }
     },
-
-
-
 
     resize() {
       setTimeout(() => {
@@ -820,8 +850,9 @@ export default {
     },
 
     onHeaderClick(headerName) {
-      if (headerName.length > 0)
-        this.$store.commit(MutationTypes.SET_ATTR, headerName);
+      console.log('onHeaderClick de-activated uncomment to activate');
+      // if (headerName.length > 0)
+      //   this.$store.commit(MutationTypes.SET_ATTR, headerName);
     },
 
     // extractData(givendata = this.filteredContexts) {
@@ -896,9 +927,21 @@ export default {
     },
 
     selectDataView(item) {
+      console.log('SELECTED ITEM : ', item);
       this.selected_id = item.dynamicId;
       this.selected_data_item_name = item.name;
+      this.selectedEquipement = item;
       this.$emit('item-selected', item);
+    },
+    unselectDataView(items){
+      this.selected_id = null;
+      this.selected_data_item_name = null;
+      this.selectedEquipement = null;
+      this.$emit('unselect-data-view', items);
+    },
+
+    fitToView(item){
+      this.$emit('fit-to-view', item);
     },
 
     ChipKeySlected() {
@@ -980,10 +1023,17 @@ export default {
         { text: 'Nom', value: 'name', sortable: true },
         { text: 'Etage', value: 'floor', sortable: true },
         { text: 'Pièce', value: 'room', sortable: true },
+        { text: 'Nombre de tickets', value: 'nbr_tickets', sortable: true },
+        { text: 'Nombre de notes', value: 'nbr_notes', sortable: true },
+        { text: 'Nombre de documents', value: 'nbr_files', sortable: true },
+        { text: 'Nombre de points de mesure', value: 'nbr_ep', sortable: true },
+        { text: 'Nombre d\'insights (profils)', value: 'nbr_cp', sortable: true },
+        { text: 'Nombre de catégories d\'attributs', value: 'nbr_category_attributes', sortable: true },
+
+
       ];
       if (
-        this.$store.state.appDataStore.user_selected.grp.length == 0 ||
-        this.$store.state.appDataStore.user_selected.grp.length > 1
+        this.$store.state.appDataStore.user_selected.grp.length !=1 
       ) {
         headers.push({ text: 'Groupe', value: 'group', sortable: true });
       }
@@ -1346,26 +1396,7 @@ export default {
     async vSelectedTab(newVal, oldVal) {
       console.log('vSelectedTab', newVal);
       // get the dynamic id of the current item
-      let dynamicId = null;
-      if (this.selected_id) {
-        dynamicId = this.selected_id;
-      } else if (this.$store.state.appDataStore.user_selected.grp.length > 0) {
-        let found = this.grp_list.find(
-          (grp) =>
-            grp.name === this.$store.state.appDataStore.user_selected.grp[0]
-        );
-        dynamicId = found.dynamicId;
-      } else if (this.$store.state.appDataStore.user_selected.cat) {
-        let found = this.cat_list.find(
-          (cat) => cat.name === this.$store.state.appDataStore.user_selected.cat
-        );
-        dynamicId = found.dynamicId;
-      } else if (this.$store.state.appDataStore.user_selected.ctx) {
-        let found = this.ctx_list.find(
-          (ctx) => ctx.name === this.$store.state.appDataStore.user_selected.ctx
-        );
-        dynamicId = found.dynamicId;
-      }
+      const dynamicId = this.currentTargetItemId;
 
       const buildingId = localStorage.getItem('idBuilding');
       if (newVal === 'Attributs') {
@@ -1376,11 +1407,31 @@ export default {
             referenceIds: [dynamicId],
           }
         );
-
         const response = attributs.find(
           (response) => response.dynamicId === dynamicId
         );
         this.vSelectItemAttributes = response.categoryAttributes;
+        if(this.selectedEquipement?.dynamicId == dynamicId ) { // 
+          // get autodesk viewer properties 
+          console
+          const properties = await this.$store.dispatch(
+          ActionTypes.GET_VIEWER_OBJECT_PROPERTIES,this.selectedEquipement.dbid
+        );
+
+          const newAttributs = properties.properties.map((prop) => {
+            return {
+              label: prop.displayName,
+              value: prop.displayValue,
+            };
+          })
+
+          const revitCategory = {
+            name: 'Revit-Autodesk properties',
+            attributs: newAttributs
+          }
+        this.vSelectItemAttributes.push(revitCategory);
+        
+        }
         // this.$forceUpdate()
       }
       if (newVal === 'Documentation') {
@@ -1592,6 +1643,17 @@ export default {
   color: white !important;
 }
 
+.scrollable-content{
+  max-height: 74vh;
+  overflow-y: scroll;
+}
+
+.scrollable-table-container {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: fit-content;
+}
+
 ::v-deep
   .v-text-field.v-input--is-focused
   > .v-input__control
@@ -1773,9 +1835,7 @@ td {
   z-index: 1;
 }
 
-.scrollable-table-container {
-  overflow-x: auto;
-}
+
 
 .fixed-first-column thead th:first-child {
   position: sticky;
@@ -2066,5 +2126,32 @@ td {
   position: relative;
   width: 100%;
   display: flex;
+}
+
+
+::v-deep .scrollable-content {
+  padding-right: 5px; /* Adds space on the right to simulate a margin */
+}
+
+::v-deep .scrollable-content::-webkit-scrollbar-thumb {
+  background: #e8e8e8;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border: 1px solid rgb(195, 195, 195);
+  transition: 1s;
+}
+
+::v-deep .scrollable-content::-webkit-scrollbar {
+  width: 10px;
+  margin-left: 10px;
+}
+
+::v-deep .scrollable-content::-webkit-scrollbar-track {
+  background: #ffffff;
+
+}
+
+::v-deep .scrollable-content::-webkit-scrollbar-thumb:hover {
+  background: #dedede;
 }
 </style>

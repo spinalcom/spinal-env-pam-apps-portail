@@ -18,8 +18,8 @@
         style="background-color: white;position: absolute;right:0px;top: 50%;transform: translate(80%,-50%);width: 28px;display: flex;justify-content: center;align-items: center;border-radius: 30px;font-size: 18px;">
         > </div>
       <div style="display: flex;flex-direction: column;padding-right: 5px;" class="mt-4 ml-4">
-        <v-button @click.stop="onClose"
-          style="font-size:15px; color: rgb(0, 0, 0);position: absolute;right: 15px;top:12px; font-weight:bold;">X</v-button>
+        <div @click.stop="onClose"
+          style="font-size:15px; color: rgb(0, 0, 0);position: absolute;right: 15px;top:12px; font-weight:bold;">X</div>
 
         <span style="font-size: 16px;font-weight: bold;padding-bottom: 20px;">{{ data.name }}</span>
       </div>
