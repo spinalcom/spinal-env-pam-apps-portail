@@ -740,7 +740,10 @@ class dataSideApp extends Vue {
     this.timeactuelle = this.getFormattedDateFromTemporalData();
 
     await this.getBuildingInfo();
-    if (this.selectedZone.type == "building") {
+
+    console.warn("aaaaaaaaaaaaaaa", this.buildingInfo[0].dynamicId  );
+    
+    if (this.selectedZone.type == "building" || window.parent.router.query.spaceSelectedId == this.buildingInfo[0].dynamicId) {
       this.loadBuildingInfo()
     }
 
