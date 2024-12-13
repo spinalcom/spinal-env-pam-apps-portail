@@ -1,6 +1,6 @@
 <template >
           <button 
-    class="button-add-ticket" @click="$emit('open-dialog')">
+    class="button-add" @click="$emit('open-dialog')">
         <v-icon class="icon">{{ icon }}</v-icon>
             <div class="text-button">
                 <span class="title-button">{{ name }}</span>
@@ -17,11 +17,11 @@ export default {
         props : {
             name: {
                 type: String,
-                default: 'Ajouter un document'
+                required: true
             },
             icon : {
                 type: String,
-                default: 'mdi-file-plus'
+                required: true
             }
         }
     }
@@ -33,11 +33,10 @@ export default {
         width: 28px !important;
         height: 28px !important;
         background-color: white !important;
+        color: #14202C !important;
         border-radius: 6px !important;
         padding: 10px !important;
     }
-    .name-button::first-letter {
-        text-transform: uppercase;
-    }
+ 
   
 </style>

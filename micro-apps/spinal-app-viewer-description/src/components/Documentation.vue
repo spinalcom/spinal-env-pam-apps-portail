@@ -9,17 +9,18 @@
                      {{ this.fileName }}</span>
             </div>
             <div>
-                   <vb-btn 
-                   flat
+                   <v-btn 
+                   depressed
+                   color="#14202C"
                    class="btn-closed"
                    @click="closeDialog"
                    >
                    Fermer
-               </vb-btn>
+               </v-btn>
             </div> 
                
         </div>
-            <div v-if="loader" style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+            <div v-if="loader" style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; position: absolute; top: 0;backdrop-filter: blur(20px); background-color: #ffffff7d;">
                 <div class="loader-doc"></div>
             </div>
                 <!-- Affichage de l'image -->
@@ -186,29 +187,28 @@ const getToolbar = () => ({
            
 
             showFile(type: string, url: string){
-              
                this.show.map(async (item, index)=> {
                     if(type === 'pdf'){
-                        item.pdf.show = true;
-                        item.pdf.url = url;
                         item.excel.show = false;
                         item.image.show = false; 
                         item.movie.show = false;
+                        item.pdf.show = true;
+                        item.pdf.url = url;
                         
                     
                     }else if(type === 'png' || type === 'jpeg' || type === 'jpg'){
-                        item.image.show = true;
-                        item.image.url = url;
                         item.pdf.show = false;  
                         item.excel.show = false;
                         item.movie.show = false;
+                        item.image.show = true;
+                        item.image.url = url;
 
                     } else if(type === 'mp4' || type === 'mkv' || type === 'ogg' || type === 'avi' || type === 'mov' || type === 'flv' || type === 'wmv'){
-                        item.movie.show = true;
-                        item.movie.url = url;
                         item.pdf.show = false;
                         item.image.show = false;
                         item.excel.show = false;
+                        item.movie.show = true;
+                        item.movie.url = url;
                     }
                     
                     
@@ -263,6 +263,7 @@ const getToolbar = () => ({
         position: relative;
         overflow: hidden;
         overflow-y: auto;
+        border-right: 1px solid #5555559e;
     }
 
     .name-file {
@@ -388,13 +389,15 @@ const getToolbar = () => ({
     .btn-closed {
         height: max-content;
         cursor: pointer;
-        color: #fff;
+        color: #fff !important;
         padding: 8px;
         font-size: 16px;
         border-radius: 10px;
-        font-weight: 700;
-        background-color: #14202C;
+        font-weight: 700 !important;
+        letter-spacing: 1.5px !important;
+        text-transform: capitalize !important;
     }
+    
    
 .loader-doc {
   width: 50px;

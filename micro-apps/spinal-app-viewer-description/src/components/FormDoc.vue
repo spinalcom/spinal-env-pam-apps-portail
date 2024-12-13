@@ -1,7 +1,7 @@
 <template>
 
 <v-dialog class="dialog-content" v-model="show" persistent width="75%" style="display: flex !important;gap: 20px !important; font-size: 12px !important; overflow: hidden; background: white !important; border-radius: 20px !important;">
-        <div class="content-form">
+        <div class="content-doc">
                 <form style="width: 100%; height: 100%;" @submit.prevent="uploadDoc">
                     <div class="header">
                             <h2>Ajout de document</h2>
@@ -167,7 +167,7 @@ import getIcon from '../services/function/getIcon';
 
 
 <style>
-    .content-form {
+    .content-doc {
         width: 100%;
         height: calc(100vh - 300px);
         background-color: #ffffff;
@@ -179,7 +179,8 @@ import getIcon from '../services/function/getIcon';
         position: relative;
         
     }
-    .content-form .header {
+    .content-form ,
+    .content-doc .header {
         width: 100%;
         padding: 20px;
         border-bottom: 1px solid #e8dfdf96;
@@ -187,7 +188,7 @@ import getIcon from '../services/function/getIcon';
         align-items: center;
         justify-content: space-between;
     }
-    .content-form .header > h2 {
+    .content-doc .header > h2 {
         font-size: 20px;
         font-weight: 600;
         color: #14202C;
@@ -203,7 +204,7 @@ import getIcon from '../services/function/getIcon';
         align-items: center;
         padding-top: 10px;
     }
-    .content-form .header > div {
+    .content-doc .header > div {
         display: flex;
         gap: 10px;
         font-size: 16px;
@@ -226,7 +227,7 @@ import getIcon from '../services/function/getIcon';
         background-color: rgb(226 232 240);
         font-weight: 700;
       }
-    .content-form  .upload-img {
+    .content-doc  .upload-img {
         width: calc(100% - 450px);
         height: calc(100% - 240px);
         border: 2px dashed #14202C;
@@ -243,7 +244,7 @@ import getIcon from '../services/function/getIcon';
         gap: 10px;
     }
    
-    .content-form .file-content {
+    .content-doc .file-content {
         margin-top: 10px;
         height: calc(100% - 10px);
         width: calc(100% - 450px);
@@ -271,7 +272,7 @@ import getIcon from '../services/function/getIcon';
 
     }
     
-    .content-form  .upload-img input {
+    .content-doc  .upload-img input {
         width: 100%;
         height: 100%;
         background-color: transparent;
@@ -346,20 +347,20 @@ import getIcon from '../services/function/getIcon';
         height: 100% !important;
         gap: 10px !important;
     }
-    .content-form header {
+    .content-doc header {
         font-size: 14px;
     }
-    .content-form .header > h2 {
+    .content-doc .header > h2 {
         font-size: 16px;
     }
-    .content-form .upload-img {
+    .content-doc .upload-img {
         width: calc(100% - 100px);
         height: calc(100% - 240px);
     }
-    .content-form .file-content {
+    .content-doc .file-content {
         width: calc(100% - 100px);
     }
-    .content-form .file-content .file {
+    .content-doc .file-content .file {
         font-size: 12px;
     }
    }

@@ -71,6 +71,7 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 	},
 	[MutationTypes.SET_SELECTED_ZONE](state: StateAppData, payload: ISpaceSelectorItem): void {
 		state.zoneSelected = payload;
+		console.log("zoneSelected mutation: ", state.zoneSelected);
 	},
 	[MutationTypes.SET_FLOORS](state: StateAppData, { id, items }: { id: string; items: IZoneItem[] }): void {
 		state.floors[id] = items;

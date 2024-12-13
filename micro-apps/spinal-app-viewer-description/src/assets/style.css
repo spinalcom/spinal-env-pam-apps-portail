@@ -12,7 +12,7 @@ background-position: center;
 opacity: 1;
 }
 
-.button-add-ticket{
+.button-add{
     min-width: max-content;
     width: 236px !important;
     height: 45px !important;

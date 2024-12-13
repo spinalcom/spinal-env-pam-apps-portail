@@ -1,5 +1,4 @@
 <template>
-    <teleport to="body">
         <div v-show="show_alert" class="alert-content">
             <div style="width: 100%; padding: 10px; display: flex; align-items: center; gap: 10px;">
                 <v-icon :color="icons[type_alert].color" :style="{ border: '1px solid ' + icons[type_alert].color, borderRadius: '50%' }">
@@ -11,7 +10,7 @@
                 </v-icon>
             </div>
         </div>
-    </teleport>
+ 
 </template>
 
 <script lang="ts">
@@ -49,7 +48,7 @@ export default {
                 setTimeout(() => {
                     this.show_alert = false;
                     this.$emit('update:show', false);
-                }, 5000); // Notification disparait après 5 secondes
+                }, 4000); // Notification disparait après 5 secondes
             }
         }
     },

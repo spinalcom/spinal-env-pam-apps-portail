@@ -25,6 +25,7 @@ with this file. If not, see
 <template>
   
   <div class="appli">
+    <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
     <div style="width: 55%; height: 100%; background: #14202c;" v-show="showDocvalue">
       <ShowDocumentation  :referenceId="idDoc" :file_prop="nameFile" @closeDialog="closeVueDoc" />
     </div>
@@ -207,8 +208,10 @@ with this file. If not, see
 
       <!-- ONGLET attribut (attribut)-->
       <div v-if="selection == 'Attribut'">
+
+        <AddBtn name="Ajouter un attribut" icon="mdi-tag-plus-outline" @open-dialog="ShowFormAttribute"/>
+        <FormAttribute :show="showFormAttributeValue" :referenceId="selectedZone.dynamicId" @close-dialog="ShowFormAttribute" @add-attribute="showAlert"/>
         <h3>Attribut de la selection</h3>
-        
         <div v-for="(item, index) in floorstaticDetails[0].attributsList" class="blocInformation">
           <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">{{ item.name
             }}</span>
@@ -259,7 +262,6 @@ with this file. If not, see
 
       <!-- ONGLET TICKETS -->
       <div v-if="selection == 'Tickets'">
-        <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
         <!-- Vérification si les tickets existent -->
         <div v-if="ticketsList">
           <FormTicket :value="showFormTicket"  @close-dialog="ShowDialog()" :selectedZone="selectedZone" @add-ticket="showAlert"/>
@@ -286,7 +288,7 @@ with this file. If not, see
         </div>
 
         <!-- Affichage lorsqu'il n'y a pas de tickets -->
-        <div v-if="ticketsList[0].length == 0" style="width: 100%; height: 200px; font-size: 20px ; display: flex; justify-content: center; align-items: center">
+        <div v-if="ticketsList.length == 0" style="width: 100%; height: 200px; font-size: 20px ; display: flex; justify-content: center; align-items: center">
           <p>Aucun ticket disponible.</p>
         </div>
       </div>
@@ -359,18 +361,17 @@ with this file. If not, see
       <!-- ONGLET DOCUMENTATION -->
       <div v-if="selection == 'Documentation'" style="display: flex; flex-direction: column; overflow: hidden !important; overflow-y: auto !important ;">
         <!-- Notification -->
-        <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
         <!-- Box pour afficher le document -->  
                   <!-- Boutton d'ajout d'un document -->
                    <v-row  style="padding: 20px;">
-                     <AddBtn @open-dialog="ShowFormDoc" />                    </v-row>
+                     <AddBtn @open-dialog="ShowFormDoc" name="Ajouter un document" icon="mdi-file-plus-outline" />                    </v-row>
           <FormDoc :isDialogOpen="show_formdoc" @close-dialog="ShowFormDoc" @add-doc="showAlert" :referenceid="this.selectedZone.dynamicId" />
         <div style="width: 100%; flex-direction: column;" >
         <h3>{{ floorstaticDetails[0].name }}</h3>
         <div class="blocInformation">
           <div v-if="documentation.element != 0">
-
-            <div style="display: flex; justify-content: space-between; align-items: center;  width: 100%;"  v-for="(item, index) in documentation.element">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative;"  v-for="(item, index) in documentation.element">
               <div class="inventory-item"
               style="width: 100%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
               
@@ -382,17 +383,11 @@ with this file. If not, see
               </li>
              
             </div>
-          
-            <v-row style="display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 10px; padding: 10px; width: max-content;">
-              <v-icon style="width: max-content; height: max-content; background-color: rgba(203 213 225 0.5); border-radius: 50%; padding: 4px; color: #14202c; cursor: pointer;" @click="showDoc(item.dynamicId, item.Name) ;" >
-                mdi-eye
-              </v-icon>
-              <v-icon @click="downloadFile(item.dynamicId)" style="cursor: pointer; font-size: 40px;" color="green">
-                mdi-download-box
-              </v-icon>
-            </v-row>
+              <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item" @showDoc="showDoc" @downloadFile="downloadFile" @DeleteFile="DeleteFile(item.dynamicId, selectedZone.dynamicId, 'child')" @changeOverflowItemMenu="changeOverflowItemMenu"  >
+                
+              </OverMenu>
           </div>
-          <Loader :showLoader="showLoader" />
+          <Loader :showLoader="showLoader_in_child" />
         </div>
         <div v-else style="width: 100%; text-align: center;"> 
             <p>Aucun document</p>
@@ -407,22 +402,20 @@ with this file. If not, see
           <div v-if="parent.documentation && parent.documentation.length > 0">
             <h3>{{ parent.name }}</h3>
             <div class="blocInformation">
-              <div style="display: flex;" v-for="(item, index2) in parent.documentation" :key="index2">
+              <div style="display: flex; position: relative; align-items: center " v-for="(item, index2) in parent.documentation" :key="index2">
                 <div class="inventory-item"
                 style="max-width: 100%; width: 99%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                   <li style="list-style: none;" >
                     <v-icon :style="{'color': getIcon(item.Name).color}" >{{ getIcon(item.Name).name }}</v-icon>
                     {{ item.Name }}</li>
                 </div>
-                <v-row style="display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; padding: 10px; width: max-content; gap: 10px">
-                  <v-icon style="width: max-content; height: max-content; background-color: rgba(203 213 225 0.5); border-radius: 50%; padding: 4px; color: #14202c; cursor: pointer;" @click="showDoc(item.dynamicId, item.Name)" >
-                    mdi-eye
-                  </v-icon>
-                  <v-icon @click="downloadFile(item.dynamicId)" style="cursor: pointer; font-size: 40px;" color="green">
-                    mdi-download-box
-                  </v-icon>
-                </v-row>
+                
+              <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item" @showDoc="showDoc" @downloadFile="downloadFile" @DeleteFile="DeleteFile(item.dynamicId, parent.parentDynamicId, 'parent')" @changeOverflowItemMenu="changeOverflowItemMenu" >
+                
+              </OverMenu>
+         
               </div>
+              <Loader :showLoader="showLoader_in_parent" />
             </div>
           </div>
         </div>
@@ -476,6 +469,7 @@ import BreadcrumbSelector from "./breadcrumb.vue";
 import { computed } from 'vue';
 import Alert from '../Alert.vue'
 import ShowDocumentation from '../Documentation.vue'
+import FormAttribute from '../FormAttribute.vue'
 import {
   EmitterViewerHandler,
   VIEWER_AGGREGATE_SELECTION_CHANGED,
@@ -489,8 +483,10 @@ import AddTicketBtn from "../ButtonAddticket.vue";
 import FormDoc from "../FormDoc.vue";
 import AddBtn from '../ButtonAdd.vue';
 import Loader from "../Loader.vue";
-import Loader from "../Loader.vue";
 import getIcon from "../../services/function/getIcon";
+import OverMenu from "./OverMenu.vue";
+import OverMenu from "./OverMenu.vue";
+import Loader from "../Loader.vue";
 
 @Component({
   components: {
@@ -504,7 +500,9 @@ import getIcon from "../../services/function/getIcon";
     ShowDocumentation,
     FormDoc,
     AddBtn,
-    Loader
+    Loader,
+    FormAttribute,
+    OverMenu
   },
   filters: {},
 })
@@ -558,8 +556,11 @@ class dataSideApp extends Vue {
   idDoc: number = 0
   nameFile = ''
   show_formdoc = false
-  showLoader = false
+  showLoader_in_child = false
+  showLoader_in_parent = false
   getIcon = getIcon
+  showFormAttributeValue = false
+  itemOverflowMenu = null
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
@@ -579,9 +580,33 @@ class dataSideApp extends Vue {
     return items;
   }
 
+  handleClickOutsideOvermenu(event) {
+                if (this.$refs.openOverMenu && !this.$refs.openOverMenu.contains(event.target)) {
+                    this.$emit('close');
+                    console.log('click outside');
+                }
+              }
+
+  closeOverMenu() {
+    this.itemOverflowMenu = null
+  }
+
+  changeOverflowItemMenu(index) {
+    console.log('index: ', index);
+    const latItem = this.itemOverflowMenu
+    if (latItem === index) {
+      this.itemOverflowMenu = null
+    } else {
+      this.itemOverflowMenu = index
+    }
+  }
+
 
   ShowDialog() {
     this.showFormTicket = !this.showFormTicket;
+  }
+  ShowFormAttribute() {
+    this.showFormAttributeValue = !this.showFormAttributeValue;
   }
   ShowFormDoc () {
     this.show_formdoc = !this.show_formdoc;
@@ -591,10 +616,8 @@ class dataSideApp extends Vue {
     if(v.status === 'success'){
     this.alert = true
     this.alert_ind = v.message
-    console.log("message de notification: ", this.alert_ind)
     this.type_alert = v.status
-    console.log("selected Zone: ", this.selectedZone);
-  
+      this.itemOverflowMenu = null
 
 
     switch (v.context) {
@@ -612,6 +635,17 @@ class dataSideApp extends Vue {
         break;
       case 'document':
         console.log('case: document')
+        console.log('space: ', v.space_context)
+        if(v.space_context == 'child'){
+          this.showLoader_in_child = true
+        }else if(v.space_context == 'parent'){  
+          this.showLoader_in_parent = true
+        }
+        else {
+          this.showLoader_in_child = true
+        }
+
+
       const parentPromiseDoc = [
       this.$store.dispatch(ActionTypes.GET_PARENT, {
         buildingId: buildingId,
@@ -621,14 +655,9 @@ class dataSideApp extends Vue {
     const resultParentDoc = await Promise.all(parentPromiseDoc);
     const parents = resultParentDoc[0];
 
-    const documentationPromise = [
-      this.$store.dispatch(ActionTypes.GET_DOCUMENTATION, {
-        buildingId: buildingId,
-        referenceIds: this.selectedZone.dynamicId,
-      }),
-    ];
-    const result = await Promise.all(documentationPromise);
-    const documentation = result[0];
+    const documentationPromise = await this.getDocRetry();
+    
+    const documentation = documentationPromise;
 
     let parentDocumentation = {};
     for (let parent of parents) {
@@ -641,6 +670,7 @@ class dataSideApp extends Vue {
       const parentDocResult = await Promise.all(parentDocPromise);
       parentDocumentation[parent.dynamicId] = {
         name: parent.name,
+        parentDynamicId: parent.dynamicId,
         documentation: parentDocResult[0]
       };
     }
@@ -650,6 +680,27 @@ class dataSideApp extends Vue {
       parents: parentDocumentation
     };
       break;
+      case 'attribut':
+        if (this.selectedZone.type == "geographicBuilding") {
+          this.loadBuildingInfo()
+        }
+        else  if(this.selectedZone.type == "geographicFloor"){
+            this.getfloorstaticdetails(this.selectedZone.dynamicId)
+              console.log('floor selected');
+            
+  
+        }
+        else if(this.selectedZone.type == "geographicRoom"){
+          this.getroomstaticdetails(this.selectedZone.dynamicId);
+          console.log('room selected');
+        }
+        else if(this.selectedZone.typ == "BIMObject") {
+          this.getBIMInfo(this.selectedZone.dynamicId);
+          console.log('BIMObject selected');
+        }
+        console.log('selectedZone: ', this.selectedZone);
+       
+        break;
       default:
         break;
     }
@@ -661,7 +712,31 @@ class dataSideApp extends Vue {
     }
     
   }
+  async getDocRetry (){
+    const max = 10;
+    const delay = 1000;
+    for (let i = 0; i < max; i++) {
+      const result = this.$store.dispatch(ActionTypes.GET_DOCUMENTATION, {
+        buildingId: localStorage.getItem("idBuilding"),
+        referenceIds: this.selectedZone.dynamicId,
+      })
+      const documentation = await result.then((res => {
+        return res
+      }))
+     
+      console.log('documentation: ', documentation.length);
+      if ( documentation.lenght != 0 &&  documentation[documentation.length - 1]  && documentation[documentation.length - 1].dynamicId) {
+        return documentation;
+
+      }else if (documentation.length == 0) {
+        return documentation;
+      }
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+    throw new Error('Error');
+  }
   showDoc(referencedId, nameFile) {
+    this.itemOverflowMenu = null
     if (!this.showDocvalue) {
        this.$emit('buttonClicked', 'vueDoc')
     }
@@ -669,6 +744,21 @@ class dataSideApp extends Vue {
     this.idDoc = referencedId
     this.showDocvalue = true;
   }
+
+ async  DeleteFile(fileId: number, referenceId: number, space: string) {
+  console.log('DeleteFile space: ', space);
+  const buildingId = localStorage.getItem("idBuilding");
+    console.log('parent: ', referenceId, 'fileId: ', fileId);
+
+    const result = await this.$store.dispatch(ActionTypes.DELETE_FILE, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      fileId: fileId 
+    })
+    result.status == 200 ? this.showAlert({status: 'success', message: 'Document supprimé avec succès', context: 'document'}) :
+     this.showAlert({status: 'error', message: 'Erreur lors de la suppression du document', context: 'document', space_context: space})
+  }
+
   closeVueDoc() {
       this.showDocvalue = false;
       this.$emit('buttonClicked', 'vueDocClose')
@@ -729,6 +819,7 @@ class dataSideApp extends Vue {
     if (this.selectedZone.type == "building") {
       this.loadBuildingInfo()
     }
+    console.log('selectedZone mounted: ', this.selectedZone);
 
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
@@ -816,6 +907,7 @@ class dataSideApp extends Vue {
       const parentDocResult = await Promise.all(parentDocPromise);
       parentDocumentation[parent.dynamicId] = {
         name: parent.name,
+        parentDynamicId: parent.dynamicId,
         documentation: parentDocResult[0]
       };
     }
@@ -849,6 +941,7 @@ class dataSideApp extends Vue {
     return result
   }
   async downloadFile(referenceIds) {
+    this.itemOverflowMenu = null
     const promises = [
       this.$store.dispatch(ActionTypes.POST_DOWNLOAD_FILE, {
         buildingId: localStorage.getItem("idBuilding"),
@@ -882,6 +975,7 @@ class dataSideApp extends Vue {
       }),
     ];
     const result = await Promise.all(promises);
+    console.log('buildingInfo: ', result);
     this.buildingInfo = [...result]
   }
 
@@ -998,7 +1092,6 @@ class dataSideApp extends Vue {
       this.referencedId = id
 
       const result = await Promise.all(promises);
-
       this.floorstaticDetails = result
       this.filteredEndpoints('room')
       this.getDocumentation(result)
@@ -1113,6 +1206,7 @@ class dataSideApp extends Vue {
     parents.forEach((parent, index) => {
       parentDocumentation[parent.dynamicId] = {
         name: parent.name,
+        parentDynamicId: parent.dynamicId,
         documentation: parentDocumentationResult[index]
       };
     });
@@ -1544,18 +1638,23 @@ class dataSideApp extends Vue {
   @Watch("alert")
   watchAlert(newVal) {
     if (newVal) {
-      this.showLoader = true;
+      this.itemOverflowMenu = null
+      console.log('alert -> ',newVal)
       setTimeout(() => {
         this.alert = false;
         console.log('hide alert in App.vue');
-        this.showLoader = false;
-      }, 5000);
+        this.showLoader_in_child = false;
+        this.showLoader_in_parent = false;
+      }, 2000);
     }
   }
   @Watch("selectedZone")
   watchSelectedZone() {
     console.log(this.selectedZone, 'aaaaaa faker');
-
+    this.itemOverflowMenu = null
+    console.log(this.floor, 'le floor');
+    console.log(this.selectedZone, 'le selectedZone');
+    console.log(this.$store.state.appDataStore.zoneSelected, 'le selectedZone in store');
     if (this.selectedZone.type === "building") {
       this.loadBuildingInfo()
       this.isBuildingSelected = true;
@@ -1603,6 +1702,7 @@ class dataSideApp extends Vue {
         this.getInventoryObject([this.selectedZone.dynamicId])
       } else {
         this.getfloorstaticdetails(this.floor)
+     
         this.getDataDynamicIdtab()
       }
     }
@@ -1754,7 +1854,7 @@ a {
 }
 
 .inventory-item {
-  width: 48%;
+  width: 100%;
   margin: 5px;
   height: 18px;
   display: flex;
@@ -2114,4 +2214,7 @@ a {
   left: 50%;
   filter: blur(0.05rem);
 }
+
+
+
 </style>
