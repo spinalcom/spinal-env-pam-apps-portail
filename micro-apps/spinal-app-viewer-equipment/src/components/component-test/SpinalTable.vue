@@ -175,6 +175,10 @@
 
     <!-- ONGLET Documentation -->
     <div v-if="vSelectedTab == 'Documentation'" class="scrollable-content">
+
+      <v-row style="padding: 20px;">
+        <AddBtn @open-dialog="ShowFormDoc" />
+      </v-row>
       <div v-if="vSelectItemDocumentation && vSelectItemDocumentation.length > 0">
         <div class="blocInformation">
           <div

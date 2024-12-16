@@ -342,6 +342,7 @@ export const actions = {
     playload: { onlyThisModel: boolean; config: IConfig; item: any }
   ): Promise<void> {
     try {
+      console.log("OPEN_VIEWER", playload);
       if(playload.item.type ==="building"){
         const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
           buildingId: playload.item.buildingId,

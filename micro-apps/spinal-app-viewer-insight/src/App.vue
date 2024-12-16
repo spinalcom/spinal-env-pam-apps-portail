@@ -227,6 +227,7 @@ class App extends Vue {
     mode: string;
     name: string;
     spaceSelectedId: string;
+    spaceSelectedType: string;
     buildingId: string;
   } = {
     app: '',
@@ -354,6 +355,7 @@ class App extends Vue {
     this.query.mode = query.mode;
     this.query.buildingId = query.buildingId;
     this.query.spaceSelectedId = query.spaceSelectedId;
+    this.query.spaceSelectedType = query.spaceSelectedType;
     this.query.name = query.name;
     this.query.app = query.app;
 
@@ -368,6 +370,7 @@ class App extends Vue {
       const item = {
         buildingId: query.buildingId,
         dynamicId: query.spaceSelectedId,
+        type: query.spaceSelectedType,
       };
       const button = {
         title: 'charger',
@@ -382,7 +385,7 @@ class App extends Vue {
         dynamicId: parseInt(query.spaceSelectedId),
         name: query.name,
         buildingId: query.buildingId,
-        type: 'geographicFloor',
+        type: query.spaceSelectedType,
       };
       // this.$refs['space-selector'].getButton();
 
@@ -420,6 +423,7 @@ class App extends Vue {
       this.query.name = v.name;
       this.query.buildingId = v.buildingId;
       this.query.spaceSelectedId = v.dynamicId.toString();
+      this.query.spaceSelectedType = v.type;
       this.replaceRoute();
     }
 
@@ -445,13 +449,17 @@ class App extends Vue {
           ActionTypes.GET_BUILDING_BY_ID,
           { buildingId }
         );
+        const realBuilding = await this.$store.dispatch(
+          ActionTypes.GET_BOS_BUILDING,
+          { buildingId }
+        )
         return [
           {
-            name: building.name,
+            name: realBuilding.name,
             staticId: building.id,
             categories: [],
-            color: '#35CAE5',
-            dynamicId: 0,
+            color: realBuilding.color,
+            dynamicId: realBuilding.dynamicId,
             type: 'building',
           },
         ];
