@@ -11,6 +11,9 @@
     "build": "rm -rf dist .parcel-cache && parcel build index.html micro-apps/*/index.html --no-optimize --dist-dir dist/ --no-scope-hoist  && npm run copy",
     "copy": "cp -r global-components/offline/viewer dist/micro-apps/viewer"
   },
+  "alias": {
+    "global-components": "./global-components"
+  },
   "resolutions": {
     "sass": "1.32.12"
   },
@@ -65,7 +68,6 @@
     "leaflet": "^1.8.0",
     "less": "^4.1.2",
     "lodash": "^4.17.21",
-    "mapbox-gl": "^2.8.2",
     "material-design-icons-iconfont": "^6.7.0",
     "mitt": "^3.0.0",
     "npm-force-resolutions": "0.0.10",
