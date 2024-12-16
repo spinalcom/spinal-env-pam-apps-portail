@@ -23,12 +23,10 @@
  */
 
 import "./polyfills";
-import { API_MODE, SpinalAPI } from './services/spinalAPI/SpinalAPI';
+import { SpinalAPI } from './services/spinalAPI/SpinalAPI';
 // setup SpinalAPI
 SpinalAPI.setHook(window.parent);
-const api = SpinalAPI.getInstance(process.env.SPINAL_API_URL);
-api.setApiMode(API_MODE.PAM_APP);
-
+SpinalAPI.getInstance(process.env.SPINAL_API_URL);
 import Vue from "vue";
 import App from "./App.vue";
 import Vuetify from "vuetify";
