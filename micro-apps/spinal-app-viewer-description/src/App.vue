@@ -201,9 +201,9 @@ class App extends Vue {
 
     this.$nextTick(() => {
 
-      this.query.app = this.config.idAppDescription
+      // this.query.app = this.config.idAppDescription
 
-      window.parent.router.query.app = this.query.app
+      // window.parent.router.query.app = this.query.app
 
       const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
       this.applyURLParam(currentQuery);
@@ -236,10 +236,10 @@ class App extends Vue {
       this.replaceRoute();
     }
 
-    if (v.dynamicId == 0) {
-      this.query.spaceSelectedId = '24063840'
-      this.replaceRoute();
-    }
+    // if (v.dynamicId == 0) {
+    //   this.query.spaceSelectedId = '24063840'
+    //   this.replaceRoute();
+    // }
     if (v.type == "geographicFloor")
       this.floor = this.query.spaceSelectedId
 

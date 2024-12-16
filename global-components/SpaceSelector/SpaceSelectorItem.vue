@@ -131,7 +131,7 @@ class SpaceSelectorItem extends Vue {
     console.log(this.item);
     
     const dynamicId = this.item.dynamicId;
-    if (dynamicId && this.label == 'ESPACE' && this.item.type != "geographicFloor") {
+    if (dynamicId && this.label == 'ESPACE' && this.item.type != "geographicFloor" &&  this.item.type != "building") {
 
       EventBus.$emit('colorRoom', dynamicId);
     }
