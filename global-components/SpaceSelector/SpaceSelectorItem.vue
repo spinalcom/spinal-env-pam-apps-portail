@@ -117,19 +117,13 @@ class SpaceSelectorItem extends Vue {
   onSelect() {
     this.onMouseLeave()
     if (this.viewButtonsType === 'base') {
-      console.log('HAHAHHAHA');
-
       const button = this.getButton();
-      console.log(button, 'hihi');
-
       if (button) this.$emit("onActionClick", { button, item: this.item });
     }
     this.$emit('onSelect');
   }
 
-  onMouseEnter() {
-    console.log(this.item);
-    
+  onMouseEnter() {    
     const dynamicId = this.item.dynamicId;
     if (dynamicId && this.label == 'ESPACE' && this.item.type != "geographicFloor" &&  this.item.type != "building") {
 

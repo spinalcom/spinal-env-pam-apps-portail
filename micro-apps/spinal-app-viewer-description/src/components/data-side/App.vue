@@ -26,7 +26,8 @@ with this file. If not, see
 
   <div class="appli">
     <div style="width: 55%; height: 100%; background: #14202c;" v-show="showDocvalue">
-      <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" :closecomp="ActiveData" @closeDialog="closeVueDoc" />
+      <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" :closecomp="ActiveData"
+        @closeDialog="closeVueDoc" />
     </div>
     <!-- style="['height: calc(100vh - 160px); background-color: red', " -->
     <div
@@ -206,6 +207,11 @@ with this file. If not, see
 
         <!-- ONGLET attribut (attribut)-->
         <div v-if="selection == 'Attribut'">
+
+          <AddBtn name="Ajouter un attribut" icon="mdi-tag-plus-outline" @open-dialog="ShowFormAttribute" />
+          <FormAttribute :show="showFormAttributeValue" :referenceId="selectedZone.dynamicId"
+            @close-dialog="ShowFormAttribute" @add-attribute="showAlert" />
+
           <h3>Attribut de la selection</h3>
 
           <div v-for="(item, index) in floorstaticDetails[0].attributsList" class="blocInformation">
@@ -247,7 +253,7 @@ with this file. If not, see
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                      }}
+                    }}
                     </li>
                   </div>
                 </div>
@@ -363,11 +369,10 @@ with this file. If not, see
         <div v-if="selection == 'Documentation'"
           style="display: flex; flex-direction: column; overflow: hidden !important; overflow-y: auto !important ;">
           <!-- Notification -->
-          <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
           <!-- Box pour afficher le document -->
           <!-- Boutton d'ajout d'un document -->
           <v-row style="padding: 20px;">
-            <AddBtn @open-dialog="ShowFormDoc" />
+            <AddBtn @open-dialog="ShowFormDoc" name="Ajouter un document" icon="mdi-file-plus-outline" />
           </v-row>
           <FormDoc :isDialogOpen="show_formdoc" @close-dialog="ShowFormDoc" @add-doc="showAlert"
             :referenceid="this.selectedZone.dynamicId" />
@@ -376,7 +381,8 @@ with this file. If not, see
             <div class="blocInformation">
               <div v-if="documentation.element != 0">
 
-                <div style="display: flex; justify-content: space-between; align-items: center;  width: 100%;"
+                <div
+                  style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative;"
                   v-for="(item, index) in documentation.element">
                   <div class="inventory-item"
                     style="width: 100%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
@@ -389,21 +395,14 @@ with this file. If not, see
                     </li>
 
                   </div>
+                  <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
+                    @showDoc="showDoc" @downloadFile="downloadFile"
+                    @DeleteFile="DeleteFile(item.dynamicId, selectedZone.dynamicId, 'child')"
+                    @changeOverflowItemMenu="changeOverflowItemMenu">
 
-                  <v-row
-                    style="display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 10px; padding: 10px; width: max-content;">
-                    <v-icon
-                      style="width: max-content; height: max-content; background-color: rgba(203 213 225 0.5); border-radius: 50%; padding: 4px; color: #14202c; cursor: pointer;"
-                      @click="showDoc(item.dynamicId, item.Name);">
-                      mdi-eye
-                    </v-icon>
-                    <v-icon @click="downloadFile(item.dynamicId)" style="cursor: pointer; font-size: 40px;"
-                      color="green">
-                      mdi-download-box
-                    </v-icon>
-                  </v-row>
+                  </OverMenu>
                 </div>
-                <Loader :showLoader="showLoader" />
+                <Loader :showLoader="showLoader_in_child" />
               </div>
               <div v-else style="width: 100%; text-align: center;">
                 <p>Aucun document</p>
@@ -418,7 +417,8 @@ with this file. If not, see
             <div v-if="parent.documentation && parent.documentation.length > 0">
               <h3>{{ parent.name }}</h3>
               <div class="blocInformation">
-                <div style="display: flex;" v-for="(item, index2) in parent.documentation" :key="index2">
+                <div style="display: flex; position: relative; align-items: center "
+                  v-for="(item, index2) in parent.documentation" :key="index2">
                   <div class="inventory-item"
                     style="max-width: 100%; width: 99%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li style="list-style: none;">
@@ -426,19 +426,15 @@ with this file. If not, see
                       {{ item.Name }}
                     </li>
                   </div>
-                  <v-row
-                    style="display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; padding: 10px; width: max-content; gap: 10px">
-                    <v-icon
-                      style="width: max-content; height: max-content; background-color: rgba(203 213 225 0.5); border-radius: 50%; padding: 4px; color: #14202c; cursor: pointer;"
-                      @click="showDoc(item.dynamicId, item.Name)">
-                      mdi-eye
-                    </v-icon>
-                    <v-icon @click="downloadFile(item.dynamicId)" style="cursor: pointer; font-size: 40px;"
-                      color="green">
-                      mdi-download-box
-                    </v-icon>
-                  </v-row>
+
+                  <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
+                    @showDoc="showDoc" @downloadFile="downloadFile"
+                    @DeleteFile="DeleteFile(item.dynamicId, parent.parentDynamicId, 'parent')"
+                    @changeOverflowItemMenu="changeOverflowItemMenu">
+                  </OverMenu>
+
                 </div>
+                <Loader :showLoader="showLoader_in_parent" />
               </div>
             </div>
           </div>
@@ -507,6 +503,8 @@ import AddBtn from '../ButtonAdd.vue';
 import Loader from "../Loader.vue";
 import Loader from "../Loader.vue";
 import getIcon from "../../services/function/getIcon";
+import FormAttribute from '../FormAttribute.vue';
+import OverMenu from "./OverMenu.vue";
 
 @Component({
   components: {
@@ -520,7 +518,9 @@ import getIcon from "../../services/function/getIcon";
     ShowDocumentation,
     FormDoc,
     AddBtn,
-    Loader
+    Loader,
+    FormAttribute,
+    OverMenu
   },
   filters: {},
 })
@@ -576,7 +576,11 @@ class dataSideApp extends Vue {
   nameFile = ''
   show_formdoc = false
   showLoader = false
+  showFormAttributeValue = false
+  showLoader_in_child = false
+  showLoader_in_parent = false
   getIcon = getIcon
+  itemOverflowMenu = null
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
@@ -605,6 +609,9 @@ class dataSideApp extends Vue {
   }
   ShowFormDoc() {
     this.show_formdoc = !this.show_formdoc;
+  }
+  ShowFormAttribute() {
+    this.showFormAttributeValue = !this.showFormAttributeValue;
   }
   async showAlert(v) {
     const buildingId = localStorage.getItem("idBuilding");
@@ -675,6 +682,21 @@ class dataSideApp extends Vue {
     }
 
   }
+
+  async DeleteFile(fileId: number, referenceId: number, space: string) {
+    console.log('DeleteFile space: ', space);
+    const buildingId = localStorage.getItem("idBuilding");
+    console.log('parent: ', referenceId, 'fileId: ', fileId);
+
+    const result = await this.$store.dispatch(ActionTypes.DELETE_FILE, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      fileId: fileId
+    })
+    result.status == 200 ? this.showAlert({ status: 'success', message: 'Document supprimé avec succès', context: 'document' }) :
+      this.showAlert({ status: 'error', message: 'Erreur lors de la suppression du document', context: 'document', space_context: space })
+  }
+
   showDoc(referencedId, nameFile) {
     if (!this.showDocvalue) {
       this.$emit('buttonClicked', 'vueDoc')
@@ -691,6 +713,21 @@ class dataSideApp extends Vue {
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
     }, 1);
+  }
+
+  changeOverflowItemMenu(index) {
+    console.log('index: ', index);
+    const latItem = this.itemOverflowMenu
+    if (latItem === index) {
+      this.itemOverflowMenu = null
+    } else {
+      this.itemOverflowMenu = index
+    }
+  }
+
+
+  closeOverMenu() {
+    this.itemOverflowMenu = null
   }
 
   changeIcon() {
@@ -1604,15 +1641,23 @@ class dataSideApp extends Vue {
   @Watch("alert")
   watchAlert(newVal) {
     if (newVal) {
-      this.showLoader = true;
+      this.itemOverflowMenu = null
+      console.log('alert -> ', newVal)
       setTimeout(() => {
         this.alert = false;
-        this.showLoader = false;
-      }, 5000);
+        console.log('hide alert in App.vue');
+        this.showLoader_in_child = false;
+        this.showLoader_in_parent = false;
+      }, 2000);
     }
   }
   @Watch("selectedZone")
   watchSelectedZone() {
+    console.log(this.selectedZone, 'aaaaaa faker');
+    this.itemOverflowMenu = null
+    console.log(this.floor, 'le floor');
+    console.log(this.selectedZone, 'le selectedZone');
+    console.log(this.$store.state.appDataStore.zoneSelected, 'le selectedZone in store');
     if (this.selectedZone.type === "building") {
       this.loadBuildingInfo()
       this.isBuildingSelected = true;

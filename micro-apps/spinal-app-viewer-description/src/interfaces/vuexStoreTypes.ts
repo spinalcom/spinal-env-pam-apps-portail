@@ -76,7 +76,10 @@ export enum ActionTypes {
 	GET_PROCESS_WORKFLOW =  "GET_PROCESS_WORKFLOW",
 	ADD_TICKET = "ADD_TICKET",
 	GET_FILE = "GET_FIle",
-	ADD_DOC = "ADD_DOC"
+	ADD_DOC = "ADD_DOC",
+	GET_CATEGORIES_LIST = "GET_CATEGORIES_LIST",
+	ADD_ATTRIBUT = "ADD_ATTRIBUT",
+	DELETE_FILE = "DELETE_FILE",
 }
 
 export type TFctViewerIteract = (stateContext: AugmentedActionContextAppData, payload: { buildingId: string; id: number | number[] }) => Promise<void>;

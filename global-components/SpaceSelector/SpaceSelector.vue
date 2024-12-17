@@ -390,7 +390,6 @@ class SpaceSelector extends Vue {
   }
 
   onActionClick(data) {
-    console.log('----- sending event onActionClick -----', data);
     this.$emit('onActionClick', data);
   }
 }
