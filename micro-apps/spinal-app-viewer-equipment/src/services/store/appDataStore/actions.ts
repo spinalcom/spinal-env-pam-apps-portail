@@ -26,7 +26,13 @@ import { getBuildings, getBuildingById } from "../../spinalAPI/GeographicContext
 import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
-import { getEquipments, getFloors, getRooms, getBuilding , getAttributListMultiple, getDocumentation ,postDownloadFile ,getTicket, getNotes, getNodeEndpointList, getNodeControlEndpointList ,getTimeSeriesAsync} from "../../spinalAPI/GeographicContext/geographicContext";
+import { getEquipments, getFloors, getRooms, getBuilding ,
+	getAttributListMultiple, getDocumentation ,postDownloadFile ,getTicket,
+	getNotes, getNodeEndpointList, getNodeControlEndpointList ,getTimeSeriesAsync 
+} from "../../spinalAPI/GeographicContext/geographicContext";
+import { addTicketDoc, createTicket, getProcess, getWorkFlowList, Ticket } from "../../spinalAPI/CreateTicket";
+
+import { uploadDoc } from "../../spinalAPI/UploadDoc/Doc";
 
 import { getGroupContext, getGroupContextCategoryList, getGroupContextGroupList, getGroupContextread } from "../../spinalAPI/ContextGroup/groupContext";
 
@@ -402,6 +408,58 @@ export const actions = {
 
 		const items = await ApiIteratorStore[ActionTypes.GET_CATEGORIES_TREE][buildingId].next();
 		return items?.value;
+	},
+
+	async [ActionTypes.GET_WORKFLOW_LIST]({ commit }: AugmentedActionContextAppData, { buildingId }: { buildingId: string; referenceIds: number }): Promise<any> {
+
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getWorkFlowList(buildingId);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_PROCESS_WORKFLOW]({ commit }: AugmentedActionContextAppData, { buildingId, workflowId }: { buildingId: string; referenceIds: number, workflowId: number }): Promise<any> {
+
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getProcess(buildingId, workflowId);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.ADD_TICKET]({ commit }: AugmentedActionContextAppData, { buildingId, data, file }: { buildingId: string; data: any, file: any[] }): Promise<any> {
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await createTicket(buildingId, data);
+			file.forEach(async (element) => {
+				const file = new FormData();
+				file.append('file', element);
+				const adddoc = await addTicketDoc(buildingId, result.dynamicId, file);
+			})
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la création du ticket:', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.ADD_DOC]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId, file }: { buildingId: string, referenceId: number, file: any[] }): Promise<any> {
+		try {
+			const results = await Promise.all(file.map(async (element) => {
+				const file = new FormData();
+				file.append('file', element);
+				const result = await uploadDoc(buildingId, referenceId, file);
+				return result;
+			}))
+
+			return results;
+		} catch (error) {
+			console.error('Erreur lors de l\'ajout d(u)(es) document')
+		}
 	},
 
 	////////////////////////////////////////////////////////

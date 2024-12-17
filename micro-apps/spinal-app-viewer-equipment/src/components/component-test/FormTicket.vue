@@ -101,16 +101,16 @@
   
   <script lang="ts">
 import { get } from 'http';
-import { ActionTypes } from '../interfaces/vuexStoreTypes';
+import { ActionTypes } from '../../interfaces/vuexStoreTypes';
 import { WorkflowInterface } from '../interfaces/Workflow';
-import getIcon from '../services/function/getIcon';
+import getIcon from '../../services/function/getIcon';
 
 
   export default {
     name: 'form-ticket',
     props: {
       selectedZone: {
-        type:  Object,
+        type:  Number,
         required: true,
 
       },
@@ -258,7 +258,7 @@ import getIcon from '../services/function/getIcon';
         const data = {
         workflow: workflowname.name,
         process: processname.name,
-        nodeDynamicId: this.selectedZone.dynamicId,
+        nodeDynamicId: this.selectedZone,
         name: this.ticketname,
         priority : this.priority,
         description: this.description,

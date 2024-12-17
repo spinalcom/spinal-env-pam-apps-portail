@@ -176,9 +176,12 @@
     <!-- ONGLET Documentation -->
     <div v-if="vSelectedTab == 'Documentation'" class="scrollable-content">
 
+      <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
       <v-row style="padding: 20px;">
         <AddBtn @open-dialog="ShowFormDoc" />
       </v-row>
+      <FormDoc :isDialogOpen="show_formdoc" @close-dialog="ShowFormDoc" @add-doc="showAlert"
+               :referenceid="this.currentTargetItemId" />
       <div v-if="vSelectItemDocumentation && vSelectItemDocumentation.length > 0">
         <div class="blocInformation">
           <div
@@ -211,6 +214,10 @@
 
     <!-- ONGLET TICKETS -->
     <div v-if="vSelectedTab == 'Tickets'" class="scrollable-content">
+      <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
+      <AddTicketBtn @open-dialog="ShowDialog()" />
+      <FormTicket :value="showFormTicket" @close-dialog="ShowDialog()" :selectedZone="currentTargetItemId"
+              @add-ticket="showAlert" />
       <!-- Vérification si les tickets existent -->
       <div v-if="vSelectItemTickets && vSelectItemTickets.length > 0">
         <!-- Boucle sur chaque ticket -->
@@ -482,6 +489,8 @@ import FormDoc from "./FormDoc.vue";
 import AddBtn from './ButtonAdd.vue';
 import getIcon from "../../services/function/getIcon";
 import Loader from "./Loader.vue";
+import FormTicket from './FormTicket.vue';
+import AddTicketBtn from './ButtonAddticket.vue';
 
 export default {
   components: {
@@ -494,7 +503,9 @@ export default {
     ShowDocumentation,
     FormDoc,
     AddBtn,
-    Loader
+    Loader,
+    FormTicket,
+    AddTicketBtn
   },
   props: [
     'contexts',
@@ -554,7 +565,14 @@ export default {
     chartData: (any = null),
     t_index: (number = 0),
     timeactuelle: (string = 'date ?'),
-  }),
+    show_formdoc : false,
+    showFormTicket: false,
+    showLoader : false,
+    alert_ind : '',
+    type_alert : '',
+    alert : false,
+
+    }),
   mounted() {
     this.timeactuelle = this.getFormattedDateFromTemporalData();
     this.$nextTick(() => {
@@ -1402,21 +1420,30 @@ export default {
         specialAxis: index,
       }));
     },
-  },
 
-  watch: {
-    allFilteredData(newVal, oldVal) {
-      this.$emit('allFiltredData', newVal);
+    ShowDialog() {
+    this.showFormTicket = !this.showFormTicket;
+    },
+    ShowFormDoc() {
+      this.show_formdoc = !this.show_formdoc;
+    },
+    async showAlert(v) {
+    if (v.status === 'success') {
+      this.alert = true
+      this.alert_ind = v.message
+      this.type_alert = v.status
+    } else {
+      this.alert = true
+      this.alert_ind = v.message
+      this.type_alert = v.status
+    }
+
     },
 
-    async vSelectedTab(newVal, oldVal) {
-      console.log('vSelectedTab', newVal);
-      // get the dynamic id of the current item
-      const dynamicId = this.currentTargetItemId;
-
+    async updateAttributes(){
       const buildingId = localStorage.getItem('idBuilding');
-      if (newVal === 'Attributs') {
-        const attributs = await this.$store.dispatch(
+      const dynamicId = this.currentTargetItemId;
+      const attributs = await this.$store.dispatch(
           ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE,
           {
             buildingId,
@@ -1446,12 +1473,12 @@ export default {
             attributs: newAttributs
           }
         this.vSelectItemAttributes.push(revitCategory);
-        
-        }
-        // this.$forceUpdate()
-      }
-      if (newVal === 'Documentation') {
-        const documentation = await this.$store.dispatch(
+    }
+    },
+    async updateDocumentation(){
+      const buildingId = localStorage.getItem('idBuilding');
+      const dynamicId = this.currentTargetItemId;
+      const documentation = await this.$store.dispatch(
           ActionTypes.GET_DOCUMENTATION,
           {
             buildingId: buildingId,
@@ -1481,9 +1508,12 @@ export default {
             return item;
           })
         );
-      }
-      if (newVal === 'Notes') {
-        const notes = await this.$store.dispatch(ActionTypes.GET_NOTES, {
+      
+    },
+    async updateNotes(){
+      const buildingId = localStorage.getItem('idBuilding');
+      const dynamicId = this.currentTargetItemId;
+      const notes = await this.$store.dispatch(ActionTypes.GET_NOTES, {
           buildingId: buildingId,
           referenceIds: dynamicId,
         });
@@ -1517,17 +1547,20 @@ export default {
             return item;
           })
         );
-        console.log('vSelectItemNotes', this.vSelectItemNotes);
-      }
-      if (newVal === 'Tickets') {
-        const tickets = await this.$store.dispatch(ActionTypes.GET_TICKET, {
+    },
+    async updateTickets(){
+      const buildingId = localStorage.getItem('idBuilding');
+      const dynamicId = this.currentTargetItemId;
+      const tickets = await this.$store.dispatch(ActionTypes.GET_TICKET, {
           buildingId: buildingId,
           referenceIds: dynamicId,
         });
         this.vSelectItemTickets = tickets;
-      }
-      if (newVal === 'Indicateur') {
-        const control_endpoints = await this.$store.dispatch(
+    },
+    async updateIndicateur(){
+      const buildingId = localStorage.getItem('idBuilding');
+      const dynamicId = this.currentTargetItemId;
+      const control_endpoints = await this.$store.dispatch(
           ActionTypes.GET_NODE_CONTROL_ENDPOINT_LIST,
           {
             buildingId: buildingId,
@@ -1542,9 +1575,12 @@ export default {
         );
         this.cpIdToDraw = tmpLst;
         this.vSelectItemInsights = control_endpoints;
-      }
-      if (newVal === 'Points de mesures') {
-        const endpoints = await this.$store.dispatch(
+    },
+
+    async updateEndpoints(){
+      const buildingId = localStorage.getItem('idBuilding');
+      const dynamicId = this.currentTargetItemId;
+      const endpoints = await this.$store.dispatch(
           ActionTypes.GET_NODE_ENDPOINT_LIST,
           {
             buildingId: buildingId,
@@ -1556,6 +1592,35 @@ export default {
         endpoints.filter((ep) => ep.saveTimeSeries == 1).map((item) => tmpLst.push(item.dynamicId));
         this.cpIdToDraw = tmpLst;
         this.vSelectItemEndpoints = endpoints;
+    },
+  },
+  watch: {
+    allFilteredData(newVal, oldVal) {
+      this.$emit('allFiltredData', newVal);
+    },
+
+    async vSelectedTab(newVal, oldVal) {
+      console.log('vSelectedTab', newVal);
+      const dynamicId = this.currentTargetItemId;
+      const buildingId = localStorage.getItem('idBuilding');
+      if (newVal === 'Attributs') {
+        await this.updateAttributes();
+        // this.$forceUpdate()
+      }
+      if (newVal === 'Documentation') {
+        await this.updateDocumentation();
+      }
+      if (newVal === 'Notes') {
+        await this.updateNotes();
+      }
+      if (newVal === 'Tickets') {
+        await this.updateTickets();
+      }
+      if (newVal === 'Indicateur') {
+        await this.updateIndicateur();
+      }
+      if (newVal === 'Points de mesures') {
+        this.updateEndpoints();
       }
     },
 
@@ -1576,6 +1641,15 @@ export default {
       this.reloadNewChartData();
     },
 
+    alert(newVal){
+      if (newVal) {
+        this.showLoader = true;
+        setTimeout(() => {
+          this.alert = false;
+          this.showLoader = false;
+        }, 5000);
+      }
+    },
 
 
 
