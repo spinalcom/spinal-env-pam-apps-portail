@@ -1,5 +1,5 @@
 <!--
-Copyright 2022 SpinalCom - www.spinalcom.com
+Copyright 2025 SpinalCom - www.spinalcom.com
 
 This file is part of SpinalCore.
 

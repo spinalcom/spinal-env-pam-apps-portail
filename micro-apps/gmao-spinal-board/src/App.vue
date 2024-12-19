@@ -24,7 +24,6 @@ import {
 } from './components/SpaceSelector/index';
 import { Vue } from 'vue-property-decorator';
 import {
-  ActionRecordTypes,
   ActionTypes,
 } from './services/store/appDataStore/actions';
 import Component from 'vue-class-component';
