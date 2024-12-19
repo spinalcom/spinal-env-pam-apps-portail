@@ -354,18 +354,16 @@ class App extends Vue {
 
 
   onActionClick({ button, item }) {
-    console.warn("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", item);
     // button.onclickEvent = "OPEN_VIEWER"
-
     const data = {
       buildingId: item.buildingId, //important viewer
       // staticId: item.staticId,//can
       // id: item.dynamicId,
       dynamicId: item.dynamicId,//important viewer
-      parents: item.parents
+      parents: item.parents,
       // floorId: item.floorId,//can
       // roomId: item.roomId,//can
-      // type: item.type,//can
+      type: item.type,
     };
 
     switch (button.onclickEvent) {

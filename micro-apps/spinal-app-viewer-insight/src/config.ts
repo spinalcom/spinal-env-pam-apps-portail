@@ -26,26 +26,27 @@ import { IConfig, ITemporality, calculTypes } from "./interfaces/IConfig";
 
 export const config: IConfig = {
   viewButtons: "base",
-  // entryPoint: { context: "Contexte équipement capteur", category: "Ubigreen", group: "All" },
-  // source: { name: "Ubigreen", profileName: "Ubigreen", type: "controlPoint", objectType: "equipments", unit : "" },
-  // entryPoint: {
-  // 	context: "Intégration équipements communicants",
-  // 	category: "Multicapteurs",
-  // 	group: "Avec convention de nommage",
-  // },
+  // entryPoint: { context: "Gestion des équipements", category: "Typologie", group: "CVC" },
   // source: [{
-  // 	name: "Température",
-  // 	profileName: "KPI",
+  // 	name: "Maintenance CVC",
+  // 	profileName: "Control point",
   // 	type: "controlPoint",
   // 	objectType: "equipments",
-  // 	unit: "°C",
+  // 	unit: "",
+  //   legend: {
+  //           min: { value: 0, color: "#24CBD9" },
+  //           median: { value: 50, color: "#2077CE" },
+  //           max: { value: 100, color: "#112C9D" },
+  //         },
   // }],
+  // regroupement: [
+  //     {
+  //       context: "Gestion des équipements",
+  //       category: "Typologie"
+  //     }
+  //   ],
 
-  /*entryPoint: {
-    context: "integration juin 2022",
-    category: "generation hardware context",
-    group: "valid items",
-  },*/
+
 
   // Config DEI
   entryPoint: {
@@ -109,54 +110,17 @@ export const config: IConfig = {
       category: "Affectation par service"
     }
   ],
+
+
+
+
+
+
   // FIN Config DEI
 
-  // Config Gienah
 
-  // entryPoint: {
-  //   context: "Contexte de pièces intégration",
-  //   category: "Toutes les pièces",
-  //   group: "Toutes les pièces",
-  // },
-  // source: [
-  //   {
-  //     name: "T° ambiante",
-  //     type: "endpoint",
-  //     objectType: "rooms",
-  //     unit: "°C",
-  //     legend: {
-  //       min: { value: 15, color: "#0074FF" },
-  //       median: { value: 20, color: "#FFFF00" },
-  //       max: { value: 25, color: "#FF004B" },
-  //     },
-  //   },
-  //   {
-  //     name: "Marche/arrêt",
-  //     type: "endpoint",
-  //     objectType: "rooms",
-  //     unit: "",
-  //     legend: {
-  //       min: { value: 0, color: "#FF0000" },
-  //       median: { value: 0.5, color: "#FFFF00" },
-  //       max: { value: 1, color: "#00FF00" },
-  //     },
-  //   },
-  //   {
-  //     name: "Consigne de température identifiée",
-  //     profileName: "Nobatek - Cassette CVC",
-  //     type: "controlPoint",
-  //     objectType: "rooms",
-  //     unit: "°C",
-  //     legend: {
-  //       min: { value: 0, color: "#0074FF" },
-  //       median: { value: 10, color: "#FFFF00" },
-  //       max: { value: 20, color: "#FF004B" },
-  //     },
-  //   },
-  // ],
-  // regroupement: ["floors"],
 
-  // FIN Config Gienah
+
 
   title: "Insights sur les multicapteurs",
   calculs: [

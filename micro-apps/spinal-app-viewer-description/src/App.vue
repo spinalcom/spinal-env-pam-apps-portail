@@ -130,7 +130,7 @@ class App extends Vue {
   dataTable: IZoneItem[] = [];
   viewerManager: ViewerManager | undefined = undefined;
   $refs: { spaceSelector };
-  query: { app: string; mode: string; name: string; spaceSelectedId: string; buildingId: string } = {
+  query: { app: string; mode: string; name: string; spaceSelectedId: string;spaceSelectedType: string; buildingId: string } = {
     app: '',
     mode: 'null',
     name: '',
@@ -146,8 +146,7 @@ class App extends Vue {
     this.RemoveEventHandlers();
 
     EventBus.$on('colorRoom', (dynamicId) => {
-      console.log('aa');
-      
+
       const buildingId = localStorage.getItem("idBuilding");
       const itemsToColor = [{
         buildingId: buildingId,
@@ -188,8 +187,6 @@ class App extends Vue {
 
 
     if (window.innerWidth < 900) {
-      // console.log(window.innerWidth);
-
       this.isActive = true;
       this.isActive3D = false;
     }
@@ -204,14 +201,9 @@ class App extends Vue {
 
     this.$nextTick(() => {
 
+      // this.query.app = this.config.idAppDescription
 
-      this.query.app = this.config.idAppDescription
-      // console.warn('/////////////////////////////////////////////////////');
-      // console.log(window.parent.router.query);
-      window.parent.router.query.app = this.query.app
-      // console.log(window.parent.router.query);
-
-      console.warn('/////////////////////////////////////////////////////');
+      // window.parent.router.query.app = this.query.app
 
       const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
       this.applyURLParam(currentQuery);
@@ -240,9 +232,14 @@ class App extends Vue {
       this.query.name = v.name
       this.query.buildingId = v.buildingId
       this.query.spaceSelectedId = v.dynamicId.toString()
+      this.query.spaceSelectedType = v.type;
       this.replaceRoute();
     }
 
+    // if (v.dynamicId == 0) {
+    //   this.query.spaceSelectedId = '24063840'
+    //   this.replaceRoute();
+    // }
     if (v.type == "geographicFloor")
       this.floor = this.query.spaceSelectedId
 
@@ -262,6 +259,7 @@ class App extends Vue {
     this.query.mode = query.mode
     this.query.buildingId = query.buildingId
     this.query.spaceSelectedId = query.spaceSelectedId
+    this.query.spaceSelectedType = query.spaceSelectedType;
     this.query.name = query.name
     this.query.app = query.app
 
@@ -278,6 +276,7 @@ class App extends Vue {
       const item = {
         buildingId: query.buildingId,
         dynamicId: query.spaceSelectedId,
+        type: query.spaceSelectedType,
       };
       const button = {
         "title": "charger",
@@ -297,7 +296,7 @@ class App extends Vue {
         "dynamicId": parseInt(query.spaceSelectedId),
         "name": query.name,
         "buildingId": query.buildingId,
-        "type": "geographicFloor",
+        type: query.spaceSelectedType,
       }
       // this.$refs['space-selector'].getButton();
 
@@ -316,12 +315,24 @@ class App extends Vue {
   }
 
 
-  toggleActive() {
+  toggleActive(value) {
     if (this.isActive3D) {
       this.isActive3D = false
     }
     this.isActive = !this.isActive;
-    this.handleRouteChange();
+    if (value === 'vueDoc') {
+      this.isActive = true
+      this.isActive3D = false
+      this.query.mode = 'data'
+    } else if (value === 'vueDocClose') {
+      this.isActive = false
+      this.isActive3D = false
+      this.query.mode = 'none'
+    }
+    else {
+      this.handleRouteChange();
+    }
+
   }
 
 
@@ -362,18 +373,22 @@ class App extends Vue {
 
         const [building, items] = await Promise.all(promises);
 
+        const realBuilding = await this.$store.dispatch(
+          ActionTypes.GET_BOS_BUILDING,
+          { buildingId }
+        )
+
         return [
           {
-            name: building.name,
+            name: realBuilding.name,
             staticId: building.id,
             categories: [],
-            color: "#35CAE5",
-            dynamicId: 0,
-            type: "building",
+            color: realBuilding.color,
+            dynamicId: realBuilding.dynamicId,
+            type: 'building',
           },
         ];
       case "building":
-        console.warn(item?.type, '////////////////////////');
         return await this.$store.dispatch(ActionTypes.GET_FLOORS, {
           buildingId: item.staticId,
           patrimoineId: item.patrimoineId,
@@ -460,6 +475,7 @@ class App extends Vue {
 
     const buildingId = localStorage.getItem("idBuilding");
 
+
     const data = {
       "isOpen": false,
       "loading": false,
@@ -473,9 +489,9 @@ class App extends Vue {
       type: item.type,
     };
 
-    
+
     switch (button.onclickEvent) {
-      
+
       case ActionTypes.OPEN_VIEWER:
         this.$store.dispatch(button.onclickEvent, {
           onlyThisModel: true,
@@ -504,7 +520,7 @@ class App extends Vue {
   }
 
   listenSpritesEvent() {
-    
+
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
 
@@ -631,6 +647,7 @@ export default App;
     .DButton {
       width: 60px;
       height: 60px;
+      transform: translate(-50px, 0px);
     }
 
     @media (max-width: 960px) {

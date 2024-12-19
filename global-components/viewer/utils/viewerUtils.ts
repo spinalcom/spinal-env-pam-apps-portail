@@ -318,6 +318,28 @@ export class ViewerUtils {
 			}
 		});
 	}
+
+	public async getObjectProperties(viewer: Autodesk.Viewing.Viewer3D, dbId: number) {
+		try {
+			const properties = await new Promise<Autodesk.Viewing.PropertyResult | null>((resolve, reject) => {
+				viewer.getProperties(
+					dbId,
+					(success) => {
+						resolve(success);
+					},
+					(error) => {
+						reject(error);
+					}
+				);
+			});
+	
+			return properties;
+		} catch (error) {
+			console.error('Failed to get object properties', error);
+			return null;
+		}
+	}
+	
 	
 	
 

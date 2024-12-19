@@ -32,10 +32,11 @@ with this file. If not, see
     </div>
 
     <div class="navbar" style="">
-      <div><span  class="mdi mdi-map-marker"></span>{{ spaceName }}</div>
+      <div><span class="mdi mdi-map-marker"></span>{{ spaceName }}</div>
 
       <div style="color: #DDECF4;">
-        <div style="font-size: 65px;height: 70px;font-weight: bold ;display: flex;justify-content:flex-end">{{ currentTime }}</div>
+        <div style="font-size: 65px;height: 70px;font-weight: bold ;display: flex;justify-content:flex-end">{{
+          currentTime }}</div>
         <div style="font-size: 25px;">{{ currentDate }}</div>
       </div>
 
@@ -165,6 +166,7 @@ class App extends Vue {
       referenceIds = window.parent.router.query.spaceSelectedId
 
 
+   
     const buildingId = localStorage.getItem("idBuilding");
     const promises = [
       this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
@@ -176,7 +178,7 @@ class App extends Vue {
     this.setTabletteSprite(result, buildingId)
   }
   async mounted() {
-
+    localStorage.setItem('idBuilding', this.config.idBuilding)
     this.updateTime();
     this.updateDate();
     setInterval(this.updateTime, 60000);
@@ -229,7 +231,7 @@ class App extends Vue {
       window.parent.router.query.app = this.query.app
       const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
       this.applyURLParam(currentQuery);
-      this.asynctoto()
+      // this.asynctoto()
     });
   }
 
@@ -239,24 +241,24 @@ class App extends Vue {
   }
 
 
-  asynctoto() {
-    const roomTablette = localStorage.getItem('room_tablette');
-    const item = {
-      "dynamicId": roomTablette,
-      "staticId": "SpinalNode-4be0192e-562d-1f3c-2d9c-1d558ca6b5ff-186df7cd6ff",
-      "name": "Sol [415087]",
-      "type": "BIMObject",
-      "version": 1,
-      "externalId": "154cec60-8d56-4126-8ada-aac07f24c66e-0006556f",
-      "dbid": 11181,
-      "buildingId": "5932-6086-9e1a-18506478460",
-    }
+  // asynctoto() {
+  //   const roomTablette = localStorage.getItem('room_tablette');
+  //   const item = {
+  //     "dynamicId": roomTablette,
+  //     "staticId": "SpinalNode-4be0192e-562d-1f3c-2d9c-1d558ca6b5ff-186df7cd6ff",
+  //     "name": "Sol [415087]",
+  //     "type": "BIMObject",
+  //     "version": 1,
+  //     "externalId": "154cec60-8d56-4126-8ada-aac07f24c66e-0006556f",
+  //     "dbid": 11181,
+  //     "buildingId": "5932-6086-9e1a-18506478460",
+  //   }
 
-    setTimeout(() => {
-      this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
-    }, 400);
+  //   setTimeout(() => {
+  //     this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
+  //   }, 400);
 
-  }
+  // }
 
   async findDynamicIdByDbid(dbidToFind, data) {
     const buildingId = localStorage.getItem("idBuilding");
@@ -470,7 +472,7 @@ class App extends Vue {
   applyURLParam(query) {
 
     const buildingId = localStorage.getItem("idBuilding");
-    const dynamicId = localStorage.getItem("floor_tablette_id");
+    const dynamicId = '969065616' || localStorage.getItem("floor_tablette_id");
     const name = localStorage.getItem("floor_tablette_name");
     const item = {
       buildingId: buildingId,
@@ -773,7 +775,7 @@ class App extends Vue {
   @Watch("loadedinformation", { deep: true })
   async watchSelectedChartItems(select, old) {
     this.spaceName = localStorage.getItem("room_tablette_name");
-    this.asynctoto()
+    // this.asynctoto()
     this.youAreHere()
     // this.updateChartData();
     // if (select.length > 0) {

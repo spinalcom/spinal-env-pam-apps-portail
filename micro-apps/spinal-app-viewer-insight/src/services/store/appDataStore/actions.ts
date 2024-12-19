@@ -342,10 +342,8 @@ export const actions = {
     playload: { onlyThisModel: boolean; config: IConfig; item: any }
   ): Promise<void> {
     try {
-      console.log('AAAAA');
+      console.log("OPEN_VIEWER", playload);
       if(playload.item.type ==="building"){
-        console.log('AAAAA');
-        
         const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
           buildingId: playload.item.buildingId,
           forceUpdate: false,
@@ -382,13 +380,14 @@ export const actions = {
           config: playload.config,
           buildingId: playload.item.buildingId,
         });
+        playload.item.type="geographicFloor"; //TODO: remove this line, we should fix groupItem bug in a better way
         body.dbIdsToAdd = classifyItemByBimFileId(
           map,
           playload.item.dynamicId,
           playload.item.type
         );
       }
-      // console.log('Sending load in viewer with body : ', body);
+    
       await ViewerManager.getInstance().loadInViewer(
         playload.item,
         playload.onlyThisModel,

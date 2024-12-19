@@ -24,30 +24,37 @@ with this file. If not, see
 
 <template>
 
-
   <div class="appli">
-    <SpriteComponentMobile @close="handleClose"
-      style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;"
-      v-if="displaySprite" :data="isSmallScreen">
-    </SpriteComponentMobile>
-
-    <BreadcrumbSelector :ids="referencedId" :type="referencedType" />
-
-    <div class="hide" @click="() => {
-      gestionBouton()
-    }"
-      style="background-color: white;width: 50px;height: 50px;position: absolute;bottom: 20px;right: 20px;z-index: 9999;border-radius: 5px;border: 2px solid #14202c;justify-content: center;align-items: center;display: flex;">
-      <v-icon v-if="modefull && !displaySprite">mdi-text-box</v-icon>
-      <v-icon v-else-if="!modefull && !displaySprite">mdi-video-3d</v-icon>
-      <v-icon v-else>mdi-close-circle-outline</v-icon>
+    <div style="width: 55%; height: 100%; background: #14202c;" v-show="showDocvalue">
+      <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" :closecomp="ActiveData"
+        @closeDialog="closeVueDoc" />
     </div>
+    <!-- style="['height: calc(100vh - 160px); background-color: red', " -->
+    <div
+      style="max-height: 100%; display:flex; overflow: hidden ; overflow-y: auto; flex-direction: column; align-content:space-between;"
+      :class="{ 'doc-content': showDocvalue, 'w-full': !showDocvalue }">
+      <SpriteComponentMobile @close="handleClose"
+        style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;"
+        v-if="displaySprite" :data="isSmallScreen">
+      </SpriteComponentMobile>
 
-    <div class="el3d">
-      <button @click="() => {
-        $emit('buttonClicked');
-        resize();
-      }
-        " style="
+      <BreadcrumbSelector :ids="referencedId" :type="referencedType" />
+
+      <div class="hide" @click="() => {
+        gestionBouton()
+      }"
+        style="background-color: white;width: 50px;height: 50px;position: absolute;bottom: 20px;right: 20px;z-index: 9999;border-radius: 5px;border: 2px solid #14202c;justify-content: center;align-items: center;display: flex;">
+        <v-icon v-if="modefull && !displaySprite">mdi-text-box</v-icon>
+        <v-icon v-else-if="!modefull && !displaySprite">mdi-video-3d</v-icon>
+        <v-icon v-else>mdi-close-circle-outline</v-icon>
+      </div>
+
+      <div class="el3d">
+        <button @click="() => {
+          $emit('buttonClicked');
+          resize();
+        }
+          " style="
           position: absolute;
           top: 47.5%;
           left: -20px;
@@ -62,15 +69,15 @@ with this file. If not, see
           border-left: 2px solid gainsboro;
           
         " :style="{ left: DActive ? '-35px' : '-20px' }">
-        <v-icon v-if="DActive"> mdi-chevron-double-left </v-icon>
-        <v-icon v-else-if="ActiveData">mdi-chevron-right</v-icon>
-        <v-icon v-else>mdi-chevron-left</v-icon>
-      </button>
-      <button @click="() => {
-        $emit('buttonClicked3D');
-        resize();
-      }
-        " style="
+          <v-icon v-if="DActive"> mdi-chevron-double-left </v-icon>
+          <v-icon v-else-if="ActiveData">mdi-chevron-right</v-icon>
+          <v-icon v-else>mdi-chevron-left</v-icon>
+        </button>
+        <button @click="() => {
+          $emit('buttonClicked3D');
+          resize();
+        }
+          " style="
           position: absolute;
           top: 52.5%;
           background-color: white;
@@ -83,319 +90,383 @@ with this file. If not, see
           padding-right: 5px;
           border-left: 2px solid gainsboro;
           
-        " :style="{ left: DActive ? '-35px' : '-20px' }">
-        <v-icon v-if="ActiveData">mdi-chevron-double-right</v-icon>
-        <v-icon v-else-if="DActive">mdi-chevron-left</v-icon>
-        <v-icon v-else>mdi-chevron-right</v-icon>
-      </button>
-    </div>
+          " :style="{ left: DActive ? '-35px' : '-20px' }">
+          <v-icon v-if="ActiveData">mdi-chevron-double-right</v-icon>
+          <v-icon v-else-if="DActive">mdi-chevron-left</v-icon>
+          <v-icon v-else>mdi-chevron-right</v-icon>
+        </button>
+      </div>
 
-    <div>
-      <div class="title">
-        <div class="button  adaptative" style="">
-          <v-select label="Details" v-model="selection" :items="dynamicItems"></v-select>
-        </div>
+      <div>
+        <div class="title">
+          <div class="button  adaptative" style="">
+            <v-select label="Details" v-model="selection" :items="dynamicItems"></v-select>
+          </div>
 
-        <div
-          style="justify-content: flex-end;align-items: center;display: flex;padding-right: 12px;white-space: nowrap;"
-          v-if="floorstaticDetails.length && floorstaticDetails[0].attributsList.length">
-          <div style="" v-for="(item, index) in floorstaticDetails[0].attributsList[0].attributs">
-            <div v-if="item.label == 'area'">
-              {{ item.value }} m²
+          <div v-if="ActiveData && selection == 'Indicateur' && labelsChart"
+            style="display: flex ; flex-wrap: nowrap ; align-items: center;margin-left: 15px; margin-right: 15px;">
+            <v-btn style="margin: 10px;" elevation="0" fab small @click="t_index--">
+              <v-icon>mdi-chevron-left</v-icon>
+            </v-btn>
+            <div style="white-space: nowrap;">{{ timeactuelle }}</div>
+            <v-btn style="margin: 10px;" elevation="0" fab small @click="t_index++">
+              <v-icon>mdi-chevron-right</v-icon>
+            </v-btn>
+          </div>
+
+          <div
+            style="justify-content: flex-end;align-items: center;display: flex;padding-right: 12px;white-space: nowrap;"
+            v-if="floorstaticDetails.length && floorstaticDetails[0].attributsList.length">
+            <div style="" v-for="(item, index) in floorstaticDetails[0].attributsList[0].attributs">
+              <div v-if="item.label == 'area'">
+                {{ item.value }} m²
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
 
-    <div class="inventory">
-      <div v-if="selection == 'Vue Globale'">
-        <div v-if="inventoyList">
-          <div v-if="inventoyList.length > 0" class="blocInformation">
-            <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Inventaire
-              des équipements ({{ config.inventory }})</span>
-            <div>
-              <div v-if="inventoyList == null"
-                style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px; margin-bottom: 10px;">
-                PAS DE DONNÉES DISPONIBLE
+      <div class="inventory">
+        <div v-if="selection == 'Vue Globale'">
+          <div v-if="inventoyList">
+            <div v-if="inventoyList.length > 0" class="blocInformation">
+              <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Inventaire
+                des équipements ({{ config.inventory }})</span>
+              <div>
+                <div v-if="inventoyList == null"
+                  style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px; margin-bottom: 10px;">
+                  PAS DE DONNÉES DISPONIBLE
+                </div>
+                <div v-else class="inventory-container">
+                  <div v-for="(item, index) in inventoyList" :key="index" class="inventory-item">
+                    <li>{{ item }}</li>
+                    <div style="margin-left: 5px;">
+                      <v-icon v-if="eyes.indexOf(index) === -1" @click="() => { hideelement(item); closeeyes(index) }"
+                        style="cursor: pointer">mdi-eye-outline</v-icon>
+                      <v-icon v-else @click="() => { hideelement(item); closeeyes(index) }"
+                        style="cursor: pointer">mdi-eye-off-outline</v-icon>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div v-else class="inventory-container">
-                <div v-for="(item, index) in inventoyList" :key="index" class="inventory-item">
-                  <li>{{ item }}</li>
-                  <div style="margin-left: 5px;">
-                    <!-- <v-icon v-if="ink.indexOf(index) === -1" @click="() => { colorelement(item); closeink(index) }"
-                      style="cursor: pointer">mdi-invert-colors</v-icon>
-                    <v-icon v-else @click="() => { colorelement(item); closeink(index) }"
-                      style="cursor: pointer">mdi-invert-colors-off</v-icon> -->
-                    <v-icon v-if="eyes.indexOf(index) === -1" @click="() => { hideelement(item); closeeyes(index) }"
-                      style="cursor: pointer">mdi-eye-outline</v-icon>
-                    <v-icon v-else @click="() => { hideelement(item); closeeyes(index) }"
-                      style="cursor: pointer">mdi-eye-off-outline</v-icon>
+            </div>
+          </div>
+          <div class="blocInformation">
+            <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Liste des
+              attributs</span>
+            <div v-if="attributProfil == null"
+              style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px ; margin-bottom: 10px;">
+              <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
+            </div>
+            <div v-else class="inventory-container">
+              <div
+                style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
+                class="inventory-item" v-for="(item, index) in attributProfil">
+                <li> {{ item.label }}: {{ item.value }}</li>
+
+              </div>
+            </div>
+          </div>
+          <!-- endpoint -->
+          <div v-if="endpointProfil && endpointProfil.length > 0" class="blocInformation">
+
+
+            <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Indicateur
+            </span>
+            <div class="inventory-container">
+              <div v-if="endpointProfil == null"
+                style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px; margin-bottom: 10px;">
+                <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
+              </div>
+              <div
+                style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
+                class="inventory-item" v-for="endpoint in endpointProfil">
+                <div> <span>{{ endpoint.name }}: </span>
+                  <span v-if="typeof endpoint.value === 'number'">{{ endpoint.value.toFixed(2) }}</span>
+                  <span v-else>{{ endpoint.value }} </span>
+                  <span v-if="endpoint.unit">{{ endpoint.unit }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blocInformation">
+            <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Tickets
+            </span>
+            <div v-if="ticketsList && ticketsList[0]" class="inventory-container">
+              <div
+                style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
+                class="inventory-item">
+                <div>Nombre de tickets : {{ ticketsList[0].length }} </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ONGLET attribut (attribut)-->
+        <div v-if="selection == 'Attribut'">
+
+          <AddBtn name="Ajouter un attribut" icon="mdi-tag-plus-outline" @open-dialog="ShowFormAttribute" />
+          <FormAttribute :show="showFormAttributeValue" :referenceId="selectedZone.dynamicId"
+            @close-dialog="ShowFormAttribute" @add-attribute="showAlert" />
+
+          <h3>Attribut de la selection</h3>
+
+          <div v-for="(item, index) in floorstaticDetails[0].attributsList" class="blocInformation">
+            <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">{{ item.name
+              }}</span>
+            <div v-if="floorstaticDetails[0].attributsList == null"
+              style="justify-content: center; align-items: center; width: 100%; display: flex; margin-top: 10px; margin-bottom: 10px;">
+              <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
+            </div>
+            <div v-else class="inventory-container">
+              <div class="inventory-item"
+                style="color:#14202c; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
+                v-for="(attr, index2) in item.attributs">
+                <li v-if="isLink(attr.value)">
+                  {{ attr.label }}:
+                  <a :href="attr.value" target="_blank" style="color: #3498db;">{{ attr.value }}</a>
+                </li>
+                <li v-else>
+                  {{ attr.label }}: {{ attr.value }}
+                </li>
+              </div>
+            </div>
+          </div>
+
+          <h3 style="margin-top: 48px; border-bottom: 1px solid #dbdbdb;">Attribut des parents</h3>
+
+          <!-- Section pour afficher les parentAttribut -->
+          <div v-for="(parentItem, parentIndex) in parentAttribut" class="parentInformation" :key="parentIndex">
+            <div v-for="(parentItems, parentIndexs) in parentItem">
+              <div class="blocInformation" v-if="parentItems.documentation.categoryAttributes.length > 0">
+                <h3>{{ parentItems.name }}</h3>
+                <div v-for="(category, catIndex) in parentItems.documentation.categoryAttributes"
+                  class="category-container" :key="catIndex">
+                  <h3
+                    style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold; margin-top: 10px;">
+                    {{ category.name }}
+                  </h3>
+                  <div class="category-attributes"
+                    style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
+                    <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
+                      attr.value
+                    }}
+                    </li>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div class="blocInformation">
-          <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Liste des
-            attributs</span>
-          <div v-if="attributProfil == null"
-            style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px ; margin-bottom: 10px;">
-            <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
-          </div>
-          <div v-else class="inventory-container">
-            <div
-              style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
-              class="inventory-item" v-for="(item, index) in attributProfil">
-              <li> {{ item.label }}: {{ item.value }}</li>
 
+        <!-- ONGLET TICKETS -->
+        <div v-if="selection == 'Tickets'">
+          <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
+          <!-- Vérification si les tickets existent -->
+          <AddTicketBtn @open-dialog="ShowDialog()" />
+          <div v-if="ticketsList">
+            <FormTicket :value="showFormTicket" @close-dialog="ShowDialog()" :selectedZone="selectedZone"
+              @add-ticket="showAlert" />
+            <!-- Button d'ajout d'un ticket  -->
+
+            <!-- Boucle sur chaque ticket -->
+            <div v-for="(ticket, index) in ticketsList" :key="index" class="blocInformation">
+              <div class="">
+                <div>
+                  <!-- Affichage des informations principales du ticket -->
+                  <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;"> {{
+                    ticket.name }}</span>
+                  <div class="back_blanc">
+                    <li><strong>Description :</strong> {{ ticket.description }}</li>
+                    <li><strong>Date de création :</strong> {{ new Date(ticket.creationDate).toLocaleString() }}</li>
+                    <li><strong>Priorité :</strong> {{ ticket.priority }}</li>
+                    <li><strong>Étape actuelle :</strong> {{ ticket.step.name }}</li>
+                    <li><strong>Processus :</strong> {{ ticket.process.name }}</li>
+                    <li><strong>Nom du workflow :</strong> {{ ticket.workflowName }}</li>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
+
+          <!-- Affichage lorsqu'il n'y a pas de tickets -->
+          <div v-if="ticketsList && ticketsList.length === 0"
+            style="width: 100%; height: 200px; font-size: 20px ; display: flex; justify-content: center; align-items: center">
+            <p>Aucun ticket disponible.</p>
           </div>
         </div>
 
-        <div v-if="endpointProfil.length > 0" class="blocInformation">
-          <!-- endpoint -->
-          <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Indicateur
-          </span>
-          <div class="inventory-container">
-            <div v-if="endpointProfil == null"
-              style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px; margin-bottom: 10px;">
+
+        <!-- ONGLET POINT DE MESURE (endpoints)-->
+        <div v-if="selection == 'Points de mesures'">
+          <div v-for="(item, index) in floorstaticDetails[0].endpoints" :key="index" class="blocInformation">
+            <div v-if="!floorstaticDetails[0].endpoints">
               <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
             </div>
-            <div
-              style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
-              class="inventory-item" v-for="endpoint in endpointProfil">
-              <div> <span>{{ endpoint.name }}: </span>
-                <span v-if="typeof endpoint.value === 'number'">{{ endpoint.value.toFixed(2) }}</span>
-                <span v-else>{{ endpoint.value }} </span>
-                <span v-if="endpoint.unit">{{ endpoint.unit }}</span>
+            <div v-else class="inventory-container">
+              <div class="inventory-item"
+                style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;width: 100%;">
+                <li> {{ item.name }}: {{ item.value }} {{ item.unit || '' }}</li>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="blocInformation">
-          <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Tickets
-          </span>
-          <div v-if="ticketsList && ticketsList[0]" class="inventory-container">
-            <div
-              style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
-              class="inventory-item">
-              <div>Nombre de tickets : {{ ticketsList[0].length }} </div>
-            </div>
+
+        <!-- ONGLET INDICATEUR (controleEndpoint) indicateur -->
+        <div style="display: flex">
+          <div v-if="ActiveData && selection == 'Indicateur' && labelsChart" class="graphContainer">
+
+            <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
+              :step="labelsChart.length" :tooltipCallbacks="{
+                title: (context) => { },
+                label: (tooltipItem) =>
+                  `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
+                    2
+                  )} `,
+                footer: (data) => { },
+              }"></LineCardComponent>
+            <!-- </sc-line-card> -->
           </div>
-        </div>
+          <div style="width: 100%;" v-if="selection == 'Indicateur'">
 
-      </div>
-
-      <!-- ONGLET attribut (attribut)-->
-      <div v-if="selection == 'Attribut'">
-        <h3>Attribut de la selection</h3>
-
-        <div v-for="(item, index) in floorstaticDetails[0].attributsList" class="blocInformation">
-          <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">{{ item.name
-            }}</span>
-          <div v-if="floorstaticDetails[0].attributsList == null"
-            style="justify-content: center; align-items: center; width: 100%; display: flex; margin-top: 10px; margin-bottom: 10px;">
-            <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
-          </div>
-          <div v-else class="inventory-container">
-            <div class="inventory-item"
-              style="color:#14202c; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
-              v-for="(attr, index2) in item.attributs">
-              <li v-if="isLink(attr.value)">
-                {{ attr.label }}:
-                <a :href="attr.value" target="_blank" style="color: #3498db;">{{ attr.value }}</a>
-              </li>
-              <li v-else>
-                {{ attr.label }}: {{ attr.value }}
-              </li>
-            </div>
-          </div>
-        </div>
-
-        <h3 style="margin-top: 48px; border-bottom: 1px solid #dbdbdb;">Attribut des parents</h3>
-
-        <!-- Section pour afficher les parentAttribut -->
-        <div v-for="(parentItem, parentIndex) in parentAttribut" class="parentInformation" :key="parentIndex">
-          <div v-for="(parentItems, parentIndexs) in parentItem">
-            <div class="blocInformation" v-if="parentItems.documentation.categoryAttributes.length > 0">
-              <h3>{{ parentItems.name }}</h3>
-              <div v-for="(category, catIndex) in parentItems.documentation.categoryAttributes"
-                class="category-container" :key="catIndex">
-                <h3
-                  style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold; margin-top: 10px;">
-                  {{ category.name }}
-                </h3>
-                <div class="category-attributes"
-                  style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
-                  <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
-                    attr.value
-                    }}
-                  </li>
-                </div>
+            <div v-for="(item, index) in floorstaticDetails[0].controlEndpoint" class="blocInformation">
+              <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">{{
+                item.profileName }}</span>
+              <div v-if="floorstaticDetails[0].controlEndpoint == null"
+                style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px ; margin-bottom: 10px;">
+                <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ONGLET TICKETS -->
-      <div v-if="selection == 'Tickets'">
-        <!-- Vérification si les tickets existent -->
-        <div v-if="ticketsList && ticketsList[0]">
-          <!-- Boucle sur chaque ticket -->
-          <div v-for="(ticket, index) in ticketsList[0]" :key="index" class="blocInformation">
-            <div class="">
-              <div>
-                <!-- Affichage des informations principales du ticket -->
-                <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;"> {{
-                  ticket.name }}</span>
-                <div class="back_blanc">
-                  <li><strong>Description :</strong> {{ ticket.description }}</li>
-                  <li><strong>Date de création :</strong> {{ new Date(ticket.creationDate).toLocaleString() }}</li>
-                  <li><strong>Priorité :</strong> {{ ticket.priority }}</li>
-                  <li><strong>Étape actuelle :</strong> {{ ticket.step.name }}</li>
-                  <li><strong>Processus :</strong> {{ ticket.process.name }}</li>
-                  <li><strong>Nom du workflow :</strong> {{ ticket.workflowName }}</li>
+              <div v-else>
+                <div class="inventory-container"
+                  v-for="(item, index2) in floorstaticDetails[0].controlEndpoint[index].endpoints" :key="index2">
+                  <div class=" inventory-item"
+                    :style="{ width: '100%', color: '#14202c', padding: '16px', borderRadius: '5px', paddingLeft: '6px', boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px' }">
+                    <li>{{ item.name }}: {{ item.value }}</li>
+                    <v-icon @click="() => {
+                      fullData()
+                      addOrRemove(item.dynamicId);
+                      resize();
+                    }"
+                      v-if="cpIdToDraw.includes(item.dynamicId) && !activeChart.includes(item.dynamicId)">mdi-chart-line</v-icon>
+                    <v-icon @click="() => {
+                      addOrRemove(item.dynamicId);
+                    }" v-if="activeChart.includes(item.dynamicId)">mdi-close</v-icon>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Affichage lorsqu'il n'y a pas de tickets -->
-        <div v-else>
-          <p>Aucun ticket disponible.</p>
-        </div>
-      </div>
 
 
-      <!-- ONGLET POINT DE MESURE (endpoints)-->
-      <div v-if="selection == 'Points de mesures'">
-        <div v-for="(item, index) in floorstaticDetails[0].endpoints" :key="index" class="blocInformation">
-          <div v-if="!floorstaticDetails[0].endpoints">
-            <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
-          </div>
-          <div v-else class="inventory-container">
-            <div class="inventory-item"
-              style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;width: 100%;">
-              <li> {{ item.name }}: {{ item.value }} {{ item.unit || '' }}</li>
-            </div>
-          </div>
-        </div>
-      </div>
 
-
-      <!-- ONGLET INDICATEUR (controleEndpoint) indicateur -->
-      <div style="display: flex">
-        <div v-if="ActiveData && selection == 'Indicateur' && labelsChart" class="graphContainer">
-          <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
-            :step="labelsChart.length" :tooltipCallbacks="{
-              title: (context) => { },
-              label: (tooltipItem) =>
-                `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
-                  2
-                )} `,
-              footer: (data) => { },
-            }"></LineCardComponent>
-          <!-- </sc-line-card> -->
-        </div>
-        <div style="width: 100%;" v-if="selection == 'Indicateur'">
-          <div v-for="(item, index) in floorstaticDetails[0].controlEndpoint" class="blocInformation">
-            <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">{{
-              item.profileName }}</span>
-            <div v-if="floorstaticDetails[0].controlEndpoint == null"
-              style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px ; margin-bottom: 10px;">
-              <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
-            </div>
-            <div v-else>
-              <div class="inventory-container"
-                v-for="(item, index2) in floorstaticDetails[0].controlEndpoint[index].endpoints" :key="index2">
-                <div class=" inventory-item"
-                  :style="{ width: '100%', color: '#14202c', padding: '16px', borderRadius: '5px', paddingLeft: '6px', boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px' }">
-                  <li>{{ item.name }}: {{ item.value }}</li>
-                  <v-icon @click="() => {
-                    fullData()
-                    addOrRemove(item.dynamicId);
-                    resize();
-                  }" v-if="cpIdToDraw.includes(item.dynamicId) && !activeChart.includes(item.dynamicId)">mdi-chart-line</v-icon>
-                  <v-icon @click="() => {
-                    addOrRemove(item.dynamicId);
-                  }" v-if="activeChart.includes(item.dynamicId)">mdi-close</v-icon>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-
-      <!-- ONGLET DOCUMENTATION -->
-      <div v-if="selection == 'Documentation'">
-        <h3>{{ floorstaticDetails[0].name }}</h3>
-        <div class="blocInformation">
-          <div style="display: flex;" v-for="(item, index) in documentation.element">
-            <div class="inventory-item"
-              style="width: 90%;color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
-              <li>{{ item.Name }}</li>
-            </div>
-
-            <v-icon @click="downloadFile(item.dynamicId)" style="cursor: pointer; font-size: 40px;" color="green">
-              mdi-download-box
-            </v-icon>
-          </div>
-        </div>
-
-        <h3 style="border-bottom: 1px solid #d7d7d7; margin-top: 48px">Documents des Parents</h3>
-        <br>
-        <div v-for="(parent, index) in documentation.parents" :key="index">
-          <div v-if="parent.documentation && parent.documentation.length > 0">
-            <h3>{{ parent.name }}</h3>
+        <!-- ONGLET DOCUMENTATION -->
+        <div v-if="selection == 'Documentation'"
+          style="display: flex; flex-direction: column; overflow: hidden !important; overflow-y: auto !important ;">
+          <!-- Notification -->
+          <!-- Box pour afficher le document -->
+          <!-- Boutton d'ajout d'un document -->
+          <v-row style="padding: 20px;">
+            <AddBtn @open-dialog="ShowFormDoc" name="Ajouter un document" icon="mdi-file-plus-outline" />
+          </v-row>
+          <FormDoc :isDialogOpen="show_formdoc" @close-dialog="ShowFormDoc" @add-doc="showAlert"
+            :referenceid="this.selectedZone.dynamicId" />
+          <div style="width: 100%; flex-direction: column;">
+            <h3>{{ floorstaticDetails[0].name }}</h3>
             <div class="blocInformation">
-              <div style="display: flex;" v-for="(item, index2) in parent.documentation" :key="index2">
-                <div class="inventory-item"
-                  style="width: 90%;color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
-                  <li>{{ item.Name }}</li>
+              <div v-if="documentation.element != 0">
+
+                <div
+                  style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative;"
+                  v-for="(item, index) in documentation.element">
+                  <div class="inventory-item"
+                    style="width: 100%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
+
+                    <li style="list-style: none;">
+                      <v-icon :style="{ 'color': getIcon(item.Name).color }">{{ getIcon(item.Name).name }}</v-icon>
+
+                      {{ item.Name }}
+
+                    </li>
+
+                  </div>
+                  <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
+                    @showDoc="showDoc" @downloadFile="downloadFile"
+                    @DeleteFile="DeleteFile(item.dynamicId, selectedZone.dynamicId, 'child')"
+                    @changeOverflowItemMenu="changeOverflowItemMenu">
+
+                  </OverMenu>
                 </div>
-                <v-icon @click="downloadFile(item.dynamicId)" style="cursor: pointer; font-size: 40px;" color="green">
-                  mdi-download-box
-                </v-icon>
+                <Loader :showLoader="showLoader_in_child" />
+              </div>
+              <div v-else style="width: 100%; text-align: center;">
+                <p>Aucun document</p>
+              </div>
+              <!-- fin -->
+            </div>
+          </div>
+
+          <h3 style="border-bottom: 1px solid #d7d7d7; margin-top: 48px">Documents des Parents</h3>
+          <br>
+          <div v-for="(parent, index) in documentation.parents" :key="index">
+            <div v-if="parent.documentation && parent.documentation.length > 0">
+              <h3>{{ parent.name }}</h3>
+              <div class="blocInformation">
+                <div style="display: flex; position: relative; align-items: center "
+                  v-for="(item, index2) in parent.documentation" :key="index2">
+                  <div class="inventory-item"
+                    style="max-width: 100%; width: 99%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
+                    <li style="list-style: none;">
+                      <v-icon :style="{ 'color': getIcon(item.Name).color }">{{ getIcon(item.Name).name }}</v-icon>
+                      {{ item.Name }}
+                    </li>
+                  </div>
+
+                  <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
+                    @showDoc="showDoc" @downloadFile="downloadFile"
+                    @DeleteFile="DeleteFile(item.dynamicId, parent.parentDynamicId, 'parent')"
+                    @changeOverflowItemMenu="changeOverflowItemMenu">
+                  </OverMenu>
+
+                </div>
+                <Loader :showLoader="showLoader_in_parent" />
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="description">
-      <span
-        style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold; margin-left: 9px;">Accès
-        aux
-        applications</span>
+      <div class="description">
+        <span
+          style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold; margin-left: 9px;">Accès
+          aux
+          applications</span>
 
-      <div class="container_cards">
-        <div v-for="item in appTab" class="cardDescription">
-          <div @click="() => {
-            $emit('changeRoute', item.id);
-          }" class="data_cardDescription">
-            <div class="description_data_cardDescription">
-              {{ item.name }}
+        <div class="container_cards">
+          <div v-for="item in appTab" class="cardDescription">
+            <div @click="() => {
+              $emit('changeRoute', item.id);
+            }" class="data_cardDescription">
+              <div class="description_data_cardDescription">
+                {{ item.name }}
+              </div>
             </div>
-          </div>
-          <div class="gotoApp">
-            <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" fill="#14202c" class="bi bi-chevron-right"
-              viewBox="0 0 16 16">
-              <path fill-rule="evenodd"
-                d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708" />
-            </svg>
+            <div class="gotoApp">
+              <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" fill="#14202c" class="bi bi-chevron-right"
+                viewBox="0 0 16 16">
+                <path fill-rule="evenodd"
+                  d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708" />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -415,6 +486,8 @@ import SpriteComponent from "./SpriteComponent.vue"
 import GroupDataView from "./groupDataView.vue";
 import BreadcrumbSelector from "./breadcrumb.vue";
 import { computed } from 'vue';
+import Alert from '../Alert.vue'
+import ShowDocumentation from '../Documentation.vue'
 import {
   EmitterViewerHandler,
   VIEWER_AGGREGATE_SELECTION_CHANGED,
@@ -423,13 +496,31 @@ import { log, warn } from "console";
 import { getParent } from "../../services/spinalAPI/GeographicContext/geographicContext";
 import LineCardComponent from "./LineCardComponent.vue";
 import moment from 'moment';
+import FormTicket from "../FormTicket.vue";
+import AddTicketBtn from "../ButtonAddticket.vue";
+import FormDoc from "../FormDoc.vue";
+import AddBtn from '../ButtonAdd.vue';
+import Loader from "../Loader.vue";
+import Loader from "../Loader.vue";
+import getIcon from "../../services/function/getIcon";
+import FormAttribute from '../FormAttribute.vue';
+import OverMenu from "./OverMenu.vue";
 
 @Component({
   components: {
     GroupDataView,
     SpriteComponentMobile,
     BreadcrumbSelector,
-    LineCardComponent
+    LineCardComponent,
+    FormTicket,
+    AddTicketBtn,
+    Alert,
+    ShowDocumentation,
+    FormDoc,
+    AddBtn,
+    Loader,
+    FormAttribute,
+    OverMenu
   },
   filters: {},
 })
@@ -442,6 +533,8 @@ class dataSideApp extends Vue {
   @Prop() DActive: boolean;
   @Prop() ActiveData: boolean;
 
+  showFormTicket: boolean = false;
+  showDocvalue: boolean = false;
   PAGE_STATES: typeof PAGE_STATES = PAGE_STATES;
   pageSate: PAGE_STATES = PAGE_STATES.loading;
   isBuildingSelected: boolean = true;
@@ -473,6 +566,21 @@ class dataSideApp extends Vue {
   activeChart: any = []
   labelsChart: any = null
   chartData: any = null
+  t_index: number = 0;
+  timeactuelle: string = "date ?"
+  listWorkFlow: any = null;
+  alert_ind = ''
+  type_alert = ''
+  alert = false
+  idDoc: number = 0
+  nameFile = ''
+  show_formdoc = false
+  showLoader = false
+  showFormAttributeValue = false
+  showLoader_in_child = false
+  showLoader_in_parent = false
+  getIcon = getIcon
+  itemOverflowMenu = null
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
@@ -492,12 +600,134 @@ class dataSideApp extends Vue {
     return items;
   }
 
+  get temporality() {
+    return this.$store.state.appDataStore.temporalitySelected.name;
+  }
 
+  ShowDialog() {
+    this.showFormTicket = !this.showFormTicket;
+  }
+  ShowFormDoc() {
+    this.show_formdoc = !this.show_formdoc;
+  }
+  ShowFormAttribute() {
+    this.showFormAttributeValue = !this.showFormAttributeValue;
+  }
+  async showAlert(v) {
+    const buildingId = localStorage.getItem("idBuilding");
+    if (v.status === 'success') {
+      this.alert = true
+      this.alert_ind = v.message
+      this.type_alert = v.status
 
+      switch (v.context) {
+        case 'ticket':
+          const parentPromise = [
+            this.$store.dispatch(ActionTypes.GET_TICKET, {
+              buildingId: buildingId,
+              referenceIds: this.selectedZone.dynamicId,
+            }),
+          ];
+          const resultParent = await Promise.all(parentPromise);
+          const tickets = resultParent;
+          this.ticketsList = tickets[0].reverse();
+          break;
+        case 'document':
+          const parentPromiseDoc = [
+            this.$store.dispatch(ActionTypes.GET_PARENT, {
+              buildingId: buildingId,
+              referenceIds: this.selectedZone.dynamicId,
+            }),
+          ];
+          const resultParentDoc = await Promise.all(parentPromiseDoc);
+          const parents = resultParentDoc[0];
+
+          const documentationPromise = [
+            this.$store.dispatch(ActionTypes.GET_DOCUMENTATION, {
+              buildingId: buildingId,
+              referenceIds: this.selectedZone.dynamicId,
+            }),
+          ];
+          const result = await Promise.all(documentationPromise);
+          const documentation = result[0];
+
+          let parentDocumentation = {};
+          for (let parent of parents) {
+            const parentDocPromise = [
+              this.$store.dispatch(ActionTypes.GET_DOCUMENTATION, {
+                buildingId: buildingId,
+                referenceIds: parent.dynamicId,
+              }),
+            ];
+            const parentDocResult = await Promise.all(parentDocPromise);
+            parentDocumentation[parent.dynamicId] = {
+              name: parent.name,
+              documentation: parentDocResult[0]
+            };
+          }
+
+          this.documentation = {
+            element: documentation,
+            parents: parentDocumentation
+          };
+          break;
+        default:
+          break;
+      }
+
+    } else {
+      this.alert = true
+      this.alert_ind = v.message
+      this.type_alert = v.status
+    }
+
+  }
+
+  async DeleteFile(fileId: number, referenceId: number, space: string) {
+    console.log('DeleteFile space: ', space);
+    const buildingId = localStorage.getItem("idBuilding");
+    console.log('parent: ', referenceId, 'fileId: ', fileId);
+
+    const result = await this.$store.dispatch(ActionTypes.DELETE_FILE, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      fileId: fileId
+    })
+    result.status == 200 ? this.showAlert({ status: 'success', message: 'Document supprimé avec succès', context: 'document' }) :
+      this.showAlert({ status: 'error', message: 'Erreur lors de la suppression du document', context: 'document', space_context: space })
+  }
+
+  showDoc(referencedId, nameFile) {
+    if (!this.showDocvalue) {
+      this.$emit('buttonClicked', 'vueDoc')
+    }
+    this.nameFile = nameFile
+    this.idDoc = referencedId
+    this.showDocvalue = true;
+  }
+  closeVueDoc() {
+    this.showDocvalue = false;
+    this.$emit('buttonClicked', 'vueDocClose')
+  }
   resize() {
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
     }, 1);
+  }
+
+  changeOverflowItemMenu(index) {
+    console.log('index: ', index);
+    const latItem = this.itemOverflowMenu
+    if (latItem === index) {
+      this.itemOverflowMenu = null
+    } else {
+      this.itemOverflowMenu = index
+    }
+  }
+
+
+  closeOverMenu() {
+    this.itemOverflowMenu = null
   }
 
   changeIcon() {
@@ -511,8 +741,6 @@ class dataSideApp extends Vue {
   hideelement(item) {
     this.$store.commit(MutationTypes.REMOVE_ITEM_TO_HIDE);
     const itemType = item.substring(item.indexOf(' ') + 1);
-    console.log(item, 'AZER');
-
     const numbers = this.inventoryDbids[itemType] || [];
     this.$store.commit(MutationTypes.SET_ITEM_TO_HIDE, numbers);
     const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query };
@@ -528,11 +756,6 @@ class dataSideApp extends Vue {
     });
   }
 
-  colorelement(item) {
-    //a faire
-  }
-
-
   gestionBouton() {
     if (!this.displaySprite) {
       this.$emit('full3D');
@@ -545,16 +768,15 @@ class dataSideApp extends Vue {
 
 
   async mounted() {
+    this.timeactuelle = this.getFormattedDateFromTemporalData();
+    await this.getBuildingInfo();
 
-    if (this.selectedZone.type == "building") {
+    if (this.selectedZone.type == "building" || window.parent.router.query.spaceSelectedId == this.buildingInfo[0].dynamicId) {
       this.loadBuildingInfo()
     }
 
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
-
-      console.log(data);
-
 
       if (data)
         this.findDynamicIdByDbid(data[0].dbIds[0], data[0]);
@@ -594,16 +816,54 @@ class dataSideApp extends Vue {
     const resultParent = await Promise.all(parentPromise);
 
     const tickets = resultParent;
-    this.ticketsList = tickets;
-    console.error(this.ticketsList);
+    this.ticketsList = tickets[0].reverse();
+
 
   }
+
+
+
+  getFormattedDateFromTemporalData() {
+    // Assurer une valeur par défaut de 0 pour t_index si ce n'est pas défini
+    const temporality = this.$store.state.appDataStore.temporalitySelected.name;
+    const t_index = this.t_index || 0;
+    let formattedDate;
+
+    switch (temporality) {
+      case ITemporality.hour:
+        formattedDate = moment().add(t_index, 'hours').startOf('hour').format('DD-MM-YYYY HH:mm:ss');
+        break;
+      case ITemporality.day:
+        formattedDate = moment().add(t_index, 'days').startOf('day').format('DD-MM-YYYY');
+        break;
+      case ITemporality.week:
+        // Pour les semaines, afficher la semaine entière, ex: "15-11-2024 au 21-11-2024"
+        const weekStart = moment().add(t_index, 'weeks').startOf('week').format('DD-MM-YYYY');
+        const weekEnd = moment().add(t_index, 'weeks').endOf('week').format('DD-MM-YYYY');
+        formattedDate = `${weekStart} au ${weekEnd}`;
+        break;
+      case ITemporality.month:
+        // Afficher le mois et l'année, ex: "Novembre 2023"
+        formattedDate = moment().add(t_index, 'months').startOf('month').format('MMMM YYYY');
+        break;
+      case ITemporality.year:
+        // Afficher uniquement l'année, ex: "2024"
+        formattedDate = moment().add(t_index, 'years').format('YYYY');
+        break;
+      default:
+        // Si la temporalité est inconnue, retourner la date du jour par défaut
+        formattedDate = moment().add(t_index, 'days').startOf('day').format('DD-MM-YYYY');
+        break;
+    }
+
+    return formattedDate;
+  }
+
 
   async getDocumentation(data) {
 
     const buildingId = localStorage.getItem("idBuilding");
     const elementDynamicId = data[0].dynamicId;
-
 
     const parentPromise = [
       this.$store.dispatch(ActionTypes.GET_PARENT, {
@@ -878,7 +1138,7 @@ class dataSideApp extends Vue {
               console.warn("Aucun endpoint correspondant trouvé pour la targetValue donnée.");
             }
           } else {
-            appObject.value = matchedProfile.endpoints.length || 5
+            appObject.value = matchedProfile.endpoints?.length || 5
           }
         } else {
           console.warn('Pas de profil qui match');
@@ -1045,12 +1305,9 @@ class dataSideApp extends Vue {
 
   async retriveData() {
     try {
-      console.log(this.$store.state.appDataStore.temporalitySelected.name);
       this.pageSate = PAGE_STATES.loading;
       const buildingId = localStorage.getItem("idBuilding");
       const patrimoineId = JSON.parse(localStorage.getItem("patrimoine")).id;
-      console.log(this.selectedZone, 'apres planté');
-
       const promises = [
         this.$store.dispatch(ActionTypes.GET_ROOMS, {
           buildingId,
@@ -1121,43 +1378,97 @@ class dataSideApp extends Vue {
   async removegraphInfoCp(dyn) {
     const datatable = this.dataTable
     this.chartData = this.chartDataObject(datatable)
-    console.warn(this.chartData, "----------le active chartsData'");
   }
+
+  parseDateString(dateString) {
+    const [datePart, timePart] = dateString.split(' ');
+    const [day, month, year] = datePart.split('-');
+    return new Date(`${year}-${month}-${day}T${timePart}`);
+  }
+
   async addgraphInfoCp(dyn) {
-    if (this.cpIdToDraw.includes(dyn)) {
-      const begintime = '23-09-2024 00:00:00';
-      const endtime = '29-09-2024 23:59:59';
-      console.log(this.$store.state.appDataStore.temporalitySelected , 'la temporatlité selectionné ?');
-      
+    if (!this.cpIdToDraw.includes(dyn)) return;
 
-      const buildingId = localStorage.getItem("idBuilding");
-      const result = await this.$store.dispatch(ActionTypes.GET_TIMES_SERIES, {
-        buildingId,
-        referenceIds: dyn,
-        begin: begintime,
-        end: endtime,
-      });
+    const { begintime, endtime } = this.getBeginAndEndTime();
+    const buildingId = localStorage.getItem("idBuilding");
+    const beginTimestamp = this.parseDateString(begintime).getTime();
+    const endTimestamp = this.parseDateString(endtime).getTime();
 
-      const datatableCopy = [...this.dataTable]; // Copie de la dataTable
+    const result = await this.$store.dispatch(ActionTypes.GET_TIMES_SERIES, {
+      buildingId,
+      referenceIds: dyn,
+      begin: begintime,
+      end: endtime,
+    });
 
-      const actuelleTable = {
-        dynamicId: dyn,
-        data: result.map(item => ({
-          x: item.date,
-          y: item.value,
-        })),
-        unit: 'kwh',
-        name: 'le nom du graph',
+    const timeStep = 60000; // Une minute en millisecondes
+    const seenMinutes = new Map();
+
+    result.forEach(({ date, value }) => {
+      const minuteTimestamp = Math.floor(new Date(date).getTime() / timeStep) * timeStep;
+      seenMinutes.set(minuteTimestamp, value);
+    });
+
+    const processedResult = Array.from({ length: Math.floor((endTimestamp - beginTimestamp) / timeStep) + 1 }, (_, i) => {
+      const date = beginTimestamp + i * timeStep;
+      return {
+        date,
+        value: seenMinutes.get(date) ?? NaN,
       };
+    });
 
-      datatableCopy.push(actuelleTable);
-      this.labelsChart = this.labels(begintime, endtime).map((label) => this.toDate(label));
-      this.dataTable = [...datatableCopy];
-      this.chartData = this.chartDataObject(datatableCopy);
-      console.log(this.chartData);
 
-    }
+    // Mettre à jour le tableau de données
+    const actuelleTable = {
+      dynamicId: dyn,
+      data: processedResult.map(({ date, value }) => ({ x: date, y: value })),
+      unit: "kwh",
+      name: "le nom du graph",
+    };
+
+    this.dataTable = [...this.dataTable, actuelleTable];
+    this.labelsChart = this.labels(begintime, endtime).map(this.toDate);
+    this.chartData = this.chartDataObject(this.dataTable);
   }
+
+  //fonction pour retourner la date string ( beging et end )
+  getBeginAndEndTime() {
+    const temporality = this.$store.state.appDataStore.temporalitySelected.name;
+    const t_index = this.t_index || 0; // Assurer une valeur par défaut de 0 si t_index n'est pas défini
+    let begintime, endtime;
+
+    switch (temporality) {
+      case ITemporality.hour:
+        begintime = moment().add(t_index, 'hours').startOf('hour').format('DD-MM-YYYY HH:mm:ss');
+        endtime = moment().add(t_index, 'hours').endOf('hour').format('DD-MM-YYYY HH:mm:ss');
+        break;
+      case ITemporality.day:
+        begintime = moment().add(t_index, 'days').startOf('day').format('DD-MM-YYYY HH:mm:ss');
+        endtime = moment().add(t_index, 'days').endOf('day').format('DD-MM-YYYY HH:mm:ss');
+        break;
+      case ITemporality.week:
+        begintime = moment().add(t_index, 'weeks').startOf('week').format('DD-MM-YYYY HH:mm:ss');
+        endtime = moment().add(t_index, 'weeks').endOf('week').format('DD-MM-YYYY HH:mm:ss');
+        break;
+      case ITemporality.month:
+        begintime = moment().add(t_index, 'months').startOf('month').format('DD-MM-YYYY HH:mm:ss');
+        endtime = moment().add(t_index, 'months').endOf('month').format('DD-MM-YYYY HH:mm:ss');
+        break;
+      case ITemporality.year:
+        begintime = moment().add(t_index, 'years').startOf('year').format('DD-MM-YYYY HH:mm:ss');
+        endtime = moment().add(t_index, 'years').endOf('year').format('DD-MM-YYYY HH:mm:ss');
+        break;
+      default:
+        // Retourner la journée actuelle par défaut, ajustée avec t_index
+        begintime = moment().add(t_index, 'days').startOf('day').format('DD-MM-YYYY HH:mm:ss');
+        endtime = moment().add(t_index, 'days').endOf('day').format('DD-MM-YYYY HH:mm:ss');
+        break;
+    }
+
+    return { begintime, endtime };
+  }
+
+
 
   toDate(date) {
     switch (this.$store.state.appDataStore.temporalitySelected.name) {
@@ -1179,7 +1490,6 @@ class dataSideApp extends Vue {
             moment(begin, 'DD-MM-YYYY HH:mm:ss')
           )
         );
-        console.log(moment(end, 'DD-MM-YYYY HH:mm:ss'), duration);
         if (duration.asMonths() > 2) return moment(date).format('MMM');
         if (duration.asDays() > 1) return moment(date).format('D/M/YY');
         if (duration.asHours() > 1) return moment(date).format('HH[h]');
@@ -1199,7 +1509,7 @@ class dataSideApp extends Vue {
       const [year, time] = yearTime.split(' ');
       const [hours, minutes, seconds] = time.split(':');
 
-      // Crée un objet Date avec des valeurs numériques
+
       return new Date(
         parseInt(year, 10),      // Année
         parseInt(month, 10) - 1, // Mois (0 = janvier, donc on soustrait 1)
@@ -1222,6 +1532,15 @@ class dataSideApp extends Vue {
 
     return dates;
   }
+
+  async reloadNewChartData() {
+    this.dataTable = [];
+
+    for (const id of this.activeChart) {
+      await this.addgraphInfoCp(id);
+    }
+  }
+
 
 
   chartDataObject(dataTable) {
@@ -1262,9 +1581,9 @@ class dataSideApp extends Vue {
         if (typologyInventory) {
           typologyInventory.inventory.forEach(group => {
             if (inventoryCounts[group.name]) {
-              inventoryCounts[group.name] += group.equipments.length;
+              inventoryCounts[group.name] += group.equipments?.length;
             } else {
-              inventoryCounts[group.name] = group.equipments.length;
+              inventoryCounts[group.name] = group.equipments?.length;
             }
 
             group.equipments.forEach(equipment => {
@@ -1295,10 +1614,7 @@ class dataSideApp extends Vue {
     }
 
     this.inventoyList = results;
-    console.warn(this.inventoyList, 'aaa');
-
     this.inventoryDbids = inventoryDbids;
-    console.warn(this.inventoryDbids, 'aaa');
     this.$forceUpdate();
 
     return results;
@@ -1309,10 +1625,39 @@ class dataSideApp extends Vue {
    * Watch
    */
 
+  @Watch('temporality')
+  @Watch('t_index')
+  onTemporalDataChanged() {
+    this.timeactuelle = this.getFormattedDateFromTemporalData();
+    //ajouter le nouvelle fonction qui va chercher ledonnées 
+    this.reloadNewChartData();
+  }
+
+  @Watch("documentation")
+  watchDocumentation(newVal) {
+    this.documentation = newVal;
+  }
+
+  @Watch("alert")
+  watchAlert(newVal) {
+    if (newVal) {
+      this.itemOverflowMenu = null
+      console.log('alert -> ', newVal)
+      setTimeout(() => {
+        this.alert = false;
+        console.log('hide alert in App.vue');
+        this.showLoader_in_child = false;
+        this.showLoader_in_parent = false;
+      }, 2000);
+    }
+  }
   @Watch("selectedZone")
   watchSelectedZone() {
     console.log(this.selectedZone, 'aaaaaa faker');
-
+    this.itemOverflowMenu = null
+    console.log(this.floor, 'le floor');
+    console.log(this.selectedZone, 'le selectedZone');
+    console.log(this.$store.state.appDataStore.zoneSelected, 'le selectedZone in store');
     if (this.selectedZone.type === "building") {
       this.loadBuildingInfo()
       this.isBuildingSelected = true;
@@ -1323,7 +1668,10 @@ class dataSideApp extends Vue {
       this.retriveData();
     }
   }
-
+  @Watch("showDocvalue")
+  watchShowDocvalue(newVal) {
+    this.showDocvalue = newVal;
+  }
   @Watch("floorstaticDetails")
   async watchFloorstaticDetails(newVal, oldVal) {
     const dynamicIds = newVal[0].controlEndpoint.flatMap(profile => profile.endpoints.map(endpoint => endpoint.dynamicId));
@@ -1439,6 +1787,9 @@ export default dataSideApp;
   transform: translate(0, -15px);
 }
 
+.w-full {
+  width: 100%;
+}
 
 .inactiveTable {
   -webkit-animation: fade-out 0.3s ease-out both;
@@ -1473,6 +1824,8 @@ a {
 .inventory-container {
   display: flex;
   flex-wrap: wrap;
+  height: calc(100% - 260px);
+  //padding: 40px;
   margin-top: 5px;
 }
 
@@ -1483,6 +1836,13 @@ a {
   font-family: Arial, Helvetica, sans-serif;
   padding-left: 20px;
   cursor: pointer;
+}
+
+// W-full
+.appli>div>div {
+  // height: calc(100% - 45%);
+  // background-color: rgb(57, 119, 45) !important;
+
 }
 
 .attribut::before {
@@ -1532,16 +1892,24 @@ a {
   }
 }
 
+.doc-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 10px;
+  width: calc(100% - 55%)
+}
+
 .blocInformation {
   background-color: #f8f8f8d0;
-    border-radius: 2px;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    margin-left: 11px;
-    padding: 5px;
-    box-shadow: 0 6px 24px #0000000d, 0 0 0 1px #00000014;
-    border: 2px dashed #dbdbdb;
-    border-radius: 6px;
+  border-radius: 2px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  margin-left: 11px;
+  padding: 5px;
+  box-shadow: 0 6px 24px #0000000d, 0 0 0 1px #00000014;
+  border: 2px dashed #dbdbdb;
+  border-radius: 6px;
 }
 
 .Spinal_card {
@@ -1692,12 +2060,13 @@ a {
 
 .appli {
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-  background-color: white;
+  background-color: #fff;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 10px);
   border-radius: 5px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-content: space-between;
 }
 
 .title {
@@ -1709,7 +2078,7 @@ a {
 .inventory {
   position: relative;
   padding: 10px;
-  height: 70%;
+  height: calc(100% - 30%);
   overflow: auto;
   overflow-x: hidden
 }
@@ -1726,10 +2095,11 @@ a {
 .description {
   padding: 10px;
   padding-top: 15px;
-  background-color: rgb(255, 255, 255);
+  background-color: #fff;
   border-top: 2px solid rgb(201, 201, 201);
-  overflow: auto;
-  height: 25%;
+  overflow: hidden;
+  overflow-y: auto;
+  height: 30%;
 }
 
 .container_cards {

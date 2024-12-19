@@ -26,7 +26,7 @@ import { getBuildings, getBuildingById } from "../../spinalAPI/GeographicContext
 import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
-import { getEquipments, getFloors, getRooms } from "../../spinalAPI/GeographicContext/geographicContext";
+import { getEquipments, getFloors, getRooms, getBuilding } from "../../spinalAPI/GeographicContext/geographicContext";
 
 import { getGroupContext, getGroupContextCategoryList, getGroupContextGroupList, getGroupContextread } from "../../spinalAPI/ContextGroup/groupContext";
 
@@ -198,6 +198,32 @@ export const actions = {
 		return building.value;
 	},
 
+	async [ActionTypes.GET_BOS_BUILDING](
+		{ commit, state }: AugmentedActionContextAppData,
+		{ buildingId, forceUpdate }
+	  ): Promise<IGetAllBuildingsRes> {
+		const spinalAPI = SpinalAPI.getInstance();
+		if (
+		  typeof ApiIteratorStore[ActionTypes.GET_BOS_BUILDING] === "undefined"
+		) {
+		  ApiIteratorStore[ActionTypes.GET_BOS_BUILDING] = {};
+		}
+	
+		if (
+		  typeof ApiIteratorStore[ActionTypes.GET_BOS_BUILDING][buildingId] ===
+			"undefined" ||
+		  forceUpdate === true
+		) {
+		  ApiIteratorStore[ActionTypes.GET_BOS_BUILDING][buildingId] =
+			spinalAPI.createIteratorCall(getBuilding, buildingId);
+		}
+	
+		const building = await ApiIteratorStore[ActionTypes.GET_BOS_BUILDING][
+		  buildingId
+		]!.next();
+		return building.value;
+	  },
+
 	async [ActionTypes.GET_FLOORS]({ commit }: AugmentedActionContextAppData, { buildingId, patrimoineId, forceUpdate }): Promise<IZoneItem[]> {
 		const spinalAPI = SpinalAPI.getInstance();
 		if (typeof ApiIteratorStore[ActionTypes.GET_FLOORS] === "undefined") {
@@ -283,6 +309,29 @@ export const actions = {
 
 	async [ActionTypes.OPEN_VIEWER]({ commit, dispatch, state }: AugmentedActionContextAppData, playload: { onlyThisModel: boolean; config: IConfig; item: any }): Promise<void> {
 		try {
+
+			if(playload.item.type ==="building"){
+				const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
+				  buildingId: playload.item.buildingId,
+				  forceUpdate: false,
+				})
+				const body = {
+				  dynamicId:[building.dynamicId],
+				  roomRef: false,
+				  floorRef: true,
+				  equipements: false,
+				  dbIdsToAdd: [],
+				}
+				console.log('building', building);
+				console.log('payload', playload);
+				await ViewerManager.getInstance().loadInViewer(
+				  playload.item,
+				  playload.onlyThisModel,
+				  body
+				);
+				return;
+		
+			  }
 			const viewerInfo = playload.config.viewerInfo;
 			const body = {
 				dynamicId: [playload.item.dynamicId],

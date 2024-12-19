@@ -1,42 +1,7 @@
 <template>
-  <v-card class="line-card pa-1 rounded-lg d-flex flex-column flex-grow-1" outlined>
-    <v-card-title style="font-size: 20px; height: 56px" class="card-title pa-3 text-uppercase justify-space-between">
-      <p>
-        {{ title }} <b>{{ titleDetails }}</b>
-      </p>
-      <div class="d-flex align-center ml-n6" style="position: absolute; right: calc(50% - 55px)">
-        <div v-if="switchEnabled" class="d-flex flex-row justify-space-between">
-          <v-icon icon class="pr-3" size="default">{{
-            switchFalseIcon
-            }}</v-icon>
-          <v-switch :value="switchValue" @click="switchClicked()" inset color="blue-grey" dense />
-          <v-icon icon size="default">{{ switchTrueIcon }}</v-icon>
-        </div>
-      </div>
-      <div v-if="navEnabled" style="height: 40px">
-        <v-btn @click="$emit('nav', -1)" style="
-            font-size: 14px !important;
-            border-radius: 10px;
-            min-width: 36px !important;
-            box-shadow: none;
-          ">
-          <v-icon icon>mdi-chevron-left</v-icon>
-        </v-btn>
-        {{ navText }}
-        <v-btn @click="$emit('nav', +1)" style="
-            font-size: 14px !important;
-            border-radius: 10px;
-            min-width: 36px !important;
-            box-shadow: none;
-          ">
-          <v-icon icon>mdi-chevron-right</v-icon>
-        </v-btn>
-      </div>
-    </v-card-title>
-    <div class="d-flex flex-column flex-grow-1 flex-shrink-1" style="height: 0">
+  <div class="d-flex flex-column flex-grow-1 flex-shrink-1" style="height: 0">
       <LineChart :data="lineChartData" :chart-id="'2'" :options="lineChartOptions" class="bar-height" />
     </div>
-  </v-card>
 </template>
 
 <script>
@@ -333,6 +298,7 @@ export default {
 
 .bar-height {
   height: 100%;
+  position: fixed;
 }
 
 ::v-deep .theme--light.v-input--switch .v-input--switch__thumb,

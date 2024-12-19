@@ -37,7 +37,6 @@ with this file. If not, see
           min-width: 70px !important;
           height: 160px;
           z-index: 2;
-          
         "
       >
         <!-- <v-switch dense v-model="sprites"></v-switch> -->
@@ -52,7 +51,7 @@ with this file. If not, see
             <i></i>
           </label>
         </div>
-  
+
         <div style="display: flex; align-items: center">
           <div
             class="rounded mr-2"
@@ -90,6 +89,7 @@ with this file. If not, see
       </v-card>
       <!-- affichage scindé ou complet (dataapp viewer)-->
       <button
+        class="notdisplayed"
         @click="
           () => {
             $emit('buttonClicked');
@@ -118,6 +118,7 @@ with this file. If not, see
         <v-icon v-else>mdi-chevron-left</v-icon>
       </button>
       <button
+        class="notdisplayed"
         @click="
           () => {
             $emit('buttonClicked3D');
@@ -145,9 +146,15 @@ with this file. If not, see
         <v-icon v-else>mdi-chevron-right</v-icon>
       </button>
 
-      <div class="graphDataContainer" v-show="(ActiveData || !DActive)" >
-        <div  class="graphContainer" v-if="(!isMobileDisplay && ActiveData) || (isMobileDisplay && isFullGraph && ActiveData)"
-        :class="[{ 'full-width': isMobileDisplay && isFullGraph }]">
+      <div class="graphDataContainer" v-show="ActiveData || !DActive">
+        <div
+          class="graphContainer"
+          v-if="
+            (!isMobileDisplay && ActiveData) ||
+            (isMobileDisplay && isFullGraph && ActiveData)
+          "
+          :class="[{ 'full-width': isMobileDisplay && isFullGraph }]"
+        >
           <sc-line-card
             :title="title"
             :labels="labelDisplay"
@@ -163,7 +170,7 @@ with this file. If not, see
             }"
           ></sc-line-card>
         </div>
-        
+
         <div
           v-if="!isFullGraph"
           class="dataContainer"
@@ -386,9 +393,9 @@ import { MutationTypes } from '../../services/store/appDataStore/mutations';
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
-  VIEWER_AGGREGATE_SELECTION_CHANGED
+  VIEWER_AGGREGATE_SELECTION_CHANGED,
 } from 'spinal-viewer-event-manager';
-import { ViewerManager } from '../../../../../global-components/viewer'
+import { ViewerManager } from '../../../../../global-components/viewer';
 // import { ViewerManager } from '../viewer'
 import moment from 'moment';
 import { getLabels, getValues } from '../../services/calcul/computeChart';
@@ -493,7 +500,7 @@ class InsightApp extends Vue {
   }
 
   public get title() {
-    return `${this.$store.state.appDataStore.selectedSource.profileName}/${this.$store.state.appDataStore.selectedSource.name}`
+    return `${this.$store.state.appDataStore.selectedSource.profileName}/${this.$store.state.appDataStore.selectedSource.name}`;
   }
 
   public get labels() {
@@ -505,11 +512,8 @@ class InsightApp extends Vue {
   }
 
   public get labelDisplay() {
-    console.warn(this.labels.map((label) => this.toDate(label)) , 'LE LABELESS DES RAYAES' ,this.labels );
-    
     return this.labels.map((label) => this.toDate(label));
   }
-
 
   toDate(date) {
     switch (this.$store.state.appDataStore.temporalitySelected.name) {
@@ -548,153 +552,166 @@ class InsightApp extends Vue {
   findClosestPastTimestamp(label, timestamps) {
     // Filter the timestamps to only include those less than or equal to the label
     const pastTimestamps = timestamps.filter((timestamp) => timestamp <= label);
-      
-      // If there are no past timestamps, return null
-      if (pastTimestamps.length === 0) return null;
-      
-      // Return the largest timestamp (the closest in the past)
-      return pastTimestamps.reduce((prev, curr) => (curr > prev ? curr : prev));
+
+    // If there are no past timestamps, return null
+    if (pastTimestamps.length === 0) return null;
+
+    // Return the largest timestamp (the closest in the past)
+    return pastTimestamps.reduce((prev, curr) => (curr > prev ? curr : prev));
   }
 
-  getValueAtTimestamp(timestamp, series){
+  getValueAtTimestamp(timestamp, series) {
     const timestamps = Object.keys(series).map((key) => parseInt(key));
     const ts = this.findClosestPastTimestamp(timestamp, timestamps);
     return ts !== null ? series[ts] : null;
-
   }
 
   updateChartData() {
-  const result :any[]= [];
-  const t_index = this.t_index;
-  const items = this.selectedChartItems;
-    console.log("Chart items : ", items)
-  for (const item of items) {
-    const labels = getLabels(
-      this.$store.state.appDataStore.temporalitySelected,
-      t_index
-    );
+    const result: any[] = [];
+    const t_index = this.t_index;
+    const items = this.selectedChartItems;
+    console.log('Chart items : ', items);
+    for (const item of items) {
+      const labels = getLabels(
+        this.$store.state.appDataStore.temporalitySelected,
+        t_index
+      );
 
-    if(item.children){// item is a group of items
-      const values : any[] = [];
-      for (const child of item.children){
-        const vals = getValues(child.series)
-        values.push(vals)
-        //values.push(child.series)
-      }
-      const data = labels.map((lab) => { // pour chaque timestamp
-        let timestampValues :any[] = [];
+      if (item.children) {
+        // item is a group of items
+        const values: any[] = [];
+        for (const child of item.children) {
+          const vals = getValues(child.series);
+          values.push(vals);
+          //values.push(child.series)
+        }
+        const data = labels.map((lab) => {
+          // pour chaque timestamp
+          let timestampValues: any[] = [];
 
-        for(const series of values){ // on récupère le tableau de timeseries de chaque enfant 
-          const valueAtTimestamp = this.getValueAtTimestamp(lab,series);
-          if(valueAtTimestamp !== null) {
-            timestampValues.push(valueAtTimestamp);
-
+          for (const series of values) {
+            // on récupère le tableau de timeseries de chaque enfant
+            const valueAtTimestamp = this.getValueAtTimestamp(lab, series);
+            if (valueAtTimestamp !== null) {
+              timestampValues.push(valueAtTimestamp);
+            }
+            console.log('series : ', series);
           }
-          console.log('series : ', series);
-        }
-        console.log('calculTotal : ', calculateTotal(timestampValues,this.calculMode));
-        return { x: lab, y: calculateTotal(timestampValues,this.calculMode) };
-      })
+          console.log(
+            'calculTotal : ',
+            calculateTotal(timestampValues, this.calculMode)
+          );
+          return {
+            x: lab,
+            y: calculateTotal(timestampValues, this.calculMode),
+          };
+        });
 
-      //console.log('data!!! : ', data);
-      const color = "#ffffff";
-      result.push({ label: item.name, data, color, tension: 0.3 })
+        //console.log('data!!! : ', data);
+        const color = '#ffffff';
+        result.push({ label: item.name, data, color, tension: 0.3 });
+      } else {
+        const vals = getValues(item.series);
+        console.log('labels : ', labels);
+        console.log('vals : ', vals);
+
+        // Convert the vals object keys to an array of timestamps
+        const valTimestamps = Object.keys(vals).map((key) => parseInt(key));
+
+        let lastUsedTimestamp = null; // To track the last projected timestamp
+
+        // Build the chart data using the labels and the closest past timestamp in vals
+        const data = labels
+          .map((lab) => {
+            // Find the closest past timestamp to the current label
+            const closestTimestamp = this.findClosestPastTimestamp(
+              lab,
+              valTimestamps
+            );
+
+            // Check if this timestamp is new, i.e., different from the last projected timestamp
+            if (
+              closestTimestamp !== null &&
+              closestTimestamp !== lastUsedTimestamp
+            ) {
+              // Update the last used timestamp
+              lastUsedTimestamp = closestTimestamp;
+
+              // Use the value for the closest past timestamp
+              const yValue = vals[closestTimestamp] ?? 'NaN';
+
+              return { x: lab, y: yValue };
+            }
+
+            // Return NaN if no new timestamp is encountered
+            return { x: lab, y: 'NaN' };
+          })
+          .filter((point) => point !== null); // Filter out null values
+
+        const color = item.color;
+        result.push({ label: item.name, data, color, tension: 0.1 });
+      }
     }
-    else {
-      const vals = getValues(item.series);
-      console.log('labels : ', labels);
-      console.log('vals : ', vals);
-  
-      // Convert the vals object keys to an array of timestamps
-      const valTimestamps = Object.keys(vals).map((key) => parseInt(key));
-  
-      let lastUsedTimestamp = null; // To track the last projected timestamp
-  
-      // Build the chart data using the labels and the closest past timestamp in vals
-      const data = labels.map((lab) => {
-        // Find the closest past timestamp to the current label
-        const closestTimestamp = this.findClosestPastTimestamp(lab, valTimestamps);
-  
-        // Check if this timestamp is new, i.e., different from the last projected timestamp
-        if (closestTimestamp !== null && closestTimestamp !== lastUsedTimestamp) {
-          // Update the last used timestamp
-          lastUsedTimestamp = closestTimestamp;
-  
-          // Use the value for the closest past timestamp
-          const yValue = vals[closestTimestamp] ?? 'NaN';
-  
-          return { x: lab, y: yValue };
-        }
-  
-        // Return NaN if no new timestamp is encountered
-        return { x: lab, y: 'NaN' };
-      }).filter((point) => point !== null); // Filter out null values
-  
-      const color = item.color;
-      result.push({ label: item.name, data, color, tension: 0.1 });
 
-    }
-
+    // Assign the result to a reactive property (if necessary)
+    this.chartData = result;
+    console.log(this.chartData, 'gab');
   }
-  
-  
-  // Assign the result to a reactive property (if necessary)
-  this.chartData= result;
-  console.log(this.chartData , 'gab');
-  }
-
-
 
   async mounted() {
     const emitterHandler = EmitterViewerHandler.getInstance();
 
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, async (data) => {
-      if(this.ignoreViewerSelection) return;
-      if(data && !data[0]) {
+      if (this.ignoreViewerSelection) return;
+      if (data && !data[0]) {
         //console.log('viewer aggr selection : ',data)
-        console.log('no data inside viewer selection')
-        this.clearSelection()
-        //this.selectedItem = null; 
+        console.log('no data inside viewer selection');
+        this.clearSelection();
+        //this.selectedItem = null;
       }
-      if( data && data[0]) {
+      if (data && data[0]) {
         const buildingId = localStorage.getItem('idBuilding');
         const vselected_bimFileId = data[0].modelId.bimFileId;
         const vselected_dbIds = data[0].dbIds;
-        for(const group of this.data){
+        for (const group of this.data) {
           let rooms = group.children;
-          if(!rooms) continue;
+          if (!rooms) continue;
           //console.log('viewer_selected_items : ', viewer_selected_items);
-          rooms = rooms.map(el => { return {...el , buildingId }})
+          rooms = rooms.map((el) => {
+            return { ...el, buildingId };
+          });
           // console.log('rooms : ', rooms);
-          const viewer_info_rooms = await ViewerManager.getInstance().getViewerInfo(rooms);
-          for(const viewer_info_room of viewer_info_rooms){
-            for(const viewer_info_room_data of viewer_info_room.data){
+          const viewer_info_rooms =
+            await ViewerManager.getInstance().getViewerInfo(rooms);
+          for (const viewer_info_room of viewer_info_rooms) {
+            for (const viewer_info_room_data of viewer_info_room.data) {
               const room_bimFileId = viewer_info_room_data.bimFileId;
               const room_dbIds = viewer_info_room_data.dbIds;
-              if( room_bimFileId === vselected_bimFileId && room_dbIds.includes(vselected_dbIds[0])){
-                const matching_room = rooms.find(el => el.dynamicId === viewer_info_room.dynamicId)
+              if (
+                room_bimFileId === vselected_bimFileId &&
+                room_dbIds.includes(vselected_dbIds[0])
+              ) {
+                const matching_room = rooms.find(
+                  (el) => el.dynamicId === viewer_info_room.dynamicId
+                );
                 // console.log('matching_room : ', matching_room);
-                
+
                 this.selectedItem = matching_room;
-                this.$store.commit(MutationTypes.SET_ITEM_SELECTED, matching_room);
-                await this.$store.dispatch(ActionTypes.SELECT_SPRITES, [matching_room.dynamicId]);
-                
+                this.$store.commit(
+                  MutationTypes.SET_ITEM_SELECTED,
+                  matching_room
+                );
+                await this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
+                  matching_room.dynamicId,
+                ]);
               }
             }
             // console.log('viewer_info_room : ', viewer_info_room);
             // console.log('vselected_bimFileId : ', vselected_bimFileId);
             // console.log('vselected_dbIds : ', vselected_dbIds);
-  
-  
           }
-
         }
-
-        
-
-
       }
-
     });
 
     this.sourceSelectedName = this.config.source[0].name;
@@ -897,7 +914,7 @@ class InsightApp extends Vue {
         this.time = null;
         break;
     }
-    await this.regroupItemsAndCalculate();
+    await this.regroupItemsAndCalculate(true);
     await this.updateSprites();
   }
 
@@ -964,7 +981,7 @@ class InsightApp extends Vue {
     });
   }
 
-  clearSelection(){
+  clearSelection() {
     this.selectedItem = null;
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, null);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, []);
@@ -975,20 +992,20 @@ class InsightApp extends Vue {
     console.log('selectDataView :', item);
     this.updateSelected(item);
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
-    
+
     // select the sprites (highlight) , opens the charts only if item is singular
-    if(item.children) {
+    if (item.children) {
       const multipleSelection = item.children.map((el) => el.dynamicId);
-      this.$store.dispatch(ActionTypes.SELECT_SPRITES, multipleSelection); 
-    }else {
+      this.$store.dispatch(ActionTypes.SELECT_SPRITES, multipleSelection);
+    } else {
       this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
     }
-    this.ignoreViewerSelection=true;
+    this.ignoreViewerSelection = true;
     this.$store.dispatch(ActionTypes.SELECT_ITEMS, item.children || item); // select the item(s) in the viewer
     setTimeout(() => {
-      this.ignoreViewerSelection=false;
+      this.ignoreViewerSelection = false;
     }, 500);
-    
+
     //this.$emit('clickOnDataView', item);
     // if(item.children) {
     //   const multipleSelection = item.children.map((el) => el.dynamicId);
@@ -1199,6 +1216,7 @@ export default InsightApp;
   border-radius: 6px;
   margin-bottom: 3px;
 }
+
 .switch input[type='checkbox'] {
   position: absolute;
   z-index: 1;
@@ -1207,6 +1225,7 @@ export default InsightApp;
   opacity: 0;
   cursor: pointer;
 }
+
 .switch input[type='checkbox'] + label {
   position: relative;
   display: block;
@@ -1218,6 +1237,7 @@ export default InsightApp;
   box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
   transition: all 0.5s ease-in-out;
 }
+
 .switch input[type='checkbox'] + label:after {
   content: '';
   display: inline-block;
@@ -1225,6 +1245,7 @@ export default InsightApp;
   height: 100%;
   vertical-align: middle;
 }
+
 .switch input[type='checkbox'] + label i {
   display: block;
   position: absolute;
@@ -1237,6 +1258,7 @@ export default InsightApp;
   background: #ffffff;
   box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
 }
+
 .switch input[type='checkbox'] + label i:before,
 .switch input[type='checkbox'] + label i:after {
   content: '';
@@ -1248,17 +1270,29 @@ export default InsightApp;
   background: #ffffff;
   box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
 }
+
 .switch input[type='checkbox'] + label i:before {
   left: -7px;
 }
+
 .switch input[type='checkbox'] + label i:after {
   left: 7px;
 }
+
 .switch input[type='checkbox']:checked + label {
   left: 50%;
 }
 </style>
 <style lang="scss">
+@media (max-width: 500px) {
+  .cardContainer {
+    transform: translate(0, 50px);
+  }
+
+  .notdisplayed {
+    visibility: hidden;
+  }
+}
 
 .cardContainer {
   width: 100%;
@@ -1270,21 +1304,26 @@ export default InsightApp;
   $selectionHeight: 60px;
 
   .graphDataContainer {
-    display: flex; /* Enables flexbox layout */
-    justify-content: space-between; /* Creates space between the two components */
+    display: flex;
+    /* Enables flexbox layout */
+    justify-content: space-between;
+    /* Creates space between the two components */
     width: 100%;
     height: 100%;
-    
   }
+
   .graphContainer {
     border-radius: 0px;
     width: 60%;
     height: 100%;
-    display: flex; /* Enables flexible layout */
+    display: flex;
+    /* Enables flexible layout */
     padding: 10px;
   }
+
   .graphDataContainer .line-card {
-    border-top-right-radius: 0px !important; /* Removes the rounding on the top-right */
+    border-top-right-radius: 0px !important;
+    /* Removes the rounding on the top-right */
   }
 
   .dataContainer {
@@ -1300,7 +1339,7 @@ export default InsightApp;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding:10px;
+      padding: 10px;
 
       .title_date {
         width: 100%;
@@ -1346,7 +1385,7 @@ export default InsightApp;
       }
 
       .calcul_content {
-        width: 100%;        
+        width: 100%;
 
         .calcul {
           width: 100%;
@@ -1371,12 +1410,9 @@ export default InsightApp;
 
             .text {
               margin-left: 2px;
-              padding : 0px;
+              padding: 0px;
               font-size: 15px;
               height: 15px;
-              
-              
-              
             }
           }
         }
@@ -1412,8 +1448,8 @@ export default InsightApp;
   }
 
   .full-width {
-  width: 100% !important;
-}
+    width: 100% !important;
+  }
 }
 
 .test {
@@ -1421,6 +1457,4 @@ export default InsightApp;
 }
 </style>
 
-<style scoped lang="scss">
-
-</style>
+<style scoped lang="scss"></style>

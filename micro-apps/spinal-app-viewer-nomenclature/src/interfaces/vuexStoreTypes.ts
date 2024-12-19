@@ -33,6 +33,7 @@ export type AugmentedActionContextAppData = {
 
 export enum ActionTypes {
 	GET_BUILDINGS = "GET_BUILDINGS",
+	GET_BOS_BUILDING = "GET_BOS_BUILDING",
 	GET_EQUIPMENTS_GROUP = "GET_EQUIPMENTS_GROUP",
 
 	GET_CATEGORY_LIST = "GET_CATEGORY_LIST",

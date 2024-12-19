@@ -135,13 +135,13 @@ export default {
   mounted() {
     const emitterHandler = EmitterViewerHandler.getInstance();
     const vm = this;
-    emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
-      if (data[0] && this.inDbids(data[0], vm.item.dbid)) {
-        console.log('dataView emit')
-        vm.$emit("onClick");
-        emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: vm.item });
-      }
-    });
+    // emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
+    //   if (data[0] && this.inDbids(data[0], vm.item.dbid)) {
+    //     console.log('dataView emit')
+    //     vm.$emit("onClick");
+    //     emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: vm.item });
+    //   }
+    // });
   },
 };
 </script>

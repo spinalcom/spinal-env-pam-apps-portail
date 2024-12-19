@@ -60,6 +60,8 @@ export interface IViewInfoTmpRes {
 
 export async function fetchAdditionalData(config: IConfig, buildingId: string): Promise<Map<string, any>> {
 
+  console.log('LES POSITION ,,,,,,,,,,');
+  
   let tabletteId = window.parent.router.query.spaceSelectedId
   
   if (tabletteId == undefined)
@@ -70,6 +72,7 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   let result = await spinalAPI.get<{ [key: string]: any[] }>(url);
 
   localStorage.setItem('room_tablette', result.data.info.room.dynamicId);
+  localStorage.setItem('room_tablette_dbid', result.data.info.room.dbId);
   localStorage.setItem('room_tablette_name', result.data.info.room.name);
   localStorage.setItem('floor_tablette_id', result.data.info.floor.dynamicId);
   localStorage.setItem('floor_tablette_name', result.data.info.floor.name);
@@ -126,7 +129,8 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
 const buildingDefaultScenes = {};
 
 export async function getViewInfo(buildingId: string, options: IViewInfoBody): Promise<IViewInfoRes[]> {
-
+  console.log('aaa');
+  
   const Add_value = await fetchAdditionalData(config, buildingId);
 
   const modifiedOptions = {

@@ -33,6 +33,7 @@ export interface IConfig {
 	inventory: string;
 	tabletteId: Number;
 	profileName: string;
+	idBuilding: string;
 	profileNameRoom: string;
 	categorieAttributRoom: string;
 	batiment: { profileNameControlePts: string, profileNameAttribut: string }
