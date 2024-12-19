@@ -11,7 +11,7 @@
       :task="task"
       :start="start"
       :fontSize="fontSize"
-      class="period" />
+      />
     </div>
 </template>
 
@@ -38,17 +38,23 @@ export default {
 
 <style scoped>
 .task {
+  position: absolute;
+  z-index: 80;
+
+  display: flex;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
-  position: absolute;
-  display: flex;
-  align-items: center;
   width: calc(100% - 10px);
-}
 
-.period {
-  position: absolute;
+  align-items: center;
+
+  background: transparent;
+
+  transition: width 0.3s ease-in-out, height 0.3s ease-in-out, font-size 0.3s ease-in-out, background .1s ease-in-out;
+}
+.task:hover {
+  background: #d5d7d62b;
 }
 </style>
 

@@ -9,7 +9,7 @@
         <v-icon class="action-icon icon" @click="verticalScroll('right')">mdi-chevron-right</v-icon>
       </div>
       <div class="slider-container">
-        <v-icon class="action-icon icon" @click="verticalScroll('left')">mdi-magnify-plus-outline</v-icon>
+        <v-icon class="action-icon icon" @click="zoomAction('out')">mdi-magnify-minus-outline</v-icon>
           <v-slider
             v-model="zoom"
             :min="minZoom"
@@ -19,7 +19,7 @@
             track-color="grey lighten-3"
             class="slider"
             ></v-slider>
-        <v-icon class="action-icon icon" @click="verticalScroll('right')">mdi-magnify-minus-outline</v-icon>
+        <v-icon class="action-icon icon" @click="zoomAction('in')">mdi-magnify-plus-outline</v-icon>
       </div>
       <div class="action-button pointer-hover" @click="bringToday()">
         Aujourd'hui
@@ -82,9 +82,7 @@
         </div>
         <div class="dot" 
           :style="[
-            { 'left': markerOffset + (dayWidth / 3) + 'px' },
-            { 'height': Math.ceil(dayWidth/5) + 'px' },
-            { 'width': Math.ceil(dayWidth/5) + 'px' },
+            { 'left': markerOffset + (dayWidth / 2 - 3) + 'px' },
           ]"></div>
       </div>
 
@@ -170,7 +168,7 @@ export default {
   },
   computed: {
     markerOffset() {
-     return moment().diff(this.start, 'days') * this.dayWidth + 3;
+      return moment().diff(this.start, 'days') * this.dayWidth;
     },
     separator() {
       return this.planDimensions.height - this.taskHeight - this.planDimensions.height * .02;
@@ -284,7 +282,7 @@ export default {
       this.viewPortEdges.end = moment(this.viewPortEdges.start).add(this.viewPortWidthInDays, 'days');
     },
     planH(event) {
-      this.planHeight =  event;
+      this.planHeight = event;
     },
     async bringToday(animation = true) {
       const date = this.current
@@ -301,7 +299,7 @@ export default {
       if (position === 'right') {
         const diff = moment(startDate).diff(this.end, 'months');
         if (diff > 0) {
-          for (let i = 0; i < (diff + 1); i += 3) {
+          for (let i = 0; i < (diff + 6); i += 3) {
             await this.appendPeriod();
           }
         }
@@ -309,7 +307,7 @@ export default {
       else if (position === 'left') {
         const diff = moment(startDate).diff(this.start, 'months');
         if (diff < 0) {
-          for (let i = 0; i < -(diff - 1); i += 3) {
+          for (let i = 0; i < -(diff - 6); i += 3) {
             await this.prependPeriod();
           }
         }
@@ -356,6 +354,14 @@ export default {
     handleResize() {
       this.updatePlanDimensions();
     },
+    zoomAction(type) {
+      if (type === 'in') {
+        this.zoom += 1;
+      }
+      else if (type === 'out') {
+        this.zoom -= 1;
+      }
+    },
   },
   watch: {
     zoom(v1) {
@@ -392,6 +398,7 @@ export default {
   align-items: center;
   padding-left: 10px;
   background: linear-gradient(to left, white 98.5%, transparent);
+  transition: width 0.3s ease-in-out, left 0.3s ease-in-out, height 0.3s ease-in-out, font-size 0.3s ease-in-out;
 }
 .full-center {
   display: flex;
@@ -429,10 +436,12 @@ export default {
   color: #888888;
   z-index: 110;
   background: white;
+  transition: width 0.3s ease-in-out, left 0.3s ease-in-out, height 0.3s ease-in-out, font-size 0.3s ease-in-out;
 }
 .day-strip {
   display: flex;
   height: 30px;
+  transition: width 0.3s ease-in-out, left 0.3s ease-in-out, height 0.3s ease-in-out, font-size 0.3s ease-in-out;
 }
 .bottom-divider {
   border-bottom: 2px solid #DDDDDD;
@@ -444,6 +453,7 @@ export default {
   position: relative;
   height: 30px;
   z-index: 100;
+  transition: width 0.3s ease-in-out, left 0.3s ease-in-out, height 0.3s ease-in-out, font-size 0.3s ease-in-out;
 }
 .top-bar {
   top: 0;
@@ -465,13 +475,17 @@ export default {
   height: 30px !important;
   width: 1px;
   border-left: 1px solid #E2E2E2;
+  transition: width 0.3s ease-in-out, left 0.3s ease-in-out, height 0.3s ease-in-out, font-size 0.3s ease-in-out;
 }
 .dot {
-  position: absolute;
-  top: 25px;
-  border-radius: 10px;
   background: #FF3A3A;
+  border-radius: 10px;
+  height: 5px;
+  position: absolute;
+  top: 26px;
+  width: 5px;
   z-index: 400;
+  transition: width 0.3s ease-in-out, left 0.3s ease-in-out, height 0.3s ease-in-out, font-size 0.3s ease-in-out;
 }
 .today {
   font-weight: bold;

@@ -1,31 +1,45 @@
 
 <template>
     <div class="main" v-if="loaded">
-        <MonthView v-if="temporality === 'month'" :ticketList="ticketList" />
+        <MonthView v-if="temporality.name === 'Mois'" :ticketList="ticketList" />
+        <WeekView v-else-if="temporality.name === 'Semaine'" :ticketList="ticketList" />
+        <DayView v-else-if="temporality.name === 'Jour'" :ticketList="ticketList" />
+        <YearView v-else-if="temporality.name === 'Année'" :ticketList="ticketList" />
     </div>
 </template>
 
 <script>
 import tickets from '../services/tickets';
-import MonthView from './Month';
+import MonthView from './month/Main';
+import WeekView from './week/Main';
+import DayView from './day/Main';
+import YearView from './year/Main';
+
 export default {
   name: 'MainComponent',
   components: {
     MonthView,
+    WeekView,
+    DayView,
+    YearView,
   },
+  props: ['temporality'],
   computed: { },
   data: () => ({
     loaded: false,
     ticketList: null,
-    temporality: null,
   }),
   created() {
-    this.temporality = 'month';
   },
   async mounted () {
     this.ticketList = await tickets();
     this.loaded = true;
-  }
+  },
+  watch: {
+    temporality(v1) {
+      console.log('temporality', v1.name);
+    },
+  },
 }
 </script>
 

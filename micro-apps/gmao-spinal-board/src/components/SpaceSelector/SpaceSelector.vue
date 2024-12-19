@@ -411,7 +411,6 @@ export default SpaceSelector;
 
 <style>
 html {
-  scroll-behavior: smooth;
   overflow: auto;
 }
 </style>

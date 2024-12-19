@@ -1,8 +1,7 @@
 
 import { HTTP } from '../http-constants';
-
+batchSize = 100;
 async function getTickets(bid, stepList) {
-  const batchSize = 20;
   const chunks = chunkArray(stepList, batchSize);
 
   const getTicketsPromises = chunks
@@ -10,7 +9,10 @@ async function getTickets(bid, stepList) {
 
   const ticketList = await Promise.all(getTicketsPromises);
 
-  return constructTickets(ticketList.flat());
+  const constructedTickets = constructTickets(ticketList.flat());
+
+  const results = await getEndDate(bid, constructedTickets);
+  return results;
 }
 
 async function getMultipleTickets(bid, stepList) {
@@ -43,6 +45,25 @@ function chunkArray(array, size) {
     chunks.push(array.slice(i, i + size));
   }
   return chunks;
+}
+
+async function getEndDate(bid, constructed) {
+  const END_STATES = ["Archived", "Clôturée", "Solved"]
+
+  const completedTaskIds = constructed
+    .filter(task => END_STATES.includes(task.status))
+    .map(task => task.ticketId);
+
+  const ticketDetails = await HTTP
+    .post(`/building/${bid}/ticket/read_details_multiple`, completedTaskIds);
+
+  ticketDetails.data.forEach((detail) => {
+    const lastStepDate = detail.log_list[detail.log_list.length - 1].date;
+    const ticket = constructed.find( task => task.ticketId === detail.dynamicId);
+    ticket.endDate = lastStepDate;
+  });
+
+  return constructed;
 }
 
 const ticket = {

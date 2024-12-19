@@ -3,7 +3,10 @@
   <div class="content-plan"
     :style="{ 'height': ticketList.length * taskHeight  + 'px' }">
     <!-- TodayMarker component -->
-    <TodayMarker :height="markerHeight" :offset="markerOffset"/>
+    <TodayMarker
+      :dayWidth="dayWidth"
+      :height="markerHeight"
+      :offset="markerOffset"/>
     <!-- Sidebar component -->
     <SideBar class="side-bar"
       :ticketList="ticketList"
@@ -27,12 +30,13 @@
       :dayWidth="dayWidth"
       :taskHeight="taskHeight"
       :fontSize="fontSize"
-      class="task"/>
+      />
     <div v-for="(offset, index) in weekLines"
       :key="index"
       :style="[
-        { 'left': offset + 'px' },
-        { 'height': markerHeight - 5 + 'px' }
+        { 'left': (offset - dayWidth * 2) + 'px' },
+        { 'height': markerHeight - 5 + 'px' },
+        { 'width': dayWidth * 2 + 'px'},
       ]"
       class="week-separator-long "
       ></div>
@@ -77,7 +81,7 @@ export default {
       return this.ticketList.length * this.taskHeight + 5;
     },
     markerOffset() {
-     return moment().diff(this.start, 'days') * this.dayWidth + this.dayWidth / 10;
+     return moment().diff(this.start, 'days') * this.dayWidth;
     },
   },
   mounted() {
@@ -94,6 +98,12 @@ export default {
       this.$emit('bringDay', ticket);
     },
   },
+  watch: {
+    taskHeight(v1) {
+      this.$emit('planHeight', (this.ticketList.length) * this.taskHeight);
+    },
+  }
+
 }
 </script>
 
@@ -106,6 +116,7 @@ export default {
   min-height: 100%;
   width: calc(100%);
   z-index: 101;
+  transition: width 0.3s ease-in-out, left 0.3s ease-in-out, height 0.3s ease-in-out, font-size 0.3s ease-in-out;
 }
 
 .side-bar {
@@ -115,19 +126,17 @@ export default {
   background: white;
   height: 100%;
   z-index: 101;
-}
-
-.task {
-  position: absolute;
-  z-index: 80;
+  transition: left 0.3s ease-in-out, height 0.3s ease-in-out, font-size 0.3s ease-in-out;
 }
 
 .week-separator-long {
+  background: #edeff0;
+  border-left: 1px solid #E2E2E2;
+  border-right: 1px solid #E2E2E2;
+  min-height: 100%;
   position: absolute;
   top: 0;
-  min-height: 100%;
-  width: 1px;
-  border-left: 1px solid #E2E2E2;
+  transition: width 0.3s ease-in-out, left 0.3s ease-in-out, height 0.3s ease-in-out, font-size 0.3s ease-in-out;
   z-index: 79;
 }
 </style>

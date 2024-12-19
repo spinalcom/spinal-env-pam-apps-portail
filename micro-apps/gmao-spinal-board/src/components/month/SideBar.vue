@@ -19,7 +19,11 @@
         { height: taskHeight + 'px' },
       ]"
       class="ticket">
-      <!-- STATUS COMPONENT --> <Status :status="ticket.status"/>
+      <!-- STATUS COMPONENT -->
+      <Status 
+        :fontSize="fontSize"
+        :status="ticket.status"
+        />
       <span class="ellipsis">
         {{ ticket.name }}
       </span>
@@ -79,7 +83,7 @@ export default {
       this.isResizing = true;
       window.addEventListener('mousemove', this.resizeSidebar);
       window.addEventListener('mouseup', this.stopResize);
-    }, 300),
+    }, 10),
     resizeSidebar(event) {
       this.sidebarWidth = this.endOfResizeWidth + event.clientX - this.startX;
       if (this.sidebarWidth <= 42) {
@@ -126,7 +130,7 @@ export default {
   height: 100%;
   min-width: 42px;
   z-index: 101;
-  transition: width .2s;
+  transition: left .3s ease-in-out, height .3s ease-in-out, font-size .3s ease-in-out;
 }
 
 .ticket {
@@ -144,6 +148,7 @@ export default {
   border-bottom: 1px solid #E2E2E2;
   white-space: nowrap;
   text-overflow: ellipsis;
+  transition: width 0.1s ease-in-out, height 0.3s ease-in-out, font-size 0.3s ease-in-out;
 }
 .ellipsis {
   white-space: nowrap;
@@ -155,12 +160,14 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  right: -20px;
-  width: 15px;
+  right: -25px;
+  width: 20px;
+  min-height: 6px;
   border: 1px solid #E2E2E2;
   border-radius: 3px;
   background: white;
   cursor: pointer;
+  transition: width 0.3s ease-in-out, height 0.3s ease-in-out, font-size 0.3s ease-in-out;
 }
 .sidebar-resize {
   cursor: ew-resize;

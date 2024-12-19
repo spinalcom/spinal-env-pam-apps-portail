@@ -79,29 +79,26 @@ class App extends Vue {
     haveChildren: true,
   } as ISpaceSelectorItem;
   defaultSelectedTime = {
-    name: 'Semaine',
+    name: 'Mois',
     loading: false,
     parents: [],
     haveChildren: false
   }
 
   selectedTime = {
-    platformId: '',
-    name: 'Semaine',
-    next: 'Semaine suivante',
-    prev: 'Semaine précédente',
-    staticId: 'patrimoineId',
-    color: '#FFFFFF',
-    dynamicId: 0,
-    type: 'patrimoine',
-    level: 0,
+    name: 'Mois',
+    next: 'Mois suivant',
+    prev: 'Mois précédent',
+    staticId: 'Mois',
+    dynamicId: 2,
+    level: 1,
     isOpen: true,
     loading: false,
-    patrimoineId: 'patrimoineId',
+    patrimoineId: 'Mois',
     parents: [],
     isLastInGrp: true,
     drawLink: [],
-    haveChildren: true,
+    haveChildren: false,
   };
 
   public get selectedZone(): ISpaceSelectorItem {
