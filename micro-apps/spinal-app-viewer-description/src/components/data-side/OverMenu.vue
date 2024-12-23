@@ -88,7 +88,7 @@ export default {
     DeleteFile() {
       this.$emit('DeleteFile');
     },
-    changeOverflowItemMenu(dynamicId: number) {
+    changeOverflowItemMenu(dynamicId: any) {
       this.$emit('changeOverflowItemMenu', dynamicId);
     },
 

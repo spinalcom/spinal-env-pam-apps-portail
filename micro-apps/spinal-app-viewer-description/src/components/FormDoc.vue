@@ -16,7 +16,7 @@
                                 <v-icon >
                                     mdi-file-download-outline
                                 </v-icon>
-                                <span>Cliquer ou glisser un fichier pour le téléverser</span>
+                                <span style="text-align: center;">Cliquer ou glisser un fichier pour le téléverser</span>
                                 <input type="file" multiple ref="fileInput" @change="pushFile">
                         </div>
                         <p v-if="isValid" class="valid_formText">{{ valid_message }}</p>
@@ -166,7 +166,7 @@ import getIcon from '../services/function/getIcon';
 </script>
 
 
-<style>
+<style scoped>
     .content-form {
         width: 100%;
         height: calc(100vh - 300px);
@@ -239,9 +239,27 @@ import getIcon from '../services/function/getIcon';
         position: relative;
     }
     .file {
-        display: flex;
-        gap: 10px;
-    }
+    width: 100%;
+    /* min-height: 40px; */
+    height: max-content !important;
+    /* overflow: hidden; */
+    border-radius: 16px;
+    border: 1px solid #14202C;
+    padding: 10px !important;
+    background-color: white;
+    display: flex;
+    font-size: 14px;
+    flex-direction: column;
+    position: relative;
+    color: #14202C;
+}
+.close {
+    position: absolute !important;
+    top: 50%!important;
+    transform: translateY(-50%);
+    right: 5px !important;
+    cursor: pointer !important;
+}
    
     .content-form .file-content {
         margin-top: 10px;

@@ -1,6 +1,6 @@
 <template>
 
-    <v-dialog class="dialog-content" v-model="show" persistent width="75%"
+    <v-dialog class="dialog-content" v-model="show" persistent width="65%"
         style="display: flex !important;gap: 20px !important; font-size: 12px !important; overflow: hidden; background: white !important; border-radius: 20px !important;">
         <div class="content-form">
             <form style="width: 100%; height: 100%;" @submit.prevent="validateChanges">
@@ -14,11 +14,11 @@
                 <h2 class="ml-2">Label :</h2>
                 <v-text-field v-model="localCopy.label" label="Label de l'attribut" outlined dense hide-details
                     class="mx-4 mb-2" style="width: 95%;"></v-text-field>
-                <h2 class="ml-2">Value :</h2>
-                <v-text-field v-model="localCopy.value" label="Value de l'attribut" outlined dense hide-details
+                <h2 class="ml-2">Valeur :</h2>
+                <v-text-field v-model="localCopy.value" label="Valeur de l'attribut" outlined dense hide-details
                     class="mx-4 mb-2" style="width: 95%;"></v-text-field>
-                <h2 class="ml-2">Unit</h2>
-                <v-text-field v-model="localCopy.unit" label="Unit de l'attribut" outlined dense hide-details
+                <h2 class="ml-2">Unité</h2>
+                <v-text-field v-model="localCopy.unit" label="Unité de l'attribut" outlined dense hide-details
                     class="mx-4 mb-2" style="width: 95%;"></v-text-field>
             </form>
 
@@ -111,10 +111,11 @@ export default {
 </script>
 
 
-<style>
+<style scoped>
 .content-form {
     width: 100%;
-    height: calc(60vh - 300px);
+    height: max-content;
+    padding-bottom: 30px;
     background-color: #ffffff;
     border-radius: 24px;
     display: flex;
