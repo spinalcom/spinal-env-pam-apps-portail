@@ -35,7 +35,7 @@ export const config: IConfig = {
 
 	//DATASIDE vue globale
 	//catégorie d'inventaire cliblé
-	inventory: "Mobilier",
+	inventory: "Typologie",
 
 
 	//plusieur categorie d'attr -> pour les pieces

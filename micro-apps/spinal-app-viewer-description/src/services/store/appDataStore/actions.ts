@@ -42,14 +42,13 @@ import { error, log } from "console";
 import { addTicketDoc, createTicket, getProcess, getWorkFlowList, Ticket } from "../../spinalAPI/CreateTicket";
 // import { uploadDoc } from "../../spinalAPI/UploadDoc/Doc";
 import { createAttribut, createCategory, getCategoriesList } from "../../spinalAPI/NodeAttributs/nodeAttributs";
-import { deleteFile, uploadDoc } from "../../spinalAPI/UploadDoc/Doc";
+import { deleteFile, uploadDoc, deleteAttribut, deleteCategoryAttribut, updateCategoryAttribut, updateAttribut } from "../../spinalAPI/UploadDoc/Doc";
 
 const ApiIteratorStore: ApiIteratorStoreType & ApiIteratorStoreRecordStringType & ApiIteratorStoreRecordNumberType = {};
 
 
 
 export const actions = {
-
 
 
 	async [ActionTypes.GET_INVENTORY_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }): Promise<any> {
@@ -282,7 +281,6 @@ export const actions = {
 
 		try {
 			const result = await deleteFile(buildingId, referenceId, fileId)
-			console.log('result in Action -> ', result);
 			return result;
 
 		} catch (error) {
@@ -290,6 +288,54 @@ export const actions = {
 			throw error;
 		}
 	},
+
+	async [ActionTypes.DELETE_ATTRIBUT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId, cateId, name }: { buildingId: string, referenceId: number, cateId: number, name: string }): Promise<any> {
+
+		try {
+			const result = await deleteAttribut(buildingId, referenceId, cateId, name)
+			return result;
+
+		} catch (error) {
+			console.error('Erreur lors de la suppression du fichier');
+			throw error;
+		}
+	},
+	async [ActionTypes.UPDATE_ATTRIBUT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId, cateId, name, item }: { buildingId: string, referenceId: number, cateId: number, name: string, item: object }): Promise<any> {
+
+		try {
+			const result = await updateAttribut(buildingId, referenceId, cateId, name, item)
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la suppression du fichier');
+			throw error;
+		}
+	},
+
+
+
+	async [ActionTypes.DELETE_CATE_ATTRIBUT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId, cateId }: { buildingId: string, referenceId: number, cateId: number, name: string }): Promise<any> {
+		try {
+			const result = await deleteCategoryAttribut(buildingId, referenceId, cateId)
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la suppression du fichier');
+			throw error;
+		}
+	},
+
+
+	async [ActionTypes.UPDATE_CATE_ATTRIBUT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId, cateId, item }: { buildingId: string, referenceId: number, cateId: number, name: string, item: object }): Promise<any> {
+		console.warn('11111111111111111 :', referenceId);
+
+		try {
+			const result = await updateCategoryAttribut(buildingId, referenceId, cateId, item)
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la suppression du fichier');
+			throw error;
+		}
+	},
+
 
 	async [ActionTypes.GET_CATEGORIES_LIST]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId }: { buildingId: string; referenceId: number }): Promise<any> {
 		const spinalAPI = SpinalAPI.getInstance();
@@ -334,7 +380,7 @@ export const actions = {
 
 					for (let attempt = 1; attempt <= maxRetries; attempt++) {
 						const categoriesList = await dispatch(ActionTypes.GET_CATEGORIES_LIST, { buildingId, referenceId });
-						console.log(`Attempt ${attempt}: categoriesList: `, categoriesList);
+						// console.log(`Attempt ${attempt}: categoriesList: `, categoriesList);
 
 						const category = categoriesList.find((element) => element.name === categoryName);
 						if (category && category.dynamicId) {
@@ -350,7 +396,6 @@ export const actions = {
 
 				// Récupérer le dynamicId avec des tentatives répétées
 				const dynamicId = await getDynamicIdWithRetry();
-				console.log('dynamicId: ', dynamicId);
 
 				// Formater les données
 				const formattedData = new FormData();
@@ -364,17 +409,12 @@ export const actions = {
 
 				// Créer l'attribut
 				const result = await createAttribut(buildingId, referenceId, dynamicId, formattedData);
-				console.log('result: ', result);
 				return result;
 			} catch (error) {
 				console.error('Erreur lors de la création des attributs:', error);
 				throw error;
 			}
 
-
-			// console.log('categriesList: ', categriesList);
-			// console.log('categriesList: ', categriesList);
-			// const category = await createCategory(buildingId, referenceId, categoryName);
 
 		}
 		else {
@@ -386,7 +426,6 @@ export const actions = {
 				}
 			});
 			const result = await createAttribut(buildingId, referenceId, dynamicId, formattedData);
-			console.log('result: ', result);
 			return result;
 
 		}
@@ -586,11 +625,9 @@ export const actions = {
 					forceUpdate: false,
 				})
 
-			
-	// console.log("//////////////////////////////// building", building)
+
 				if (window.parent.router.query.spaceSelectedId != building)
 					window.parent.router.query.spaceSelectedId = building
-				// console.log('///////////////////////////////// le test ');
 
 				const body = {
 					//dynamicId: ids,
@@ -643,13 +680,10 @@ export const actions = {
 	},
 
 	[ActionTypes.HIDE_ITEMS]({ commit, dispatch, state }, playload: any) {
-		console.error('aaaaa', playload);
-
 		ViewerManager.getInstance().hide(playload);
 	},
 
 	[ActionTypes.ISOLATE_ITEMS]({ commit, dispatch, state }, playload: any) {
-		console.log(ViewerManager.getInstance(), 'Linstance : le payload : ', playload);
 
 		let isKeyPresent = false;
 		for (let id of playload.item.parents) {

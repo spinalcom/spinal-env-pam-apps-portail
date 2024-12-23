@@ -126,7 +126,7 @@ with this file. If not, see
         </div>
       </div>
 
-
+      <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
       <div class="inventory">
         <div v-if="selection == 'Vue Globale'">
           <div v-if="inventoyList">
@@ -202,11 +202,16 @@ with this file. If not, see
               </div>
             </div>
           </div>
-
         </div>
 
         <!-- ONGLET attribut (attribut)-->
         <div v-if="selection == 'Attribut'">
+
+          <FormDocAttr :isDialogOpen="ShowFormDocAttrs == true" @close-dialog="ShowFormDocAttr"
+            @validated="handleValidated" :item="selectedAttribut" :id="idEl" :itemOp="itemOp" />
+
+          <FormDocCateAttr :isDialogOpen="ShowFormDocCat == true" @close-dialog="ShowFormDocCate"
+            @validatedcate="handleValidatedCate" :item="selectedCategory" :id="idCatEl" />
 
           <AddBtn name="Ajouter un attribut" icon="mdi-tag-plus-outline" @open-dialog="ShowFormAttribute" />
           <FormAttribute :show="showFormAttributeValue" :referenceId="selectedZone.dynamicId"
@@ -223,16 +228,41 @@ with this file. If not, see
             </div>
             <div v-else class="inventory-container">
               <div class="inventory-item"
-                style="color:#14202c; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
+                style="color:#14202c;overflow: visible; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
                 v-for="(attr, index2) in item.attributs">
                 <li v-if="isLink(attr.value)">
                   {{ attr.label }}:
                   <a :href="attr.value" target="_blank" style="color: #3498db;">{{ attr.value }}</a>
                 </li>
                 <li v-else>
-                  {{ attr.label }}: {{ attr.value }}
+                  {{ attr.label }}: {{ attr.value }} {{ attr.unit }}
                 </li>
+
+                <div
+                  style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative;">
+                  <OverMenu :show="itemOverflowMenu == attr.dynamicId" @close="closeOverMenu" :item="attr"
+                    @showDoc="showDoc" @editFile="editattr(attr, floorstaticDetails[0].dynamicId, item)"
+                    @downloadFile="downloadFile" :showDocs="false" :showDownload="false" :editable="true"
+                    @DeleteFile="DeleteAttribut(floorstaticDetails[0].dynamicId, item.dynamicId, attr.label)"
+                    @changeOverflowItemMenu="changeOverflowItemMenu">
+                  </OverMenu>
+                </div>
+
               </div>
+
+              <div
+                style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative;">
+                <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
+                  @showDoc="showDoc" @editFile="editCattattr(floorstaticDetails[0].dynamicId, item)"
+                  @downloadFile="downloadFile" :showDocs="false" :showDownload="false" :editable="true"
+                  @DeleteFile="deleteCateAttr(floorstaticDetails[0].dynamicId, item.dynamicId, 'parent')"
+                  @changeOverflowItemMenu="changeOverflowItemMenu">
+                </OverMenu>
+              </div>
+
+
+
+
             </div>
           </div>
 
@@ -253,7 +283,7 @@ with this file. If not, see
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                    }}
+                      }}
                     </li>
                   </div>
                 </div>
@@ -264,7 +294,6 @@ with this file. If not, see
 
         <!-- ONGLET TICKETS -->
         <div v-if="selection == 'Tickets'">
-          <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
           <!-- Vérification si les tickets existent -->
           <AddTicketBtn @open-dialog="ShowDialog()" />
           <div v-if="ticketsList">
@@ -320,6 +349,7 @@ with this file. If not, see
         <div style="display: flex">
           <div v-if="ActiveData && selection == 'Indicateur' && labelsChart" class="graphContainer">
 
+
             <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
               :step="labelsChart.length" :tooltipCallbacks="{
                 title: (context) => { },
@@ -371,6 +401,7 @@ with this file. If not, see
           <!-- Notification -->
           <!-- Box pour afficher le document -->
           <!-- Boutton d'ajout d'un document -->
+          <!-- <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" /> -->
           <v-row style="padding: 20px;">
             <AddBtn @open-dialog="ShowFormDoc" name="Ajouter un document" icon="mdi-file-plus-outline" />
           </v-row>
@@ -389,9 +420,7 @@ with this file. If not, see
 
                     <li style="list-style: none;">
                       <v-icon :style="{ 'color': getIcon(item.Name).color }">{{ getIcon(item.Name).name }}</v-icon>
-
                       {{ item.Name }}
-
                     </li>
 
                   </div>
@@ -399,7 +428,6 @@ with this file. If not, see
                     @showDoc="showDoc" @downloadFile="downloadFile"
                     @DeleteFile="DeleteFile(item.dynamicId, selectedZone.dynamicId, 'child')"
                     @changeOverflowItemMenu="changeOverflowItemMenu">
-
                   </OverMenu>
                 </div>
                 <Loader :showLoader="showLoader_in_child" />
@@ -499,8 +527,9 @@ import moment from 'moment';
 import FormTicket from "../FormTicket.vue";
 import AddTicketBtn from "../ButtonAddticket.vue";
 import FormDoc from "../FormDoc.vue";
+import FormDocAttr from "../FormDocAttr.vue";
+import FormDocCateAttr from "../FormDocCateAttr.vue";
 import AddBtn from '../ButtonAdd.vue';
-import Loader from "../Loader.vue";
 import Loader from "../Loader.vue";
 import getIcon from "../../services/function/getIcon";
 import FormAttribute from '../FormAttribute.vue';
@@ -517,10 +546,12 @@ import OverMenu from "./OverMenu.vue";
     Alert,
     ShowDocumentation,
     FormDoc,
+    FormDocAttr,
     AddBtn,
     Loader,
     FormAttribute,
-    OverMenu
+    OverMenu,
+    FormDocCateAttr
   },
   filters: {},
 })
@@ -579,8 +610,15 @@ class dataSideApp extends Vue {
   showFormAttributeValue = false
   showLoader_in_child = false
   showLoader_in_parent = false
+  selectedAttribut = null
   getIcon = getIcon
   itemOverflowMenu = null
+  ShowFormDocAttrs = false
+  ShowFormDocCat = false
+  idEl = null
+  itemOp = null
+  selectedCategory = null
+  idCatEl = null
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
@@ -610,8 +648,17 @@ class dataSideApp extends Vue {
   ShowFormDoc() {
     this.show_formdoc = !this.show_formdoc;
   }
+  ShowFormDocAttr() {
+    this.ShowFormDocAttrs = !this.ShowFormDocAttrs;
+  }
+  ShowFormDocCate() {
+    this.ShowFormDocCat = !this.ShowFormDocCat;
+  }
   ShowFormAttribute() {
     this.showFormAttributeValue = !this.showFormAttributeValue;
+    if (this.showFormAttributeValue == false) {
+      this.getdataofelement()
+    }
   }
   async showAlert(v) {
     const buildingId = localStorage.getItem("idBuilding");
@@ -683,10 +730,25 @@ class dataSideApp extends Vue {
 
   }
 
+  async editattr(attr, id, item) {
+    this.ShowFormDocAttrs = true
+    console.log('TADZAD');
+    this.selectedAttribut = attr
+    this.idEl = id
+    this.itemOp = item
+  }
+
+  async editCattattr(id, item) {
+    this.ShowFormDocCat = true
+    console.log('TADZAD');
+    this.selectedCategory = item
+    this.idCatEl = id
+  }
+
   async DeleteFile(fileId: number, referenceId: number, space: string) {
-    console.log('DeleteFile space: ', space);
+    // console.log('DeleteFile space: ', space);
     const buildingId = localStorage.getItem("idBuilding");
-    console.log('parent: ', referenceId, 'fileId: ', fileId);
+    // console.log('parent: ', referenceId, 'fileId: ', fileId);
 
     const result = await this.$store.dispatch(ActionTypes.DELETE_FILE, {
       buildingId: localStorage.getItem("idBuilding"),
@@ -696,6 +758,85 @@ class dataSideApp extends Vue {
     result.status == 200 ? this.showAlert({ status: 'success', message: 'Document supprimé avec succès', context: 'document' }) :
       this.showAlert({ status: 'error', message: 'Erreur lors de la suppression du document', context: 'document', space_context: space })
   }
+
+  async DeleteAttribut(referenceId: number, cateId: number, name: string) {
+    const result = await this.$store.dispatch(ActionTypes.DELETE_ATTRIBUT, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      cateId: cateId,
+      name: name
+    })
+    result.status == 200 ? this.showAlert({ status: 'success', message: 'Attribut supprimé avec succès', context: 'Attribut' }) :
+      this.showAlert({ status: 'error', message: "Erreur lors de la suppression de l'attribut", context: 'document', space_context: name })
+    this.getdataofelement()
+  }
+
+  async UpdateAttribut(referenceId: number, cateId: number, name: string, item: object) {
+
+    console.warn(referenceId, cateId, name, item);
+
+    const result = await this.$store.dispatch(ActionTypes.UPDATE_ATTRIBUT, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      cateId: cateId,
+      name: name,
+      item: item
+    })
+    result.status == 200 ? this.showAlert({ status: 'success', message: 'Attribut modifié avec succès', context: 'Attribut' }) :
+      this.showAlert({ status: 'error', message: "Erreur lors de la mise à jour de l'attribut", context: 'document', space_context: name })
+    this.getdataofelement()
+  }
+
+  async deleteCateAttr(referenceId: number, cateId: number, name: string) {
+    console.log(referenceId, cateId, name);
+
+    const result = await this.$store.dispatch(ActionTypes.DELETE_CATE_ATTRIBUT, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      cateId: cateId
+    })
+    result.status == 200 ? this.showAlert({ status: 'success', message: 'Catégory supprimé avec succès', context: 'catégory attribut' }) :
+      this.showAlert({ status: 'error', message: "Erreur lors de la suppression de la catégorie", context: 'cétegory', space_context: name })
+    this.getdataofelement()
+  }
+
+
+  async updateCateAttr(referenceId: number, cateId: number, name: string, item: object) {
+    console.log(referenceId, cateId, name);
+
+    const result = await this.$store.dispatch(ActionTypes.UPDATE_CATE_ATTRIBUT, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      cateId: cateId,
+      item: item
+    })
+    result.status == 200 ? this.showAlert({ status: 'success', message: 'Catégory edité avec succès', context: 'catégory attribut' }) :
+      this.showAlert({ status: 'error', message: "Erreur lors de l'edit de la catégorie", context: 'cétegory', space_context: name })
+    this.getdataofelement()
+  }
+
+  handleValidated(updatedItem, el, dyn, item) {
+    console.warn('Objet reçu après validation :', item, el.dynamicId, dyn.label, updatedItem);
+    // console.log(updatedItem , el , dyn );
+    const formattedItem = {
+      attributeLabel: updatedItem.label,
+      attributeUnit: updatedItem.unit,
+      attributeValue: updatedItem.value,
+    };
+
+    this.UpdateAttribut(item, el.dynamicId, dyn.label, formattedItem)
+  }
+  handleValidatedCate(id, cateId, item) {
+   
+    // console.log(updatedItem , el , dyn );
+    const formattedItem = {
+      "categoryName": item.name,
+    };
+
+    console.warn('Objet reçu après validation :::::::', id, cateId, 'category', formattedItem);
+    this.updateCateAttr(id, cateId, 'category', formattedItem)
+  }
+
 
   showDoc(referencedId, nameFile) {
     if (!this.showDocvalue) {
@@ -716,7 +857,7 @@ class dataSideApp extends Vue {
   }
 
   changeOverflowItemMenu(index) {
-    console.log('index: ', index);
+    // console.log('index: ', index);
     const latItem = this.itemOverflowMenu
     if (latItem === index) {
       this.itemOverflowMenu = null
@@ -1620,6 +1761,25 @@ class dataSideApp extends Vue {
     return results;
   }
 
+  getdataofelement() {
+    console.warn('/////récupération des donnée');
+
+    this.referencedId = 0;
+    this.referencedType = ''
+    if (this.selectedZone.type != "building") {
+      if (this.data.length == 0) {
+        this.getroomstaticdetails(this.selectedZone.dynamicId)
+        this.getInventoryObject([this.selectedZone.dynamicId])
+      } else {
+        this.getfloorstaticdetails(this.floor)
+        this.getDataDynamicIdtab()
+      }
+    }
+    else {
+      this.inventoyList = []
+    }
+
+  }
 
   /**
    * Watch
@@ -1642,10 +1802,10 @@ class dataSideApp extends Vue {
   watchAlert(newVal) {
     if (newVal) {
       this.itemOverflowMenu = null
-      console.log('alert -> ', newVal)
+      // console.log('alert -> ', newVal)
       setTimeout(() => {
         this.alert = false;
-        console.log('hide alert in App.vue');
+        // console.log('hide alert in App.vue');
         this.showLoader_in_child = false;
         this.showLoader_in_parent = false;
       }, 2000);
@@ -1653,11 +1813,7 @@ class dataSideApp extends Vue {
   }
   @Watch("selectedZone")
   watchSelectedZone() {
-    console.log(this.selectedZone, 'aaaaaa faker');
     this.itemOverflowMenu = null
-    console.log(this.floor, 'le floor');
-    console.log(this.selectedZone, 'le selectedZone');
-    console.log(this.$store.state.appDataStore.zoneSelected, 'le selectedZone in store');
     if (this.selectedZone.type === "building") {
       this.loadBuildingInfo()
       this.isBuildingSelected = true;
