@@ -76,14 +76,14 @@ class App extends Vue {
     haveChildren: true,
   } as ISpaceSelectorItem;
   defaultSelectedTime = {
-    name: 'Mois',
+    name: 'Jour',
     loading: false,
     parents: [],
     haveChildren: false
   }
 
   selectedTime = {
-    name: 'Mois',
+    name: 'Jour',
     staticId: 'Mois',
     dynamicId: 2,
     level: 1,

@@ -8,9 +8,7 @@ export default async function () {
   const bid = localStorage.getItem('idBuilding');
 
   const workflowList = await workflow.list(bid);
-  console.log(workflowList);
   const processList = await process.getProcesses(bid, workflowList);
-  console.log(processList);
   const stepList = await step.getSteps(bid, processList);
   const ticketList = await ticket.getTickets(bid, stepList);
 
@@ -22,19 +20,15 @@ export default async function () {
         const steps = stepList.filter(step => step.processId === process.processId);
         return {
           ...process,
-          steps: steps.map(step => {
-            const tickets = ticketList.filter(ticket => ticket.stepId === step.stepId);
-            return {
-              ...step,
-              tickets,
-            };
-          }),
+          ticketList: ticketList.filter(ticket => steps.some(step => step.stepId === ticket.stepId)),
         };
       }),
     };
   });
-  console.log(result);
 
-  return ticketList;
+  return {
+    flat: ticketList,
+    nested: result,
+  };
 }
 

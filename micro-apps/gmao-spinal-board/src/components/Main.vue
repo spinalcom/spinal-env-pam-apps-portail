@@ -3,7 +3,7 @@
     <div class="main" v-if="loaded">
         <MonthView v-if="temporality.name === 'Mois'" :ticketList="ticketList" />
         <WeekView v-else-if="temporality.name === 'Semaine'" :ticketList="ticketList" />
-        <DayView v-else-if="temporality.name === 'Jour'" :ticketList="ticketList" />
+        <DayView v-else-if="temporality.name === 'Jour'" :ticketList="ticketList" :nestedList="nestedList" />
         <YearView v-else-if="temporality.name === 'Année'" :ticketList="ticketList" />
     </div>
 </template>
@@ -24,22 +24,20 @@ export default {
     YearView,
   },
   props: ['temporality'],
-  computed: { },
+  computed: {},
   data: () => ({
     loaded: false,
     ticketList: null,
+    nestedList: [],
   }),
-  created() {
-  },
+  created() {},
   async mounted () {
-    this.ticketList = await tickets();
+    const response = await tickets();
+    this.ticketList = response.flat;
+    this.nestedList = response.nested;
     this.loaded = true;
   },
-  watch: {
-    temporality(v1) {
-      console.log('temporality', v1.name);
-    },
-  },
+  watch: {},
 }
 </script>
 
