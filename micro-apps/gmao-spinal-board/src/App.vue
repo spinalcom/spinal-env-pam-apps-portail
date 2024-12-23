@@ -53,14 +53,12 @@ interface IItemDatatmp {
 
 class App extends Vue {
   building !: any;
-  time = { name: "SEMAINE", value: 'week' }
   selectedFloor = '';
   $store!: Store;
   openSpaceSelector = false;
   openTimeSelector = false;
   dataTable: IZoneItem[] = [];
   $refs!: { spaceSelector: any };
-  timedata = { name: 'SEMAINE', value: 'week' };
   defaultSelected = {
     platformId: '',
     name: 'Building',
@@ -86,8 +84,6 @@ class App extends Vue {
 
   selectedTime = {
     name: 'Mois',
-    next: 'Mois suivant',
-    prev: 'Mois précédent',
     staticId: 'Mois',
     dynamicId: 2,
     level: 1,

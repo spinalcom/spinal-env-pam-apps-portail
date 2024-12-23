@@ -14,6 +14,9 @@
             v-model="zoom"
             :min="minZoom"
             :max="maxZoom"
+            step="5"
+            ticks="always"
+            tick-size="1"
             thumb-color="#14202c"
             track-fill-color="grey darken-1"
             track-color="grey lighten-3"
@@ -356,10 +359,10 @@ export default {
     },
     zoomAction(type) {
       if (type === 'in') {
-        this.zoom += 1;
+        this.zoom += 5;
       }
       else if (type === 'out') {
-        this.zoom -= 1;
+        this.zoom -= 5;
       }
     },
   },
