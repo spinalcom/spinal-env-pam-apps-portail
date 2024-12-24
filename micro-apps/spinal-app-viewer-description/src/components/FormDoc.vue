@@ -1,6 +1,6 @@
 <template>
 
-<v-dialog class="dialog-content" v-model="show" persistent width="75%" style="display: flex !important;gap: 20px !important; font-size: 12px !important; overflow: hidden; background: white !important; border-radius: 20px !important;">
+<v-dialog class="dialog-content" v-model="show" persistent width="60%" style="display: flex !important;gap: 20px !important; font-size: 12px !important; overflow: hidden; background: white !important; border-radius: 20px !important;">
         <div class="content-form">
                 <form style="width: 100%; height: 100%;" @submit.prevent="uploadDoc">
                     <div class="header">
@@ -169,7 +169,8 @@ import getIcon from '../services/function/getIcon';
 <style scoped>
     .content-form {
         width: 100%;
-        height: calc(100vh - 300px);
+        min-height: 400px;
+        padding-bottom: 30px;
         background-color: #ffffff;
         border-radius: 24px;
         display: flex;
@@ -177,6 +178,8 @@ import getIcon from '../services/function/getIcon';
         justify-content: flex-start;
         align-items: center;
         position: relative;
+        overflow: hidden;
+        user-select: none;
         
     }
     .content-form .header {
@@ -195,7 +198,7 @@ import getIcon from '../services/function/getIcon';
     }
     .content-input {
         width: 100%;
-        height: calc(100% - 100px);
+        height: 450px;
         background-color: #ffffff;
         display: flex;
         flex-direction: column;
@@ -203,6 +206,7 @@ import getIcon from '../services/function/getIcon';
         align-items: center;
         padding-top: 10px;
     }
+    
     .content-form .header > div {
         display: flex;
         gap: 10px;
@@ -228,7 +232,7 @@ import getIcon from '../services/function/getIcon';
       }
     .content-form  .upload-img {
         width: calc(100% - 450px);
-        height: calc(100% - 240px);
+        height: 200px;
         border: 2px dashed #14202C;
         border-radius: 16px;
         display: flex;
@@ -240,9 +244,9 @@ import getIcon from '../services/function/getIcon';
     }
     .file {
     width: 100%;
-    /* min-height: 40px; */
+    min-height: max-content !important;
     height: max-content !important;
-    /* overflow: hidden; */
+    overflow: hidden;
     border-radius: 16px;
     border: 1px solid #14202C;
     padding: 10px !important;
@@ -268,11 +272,27 @@ import getIcon from '../services/function/getIcon';
         min-height: 25px;
         display: flex;
         flex-direction: column;
+        padding-inline: 5px;
         gap: 10px;
         overflow: hidden;
         overflow-y: auto;
         background-color: rgb(255, 255, 255);
     }
+    .content-form .file-content::-webkit-scrollbar
+    {
+        width: 10px;
+    }
+    .content-form .file-content::-webkit-scrollbar-thumb
+    {
+        background-color: #858484c5;
+        border-radius: 10px;
+    }
+    .content-form .file-content::-webkit-scrollbar-track
+    {
+        border-radius: 16px;
+        background-color: #f1f1f1;
+    }
+
     .file-content .file {
         width: 100%;
         min-height: 40px;

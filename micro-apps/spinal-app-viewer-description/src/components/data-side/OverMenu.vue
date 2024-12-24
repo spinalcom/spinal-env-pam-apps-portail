@@ -130,6 +130,7 @@ export default {
   align-items: flex-start;
   gap: 10px;
   z-index: 1000;
+  user-select: none;
 }
 
 .over-menu::after {
