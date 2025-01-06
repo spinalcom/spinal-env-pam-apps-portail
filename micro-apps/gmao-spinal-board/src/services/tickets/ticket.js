@@ -8,10 +8,13 @@ async function getTickets(bid, stepList) {
     .map(chunk => getMultipleTickets(bid, chunk));
 
   const ticketList = await Promise.all(getTicketsPromises);
-
+  console.log(ticketList);
   const constructedTickets = constructTickets(ticketList.flat());
 
   const results = await getEndDate(bid, constructedTickets);
+  results[3].startDate = null;
+  results[3].endDate = null;
+  // results[3].endDate = 1681344956543;
   return results;
 }
 
@@ -35,6 +38,7 @@ function constructTickets(ticketList) {
       processName: ticket.process.name,
       stepId: ticket.step.dynamicId,
       ticketId: ticket.dynamicId,
+      state: 'ticket',
     }))
   );
 }

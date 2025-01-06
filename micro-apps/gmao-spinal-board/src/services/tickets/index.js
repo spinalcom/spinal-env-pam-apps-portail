@@ -16,19 +16,32 @@ export default async function () {
     const processes = processList.filter(process => process.workflowId === workflow.workflowId);
     return {
       ...workflow,
+      state: 'open',
       processes: processes.map(process => {
         const steps = stepList.filter(step => step.processId === process.processId);
         return {
           ...process,
+          state: 'open',
           ticketList: ticketList.filter(ticket => steps.some(step => step.stepId === ticket.stepId)),
         };
       }),
     };
   });
 
+  const nested = removeProcessWithNoTickets(result);
+
   return {
     flat: ticketList,
-    nested: result,
+    nested,
   };
 }
 
+function removeProcessWithNoTickets(workflowList) {
+  return workflowList.map(workflow => {
+    const processes = workflow.processes.filter(process => process.ticketList.length > 0);
+    return {
+      ...workflow,
+      processes,
+    };
+  });
+}

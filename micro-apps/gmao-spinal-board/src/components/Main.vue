@@ -1,11 +1,19 @@
 
 <template>
-    <div class="main" v-if="loaded">
-        <MonthView v-if="temporality.name === 'Mois'" :ticketList="ticketList" />
-        <WeekView v-else-if="temporality.name === 'Semaine'" :ticketList="ticketList" />
-        <DayView v-else-if="temporality.name === 'Jour'" :ticketList="ticketList" :nestedList="nestedList" />
-        <YearView v-else-if="temporality.name === 'Année'" :ticketList="ticketList" />
-    </div>
+  <div class="main" v-if="loaded">
+    <MonthView v-if="temporality.name === 'Mois'" :ticketList="ticketList" />
+    <WeekView v-else-if="temporality.name === 'Semaine'" :ticketList="ticketList" />
+    <DayView
+    v-else-if="temporality.name === 'Jour'"
+    :ticketList="ticketList"
+    :nestedList="nestedList"
+    @resizeWholePeriod="resizeWholePeriod"
+    @resizeStart="resizeStart"
+    @resizeEnd="resizeEnd"
+    @createTicket="createTicket"
+    />
+    <YearView v-else-if="temporality.name === 'Année'" :ticketList="ticketList" />
+  </div>
 </template>
 
 <script>
@@ -36,6 +44,36 @@ export default {
     this.ticketList = response.flat;
     this.nestedList = response.nested;
     this.loaded = true;
+  },
+  methods: {
+    createTicket(task, startDate, endDate) {
+      this.resizeWholePeriod(task, startDate, endDate);
+    },
+    resizeWholePeriod(task, startDate, endDate) {
+      this.ticketList = this.ticketList.map((ticket) => {
+        if (ticket.ticketId === task.ticketId) {
+          ticket.startDate = startDate;
+          ticket.endDate = endDate;
+        }
+        return ticket;
+      });
+    },
+    resizeStart(task, startDate) {
+      this.ticketList = this.ticketList.map((ticket) => {
+        if (ticket.ticketId === task.ticketId) {
+          ticket.startDate = startDate;
+        }
+        return ticket;
+      });
+    },
+    resizeEnd(task, endDate) {
+      this.ticketList = this.ticketList.map((ticket) => {
+        if (ticket.ticketId === task.ticketId) {
+          ticket.endDate = endDate;
+        }
+        return ticket;
+      });
+    },
   },
   watch: {},
 }

@@ -18,6 +18,7 @@
       :key="workflow.workflowName + wIndex"
       :style="[
         { height: workflowHeight(workflow) + 'px' },
+        { 'z-index': wIndex },
       ]"
       class="workflow-container">
 
@@ -26,57 +27,103 @@
         :style="[
           { 'font-size': fontSize.big + 'px' },
           { height: taskHeight + 'px' },
+          { 'min-height': taskHeight + 'px' },
         ]"
         class="workflow">
         <span class="ellipsis">
           {{ workflow.workflowName }}
         </span>
         <v-icon 
-          :style="[{ 'font-size': fontSize.big + 'px' }]"
-          class="goto-icon icon">
+          :class="[
+            { 'open': workflow.state === 'open' },
+            { 'close': workflow.state === 'close' },
+          ]"
+          :style="[
+            { 'font-size': fontSize.big + 'px' },
+            { height: taskHeight - 4 + 'px' },
+            { width: taskHeight - 4 + 'px' },
+            { minWidth: taskHeight - 4 + 'px !important' },
+          ]"
+          class="goto-icon icon dropdown"
+          @click="toggle('workflow', workflow)">
           mdi-chevron-down
         </v-icon>
       </div>
 
       <!-- PROCESS CONTAINER -->
-      <div
-        v-for="(process, pIndex) in workflow.processes"
-        :key="process.processName + pIndex"
-        :style="[
-          { 'font-size': fontSize.medium + 'px' },
-          { height: processHeight(process) + 'px' },
-        ]"
-        class="workflow-container">
-        <!-- PROCESS TITLE -->
+      <template v-if="workflow.state === 'open'"> 
         <div
-          :style="[
-            { height: taskHeight + 'px' },
-          ]"
-          class="process">
-          <span class="ellipsis">
-            {{ process.processName }}
-          </span>
-          <v-icon 
-            :style="[{ 'font-size': fontSize.medium + 'px' }]"
-            class="goto-icon icon">
-            mdi-chevron-down
-          </v-icon>
-        </div>
-
-        <!-- TICKETS -->
-        <div
-          v-for="(ticket, index) in process.ticketList"
-          :key="ticket.name + index"
+          v-for="(process, pIndex) in workflow.processes"
+          :key="process.processName + pIndex"
           :style="[
             { 'font-size': fontSize.medium + 'px' },
-            { height: taskHeight + 'px' },
+            { height: processHeight(process) + 'px' },
+            { 'z-index': pIndex },
           ]"
-          class="ticket">
-          <span class="ellipsis">
-            {{ ticket.name }}
-          </span>
+          class="workflow-container">
+          <!-- PROCESS TITLE -->
+          <div
+            :style="[
+              { height: taskHeight + 'px' },
+              { 'min-height': taskHeight + 'px' },
+            ]"
+            class="process">
+            <span class="ellipsis">
+              {{ process.processName }} {{ process.ticketList.length }}
+            </span>
+            <v-icon 
+              :class="[
+                { 'open': process.state === 'open' },
+                { 'close': process.state === 'close' },
+              ]"
+              :style="[
+                { 'font-size': fontSize.medium + 'px' },
+                { height: taskHeight - 4 + 'px' },
+                { width: taskHeight - 4 + 'px !important' },
+                { minWidth: taskHeight - 4 + 'px !important' },
+              ]"
+              class="goto-icon icon dropdown"
+              @click="toggle('process', process)">
+              mdi-chevron-down
+            </v-icon>
+          </div>
+
+          <!-- TICKETS -->
+          <template v-if="process.state === 'open'">
+            <div
+              v-for="(ticket, index) in process.ticketList"
+              :key="ticket.name + index"
+              :style="[
+                { 'font-size': fontSize.medium + 'px' },
+                { height: taskHeight + 'px' },
+                { 'z-index': index },
+              ]"
+              class="ticket">
+              <!-- STATUS COMPONENT -->
+              <Status 
+                :fontSize="fontSize"
+                :status="ticket.status"
+                />
+              <span class="ellipsis">
+                {{ ticket.name }}
+              </span>
+              <div
+                v-if="fallingIn(ticket.startDate)"
+                :style="[
+                  { height: (taskHeight - 5) + 'px' },
+                ]"
+                class="goto-ticket"
+                @click="bringDay(ticket, fallingIn(ticket.startDate))">
+                <v-icon 
+                  :style="[{ 'font-size': fontSize.medium + 'px' }]"
+                  class="goto-icon icon">
+                  {{ fallingIn(ticket.startDate) }}
+                </v-icon>
+              </div>
+            </div>
+          </template>
         </div>
-      </div>
+      </template>
     </div>
 
     <!--
@@ -140,6 +187,7 @@ export default {
     isResizing: false,
   }),
   mounted() {
+    this.$emit('taskListChanged', this.flattenedList(this.nestedList));
     this.resizeObserver = new ResizeObserver((entries) => {
       for (let entry of entries) {
         const contentRect = entry.contentRect.width;
@@ -150,22 +198,44 @@ export default {
     this.resizeObserver.observe(this.$refs.sideBar);
   },
   methods:{
+    toggle(type, item) {
+      if (type === 'workflow') {
+        item.state = item.state === 'open' ? 'close' : 'open';
+      }
+      else if (type === 'process') {
+        item.state = item.state === 'open' ? 'close' : 'open';
+      }
+      this.$emit('taskListChanged', this.flattenedList(this.nestedList));
+    },
+    flattenedList(nestedList) {
+      return nestedList.reduce((acc, workflow) => {
+        acc.push(workflow);
+        if (workflow.state === 'open') {
+          workflow.processes.forEach(process => {
+            acc.push(process);
+            if (process.state === 'open') {
+              acc.push(...process.ticketList);
+            }
+          });
+        }
+        return acc;
+      }, []);
+    },
     workflowHeight(workflow) {
-      if (!Array.isArray(workflow.processes)) {
-        return 0;
+      if (!Array.isArray(workflow.processes) || workflow.state === 'close') {
+        return this.taskHeight;
       }
 
       return (workflow.processes.reduce((acc, process) =>
-        acc + 1 + (process.ticketList ? process.ticketList.length : 0)
+        acc + 1 + (process.ticketList && process.state === 'open'
+          ? process.ticketList.length : 0)
         , 0) + 1) * this.taskHeight;
     },
     processHeight(process) {
-      if (!Array.isArray(process.ticketList)) {
-        return 0;
+      if (!Array.isArray(process.ticketList) || process.state === 'close') {
+        return this.taskHeight;
       }
 
-      if (process.ticketList.length === 4) {
-      }
       return (process.ticketList.length + 1) * this.taskHeight;
     },
     startresize: throttle( function (event) {
@@ -187,7 +257,17 @@ export default {
       window.removeEventListener('mouseup', this.stopResize);
     },
     bringDay(ticket, positionIconName) {
-      const position = positionIconName.split('-')[2]; 
+      if (positionIconName === 'mdi-plus') {
+        console.log('start task');
+        const today = moment().startOf('day');
+        const nextDay = moment().endOf('day');
+        ticket.startDate = today;
+        ticket.endDate = nextDay;
+        this.$emit('startTask', ticket);
+        return;
+      }
+
+      const position = positionIconName.split('-')[2];
       this.$emit('bringDay', { ...ticket, position });
     },
     goToTicket(ticket) {
@@ -199,6 +279,9 @@ export default {
       }
       else if (moment(date).isBefore(this.viewPortEdges.start)) {
         return 'mdi-arrow-left';
+      }
+      else if (!date) {
+        return 'mdi-plus';
       }
       return null;
     },
@@ -224,6 +307,7 @@ export default {
 }
 
 .workflow-container {
+  background: white;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -334,7 +418,20 @@ export default {
   border-right: 2px solid grey !important;
   width: 5px;
 }
-
+.dropdown {
+  border-radius: 5px;
+  cursor: pointer;
+}
+.dropdown:hover {
+  background-color: #edeff0;
+  color: #14202C;
+}
+.open {
+  transform: rotate(-180deg) !important;
+}
+.close {
+  transform: rotate(0deg) !important;
+}
 .goto-icon {
 }
 </style>

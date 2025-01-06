@@ -2,7 +2,10 @@
 <template>
   <div class="calendar-plan" ref="calendar" @scroll="onScroll"
     :class="{ 'smooth-scroll': isScrolling }">
-
+    <TaskDetails
+      :task="selectedTaskDetails"
+      @resetTaskDetails="selectedTaskDetails = null"
+      />
     <div class="action-bar">
       <div class="action-group">
         <v-icon class="action-icon icon" @click="verticalScroll('left')">mdi-chevron-left</v-icon>
@@ -40,7 +43,7 @@
     <div :style="[
       { 'width': planWidth + dayWidth + 'px' },
       { 'height': planHeight + (taskHeight * 2) + 'px' },
-      { 'min-height': planHeight + 'px' },
+      { 'min-height': planHeight + (taskHeight * 2) + 'px' },
     ]" class="plan">
 
       <div 
@@ -105,6 +108,11 @@
           @goto="bringTheDay"
           @planHeight="planH"
           @resizedSideBar="resizedSideBar"
+          @resizeWholePeriod="(task, startDate, endDate) => $emit('resizeWholePeriod', task, startDate, endDate)"
+          @resizeStart="(task, startDate) => $emit('resizeStart', task, startDate)"
+          @resizeEnd="(task, endDate) => $emit('resizeEnd', task, endDate)"
+          @showTicketDetails="showTicketDetails"
+          @createTicket="(task, startDate, endDate) => $emit('createTicket', task, startDate, endDate)"
           />
       </div>
     </div>
@@ -113,6 +121,7 @@
 
 <script>
 import CalendarContent from './CalendarContent.vue';
+import TaskDetails from './TaskDetails.vue';
 import { throttle } from 'lodash';
 import moment from 'moment';
 moment.locale('fr');
@@ -121,8 +130,10 @@ export default {
   props: [ 'ticketList', 'nestedList' ],
   components: {
     CalendarContent,
+    TaskDetails,
   },
   data: () => ({
+    selectedTaskDetails: null,
     isScrolling: false,
     currentMarker: null,
     planHeight: 0,
@@ -368,6 +379,9 @@ export default {
         this.zoom -= 5;
       }
     },
+    showTicketDetails(task) {
+      this.selectedTaskDetails = task;
+    },
   },
   watch: {
     zoom(v1) {
@@ -527,7 +541,6 @@ export default {
   padding: 0 10px;
   right: 17px;
   height: 30px;
-  background: green;
   z-index: 111;
   background: linear-gradient(to left, #fff 96%, transparent);
   font-size: 12px;

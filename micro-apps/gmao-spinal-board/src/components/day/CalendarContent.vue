@@ -1,7 +1,11 @@
 
 <template>
   <div class="content-plan"
-    :style="{ 'height': ticketList.length * taskHeight  + 'px' }">
+    :style="{ 'height': this.initialHeight * taskHeight  + 'px' }">
+    <!-- TaskDetails component -->
+    <TaskDetails
+      :task="selectedTaskDetails"
+      />
     <!-- TodayMarker component -->
     <TodayMarker
       :dayWidth="dayWidth"
@@ -19,20 +23,27 @@
       :fontSize="fontSize"
       @bringDay="bringDay"
       @resizedSideBar="resizedSideBar"
-      @goto="goto"/>
-    <!-- Task component
+      @goto="goto"
+      @taskListChanged="updateTaskList"
+      />
+    <!-- Task component -->
     <Task
-      v-for="(task, index) in  ticketList"
-      :key="task.name + index"
-      :style="[{ 'top': index * taskHeight + 'px'}]"
+      v-for="(task, index) in taskList"
+      :key="task.state + index"
       :level="index"
       :task="task"
       :start="start"
       :dayWidth="dayWidth"
       :taskHeight="taskHeight"
       :fontSize="fontSize"
+      @resizeWholePeriod="resizeWholePeriod"
+      @resizeStart="resizeStart"
+      @resizeEnd="resizeEnd"
+      @showTicketDetails="showTicketDetails"
+      @resetTaskDetails="$emit('resetTaskDetails')"
+      @createTicket="(task, startDate, endDate) => $emit('createTicket', task, startDate, endDate)"
+      class="task-container"
       />
-    -->
     <div v-for="(offset, index) in weekLines"
       :key="index"
       :style="[
@@ -49,6 +60,7 @@
 import SideBar from './SideBar';
 import TodayMarker from './TodayMarker';
 import Task from './Task';
+import TaskDetails from './TaskDetails';
 import moment from 'moment';
 moment.locale('fr');
 export default {
@@ -66,10 +78,14 @@ export default {
   ],
   components: {
     Task,
+    TaskDetails,
     SideBar,
     TodayMarker,
   },
   data: () => ({
+    initialHeight: 0,
+    taskList: [],
+    selectedTaskDetails: null,
   }),
   computed: {
     weekLines() {
@@ -81,16 +97,41 @@ export default {
       return mondayLines;
     },
     markerHeight() {
-      return this.ticketList.length * this.taskHeight + 5;
+      const workflowLength = this.nestedList.length;
+      const processLength = this.nestedList.reduce((acc, curr) => acc + curr.processes.length, 0);
+      const taskLength = this.ticketList.length;
+      const initialTasks = workflowLength + processLength + taskLength;
+      return initialTasks * this.taskHeight + 5;
     },
     markerOffset() {
      return moment().diff(this.start, 'days') * this.dayWidth;
     },
   },
   mounted() {
-    this.$emit('planHeight', (this.ticketList.length) * this.taskHeight);
+    const stepNames = new Set();
+    this.ticketList.forEach((ticket) => {
+      stepNames.add(ticket.status);
+    });
+    const stepList = Array.from(stepNames);
+    console.log(stepList);
+    this.calculateHeight();
   },
   methods: {
+    showTicketDetails(task) {
+      this.$emit('showTicketDetails', task);
+    },
+    resizeWholePeriod(task, startDate, endDate) {
+      this.$emit('resizeWholePeriod', task, startDate, endDate);
+    },
+    resizeStart(task, startDate) {
+      this.$emit('resizeStart', task, startDate);
+    },
+    resizeEnd(task, endDate) {
+      this.$emit('resizeEnd', task, endDate);
+    },
+    updateTaskList(event) {
+      this.taskList = event;
+    },
     resizedSideBar(event) {
       this.$emit('resizedSideBar', event);
     },
@@ -100,10 +141,19 @@ export default {
     bringDay(ticket) {
       this.$emit('bringDay', ticket);
     },
+    calculateHeight() {
+      const workflowLength = this.nestedList.length;
+      const processLength = this.nestedList.reduce((acc, curr) => acc + curr.processes.length, 0);
+      const taskLength = this.ticketList.length;
+      this.initialHeight = workflowLength + processLength + taskLength;
+      this.$emit('planHeight', this.initialHeight * this.taskHeight);
+    },
   },
   watch: {
+    taskList(v1) {
+    },
     taskHeight(v1) {
-      this.$emit('planHeight', (this.ticketList.length) * this.taskHeight);
+      this.calculateHeight();
     },
   }
 
@@ -141,6 +191,10 @@ export default {
   top: 0;
   transition: width 0.3s ease-in-out, left 0.3s ease-in-out, height 0.3s ease-in-out, font-size 0.3s ease-in-out;
   z-index: 79;
+}
+
+.task-container{
+  transition: top 0.3s ease-in-out;
 }
 </style>
 

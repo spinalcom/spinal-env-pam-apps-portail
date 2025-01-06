@@ -1,18 +1,44 @@
 
 <template>
   <div class="task"
+    ref="wideTask"
     :style="[
-      { 'top': (1 + level) * taskHeight + 'px'},
-      { 'height': taskHeight + 'px'},
-    ]">
+      { 'top': level * taskHeight + 'px' },
+      { 'height': taskHeight + 'px' },
+    ]"
+    @mouseenter="startListening"
+    @mouseleave="stopListening"
+  >
+    <div
+      v-if="!task.startDate && task.state === 'ticket' && mouseMoveHandler"
+      :style="[
+        { 'left': Math.floor(mouseX / dayWidth) * dayWidth + 'px' },
+        { 'height': (taskHeight - 8) + 'px' },
+        { 'width': dayWidth + 'px' },
+        { 'min-width': dayWidth + 'px' },
+      ]"
+      @click="createTicket"
+      class="hovered-task">
+      <v-icon
+        :style="[{ 'font-size': fontSize.medium + 'px' }]"
+        class="goto-icon icon">
+        mdi-plus
+      </v-icon>
+    </div>
     <Period
+      v-if="task.state === 'ticket'"
       :dayWidth="dayWidth"
       :taskHeight="taskHeight"
       :task="task"
       :start="start"
       :fontSize="fontSize"
-      />
-    </div>
+      @resizeWholePeriod="resizeWholePeriod"
+      @resizeStart="resizeStart"
+      @resizeEnd="resizeEnd"
+      @showTicketDetails="showTicketDetails"
+      @resetTaskDetails="$emit('resetTaskDetails')"
+    />
+  </div>
 </template>
 
 <script>
@@ -32,7 +58,58 @@ export default {
     Period,
   },
   mounted() {
-  }
+    // client width of the task container
+    const taskContainer = this.$refs.wideTask.clientWidth;
+    console.log('Task container width:', taskContainer);
+  },
+  data: () => ({
+    mouseX: null,
+    mouseMoveHandler: null,
+  }),
+  methods: {
+    createTicket() {
+      const startClick = Math.floor(this.mouseX / this.dayWidth);
+      const startDate = this.start.clone().add(startClick, 'days').startOf('day');
+      const endDate = startDate.clone().endOf('day');
+      this.$emit('createTicket', this.task, startDate, endDate);
+    },
+    startListening() {
+      if (this.task.startDate || this.task.state !== 'ticket') {
+        return;
+      }
+
+      // Define the mousemove event handler
+      this.mouseMoveHandler = (event) => {
+        const taskElement = this.$refs.wideTask;
+
+        // Calculate the X position relative to the task component
+        const rect = taskElement.getBoundingClientRect();
+        this.mouseX = event.clientX - rect.left;
+      };
+
+      // Add the event listener
+      window.addEventListener('mousemove', this.mouseMoveHandler);
+    },
+    stopListening() {
+      // Remove the mousemove event listener
+      if (this.mouseMoveHandler) {
+        window.removeEventListener('mousemove', this.mouseMoveHandler);
+        this.mouseMoveHandler = null; // Clear the handler
+      }
+    },
+    showTicketDetails(task) {
+      this.$emit('showTicketDetails', task);
+    },
+    resizeWholePeriod(task, startDate, endDate) {
+      this.$emit('resizeWholePeriod', task, startDate, endDate);
+    },
+    resizeStart(task, startDate) {
+      this.$emit('resizeStart', task, startDate);
+    },
+    resizeEnd(task, endDate) {
+      this.$emit('resizeEnd', task, endDate);
+    },
+  },
 }
 </script>
 
@@ -55,6 +132,19 @@ export default {
 }
 .task:hover {
   background: #d5d7d62b;
+}
+.hovered-task {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #474747;
+  background: white;
+  border-radius: 5px;
+  border: 1px solid #E2E2E2;
+  box-shadow: 4px 3px 5px 0px #A0A0A024;
+  transition: all 0.3s, width 0s, left 0s ease-in-out;
+  cursor: pointer;
 }
 </style>
 
