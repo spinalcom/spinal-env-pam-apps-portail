@@ -1,7 +1,7 @@
 <template>
 
-    <v-dialog class="dialog-content" v-model="show" persistent width="75%"
-        style="display: flex !important;gap: 20px !important; font-size: 12px !important; overflow: hidden; background: white !important; border-radius: 20px !important;">
+    <v-dialog class="dialog-content" v-model="show" persistent width="65%"
+        style="display: flex !important;gap: 20px !important; font-size: 12px !important; overflow: hidden; background: none !important; border-radius: 20px !important;">
         <div class="content-form">
             <form style="width: 100%; height: 100%;" @submit.prevent="validateChanges">
                 <div class="header">
@@ -104,9 +104,10 @@ export default {
 <style scoped>
 .content-form {
     width: 100%;
-    height: calc(50vh - 300px);
+    height: max-content;
+    padding-bottom: 30px;
     background-color: #ffffff;
-    border-radius: 24px;
+    border-radius: 20px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;

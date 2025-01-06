@@ -252,7 +252,7 @@ const getToolbar = () => ({
 
 </script>
 
-<style>
+<style scoped>
 
     .top-bar {
         width: 100%;
@@ -398,7 +398,7 @@ const getToolbar = () => ({
     .btn-closed {
         height: max-content;
         cursor: pointer;
-        color: #fff;
+        color: #fff !important;
         padding: 8px;
         font-size: 16px;
         border-radius: 10px;

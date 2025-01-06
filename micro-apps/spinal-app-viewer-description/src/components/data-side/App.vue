@@ -1,31 +1,32 @@
 <!--
-Copyright 2023 SpinalCom - www.spinalcom.com
-
-This file is part of SpinalCore.
-
-Please read all of the following terms and conditions
-of the Free Software license Agreement ("Agreement")
-carefully.
-
-This Agreement is a legally binding contract between
-the Licensee (as defined below) and SpinalCom that
-sets forth the terms and conditions that govern your
-use of the Program. By installing and/or using the
-Program, you agree to abide by all the terms and
-conditions stated or referenced herein.
-
-If you do not agree to abide by these terms and
-conditions, do not demonstrate your acceptance and do
-not install or use the Program.
-You should have received a copy of the license along
-with this file. If not, see
-<http://resources.spinalcom.com/licenses.pdf>.
--->
-
-<template>
-
-  <div class="appli">
-    <div style="width: 55%; height: 100%; background: #14202c;" v-show="showDocvalue">
+  Copyright 2023 SpinalCom - www.spinalcom.com
+  
+  This file is part of SpinalCore.
+  
+  Please read all of the following terms and conditions
+  of the Free Software license Agreement ("Agreement")
+  carefully.
+  
+  This Agreement is a legally binding contract between
+  the Licensee (as defined below) and SpinalCom that
+  sets forth the terms and conditions that govern your
+  use of the Program. By installing and/or using the
+  Program, you agree to abide by all the terms and
+  conditions stated or referenced herein.
+  
+  If you do not agree to abide by these terms and
+  conditions, do not demonstrate your acceptance and do
+  not install or use the Program.
+  You should have received a copy of the license along
+  with this file. If not, see
+  <http://resources.spinalcom.com/licenses.pdf>.
+  -->
+  
+  <template>
+    
+    <div class="appli">
+      <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
+      <div style="width: 55%; height: 100%; background: #14202c;" v-show="showDocvalue">
       <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" :closecomp="ActiveData"
         @closeDialog="closeVueDoc" />
     </div>
@@ -126,7 +127,6 @@ with this file. If not, see
         </div>
       </div>
 
-      <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
       <div class="inventory">
         <div v-if="selection == 'Vue Globale'">
           <div v-if="inventoyList">
@@ -217,41 +217,17 @@ with this file. If not, see
           <FormAttribute :show="showFormAttributeValue" :referenceId="selectedZone.dynamicId"
             @close-dialog="ShowFormAttribute" @add-attribute="showAlert" />
 
-          <h3>Attribut de la selection</h3>
-
-          <div v-for="(item, index) in floorstaticDetails[0].attributsList" class="blocInformation">
-            <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">{{ item.name
-              }}</span>
-            <div v-if="floorstaticDetails[0].attributsList == null"
-              style="justify-content: center; align-items: center; width: 100%; display: flex; margin-top: 10px; margin-bottom: 10px;">
-              <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
-            </div>
-            <div v-else class="inventory-container">
-              <div class="inventory-item"
-                style="color:#14202c;overflow: visible; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
-                v-for="(attr, index2) in item.attributs">
-                <li v-if="isLink(attr.value)">
-                  {{ attr.label }}:
-                  <a :href="attr.value" target="_blank" style="color: #3498db;">{{ attr.value }}</a>
-                </li>
-                <li v-else>
-                  {{ attr.label }}: {{ attr.value }} {{ attr.unit }}
-                </li>
-
-                <div
-                  style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative;">
-                  <OverMenu :show="itemOverflowMenu == attr.dynamicId" @close="closeOverMenu" :item="attr"
-                    @showDoc="showDoc" @editFile="editattr(attr, floorstaticDetails[0].dynamicId, item)"
-                    @downloadFile="downloadFile" :showDocs="false" :showDownload="false" :editable="true"
-                    @DeleteFile="DeleteAttribut(floorstaticDetails[0].dynamicId, item.dynamicId, attr.label)"
-                    @changeOverflowItemMenu="changeOverflowItemMenu">
-                  </OverMenu>
-                </div>
-
-              </div>
-
-              <div
-                style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative;">
+            <h3>Attribut de la selection</h3>
+            
+            <div v-for="(item, index) in floorstaticDetails[0].attributsList" class="blocInformation">
+              <div 
+            
+                style="width: 100%; display: flex; justify-content: space-between; align-items:center; padding-inline: 10px; border-radius: 10px; position: relative;"
+              >
+              
+            <span style=" text-wrap: nowrap; font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">{{ item.name}}</span>
+            <div
+                style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative; padding-right: 10px;">
                 <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
                   @showDoc="showDoc" @editFile="editCattattr(floorstaticDetails[0].dynamicId, item)"
                   @downloadFile="downloadFile" :showDocs="false" :showDownload="false" :editable="true"
@@ -259,6 +235,40 @@ with this file. If not, see
                   @changeOverflowItemMenu="changeOverflowItemMenu">
                 </OverMenu>
               </div>
+              </div>
+            <div v-if="floorstaticDetails[0].attributsList == null"
+              style="justify-content: center; align-items: center; width: 100%; display: flex; margin-top: 10px; margin-bottom: 10px;">
+              <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
+            </div>
+            <div v-else class="inventory-container">
+              <div class="inventory-item"
+                style=" width: 100%; color:#14202c;overflow: visible; padding: 16px; border-radius: 5px; padding-left: 6px; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
+                v-for="(attr, index2) in item.attributs">
+                <li v-if="isLink(attr.value)" style="list-style: none; background-color: red; width: 95%;">
+                  {{ attr.label }}:
+                  <a :href="attr.value" target="_blank" style="color: #3498db;">{{ attr.value }}</a>
+                </li>
+                <li v-else style="list-style: none; width: 100%; overflow: hidden; overflow-x: auto;">
+                  <span style="font-weight: 600;">
+                    {{ attr.label }}:
+                  </span>
+                  <span style="font-weight: 400;">
+                    {{ attr.value }} {{ attr.unit }}
+                  </span>
+                </li>
+
+                <div
+                  style="display: flex; justify-content: space-between; align-items: center;  width: 20px;  position: relative;">
+                  <OverMenu :show="itemOverflowMenu == index2 && itemOverflowMenuAttr == item.dynamicId" @close="closeOverMenu" :item="attr"
+                    @showDoc="showDoc" @editFile="editattr(attr, floorstaticDetails[0].dynamicId, item)"
+                    @downloadFile="downloadFile" :showDocs="false" :showDownload="false" :editable="true"
+                    @DeleteFile="DeleteAttribut(floorstaticDetails[0].dynamicId, item.dynamicId, attr.label)"
+                    @changeOverflowItemMenu="changeOverflowItemMenuAttr(index2, item.dynamicId)">
+                  </OverMenu>
+                </div>
+              </div>
+
+             
 
 
 
@@ -401,7 +411,6 @@ with this file. If not, see
           <!-- Notification -->
           <!-- Box pour afficher le document -->
           <!-- Boutton d'ajout d'un document -->
-          <!-- <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" /> -->
           <v-row style="padding: 20px;">
             <AddBtn @open-dialog="ShowFormDoc" name="Ajouter un document" icon="mdi-file-plus-outline" />
           </v-row>
@@ -613,6 +622,7 @@ class dataSideApp extends Vue {
   selectedAttribut = null
   getIcon = getIcon
   itemOverflowMenu = null
+  itemOverflowMenuAttr = null
   ShowFormDocAttrs = false
   ShowFormDocCat = false
   idEl = null
@@ -689,14 +699,9 @@ class dataSideApp extends Vue {
           const resultParentDoc = await Promise.all(parentPromiseDoc);
           const parents = resultParentDoc[0];
 
-          const documentationPromise = [
-            this.$store.dispatch(ActionTypes.GET_DOCUMENTATION, {
-              buildingId: buildingId,
-              referenceIds: this.selectedZone.dynamicId,
-            }),
-          ];
-          const result = await Promise.all(documentationPromise);
-          const documentation = result[0];
+          const documentationPromise = await this.getfetchDocRetry()
+          const documentation = documentationPromise;
+          
 
           let parentDocumentation = {};
           for (let parent of parents) {
@@ -729,6 +734,31 @@ class dataSideApp extends Vue {
     }
 
   }
+
+  async getfetchDocRetry (){
+    const max = 10;
+    const delay = 1000;
+    for (let i = 0; i < max; i++) {
+      const result = this.$store.dispatch(ActionTypes.GET_DOCUMENTATION, {
+        buildingId: localStorage.getItem("idBuilding"),
+        referenceIds: this.selectedZone.dynamicId,
+      })
+      const documentation = await result.then((res => {
+        return res
+      }))
+     
+      console.log('documentation: ', documentation.length);
+      if ( documentation.lenght != 0 &&  documentation[documentation.length - 1]  && documentation[documentation.length - 1].dynamicId) {
+        return documentation;
+
+      }else if (documentation.length == 0) {
+        return documentation;
+      }
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+    throw new Error('Error');
+  }
+
 
   async editattr(attr, id, item) {
     this.ShowFormDocAttrs = true
@@ -857,13 +887,27 @@ class dataSideApp extends Vue {
   }
 
   changeOverflowItemMenu(index) {
-    // console.log('index: ', index);
+    console.log('index: ', index);
     const latItem = this.itemOverflowMenu
     if (latItem === index) {
       this.itemOverflowMenu = null
     } else {
       this.itemOverflowMenu = index
+      console.log('itemOverflowMenu: ', this.itemOverflowMenu);
     }
+  }
+
+  changeOverflowItemMenuAttr(index, item) {
+    console.log(`index: ${index} item: ${item}`);
+    const latItem = this.itemOverflowMenu
+    const itemCateg = item;
+    if(latItem === this.itemOverflowMenu && this.itemOverflowMenuAttr === itemCateg) {
+      this.itemOverflowMenuAttr = null
+    } else {
+      this.itemOverflowMenuAttr = itemCateg
+      this.itemOverflowMenu = index
+    }
+    
   }
 
 
@@ -1873,508 +1917,5 @@ class dataSideApp extends Vue {
 export { dataSideApp };
 export default dataSideApp;
 </script>
-<style lang="scss">
-.graphDataContainer {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  height: 100%;
 
-}
-
-.graphContainer {
-  border-radius: 0px;
-  width: 160%;
-  height: 100%;
-  display: flex;
-  padding: 10px;
-}
-
-
-.back_blanc {
-  margin: 6px;
-  color: #14202c;
-  padding: 9px;
-  border-radius: 5px;
-  padding-left: 6px;
-  background-color: #f9f9f9;
-  box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
-}
-
-.title_attribut {
-  font-size: 1.5rem;
-}
-
-.cardContainer {
-  padding: 10px;
-}
-
-.displaydataCss {
-  display: none;
-}
-
-.entrence {
-  -webkit-animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
-  animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
-
-}
-
-@-webkit-keyframes fade-in {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-.area {
-  transform: translate(0, -15px);
-}
-
-.w-full {
-  width: 100%;
-}
-
-.inactiveTable {
-  -webkit-animation: fade-out 0.3s ease-out both;
-  animation: fade-out 0.3s ease-out both;
-}
-
-@-webkit-keyframes fade-out {
-  0% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes fade-out {
-  0% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-  }
-}
-
-a {
-  text-decoration: none;
-
-}
-
-.inventory-container {
-  display: flex;
-  flex-wrap: wrap;
-  height: calc(100% - 260px);
-  //padding: 40px;
-  margin-top: 5px;
-}
-
-.attribut {
-  position: relative;
-  font-size: 18px;
-  font-weight: bold;
-  font-family: Arial, Helvetica, sans-serif;
-  padding-left: 20px;
-  cursor: pointer;
-}
-
-// W-full
-.appli>div>div {
-  // height: calc(100% - 45%);
-  // background-color: rgb(57, 119, 45) !important;
-
-}
-
-.attribut::before {
-  content: "";
-  position: absolute;
-  top: -10px;
-  bottom: 0;
-  left: 0;
-  width: 2px;
-  height: 176%;
-  background-color: rgb(223, 223, 223);
-  transform: rotate(25deg);
-  transform-origin: left top;
-}
-
-.inventory-item {
-  width: 48%;
-  margin: 5px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-  white-space: nowrap;
-  overflow: hidden;
-  justify-content: space-between;
-  background-color: white;
-}
-
-.v-select__selection--comma {
-  font-size: 1.5rem !important;
-  font-family: Arial, Helvetica, sans-serif;
-  overflow: visible !important;
-}
-
-
-@media (max-width: 960px) {
-  .inventory-item {
-    width: 100%;
-  }
-
-  .area {
-    transform: translate(10px, -15px);
-  }
-
-  .el3d {
-    display: none;
-  }
-}
-
-.doc-content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 10px;
-  width: calc(100% - 55%)
-}
-
-.blocInformation {
-  background-color: #f8f8f8d0;
-  border-radius: 2px;
-  margin-top: 10px;
-  margin-bottom: 20px;
-  margin-left: 11px;
-  padding: 5px;
-  box-shadow: 0 6px 24px #0000000d, 0 0 0 1px #00000014;
-  border: 2px dashed #dbdbdb;
-  border-radius: 6px;
-}
-
-.Spinal_card {
-  font-family: Charlevoix Pro !important;
-  cursor: pointer;
-  width: 250px;
-  height: 100px;
-  border-radius: 5px;
-  background: linear-gradient(45deg, rgb(209, 209, 209) 0%, rgb(233, 233, 233) 100%);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-  box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
-  margin: 5px
-}
-
-.inventory:before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 120px;
-  border-top: 2px solid rgb(235, 234, 234);
-  width: auto;
-}
-
-.Spinal_card::before {
-  content: "";
-  height: 100px;
-  width: 100px;
-  position: absolute;
-  top: -100%;
-  left: 100%;
-  background: url('../../assets/tets.svg') no-repeat center center;
-  background-size: contain;
-  transition: all .4s ease;
-  filter: invert(1) saturate(5) hue-rotate(200deg) opacity(0.1);
-  filter: blur(.5rem);
-}
-
-.Spinal_card:hover::before {
-  top: 50%;
-  left: 50%;
-  transform: translate(30%, -0%);
-  filter: blur(0rem);
-  /* Pour centrer */
-}
-
-.Spinal_card:hover::before {
-  width: 140px;
-  height: 140px;
-  top: -30%;
-  left: 50%;
-  filter: blur(0rem);
-}
-
-.text {
-  flex-grow: 1;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  color: #14202c;
-  font-weight: 900;
-  font-size: 1.2em;
-  height: 30px
-}
-
-.subtitle {
-  font-size: .6em;
-  font-weight: 300;
-  color: #14202c;
-}
-
-.icons {
-  display: flex;
-  justify-items: center;
-  align-items: center;
-  width: 250px;
-  border-radius: 0px 0px 5px 5px;
-  overflow: hidden;
-}
-
-.btn {
-  z-index: 1;
-  border: none;
-  width: 100%;
-  height: 35px;
-  background-color: #ececec;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: 0.4s
-}
-
-.adaptative {
-  width: 80%;
-  overflow: hidden;
-  height: 50px;
-  position: relative;
-  right: 0px;
-}
-
-.svg-icon {
-  width: 25px;
-  height: 25px;
-  stroke: #14202c;
-}
-
-.btn:hover {
-  background-color: rgb(199, 199, 199);
-}
-
-.button {
-  display: inline-block;
-  padding: 5px;
-  text-decoration: none;
-  height: 59px;
-  padding-left: 10px;
-  padding-right: 10px;
-  transition: 0.2s;
-  white-space: nowrap;
-  margin-left: 20px;
-  margin-top: 6px;
-  margin-bottom: 18px;
-  font-size: xx-large;
-  cursor: pointer;
-  padding-left: 0px;
-}
-
-.button:hover {
-  background-color: rgb(228, 228, 228);
-}
-
-.v-text-field>.v-input__control>.v-input__slot:before {
-  border-style: none !important;
-}
-
-.parallelogram {
-  transform: skew(-20deg);
-}
-
-.skew-fix {
-  display: inline-block;
-  transform: skew(30deg);
-  font-size: 14px;
-}
-
-.appli {
-  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-  background-color: #fff;
-  width: 100%;
-  height: calc(100% - 10px);
-  border-radius: 5px;
-  display: flex;
-  flex-direction: row;
-  align-content: space-between;
-}
-
-.title {
-  position: relative;
-  width: 100%;
-  display: flex;
-}
-
-.inventory {
-  position: relative;
-  padding: 10px;
-  height: calc(100% - 30%);
-  overflow: auto;
-  overflow-x: hidden
-}
-
-.inventory:before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  border-top: 1px solid rgb(212, 212, 212);
-  width: 100%;
-}
-
-.description {
-  padding: 10px;
-  padding-top: 15px;
-  background-color: #fff;
-  border-top: 2px solid rgb(201, 201, 201);
-  overflow: hidden;
-  overflow-y: auto;
-  height: 30%;
-}
-
-.container_cards {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  margin-top: 10px;
-}
-
-.cardDescription {
-  cursor: pointer;
-  -webkit-user-select: none;
-  user-select: none;
-  background-color: #fff;
-  border-radius: 5px;
-  width: 100%;
-  height: 50px;
-  margin-top: 8px;
-  margin-bottom: 14px;
-  transition: all .2s;
-  display: flex;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 1px 2px #3c40434d, 0 1px 3px 1px #3c404326;
-  margin-left: 10px;
-}
-
-@media (max-width: 970px) {
-  .cardDescription {
-    width: 100vw;
-  }
-}
-
-@media (min-width: 970px) {
-  .hide {
-    display: none;
-    visibility: hidden;
-  }
-}
-
-.cardDescription:hover {
-  background-color: rgb(221, 221, 221);
-}
-
-.cardDescription:hover .gotoApp {
-  background-color: rgb(218, 218, 218);
-}
-
-.data_cardDescription {
-  border-right: 1px solid rgb(202, 202, 202);
-  // width: 87%;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  padding-left: 30px;
-}
-
-.gotoApp {
-  justify-content: center;
-  align-items: center;
-  display: flex;
-  // width: 13%;
-  width: 50px;
-  background-color: rgb(243, 243, 243);
-  transition: 0.2s;
-  z-index: 1;
-}
-
-.nombre_data_cardDescription {
-  width: 40%;
-  display: flex;
-  align-items: center;
-  font-size: 40px;
-  height: 100%;
-
-}
-
-.description_data_cardDescription {
-  width: 90%;
-  justify-content: center;
-  align-items: center;
-  display: flex;
-  color: #14202c;
-  padding-right: 5px;
-}
-
-.microinfo {
-  margin-bottom: 40px;
-  font-size: 9px;
-  transform: translate(-20px);
-  white-space: nowrap;
-  font-weight: bold;
-}
-
-.cardDescription::before {
-  content: "";
-  height: 100px;
-  width: 100px;
-  position: absolute;
-  top: -100%;
-  left: 100%;
-  background-size: contain;
-  transition: all .4s ease;
-  filter: invert(1) saturate(5) hue-rotate(200deg) opacity(0.1);
-  filter: blur(.5rem);
-}
-
-.cardDescription:hover::before {
-  top: 50%;
-  left: 50%;
-  transform: translate(30%, -0%);
-  filter: blur(0rem);
-}
-
-.cardDescription:hover::before {
-  width: 140px;
-  height: 140px;
-  top: -10%;
-  left: 50%;
-  filter: blur(0.05rem);
-}
-</style>
+<style src="../../assets/ParentComp.scss" lang="scss" scoped></style>

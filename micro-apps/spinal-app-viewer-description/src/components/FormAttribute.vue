@@ -41,9 +41,10 @@
                 style="width: 100%;"
                 ></v-text-field>
             </v-row>
-            <p style=" width: 100%; height: max-content; font-size: 14px; color: rgb(100 116 139);   text-align: center; color: rgb(180 83 9);" v-if="message_from_categories != ''" >{{message_from_categories}}</p>
+            <p style=" width: 100%; height: max-content; font-size: 14px; color: rgb(100 116 139);   text-align: center; color: rgb(180 83 9); margin-top: 15px;" v-if="message_from_categories != ''" >{{message_from_categories}}</p>
             <div
-            class="d-flex flex-row justify-center align-center mt-2"
+            class="d-flex flex-row justify-center align-center"
+            style="margin-top: 15px;"
             
             >
                 <v-btn
@@ -201,6 +202,7 @@ import AddCategorie from './data-side/AddCategorie.vue';
             watch: {
             show(newVal: boolean) {
                 this.dialog = newVal;
+                this.getCategoriesList();
             },
             referenceId(newVal: number) {
                 this.referenceId = newVal;
@@ -510,7 +512,7 @@ import AddCategorie from './data-side/AddCategorie.vue';
         padding-bottom: 10px;
         background-color: #ffffff;
         position: absolute;
-        bottom: -160px;
+        bottom: -150px;
         left: 0;
         box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
         border-radius: 5px;
@@ -536,7 +538,23 @@ import AddCategorie from './data-side/AddCategorie.vue';
         padding: 10px;
     }
 
-
+    .save-btn {
+        width: max-content;
+        height: max-content;
+        padding: 12px;
+        background-color: #14202C;
+        border-radius: 16px;
+        color: #fff !important;
+        font-weight: 700;
+      }
+      .cancel-btn {
+    width: max-content;
+    height: max-content;
+    padding: 12px;
+    border-radius: 16px;
+    background-color: rgb(226 232 240);
+    font-weight: 700;
+}
       @keyframes check-animation {
         0% {
 
