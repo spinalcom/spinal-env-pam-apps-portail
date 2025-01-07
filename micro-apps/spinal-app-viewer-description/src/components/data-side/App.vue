@@ -1492,7 +1492,7 @@ class dataSideApp extends Vue {
     try {
       this.pageSate = PAGE_STATES.loading;
       const buildingId = localStorage.getItem("idBuilding");
-      const patrimoineId = JSON.parse(localStorage.getItem("patrimoine")).id;
+      const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
       const promises = [
         this.$store.dispatch(ActionTypes.GET_ROOMS, {
           buildingId,

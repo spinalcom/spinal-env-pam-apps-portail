@@ -59,6 +59,14 @@ export async function getFloors(
   return res;
 }
 
+
+export async function getBuildingInfo(buildingId: string): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/building/read`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
 export async function getRooms(
   patrimoineId: string,
   buildingId: string,

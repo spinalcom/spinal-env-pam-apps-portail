@@ -266,27 +266,51 @@ class App extends Vue {
     switch (item?.type) {
       case undefined:
         const buildingId = localStorage.getItem("idBuilding");
-        const playload = {
-          config,
-          item: { buildingId, type: "building" },
-        };
 
-        const promises = [
-          this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }),
-        ];
+        if (buildingId) {
+          const playload = {
+            config,
+            item: { buildingId, type: "building" },
+          };
 
-        const [building, items] = await Promise.all(promises);
+          const promises = [
+            this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }),
+          ];
 
-        return [
-          {
-            name: building.name,
-            staticId: building.id,
-            categories: [],
-            color: "#35CAE5",
-            dynamicId: 0,
-            type: "building",
-          },
-        ];
+          const [building, items] = await Promise.all(promises);
+
+          return [
+            {
+              name: building.name,
+              staticId: building.id,
+              categories: [],
+              color: "#35CAE5",
+              dynamicId: 0,
+              type: "building",
+            },
+          ];
+        } else {
+          const building = await this.$store.dispatch(
+            ActionTypes.GET_BUILDING_INFO,
+            {
+              buildingId: null,
+            }
+          );
+          console.log(building);
+          return [
+            {
+              name: building.name,
+              staticId: building.id,
+              categories: [],
+              color: '#35CAE5',
+              dynamicId: building.dynamicId,
+              type: 'building',
+            },
+          ];
+        }
+
+
+
       case "building":
         return await this.$store.dispatch(ActionTypes.GET_FLOORS, {
           buildingId: item.staticId,

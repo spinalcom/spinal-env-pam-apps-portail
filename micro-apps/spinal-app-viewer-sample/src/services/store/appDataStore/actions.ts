@@ -24,9 +24,9 @@
 
 import { getBuildings, getBuildingById } from "../../spinalAPI/GeographicContext/getBuildings";
 import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
-import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
+import { SpinalAPI } from "../../../../../../global-components/requests/SpinalAPI";
 import { MutationTypes } from "./mutations";
-import { getEquipments, getFloors, getRooms } from "../../spinalAPI/GeographicContext/geographicContext";
+import { getEquipments, getFloors, getRooms , getBuildingInfo} from "../../spinalAPI/GeographicContext/geographicContext";
 import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../../../../global-components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
 import { IViewInfoBody, IViewInfoItemRes } from "../../spinalAPI/GeographicContext/getViewInfo";
@@ -53,6 +53,17 @@ export const actions = {
 		const buildings = await ApiIteratorStore[ActionTypes.GET_BUILDINGS][patrimoineId]!.next();
 		commit(MutationTypes.SET_BUILDINGS, buildings.value);
 		return buildings.value;
+	},
+
+	async [ActionTypes.GET_BUILDING_INFO]({ commit }: AugmentedActionContextAppData, { buildingId }: { buildingId: string; }): Promise<any> {
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getBuildingInfo(buildingId);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
 	},
 
 	async [ActionTypes.GET_BUILDING_BY_ID]({ commit, state }: AugmentedActionContextAppData, { buildingId, forceUpdate }): Promise<IGetAllBuildingsRes> {

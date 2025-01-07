@@ -54,7 +54,8 @@ export enum ActionTypes {
 	REGROUP_ITEMS = "REGROUP_ITEMS",
 	REMOVE_ALL_SPRITES = "REMOVE_ALL_SPRITES",
 	SELECT_SPRITES = "SELECT_SPRITES",
-	UPDATE_SELECTED_CHART_ITEMS = "UPDATE_SELECTED_CHART_ITEMS"
+	UPDATE_SELECTED_CHART_ITEMS = "UPDATE_SELECTED_CHART_ITEMS",
+	GET_BUILDING_INFO = "GET_BUILDING_INFO"
 }
 
 export type TFctViewerIteract = (stateContext: AugmentedActionContextAppData, payload: { buildingId: string; id: number | number[] }) => Promise<void>;

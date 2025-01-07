@@ -22,6 +22,11 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 import "core-js/stable";
+import { SpinalAPI, API_MODE } from 'global-components/requests/SpinalAPI';
+SpinalAPI.setHook(window);
+const api = SpinalAPI.getInstance(process.env.SPINAL_API_URL);
+api.setApiMode(API_MODE.PAM_APP);
+
 import Vue from "vue";
 import { vuetifyInit, vuetify } from "./plugins/vuetify";
 import { routerInit, router } from "./router";

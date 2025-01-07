@@ -65,7 +65,8 @@ export enum ActionTypes {
 	ADD_SPRITES = "ADD_SPRITES",
 	ADD_COMPONENT_AS_SPRITES = "ADD_COMPONENT_AS_SPRITES",
 	REMOVE_ALL_SPRITES = "REMOVE_ALL_SPRITES",
-	SELECT_SPRITES = "SELECT_SPRITES"
+	SELECT_SPRITES = "SELECT_SPRITES",
+	GET_BUILDING_INFO = "GET_BUILDING_INFO"
 }
 
 export type TFctViewerIteract = (stateContext: AugmentedActionContextAppData, payload: { buildingId: string; id: number | number[] }) => Promise<void>;
