@@ -556,6 +556,7 @@ export function curveData(period, timestamp, domain, list, domainList) {
   }
 }
 
+<<<<<<< Updated upstream
 // function generateGradientColors(hexColor, numOfGradients) {
 //   // Convert hex color to RGB values
 //   const r = parseInt(hexColor.slice(1, 3), 16);
@@ -594,15 +595,50 @@ export function curveData(period, timestamp, domain, list, domainList) {
 
 //   return gradientColors;
 // }
+=======
+>>>>>>> Stashed changes
 
-// function rgbToHex(r, g, b) {
-//   // Convert RGB values to hex format
-//   const rHex = r.toString(16).padStart(2, '0');
-//   const gHex = g.toString(16).padStart(2, '0');
-//   const bHex = b.toString(16).padStart(2, '0');
-//   const hexColor = `${rHex}${gHex}${bHex}`;
-//   return hexColor;
-// }
+
+export async function getWorkflowList() {
+  const buildingId = localStorage.getItem("idBuilding");
+  const listWorkflowResponse = await HTTP.get(
+    `building/${buildingId}/workflow/list`
+  );
+  return [...listWorkflowResponse.data];
+
+}
+
+export async function getProcessList(workflowId) {
+  const buildingId = localStorage.getItem("idBuilding");
+  const treeWorkflowResponse = await HTTP.get(
+    `building/${buildingId}/workflow/${workflowId}/processList`
+  );
+
+  const domains = treeWorkflowResponse.data.map((process) => {
+
+    return ({
+      dynamicId: process.dynamicId,
+      staticId: process.staticId,
+      type: process.type,
+      name: process.name,
+      color: generateRandomColor(),
+    })
+  })
+
+  return domains;
+}
+
+export async function getStepList(workflowId, processId) {
+  const buildingId = localStorage.getItem("idBuilding");
+  const stepListResponse = await HTTP.get(`building/${buildingId}/workflow/${workflowId}/process/${processId}/stepList`);
+  return [...stepListResponse.data];
+}
+
+function generateRandomColor() {
+  // Générer une couleur aléatoire en hexadécimal
+  const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+  return randomColor;
+}
 
 
 export async function getWorkflowList() {
@@ -779,7 +815,11 @@ export async function getData() {
 export async function ticketsCreatedtoday() {
   var todaysCounter = 0;
   let todaysDate = moment().valueOf();
+<<<<<<< Updated upstream
   ticketList = [];
+=======
+  let ticketList = [];
+>>>>>>> Stashed changes
   let finalTicketList = [];
   const buildingId = localStorage.getItem("idBuilding");
   const listWorkflowResponse = await HTTP.get(
@@ -800,9 +840,19 @@ export async function ticketsCreatedtoday() {
       data
     );
     const ticketIds = todaysTickets.data.map((t) => t.dynamicId);
+<<<<<<< Updated upstream
 
     const readDetailsResponse = await HTTP.post(`building/${buildingId}/ticket/read_details_multiple`, ticketIds);
       readDetailsResponse.data.map((t) => {
+=======
+    for(let i = 0; i < ticketIds.length; i += 50) {
+      const chunk = ticketIds.slice(i, i + 50);
+      const readDetailsResponse = await HTTP.post(`building/${buildingId}/ticket/read_details_multiple`, ticketIds);
+      ticketList.push(...readDetailsResponse.data);
+    }
+
+      ticketList.map((t) => {
+>>>>>>> Stashed changes
           if('error' in t) {
             finalTicketList.push(0)
           }
@@ -821,7 +871,11 @@ export async function ticketsCreated(timestamp, period) {
   var todaysCounter = 0;
   let nowDate = moment(timestamp).valueOf();
   let currentDate = moment().valueOf();
+<<<<<<< Updated upstream
   ticketList = [];
+=======
+  let ticketList = [];
+>>>>>>> Stashed changes
   let finalTicketList = [];
   unit = "";
   let bd, ed;
@@ -883,8 +937,18 @@ export async function ticketsCreated(timestamp, period) {
       data
     );
       const ticketIds = todaysTickets.data.map((t) => t.dynamicId); 
+<<<<<<< Updated upstream
       const readDetailsResponse = await HTTP.post(`building/${buildingId}/ticket/read_details_multiple`, ticketIds);
       readDetailsResponse.data.map((t) => {
+=======
+      for(let i = 0; i < ticketIds.length; i += 50) {
+        const chunk = ticketIds.slice(i, i + 50);
+        const readDetailsResponse = await HTTP.post(`building/${buildingId}/ticket/read_details_multiple`, chunk);
+        ticketList.push(...readDetailsResponse.data);
+      }
+
+      ticketList.map((t) => {
+>>>>>>> Stashed changes
           if('error' in t) {
             finalTicketList.push(0)
           }

@@ -32,11 +32,15 @@
             class="ml-8"
             label="Domaine"
           >
+<<<<<<< Updated upstream
             <!-- <template #label="{ attrs }">
               <label :for="attrs.id" style="font-size: 14px"
                 >Select an item</label
               ></template
             > -->
+=======
+           
+>>>>>>> Stashed changes
 
             <template #item="{ item }">
               <SmallLegend :color="item.color" :text="item.name" :size="14" />
