@@ -107,7 +107,7 @@ export default config = {
             min: null,
             max: 3500,
             name: 'Eau globale',
-            color: '#000',
+            color: '#0000FF',
             unit: 'L',
             stackGroup: '0',
             source: {
