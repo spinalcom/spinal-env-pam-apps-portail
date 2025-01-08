@@ -21,11 +21,24 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
+
+//API VIEWER APP
 import "core-js/stable";
 import { SpinalAPI, API_MODE } from 'global-components/requests/SpinalAPI';
+
+
 SpinalAPI.setHook(window);
 const api = SpinalAPI.getInstance(process.env.SPINAL_API_URL);
-api.setApiMode(API_MODE.PAM_APP);
+const apiMode = process.env.SPINAL_API_MODE as API_MODE;
+
+
+if (apiMode === "BOS_APP" || apiMode === "PAM_APP") {
+  api.setApiMode(API_MODE[apiMode as keyof typeof API_MODE]);
+} else {
+  console.warn(`Invalid API_MODE in .env: ${apiMode}. Defaulting to BOS_APP.`);
+  api.setApiMode(API_MODE.BOS_APP);
+}
+
 
 import Vue from "vue";
 import { vuetifyInit, vuetify } from "./plugins/vuetify";
