@@ -21,10 +21,8 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-// var tk = require('timekeeper');
-// var time = new Date(1656107319743);
 
-// tk.freeze(time);
+import { State } from 'vuex-class';
 import HTTP from "global-components/requests/http-constants";
 HTTP.setApiMode(process.env.SPINAL_API_MODE)
 import dateFormat from 'dateformat';
@@ -36,23 +34,31 @@ const begin = dateFormat(
   new Date(today.getFullYear() - 10, today.getMonth()),
   'dd-mm-yyyy hh:MM:ss'
 );
-console.log('begin', begin);
-console.log('end', end);
 // Contexte spatial du bâtiment(bâtiment, étages et pièces)
 export async function getBuildingAsync() {
   const buildingId = localStorage.getItem('idBuilding');
   const result = await HTTP.get(
-    `geographicContext/space`
+    `/geographicContext/space`
   );
   const body = result.data.body ? result.data.body : result.data;
   return body.children.find((b) => b.type == 'geographicBuilding');
+}
+
+export async function getBuildingAsyncV3() {
+  const buildingId = localStorage.getItem('idBuilding');
+  const result = await HTTP.get(
+    `/building/read`
+  );
+  const body = result.data.body ? result.data.body : result.data;
+  console.log("body", body);
+  return body;
 }
 
 // Points de contrôle
 export async function getNodeControlEndpointsListAsync(nodeId) {
   const buildingId = localStorage.getItem('idBuilding');
   const result = await HTTP.get(
-    `node/${nodeId}/control_endpoint_list`
+    `/node/${nodeId}/control_endpoint_list`
   );
   return result.data[0];
 }
@@ -67,7 +73,7 @@ export async function getControlEndpointstAsync(nodeId, endpoint) {
 export async function getTimeSeriesAsync(endpointId) {
   const buildingId = localStorage.getItem('idBuilding');
   const result = await HTTP.get(
-    `endpoint/${endpointId}/timeSeries/read/${begin}/${end}`
+    `/endpoint/${endpointId}/timeSeries/read/${begin}/${end}`
   );
   return result.data;
 }
@@ -75,14 +81,14 @@ export async function getTimeSeriesAsync(endpointId) {
 // Tickets de maintenances
 export async function getTicketWorkflowAsync() {
   const buildingId = localStorage.getItem('idBuilding');
-  const result = await HTTP.get(`workflow/list`);
+  const result = await HTTP.get(`/workflow/list`);
   return result.data[0];
 }
 
 export async function getWorkflowTreeAsync(workflowId) {
   const buildingId = localStorage.getItem('idBuilding');
   const result = await HTTP.get(
-    `workflow/${workflowId}/tree`
+    `/workflow/${workflowId}/tree`
   );
   return result.data;
 }
@@ -90,9 +96,196 @@ export async function getWorkflowTreeAsync(workflowId) {
 export async function getTicketDetailsAsync(ticketId) {
   const buildingId = localStorage.getItem('idBuilding');
   const result = await HTTP.get(
-    `ticket/${ticketId}/read_details`
+    `/ticket/${ticketId}/read_details`
   );
   return result.data;
+}
+
+/* floors occupancy */
+
+export async function getBuildingFloorsOccupancyAsync(){
+  const buildingId = localStorage.getItem('idBuilding');
+  let body = await getBuildingAsyncV3();
+  let buildingDynamicId = body.dynamicId;
+  let buildingArea = body.area.toFixed(2);
+  let buildingEndpoint = await getControlEndpointstAsync(buildingDynamicId, "Taux d'occupation");
+  let buildingEndpointValue = buildingEndpoint.currentValue.toFixed(2); 
+  let floorsEndpoint = {};
+  let floorsEndpointValues = [];
+  const floorsList = 
+    await HTTP.get(`/floor/list`)
+    .then(async resp => {
+      if (resp.status === 200) {
+        for (let element of resp.data) {
+          floorsEndpoint = await getControlEndpointstAsync(element.dynamicId, "Taux d'occupation")
+          floorsEndpoint.currentValue = floorsEndpoint.currentValue == null ? 
+            floorsEndpoint.currentValue = 0 : 
+            floorsEndpoint.currentValue = floorsEndpoint.currentValue
+          floorsEndpointValues.push({name:element.name, value:floorsEndpoint.currentValue.toFixed(2)})
+          }
+        }
+    })
+  return {floorsEndpointValues:floorsEndpointValues, buildingEndpointValue:buildingEndpointValue, area:buildingArea};
+}
+
+export async function getAreaAndOccupancyByGroup(groupName) {
+  const buildingId = localStorage.getItem('idBuilding');
+  let areaResult = 0;
+  let occupancyResult = 0;
+  let floorOccupancyResult = [];
+  let roomGroupId = undefined;
+  let roomGroupCategoryId = undefined;
+let roomGroupGroupId = undefined;
+  let roomGroupList = await HTTP.get(`/roomsGroup/list`)
+    .then(async resp => {
+      if (resp.status === 200){
+        
+        if (resp.data[0].name === "Contexte de Salles standardisé") {
+          roomGroupId = resp.data[0].dynamicId;
+          //console.log("roomGroupId: ", roomGroupId);
+        }
+      let roomGroupCategories = await HTTP.get(`/roomsGroup/${roomGroupId}/category_list`)
+        .then(async resp => {
+          if (resp.status === 200){
+            
+            let category = resp.data.filter(function getFonction(el) {
+              return el.name === "Fonction";
+            })[0];
+          roomGroupCategoryId = category.dynamicId;
+          //console.log("roomGroupCategoryId: ", roomGroupCategoryId);
+          let groupList = await HTTP.get(`/roomsGroup/${roomGroupId}/category/${roomGroupCategoryId}/group_list`)
+          
+            .then(async resp => {
+              if (resp.status === 200){
+                //console.log(resp);
+                let groupData = resp.data.filter(function getFonction(el) {
+                  return el.name === groupName;
+                })[0];
+                //console.log("groupData : ", groupData);
+              roomGroupGroupId = groupData.dynamicId;
+              //console.log("roomGroupGroupId: ", roomGroupGroupId);
+              let roomsList = await getRoomsGroupListById(
+                roomGroupId,
+                roomGroupCategoryId,
+                roomGroupGroupId
+              );
+              console.log("roomsList: ", roomsList);
+              let dataResult = await getRoomsAreaAndOccupancy(
+                roomsList
+              );
+
+              areaResult = dataResult.roomArea;
+              occupancyResult = dataResult.groupOccupancy;
+              floorOccupancyResult = dataResult.floorOccupancy;
+            }});
+        }});
+    }});
+  return { areaResult, occupancyResult, floorOccupancyResult };
+}
+
+export async function getRoomsAreaAndOccupancy(roomsList) {
+  //console.log("roomsList: ", roomsList);
+  const buildingId = localStorage.getItem('idBuilding');
+  //let arrayTest = initializeFloorArray(this.floorList);
+  let arrayTest = new Array(11).fill(0);
+  let area = 0;
+  let roomGroupOccupancyAverage = 0;
+  let spatialData = undefined;
+  let areaData = undefined;
+  let floorLocation = undefined;
+  let idWithName = [];
+  let floorOccupancyByGroup = [];
+  for (let el of roomsList) {
+    let roomListEl = await HTTP.get(`/room/${el.dynamicId}/read_static_details`)
+    .then(async resp => {
+      if (resp.status === 200){
+        // get spatial data
+        spatialData = resp.data.attributsList.filter(function getFonction(el) {
+          return el.name === "Spatial";
+        })[0];
+        //console.log("spatialData", spatialData);
+        // get floor location in group parents
+        floorLocation = resp.data.groupParents.filter(function getFonction(el) {
+          return el.type === "geographicFloor";
+        })[0];
+
+        // test if an element exists in an array of objects
+        let isFound = idWithName.some(element => {
+          if (element.name === parseInt(floorLocation.name)) {
+            return true;
+          }
+          return false;
+        });
+        if (!isFound) {
+          // if the element not found, the floor value with the room details are pushed
+          idWithName.push({
+            name: parseInt(floorLocation.name),
+            rooms: [{ id: resp.data.dynamicId, occupancyRate: 0 }],
+            floorOccupancy: 0
+          });
+        } else {
+          // if not, the room details are pushed in the right floor
+          for (let elm of idWithName) {
+            if (elm.name == parseInt(floorLocation.name)) {
+              elm.rooms.push({ id: resp.data.dynamicId, occupancyRate: 0 });
+            }
+          }
+        }
+
+      }})
+
+    // get area value from attributes
+    areaData = spatialData.attributs.filter(function getFonction(el) {
+      return el.label === "area";
+    })[0];
+    area += areaData.value;
+  }
+  console.log("areaData", areaData);
+  for (let element of idWithName) {
+    let roomsOccArr = [];
+    for (let room of element.rooms) {
+      let roomOccupancyObj = await getSoloCpAsync(
+        room.id,
+        "Taux d'occupation"
+      );
+      roomGroupOccupancyAverage += roomOccupancyObj.currentValue;
+      room.occupancyRate = roomOccupancyObj.currentValue;
+      roomsOccArr.push(room.occupancyRate);
+    }
+
+    element.floorOccupancy = roomsOccArr.reduce((a, b) => a + b, 0) / roomsOccArr.length;
+    // name : floor, value :  floor occupancy
+    floorOccupancyByGroup.push({
+      name: element.name,
+      value: element.floorOccupancy.toFixed(0)
+    });
+  }
+  // update an array with an other one
+  arrayTest = arrayTest.map(item => {
+    const item2 = floorOccupancyByGroup.find(i2 => i2.name === item.name);
+    return item2 ? { ...item, ...item2 } : item;
+  });
+  roomGroupOccupancyAverage = (roomGroupOccupancyAverage / roomsList.length).toFixed(2);
+
+  return {
+    roomArea: area,
+    groupOccupancy: roomGroupOccupancyAverage,
+    floorOccupancy: arrayTest
+  };
+}
+
+export async function getRoomsGroupListById(contextId, categoryId, groupId) {
+  const buildingId = localStorage.getItem('idBuilding');
+  let dataResult = undefined;
+  let result = await HTTP.get(`/roomsGroup/${contextId}/category/${categoryId}/group/${groupId}/roomList`
+  )
+    .then(resp => {
+      console.log("resp roomList : ", resp);
+      if(resp.status === 200){
+        console.log("resp.data: ", resp.data.datas);
+        dataResult = resp.data;
+    }});
+  return dataResult;
 }
 
 /**
@@ -106,10 +299,11 @@ export async function getBuildingAsyncV2() {
   let body = await getBuildingAsync();
   building.name = body.name;
   building.id = body.dynamicId;
+
   building.area = body.area;
   building.cp = [];
   // requestUrl = `${path}floor/list`;
-  // result = await HTTP.get(`floor_list`);//  await axios.get(requestUrl);
+  // result = await HTTP.get(`/floor_list`);//  await axios.get(requestUrl);
   body = body.children;
   building.children = [];
   body.map((currentFloor) => {
@@ -124,7 +318,7 @@ export async function getBuildingAsyncV2() {
   let promise = building.children.map(async (currentFloor) => {
     // requestUrl = `${path}floor/${currentFloor.id}/room_list`;
     const result = await HTTP.get(
-      `floor/${currentFloor.id}/room_list`
+      `/floor/${currentFloor.id}/room_list`
     );
     body = result.data;
     body.map((currentRoom) => {
@@ -148,7 +342,7 @@ export async function getSoloCpAsync(id, cp) {
   const buildingId = localStorage.getItem('idBuilding');
   // const requestUrl = `${path}node/${id}/control_endpoint_list`;
   const result = await HTTP.get(
-    `node/${id}/control_endpoint_list`
+    `/node/${id}/control_endpoint_list`
   );
   const body = result.data;
   var res;
@@ -218,12 +412,12 @@ export async function getControlEndpointsByNameAsync(cp, building) {
  */
 export async function getContextTreeSpeed(context, path) {
   const buildingId = localStorage.getItem('idBuilding');
-  let result = await HTTP.get(`groupContext/list`);
+  let result = await HTTP.get(`/groupContext/list`);
   const commissioningDynamicId = result.data.find((t) => {
     return t.name == context;
   }).dynamicId;
   result = await HTTP.get(
-    `groupContext/${commissioningDynamicId}/tree`
+    `/groupContext/${commissioningDynamicId}/tree`
   );
   // TODO
   // Make it recursive
@@ -240,75 +434,28 @@ export async function getContextTreeSpeed(context, path) {
   let promises = [];
 
   for (let index = 0; index < result.length; index++) {
-    // a = await (await HTTP.get(`node/${result[index].dynamicId}/control_endpoint_list`)).data.datas[0].endpoints;
+    // a = await (await HTTP.get(`/node/${result[index].dynamicId}/control_endpoint_list`)).data.datas[0].endpoints;
     promises.push(
       HTTP.get(
-        `node/${result[index].dynamicId}/control_endpoint_list`
+        `/node/${result[index].dynamicId}/control_endpoint_list`
       )
     );
   }
-  // a.find(((element, i) => {
-  //   if(element.name=='Convention de nommage'){
-  //     // console.log(a[i].currentValue, 'VS', element.currentValue);
-  //     result[index]['naming'] = element.currentValue;
-  //   }
-  // }
-  // ));
-  //   a.find((element => {if(element.name=='Taux de données en défaut reçues'){result[index]['default'] =  element.currentValue}}));
-  //   a.find((element => {if(element.name=='Taux de disponibilité'){result[index]['availability'] =  element.currentValue}}));
-  //   a.find((element => {if(element.name=='Monitorability'){
-  //     // OK NOK CONVENTION DE NOMMAGE INCORRECTE DONNÉES NON REMONTÉES
-  //     if(element.currentValue<25){
-  //       result[index]['monitorability'] =  'DONNÉES NON REMONTÉES';
-  //       availabilityArray[0]++;
-  //     }
-  //       else if(element.currentValue<50){
-  //         result[index]['monitorability'] =  'CONVENTION DE NOMMAGE INCORRECTE';
-  //         availabilityArray[1]++;
-  //       }
-  //         else if(element.currentValue<75){
-  //           result[index]['monitorability'] =  'NOK';
-  //           availabilityArray[2]++;
-  //         }
-  //           else{
-  //             result[index]['monitorability'] =  'OK';
-  //             availabilityArray[3]++;
-  //           }
-  //   }}));
-
-  // }
-  // result['availabilityArray'] = availabilityArray;
-  // const results = await allProgress(Promise.all(promises),
-  //       (progress) => {
-  //           console.log(`% Done = ${progress.toFixed(2)}`);
-  //       });
-  // console.log(results);
 
   return { availabilityArray: [10, 10, 10, 10] };
 }
 
-// function allProgress(proms, progress_cb) {
-//   let d = 0;
-//   progress_cb(0);
-//   for (const p of proms) {
-//     p.then(()=> {
-//       d ++;
-//       progress_cb( (d * 100) / proms.length );
-//     });
-//   }
-//   return Promise.all(proms);
-// }
 
 export async function getContextTree(context, path) {
   let availabilityArray = [0, 0, 0];
   let namingConventionArray = [0, 0, 0, 0];
   const buildingId = localStorage.getItem('idBuilding');
-  let result = await HTTP.get(`groupContext/list`);
+  let result = await HTTP.get(`/groupContext/list`);
   const commissioningDynamicId = result.data.find((t) => {
     return t.name == context;
   }).dynamicId;
   result = await HTTP.get(
-    `groupContext/${commissioningDynamicId}/tree`
+    `/groupContext/${commissioningDynamicId}/tree`
   );
   // TODO
   // Make it recursive
@@ -327,12 +474,11 @@ export async function getContextTree(context, path) {
   for (let index = 0; index < result.length; index++) {
     a = await (
       await HTTP.get(
-        `node/${result[index].dynamicId}/control_endpoint_list`
+        `/node/${result[index].dynamicId}/control_endpoint_list`
       )
     ).data[0].endpoints;
     a.find((element) => {
       if (element.name == 'Convention de nommage') {
-        // console.log(a[i].currentValue, 'VS', element.currentValue);
         result[index]['naming'] = element.currentValue;
       }
     });

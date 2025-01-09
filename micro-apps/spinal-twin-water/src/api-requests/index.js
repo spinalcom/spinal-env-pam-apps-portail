@@ -27,32 +27,31 @@
 // tk.freeze(time);
 import HTTP from "global-components/requests/http-constants";
 HTTP.setApiMode(process.env.SPINAL_API_MODE)
-import dateFormat from 'dateformat';
+import dateFormat from "dateformat";
 
 // durée de relevé des time séries : 10 ans
 const today = new Date();
-const end = dateFormat(today, 'dd-mm-yyyy hh:MM:ss');
+const end = dateFormat(today, "dd-mm-yyyy hh:MM:ss");
 const begin = dateFormat(
   new Date(today.getFullYear() - 10, today.getMonth()),
-  'dd-mm-yyyy hh:MM:ss'
+  "dd-mm-yyyy hh:MM:ss"
 );
-console.log('begin', begin);
-console.log('end', end);
+
 // Contexte spatial du bâtiment(bâtiment, étages et pièces)
 export async function getBuildingAsync() {
-  const buildingId = localStorage.getItem('idBuilding');
+  const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
-    `geographicContext/space`
+    `/geographicContext/space`
   );
   const body = result.data.body ? result.data.body : result.data;
-  return body.children.find((b) => b.type == 'geographicBuilding');
+  return body.children.find((b) => b.type == "geographicBuilding");
 }
 
 // Points de contrôle
 export async function getNodeControlEndpointsListAsync(nodeId) {
-  const buildingId = localStorage.getItem('idBuilding');
+  const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
-    `node/${nodeId}/control_endpoint_list`
+    `/node/${nodeId}/control_endpoint_list`
   );
   return result.data[0];
 }
@@ -65,32 +64,32 @@ export async function getControlEndpointstAsync(nodeId, endpoint) {
 
 // Time series
 export async function getTimeSeriesAsync(endpointId) {
-  const buildingId = localStorage.getItem('idBuilding');
+  const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
-    `endpoint/${endpointId}/timeSeries/read/${begin}/${end}`
+    `/endpoint/${endpointId}/timeSeries/read/${begin}/${end}`
   );
   return result.data;
 }
 
 // Tickets de maintenances
 export async function getTicketWorkflowAsync() {
-  const buildingId = localStorage.getItem('idBuilding');
-  const result = await HTTP.get(`workflow/list`);
+  const buildingId = localStorage.getItem("idBuilding");
+  const result = await HTTP.get(`/workflow/list`);
   return result.data[0];
 }
 
 export async function getWorkflowTreeAsync(workflowId) {
-  const buildingId = localStorage.getItem('idBuilding');
+  const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
-    `workflow/${workflowId}/tree`
+    `/workflow/${workflowId}/tree`
   );
   return result.data;
 }
 
 export async function getTicketDetailsAsync(ticketId) {
-  const buildingId = localStorage.getItem('idBuilding');
+  const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(
-    `ticket/${ticketId}/read_details`
+    `/ticket/${ticketId}/read_details`
   );
   return result.data;
 }
@@ -101,7 +100,7 @@ export async function getTicketDetailsAsync(ticketId) {
  * @return {Building.<{id: Number, name: String, cp: [], children: Array.<{id: Number, name: String, cp: [], children: Array.<{id: Number, name: String, cp: [],}>}>}>} building
  */
 export async function getBuildingAsyncV2() {
-  const buildingId = localStorage.getItem('idBuilding');
+  const buildingId = localStorage.getItem("idBuilding");
   let building = {};
   let body = await getBuildingAsync();
   building.name = body.name;
@@ -109,7 +108,7 @@ export async function getBuildingAsyncV2() {
   building.area = body.area;
   building.cp = [];
   // requestUrl = `${path}floor/list`;
-  // result = await HTTP.get(`floor_list`);//  await axios.get(requestUrl);
+  // result = await HTTP.get(`/floor_list`);//  await axios.get(requestUrl);
   body = body.children;
   building.children = [];
   body.map((currentFloor) => {
@@ -124,7 +123,7 @@ export async function getBuildingAsyncV2() {
   let promise = building.children.map(async (currentFloor) => {
     // requestUrl = `${path}floor/${currentFloor.id}/room_list`;
     const result = await HTTP.get(
-      `floor/${currentFloor.id}/room_list`
+      `/floor/${currentFloor.id}/room_list`
     );
     body = result.data;
     body.map((currentRoom) => {
@@ -145,10 +144,10 @@ export async function getBuildingAsyncV2() {
 }
 
 export async function getSoloCpAsync(id, cp) {
-  const buildingId = localStorage.getItem('idBuilding');
+  const buildingId = localStorage.getItem("idBuilding");
   // const requestUrl = `${path}node/${id}/control_endpoint_list`;
   const result = await HTTP.get(
-    `node/${id}/control_endpoint_list`
+    `/node/${id}/control_endpoint_list`
   );
   const body = result.data;
   var res;
@@ -174,7 +173,7 @@ export async function getControlEndpointsByNameAsync(cp, building) {
           name: building.name,
           id: building.id,
           currentValue: v.currentValue,
-          floor: '-',
+          floor: "-",
         });
       }
     });
@@ -183,7 +182,7 @@ export async function getControlEndpointsByNameAsync(cp, building) {
       await getSoloCpAsync(building.children[i].id, cp).then(async (v) => {
         if (v) {
           cpTable.data.push({
-            name: '-',
+            name: "-",
             id: building.children[i].id,
             currentValue: v.currentValue,
             floor: building.children[i].name,
@@ -217,22 +216,22 @@ export async function getControlEndpointsByNameAsync(cp, building) {
  * @returns list of the specified tree
  */
 export async function getContextTreeSpeed(context, path) {
-  const buildingId = localStorage.getItem('idBuilding');
-  let result = await HTTP.get(`groupContext/list`);
+  const buildingId = localStorage.getItem("idBuilding");
+  let result = await HTTP.get(`/groupContext/list`);
   const commissioningDynamicId = result.data.find((t) => {
     return t.name == context;
   }).dynamicId;
   result = await HTTP.get(
-    `groupContext/${commissioningDynamicId}/tree`
+    `/groupContext/${commissioningDynamicId}/tree`
   );
   // TODO
   // Make it recursive
   result = result.data.children
     .find((t) => {
-      return t.name == 'Analyse';
+      return t.name == "Analyse";
     })
     .children.find((t) => {
-      return t.name == 'Multicapteurs';
+      return t.name == "Multicapteurs";
     }).children;
   result = result.map((element) => {
     return { dynamicId: element.dynamicId, name: element.name };
@@ -240,10 +239,10 @@ export async function getContextTreeSpeed(context, path) {
   let promises = [];
 
   for (let index = 0; index < result.length; index++) {
-    // a = await (await HTTP.get(`node/${result[index].dynamicId}/control_endpoint_list`)).data.datas[0].endpoints;
+    // a = await (await HTTP.get(`/node/${result[index].dynamicId}/control_endpoint_list`)).data.datas[0].endpoints;
     promises.push(
       HTTP.get(
-        `node/${result[index].dynamicId}/control_endpoint_list`
+        `/node/${result[index].dynamicId}/control_endpoint_list`
       )
     );
   }
@@ -302,22 +301,22 @@ export async function getContextTreeSpeed(context, path) {
 export async function getContextTree(context, path) {
   let availabilityArray = [0, 0, 0];
   let namingConventionArray = [0, 0, 0, 0];
-  const buildingId = localStorage.getItem('idBuilding');
-  let result = await HTTP.get(`groupContext/list`);
+  const buildingId = localStorage.getItem("idBuilding");
+  let result = await HTTP.get(`/groupContext/list`);
   const commissioningDynamicId = result.data.find((t) => {
     return t.name == context;
   }).dynamicId;
   result = await HTTP.get(
-    `groupContext/${commissioningDynamicId}/tree`
+    `/groupContext/${commissioningDynamicId}/tree`
   );
   // TODO
   // Make it recursive
   result = result.data.children
     .find((t) => {
-      return t.name == 'Analyse';
+      return t.name == "Analyse";
     })
     .children.find((t) => {
-      return t.name == 'Multicapteurs';
+      return t.name == "Multicapteurs";
     }).children;
   result = result.map((element) => {
     return { dynamicId: element.dynamicId, name: element.name };
@@ -327,24 +326,24 @@ export async function getContextTree(context, path) {
   for (let index = 0; index < result.length; index++) {
     a = await (
       await HTTP.get(
-        `node/${result[index].dynamicId}/control_endpoint_list`
+        `/node/${result[index].dynamicId}/control_endpoint_list`
       )
     ).data[0].endpoints;
     a.find((element) => {
-      if (element.name == 'Convention de nommage') {
+      if (element.name == "Convention de nommage") {
         // console.log(a[i].currentValue, 'VS', element.currentValue);
-        result[index]['naming'] = element.currentValue;
+        result[index]["naming"] = element.currentValue;
       }
     });
     a.find((element) => {
-      if (element.name == 'Taux de données en défaut reçues') {
-        result[index]['default'] = element.currentValue;
+      if (element.name == "Taux de données en défaut reçues") {
+        result[index]["default"] = element.currentValue;
       }
     });
     a.find((element) => {
-      if (element.name == 'Taux de disponibilité') {
-        result[index]['availability'] = element.currentValue;
-        if (typeof element.currentValue == 'undefined') availabilityArray[1]++;
+      if (element.name == "Taux de disponibilité") {
+        result[index]["availability"] = element.currentValue;
+        if (typeof element.currentValue == "undefined") availabilityArray[1]++;
         else if (element.currentValue < 70) {
           availabilityArray[0]++;
         } else {
@@ -353,26 +352,26 @@ export async function getContextTree(context, path) {
       }
     });
     a.find((element) => {
-      if (element.name == 'Monitorability') {
+      if (element.name == "Monitorability") {
         // OK NOK CONVENTION DE NOMMAGE INCORRECTE DONNÉES NON REMONTÉES
-        result[index]['monitorabilityValue'] = element.currentValue;
+        result[index]["monitorabilityValue"] = element.currentValue;
         if (element.currentValue < 5) {
-          result[index]['monitorability'] = 'DONNÉES NON REMONTÉES';
+          result[index]["monitorability"] = "DONNÉES NON REMONTÉES";
           namingConventionArray[3]++;
         } else if (element.currentValue < 10) {
-          result[index]['monitorability'] = 'CONVENTION DE NOMMAGE INCORRECTE';
+          result[index]["monitorability"] = "CONVENTION DE NOMMAGE INCORRECTE";
           namingConventionArray[2]++;
         } else if (element.currentValue < 20) {
-          result[index]['monitorability'] = 'NOK';
+          result[index]["monitorability"] = "NOK";
           namingConventionArray[1]++;
         } else {
-          result[index]['monitorability'] = 'OK';
+          result[index]["monitorability"] = "OK";
           namingConventionArray[0]++;
         }
       }
     });
   }
-  result['availabilityArray'] = availabilityArray;
-  result['namingConventionArray'] = namingConventionArray;
+  result["availabilityArray"] = availabilityArray;
+  result["namingConventionArray"] = namingConventionArray;
   return result;
 }
