@@ -6,8 +6,8 @@ import fr from 'moment/locale/fr';
 
 export async function getBuilding(cp) {
   const buildingId = localStorage.getItem("idBuilding");
-  const result = await HTTP.get(`building/${buildingId}/building/read`);
-  let cpList = await HTTP.get(`building/${buildingId}/node/${result.data.dynamicId}/control_endpoint_list`);
+  const result = await HTTP.get(`building/read`);
+  let cpList = await HTTP.get(`node/${result.data.dynamicId}/control_endpoint_list`);
   const control_endpoint = cpList.data.find(e => e.profileName === cp.source.building.profileName);
   const endpoint_id = control_endpoint.endpoints.find(e => e.name === cp.name).dynamicId;
   result.data.cp = endpoint_id;
@@ -17,15 +17,15 @@ export async function getBuilding(cp) {
 export async function getFloors(cp) {
   const buildingId = localStorage.getItem('idBuilding');
   // get all floors
-  const result = await HTTP.get(`building/${buildingId}/floor/list`);
+  const result = await HTTP.get(`floor/list`);
   // for each floor get its cp names
   let promises = result.data.map(async (floor) => {
-    let cpList = await HTTP.get(`building/${buildingId}/node/${floor.dynamicId}/control_endpoint_list`);
+    let cpList = await HTTP.get(`node/${floor.dynamicId}/control_endpoint_list`);
     if(cpList.data.length !== 0) {
       const control_endpoint = cpList.data.find(e => e.profileName === cp.source.floor.profileName);
       const endpoint = control_endpoint.endpoints.find(e => e.name === cp.name);
       if (endpoint) {
-        let area = await HTTP.get(`building/${buildingId}/node/${floor.dynamicId}/attributsList`);
+        let area = await HTTP.get(`node/${floor.dynamicId}/attributsList`);
         area = area.data[0].attributs.find(e => e.label === 'area').value;
         floor.area = area;
         floor.cp = endpoint.dynamicId;
@@ -34,7 +34,7 @@ export async function getFloors(cp) {
 
     }
     //  if (endpoint) { 
-    //   let area = await HTTP.get(`building/${buildingId}/node/${floor.dynamicId}/attributsList`);
+    //   let area = await HTTP.get(`node/${floor.dynamicId}/attributsList`);
     //   area = area.data[0].attributs.find(e => e.label === 'area').value;
     //   floor.area = area;
     //   floor.cp = endpoint.dynamicId;
@@ -46,7 +46,7 @@ export async function getFloors(cp) {
     
         // if there is a match add floor to array + area + cp id
         // if (cpList.data[j].endpoints[i].name === cp[0].name) {
-        //   let area = await HTTP.get(`building/${buildingId}/node/${floor.dynamicId}/attributsList`);
+        //   let area = await HTTP.get(`node/${floor.dynamicId}/attributsList`);
         //   area = area.data[0].attributs[area.data[0].attributs.findIndex(e => e.label === 'area')].value;
         //   floor.area = area;
         //   floor.cp = cpList.data[j].endpoints[i].dynamicId;
@@ -63,11 +63,11 @@ async function getArea(space) {
   const buildingId = localStorage.getItem("idBuilding");
 
   if (space.type === 'building') {
-    const result = await HTTP.get(`building/${buildingId}/building/read`);
+    const result = await HTTP.get(`building/read`);
     return +result.data.area;
   }
   else if (space.type === 'floor') {
-    let area = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/attributsList`);
+    let area = await HTTP.get(`node/${space.dynamicId}/attributsList`);
     area = area.data[0].attributs[area.data[0].attributs.findIndex(e => e.label === 'area')].value;
     return +area;
   }
@@ -89,7 +89,7 @@ export async function getData(space, tempo, currentTimestamp, controlEndpoints) 
   let cpList, cpID, timeSeries, prevTimeSeries, prevSumSeries, sumSeries, prevTotRoot, prevAvgRoot;
   try {
 
-    cpList = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/control_endpoint_list`);
+    cpList = await HTTP.get(`node/${space.dynamicId}/control_endpoint_list`);
     
      space.type == "building" ? control_point = cpList.data.find(e => e.profileName === controlEndpoints.source.building.profileName): 
      control_point = cpList.data.find(e => e.profileName === controlEndpoints.source.floor.profileName);
@@ -651,7 +651,7 @@ export async function getTodaysData(space, controlEndpoints) {
   var endOfDay = moment().endOf('day').format('DD-MM-yyyy HH:mm:ss');
   let cpList, cpID, timeSeries, sumSeries, sub;
   for (const controlEndpoint of controlEndpoints) {
-    cpList = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/control_endpoint_list`);
+    cpList = await HTTP.get(`node/${space.dynamicId}/control_endpoint_list`);
     // cpList = cpList.data[1].endpoints;
     // for (let i = 0; i < cpList.length; i++) {
     //   if (cpList[i].name === controlEndpoint.name) {
