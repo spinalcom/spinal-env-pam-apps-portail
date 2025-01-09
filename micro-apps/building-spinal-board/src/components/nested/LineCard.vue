@@ -3,7 +3,10 @@
     style="border-radius: 10px !important;">
     <v-card-title class="card-title pa-3 text-uppercase flex-shrink-1 justify-space-between"
       style="height: fit-content !important ; ">
-      <p class="mb-0">{{ title }} <b>{{ titleDetails }}</b></p>
+      <!-- <p class="mb-0">{{ title }} <b>{{ titleDetails }}</b></p> -->
+       <div style="width: max-content;">
+         <SelectCategory :controls_point="controls_points" :control_value="control_value" @change_endpoint="select_changed_control"/>
+       </div>
       <div class="d-flex align-center mln6" style="position: absolute; right: calc(50% - 55px)">
         <v-icon icon class="pr-3" size="default">mdi-chart-line</v-icon>
         <v-switch @click="$emit('stack', switchValue)" style="margin-top: 1px; padding: 0px;height: 24px;"
@@ -19,9 +22,9 @@
           }}<v-icon icon>mdi-chevron-right</v-icon></v-btn>
       </div>
     </v-card-title>
-    <v-progress-circular style="position: absolute;left: 52.5%; top: 77px;" v-if="lineChartData.datasets.length == 1"
-      :size="25" color="#14202c" indeterminate />
-    <div class="d-flex flex-column flex-grow-1 flex-shrink-1" style="height:0">
+    <div class="d-flex flex-column flex-grow-1 flex-shrink-1" style="height:0; position: relative;">
+    <v-progress-circular style="position: absolute;left: 53.5%; top: 8px; transform: translateX(-50%);" v-if="lineChartData.datasets.length == 1"
+      :size="25" color="#14202c" indeterminate /> 
       <LineChart ref="chart" :key="chartKey" :data="lineChartData" :chart-id="'99'" :options="lineChartOptions"
         class="bar-height" />
     </div>
@@ -31,7 +34,10 @@
 <script>
 import { Line as LineChart } from "vue-chartjs";
 import { Chart } from 'chart.js';
+import SelectCategory from "../SelectCategory.vue";
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, LinearScale, CategoryScale, PointElement, Filler } from 'chart.js';
+import config from '../../config.js'
+
 ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, CategoryScale, PointElement, Filler);
 export default {
   name: "line-card",
@@ -76,13 +82,20 @@ export default {
       type: Array,
       required: true,
     },
+    control_value :{
+      type: Object,
+      required: false
+    }
+ 
   },
   components: {
     LineChart,
+    SelectCategory
   },
   computed: {
     lineChartData() {
       let tempDatasets = this.datasets;
+    
       for (let i = 0; i < this.datasets.length; i++) {
         if (i == 0) {
           tempDatasets[i]['fill'] = false; // dernier élément du tableau
@@ -214,7 +227,7 @@ export default {
               // if (tooltipItem.dataset.label == this.datasets[0].label) {
               //   return ''
               // }
-              let label = ` ${tooltipItem.dataset.label}: ${tooltipItem.raw} ${this.optional.unit}`;
+              let label = ` ${tooltipItem.dataset.label}: ${tooltipItem.raw} ${this.select_control.unit}`;
               return label;
             },
           },
@@ -222,6 +235,7 @@ export default {
 
       };
     },
+  
   },
 
   created() {
@@ -241,8 +255,16 @@ export default {
   data() {
     return {
       chartKey: 0,
-      switchValue: this.stacked
+      switchValue: this.stacked,
+      controls_points: [],
+      select_control: this.$store.state.appDataStore.config_endpoint
     }
+  },
+  mounted(){
+    config.config.forEach((element) => {
+      this.controls_points.push(element)
+    })
+  
   },
   methods: {
     toggleHidden(index) {
@@ -256,6 +278,15 @@ export default {
     },
     updateChart() {
       this.$refs.lineChart.update();
+    },
+    select_changed_control(value) {
+      this.$store.commit('SET_CONFIG', value);
+      
+      this.select_control = value;
+      this.$emit('change_endpoint', this.select_control)
+      
+
+
     }
   }
 };

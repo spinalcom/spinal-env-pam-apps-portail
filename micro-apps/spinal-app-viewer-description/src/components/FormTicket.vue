@@ -20,7 +20,7 @@
   
               <v-select
               class="w-1/3 small-select"
-              
+              style="padding: 10px;"
               v-model="workflowId"
               :items="workflowlist"
               item-text="name"
@@ -34,6 +34,7 @@
             <v-select
             v-model="processId"
             class="w-1/3 small-select"
+            style="padding: 10px;"
             :items="process"
             item-text="name"
             item-value="dynamicId"

@@ -1,4 +1,5 @@
-import { HTTP } from "./http-constants";
+import HTTP from "global-components/requests/http-constants";
+HTTP.setApiMode(process.env.SPINAL_API_MODE)
 import moment from 'moment';
 import fr from 'moment/locale/fr'
 
@@ -37,7 +38,6 @@ function processTimeSeries(timeSeriesbat, label1, period) {
   } else {
     processedTimeSeries1 = timeSeriesbat1;
   }
-
   return processedTimeSeries1
 }
 
@@ -90,30 +90,30 @@ function getPeriodArray(timestamp, period) {
 }
 
 export async function getBuildingName(id_batiment) {
-  let building = await HTTP.get(`/building/${id_batiment}/building/read`);
+  let building = await HTTP.get(`building/read`);
   return building.data.name
 }
 
-export async function getDataBuilding(timestamp, period, buildings, cp, cp_batiment, id_batiment, color) {
+export async function getDataBuilding(timestamp, period, buildings, control_name, endpoint_name, id_batiment, color) {
   const colors1 = ['#ff6384', '#36a2eb', '#4bc0c0', '#ff7b00', '#97BCC7', '#006884'];
   let row1 = {};
   let data1 = [];
   let periodArray1 = getPeriodArray(timestamp, period);
   let colorIndex1 = 0;
+  let endpoint_id = 0;
   let stats1 = { totalArea: 0, buildings: 0, totalConsumption: 0, totalConsumptionSquareMeter: 0 };
-  let surface = await HTTP.get(`/building/${id_batiment}/building/read`);
+  let surface = await HTTP.get(`building/read`);
   let dynamicId = surface.data.dynamicId;
-  lacpList = await HTTP.get(`/building/${id_batiment}/node/${dynamicId}/control_endpoint_list`);
-
-  const floors = await HTTP.get(`/building/${id_batiment}/floor/list`);
+  lacpList = await HTTP.get(`node/${dynamicId}/control_endpoint_list`);
+  const control_point = lacpList.data.find( e => e.profileName === control_name);
+  endpoint_id = control_point.endpoints.find(e => e.name === endpoint_name).dynamicId;
+  // const floors = await HTTP.get(`floor/list`);
   // const floorsInfo = [];
   let label1 = periodArray1[0];
-  cpDynamicId_bat = lacpList.data[0].endpoints.find(e => e.name == cp_batiment).dynamicId;
-  timeSeriesbat = await HTTP.get(`/building/${id_batiment}/endpoint/${cpDynamicId_bat}/timeSeries/read/${periodArray1[1]}/${periodArray1[2]}`);
-
-
+  // cpDynamicId_bat = lacpList.data[0].endpoints.find(e => e.name == endpoint_name).dynamicId;
+  timeSeriesbat = await HTTP.get(`endpoint/${endpoint_id}/timeSeries/read/${periodArray1[1]}/${periodArray1[2]}`);
+  
   let processedTimeSeries1 = processTimeSeries(timeSeriesbat, label1, period);
-
   const rowBat = {
     name: surface.data.name,
     area: parseInt(surface.data.area),
@@ -130,12 +130,12 @@ export async function getDataBuilding(timestamp, period, buildings, cp, cp_batim
   stats1.totalConsumptionSquareMeter += rowBat['squareMeter'];
 
   data1.push(rowBat);
-
+  
   return [label1, data1, stats1, periodArray1[3]];
 }
 
 
-export async function getData(timestamp, period, buildings, cp, cp_batiment, id_batiment, color) {
+export async function getData(timestamp, period, profileName, endpoint_name, cp_batiment, id_batiment, color) {
   const colors1 = ['#ff6384', '#36a2eb', '#4bc0c0', '#ff7b00', '#97BCC7', '#006884'];
   let row1 = {};
   let data1 = [];
@@ -143,16 +143,18 @@ export async function getData(timestamp, period, buildings, cp, cp_batiment, id_
   let periodArray1 = getPeriodArray(timestamp, period);
   let colorIndex1 = 0;
   let stats1 = { totalArea: 0, buildings: 0, totalConsumption: 0, totalConsumptionSquareMeter: 0 };
-  let surface = await HTTP.get(`/building/${id_batiment}/building/read`);
+  let surface = await HTTP.get(`building/read`);
   let dynamicId = surface.data.dynamicId;
-  lacpList = await HTTP.get(`/building/${id_batiment}/node/${dynamicId}/control_endpoint_list`);
-  const floors = await HTTP.get(`/building/${id_batiment}/floor/list`);
+  lacpList = await HTTP.get(`node/${dynamicId}/control_endpoint_list`);
+  const control_point = lacpList.data.find(e => e.profileName === profileName)
+  // const endpoint_id = control_point.endpoints.find(e => e.name === endpoint_name).dynamicId; 
+  const floors = await HTTP.get(`floor/list`);
   let label1 = periodArray1[0];
   cpDynamicId_bat = lacpList.data[0].endpoints.find(e => e.name == cp_batiment).dynamicId;
-  timeSeriesbat = await HTTP.get(`/building/${id_batiment}/endpoint/${cpDynamicId_bat}/timeSeries/read/${periodArray1[1]}/${periodArray1[2]}`);
+  
+  timeSeriesbat = await HTTP.get(`endpoint/${cpDynamicId_bat}/timeSeries/read/${periodArray1[1]}/${periodArray1[2]}`);
 
   let processedTimeSeries1 = processTimeSeries(timeSeriesbat, label1, period);
-
   const rowBat = {
     name: surface.data.name,
     area: parseInt(surface.data.area),
@@ -179,35 +181,47 @@ export async function getData(timestamp, period, buildings, cp, cp_batiment, id_
     i++;
     const floorId = floor.dynamicId;
     const floorName = floor.name;
-    const attributsResponse = await HTTP.get(`/building/${id_batiment}/node/${floorId}/attributslist`);
+    const attributsResponse = await HTTP.get(`node/${floorId}/attributslist`);
+    if(attributsResponse.data.length !== 0){
+
+   
     const attributs = attributsResponse.data[0].attributs;
     const surfaceAttribut = attributs.find(attribut => attribut.label === 'area');
     let floorSurface = surfaceAttribut ? surfaceAttribut.value : '';
-    const cpList = await HTTP.get(`/building/${id_batiment}/node/${floorId}/control_endpoint_list`);
-    const endpoints = cpList.data[0].endpoints;
-    const endpoint = endpoints.find(endpoint => endpoint.name === cp);
-    if (endpoint != undefined) {
+    const cpList = await HTTP.get(`node/${floorId}/control_endpoint_list`);
+    if(cpList.data && cpList.data){ 
+     const  floor_control_point = cpList.data.find(e => e.profileName === profileName);
+     if(floor_control_point && floor_control_point.endpoints){
 
-      timeSeries1 = await HTTP.get(`/building/${id_batiment}/endpoint/${endpoint.dynamicId}/timeSeries/read/${periodArray1[1]}/${periodArray1[2]}`);
-
-      let processedTimeSeries1 = processTimeSeries(timeSeries1, label1, period);
-
-      const saturation = degree % 10 === 0 ? "60%" : "30%";
-      const lightness = degree % 10 === 0 ? "60%" : "55%";
-      const row1 = {
-        name: floor.name,
-        area: parseInt(floorSurface),
-        timeSeries: processedTimeSeries1.slice(),
-        sum: processedTimeSeries1.reduce((a, b) => a + b, 0),
-        squareMeter: processedTimeSeries1.reduce((a, b) => a + b, 0) / floorSurface,
-        color: `hsl(${degree}, ${saturation}, ${lightness})`,
-        dynamicId: floorId,
-        staticId: "5932-6086-9e1a-18506478460",
-      };
-      stats1.buildings++;
-      data1.push(row1);
+       const floor_endpoint_id = floor_control_point.endpoints.find(e => e.name === endpoint_name).dynamicId;
+       timeSeries1 = await HTTP.get(`endpoint/${floor_endpoint_id}/timeSeries/read/${periodArray1[1]}/${periodArray1[2]}`);
+       
+       let processedTimeSeries1 = processTimeSeries(timeSeries1, label1, period);
+       
+       const saturation = degree % 10 === 0 ? "60%" : "30%";
+       const lightness = degree % 10 === 0 ? "60%" : "55%";
+       const row1 = {
+         name: floor.name,
+         area: parseInt(floorSurface),
+         timeSeries: processedTimeSeries1.slice(),
+         sum: processedTimeSeries1.reduce((a, b) => a + b, 0),
+         squareMeter: processedTimeSeries1.reduce((a, b) => a + b, 0) / floorSurface,
+         color: `hsl(${degree}, ${saturation}, ${lightness})`,
+         dynamicId: floorId,
+         staticId: "5932-6086-9e1a-18506478460",
+        };
+        stats1.buildings++;
+        data1.push(row1);
+        
+        // const endpoints = cpList.data[0].endpoints;
+        // const endpoint = endpoints.find(endpoint => endpoint.name === cp);
+        
+      }
     }
+    
+  
   }
+}
 
   stats1.totalArea += parseInt(rowBat['area']);
   stats1.totalConsumption += rowBat['sum'];

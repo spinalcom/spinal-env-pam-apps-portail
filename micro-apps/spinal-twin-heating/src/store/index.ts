@@ -2,7 +2,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 import { setTotalTimeSeries } from "../data-management/numeric-time-series/index.js";
 import { getBuildingAsync } from "../api-requests";
-import config from "../../config.json";
+import config from "../../tsconfig.json";
 const endpoints = config.enpoints;
 Vue.use(Vuex);
 

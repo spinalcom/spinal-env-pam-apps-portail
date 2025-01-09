@@ -178,6 +178,7 @@ class SpaceSelector extends Vue {
   private async openItem(item: ISpaceSelectorItem, index: number) {
     item.isOpen = true;
     item.loading = true;
+    console.log('item', item);
     try {
       const children = await this.GetChildrenFct(item);
       this.buildingStructure.splice(
