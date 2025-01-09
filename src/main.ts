@@ -36,7 +36,7 @@ if (apiMode === "BOS_APP" || apiMode === "PAM_APP") {
   api.setApiMode(API_MODE[apiMode as keyof typeof API_MODE]);
 } else {
   console.warn(`Invalid API_MODE in .env: ${apiMode}. Defaulting to BOS_APP.`);
-  api.setApiMode(API_MODE.BOS_APP);
+  api.setApiMode(API_MODE.PAM_APP);
 }
 
 
