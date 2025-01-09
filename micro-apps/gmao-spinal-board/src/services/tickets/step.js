@@ -19,7 +19,6 @@ async function getSteps(bid, processList) {
 
   const uniqueSteps = new Set();
   stepList.forEach(steps => steps.forEach(step => uniqueSteps.add(step.stepName)));
-  console.log(Array.from(uniqueSteps));
   return stepList.flat();
 }
 

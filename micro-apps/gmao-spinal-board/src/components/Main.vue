@@ -11,6 +11,7 @@
     @resizeStart="resizeStart"
     @resizeEnd="resizeEnd"
     @createTicket="createTicket"
+    @startTicket="resizeStart"
     />
     <YearView v-else-if="temporality.name === 'Année'" :ticketList="ticketList" />
   </div>
@@ -61,7 +62,7 @@ export default {
     resizeStart(task, startDate) {
       this.ticketList = this.ticketList.map((ticket) => {
         if (ticket.ticketId === task.ticketId) {
-          ticket.startDate = startDate;
+          ticket.estimatedStartDate = startDate;
         }
         return ticket;
       });
@@ -91,7 +92,6 @@ export default {
   width: 100%;
   background: linear-gradient(111.34deg, #F8FAFA 0%, #D6E2E6 100%);
 }
-
 .main {
   background: linear-gradient(111.34deg, #F8FAFA 0%, #D6E2E6 100%) !important;
   margin-top: 80px !important;

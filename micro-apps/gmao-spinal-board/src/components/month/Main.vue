@@ -535,7 +535,6 @@ export default {
   display: flex;
   align-items: center; 
   justify-content: center;
-  height: 30px !important;
 }
 .action-icon {
   font-size: 14px !important;

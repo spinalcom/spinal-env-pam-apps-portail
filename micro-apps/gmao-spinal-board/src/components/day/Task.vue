@@ -10,14 +10,14 @@
     @mouseleave="stopListening"
   >
     <div
-      v-if="!task.startDate && task.state === 'ticket' && mouseMoveHandler"
+      v-if="!task.estimatedStartDate && task.state === 'ticket' && mouseMoveHandler"
       :style="[
         { 'left': Math.floor(mouseX / dayWidth) * dayWidth + 'px' },
         { 'height': (taskHeight - 8) + 'px' },
         { 'width': dayWidth + 'px' },
         { 'min-width': dayWidth + 'px' },
       ]"
-      @click="createTicket"
+      @click="startTicket"
       class="hovered-task">
       <v-icon
         :style="[{ 'font-size': fontSize.medium + 'px' }]"
@@ -60,21 +60,20 @@ export default {
   mounted() {
     // client width of the task container
     const taskContainer = this.$refs.wideTask.clientWidth;
-    console.log('Task container width:', taskContainer);
   },
   data: () => ({
     mouseX: null,
     mouseMoveHandler: null,
   }),
   methods: {
-    createTicket() {
+    startTicket() {
       const startClick = Math.floor(this.mouseX / this.dayWidth);
       const startDate = this.start.clone().add(startClick, 'days').startOf('day');
-      const endDate = startDate.clone().endOf('day');
-      this.$emit('createTicket', this.task, startDate, endDate);
+      // const endDate = startDate.clone().endOf('day');
+      this.$emit('startTicket', this.task, startDate);
     },
     startListening() {
-      if (this.task.startDate || this.task.state !== 'ticket') {
+      if (this.task.estimatedStartDate || this.task.state !== 'ticket') {
         return;
       }
 

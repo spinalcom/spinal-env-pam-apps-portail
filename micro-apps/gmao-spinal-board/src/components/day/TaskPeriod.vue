@@ -91,7 +91,7 @@ export default {
       return this.taskWidth + 'px !important';
     },
     locate() {
-      const taskStart = moment(this.task.startDate);
+      const taskStart = moment(this.task.estimatedStartDate);
       return taskStart.diff(this.start, 'days');
     },
     taskWidth() {

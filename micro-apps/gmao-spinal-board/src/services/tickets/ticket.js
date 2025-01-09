@@ -1,5 +1,9 @@
 
 import { HTTP } from '../http-constants';
+import dates from './dates.js';
+import { chunkArray } from './utils.js';
+import config from '../../config.js';
+
 batchSize = 100;
 async function getTickets(bid, stepList) {
   const chunks = chunkArray(stepList, batchSize);
@@ -8,13 +12,13 @@ async function getTickets(bid, stepList) {
     .map(chunk => getMultipleTickets(bid, chunk));
 
   const ticketList = await Promise.all(getTicketsPromises);
-  console.log(ticketList);
   const constructedTickets = constructTickets(ticketList.flat());
 
   const results = await getEndDate(bid, constructedTickets);
   results[3].startDate = null;
   results[3].endDate = null;
   // results[3].endDate = 1681344956543;
+  const filledDates = await dates.getAttributes(bid, results);
   return results;
 }
 
@@ -26,11 +30,14 @@ async function getMultipleTickets(bid, stepList) {
 }
 
 function constructTickets(ticketList) {
-  return ticketList.flatMap(list => 
+  return ticketList.flatMap(list =>
     list.tickets.map(ticket => ({
+      string: null,
       name: ticket.name,
-      startDate: ticket.creationDate,
+      startDate: null,
       endDate: null,
+      estimatedStartDate: null,
+      estimatedEndDate: null,
       status: ticket.step.name,
       workflowId: ticket.workflowId,
       workflowName: ticket.workflowName,
@@ -41,14 +48,6 @@ function constructTickets(ticketList) {
       state: 'ticket',
     }))
   );
-}
-
-function chunkArray(array, size) {
-  const chunks = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-  return chunks;
 }
 
 async function getEndDate(bid, constructed) {

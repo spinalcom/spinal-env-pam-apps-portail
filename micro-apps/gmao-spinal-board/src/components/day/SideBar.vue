@@ -108,16 +108,16 @@
                 {{ ticket.name }}
               </span>
               <div
-                v-if="fallingIn(ticket.startDate)"
+                v-if="fallingIn(ticket.estimatedStartDate)"
                 :style="[
                   { height: (taskHeight - 5) + 'px' },
                 ]"
                 class="goto-ticket"
-                @click="bringDay(ticket, fallingIn(ticket.startDate))">
+                @click="bringDay(ticket, fallingIn(ticket.estimatedStartDate))">
                 <v-icon 
                   :style="[{ 'font-size': fontSize.medium + 'px' }]"
                   class="goto-icon icon">
-                  {{ fallingIn(ticket.startDate) }}
+                  {{ fallingIn(ticket.estimatedStartDate) }}
                 </v-icon>
               </div>
             </div>
@@ -258,12 +258,10 @@ export default {
     },
     bringDay(ticket, positionIconName) {
       if (positionIconName === 'mdi-plus') {
-        console.log('start task');
         const today = moment().startOf('day');
-        const nextDay = moment().endOf('day');
-        ticket.startDate = today;
-        ticket.endDate = nextDay;
-        this.$emit('startTask', ticket);
+        const estimatedStartDate = today;
+        // ticket.endDate = nextDay;
+        this.$emit('startTicket', ticket, estimatedStartDate);
         return;
       }
 

@@ -1,22 +1,30 @@
+
 export default {
   config: {
-    // title: 'Consommation Eau globale',
-    // label: 'Consommation',
-    // labelIndicators: "consommés",
-    // buildingApiUrl: "Eau globale",
-    // floorApiUrl: "Eau sanitaire",
-    // unit: 'L',
-    // color: '#14202c',
-    bubbleColor: 'blue',
-    titleDash1: 'DASHBOARD DE  COMPARAISON',
-    titleDash2: 'DASHBOARD DE  COMPARAISON 2',
-    cp1_batiment: { name: "Eclairage", color: 'orange', units:'' , type:'somme' },
-    cp2_batiment: { name: 'Energie globale', color: 'blue' , units:'', type:'somme'},
-    seuilBubble : 1,
-    bubbleSize : 1,
-    isScatter : false,
-    lineRegression : false
+    steps: [
+      {
+        name: 'Attente de lect.avant Execution',
+        icon: 'mdi-clock',
+        defaultColor: '#c4c4c4',
+      },
+      {
+        name: 'Réalisation partielle',
+        icon: 'mdi-progress-helper',
+        defaultColor: '#c4c4c4',
+        start: true,
+      },
+      {
+        name: 'Clôturée',
+        icon: 'mdi-check-circle',
+        defaultColor: '#c4c4c4',
+        end: true,
+      },
+      {
+        name: 'Archivée',
+        icon: 'mdi-archive',
+        defaultColor: '#c4c4c4',
+      },
+    ],
   },
-
-
 }
+

@@ -21,6 +21,7 @@
       :dayWidth="dayWidth"
       :taskHeight="taskHeight"
       :fontSize="fontSize"
+      @startTask="startTicket"
       @bringDay="bringDay"
       @resizedSideBar="resizedSideBar"
       @goto="goto"
@@ -41,7 +42,7 @@
       @resizeEnd="resizeEnd"
       @showTicketDetails="showTicketDetails"
       @resetTaskDetails="$emit('resetTaskDetails')"
-      @createTicket="(task, startDate, endDate) => $emit('createTicket', task, startDate, endDate)"
+      @startTicket="startTicket"
       class="task-container"
       />
     <div v-for="(offset, index) in weekLines"
@@ -57,6 +58,7 @@
 </template>
 
 <script>
+import dates from '../../services/tickets/dates.js';
 import SideBar from './SideBar';
 import TodayMarker from './TodayMarker';
 import Task from './Task';
@@ -113,7 +115,6 @@ export default {
       stepNames.add(ticket.status);
     });
     const stepList = Array.from(stepNames);
-    console.log(stepList);
     this.calculateHeight();
   },
   methods: {
@@ -147,6 +148,10 @@ export default {
       const taskLength = this.ticketList.length;
       this.initialHeight = workflowLength + processLength + taskLength;
       this.$emit('planHeight', this.initialHeight * this.taskHeight);
+    },
+    async startTicket(task, startDate) {
+      this.$emit('startTicket', task, startDate);
+      await dates.setEstimatedStart(task.ticketId, task.estimatedStartDate);
     },
   },
   watch: {

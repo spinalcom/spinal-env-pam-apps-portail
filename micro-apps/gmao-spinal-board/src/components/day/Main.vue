@@ -7,7 +7,7 @@
       @resetTaskDetails="selectedTaskDetails = null"
       />
     <div class="action-bar">
-      <div class="action-group">
+      <div class="icon-action-group">
         <v-icon class="action-icon icon" @click="verticalScroll('left')">mdi-chevron-left</v-icon>
         <v-icon class="action-icon icon" @click="verticalScroll('right')">mdi-chevron-right</v-icon>
       </div>
@@ -27,9 +27,27 @@
             ></v-slider>
         <v-icon class="action-icon icon" @click="zoomAction('in')">mdi-magnify-plus-outline</v-icon>
       </div>
-      <div class="action-button pointer-hover" @click="bringToday()">
+      <div class="action-group action-button pointer-hover" @click="bringToday()">
         Aujourd'hui
       </div>
+
+      <v-menu transition="slide-y-transition" bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <div class="action-group" v-bind="attrs" v-on="on">
+            <v-icon class="action-icon icon">mdi-calendar-blank-outline</v-icon>
+            Champs de date
+          </div>
+        </template>
+        <v-list>
+          <v-list-item
+            v-for="(item, i) in items"
+            :key="i"
+            >
+            <v-list-item-title>{{ item.title }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+
       <div class="action-group">
         <v-icon class="action-icon icon">mdi-sort</v-icon>
         Trier
@@ -44,7 +62,7 @@
       { 'width': planWidth + dayWidth + 'px' },
       { 'height': planHeight + (taskHeight * 2) + 'px' },
       { 'min-height': planHeight + (taskHeight * 2) + 'px' },
-    ]" class="plan">
+      ]" class="plan">
 
       <div 
         :style="[
@@ -112,6 +130,7 @@
           @resizeStart="(task, startDate) => $emit('resizeStart', task, startDate)"
           @resizeEnd="(task, endDate) => $emit('resizeEnd', task, endDate)"
           @showTicketDetails="showTicketDetails"
+          @startTicket="(task, startDate) => $emit('startTicket', task, startDate)"
           @createTicket="(task, startDate, endDate) => $emit('createTicket', task, startDate, endDate)"
           />
       </div>
@@ -133,6 +152,12 @@ export default {
     TaskDetails,
   },
   data: () => ({
+    items: [
+      { title: 'Click Me' },
+      { title: 'Click Me' },
+      { title: 'Click Me' },
+      { title: 'Click Me 2' },
+    ],
     selectedTaskDetails: null,
     isScrolling: false,
     currentMarker: null,
@@ -537,7 +562,7 @@ export default {
   position: fixed;
   flex-direction: row-reverse;
   align-items: center; 
-  gap: 20px;
+  gap: 10px;
   padding: 0 10px;
   right: 17px;
   height: 30px;
@@ -546,17 +571,32 @@ export default {
   font-size: 12px;
   letter-spacing: 1.1px;
 }
-.action-group {
+.icon-action-group {
   display: flex;
   align-items: center; 
   justify-content: center;
   gap: 5px;
 }
+.icon-action-group:hover {
+  cursor: pointer;
+}
+.action-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 5px;
+  gap: 5px;
+  transition: all 0.1s;
+}
+.action-group:hover {
+  cursor: pointer;
+  background: #d9d9d9;
+}
 .action-button {
   display: flex;
   align-items: center; 
   justify-content: center;
-  height: 30px !important;
 }
 .action-icon {
   font-size: 14px !important;

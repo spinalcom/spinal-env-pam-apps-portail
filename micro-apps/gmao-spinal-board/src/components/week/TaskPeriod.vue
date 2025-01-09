@@ -86,10 +86,6 @@ export default {
       return moment(time).endOf('day');
     },
     showTicketDetails() {
-      console.log('Start:', this.setToStartOfDay(this.task.startDate).format('DD-MM-YYYY'));
-      console.log('Start:', this.task.startDate);
-      console.log('End:', this.setToStartOfDay(this.task.endDate).format('DD-MM-YYYY'));
-      console.log('Start:', this.task.endDate);
     }
   },
 }
