@@ -35,7 +35,7 @@ const apiMode = process.env.SPINAL_API_MODE as API_MODE;
 if (apiMode === "BOS_APP" || apiMode === "PAM_APP") {
   api.setApiMode(API_MODE[apiMode as keyof typeof API_MODE]);
 } else {
-  console.warn(`Invalid API_MODE in .env: ${apiMode}. Defaulting to BOS_APP.`);
+  console.warn(`Invalid MODE in .env: ${apiMode}. Defaulting to PAM_APP.`);
   api.setApiMode(API_MODE.PAM_APP);
 }
 

@@ -148,6 +148,8 @@ class App extends Vue {
     };
     const datas = Array.isArray(item) ? item : [item];
     for (const data of datas) {
+      console.log( 'aaaaaaaaaaaaaaaaaa');
+      
       res.id.add(data.dynamicId!);
     }
     return {
