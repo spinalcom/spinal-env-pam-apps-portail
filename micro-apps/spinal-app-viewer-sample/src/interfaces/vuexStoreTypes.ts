@@ -25,7 +25,7 @@
 import { ActionContext } from "vuex";
 import { MutationsAppData } from "../services/store/appDataStore/mutations";
 import type { StateAppData } from "../services/store/appDataStore/state";
-import { INodeItem } from "../interfaces/INodeItem";
+import { INodeItem } from "./INodeItem";
 
 export type AugmentedActionContextAppData = {
 	commit<K extends keyof MutationsAppData>(key: K, payload: Parameters<MutationsAppData[K]>[1]): ReturnType<MutationsAppData[K]>;
@@ -51,7 +51,8 @@ export enum ActionTypes {
 	ADD_SPRITES = "ADD_SPRITES",
 	ADD_COMPONENT_AS_SPRITES = "ADD_COMPONENT_AS_SPRITES",
 	REMOVE_ALL_SPRITES = "REMOVE_ALL_SPRITES",
-	SELECT_SPRITES = "SELECT_SPRITES"
+	SELECT_SPRITES = "SELECT_SPRITES",
+	GET_BUILDING_INFO = "GET_BUILDING_INFO"
 }
 
 export type TFctViewerIteract = (stateContext: AugmentedActionContextAppData, payload: { buildingId: string; id: number | number[] }) => Promise<void>;

@@ -24,6 +24,7 @@
 
 import "./polyfills";
 import { SpinalAPI } from "./services/spinalAPI/SpinalAPI";
+SpinalAPI.setHook(window.parent);
 // setup SpinalAPI
 SpinalAPI.getInstance(process.env.SPINAL_API_URL);
 import Vue from "vue";

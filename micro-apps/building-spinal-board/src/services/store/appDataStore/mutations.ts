@@ -31,6 +31,7 @@ import type { IGetAllBuildingsRes } from 'src/interfaces/IGetAllBuildingsRes';
 import { IViewInfoItemRes } from 'src/services/spinalAPI/GeographicContext/getViewInfo';
 import type { MutationTree } from 'vuex';
 import type { StateAppData } from './state';
+import { set } from 'vue/types/umd';
 
 export enum MutationTypes {
   SET_BUILDINGS = 'SET_BUILDINGS',
@@ -39,6 +40,7 @@ export enum MutationTypes {
   SET_ROOMS = 'SET_ROOMS',
   SET_EQUIPMENTS = 'SET_EQUIPMENTS',
   SET_VIEWINFO = 'SET_VIEWINFO',
+  SET_CONFIG = 'SET_CONFIG',
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -59,6 +61,11 @@ export type MutationsAppData<S = StateAppData> = {
     state: S,
     payload: { id: number; items: IEquipmentItem[] }
   ): void;
+  [MutationTypes.SET_CONFIG](
+    state: S,
+    payload: any
+  ): void;
+
 
 };
 
@@ -93,4 +100,14 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
   ): void {
     state.roomBimObj[id] = items;
   },
+  [MutationTypes.SET_CONFIG](
+    state: StateAppData,
+    payload: any
+  ): void {
+    state.config_endpoint = payload;
+  },
 };
+
+
+
+

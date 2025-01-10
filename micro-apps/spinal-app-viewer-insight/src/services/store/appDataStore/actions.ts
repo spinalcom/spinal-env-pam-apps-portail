@@ -34,7 +34,8 @@ import {
   getFloors,
   getRooms,
   getRoomsRefMultiple,
-  getBuilding
+  getBuilding,
+  getBuildingInfo
 } from "../../spinalAPI/GeographicContext/geographicContext";
 import type {
   IEquipmentItem,
@@ -122,6 +123,17 @@ export const actions = {
     ]!.next();
     return building.value;
   },
+
+  async [ActionTypes.GET_BUILDING_INFO]({ commit }: AugmentedActionContextAppData, { buildingId }: { buildingId: string; }): Promise<any> {
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getBuildingInfo(buildingId);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
 
   async [ActionTypes.GET_BOS_BUILDING](
     { commit, state }: AugmentedActionContextAppData,

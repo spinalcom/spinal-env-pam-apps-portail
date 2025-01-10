@@ -87,7 +87,7 @@ with this file. If not, see
 import { Prop, Vue, Watch } from "vue-property-decorator";
 import { PAGE_STATES } from "../../interfaces/pageStates";
 import Component from "vue-class-component";
-import SpinalTable from "../../components/component-test/SpinalTable.vue"
+import SpinalTable from "../component-test/SpinalTable.vue"
 import { IConfig } from "../../interfaces/IConfig";
 import { ISpaceSelectorItem } from "global-components";
 import { ActionTypes } from "../../interfaces/vuexStoreTypes";
@@ -158,13 +158,7 @@ class dataSideApp extends Vue {
     }
 
     if (payload.listType == "grp")
-      // payload.value.forEach(element => {
-      //   this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: element});
-      // });
-
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: payload.value });
-
-
 
     await this.retriveData();
   }
@@ -188,7 +182,7 @@ class dataSideApp extends Vue {
 
     try {
       const buildingId = localStorage.getItem("idBuilding");
-      const patrimoineId = JSON.parse(localStorage.getItem("patrimoine")).id;
+      const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
       const promises = [
         this.$store.dispatch(actionType, dispatchObject),
       ];
@@ -204,7 +198,6 @@ class dataSideApp extends Vue {
 
   async putAllFiltredData(allFilteredData) {
     this.allFilteredData = allFilteredData
-    // console.log('TEST ,,');
 
     setTimeout(() => {
       this.watchData(allFilteredData, 'AllFiltredData');
@@ -215,7 +208,6 @@ class dataSideApp extends Vue {
   selectDataView(item) {
     this.$emit("clickOnDataView", item);
   }
-
 
   updateComponentProp(updatedValue) {
     this.selectedItem2 = updatedValue;

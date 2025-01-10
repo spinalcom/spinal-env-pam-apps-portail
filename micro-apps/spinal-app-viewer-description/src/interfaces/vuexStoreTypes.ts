@@ -80,6 +80,10 @@ export enum ActionTypes {
 	GET_CATEGORIES_LIST = "GET_CATEGORIES_LIST",
 	ADD_ATTRIBUT = "ADD_ATTRIBUT",
 	DELETE_FILE = "DELETE_FILE",
+	DELETE_ATTRIBUT = 'DELETE_ATTRIBUT',
+	DELETE_CATE_ATTRIBUT = 'DELETE_CATE_ATTRIBUT',
+	UPDATE_CATE_ATTRIBUT = 'UPDATE_CATE_ATTRIBUT',
+	UPDATE_ATTRIBUT = 'UPDATE_ATTRIBUT',
 }
 
 export type TFctViewerIteract = (stateContext: AugmentedActionContextAppData, payload: { buildingId: string; id: number | number[] }) => Promise<void>;

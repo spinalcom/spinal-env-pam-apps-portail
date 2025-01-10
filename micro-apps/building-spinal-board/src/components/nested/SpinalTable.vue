@@ -16,11 +16,8 @@
 
     
       <template class="ligne" v-slot:[`item.name`]="{ item }">
-        <SmallLegend :size="14" :color="item.color" :text="item.name" />
+        <SmallLegend :size="14" :color="context[0].name === item.name ? '#14202C' :   item.color" :text="item.name" />
         <!-- <div class="font-table">{{item.name}}</div> -->
-        <div class="ml-1" style="font-size: 9px;">
-          {{ item === context[0] ? '('+reference[0]+')' : '('+reference[1]+')' }}</div>
-        
       </template>
       <template v-slot:[`item.surface`]="{ item }">
         <span class="text">{{ item.area.toFixed(2) }} m²</span>
@@ -105,16 +102,18 @@ export default {
     dynamicHeaders() {
       let dynamicText = this.temporality.name.toLowerCase();
       return this.headers.map(header => {
-        if (header.text == this.label)
+        if (header.text == this.label) {
           header.text = header.text + ' ' + dynamicText;
-        else if (header.text == 'square')
+        } else if (header.text == 'square') {
           header.text = this.label + ' ' + dynamicText + ' au m²';
+        }
         return header;
       });
     }
   },
   mounted() {
     this.headers[2].text = this.label;
+    
   }
 }
 </script>

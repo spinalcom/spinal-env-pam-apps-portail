@@ -25,6 +25,7 @@
 import Vue from 'vue'
 import App from './App.vue'
 import { store } from './services/store';
+import storeconfig  from './services/store/StoreConfig';
 import vuetify from './plugins/vuetify'
 import 'vuetify/dist/vuetify.min.css'
 import '@mdi/font/css/materialdesignicons.css'

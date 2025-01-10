@@ -26,6 +26,30 @@ import type { IEquipmentItem, IZoneItem } from 'src/components/SpaceSelector';
 import type { IViewInfoItemRes } from 'src/services/spinalAPI/GeographicContext/getViewInfo';
 import type { IGetAllBuildingsRes } from '../../../interfaces/IGetAllBuildingsRes';
 import { defaultZoneSelected } from './utils/defaultZoneSelected';
+import  config  from '../../../config.js';
+
+// export interface StateStoreConfig{
+//   lighting: {
+//     title: string,
+//     label: string,
+//     labelIndicators:string,
+//     buildingApiUrl: string,
+//     floorApiUrl: string,
+//     unit: string,
+//     color:string,
+//   },
+//   sanitary_water: {
+//     title: string,
+//     label: string,
+//     labelIndicators:string,
+//     buildingApiUrl: string,
+//     floorApiUrl: string,
+//     unit: string,
+//     color:string,
+//   }
+// }
+
+
 
 export type StateAppData = typeof state;
 export const state = {
@@ -34,4 +58,5 @@ export const state = {
   floors: {} as Record<string, IZoneItem[]>,
   rooms: {} as Record<number, IZoneItem[]>,
   roomBimObj: {} as Record<number, IEquipmentItem[]>,
+  config_endpoint: config.config[0],
 };

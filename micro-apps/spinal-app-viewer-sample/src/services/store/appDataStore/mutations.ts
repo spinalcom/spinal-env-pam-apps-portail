@@ -24,7 +24,7 @@
 
 import type { IEquipmentItem, IZoneItem, ISpaceSelectorItem } from "../../../../../../global-components/SpaceSelector";
 import type { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
-import { IViewInfoItemRes } from "../../../services/spinalAPI/GeographicContext/getViewInfo";
+import { IViewInfoItemRes } from "../../spinalAPI/GeographicContext/getViewInfo";
 import type { MutationTree } from "vuex";
 import type { StateAppData } from "./state";
 import { stat } from "fs";
