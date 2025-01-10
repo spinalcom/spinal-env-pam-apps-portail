@@ -102,8 +102,9 @@
     <!-- LE DATA TABLE -->
     <!-- items = filtred items / headers = headers / contexts = global items / selection = items du select / -->
 
-    
-    <div v-if="vSelectedTab === 'Equipements'"
+    <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
+
+    <div v-show="vSelectedTab === 'Equipements'"
       style="padding: 2px;"
       class="scrollable-table-container"
     >
@@ -174,37 +175,42 @@
     </div>
 
     <!-- ONGLET Documentation -->
-    <div v-if="vSelectedTab == 'Documentation'" class="scrollable-content">
+    <div v-if="vSelectedTab == 'Documentation'" class="scrollable-content"
+    style="display: flex; flex-direction: column; overflow: hidden !important; overflow-y: auto !important ;">
 
-      <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
+      
       <v-row style="padding: 20px;">
         <AddBtn @open-dialog="ShowFormDoc" />
       </v-row>
       <FormDoc :isDialogOpen="show_formdoc" @close-dialog="ShowFormDoc" @add-doc="showAlert"
                :referenceid="this.currentTargetItemId" />
+
       <div v-if="vSelectItemDocumentation && vSelectItemDocumentation.length > 0">
+        <div style="width: 100%; flex-direction: column;">
         <div class="blocInformation">
           <div
             v-for="(item, index) in vSelectItemDocumentation"
             :key="index"
-            :class="['inventory-item', { 'inventory-item-image': item.fileUrl }]"
+            style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative;"  
           >
-            <li>{{ item.Name }}</li>
-            <!-- Display the image if fileUrl exists -->
-            <img
-              v-if="item.fileUrl"
-              :src="item.fileUrl"
-              alt="Preview"
-              class="item-preview-image"
-            />
-            <v-icon
-              @click="downloadFile(item.dynamicId, item.Name)"
-              style="cursor: pointer; font-size: 40px"
-              color="green"
-            >
-              mdi-download-box
-            </v-icon>
+          <div class="inventory-item"
+                    style="width: 100%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
+
+                    <li style="list-style: none;">
+                      <v-icon :style="{ 'color': getIcon(item.Name).color }">{{ getIcon(item.Name).name }}</v-icon>
+
+                      {{ item.Name }}
+
+                    </li>
+
+                  </div>
+            
+            <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
+                      @showDoc="showDoc" @downloadFile="downloadFile"
+                      @changeOverflowItemMenu="changeOverflowItemMenu">
+            </OverMenu>
           </div>
+        </div>
         </div>
       </div>
       <div v-else>
@@ -214,7 +220,6 @@
 
     <!-- ONGLET TICKETS -->
     <div v-if="vSelectedTab == 'Tickets'" class="scrollable-content">
-      <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
       <AddTicketBtn @open-dialog="ShowDialog()" />
       <FormTicket :value="showFormTicket" @close-dialog="ShowDialog()" :selectedZone="currentTargetItemId"
               @add-ticket="showAlert" />
@@ -307,8 +312,6 @@
         <p>Aucune note disponible.</p>
       </div>
     </div>
-
-    
 
     <!-- ONGLET INDICATEUR (controleEndpoint) et Points de mesures -->
     <div v-if="vSelectedTab == 'Indicateur' || vSelectedTab =='Points de mesures'" style="display: flex">
@@ -468,11 +471,17 @@
     </div>
     </div>
 
+    <div v-if="vSelectedTab == 'Radar'" class="scrollable-content">
+      <Radar :data="radarData" :options="radarOptions" />
+    </div>
+
     
   </div>
 </template>
 
 <script>
+import { Chart, RadarController, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend } from 'chart.js';
+Chart.register(RadarController, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 import SmallLegend from './SmallLegend.vue';
 import { MutationTypes } from '../../services/store/appDataStore/mutations';
 import SpinalComparaison from './SpinalComparaison.vue';
@@ -491,7 +500,9 @@ import getIcon from "../../services/function/getIcon";
 import Loader from "./Loader.vue";
 import FormTicket from './FormTicket.vue';
 import AddTicketBtn from './ButtonAddticket.vue';
-
+import OverMenu from './OverMenu.vue';
+import getIcon from "../../services/function/getIcon";
+import { Radar } from 'vue-chartjs';
 export default {
   components: {
     SmallLegend,
@@ -505,7 +516,9 @@ export default {
     AddBtn,
     Loader,
     FormTicket,
-    AddTicketBtn
+    AddTicketBtn,
+    OverMenu,
+    Radar
   },
   props: [
     'contexts',
@@ -547,6 +560,7 @@ export default {
       'Tickets',
       'Indicateur',
       'Points de mesures',
+      'Radar'
     ],
     vSelectedTab: 'Equipements',
     vSelectItemAttributes: [],
@@ -571,7 +585,30 @@ export default {
     alert_ind : '',
     type_alert : '',
     alert : false,
-
+    itemOverflowMenu : null,
+    getIcon : getIcon,
+  radarOptions: {
+  responsive: true,
+  scales: {
+    r: {
+      angleLines: { display: true }, // Affiche les lignes des angles
+      suggestedMin: 0, // Valeur minimale
+      suggestedMax: 100, // Valeur maximale
+    },
+  },
+  plugins: {
+    legend: {
+      position: 'top', // Position de la légende
+    },
+    tooltip: {
+      callbacks: {
+        label: function (context) {
+          return `${context.dataset.label}: ${context.raw}`;
+        },
+      },
+    },
+  },
+    },
     }),
   mounted() {
     this.timeactuelle = this.getFormattedDateFromTemporalData();
@@ -769,9 +806,9 @@ export default {
       }
     },
 
-    temporality() {
-      return this.$store.state.appDataStore.temporalitySelected.name;
-    },
+    // temporality() {
+    //   return this.$store.state.appDataStore.temporalitySelected.name;
+    // },
 
     currentTargetItemId() {
       let dynamicId = null;
@@ -795,7 +832,38 @@ export default {
         dynamicId = found.dynamicId;
       }
       return dynamicId;
-    }
+    },
+
+    radarData(){
+      console.log('selection', this.filteredContextsV);
+
+  // Récupérer les groupes uniques et compter les équipements par groupe
+  const groupCounts = this.filteredContextsV.reduce((acc, item) => {
+    acc[item.group] = (acc[item.group] || 0) + 1;
+    return acc;
+  }, {});
+
+  console.log('groupCounts', groupCounts);
+
+  // Extraire les groupes (labels) et les valeurs (counts)
+  const labels = Object.keys(groupCounts); // Les noms des groupes
+  const data = Object.values(groupCounts); // Le nombre d'équipements par groupe
+
+  return {
+    labels, // Les groupes uniques
+    datasets: [
+      {
+        label: 'Nombre d\'équipements par groupe',
+        data, // Les valeurs correspondant à chaque groupe
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1,
+      },
+    ],
+  };
+}
+
+
   },
 
   methods: {
@@ -1421,12 +1489,34 @@ export default {
       }));
     },
 
+    changeOverflowItemMenu(index) {
+    console.log('index: ', index);
+    const latItem = this.itemOverflowMenu
+    if (latItem === index) {
+      this.itemOverflowMenu = null
+    } else {
+      this.itemOverflowMenu = index
+    }
+    },
+
     ShowDialog() {
     this.showFormTicket = !this.showFormTicket;
     },
     ShowFormDoc() {
       this.show_formdoc = !this.show_formdoc;
     },
+    showDoc(referencedId, nameFile) {
+    if (!this.showDocvalue) {
+      this.$emit('buttonClicked', 'vueDoc')
+    }
+    this.nameFile = nameFile
+    this.idDoc = referencedId
+    this.showDocvalue = true;
+    },
+    closeOverMenu() {
+    this.itemOverflowMenu = null
+    },
+
     async showAlert(v) {
     if (v.status === 'success') {
       this.alert = true
@@ -2145,31 +2235,11 @@ td {
   flex-wrap: wrap;
   margin-top: 5px;
 }
-/* Inventory item with an image */
-.inventory-item.inventory-item-image {
-  width: 74%; /* Make it take full width for better preview */
-  height: auto; /* Adjust height dynamically */
-  flex-direction: column; /* Stack content vertically */
-  align-items: flex-start; /* Align text and image */
-  /* box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.1); */
-  border-radius: 4px;
-  background-color: white;
-}
 
-/* Preview image inside an inventory item */
-.item-preview-image {
-  max-width: 100%;
-  max-height: 200px; /* Limit height for large images */
-  margin-top: 10px;
-  border-radius: 4px; /* Add a slight border radius for aesthetics */
-  object-fit: contain; /* Maintain aspect ratio */
-}
-
-/* Inventory item without an image remains the same */
 .inventory-item {
-  width: 74%; /* Keep as-is for non-image items */
+  width: 48%;
   margin: 5px;
-  height: 45px;
+  height: 18px;
   display: flex;
   align-items: center;
   box-sizing: border-box;
@@ -2218,6 +2288,13 @@ td {
   display: flex;
 }
 
+.item-preview-image {
+  max-width: 100%;
+  max-height: 200px; /* Limit height for large images */
+  margin-top: 10px;
+  border-radius: 4px; /* Add a slight border radius for aesthetics */
+  object-fit: contain; /* Maintain aspect ratio */
+}
 
 ::v-deep .scrollable-content {
   padding-right: 5px; /* Adds space on the right to simulate a margin */

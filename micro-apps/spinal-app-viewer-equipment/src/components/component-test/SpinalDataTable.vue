@@ -154,6 +154,7 @@
     <!-- Other Columns -->
     <td v-for="(header, index) in headers" 
         :key="`td-${index}-${item.id}`" 
+        style="text-align: center;"
         :class="{ colortd: selected_id === item.dynamicId }" 
         v-if="header.value !== 'name'">
       <template v-if="isUrl(getAttributeValue(item, header.value))">
@@ -324,6 +325,7 @@ export default {
         });
       }
     },
+
   },
 };
 </script>

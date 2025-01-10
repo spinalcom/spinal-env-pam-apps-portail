@@ -397,7 +397,7 @@ export default {
 .menu {
   overflow: visible;
   position: fixed;
-  top: 40%;
+  top: 20%;
   left: 0;
 }
 
