@@ -38,18 +38,18 @@
             </div>
             <!-- Affichage des données du fichier excel -->
              <div v-if="show[0].excel.show" class="excel-vue">
-                <table>
-                    <thead>
-                        <tr>
-                            <th v-for="header in headersTableExcel">{{ header }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="row in tableExcelData">
-                            <td v-for="cell in row">{{ cell }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <v-data-table
+                    :headers="headersTableExcel"
+                    :items="tableExcelData"
+                    class="elevation-1 header-excel"
+                    loader-height="2"
+                    dense
+                    :loading="loading"
+                    loading-text="Chargement des données"
+                
+                >
+                    </v-data-table>
+          
              </div>
              <div v-if="show[0].movie.show" class="movie-vue">
                     <video  :src="show[0].movie.url" controls > 
@@ -122,8 +122,9 @@ const getToolbar = () => ({
                 numPages: 0,
                 curentpage: 1,
                 loader: true,
-                headersTableExcel: [],
+                headersTableExcel: [{}],
                 tableExcelData: [],
+                loading: true,
                 show :[ {
                     pdf: {
                         show: false,
@@ -236,12 +237,20 @@ const getToolbar = () => ({
                         
                         const load = utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]])
                        load.forEach((row, index) => {
-                            if(index === 0){
-                                 this.headersTableExcel = Object.keys(row)
-                            }
-                            this.tableExcelData.push(Object.values(row))
+                        if(index === 0) {
+                           const headers = Object.keys(row)
+                            headers.forEach((header) => {
+                                 this.headersTableExcel.push({
+                                    text: header,
+                                    value: header,
+                                 })
+                            })
+
+                        }
+                         this.tableExcelData.push(row)
+                         this.loading = false;
                         })
-                       
+                       console.log(this.headersTableExcel)
 
                     }
                })
@@ -404,6 +413,10 @@ const getToolbar = () => ({
         border-radius: 10px;
         font-weight: 700;
         background-color: #14202C;
+    }
+    .header-excel {
+        background-color: #14202C;
+        color: #fff;
     }
    
 .loader-doc {
