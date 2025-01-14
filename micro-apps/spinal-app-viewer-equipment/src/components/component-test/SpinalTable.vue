@@ -123,12 +123,21 @@
     </div>
     <!-- ONGLET attribut (attribut)-->
     <div v-if="vSelectedTab == 'Attributs'" class="scrollable-content"  >
-      <h3>Attribut de la selection</h3>
+      <FormDocAttr :isDialogOpen="ShowFormDocAttrs == true" @close-dialog="ShowFormDocAttr"
+        @validated="handleValidated" :item="selectedAttribut" :id="idEl" :itemOp="itemOp" />
 
-      <div
-        v-for="(item, index) in vSelectItemAttributes"
-        class="blocInformation"
+      <FormDocCateAttr :isDialogOpen="ShowFormDocCat == true" @close-dialog="ShowFormDocCate"
+        @validatedcate="handleValidatedCate" :item="selectedCategory" :id="idCatEl" />
+
+      <AddBtn name="Ajouter un attribut" icon="mdi-tag-plus-outline" @open-dialog="ShowFormAttribute" />
+      <FormAttribute :show="showFormAttributeValue" :referenceId="currentTargetItemId"
+        @close-dialog="ShowFormAttribute" @add-attribute="showAlert" />
+
+
+      <h3>Attribut de la selection</h3>
+      <div v-for="(item, index) in vSelectItemAttributes" class="blocInformation"
       >
+      <div style="width: 100%; display: flex; justify-content: space-between; align-items:center; padding-inline: 10px; border-radius: 10px; position: relative;">
         <span
           style="
             font-size: 19px;
@@ -137,53 +146,69 @@
           "
           >{{ item.name }}</span
         >
+        <div v-if="item.name != 'Revit-Autodesk properties'"
+          style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative; padding-right: 10px;">
+          <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
+            @showDoc="showDoc" @editFile="editCattattr(currentTargetItemId, item)"
+            @downloadFile="downloadFile" :showDocs="false" :showDownload="false" :editable="true"
+            @DeleteFile="deleteCateAttr(currentTargetItemId, item.dynamicId, 'parent')"
+            @changeOverflowItemMenu="changeOverflowItemMenu">
+          </OverMenu>
+        </div>
+        </div>
         <div
           v-if="vSelectItemAttributes == null"
-          style="
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            display: flex;
-            margin-top: 10px;
-            margin-bottom: 10px;
-          "
-        >
-          <v-progress-circular
-            :size="50"
-            color="primary"
-            indeterminate
-          ></v-progress-circular>
+          style="justify-content: center; align-items: center; width: 100%; display: flex; margin-top: 10px; margin-bottom: 10px;">
+          <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
         </div>
         <div v-else class="inventory-container">
           <div
             class="inventory-item"
-            style="
-              color: #14202c;
-              padding: 16px;
-              border-radius: 5px;
-              padding-left: 6px;
-              background-color: #f9f9f9;
-              box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px,
-                rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
-            "
+            style=" width: 100%; color:#14202c;overflow: visible; padding: 16px; border-radius: 5px; padding-left: 6px; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
             v-for="(attr, index2) in item.attributs"
           >
-            <li> {{ attr.label }}: {{ attr.value }} </li>
+          <li v-if="isLink(attr.value)" style="list-style: none; background-color: red; width: 95%;">
+            {{ attr.label }}:
+            <a :href="attr.value" target="_blank" style="color: #3498db;">{{ attr.value }}</a>
+          </li>
+          <li v-else style="list-style: none; width: 100%; overflow: hidden; overflow-x: auto;">
+            <span style="font-weight: 600;">
+              {{ attr.label }}:
+            </span>
+            <span style="font-weight: 400;">
+              {{ attr.value }} {{ attr.unit }}
+            </span>
+          </li>
+          <div v-if="item.name != 'Revit-Autodesk properties'"
+                  style="display: flex; justify-content: space-between; align-items: center;  width: 20px;  position: relative;">
+                  <OverMenu :show="itemOverflowMenu == index2 && itemOverflowMenuAttr == item.dynamicId" @close="closeOverMenu" :item="attr"
+                    @showDoc="showDoc" @editFile="editattr(attr, currentTargetItemId, item)"
+                    @downloadFile="downloadFile" :showDocs="false" :showDownload="false" :editable="true"
+                    @DeleteFile="DeleteAttribut(currentTargetItemId, item.dynamicId, attr.label)"
+                    @changeOverflowItemMenu="changeOverflowItemMenuAttr(index2, item.dynamicId)">
+                  </OverMenu>
+                </div>
           </div>
         </div>
       </div>
+
+      
     </div>
 
     <!-- ONGLET Documentation -->
     <div v-if="vSelectedTab == 'Documentation'" class="scrollable-content"
-    style="display: flex; flex-direction: column; overflow: hidden !important; overflow-y: auto !important ;">
+    >
 
+    <div v-if="showDocvalue">
+        <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" :closecomp="ActiveData"
+          @closeDialog="closeVueDoc" />
+    </div>
       
       <v-row style="padding: 20px;">
         <AddBtn @open-dialog="ShowFormDoc" />
       </v-row>
       <FormDoc :isDialogOpen="show_formdoc" @close-dialog="ShowFormDoc" @add-doc="showAlert"
-               :referenceid="this.currentTargetItemId" />
+               :referenceid="currentTargetItemId" />
 
       <div v-if="vSelectItemDocumentation && vSelectItemDocumentation.length > 0">
         <div style="width: 100%; flex-direction: column;">
@@ -202,13 +227,14 @@
                       {{ item.Name }}
 
                     </li>
+                    <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
+                      @showDoc="showDoc" @downloadFile="downloadFile"
+                      @DeleteFile="DeleteFile(item.dynamicId, currentTargetItemId, 'child')"
+                      @changeOverflowItemMenu="changeOverflowItemMenu">
+                    </OverMenu>
 
                   </div>
             
-            <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
-                      @showDoc="showDoc" @downloadFile="downloadFile"
-                      @changeOverflowItemMenu="changeOverflowItemMenu">
-            </OverMenu>
           </div>
         </div>
         </div>
@@ -503,6 +529,9 @@ import AddTicketBtn from './ButtonAddticket.vue';
 import OverMenu from './OverMenu.vue';
 import getIcon from "../../services/function/getIcon";
 import { Radar } from 'vue-chartjs';
+import FormDocAttr from "./FormDocAttr.vue";
+import FormDocCateAttr from "./FormDocCateAttr.vue";
+import FormAttribute from './FormAttribute.vue';
 export default {
   components: {
     SmallLegend,
@@ -513,6 +542,9 @@ export default {
     Alert,
     ShowDocumentation,
     FormDoc,
+    FormDocAttr,
+    FormDocCateAttr,
+    FormAttribute,
     AddBtn,
     Loader,
     FormTicket,
@@ -536,7 +568,6 @@ export default {
   data: () => ({
     selections: {},
     tableData: [],
-    selectedCategory: [],
     selectedAttribute: null,
     filteredAttributes: [],
     filteredItem: [],
@@ -581,33 +612,49 @@ export default {
     timeactuelle: (string = 'date ?'),
     show_formdoc : false,
     showFormTicket: false,
+    showDocvalue: false,
     showLoader : false,
     alert_ind : '',
     type_alert : '',
     alert : false,
+    idDoc : 0,
+    nameFile : '',
+
     itemOverflowMenu : null,
+    itemOverflowMenuAttr : null,
+    showFormAttributeValue : false,
+    selectedAttribut : null,
+    ShowFormDocAttrs : false,
+    ShowFormDocCat : false,
+    idEl : null,
+    itemOp : null,
+    selectedCategory : null,
+    idCatEl : null,
+    
+
+
     getIcon : getIcon,
-  radarOptions: {
-  responsive: true,
-  scales: {
-    r: {
-      angleLines: { display: true }, // Affiche les lignes des angles
-      suggestedMin: 0, // Valeur minimale
-      suggestedMax: 100, // Valeur maximale
+    radarOptions: {
+    responsive: true,
+    scales: {
+      r: {
+        angleLines: { display: true }, // Affiche les lignes des angles
+        suggestedMin: 0, // Valeur minimale
+        suggestedMax: 100, // Valeur maximale
+      },
     },
-  },
-  plugins: {
-    legend: {
-      position: 'top', // Position de la légende
-    },
-    tooltip: {
-      callbacks: {
-        label: function (context) {
-          return `${context.dataset.label}: ${context.raw}`;
+    plugins: {
+      legend: {
+        position: 'top', // Position de la légende
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            return `${context.dataset.label}: ${context.raw}`;
+          },
         },
       },
     },
-  },
     },
     }),
   mounted() {
@@ -1496,8 +1543,22 @@ export default {
       this.itemOverflowMenu = null
     } else {
       this.itemOverflowMenu = index
+      console.log('itemOverflowMenu: ', this.itemOverflowMenu);
     }
     },
+
+    changeOverflowItemMenuAttr(index, item) {
+    console.log(`index: ${index} item: ${item}`);
+    const latItem = this.itemOverflowMenu
+    const itemCateg = item;
+    if(latItem === this.itemOverflowMenu && this.itemOverflowMenuAttr === itemCateg) {
+      this.itemOverflowMenuAttr = null
+    } else {
+      this.itemOverflowMenuAttr = itemCateg
+      this.itemOverflowMenu = index
+    }
+    
+  },
 
     ShowDialog() {
     this.showFormTicket = !this.showFormTicket;
@@ -1505,7 +1566,103 @@ export default {
     ShowFormDoc() {
       this.show_formdoc = !this.show_formdoc;
     },
+
+    ShowFormDocAttr() {
+    this.ShowFormDocAttrs = !this.ShowFormDocAttrs;
+    },
+    ShowFormDocCate() {
+      this.ShowFormDocCat = !this.ShowFormDocCat;
+    },
+    ShowFormAttribute() {
+      this.showFormAttributeValue = !this.showFormAttributeValue;
+    },
+
+
+  async editattr(attr, id, item) {
+    this.ShowFormDocAttrs = true
+    this.selectedAttribut = attr
+    this.idEl = id
+    this.itemOp = item
+  },
+
+  async editCattattr(id, item) {
+    this.ShowFormDocCat = true
+    this.selectedCategory = item
+    this.idCatEl = id
+  },
+
+  async DeleteFile(fileId, referenceId, space) {
+    // console.log('DeleteFile space: ', space);
+    const buildingId = localStorage.getItem("idBuilding");
+    // console.log('parent: ', referenceId, 'fileId: ', fileId);
+
+    const result = await this.$store.dispatch(ActionTypes.DELETE_FILE, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      fileId: fileId
+    })
+    result.status == 200 ? this.showAlert({ status: 'success', message: 'Document supprimé avec succès', context: 'document' }) :
+      this.showAlert({ status: 'error', message: 'Erreur lors de la suppression du document', context: 'document', space_context: space })
+  },
+
+  async DeleteAttribut(referenceId, cateId, name) {
+    const result = await this.$store.dispatch(ActionTypes.DELETE_ATTRIBUT, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      cateId: cateId,
+      name: name
+    })
+    result.status == 200 ? this.showAlert({ status: 'success', message: 'Attribut supprimé avec succès', context: 'Attribut' }) :
+      this.showAlert({ status: 'error', message: "Erreur lors de la suppression de l'attribut", context: 'document', space_context: name })
+    this.getdataofelement()
+  },
+
+  async UpdateAttribut(referenceId, cateId, name, item) {
+
+    console.warn(referenceId, cateId, name, item);
+
+    const result = await this.$store.dispatch(ActionTypes.UPDATE_ATTRIBUT, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      cateId: cateId,
+      name: name,
+      item: item
+    })
+    result.status == 200 ? this.showAlert({ status: 'success', message: 'Attribut modifié avec succès', context: 'Attribut' }) :
+      this.showAlert({ status: 'error', message: "Erreur lors de la mise à jour de l'attribut", context: 'document', space_context: name })
+    this.getdataofelement()
+  },
+
+  async deleteCateAttr(referenceId, cateId, name) {
+    console.log(referenceId, cateId, name);
+
+    const result = await this.$store.dispatch(ActionTypes.DELETE_CATE_ATTRIBUT, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      cateId: cateId
+    })
+    result.status == 200 ? this.showAlert({ status: 'success', message: 'Catégory supprimé avec succès', context: 'catégory attribut' }) :
+      this.showAlert({ status: 'error', message: "Erreur lors de la suppression de la catégorie", context: 'cétegory', space_context: name })
+    this.getdataofelement()
+  },
+
+
+  async updateCateAttr(referenceId, cateId, name, item) {
+    console.log(referenceId, cateId, name);
+
+    const result = await this.$store.dispatch(ActionTypes.UPDATE_CATE_ATTRIBUT, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      cateId: cateId,
+      item: item
+    })
+    result.status == 200 ? this.showAlert({ status: 'success', message: 'Catégory edité avec succès', context: 'catégory attribut' }) :
+      this.showAlert({ status: 'error', message: "Erreur lors de l'edit de la catégorie", context: 'cétegory', space_context: name })
+    //this.getdataofelement()
+  },
+
     showDoc(referencedId, nameFile) {
+      console.log('showDoccccc', referencedId, nameFile);
     if (!this.showDocvalue) {
       this.$emit('buttonClicked', 'vueDoc')
     }
@@ -1513,8 +1670,37 @@ export default {
     this.idDoc = referencedId
     this.showDocvalue = true;
     },
+    
+    closeVueDoc() {
+    this.showDocvalue = false;
+    this.$emit('buttonClicked', 'vueDocClose')
+  },
+
     closeOverMenu() {
     this.itemOverflowMenu = null
+    },
+
+    handleValidated(updatedItem, el, dyn, item) {
+    console.warn('Objet reçu après validation :', item, el.dynamicId, dyn.label, updatedItem);
+    // console.log(updatedItem , el , dyn );
+    const formattedItem = {
+      attributeLabel: updatedItem.label,
+      attributeUnit: updatedItem.unit,
+      attributeValue: updatedItem.value,
+    };
+
+    this.UpdateAttribut(item, el.dynamicId, dyn.label, formattedItem)
+    },
+  
+    handleValidatedCate(id, cateId, item) {
+    
+      // console.log(updatedItem , el , dyn );
+      const formattedItem = {
+        "categoryName": item.name,
+      };
+
+      console.warn('Objet reçu après validation :::::::', id, cateId, 'category', formattedItem);
+      this.updateCateAttr(id, cateId, 'category', formattedItem)
     },
 
     async showAlert(v) {
@@ -1683,6 +1869,10 @@ export default {
         this.cpIdToDraw = tmpLst;
         this.vSelectItemEndpoints = endpoints;
     },
+
+    isLink(value) {
+    return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
+  }
   },
   watch: {
     allFilteredData(newVal, oldVal) {
@@ -1772,38 +1962,7 @@ export default {
         resultat[nom].push(numero);
       });
       return resultat;
-    },
-
-    selectedCategory(newVal, oldVal) {
-      if (newVal) {
-        this.filteredAttributes = this.contexts[0].nomenclature[newVal];
-      } else {
-        this.filteredAttributes = [];
-      }
-      this.selectedAttribute = null;
-    },
-
-    selectedAttribute(newVal, oldVal) {
-      if (newVal && this.selectedCategory) {
-        let allValues = [];
-        this.contexts[0].data.forEach((context) => {
-          const category = context.categoryAttributes.find(
-            (cat) => cat.name === this.selectedCategory
-          );
-          if (category) {
-            const filteredAttributess = category.attributs.filter(
-              (attr) => attr.label === newVal
-            );
-            filteredAttributess.forEach((attr) => {
-              allValues.push(attr.value);
-            });
-          }
-        });
-        this.filteredItem = Array.from(new Set(allValues));
-      } else {
-        this.filteredItem = [];
-      }
-    },
+    }
   },
 };
 </script>
@@ -2231,23 +2390,24 @@ td {
   border-radius: 6px;
 }
 .inventory-container {
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: 5px;
-}
+    display: flex;
+    flex-wrap: wrap;
+    height: calc(100% - 260px);
+    margin-top: 5px;
+  }
 
 .inventory-item {
-  width: 48%;
-  margin: 5px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-  white-space: nowrap;
-  overflow: hidden;
-  justify-content: space-between;
-  background-color: white;
-}
+    width: 48%;
+    margin: 5px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    justify-content: space-between;
+    background-color: white;
+  }
 
 .button {
   display: inline-block;

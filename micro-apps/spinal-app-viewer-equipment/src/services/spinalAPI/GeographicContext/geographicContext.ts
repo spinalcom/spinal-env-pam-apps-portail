@@ -290,3 +290,15 @@ export async function getRoomsRef(
   let result = await spinalAPI.get<IRefItem>(url);
   return result.data.infoReferencesObjects;
 }
+
+export async function getFile(buildingId: string, referenceIds: any): Promise<Blob> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/node/${referenceIds}/download_file`);
+  try {
+    const response = await spinalAPI.post(url, referenceIds, { responseType: 'blob' });
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des objets de référence:', error);
+    throw error;
+  }
+}

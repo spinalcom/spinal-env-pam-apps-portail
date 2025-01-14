@@ -35,7 +35,7 @@
     axiosInstance = axios.create({ baseURL: this.apiUrl });
     static #instanceParent: SpinalWindow = window;
     api_mode = API_MODE.BOS_APP;
-
+    
     public static setHook(_window: SpinalWindow) {
       SpinalAPI.#instanceParent = _window;
     }
@@ -47,9 +47,6 @@
       return `${this._apiUrl}${this._apiUrl.endsWith('/') ? '' : '/'}`;
     }
     private constructor(public readonly _apiUrl: string = '') {
-    
-      
-      
       this.axiosInstance.interceptors.request.use((request) => {
         const t = localStorage.getItem('token');
         // @ts-ignore

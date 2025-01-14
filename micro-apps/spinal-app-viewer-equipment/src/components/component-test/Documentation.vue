@@ -6,7 +6,7 @@
             <div style="width: 100%; text-align: center;">
                 <span class="name-file" v-if="fileName"> 
                     <v-icon :style="{'color': getIcon(fileName_with_ext).color}" >{{ getIcon(fileName_with_ext).name }}</v-icon>
-                     {{ this.fileName }}</span>
+                     {{ this.fileName }} {{this.referenceId}}</span>
             </div>
             <div>
                    <v-btn 
@@ -153,10 +153,11 @@ const getToolbar = () => ({
           
             referenceId: async function  (val){
                 this.loader = true;
-            this.fileName = this.file_prop;
-            this.fileName_with_ext = this.fileName;
-            this.fileName = this.fileName.replace(/\.[^/.]+$/, "");
-            const fileExtension = this.file_prop.split('.').pop();
+                console.log('Triggered watch referenceId',val)
+                this.fileName = this.file_prop;
+                this.fileName_with_ext = this.fileName;
+                this.fileName = this.fileName.replace(/\.[^/.]+$/, "");
+                const fileExtension = this.file_prop.split('.').pop();
                 const buildingId = localStorage.getItem("idBuilding");
                 this.referenceId = val;
                 const file = [this.$store.dispatch(ActionTypes.GET_FILE, {
@@ -164,12 +165,13 @@ const getToolbar = () => ({
                     referenceId: this.referenceId,
                 })]
                 const result = await Promise.all(file)
+                console.log('files ', result)
                 let type = ""
                 result.forEach((blob) =>{
-                     type = blob.type.split('/')[1]
+                        type = blob.type.split('/')[1]
                     this.url_init = window.URL.createObjectURL(blob)
                 })
-              
+                
                 this.showFile(fileExtension, this.url_init) 
                 this.loader = false;
             },
