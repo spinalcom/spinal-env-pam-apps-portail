@@ -27,19 +27,26 @@ function mapDates(ticketList, attributeList) {
     'string',
   ];
   return ticketList.map(ticket => {
-    const attributes = attributeList
-      .find(a => a.dynamicId === ticket.ticketId).categoryAttributes
-      .find(a => a.name === 'default').attributs
-      .filter(a => dateAttributes.includes(a.label))
-      .reduce((acc, a) => {
-        acc[a.label] = a.value;
-        return acc;
-      }, {});
-    ticket.startDate = attributes.startDate || null;
-    ticket.endDate = attributes.endDate || null;
-    ticket.estimatedStartDate = attributes.estimatedStartDate || null;
-    ticket.estimatedEndDate = attributes.estimatedEndDate || null;
-    ticket.string = attributes.string || null;
+    try {
+      const attributes = attributeList
+        .find(a => a.dynamicId === ticket.ticketId).categoryAttributes
+        .find(a => a.name === 'default').attributs
+        .filter(a => dateAttributes.includes(a.label))
+        .reduce((acc, a) => {
+          acc[a.label] = a.value;
+          return acc;
+        }, {});
+      ticket.startDate = attributes.startDate || null;
+      ticket.endDate = attributes.endDate || null;
+      ticket.estimatedStartDate = attributes.estimatedStartDate || null;
+      ticket.estimatedEndDate = attributes.estimatedEndDate || null;
+    } catch (error) {
+      ticket.startDate = null;
+      ticket.endDate = null;
+      ticket.estimatedStartDate = null;
+      ticket.estimatedEndDate = null;
+      console.error(`Error mapping dates for ticket ${ticket.ticketId}`, error);
+    }
   });
 }
 
@@ -64,6 +71,7 @@ async function getCategoryId(bid, tid, categoryName = 'default') {
   * @param {string} date Date in milliseconds
   */
 async function setEstimatedStart(tid, date) {
+  console.log(`Setting estimated start date for ticket ${tid} to ${date}`);
   const bid = localStorage.getItem('idBuilding');
   const attribute = {
     attributeLabel: 'estimatedStartDate',
@@ -82,6 +90,7 @@ async function setEstimatedStart(tid, date) {
   * @param {string} date Date in milliseconds
   */
 async function setEstimatedEnd(tid, date) {
+  console.log(`Setting estimated end date for ticket ${tid} to ${date}`);
   const bid = localStorage.getItem('idBuilding');
   const attribute = {
     attributeLabel: 'estimatedEndDate',

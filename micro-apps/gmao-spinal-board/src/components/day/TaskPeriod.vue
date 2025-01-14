@@ -130,22 +130,22 @@ export default {
       // No need to check if diffWhole is greater than or less than 0 or 0, just move the task
       days = Math.round(this.diffWhole / this.dayWidth);
       if (this.task.estimatedStartDate) {
-        newStartDate = moment(this.task.estimatedStartDate).add(days, 'days');
+        newStartDate = moment(this.task.estimatedStartDate).add(days, 'days').valueOf();
       } else {
-        newStartDate = moment(this.setToStartOfDay(this.task.estimatedStartDate)).add(days, 'days');
+        newStartDate = moment(this.setToStartOfDay(this.task.estimatedStartDate)).add(days, 'days').valueOf();
       }
       if (this.task.estimatedEndDate) {
-        newEndDate = moment(this.task.estimatedEndDate).add(days, 'days');
+        newEndDate = moment(this.task.estimatedEndDate).add(days, 'days').valueOf();
       } else {
         newEndDate = null;
         // newEndDate = moment(this.setToStartOfDay(this.task.estimatedStartDate)).add(days, 'days');
       }
-      this.$emit('resizeWholePeriod', this.task, newStartDate, newEndDate);
       this.isResizingWhole = false;
       this.diffWhole = 0;
       this.diffLeft = 0;
       this.diffRight = 0;
       this.startResizeWx = 0;
+      this.$emit('resizeWholePeriod', this.task, newStartDate, newEndDate);
       document.removeEventListener('mousemove', this.resizeWholePeriod);
       document.removeEventListener('mouseup', this.stopResizeWholePeriod);
     },
@@ -182,7 +182,9 @@ export default {
             this.$emit('resizeEnd', this.task, newEndDate);
           } else {
             // meaning the new end date is less than the start date
-            this.$emit('resizeEnd', this.task, moment(this.task.estimatedEndDate).subtract(currentDuration - 1, 'days'));
+            const valueToEmit = moment(this.task.estimatedStartDate)
+              .add(currentDuration - 1, 'days');
+            this.$emit('resizeEnd', this.task, valueToEmit);
           }
         }
       }

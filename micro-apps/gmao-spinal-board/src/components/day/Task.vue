@@ -68,7 +68,9 @@ export default {
   methods: {
     startTicket() {
       const startClick = Math.floor(this.mouseX / this.dayWidth);
-      const estimatedStartDate = this.start.clone().add(startClick, 'days').startOf('day');
+      const estimatedStartDate = this.start
+        .clone().add(startClick, 'days')
+        .startOf('day').valueOf();
       // const estimatedEndDate = estimatedStartDate.clone().endOf('day');
       this.$emit('startTicket', this.task, estimatedStartDate);
     },

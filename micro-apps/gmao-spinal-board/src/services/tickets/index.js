@@ -30,7 +30,6 @@ export default async function () {
 
   const nested = removeProcessWithNoTickets(result);
 
-  console.log('nested', nested);
   return {
     flat: ticketList,
     nested,

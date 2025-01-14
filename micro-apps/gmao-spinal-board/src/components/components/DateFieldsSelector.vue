@@ -136,7 +136,7 @@ export default {
   methods: {
     selectDateField(type, name) {
       this.selected[type] = name;
-    }
+    },
   }
 }
 </script>

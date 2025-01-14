@@ -59,7 +59,7 @@ export default {
             defaultColor: '#c4c4c4',
           },
           {
-            name: Customer Call Back',
+            name: 'Customer Call Back',
             icon: 'mdi-check-circle',
             defaultColor: '#c4c4c4',
           },
