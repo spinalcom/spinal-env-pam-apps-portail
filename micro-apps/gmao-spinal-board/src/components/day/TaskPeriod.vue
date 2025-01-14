@@ -166,16 +166,16 @@ export default {
       if (this.diffRight > 0) {
         days = Math.round(this.diffRight / this.dayWidth);
         if (this.task.estimatedEndDate) {
-          newEndDate = moment(this.task.estimatedEndDate).add(days, 'days');
+          newEndDate = +moment(this.task.estimatedEndDate).add(days, 'days').valueOf();
         } else {
-          newEndDate = moment(this.setToStartOfDay(this.task.estimatedStartDate)).add(days, 'days');
+          newEndDate = +moment(this.setToStartOfDay(this.task.estimatedStartDate)).add(days, 'days').valueOf();
         }
         this.$emit('resizeEnd', this.task, newEndDate);
       } else if (this.diffRight < 0) {
         days = Math.round(this.diffRight / this.dayWidth);
         if (this.task.estimatedEndDate) {
           const currentDuration = (this.setToStartOfDay(this.task.estimatedEndDate).diff(this.setToStartOfDay(this.task.estimatedStartDate), 'days') + 1);
-          newEndDate = moment(this.task.estimatedEndDate).subtract(Math.abs(days), 'days');
+          newEndDate = +moment(this.task.estimatedEndDate).subtract(Math.abs(days), 'days').valueOf();
           const diff = (this.setToStartOfDay(newEndDate).diff(this.setToStartOfDay(this.task.estimatedStartDate), 'days') + 1);
           if (diff > 0) {
             // meaning the new end date is greater than the start date
