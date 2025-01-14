@@ -11,7 +11,7 @@
     @resizeStart="resizeStart"
     @resizeEnd="resizeEnd"
     @createTicket="createTicket"
-    @startTicket="resizeStart"
+    @startTicket="startTicket"
     />
     <YearView v-else-if="temporality.name === 'Année'" :ticketList="ticketList" />
   </div>
@@ -19,6 +19,7 @@
 
 <script>
 import tickets from '../services/tickets';
+import dates from '../services/tickets/dates.js';
 import MonthView from './month/Main';
 import WeekView from './week/Main';
 import DayView from './day/Main';
@@ -47,33 +48,52 @@ export default {
     this.loaded = true;
   },
   methods: {
-    createTicket(task, startDate, endDate) {
-      this.resizeWholePeriod(task, startDate, endDate);
+    async startTicket(task, estimatedStartDate) {
+      try {
+        await dates.setEstimatedStart(task.ticketId, estimatedStartDate);
+        this.resizeStart(task, estimatedStartDate);
+      } catch (error) {
+        console.error(`Error starting ticket ${task.ticketId}`, error);
+      }
     },
-    resizeWholePeriod(task, startDate, endDate) {
+    createTicket(task, estimatedStartDate, estimatedEndDate) {
+      this.resizeWholePeriod(task, estimatedStartDate, estimatedEndDate);
+    },
+    async resizeWholePeriod(task, estimatedStartDate, estimatedEndDate) {
+      try {
+        this.ticketList = this.ticketList.map((ticket) => {
+          if (ticket.ticketId === task.ticketId) {
+            ticket.estimatedStartDate = estimatedStartDate;
+            ticket.estimatedEndDate = estimatedEndDate;
+          }
+          return ticket;
+        });
+        await dates.setEstimatedStart(task.ticketId, estimatedStartDate);
+        await dates.setEstimatedEnd(task.ticketId, estimatedEndDate);
+      } catch (error) {
+        console.error(`Error resizing whole period for ticket ${task.ticketId}`, error);
+      }
+    },
+    resizeStart(task, estimatedStartDate) {
       this.ticketList = this.ticketList.map((ticket) => {
         if (ticket.ticketId === task.ticketId) {
-          ticket.startDate = startDate;
-          ticket.endDate = endDate;
+          ticket.estimatedStartDate = estimatedStartDate;
         }
         return ticket;
       });
     },
-    resizeStart(task, startDate) {
-      this.ticketList = this.ticketList.map((ticket) => {
-        if (ticket.ticketId === task.ticketId) {
-          ticket.estimatedStartDate = startDate;
-        }
-        return ticket;
-      });
-    },
-    resizeEnd(task, endDate) {
-      this.ticketList = this.ticketList.map((ticket) => {
-        if (ticket.ticketId === task.ticketId) {
-          ticket.endDate = endDate;
-        }
-        return ticket;
-      });
+    async resizeEnd(task, estimatedEndDate) {
+      try {
+        this.ticketList = this.ticketList.map((ticket) => {
+          if (ticket.ticketId === task.ticketId) {
+            ticket.estimatedEndDate = estimatedEndDate;
+          }
+          return ticket;
+        });
+        await dates.setEstimatedEnd(task.ticketId, estimatedEndDate);
+      } catch (error) {
+        console.error(`Error resizing end for ticket ${task.ticketId}`, error);
+      }
     },
   },
   watch: {},

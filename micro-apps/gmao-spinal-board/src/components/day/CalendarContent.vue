@@ -21,7 +21,7 @@
       :dayWidth="dayWidth"
       :taskHeight="taskHeight"
       :fontSize="fontSize"
-      @startTask="startTicket"
+      @startTicket="startTicket"
       @bringDay="bringDay"
       @resizedSideBar="resizedSideBar"
       @goto="goto"
@@ -121,14 +121,14 @@ export default {
     showTicketDetails(task) {
       this.$emit('showTicketDetails', task);
     },
-    resizeWholePeriod(task, startDate, endDate) {
-      this.$emit('resizeWholePeriod', task, startDate, endDate);
+    resizeWholePeriod(task, estimatedStartDate, estimatedEndDate) {
+      this.$emit('resizeWholePeriod', task, estimatedStartDate, estimatedEndDate);
     },
-    resizeStart(task, startDate) {
-      this.$emit('resizeStart', task, startDate);
+    resizeStart(task, estimatedStartDate) {
+      this.$emit('resizeStart', task, estimatedStartDate);
     },
-    resizeEnd(task, endDate) {
-      this.$emit('resizeEnd', task, endDate);
+    resizeEnd(task, estimatedEndDate) {
+      this.$emit('resizeEnd', task, estimatedEndDate);
     },
     updateTaskList(event) {
       this.taskList = event;
@@ -149,9 +149,9 @@ export default {
       this.initialHeight = workflowLength + processLength + taskLength;
       this.$emit('planHeight', this.initialHeight * this.taskHeight);
     },
-    async startTicket(task, startDate) {
-      this.$emit('startTicket', task, startDate);
-      await dates.setEstimatedStart(task.ticketId, task.estimatedStartDate);
+    async startTicket(task, estimatedStartDate) {
+      this.$emit('startTicket', task, estimatedStartDate);
+      // await dates.setEstimatedStart(task.ticketId, task.estimatedStartDate);
     },
   },
   watch: {

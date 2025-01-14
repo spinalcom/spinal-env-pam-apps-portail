@@ -260,6 +260,7 @@ export default {
       if (positionIconName === 'mdi-plus') {
         const today = moment().startOf('day');
         const estimatedStartDate = today;
+        ticket.estimatedStartDate = estimatedStartDate;
         // ticket.endDate = nextDay;
         this.$emit('startTicket', ticket, estimatedStartDate);
         return;

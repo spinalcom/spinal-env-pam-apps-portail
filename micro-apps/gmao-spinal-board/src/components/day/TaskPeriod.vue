@@ -69,34 +69,13 @@ export default {
     moveFlag: false,
   }),
   computed: {
-    left() {
-      if (this.isResizingLeft) {
-        return this.dayWidth * this.locate - this.diffLeft + 'px';
-      }
-      else if (this.isResizingRight) {
-        return this.dayWidth * this.locate + this.diffRight + 'px';
-      }
-      else if (this.isResizingWhole) {
-        return this.dayWidth * this.locate + this.diffWhole + 'px';
-      }
-      return this.dayWidth * this.locate + 'px';
-    },
-    width() {
-      if (this.isResizingRight) {
-        return this.taskWidth + this.diffRight + 'px !important';
-      }
-      else if (this.isResizingWhole) {
-        return this.taskWidth + this.diffWhole + 'px !important';
-      }
-      return this.taskWidth + 'px !important';
-    },
     locate() {
       const taskStart = moment(this.task.estimatedStartDate);
       return taskStart.diff(this.start, 'days');
     },
     taskWidth() {
-      if (this.task.endDate) {
-        const duration = (this.setToStartOfDay(this.task.endDate).diff(this.setToStartOfDay(this.task.startDate), 'days') + 1) * this.dayWidth;
+      if (this.task.estimatedEndDate) {
+        const duration = (this.setToStartOfDay(this.task.estimatedEndDate).diff(this.setToStartOfDay(this.task.estimatedStartDate), 'days') + 1) * this.dayWidth;
         return duration;
       }
       return this.dayWidth;
@@ -145,21 +124,21 @@ export default {
         this.showTicketDetails();
         return;
       }
-      this.moveFlag = false;
       let days;
       let newStartDate;
       let newEndDate;
       // No need to check if diffWhole is greater than or less than 0 or 0, just move the task
       days = Math.round(this.diffWhole / this.dayWidth);
-      if (this.task.startDate) {
-        newStartDate = moment(this.task.startDate).add(days, 'days');
+      if (this.task.estimatedStartDate) {
+        newStartDate = moment(this.task.estimatedStartDate).add(days, 'days');
       } else {
-        newStartDate = moment(this.setToStartOfDay(this.task.startDate)).add(days, 'days');
+        newStartDate = moment(this.setToStartOfDay(this.task.estimatedStartDate)).add(days, 'days');
       }
-      if (this.task.endDate) {
-        newEndDate = moment(this.task.endDate).add(days, 'days');
+      if (this.task.estimatedEndDate) {
+        newEndDate = moment(this.task.estimatedEndDate).add(days, 'days');
       } else {
-        newEndDate = moment(this.setToStartOfDay(this.task.startDate)).add(days, 'days');
+        newEndDate = null;
+        // newEndDate = moment(this.setToStartOfDay(this.task.estimatedStartDate)).add(days, 'days');
       }
       this.$emit('resizeWholePeriod', this.task, newStartDate, newEndDate);
       this.isResizingWhole = false;
@@ -186,22 +165,24 @@ export default {
       let newEndDate;
       if (this.diffRight > 0) {
         days = Math.round(this.diffRight / this.dayWidth);
-        if (this.task.endDate) {
-          newEndDate = moment(this.task.endDate).add(days, 'days');
+        if (this.task.estimatedEndDate) {
+          newEndDate = moment(this.task.estimatedEndDate).add(days, 'days');
         } else {
-          newEndDate = moment(this.setToStartOfDay(this.task.startDate)).add(days, 'days');
+          newEndDate = moment(this.setToStartOfDay(this.task.estimatedStartDate)).add(days, 'days');
         }
         this.$emit('resizeEnd', this.task, newEndDate);
       } else if (this.diffRight < 0) {
         days = Math.round(this.diffRight / this.dayWidth);
-        if (this.task.endDate) {
-          const currentDuration = (this.setToStartOfDay(this.task.endDate).diff(this.setToStartOfDay(this.task.startDate), 'days') + 1);
-          newEndDate = moment(this.task.endDate).subtract(Math.abs(days), 'days');
-          const diff = (this.setToStartOfDay(newEndDate).diff(this.setToStartOfDay(this.task.startDate), 'days') + 1);
+        if (this.task.estimatedEndDate) {
+          const currentDuration = (this.setToStartOfDay(this.task.estimatedEndDate).diff(this.setToStartOfDay(this.task.estimatedStartDate), 'days') + 1);
+          newEndDate = moment(this.task.estimatedEndDate).subtract(Math.abs(days), 'days');
+          const diff = (this.setToStartOfDay(newEndDate).diff(this.setToStartOfDay(this.task.estimatedStartDate), 'days') + 1);
           if (diff > 0) {
+            // meaning the new end date is greater than the start date
             this.$emit('resizeEnd', this.task, newEndDate);
           } else {
-            this.$emit('resizeEnd', this.task, moment(this.task.endDate).subtract(currentDuration - 1, 'days'));
+            // meaning the new end date is less than the start date
+            this.$emit('resizeEnd', this.task, moment(this.task.estimatedEndDate).subtract(currentDuration - 1, 'days'));
           }
         }
       }
@@ -227,22 +208,22 @@ export default {
       let newStartDate;
       if (this.diffLeft > 0) {
         days = Math.round(this.diffLeft / this.dayWidth);
-        if (this.task.startDate) {
-          newStartDate = moment(this.task.startDate).subtract(days, 'days');
+        if (this.task.estimatedStartDate) {
+          newStartDate = moment(this.task.estimatedStartDate).subtract(days, 'days');
         } else {
-          newStartDate = moment(this.setToStartOfDay(this.task.startDate)).subtract(days, 'days');
+          newStartDate = moment(this.setToStartOfDay(this.task.estimatedStartDate)).subtract(days, 'days');
         }
         this.$emit('resizeStart', this.task, newStartDate);
       } else if (this.diffLeft < 0) {
         days = Math.round(this.diffLeft / this.dayWidth);
-        if (this.task.startDate) {
-          const currentDuration = (this.setToStartOfDay(this.task.endDate).diff(this.setToStartOfDay(this.task.startDate), 'days') + 1);
-          newStartDate = moment(this.task.startDate).add(Math.abs(days), 'days');
-          const diff = (this.setToStartOfDay(this.task.endDate).diff(this.setToStartOfDay(newStartDate), 'days') + 1);
+        if (this.task.estimatedStartDate) {
+          const currentDuration = (this.setToStartOfDay(this.task.estimatedEndDate).diff(this.setToStartOfDay(this.task.estimatedStartDate), 'days') + 1);
+          newStartDate = moment(this.task.estimatedStartDate).add(Math.abs(days), 'days');
+          const diff = (this.setToStartOfDay(this.task.estimatedEndDate).diff(this.setToStartOfDay(newStartDate), 'days') + 1);
           if (diff > 0) {
             this.$emit('resizeStart', this.task, newStartDate);
           } else {
-            this.$emit('resizeStart', this.task, moment(this.task.startDate).add(currentDuration - 1, 'days'));
+            this.$emit('resizeStart', this.task, moment(this.task.estimatedStartDate).add(currentDuration - 1, 'days'));
           }
         }
       }

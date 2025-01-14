@@ -44,8 +44,8 @@ function mapDates(ticketList, attributeList) {
 }
 
 /**
-  * Get the category ID of a ticket
-  * default category name is 'default'
+  * Get the category ID of a ticket.
+  * By default the category name is 'default'.
   * @param {string} bid Building ID
   * @param {string} tid Ticket ID
   * @param {string} categoryName Category name
@@ -57,14 +57,13 @@ async function getCategoryId(bid, tid, categoryName = 'default') {
 }
 
 /**
-  * Set the estimated start date of a ticket
+  * Set the estimated start date of a ticket.
   * if the attribute does not exist, it will be created
   * if the attribute exists, it will be updated
-  * @param {string} bid Building ID
   * @param {string} tid Ticket ID
   * @param {string} date Date in milliseconds
   */
-async function setEstimatedStart(tid, date = 1736519963000) {
+async function setEstimatedStart(tid, date) {
   const bid = localStorage.getItem('idBuilding');
   const attribute = {
     attributeLabel: 'estimatedStartDate',
@@ -72,18 +71,46 @@ async function setEstimatedStart(tid, date = 1736519963000) {
     attributeType: 'date',
     attributeUnit: 'ms',
   };
+  await createAttribute(tid, attribute);
+}
 
+/**
+  * Set the estimated end date of a ticket.
+  * if the attribute does not exist, it will be created.
+  * if the attribute exists, it will be updated.
+  * @param {string} tid Ticket ID
+  * @param {string} date Date in milliseconds
+  */
+async function setEstimatedEnd(tid, date) {
+  const bid = localStorage.getItem('idBuilding');
+  const attribute = {
+    attributeLabel: 'estimatedEndDate',
+    attributeValue: date,
+    attributeType: 'date',
+    attributeUnit: 'ms',
+  };
+  await createAttribute(tid, attribute);
+}
+
+/**
+  * Create attribute for a node.
+  * @param {string} tid Ticket ID
+  * @param {object} attribute Attribute object
+  */
+async function createAttribute(tid, attribute) {
+  const bid = localStorage.getItem('idBuilding');
   try {
     const categoryID = await getCategoryId(bid, tid);
     await HTTP.post(`/building/${bid}/node/${tid}/category/${categoryID}/attribut/create`, attribute);
   } catch (error) {
-    console.error('Error setting estimated start date', error);
+    console.error('Error creating attribute', error);
   }
 }
 
 const dates = {
   getAttributes,
   setEstimatedStart,
+  setEstimatedEnd,
 };
 
 export default dates;

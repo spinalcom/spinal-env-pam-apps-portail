@@ -68,9 +68,9 @@ export default {
   methods: {
     startTicket() {
       const startClick = Math.floor(this.mouseX / this.dayWidth);
-      const startDate = this.start.clone().add(startClick, 'days').startOf('day');
-      // const endDate = startDate.clone().endOf('day');
-      this.$emit('startTicket', this.task, startDate);
+      const estimatedStartDate = this.start.clone().add(startClick, 'days').startOf('day');
+      // const estimatedEndDate = estimatedStartDate.clone().endOf('day');
+      this.$emit('startTicket', this.task, estimatedStartDate);
     },
     startListening() {
       if (this.task.estimatedStartDate || this.task.state !== 'ticket') {
@@ -97,16 +97,17 @@ export default {
       }
     },
     showTicketDetails(task) {
+      console.log('showTicketDetails', task);
       this.$emit('showTicketDetails', task);
     },
-    resizeWholePeriod(task, startDate, endDate) {
-      this.$emit('resizeWholePeriod', task, startDate, endDate);
+    resizeWholePeriod(task, estimatedStartDate, estimatedEndDate) {
+      this.$emit('resizeWholePeriod', task, estimatedStartDate, estimatedEndDate);
     },
-    resizeStart(task, startDate) {
-      this.$emit('resizeStart', task, startDate);
+    resizeStart(task, estimatedStartDate) {
+      this.$emit('resizeStart', task, estimatedStartDate);
     },
-    resizeEnd(task, endDate) {
-      this.$emit('resizeEnd', task, endDate);
+    resizeEnd(task, estimatedEndDate) {
+      this.$emit('resizeEnd', task, estimatedEndDate);
     },
   },
 }

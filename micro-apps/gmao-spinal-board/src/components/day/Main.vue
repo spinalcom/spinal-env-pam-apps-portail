@@ -27,26 +27,26 @@
             ></v-slider>
         <v-icon class="action-icon icon" @click="zoomAction('in')">mdi-magnify-plus-outline</v-icon>
       </div>
+
       <div class="action-group action-button pointer-hover" @click="bringToday()">
         Aujourd'hui
       </div>
 
-      <v-menu transition="slide-y-transition" bottom>
-        <template v-slot:activator="{ on, attrs }">
-          <div class="action-group" v-bind="attrs" v-on="on">
-            <v-icon class="action-icon icon">mdi-calendar-blank-outline</v-icon>
-            Champs de date
-          </div>
-        </template>
-        <v-list>
-          <v-list-item
-            v-for="(item, i) in items"
-            :key="i"
-            >
-            <v-list-item-title>{{ item.title }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+      <div style="position: relative;">
+        <div
+          :style="[
+            { 'background': toggleDateFields ? '#d9d9d9' : 'transparent' },
+          ]"
+          class="action-group"
+          @click="toggleDateFields = !toggleDateFields">
+          <v-icon class="action-icon icon">mdi-calendar-blank-outline</v-icon>
+          Champs de date
+        </div>
+        <DateFieldsSelector
+          :state="toggleDateFields"
+          class="date-fields-selector"
+        />
+      </div>
 
       <div class="action-group">
         <v-icon class="action-icon icon">mdi-sort</v-icon>
@@ -126,12 +126,12 @@
           @goto="bringTheDay"
           @planHeight="planH"
           @resizedSideBar="resizedSideBar"
-          @resizeWholePeriod="(task, startDate, endDate) => $emit('resizeWholePeriod', task, startDate, endDate)"
-          @resizeStart="(task, startDate) => $emit('resizeStart', task, startDate)"
-          @resizeEnd="(task, endDate) => $emit('resizeEnd', task, endDate)"
+          @resizeWholePeriod="(task, estimatedStartDate, estimatedEndDate) => $emit('resizeWholePeriod', task, estimatedStartDate, estimatedEndDate)"
+          @resizeStart="(task, estimatedStartDate) => $emit('resizeStart', task, estimatedStartDate)"
+          @resizeEnd="(task, estimatedEndDate) => $emit('resizeEnd', task, estimatedEndDate)"
           @showTicketDetails="showTicketDetails"
-          @startTicket="(task, startDate) => $emit('startTicket', task, startDate)"
-          @createTicket="(task, startDate, endDate) => $emit('createTicket', task, startDate, endDate)"
+          @startTicket="(task, estimatedStartDate) => $emit('startTicket', task, estimatedStartDate)"
+          @createTicket="(task, estimatedStartDate, estimatedEndDate) => $emit('createTicket', task, estimatedStartDate, estimatedEndDate)"
           />
       </div>
     </div>
@@ -141,6 +141,7 @@
 <script>
 import CalendarContent from './CalendarContent.vue';
 import TaskDetails from './TaskDetails.vue';
+import DateFieldsSelector from '../components/DateFieldsSelector.vue';
 import { throttle } from 'lodash';
 import moment from 'moment';
 moment.locale('fr');
@@ -150,14 +151,9 @@ export default {
   components: {
     CalendarContent,
     TaskDetails,
+    DateFieldsSelector,
   },
   data: () => ({
-    items: [
-      { title: 'Click Me' },
-      { title: 'Click Me' },
-      { title: 'Click Me' },
-      { title: 'Click Me 2' },
-    ],
     selectedTaskDetails: null,
     isScrolling: false,
     currentMarker: null,
@@ -185,6 +181,7 @@ export default {
       medium: 12,
       small: 10,
     },
+    toggleDateFields: false,
   }),
   created() {
     this.current = moment();
@@ -337,9 +334,9 @@ export default {
     bringTheDay(date) {
     },
     async bringDay(ticket) {
-      const { position, startDate } = ticket;
+      const { position, estimatedStartDate } = ticket;
       if (position === 'right') {
-        const diff = moment(startDate).diff(this.end, 'months');
+        const diff = moment(estimatedStartDate).diff(this.end, 'months');
         if (diff > 0) {
           for (let i = 0; i < (diff + 6); i += 3) {
             await this.appendPeriod();
@@ -347,14 +344,14 @@ export default {
         }
       }
       else if (position === 'left') {
-        const diff = moment(startDate).diff(this.start, 'months');
+        const diff = moment(estimatedStartDate).diff(this.start, 'months');
         if (diff < 0) {
           for (let i = 0; i < -(diff - 6); i += 3) {
             await this.prependPeriod();
           }
         }
       }
-      this.$refs.calendar.scrollLeft = moment(startDate).diff(this.start, 'days') * this.dayWidth - this.sidebarWidth - ( (this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2 );
+      this.$refs.calendar.scrollLeft = moment(estimatedStartDate).diff(this.start, 'days') * this.dayWidth - this.sidebarWidth - ( (this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2 );
     },
     async verticalScroll(direction) {
       if (direction === 'right') {
@@ -591,7 +588,7 @@ export default {
 }
 .action-group:hover {
   cursor: pointer;
-  background: #d9d9d9;
+  background: #d9d9d9 !important;
 }
 .action-button {
   display: flex;
@@ -613,6 +610,12 @@ export default {
 }
 .pointer-hover {
   cursor: pointer;
+}
+.date-fields-selector {
+  cursor: normal;
+}
+.active {
+  background: #d9d9d9;
 }
 .v-slider__thumb:before {
   background: transparent !important;
