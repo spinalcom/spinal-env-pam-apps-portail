@@ -137,7 +137,7 @@ export default {
       if (this.task.estimatedEndDate) {
         newEndDate = moment(this.task.estimatedEndDate).add(days, 'days').valueOf();
       } else {
-        newEndDate = null;
+        newEndDate = 0;
         // newEndDate = moment(this.setToStartOfDay(this.task.estimatedStartDate)).add(days, 'days');
       }
       this.isResizingWhole = false;
@@ -170,6 +170,7 @@ export default {
         } else {
           newEndDate = +moment(this.setToStartOfDay(this.task.estimatedStartDate)).add(days, 'days').valueOf();
         }
+        console.log('(Vue.js) newEndDate', newEndDate);
         this.$emit('resizeEnd', this.task, newEndDate);
       } else if (this.diffRight < 0) {
         days = Math.round(this.diffRight / this.dayWidth);

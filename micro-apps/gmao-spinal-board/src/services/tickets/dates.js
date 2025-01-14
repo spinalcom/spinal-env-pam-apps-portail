@@ -90,7 +90,7 @@ async function setEstimatedStart(tid, date) {
   * @param {string} date Date in milliseconds
   */
 async function setEstimatedEnd(tid, date) {
-  console.log(`Setting estimated end date for ticket ${tid} to ${date}`);
+  console.log(`(api call) Setting estimated end date for ticket ${tid} to ${date}`);
   const bid = localStorage.getItem('idBuilding');
   const attribute = {
     attributeLabel: 'estimatedEndDate',
@@ -98,6 +98,7 @@ async function setEstimatedEnd(tid, date) {
     attributeType: 'date',
     attributeUnit: 'ms',
   };
+  console.log('(api call) create attribute', attribute);
   await createAttribute(tid, attribute);
 }
 
