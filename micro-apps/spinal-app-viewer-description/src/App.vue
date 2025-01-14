@@ -316,6 +316,7 @@ class App extends Vue {
 
 
   toggleActive(value) {
+    console.log(value);
     if (this.isActive3D) {
       this.isActive3D = false
     }
