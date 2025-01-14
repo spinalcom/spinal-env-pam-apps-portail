@@ -388,13 +388,13 @@
                     <li>{{ item.name }}: {{ item.value }}</li>
                     <v-icon @click="() => {
                       fullData()
-                      addOrRemove(item.dynamicId);
+                      addOrRemove(item.dynamicId, item.name);
                       resize();
                     }"
-                      v-if="cpIdToDraw.includes(item.dynamicId) && !activeChart.includes(item.dynamicId)">mdi-chart-line</v-icon>
+                      v-if="cpIdToDraw.includes(item.dynamicId) && !activeChartData.includes(item.dynamicId)">mdi-chart-line</v-icon>
                     <v-icon @click="() => {
-                      addOrRemove(item.dynamicId);
-                    }" v-if="activeChart.includes(item.dynamicId)">mdi-close</v-icon>
+                      addOrRemove(item.dynamicId, item.name);
+                    }" v-if="activeChartData.includes(item.dynamicId)">mdi-close</v-icon>
                   </div>
                 </div>
               </div>
@@ -543,6 +543,7 @@ import Loader from "../Loader.vue";
 import getIcon from "../../services/function/getIcon";
 import FormAttribute from '../FormAttribute.vue';
 import OverMenu from "./OverMenu.vue";
+import { map } from "lodash";
 
 @Component({
   components: {
@@ -629,6 +630,7 @@ class dataSideApp extends Vue {
   itemOp = null
   selectedCategory = null
   idCatEl = null
+  activeChartData: any = []
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
@@ -747,7 +749,6 @@ class dataSideApp extends Vue {
         return res
       }))
      
-      console.log('documentation: ', documentation.length);
       if ( documentation.lenght != 0 &&  documentation[documentation.length - 1]  && documentation[documentation.length - 1].dynamicId) {
         return documentation;
 
@@ -762,7 +763,6 @@ class dataSideApp extends Vue {
 
   async editattr(attr, id, item) {
     this.ShowFormDocAttrs = true
-    console.log('TADZAD');
     this.selectedAttribut = attr
     this.idEl = id
     this.itemOp = item
@@ -770,7 +770,6 @@ class dataSideApp extends Vue {
 
   async editCattattr(id, item) {
     this.ShowFormDocCat = true
-    console.log('TADZAD');
     this.selectedCategory = item
     this.idCatEl = id
   }
@@ -1548,16 +1547,21 @@ class dataSideApp extends Vue {
     this.countInventoryTypes([...result]);
   }
 
-  async addOrRemove(dyn) {
+  async addOrRemove(dyn, name) {
 
-    if (this.activeChart.includes(dyn)) {
+    if (this.activeChartData.includes(dyn)) {
       this.dataTable = this.dataTable.filter(item => item.dynamicId !== dyn);
-      this.activeChart = this.activeChart.filter(id => id !== dyn);
+      this.activeChartData = this.activeChartData.filter(id => id !== dyn);
       this.removegraphInfoCp(dyn)
     }
     else {
-      this.addgraphInfoCp(dyn)
-      this.activeChart.push(dyn);
+      this.addgraphInfoCp(dyn, name)
+      const dataSave = {
+        dynamicId: dyn,
+        label: name,
+      }
+      this.activeChartData.push(dyn)
+      this.activeChart.push(dataSave);
     }
   }
   async removegraphInfoCp(dyn) {
@@ -1571,7 +1575,8 @@ class dataSideApp extends Vue {
     return new Date(`${year}-${month}-${day}T${timePart}`);
   }
 
-  async addgraphInfoCp(dyn) {
+  async addgraphInfoCp(dyn, name) {
+    console.log('dyn: ', dyn);
     if (!this.cpIdToDraw.includes(dyn)) return;
 
     const { begintime, endtime } = this.getBeginAndEndTime();
@@ -1606,11 +1611,13 @@ class dataSideApp extends Vue {
     // Mettre à jour le tableau de données
     const actuelleTable = {
       dynamicId: dyn,
+      label: name,
       data: processedResult.map(({ date, value }) => ({ x: date, y: value })),
       unit: "kwh",
       name: "le nom du graph",
     };
-
+    console.log('data table: ', this.dataTable);
+    console.log('actuelleTable: ', actuelleTable);
     this.dataTable = [...this.dataTable, actuelleTable];
     this.labelsChart = this.labels(begintime, endtime).map(this.toDate);
     this.chartData = this.chartDataObject(this.dataTable);
@@ -1656,10 +1663,12 @@ class dataSideApp extends Vue {
 
 
   toDate(date) {
+    
     switch (this.$store.state.appDataStore.temporalitySelected.name) {
       case ITemporality.hour:
+        case ITemporality.currentValue:
         return moment(date).format('HH:mm');
-      case ITemporality.day:
+        case ITemporality.day:
         return moment(date).format('HH[h]');
       case ITemporality.week:
         return moment(date).format('dd');
@@ -1720,9 +1729,9 @@ class dataSideApp extends Vue {
 
   async reloadNewChartData() {
     this.dataTable = [];
-
-    for (const id of this.activeChart) {
-      await this.addgraphInfoCp(id);
+ 
+    for (const item of this.activeChart) {
+      await this.addgraphInfoCp(item.dynamicId, item.label);
     }
   }
 
@@ -1731,7 +1740,7 @@ class dataSideApp extends Vue {
   chartDataObject(dataTable) {
     const l1: any = []
     dataTable.forEach((el, index) => {
-      l1.push({ data: [...el.data], label: 'graph 1' + index, color: 'blue', dynamicId: el.dynamicId, specialAxis: index });
+      l1.push({ data: [...el.data], label: el.label, color: 'blue', dynamicId: el.dynamicId, specialAxis: index });
     });
 
     return l1;
@@ -1833,7 +1842,7 @@ class dataSideApp extends Vue {
   @Watch('t_index')
   onTemporalDataChanged() {
     this.timeactuelle = this.getFormattedDateFromTemporalData();
-    //ajouter le nouvelle fonction qui va chercher ledonnées 
+    //ajouter le nouvelle fonction qui va chercher les données 
     this.reloadNewChartData();
   }
 
