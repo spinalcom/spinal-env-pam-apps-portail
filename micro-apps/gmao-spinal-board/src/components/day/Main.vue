@@ -32,21 +32,40 @@
         Aujourd'hui
       </div>
 
+      <DateField />
+      <!--
       <div style="position: relative;">
         <div
           :style="[
-            { 'background': toggleDateFields ? '#d9d9d9' : 'transparent' },
+            { 'background': toggleStartDateField ? '#d9d9d9' : 'transparent' },
           ]"
           class="action-group"
-          @click="toggleDateFields = !toggleDateFields">
+          @click="toggleStartDateField = !toggleStartDateField">
           <v-icon class="action-icon icon">mdi-calendar-blank-outline</v-icon>
           Champs de date
         </div>
         <DateFieldsSelector
-          :state="toggleDateFields"
+          :toggle="toggleStartDateField"
           class="date-fields-selector"
         />
       </div>
+
+      <div style="position: relative;">
+        <div
+          :style="[
+            { 'background': toggleEndDateField ? '#d9d9d9' : 'transparent' },
+          ]"
+          class="action-group"
+          @click="toggleEndDateField = !toggleEndDateField">
+          <v-icon class="action-icon icon">mdi-calendar-blank-outline</v-icon>
+          Champs de date
+        </div>
+        <DateFieldsSelector
+          :toggle="toggleEndDateField"
+          class="date-fields-selector"
+        />
+      </div>
+      -->
 
       <div class="action-group">
         <v-icon class="action-icon icon">mdi-sort</v-icon>
@@ -141,6 +160,7 @@
 <script>
 import CalendarContent from './CalendarContent.vue';
 import TaskDetails from './TaskDetails.vue';
+import DateField from '../components/date-fields/DateField.vue';
 import DateFieldsSelector from '../components/DateFieldsSelector.vue';
 import { throttle } from 'lodash';
 import moment from 'moment';
@@ -151,6 +171,7 @@ export default {
   components: {
     CalendarContent,
     TaskDetails,
+    DateField,
     DateFieldsSelector,
   },
   data: () => ({
@@ -181,7 +202,8 @@ export default {
       medium: 12,
       small: 10,
     },
-    toggleDateFields: false,
+    toggleStartDateField: false,
+    toggleEndDateField: false,
   }),
   created() {
     this.current = moment();

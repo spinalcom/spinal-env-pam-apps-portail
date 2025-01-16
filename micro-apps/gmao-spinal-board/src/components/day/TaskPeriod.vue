@@ -182,9 +182,11 @@ export default {
             // meaning the new end date is greater than the start date
             this.$emit('resizeEnd', this.task, newEndDate);
           } else {
+            console.log('DEBUG: currentDuration', currentDuration);
+            console.log(`DEBUG: current end date is ${this.task.estimatedEndDate} which is ${moment(this.task.estimatedEndDate).format('YYYY-MM-DD')}`);
+            console.log(`DEBUG: new end date is ${moment(this.task.estimatedEndDate).add(currentDuration - 1, 'days').format('YYYY-MM-DD')}`);
             // meaning the new end date is less than the start date
-            const valueToEmit = moment(this.task.estimatedStartDate)
-              .add(currentDuration - 1, 'days');
+            const valueToEmit = moment(this.task.estimatedStartDate).clone().endOf('day').valueOf();
             this.$emit('resizeEnd', this.task, valueToEmit);
           }
         }

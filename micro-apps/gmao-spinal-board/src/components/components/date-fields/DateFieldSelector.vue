@@ -1,113 +1,89 @@
+
 <template>
   <div class="date-fields-selector"
-    :class="toggle ? 'open' : 'close'"
-  >
+    :style="[
+      { 'left': type === 'start' ? '-62px' : '-75px' },
+    ]"
+    :class="toggle ? 'open' : 'close'">
     <div class="date-field-selector">
       <div class="header">
         <span class="date-title">
-          Date de début
+          Date de {{ type === 'start' ? 'début' : 'fin' }}
         </span>
       </div>
-      
       <div class="date-field-list">
         <div
-          v-for="(dateField, index) in startDateFields"
+          v-for="(dateField, index) in dateFields"
           class="date-field-item"
-          @click="selectDateField('startDate', dateField.name)">
+          @click="selectDateField(dateField.name)">
           <v-icon
             :style="[
-            { 'color': selected.startDate === dateField.name ? '#757575' : 'transparent' },
+            { 'color': selected === dateField.name ? '#757575' : 'transparent' },
             ]"
             class="date-icon"
           >mdi-check</v-icon>
           <v-icon class="date-icon">{{ dateField.icon }}</v-icon>
           <span
             :style="[
-              { 'font-weight': selected.startDate === dateField.name ? '700' : '400' },
+              { 'font-weight': selected === dateField.name ? '700' : '400' },
             ]"
             class="item-name">
             {{ dateField.name }}
           </span>
         </div>
         <div 
-          @click="selectDateField('startDate', 'Aucune date de début')"
+          v-if="type === 'start'"
+          @click="selectDateField('Aucune date de début')"
           class="date-field-item">
           <v-icon
             :style="[
-            { 'color': selected.startDate === 'Aucune date de début' ? '#757575' : 'transparent' },
+            { 'color': selected === 'Aucune date de début' ? '#757575' : 'transparent' },
             ]"
             class="date-icon"
           >mdi-check</v-icon>
           <span
             :style="[
-              { 'font-weight': selected.startDate === 'Aucune date de début' ? '700' : '400' },
+              { 'font-weight': selected === 'Aucune date de début' ? '700' : '400' },
             ]"
             class="item-name">Aucune date de début</span>
         </div>
-      </div>
-    </div>
-
-    <div class="date-field-selector">
-      <div class="header">
-        <span class="date-title">
-          Date de fin
-        </span>
-      </div>
-
-      <div class="date-field-list">
-        <div
-          v-for="(dateField, index) in endDateFields"
-          class="date-field-item"
-          @click="selectDateField('endDate', dateField.name)">
-          <v-icon
-            :style="[
-            { 'color': selected.endDate === dateField.name ? '#757575' : 'transparent' },
-            ]"
-            class="date-icon">
-            mdi-check
-          </v-icon>
-          <v-icon class="date-icon">{{ dateField.icon }}</v-icon>
-          <span 
-            :style="[
-              { 'font-weight': selected.endDate === dateField.name ? '700' : '400' },
-            ]"
-            class="item-name">{{ dateField.name }}</span>
-        </div>
         <div 
-          @click="selectDateField('endDate', 'Aucune date de fin')"
+          v-else-if="type === 'end'"
+          @click="selectDateField('Aucune date de fin')"
           class="date-field-item">
           <v-icon
             :style="[
-            { 'color': selected.endDate === 'Aucune date de fin' ? '#757575' : 'transparent' },
+            { 'color': selected === 'Aucune date de fin' ? '#757575' : 'transparent' },
             ]"
             class="date-icon">
             mdi-check
           </v-icon>
           <span 
             :style="[
-              { 'font-weight': selected.endDate === 'Aucune date de fin' ? '700' : '400' },
+              { 'font-weight': selected === 'Aucune date de fin' ? '700' : '400' },
             ]"
             class="item-name">Aucune date de fin</span>
         </div>
         <div style="height: 5px;"></div>
       </div>
     </div>
+
   </div>
 </template>
 
 <script>
-import config from '../../config';
+import config from '../../../config.js';
 export default {
   name: 'DateFieldsSelector',
   props: [
     'toggle',
+    'type',
   ],
+  mounted() {
+  },
   data: () => ({
-    selected: {
-      startDate: 'Date de début estimée',
-      endDate: 'Date de fin estimée',
-    },
-    startDateFields: [
+    selected: null,
+    dateFields: [
       {
         icon: 'mdi-calendar-blank-outline',
         name: 'Date de début estimée',
@@ -116,8 +92,6 @@ export default {
         icon: 'mdi-calendar-blank-outline',
         name: 'Date de début réelle',
       },
-    ],
-    endDateFields: [
       {
         icon: 'mdi-calendar-blank-outline',
         name: 'Date de fin estimée',
@@ -129,20 +103,17 @@ export default {
     ],
   }),
   mounted() {
+    this.selected = this.type === 'start' ? 'Date de début estimée' : 'Date de fin estimée';
     const workflowList = config.config.workflow;
     const stepList = workflowList.flatMap(workflow => workflow.steps);
-    this.startDateFields = this.startDateFields.concat(stepList.map(step => ({
-      icon: 'mdi-note-text-outline',
-      name: step.name,
-    })));
-    this.endDateFields = this.endDateFields.concat(stepList.map(step => ({
+    this.dateFields = this.dateFields.concat(stepList.map(step => ({
       icon: 'mdi-note-text-outline',
       name: step.name,
     })));
   },
   methods: {
-    selectDateField(type, name) {
-      this.selected[type] = name;
+    selectDateField(name) {
+      this.selected = name;
     },
   }
 }
@@ -152,8 +123,7 @@ export default {
 .date-fields-selector {
   position: absolute;
   top: 25px;
-  left: -40px;
-  width: 222px;
+  width: 202px;
   background-color: #fff;
   border-radius: 10px;
   overflow: hidden;
