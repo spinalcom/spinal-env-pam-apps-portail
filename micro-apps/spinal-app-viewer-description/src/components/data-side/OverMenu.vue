@@ -6,7 +6,7 @@
     <div class="over-menu" ref="over_content" v-if="show">
       <ul class="over-menu__content"
         style="width: 100%; padding-top: 10px; padding-left: 0px; display: flex; flex-direction: column; gap: 10px; ">
-        <li v-if="showDocs" class="list-menu" @click="showDoc(item.dynamicId, item.Name)">
+        <li  v-if="showDocs || !noWatch" class="list-menu" @click="showDoc(item.dynamicId, item.Name)">
           <v-icon
             style="width: max-content; height: max-content; background-color: rgba(203 213 225 0.5); border-radius: 50%; font-size: 15px; color: #14202c; cursor: pointer;">
             mdi-eye
@@ -57,6 +57,10 @@ export default {
       type: Boolean,
       default: false
     },
+    noWatch: {
+      type: Boolean,
+      default: true
+    },
     showDownload: {
       type: Boolean,
       default: true
@@ -66,6 +70,7 @@ export default {
 
   mounted() {
     document.addEventListener('click', this.handleClickOutside)
+    
   },
   beforeDestroy() {
     document.removeEventListener('click', this.handleClickOutside)

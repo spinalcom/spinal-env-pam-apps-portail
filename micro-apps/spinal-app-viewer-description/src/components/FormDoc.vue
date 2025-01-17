@@ -119,7 +119,7 @@ import getIcon from '../services/function/getIcon';
                 return fileName.match(/\.[0-9a-z]+$/i);
             },
             pushFile(){
-                const files_types = ['png', 'jpg', 'jpeg', 'pdf', 'xls', 'xlsx', 'csv', 'mp4', 'avi', 'webm'];
+                const files_types = ['png', 'jpg', 'jpeg', 'pdf', 'xls', 'xlsx', 'csv', 'json', 'mp4', 'avi', 'webm'];
             
                 const files = this.$refs.fileInput.files;
                 for (let index = 0; index < files.length; index++) {

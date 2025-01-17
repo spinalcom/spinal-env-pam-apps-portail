@@ -26,6 +26,7 @@
     
     <div class="appli">
       <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
+      <ConfirmDelete :show="showConfirmDelete" @delete-doc="showAlert" @close="updateCloseConfirmDelete" :idReference="confirmIdReferenceDelete" :idFile="confirmIdFileDelete" :contextFile="contextFile"/>
       <div v-show="showDocvalue" class="doc-vue">
       <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" :closecomp="ActiveData"
         @closeDialog="closeVueDoc" />
@@ -542,6 +543,8 @@ import Loader from "../Loader.vue";
 import getIcon from "../../services/function/getIcon";
 import FormAttribute from '../FormAttribute.vue';
 import OverMenu from "./OverMenu.vue";
+import ConfirmDelete from "./ConfirmDelete.vue";
+
 
 @Component({
   components: {
@@ -559,7 +562,8 @@ import OverMenu from "./OverMenu.vue";
     Loader,
     FormAttribute,
     OverMenu,
-    FormDocCateAttr
+    FormDocCateAttr,
+    ConfirmDelete
   },
   filters: {},
 })
@@ -629,6 +633,12 @@ class dataSideApp extends Vue {
   selectedCategory = null
   idCatEl = null
   activeChartData: any = []
+  // variable for confirm delete
+  confirmIdReferenceDelete: number | null = null
+  confirmIdFileDelete : number | null = null
+  showConfirmDelete = false
+  contextFile = ''
+
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
@@ -734,7 +744,9 @@ class dataSideApp extends Vue {
     }
 
   }
-
+  updateCloseConfirmDelete(value) {
+    this.showConfirmDelete = value
+  }
   async getfetchDocRetry (){
     const max = 10;
     const delay = 1000;
@@ -773,17 +785,12 @@ class dataSideApp extends Vue {
   }
 
   async DeleteFile(fileId: number, referenceId: number, space: string) {
-    // console.log('DeleteFile space: ', space);
-    const buildingId = localStorage.getItem("idBuilding");
-    // console.log('parent: ', referenceId, 'fileId: ', fileId);
+      this.confirmIdFileDelete = fileId
+      this.confirmIdReferenceDelete = referenceId
+      this.showConfirmDelete = true
+      this.contextFile = space
+      this.closeOverMenu()
 
-    const result = await this.$store.dispatch(ActionTypes.DELETE_FILE, {
-      buildingId: localStorage.getItem("idBuilding"),
-      referenceId: referenceId,
-      fileId: fileId
-    })
-    result.status == 200 ? this.showAlert({ status: 'success', message: 'Document supprimé avec succès', context: 'document' }) :
-      this.showAlert({ status: 'error', message: 'Erreur lors de la suppression du document', context: 'document', space_context: space })
   }
 
   async DeleteAttribut(referenceId: number, cateId: number, name: string) {
@@ -1839,7 +1846,11 @@ class dataSideApp extends Vue {
   /**
    * Watch
    */
-
+  @Watch('showConfirmDelete') 
+  watchShowConfirmDelete(newVal) {
+    console.log('showConfirmDelete -> ', newVal);
+    this.showConfirmDelete = newVal;
+  }
   @Watch('temporality')
   @Watch('t_index')
   onTemporalDataChanged() {
