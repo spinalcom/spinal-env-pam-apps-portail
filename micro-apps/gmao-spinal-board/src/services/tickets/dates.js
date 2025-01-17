@@ -2,6 +2,12 @@
 import { HTTP } from '../http-constants';
 import { chunkArray } from './utils.js';
 
+/**
+  * Get the attributes of a list of tickets.
+  * @param {string} bid Building ID
+  * @param {array} ticketList List of tickets
+  * @returns {array} List of tickets with attributes
+  */
 async function getAttributes(bid, ticketList) {
   const ticketIds = ticketList.map(ticket => ticket.ticketId);
 
@@ -20,11 +26,8 @@ async function getAttributes(bid, ticketList) {
 
 function mapDates(ticketList, attributeList) {
   const dateAttributes = [
-    'startDate',
-    'endDate',
     'estimatedStartDate',
     'estimatedEndDate',
-    'string',
   ];
   return ticketList.map(ticket => {
     try {
@@ -36,13 +39,9 @@ function mapDates(ticketList, attributeList) {
           acc[a.label] = a.value;
           return acc;
         }, {});
-      ticket.startDate = attributes.startDate || null;
-      ticket.endDate = attributes.endDate || null;
       ticket.estimatedStartDate = attributes.estimatedStartDate || null;
       ticket.estimatedEndDate = attributes.estimatedEndDate || null;
     } catch (error) {
-      ticket.startDate = null;
-      ticket.endDate = null;
       ticket.estimatedStartDate = null;
       ticket.estimatedEndDate = null;
       console.error(`Error mapping dates for ticket ${ticket.ticketId}`, error);

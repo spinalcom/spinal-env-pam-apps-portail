@@ -104,6 +104,7 @@ export default {
   }),
   mounted() {
     this.selected = this.type === 'start' ? 'Date de début estimée' : 'Date de fin estimée';
+    this.emitDateField();
     const workflowList = config.config.workflow;
     const stepList = workflowList.flatMap(workflow => workflow.steps);
     this.dateFields = this.dateFields.concat(stepList.map(step => ({
@@ -114,6 +115,10 @@ export default {
   methods: {
     selectDateField(name) {
       this.selected = name;
+      this.emitDateField();
+    },
+    emitDateField() {
+      this.$emit('select-date-field', this.type, this.selected);
     },
   }
 }

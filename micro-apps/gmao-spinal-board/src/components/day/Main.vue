@@ -33,39 +33,6 @@
       </div>
 
       <DateField />
-      <!--
-      <div style="position: relative;">
-        <div
-          :style="[
-            { 'background': toggleStartDateField ? '#d9d9d9' : 'transparent' },
-          ]"
-          class="action-group"
-          @click="toggleStartDateField = !toggleStartDateField">
-          <v-icon class="action-icon icon">mdi-calendar-blank-outline</v-icon>
-          Champs de date
-        </div>
-        <DateFieldsSelector
-          :toggle="toggleStartDateField"
-          class="date-fields-selector"
-        />
-      </div>
-
-      <div style="position: relative;">
-        <div
-          :style="[
-            { 'background': toggleEndDateField ? '#d9d9d9' : 'transparent' },
-          ]"
-          class="action-group"
-          @click="toggleEndDateField = !toggleEndDateField">
-          <v-icon class="action-icon icon">mdi-calendar-blank-outline</v-icon>
-          Champs de date
-        </div>
-        <DateFieldsSelector
-          :toggle="toggleEndDateField"
-          class="date-fields-selector"
-        />
-      </div>
-      -->
 
       <div class="action-group">
         <v-icon class="action-icon icon">mdi-sort</v-icon>

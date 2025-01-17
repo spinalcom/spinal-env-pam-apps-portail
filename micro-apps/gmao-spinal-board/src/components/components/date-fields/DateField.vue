@@ -16,6 +16,7 @@
       <DateFieldSelector
         :toggle="toggleStartDateField"
         :type="'start'"
+        @select-date-field="selectDateField"
         class="date-fields-selector"
       />
     </div>
@@ -34,6 +35,7 @@
       <DateFieldSelector
       :toggle="toggleEndDateField"
       :type="'end'"
+      @select-date-field="selectDateField"
       class="date-fields-selector"
       />
     </div>
@@ -52,6 +54,10 @@ export default {
   data: () => ({
     toggleStartDateField: false,
     toggleEndDateField: false,
+    selected: {
+      startDate: null,
+      endDate: null,
+    },
   }),
   methods: {
     openStartDateField() {
@@ -65,6 +71,15 @@ export default {
         this.toggleStartDateField = false;
       }
       this.toggleEndDateField = !this.toggleEndDateField;
+    },
+    selectDateField(type, name) {
+      if (type === 'start') {
+        this.selected.startDate = name;
+      } else {
+        this.selected.endDate = name;
+      }
+      this.toggleStartDateField = false;
+      this.toggleEndDateField = false;
     },
   },
 };

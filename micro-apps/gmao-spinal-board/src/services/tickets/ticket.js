@@ -15,9 +15,6 @@ async function getTickets(bid, stepList) {
   const constructedTickets = constructTickets(ticketList.flat());
 
   const results = await getEndDate(bid, constructedTickets);
-  results[3].startDate = null;
-  results[3].endDate = null;
-  // results[3].endDate = 1681344956543;
   const filledDates = await dates.getAttributes(bid, results);
   return results;
 }
@@ -32,10 +29,7 @@ async function getMultipleTickets(bid, stepList) {
 function constructTickets(ticketList) {
   return ticketList.flatMap(list =>
     list.tickets.map(ticket => ({
-      string: null,
       name: ticket.name,
-      startDate: null,
-      endDate: null,
       estimatedStartDate: null,
       estimatedEndDate: null,
       status: ticket.step.name,
@@ -51,7 +45,7 @@ function constructTickets(ticketList) {
 }
 
 async function getEndDate(bid, constructed) {
-  const END_STATES = ["Archived", "Clôturée", "Solved"]
+  const END_STATES = ["Archived", "Clôturée", "Solved"];
 
   const completedTaskIds = constructed
     .filter(task => END_STATES.includes(task.status))
