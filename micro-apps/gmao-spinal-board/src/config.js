@@ -1,7 +1,14 @@
 
 export default {
   config: {
-    showArchive: true,
+    similarSteps: [
+      [0, 5],
+      [3, 6]
+    ],
+    firstPriority: [0, 1, 2, 5],
+    lastPriority: [3, 4, 6],
+    starts: [2, 5],
+    ends: [3, 6],
     workflow: [
       {
         name: 'Demande d\'intervention',
@@ -23,14 +30,12 @@ export default {
             name: 'Réalisation partielle',
             icon: 'mdi-progress-helper',
             defaultColor: '#c4c4c4',
-            type: 'start',
           },
           {
             id: 3,
             name: 'Clôturée',
             icon: 'mdi-check-circle',
             defaultColor: '#c4c4c4',
-            type: 'end',
           },
           {
             id: 4,
@@ -44,18 +49,16 @@ export default {
         name: 'Tickets Otis',
         steps: [
           {
-            id: 0,
+            id: 5,
             name: 'Raised',
             icon: 'mdi-clock',
             defaultColor: '#c4c4c4',
-            type: 'start',
           },
           {
-            id: 3,
+            id: 6,
             name: 'Solved',
             icon: 'mdi-clock',
             defaultColor: '#c4c4c4',
-            type: 'end',
           },
         ],
       },

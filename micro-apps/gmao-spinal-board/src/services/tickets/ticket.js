@@ -30,6 +30,7 @@ function constructTickets(ticketList) {
   return ticketList.flatMap(list =>
     list.tickets.map(ticket => ({
       name: ticket.name,
+      dates: [],
       estimatedStartDate: null,
       estimatedEndDate: null,
       status: ticket.step.name,

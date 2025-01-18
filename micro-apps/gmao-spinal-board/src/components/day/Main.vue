@@ -128,7 +128,6 @@
 import CalendarContent from './CalendarContent.vue';
 import TaskDetails from './TaskDetails.vue';
 import DateField from '../components/date-fields/DateField.vue';
-import DateFieldsSelector from '../components/DateFieldsSelector.vue';
 import { throttle } from 'lodash';
 import moment from 'moment';
 moment.locale('fr');
@@ -139,7 +138,6 @@ export default {
     CalendarContent,
     TaskDetails,
     DateField,
-    DateFieldsSelector,
   },
   data: () => ({
     selectedTaskDetails: null,
