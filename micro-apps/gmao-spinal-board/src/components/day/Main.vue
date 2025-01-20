@@ -32,7 +32,10 @@
         Aujourd'hui
       </div>
 
-      <DateField />
+      <DateField 
+        @start="selectedStart = $event"
+        @end="selectedEnd = $event"
+        />
 
       <div class="action-group">
         <v-icon class="action-icon icon">mdi-sort</v-icon>
@@ -104,6 +107,7 @@
           :separator="separator"
           :start="start"
           :end="end"
+          :selectedDateFields="{ selectedStart, selectedEnd }"
           :viewPortEdges="viewPortEdges"
           :dayWidth="dayWidth"
           :taskHeight="taskHeight"
@@ -167,8 +171,8 @@ export default {
       medium: 12,
       small: 10,
     },
-    toggleStartDateField: false,
-    toggleEndDateField: false,
+    selectedStart: 'Date de début estimée',
+    selectedEnd: 'Date de fin estimée',
   }),
   created() {
     this.current = moment();
@@ -321,7 +325,9 @@ export default {
     bringTheDay(date) {
     },
     async bringDay(ticket) {
-      const { position, estimatedStartDate } = ticket;
+      const { position } = ticket;
+      const estimatedStartDate = moment(ticket.dates
+        .find(date => date.name === this.selectedStart).value);
       if (position === 'right') {
         const diff = moment(estimatedStartDate).diff(this.end, 'months');
         if (diff > 0) {

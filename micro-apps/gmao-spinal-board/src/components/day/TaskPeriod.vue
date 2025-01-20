@@ -2,6 +2,7 @@
 <template>
   <div 
     ref="taskElement"
+    v-if="estimatedStartDate || estimatedEndDate"
     @click=""
     :style="[
       { 'font-size': fontSize.small + 'px' },
@@ -49,6 +50,7 @@ export default {
     'dayWidth',
     'taskHeight',
     'fontSize',
+    'selectedDateFields',
   ],
   components: {
     Status,
@@ -69,13 +71,43 @@ export default {
     moveFlag: false,
   }),
   computed: {
+    estimatedStartDate() {
+      try {
+        const selectedStartDate = this.selectedDateFields.selectedStart;
+        const date = this.task.dates.find(date => date.name === selectedStartDate);
+        const value = date ? date.value : null;
+        if (value) {
+          return value;
+        } else {
+          const selectedEndDate = this.selectedDateFields.selectedEnd;
+          const endDate = this.task.dates.find(date => date.name === selectedEndDate);
+          const endValue = endDate ? endDate.value : null;
+          if (endValue) {
+            return moment(endValue).startOf('day').valueOf();
+          }
+        }
+        return null;
+      } catch (error) {
+        return null;
+      }
+    },
+    estimatedEndDate() {
+      try {
+        const selectedEndDate = this.selectedDateFields.selectedEnd;
+        const d = this.task.dates.find(date => date.name === selectedEndDate);
+        return d ? d.value : null;
+      } catch (error) {
+        return null;
+      }
+    },
     locate() {
-      const taskStart = moment(this.task.estimatedStartDate);
+      const taskStart = moment(this.estimatedStartDate);
       return taskStart.diff(this.start, 'days');
     },
     taskWidth() {
-      if (this.task.estimatedEndDate) {
-        const duration = (this.setToStartOfDay(this.task.estimatedEndDate).diff(this.setToStartOfDay(this.task.estimatedStartDate), 'days') + 1) * this.dayWidth;
+      if (this.estimatedEndDate) {
+        const duration = (this.setToStartOfDay(this.estimatedEndDate)
+          .diff(this.setToStartOfDay(this.estimatedStartDate), 'days') + 1) * this.dayWidth;
         return duration;
       }
       return this.dayWidth;
@@ -85,19 +117,26 @@ export default {
     }
   },
   mounted() {
-    this.resizeObserver = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        const contentRect = entry.contentRect.width;
-        this.rectDim.width = contentRect;
-        if (this.$refs.textElement && this.$refs.textElement.clientWidth) {
-          this.textDim.width = this.$refs.textElement.clientWidth;
+    if (this.estimatedStartDate || this.estimatedEndDate) {
+      this.resizeObserver = new ResizeObserver((entries) => {
+        for (let entry of entries) {
+          const contentRect = entry.contentRect.width;
+          this.rectDim.width = contentRect;
+          if (this.$refs.textElement && this.$refs.textElement.clientWidth) {
+            this.textDim.width = this.$refs.textElement.clientWidth;
+          }
         }
-      }
-    });
+      });
 
-    this.resizeObserver.observe(this.$refs.taskElement);
+      this.resizeObserver.observe(this.$refs.taskElement);
+    }
   },
   methods: {
+    log() {
+      if (this.task.name === 'démo') {
+        console.log('Start:', this.estimatedStartDate, 'End:', this.estimatedEndDate);
+      }
+    },
     startResizeWholePeriod: throttle(function(event) {
       this.startResizeWx = event.clientX;
       this.isResizingWhole = true;
@@ -113,7 +152,11 @@ export default {
       }
     },
     stopResizeWholePeriod() {
-      if (!this.moveFlag) {
+      if (
+        !this.moveFlag || 
+        this.selectedDateFields.selectedStart !== 'Date de début estimée' ||
+        this.selectedDateFields.selectedEnd !== 'Date de fin estimée'
+      ) {
         this.isResizingWhole = false;
         this.diffWhole = 0;
         this.diffLeft = 0;
@@ -121,7 +164,9 @@ export default {
         this.startResizeWx = 0;
         document.removeEventListener('mousemove', this.resizeWholePeriod);
         document.removeEventListener('mouseup', this.stopResizeWholePeriod);
-        this.showTicketDetails();
+        if (!this.moveFlag) {
+          this.showTicketDetails();
+        }
         return;
       }
       let days;
@@ -129,13 +174,13 @@ export default {
       let newEndDate;
       // No need to check if diffWhole is greater than or less than 0 or 0, just move the task
       days = Math.round(this.diffWhole / this.dayWidth);
-      if (this.task.estimatedStartDate) {
-        newStartDate = moment(this.task.estimatedStartDate).add(days, 'days').valueOf();
+      if (this.estimatedStartDate) {
+        newStartDate = moment(this.estimatedStartDate).add(days, 'days').valueOf();
       } else {
-        newStartDate = moment(this.setToStartOfDay(this.task.estimatedStartDate)).add(days, 'days').valueOf();
+        newStartDate = moment(this.setToStartOfDay(this.estimatedStartDate)).add(days, 'days').valueOf();
       }
-      if (this.task.estimatedEndDate) {
-        newEndDate = moment(this.task.estimatedEndDate).add(days, 'days').valueOf();
+      if (this.estimatedEndDate) {
+        newEndDate = moment(this.estimatedEndDate).add(days, 'days').valueOf();
       } else {
         newEndDate = 0;
         // newEndDate = moment(this.setToStartOfDay(this.task.estimatedStartDate)).add(days, 'days');
@@ -161,32 +206,36 @@ export default {
       }
     },
     stopResizeRight() {
+      if (this.selectedDateFields.selectedEnd !== 'Date de fin estimée') {
+        this.isResizingRight = false;
+        this.diffRight = 0;
+        this.startResizeRx = 0;
+        document.removeEventListener('mousemove', this.resizeRight);
+        document.removeEventListener('mouseup', this.stopResizeRight);
+        return;
+      }
       let days;
       let newEndDate;
       if (this.diffRight > 0) {
         days = Math.round(this.diffRight / this.dayWidth);
-        if (this.task.estimatedEndDate) {
-          newEndDate = +moment(this.task.estimatedEndDate).add(days, 'days').valueOf();
+        if (this.estimatedEndDate) {
+          newEndDate = +moment(this.estimatedEndDate).add(days, 'days').valueOf();
         } else {
-          newEndDate = +moment(this.setToStartOfDay(this.task.estimatedStartDate)).add(days, 'days').valueOf();
+          newEndDate = +moment(this.setToStartOfDay(this.estimatedStartDate)).add(days, 'days').valueOf();
         }
-        console.log('(Vue.js) newEndDate', newEndDate);
         this.$emit('resizeEnd', this.task, newEndDate);
       } else if (this.diffRight < 0) {
         days = Math.round(this.diffRight / this.dayWidth);
-        if (this.task.estimatedEndDate) {
-          const currentDuration = (this.setToStartOfDay(this.task.estimatedEndDate).diff(this.setToStartOfDay(this.task.estimatedStartDate), 'days') + 1);
-          newEndDate = +moment(this.task.estimatedEndDate).subtract(Math.abs(days), 'days').valueOf();
-          const diff = (this.setToStartOfDay(newEndDate).diff(this.setToStartOfDay(this.task.estimatedStartDate), 'days') + 1);
+        if (this.estimatedEndDate) {
+          const currentDuration = (this.setToStartOfDay(this.estimatedEndDate).diff(this.setToStartOfDay(this.estimatedStartDate), 'days') + 1);
+          newEndDate = +moment(this.estimatedEndDate).subtract(Math.abs(days), 'days').valueOf();
+          const diff = (this.setToStartOfDay(newEndDate).diff(this.setToStartOfDay(this.estimatedStartDate), 'days') + 1);
           if (diff > 0) {
             // meaning the new end date is greater than the start date
             this.$emit('resizeEnd', this.task, newEndDate);
           } else {
-            console.log('DEBUG: currentDuration', currentDuration);
-            console.log(`DEBUG: current end date is ${this.task.estimatedEndDate} which is ${moment(this.task.estimatedEndDate).format('YYYY-MM-DD')}`);
-            console.log(`DEBUG: new end date is ${moment(this.task.estimatedEndDate).add(currentDuration - 1, 'days').format('YYYY-MM-DD')}`);
             // meaning the new end date is less than the start date
-            const valueToEmit = moment(this.task.estimatedStartDate).clone().endOf('day').valueOf();
+            const valueToEmit = moment(this.estimatedStartDate).clone().endOf('day').valueOf();
             this.$emit('resizeEnd', this.task, valueToEmit);
           }
         }
@@ -213,22 +262,22 @@ export default {
       let newStartDate;
       if (this.diffLeft > 0) {
         days = Math.round(this.diffLeft / this.dayWidth);
-        if (this.task.estimatedStartDate) {
-          newStartDate = moment(this.task.estimatedStartDate).subtract(days, 'days');
+        if (this.estimatedStartDate) {
+          newStartDate = moment(this.estimatedStartDate).subtract(days, 'days');
         } else {
-          newStartDate = moment(this.setToStartOfDay(this.task.estimatedStartDate)).subtract(days, 'days');
+          newStartDate = moment(this.setToStartOfDay(this.estimatedStartDate)).subtract(days, 'days');
         }
         this.$emit('resizeStart', this.task, newStartDate);
       } else if (this.diffLeft < 0) {
         days = Math.round(this.diffLeft / this.dayWidth);
-        if (this.task.estimatedStartDate) {
-          const currentDuration = (this.setToStartOfDay(this.task.estimatedEndDate).diff(this.setToStartOfDay(this.task.estimatedStartDate), 'days') + 1);
-          newStartDate = moment(this.task.estimatedStartDate).add(Math.abs(days), 'days');
-          const diff = (this.setToStartOfDay(this.task.estimatedEndDate).diff(this.setToStartOfDay(newStartDate), 'days') + 1);
+        if (this.estimatedStartDate) {
+          const currentDuration = (this.setToStartOfDay(this.estimatedEndDate).diff(this.setToStartOfDay(this.estimatedStartDate), 'days') + 1);
+          newStartDate = moment(this.estimatedStartDate).add(Math.abs(days), 'days');
+          const diff = (this.setToStartOfDay(this.estimatedEndDate).diff(this.setToStartOfDay(newStartDate), 'days') + 1);
           if (diff > 0) {
             this.$emit('resizeStart', this.task, newStartDate);
           } else {
-            this.$emit('resizeStart', this.task, moment(this.task.estimatedStartDate).add(currentDuration - 1, 'days'));
+            this.$emit('resizeStart', this.task, moment(this.estimatedStartDate).add(currentDuration - 1, 'days'));
           }
         }
       }
@@ -247,6 +296,10 @@ export default {
     showTicketDetails() {
       this.$emit('showTicketDetails', this.task);
     }
+  },
+  watch: {
+    selectedDateFields(v1) {
+    },
   },
 }
 </script>

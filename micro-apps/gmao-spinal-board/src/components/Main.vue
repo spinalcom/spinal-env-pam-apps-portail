@@ -63,8 +63,8 @@ export default {
       try {
         this.ticketList = this.ticketList.map((ticket) => {
           if (ticket.ticketId === task.ticketId) {
-            ticket.estimatedStartDate = estimatedStartDate;
-            ticket.estimatedEndDate = estimatedEndDate;
+            ticket.dates.find(date => date.name === 'Date de début estimée').value = estimatedStartDate;
+            ticket.dates.find(date => date.name === 'Date de fin estimée').value = estimatedEndDate;
           }
           return ticket;
         });
@@ -77,7 +77,7 @@ export default {
     resizeStart(task, estimatedStartDate) {
       this.ticketList = this.ticketList.map((ticket) => {
         if (ticket.ticketId === task.ticketId) {
-          ticket.estimatedStartDate = estimatedStartDate;
+          ticket.dates.find(date => date.name === 'Date de début estimée').value = estimatedStartDate;
         }
         return ticket;
       });
@@ -86,7 +86,7 @@ export default {
       try {
         this.ticketList = this.ticketList.map((ticket) => {
           if (ticket.ticketId === task.ticketId) {
-            ticket.estimatedEndDate = estimatedEndDate;
+            ticket.dates.find(date => date.name === 'Date de fin estimée').value = estimatedEndDate;
           }
           return ticket;
         });

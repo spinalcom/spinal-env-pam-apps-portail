@@ -78,6 +78,7 @@ export default {
       } else {
         this.selected.endDate = name;
       }
+      this.$emit(type, name);
       this.toggleStartDateField = false;
       this.toggleEndDateField = false;
     },

@@ -91,6 +91,7 @@
           <!-- TICKETS -->
           <template v-if="process.state === 'open'">
             <div
+              @click="logTicketDetails(ticket)"
               v-for="(ticket, index) in process.ticketList"
               :key="ticket.name + index"
               :style="[
@@ -108,16 +109,16 @@
                 {{ ticket.name }}
               </span>
               <div
-                v-if="fallingIn(ticket.estimatedStartDate)"
+                v-if="fallingIn(startDate(ticket))"
                 :style="[
                   { height: (taskHeight - 5) + 'px' },
                 ]"
                 class="goto-ticket"
-                @click="bringDay(ticket, fallingIn(ticket.estimatedStartDate))">
+                @click="bringDay(ticket, fallingIn(startDate(ticket)))">
                 <v-icon 
                   :style="[{ 'font-size': fontSize.medium + 'px' }]"
                   class="goto-icon icon">
-                  {{ fallingIn(ticket.estimatedStartDate) }}
+                  {{ fallingIn(startDate(ticket)) }}
                 </v-icon>
               </div>
             </div>
@@ -176,6 +177,7 @@ export default {
     'dayWidth',
     'taskHeight',
     'fontSize',
+    'selectedDateFields',
   ],
   components: {
     Status
@@ -198,6 +200,28 @@ export default {
     this.resizeObserver.observe(this.$refs.sideBar);
   },
   methods:{
+    logTicketDetails(ticket) {
+      console.log('ticket', ticket);
+    },
+    startDate(ticket) {
+      if (!ticket.dates || !Array.isArray(ticket.dates)) {
+        return null;
+      }
+      try {
+        const date = ticket.dates
+          .find(date => date.name === this.selectedDateFields.selectedStart);
+        if (ticket.name === 'démo') {
+        }
+        return ticket.dates
+          .find(date => date.name === this.selectedDateFields.selectedStart).value;
+      } catch (error) {
+        return null;
+      }
+    },
+    endDate(ticket) {
+      return ticket.dates
+        .find(date => date.name === this.selectedDateFields.selectedEnd).value;
+    },
     toggle(type, item) {
       if (type === 'workflow') {
         item.state = item.state === 'open' ? 'close' : 'open';
@@ -260,7 +284,7 @@ export default {
       if (positionIconName === 'mdi-plus') {
         const today = moment().startOf('day');
         const estimatedStartDate = today.valueOf();
-        ticket.estimatedStartDate = estimatedStartDate;
+        ticket.dates.find(date => date.name === 'Date de début estimée').value = estimatedStartDate;
         // ticket.endDate = nextDay;
         this.$emit('startTicket', ticket, estimatedStartDate);
         return;
@@ -280,7 +304,9 @@ export default {
         return 'mdi-arrow-left';
       }
       else if (!date) {
-        return 'mdi-plus';
+        if (this.selectedDateFields.selectedStart === 'Date de début estimée') {
+          return 'mdi-plus';
+        }
       }
       return null;
     },
