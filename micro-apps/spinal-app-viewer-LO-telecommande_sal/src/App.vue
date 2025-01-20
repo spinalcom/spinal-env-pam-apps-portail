@@ -191,10 +191,13 @@ class App extends Vue {
 
   }
   async mounted() {
+    console.log('????????????????????');
+    
     localStorage.setItem('idBuilding', this.config.idBuilding)
     localStorage.setItem('floor_tablette_id', '960438368')
     const newIds = window.parent.router.query.spaceSelectedId
-
+    console.log(newIds);
+    
 
     const parentPromise = [
       this.$store.dispatch(ActionTypes.GET_POSTION_EQUIPEMENT, {

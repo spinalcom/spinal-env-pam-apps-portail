@@ -61,6 +61,7 @@ export interface IViewInfoTmpRes {
 
 export async function fetchAdditionalData(config: IConfig, buildingId: string): Promise<Map<string, any>> {
 
+  console.warn(config.salonName , config.roomType, 'aaaaaaaaaaaaaaaaaaaaaaaaaaa')
   let tabletteId = window.parent.router.query.spaceSelectedId
 
   if (tabletteId == undefined)
@@ -69,6 +70,9 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   const spinalAPI = SpinalAPI.getInstance();
   //recuperation de la room de la tablette
 
+  
+
+
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipment/${tabletteId}/get_position`);
   let result = await spinalAPI.get<{ [key: string]: any[] }>(url);
 
@@ -76,17 +80,18 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   localStorage.setItem('room_tablette_name', result.data.info.room.name);
   localStorage.setItem('floor_tablette_id', result.data.info.floor.dynamicId);
   localStorage.setItem('floor_tablette_name', result.data.info.floor.name);
-
+  
 
   const roomStaticdetails = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/room/${result.data.info.room.dynamicId}/read_static_details`);
   let resultRoomStatic = await spinalAPI.get<{ [key: string]: any[] }>(roomStaticdetails);
 
-  const dynamicIdSalon = resultRoomStatic.data.groupParents.find(group => group.name === "Salon 3éme")?.dynamicId;
+
+  const dynamicIdSalon = resultRoomStatic.data.groupParents.find(group => group.name === config.salonName)?.dynamicId;
 
   const nodeIdChildren = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/node/${dynamicIdSalon}/children`);
   let allRooms = await spinalAPI.get<{ [key: string]: any[] }>(nodeIdChildren);
 
-  const geographicRooms = allRooms.data.filter(room => room.type === "geographicRoom");
+  const geographicRooms = allRooms.data.filter(room => room.type === config.roomType);
   const dynamicIdsRooms = geographicRooms.map(room => room.dynamicId);
 
 
@@ -107,7 +112,7 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
     const roomReference = result_room_reference_multiple.data.find(ref => ref.dynamicId === room.dynamicId);
     const sols = roomReference
       ? roomReference.infoReferencesObjects
-        .filter(refObj => refObj.name.startsWith("Sol")) // Filtrer les objets "Sol"
+        .filter(refObj => refObj.name.startsWith("Sol"))
         .map(sol => ({
           bimFileId: sol.bimFileId,
           dbid: sol.dbid

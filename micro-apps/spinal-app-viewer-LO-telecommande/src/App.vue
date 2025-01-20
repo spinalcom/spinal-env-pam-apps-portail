@@ -166,7 +166,7 @@ class App extends Vue {
       referenceIds = window.parent.router.query.spaceSelectedId
 
 
-   
+
     const buildingId = localStorage.getItem("idBuilding");
     const promises = [
       this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
@@ -178,7 +178,16 @@ class App extends Vue {
     this.setTabletteSprite(result, buildingId)
   }
   async mounted() {
-    localStorage.setItem('idBuilding', this.config.idBuilding)
+    if (window.parent.router.query.buildingId != undefined) {
+      localStorage.setItem('idBuilding', window.parent.router.query.buildingId)
+    }
+    else {
+      console.log('le building n est pas declaré ');
+      
+      localStorage.setItem('idBuilding', this.config.idBuilding)
+    }
+
+
     this.updateTime();
     this.updateDate();
     setInterval(this.updateTime, 60000);
@@ -472,7 +481,7 @@ class App extends Vue {
   applyURLParam(query) {
 
     const buildingId = localStorage.getItem("idBuilding");
-    const dynamicId = '969065616' || localStorage.getItem("floor_tablette_id");
+    const dynamicId = localStorage.getItem("floor_tablette_id"); //TODO
     const name = localStorage.getItem("floor_tablette_name");
     const item = {
       buildingId: buildingId,
