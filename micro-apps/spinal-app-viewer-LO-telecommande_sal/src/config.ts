@@ -38,8 +38,10 @@ export const config: IConfig = {
 	tabletteId2: 139875139501360,
 
 	salonName : "Salon 3éme",
-	roomType : "geographicRoom"
+	roomType : "geographicRoom",
 	
+	COMMAND_BLIND_TYPE : ['Type D', 'Type E', 'Type F'],
+	COMMAND_LIGHT_STARS_TYPE: ['Type A', 'Type D', 'Type F', 'Type C']
 
 	//catégorie d'inventaire cliblé
 	// inventory: "Typologie",

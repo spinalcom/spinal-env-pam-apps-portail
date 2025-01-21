@@ -32,20 +32,20 @@
             :commandName="'COMMAND_TEMPERATURE'" :currentData="COMMAND_TEMPERATURE" :objet="temp" :unit="'°C'"
             :icon="'thermometer'" :color="'#FF9685'" style="border-right: 2px dashed #a1a1a1;
     padding-right: 3%;"></EditCommande2>
-          <EditCommande2 v-if="['Type A', 'Type D', 'Type F', 'Type C'].includes(floorType)" :activable="activable"
-            @update="handleUpdate" :step="1" :commandName="'COMMAND_LIGHT'" :currentData="COMMAND_LIGHT" :modeString="true"
-            :objet="etoile" :unit="'%'" :icon="'ampoule'" :color="'#EDE474'" :style="{
+          <EditCommande2 v-if="this.commandLightStars.includes(floorType)" :activable="activable"
+            @update="handleUpdate" :step="1" :commandName="'COMMAND_LIGHT'" :currentData="COMMAND_LIGHT"
+            :modeString="true" :objet="etoile" :unit="'%'" :icon="'ampoule'" :color="'#EDE474'" :style="{
               marginLeft: '6%',
-              borderRight: ['Type D', 'Type E', 'Type F'].includes(floorType) ? 'none' : '2px dashed #a1a1a1',
+              borderRight: this.commandBlind.includes(floorType) ? 'none' : '2px dashed #a1a1a1',
               paddingRight: '3%'
             }"></EditCommande2>
           <EditCommande2 v-else :activable="activable" @update="handleUpdate" :step="5" :commandName="'COMMAND_LIGHT'"
             :currentData="COMMAND_LIGHT" :objet="lumi" :unit="'%'" :icon="'ampoule'" :color="'#EDE474'" :style="{
               marginLeft: '6%',
-              borderRight: ['Type D', 'Type E', 'Type F'].includes(floorType) ? 'none' : '2px dashed #a1a1a1',
+              borderRight: this.commandBlind.includes(floorType) ? 'none' : '2px dashed #a1a1a1',
               paddingRight: '3%'
             }"></EditCommande2>
-          <EditCommande2 v-if="!['Type D', 'Type E', 'Type F'].includes(floorType)" :activable="activable"
+          <EditCommande2 v-if="!this.commandBlind.includes(floorType)" :activable="activable"
             @update="handleUpdate" :step="5" :commandName="'COMMAND_BLIND'" :currentData="COMMAND_BLIND" :objet="store"
             :unit="'%'" :icon="'store'" :color="'#A8DDF4'" style="margin-left: 6%;"></EditCommande2>
           <!-- <EditCommande></EditCommande> -->
@@ -65,13 +65,14 @@ import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 import EditCommande from "./EditCommande.vue"
 import EditCommande2 from "./EditCommande2.vue"
 import { LOADIPHLPAPI } from "dns";
-
+import { config } from "../../config";
 
 export default {
   props: {
     data: {},
     selectedItem: null,
     floorType: ''
+
   },
   components: {
     EditCommande2,
@@ -86,6 +87,8 @@ export default {
     postion_name: null,
     postion_id: null,
     activable: false,
+    commandLightStars: config.COMMAND_LIGHT_STARS_TYPE,
+    commandBlind: config.COMMAND_BLIND_TYPE,
     temp: [
       { value: 2, color: '#F0715C' },
       { value: 1, color: '#FF9685' },
@@ -108,14 +111,17 @@ export default {
       { value: 0, color: '#14202C' },
     ],
     etoile: [
-      { value: 3, color: '#EDE474', string: "0000" },
-      { value: 2, color: '#B7B362', string: "000" },
-      { value: 1, color: '#818250', string: "00" },
-      { value: 0, color: '#14202C', string: "0" },
+      { value: 3, color: '#EDE474', string: "****" },
+      { value: 2, color: '#B7B362', string: "***" },
+      { value: 1, color: '#818250', string: "**" },
+      { value: 0, color: '#14202C', string: "*" },
     ],
+
   }),
   mounted() {
     this.handleSelectedItemChange(this.selectedItem)
+    console.warn(this.commandBlind,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' , config);
+    
   },
   methods: {
     handleUpdate({ command, value }) {
