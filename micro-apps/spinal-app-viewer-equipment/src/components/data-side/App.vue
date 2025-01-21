@@ -83,7 +83,7 @@ with this file. If not, see
         :grp_list="$store.state.appDataStore.user_selection_list.grp" 
         :ActiveData="ActiveData" :DActive="DActive"
         @itemSelected="handleItemSelected"
-        @buttonClicked="fullData"
+        @buttonClicked="buttonClicked"
         
         />
 
@@ -143,8 +143,9 @@ class dataSideApp extends Vue {
     }, 1);
   }
   
-  fullData() {
-    this.$emit('buttonClicked');
+  buttonClicked(payload) {
+    console.log("buttonClicked payload", payload);
+    this.$emit('buttonClicked', payload);
   }
 
   async mounted() {
@@ -241,9 +242,6 @@ class dataSideApp extends Vue {
   }
 
   handleAttributeChange(emitedInfo) {
-
-
-
     if (this.config.sprites)
       this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
     if (this.isBuildingSelected) return;

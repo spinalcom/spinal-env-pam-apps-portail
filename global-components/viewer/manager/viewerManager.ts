@@ -254,10 +254,21 @@ export class ViewerManager {
 
 	private async _getAndFormatViewerInfos(item: IPlayloadWithComponent | IPlayloadWithComponent[], buildingId?: string, component?: Vue) {
 		item = Array.isArray(item) ? item : [item];
-		const data = await this.getViewerInfo(item, buildingId);
-
+		const data :any = []
+		// The following code is specifically for the case where item is an array of BimObjects and we already have their bimFileId, dbid and position
+		const toFetch : IPlayloadWithComponent [] = []
+		for (const it of item) {
+			if(it.dynamicId && it.bimFileId && it.dbid){ 
+				data.push({dynamicId: it.dynamicId, data: [{bimFileId: it.bimFileId, dbIds: [it.dbid]}]})
+			}
+			else {
+				toFetch.push(it)	
+			}
+		}
+		const lst = await this.getViewerInfo(toFetch, buildingId);
+		data.push(...lst)
+		//const data = await this.getViewerInfo(item, buildingId);
 		const obj = convertToObj(data);
-
 		return item.map((i) => ({
 			// dbIds: obj[i.dynamicId]?.dbIds ||[],
 			// bimFileId: obj[i.dynamicId]?.bimFileId,

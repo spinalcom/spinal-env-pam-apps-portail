@@ -245,10 +245,17 @@ class App extends Vue {
     this.$store.commit(MutationTypes.SET_TEMPORALITY, v);
   }
 
-  toggleActive() {
+  toggleActive(value) {
     if (this.isActive3D)
       this.isActive3D = false
     this.isActive = !this.isActive;
+    if (value === 'vueDoc') {
+      this.isActive = true
+      this.isActive3D = false
+    } else if (value === 'vueDocClose') {
+      this.isActive = false
+      this.isActive3D = false
+    }
   }
 
 

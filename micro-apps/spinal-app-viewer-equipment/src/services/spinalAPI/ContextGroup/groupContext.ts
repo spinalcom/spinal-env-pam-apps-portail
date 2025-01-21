@@ -118,8 +118,23 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
 async function processPositionType(position_type, buildingId, allLists) {
     
     const roomIds = allLists.map(room => room.dynamicId.toString());
-    const position = await getEquipementPositions(buildingId, roomIds);
+    const chunkedRoomIds = lodash.chunk(roomIds, 200);
+
+    //const position = await getEquipementPositions(buildingId, roomIds);
+    const positionPromises = chunkedRoomIds.map(ids => getEquipementPositions(buildingId, ids));
+    const positionResults = await Promise.allSettled(positionPromises);
+
+    const position = positionResults.reduce((acc, result) => {
+        if (result.status === 'fulfilled') {
+            acc.push(...result.value);
+        }
+        return acc;
+    }, []);
+
+    
+
     const nodeReads = await getNodeReadMultiple(buildingId, roomIds,true,false);
+
     const newLists = allLists.map(obj => {
         const correctNode = nodeReads.find(node => node.dynamicId === obj.dynamicId);
         if (!correctNode) {
@@ -164,7 +179,7 @@ async function processPositionType(position_type, buildingId, allLists) {
         return newLists; // Fallback for unhandled types
     }
 
-    const chunkedRoomIds = lodash.chunk(roomIds, 500);
+    
     const promises = chunkedRoomIds.map(ids => getAttributeListMultiple(buildingId, ids));
     const results = await Promise.allSettled(promises);
 
