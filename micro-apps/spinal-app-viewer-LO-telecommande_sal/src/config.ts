@@ -31,7 +31,7 @@ export const config: IConfig = {
 	viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },
 	temporality: [ITemporality.currentValue, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
 
-	idBuilding: '5932-6086-9e1a-18506478460',
+	// idBuilding: '0b16-4aa3-434d-19483c98225',
 
 	//tablette ID
 	tabletteId: 139875273892784,

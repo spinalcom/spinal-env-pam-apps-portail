@@ -192,16 +192,28 @@ class App extends Vue {
   }
   async mounted() {
     console.log('????????????????????');
+
+    if (window.parent.router.query.buildingId != undefined) {
+      localStorage.setItem('idBuilding', window.parent.router.query.buildingId)
+    }
+    else {
+      console.log('le building n est pas declaré ');
+      
+      localStorage.setItem('idBuilding', this.config.idBuilding)
+    }
     
-    localStorage.setItem('idBuilding', this.config.idBuilding)
+    // localStorage.setItem('idBuilding', this.config.idBuilding)
+
+    
     localStorage.setItem('floor_tablette_id', '960438368')
     const newIds = window.parent.router.query.spaceSelectedId
     console.log(newIds);
     
 
+
     const parentPromise = [
       this.$store.dispatch(ActionTypes.GET_POSTION_EQUIPEMENT, {
-        buildingId: this.config.idBuilding,
+        buildingId: localStorage.getItem("idBuilding"),
         referenceIds: newIds,
       }),
     ];
