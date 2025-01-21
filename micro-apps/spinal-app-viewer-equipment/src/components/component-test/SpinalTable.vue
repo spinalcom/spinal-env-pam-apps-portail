@@ -25,7 +25,7 @@
         <div class="button" style="">
           <v-select
             v-model="vSelectedTab"
-            :items="vSelectTabs"
+            :items="vSelectDynamic"
             label="Select"
           ></v-select>
         </div>
@@ -62,45 +62,6 @@
         </div>
       </div>
     </div>
-
-    <!-- LE TREEVIEW -->
-    <!-- <div title="Sélection de la catégory d'attribut / attribut" style="width: 70%; display: flex; margin-top: 10px; position: relative;">
-      <div
-        style="margin-left: 2px; z-index: 10; position: absolute; width: calc(100% - 70px - 10px); border-radius: 5px; background-color: rgb(255, 255, 255);">
-        <div class="mouse" @click="showattribut = !showattribut" style="">
-          <v-icon v-if="!showattribut" color="black" style="font-size: 2em">mdi-chevron-down</v-icon>
-          <v-icon v-else color="black" style="font-size: 2em">mdi-chevron-up</v-icon>
-          <div v-if="!keyselected[0]">Selectionner des données à ajouter au tableau.</div>
-          <div style="padding-top: 5px;">
-            <v-chip style="margin: 2px " v-for="(element, index) in keyselected" :key="index" :class="{
-      'blue-background': element.parentName === element.childName,
-      'red-background': element.parentName !== element.childName
-    }">
-              {{ element.childName }}
-              <div
-                style="top: -5px;right:-5px;position: absolute;background-color: white;border-radius: 20px;height: 15px;width: 15px;display: flex;justify-content: center;align-items: center;border: 1px solid #14202c; color: #14202c;">
-                <v-icon style="margin-top: 1px;" size="13px"
-                  @click.stop="deleteAttrSelected(element)">mdi-close</v-icon>
-              </div>
-            </v-chip>
-          </div>
-        </div>
-
-        <div>
-          <v-treeview class="my-custom-treeview animate" v-if="showattribut"
-            style="width: 100%;padding-left: 20px;user-select: none;" v-model="selectedKeys" selectable
-            item-disabled="locked" :items="treeviewItems"></v-treeview>
-        </div>
-      </div>
-      <div @click.stop="importAttr = !importAttr"
-        style="cursor: pointer;  position: absolute; right: 0;  border-radius: 5px;  margin-left: 10px;">
-        <v-icon title="import" color="black"
-          style="font-size: 2em;border: 1px solid black;border-radius: 5px;padding: 10px;">mdi-file-upload</v-icon>
-      </div>
-    </div> -->
-
-    <!-- LE DATA TABLE -->
-    <!-- items = filtred items / headers = headers / contexts = global items / selection = items du select / -->
 
     <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
 
@@ -197,13 +158,14 @@
 
     <!-- ONGLET Documentation -->
     <div v-if="vSelectedTab == 'Documentation'" class="scrollable-content"
-    >
+    style="display: flex;flex-direction: row; flex-grow: 1;" >
 
-    <div v-if="showDocvalue">
-        <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" :closecomp="ActiveData"
+    <div style="flex-grow: 2;" v-show="showDocvalue" >
+        <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile"
           @closeDialog="closeVueDoc" />
     </div>
       
+    <div style="display: flex;flex-direction: column;flex-grow: 1;" >
       <v-row style="padding: 20px;">
         <AddBtn @open-dialog="ShowFormDoc" />
       </v-row>
@@ -211,7 +173,7 @@
                :referenceid="currentTargetItemId" />
 
       <div v-if="vSelectItemDocumentation && vSelectItemDocumentation.length > 0">
-        <div style="width: 100%; flex-direction: column;">
+        <div style="width: 100%; flex-direction: column; flex-grow: 1;">
         <div class="blocInformation">
           <div
             v-for="(item, index) in vSelectItemDocumentation"
@@ -242,6 +204,8 @@
       <div v-else>
         <p>Aucune documentation disponible.</p>
       </div>
+
+    </div>
     </div>
 
     <!-- ONGLET TICKETS -->
@@ -583,16 +547,6 @@ export default {
     allFilteredData: [],
     currentfilter: null,
     order: false,
-    vSelectTabs: [
-      'Equipements',
-      'Attributs',
-      'Documentation',
-      'Notes',
-      'Tickets',
-      'Indicateur',
-      'Points de mesures',
-      'Radar'
-    ],
     vSelectedTab: 'Equipements',
     vSelectItemAttributes: [],
     vSelectItemAutodeskAttributes: [],
@@ -881,34 +835,55 @@ export default {
       return dynamicId;
     },
 
+    vSelectDynamic(){
+      let vSelectTabs= [
+      'Equipements',
+      'Attributs',
+      'Documentation',
+      'Notes',
+      'Tickets',
+      'Indicateur',
+      'Points de mesures',
+      'Radar'
+      ]
+      if (this.selected_id) {
+        return vSelectTabs.filter((tab) => tab !== 'Radar');
+      } else if (this.$store.state.appDataStore.user_selected.grp.length > 0) {
+        return vSelectTabs.filter((tab) => tab !== 'Radar');
+      } else if (this.$store.state.appDataStore.user_selected.cat) {
+        return vSelectTabs;
+      } 
+      return vSelectTabs
+    },
+
     radarData(){
       console.log('selection', this.filteredContextsV);
 
-  // Récupérer les groupes uniques et compter les équipements par groupe
-  const groupCounts = this.filteredContextsV.reduce((acc, item) => {
-    acc[item.group] = (acc[item.group] || 0) + 1;
-    return acc;
-  }, {});
+      // Récupérer les groupes uniques et compter les équipements par groupe
+      const groupCounts = this.filteredContextsV.reduce((acc, item) => {
+      acc[item.group] = (acc[item.group] || 0) + 1;
+      return acc;
+      }, {});
 
-  console.log('groupCounts', groupCounts);
+      console.log('groupCounts', groupCounts);
 
-  // Extraire les groupes (labels) et les valeurs (counts)
-  const labels = Object.keys(groupCounts); // Les noms des groupes
-  const data = Object.values(groupCounts); // Le nombre d'équipements par groupe
+      // Extraire les groupes (labels) et les valeurs (counts)
+      const labels = Object.keys(groupCounts); // Les noms des groupes
+      const data = Object.values(groupCounts); // Le nombre d'équipements par groupe
 
-  return {
-    labels, // Les groupes uniques
-    datasets: [
-      {
-        label: 'Nombre d\'équipements par groupe',
-        data, // Les valeurs correspondant à chaque groupe
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-        borderWidth: 1,
-      },
-    ],
-  };
-}
+      return {
+        labels, // Les groupes uniques
+        datasets: [
+          {
+            label: 'Nombre d\'équipements par groupe',
+            data, // Les valeurs correspondant à chaque groupe
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1,
+          },
+        ],
+      };
+    }
 
 
   },
@@ -1250,7 +1225,7 @@ export default {
         this.activeChart = this.activeChart.filter((id) => id !== dyn);
         this.removegraphInfoCp(dyn);
         if(this.activeChart.length == 0){
-          this.$emit('buttonClicked');
+          this.$emit('buttonClicked','closeVueDoc');
         }
       } else {
         this.addgraphInfoCp(dyn);
@@ -1578,103 +1553,102 @@ export default {
     },
 
 
-  async editattr(attr, id, item) {
-    this.ShowFormDocAttrs = true
-    this.selectedAttribut = attr
-    this.idEl = id
-    this.itemOp = item
-  },
+    async editattr(attr, id, item) {
+      this.ShowFormDocAttrs = true
+      this.selectedAttribut = attr
+      this.idEl = id
+      this.itemOp = item
+    },
 
-  async editCattattr(id, item) {
-    this.ShowFormDocCat = true
-    this.selectedCategory = item
-    this.idCatEl = id
-  },
+    async editCattattr(id, item) {
+      this.ShowFormDocCat = true
+      this.selectedCategory = item
+      this.idCatEl = id
+    },
 
-  async DeleteFile(fileId, referenceId, space) {
-    // console.log('DeleteFile space: ', space);
-    const buildingId = localStorage.getItem("idBuilding");
-    // console.log('parent: ', referenceId, 'fileId: ', fileId);
+    async DeleteFile(fileId, referenceId, space) {
+      // console.log('DeleteFile space: ', space);
+      const buildingId = localStorage.getItem("idBuilding");
+      // console.log('parent: ', referenceId, 'fileId: ', fileId);
 
-    const result = await this.$store.dispatch(ActionTypes.DELETE_FILE, {
-      buildingId: localStorage.getItem("idBuilding"),
-      referenceId: referenceId,
-      fileId: fileId
-    })
-    result.status == 200 ? this.showAlert({ status: 'success', message: 'Document supprimé avec succès', context: 'document' }) :
-      this.showAlert({ status: 'error', message: 'Erreur lors de la suppression du document', context: 'document', space_context: space })
-  },
+      const result = await this.$store.dispatch(ActionTypes.DELETE_FILE, {
+        buildingId: localStorage.getItem("idBuilding"),
+        referenceId: referenceId,
+        fileId: fileId
+      })
+      result.status == 200 ? this.showAlert({ status: 'success', message: 'Document supprimé avec succès', context: 'document' }) :
+        this.showAlert({ status: 'error', message: 'Erreur lors de la suppression du document', context: 'document', space_context: space })
+    },
 
-  async DeleteAttribut(referenceId, cateId, name) {
-    const result = await this.$store.dispatch(ActionTypes.DELETE_ATTRIBUT, {
-      buildingId: localStorage.getItem("idBuilding"),
-      referenceId: referenceId,
-      cateId: cateId,
-      name: name
-    })
-    result.status == 200 ? this.showAlert({ status: 'success', message: 'Attribut supprimé avec succès', context: 'Attribut' }) :
-      this.showAlert({ status: 'error', message: "Erreur lors de la suppression de l'attribut", context: 'document', space_context: name })
-    this.getdataofelement()
-  },
+    async DeleteAttribut(referenceId, cateId, name) {
+      const result = await this.$store.dispatch(ActionTypes.DELETE_ATTRIBUT, {
+        buildingId: localStorage.getItem("idBuilding"),
+        referenceId: referenceId,
+        cateId: cateId,
+        name: name
+      })
+      result.status == 200 ? this.showAlert({ status: 'success', message: 'Attribut supprimé avec succès', context: 'Attribut' }) :
+        this.showAlert({ status: 'error', message: "Erreur lors de la suppression de l'attribut", context: 'document', space_context: name })
+      this.getdataofelement()
+    },
 
-  async UpdateAttribut(referenceId, cateId, name, item) {
+    async UpdateAttribut(referenceId, cateId, name, item) {
 
-    console.warn(referenceId, cateId, name, item);
+      console.warn(referenceId, cateId, name, item);
 
-    const result = await this.$store.dispatch(ActionTypes.UPDATE_ATTRIBUT, {
-      buildingId: localStorage.getItem("idBuilding"),
-      referenceId: referenceId,
-      cateId: cateId,
-      name: name,
-      item: item
-    })
-    result.status == 200 ? this.showAlert({ status: 'success', message: 'Attribut modifié avec succès', context: 'Attribut' }) :
-      this.showAlert({ status: 'error', message: "Erreur lors de la mise à jour de l'attribut", context: 'document', space_context: name })
-    this.getdataofelement()
-  },
+      const result = await this.$store.dispatch(ActionTypes.UPDATE_ATTRIBUT, {
+        buildingId: localStorage.getItem("idBuilding"),
+        referenceId: referenceId,
+        cateId: cateId,
+        name: name,
+        item: item
+      })
+      result.status == 200 ? this.showAlert({ status: 'success', message: 'Attribut modifié avec succès', context: 'Attribut' }) :
+        this.showAlert({ status: 'error', message: "Erreur lors de la mise à jour de l'attribut", context: 'document', space_context: name })
+      this.getdataofelement()
+    },
 
-  async deleteCateAttr(referenceId, cateId, name) {
-    console.log(referenceId, cateId, name);
+    async deleteCateAttr(referenceId, cateId, name) {
+      console.log(referenceId, cateId, name);
 
-    const result = await this.$store.dispatch(ActionTypes.DELETE_CATE_ATTRIBUT, {
-      buildingId: localStorage.getItem("idBuilding"),
-      referenceId: referenceId,
-      cateId: cateId
-    })
-    result.status == 200 ? this.showAlert({ status: 'success', message: 'Catégory supprimé avec succès', context: 'catégory attribut' }) :
-      this.showAlert({ status: 'error', message: "Erreur lors de la suppression de la catégorie", context: 'cétegory', space_context: name })
-    this.getdataofelement()
-  },
+      const result = await this.$store.dispatch(ActionTypes.DELETE_CATE_ATTRIBUT, {
+        buildingId: localStorage.getItem("idBuilding"),
+        referenceId: referenceId,
+        cateId: cateId
+      })
+      result.status == 200 ? this.showAlert({ status: 'success', message: 'Catégory supprimé avec succès', context: 'catégory attribut' }) :
+        this.showAlert({ status: 'error', message: "Erreur lors de la suppression de la catégorie", context: 'cétegory', space_context: name })
+      this.getdataofelement()
+    },
 
 
-  async updateCateAttr(referenceId, cateId, name, item) {
-    console.log(referenceId, cateId, name);
+    async updateCateAttr(referenceId, cateId, name, item) {
+      console.log(referenceId, cateId, name);
 
-    const result = await this.$store.dispatch(ActionTypes.UPDATE_CATE_ATTRIBUT, {
-      buildingId: localStorage.getItem("idBuilding"),
-      referenceId: referenceId,
-      cateId: cateId,
-      item: item
-    })
-    result.status == 200 ? this.showAlert({ status: 'success', message: 'Catégory edité avec succès', context: 'catégory attribut' }) :
-      this.showAlert({ status: 'error', message: "Erreur lors de l'edit de la catégorie", context: 'cétegory', space_context: name })
-    //this.getdataofelement()
-  },
+      const result = await this.$store.dispatch(ActionTypes.UPDATE_CATE_ATTRIBUT, {
+        buildingId: localStorage.getItem("idBuilding"),
+        referenceId: referenceId,
+        cateId: cateId,
+        item: item
+      })
+      result.status == 200 ? this.showAlert({ status: 'success', message: 'Catégory edité avec succès', context: 'catégory attribut' }) :
+        this.showAlert({ status: 'error', message: "Erreur lors de l'edit de la catégorie", context: 'cétegory', space_context: name })
+      //this.getdataofelement()
+    },
 
     showDoc(referencedId, nameFile) {
-      console.log('showDoccccc', referencedId, nameFile);
-    if (!this.showDocvalue) {
-      this.$emit('buttonClicked', 'vueDoc')
-    }
-    this.nameFile = nameFile
-    this.idDoc = referencedId
-    this.showDocvalue = true;
-    },
-    
+      if (!this.showDocvalue) {
+        this.$emit('buttonClicked', 'vueDoc')
+      }
+      this.nameFile = nameFile
+      this.idDoc = referencedId
+      this.showDocvalue = true;
+      },
+      
     closeVueDoc() {
-    this.showDocvalue = false;
-    this.$emit('buttonClicked', 'vueDocClose')
-  },
+      this.showDocvalue = false;
+      this.$emit('buttonClicked', 'vueDocClose')
+    },
 
     closeOverMenu() {
     this.itemOverflowMenu = null
@@ -1968,6 +1942,7 @@ export default {
 </script>
 
 <style scoped>
+
 .graphContainer {
   border-radius: 0px;
   width: 160%;
@@ -1984,6 +1959,7 @@ export default {
 
 .scrollable-content{
   max-height: 74vh;
+  min-height: 74vh;
   overflow-y: scroll;
 }
 
@@ -1991,20 +1967,6 @@ export default {
   overflow-x: auto;
   overflow-y: auto;
   max-height: fit-content;
-}
-
-::v-deep
-  .v-text-field.v-input--is-focused
-  > .v-input__control
-  > .v-input__slot:after {
-  color: rgba(255, 255, 255, 0) !important;
-}
-
-::v-deep
-  .theme--light.v-text-field
-  > .v-input__control
-  > .v-input__slot:before {
-  border-color: rgba(255, 255, 255, 0) !important;
 }
 
 .red-background {
@@ -2029,12 +1991,6 @@ export default {
   background-color: red !important;
 }
 
-::v-deep .v-data-table__wrapper > table > thead > tr > th:nth-child(1) {
-  position: sticky;
-  left: 0;
-  z-index: 9;
-}
-
 .blur-background {
   background-color: rgba(0, 0, 0, 0.528);
   top: 0;
@@ -2046,55 +2002,8 @@ export default {
   content: '';
 }
 
-.custom-hover-color {
-  background-color: rgb(142, 196, 221) !important;
-}
-
-tr .colortd.custom-hover-color {
-  background-color: rgb(155, 223, 255) !important;
-}
-
-::v-deep .custom-hover-color {
-  background-color: rgb(100, 206, 255) !important;
-}
-
 ::v-deep .v-breadcrumbs {
   padding: 2px !important;
-}
-
-.colortd {
-  background-color: rgb(201, 232, 255);
-}
-
-td {
-  min-width: 250px;
-}
-
-.fixed-first-column table {
-  position: relative;
-}
-
-::v-deep .v-data-footer {
-  display: none;
-}
-
-::v-deep div.v-data-table__wrapper > table > thead > tr > th > i {
-  display: none;
-}
-
-.mouse {
-  width: 101%;
-  height: 50px;
-  background-color: rgb(255, 255, 255);
-  border-radius: 5px;
-  border: 1px solid rgb(0, 0, 0);
-  padding-left: 20px;
-  font-size: 17px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  transition: 0.5s;
-  color: rgb(47, 47, 47);
 }
 
 .animate {
@@ -2139,50 +2048,6 @@ td {
   }
 }
 
-::v-deep .v-treeview-node__children {
-  padding-left: 20px;
-}
-
-::v-deep .v-treeview-node__root {
-  position: relative;
-  border-radius: 5px;
-  border: 0.2px solid rgb(143, 143, 143);
-  max-height: 20px !important;
-  overflow: hidden;
-  background-color: rgb(255, 255, 255);
-}
-
-::v-deep .v-treeview-node__root:hover {
-  background-color: rgb(238, 238, 238);
-  border: 1px solid rgb(83, 83, 83);
-}
-
-.fixed-first-column tbody td:first-child {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-}
-
-::v-deep
-  .v-data-table__wrapper
-  > table
-  > tbody
-  > tr:nth-child(1)
-  > td:nth-child(1) {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-}
-
-
-
-.fixed-first-column thead th:first-child {
-  position: sticky;
-  left: 0;
-  z-index: 2;
-  background-color: white;
-}
-
 .select-attr {
   -webkit-animation: fade-in 1.2s cubic-bezier(0.39, 0.575, 0.565, 1) both;
   animation: fade-in 1.2s cubic-bezier(0.39, 0.575, 0.565, 1) both;
@@ -2223,92 +2088,6 @@ td {
   }
 }
 
-.font-table {
-  font: normal normal normal 16px/13px Charlevoix !important;
-  letter-spacing: 1.1px;
-  color: #14202c;
-  opacity: 1;
-  box-shadow: none !important;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.hover-magnify:hover {
-  background-color: rgb(219, 218, 218) !important;
-}
-
-.card-title {
-  color: #214353 !important;
-  font-size: 20px !important;
-}
-
-.text-start {
-  justify-content: center;
-  display: flex !important;
-  flex-direction: row !important;
-}
-
-.v-data-table {
-  display: flex;
-  flex-direction: column;
-}
-
-::v-deep .v-data-table__wrapper {
-  flex-shrink: 0;
-  flex-grow: 1;
-  overflow-y: auto !important;
-}
-
-::v-deep th {
-  height: 48px !important;
-  font-size: 14px !important;
-  color: #214353 !important;
-}
-
-::v-deep td {
-  font-size: 14px !important;
-  color: #14202c !important;
-  background-color: #f4f4f4;
-  border-bottom: 1px solid white !important;
-  border-right: 1px solid white !important;
-}
-
-::v-deep tr:hover td {
-  cursor: pointer;
-  background-color: #f0f0f0 !important;
-}
-
-::v-deep .v-icon__svg {
-  fill: #214353 !important;
-}
-
-::v-deep .v-list .v-list-item--active,
-.v-list .v-list-item--active .v-icon {
-  background-color: #2f5321 !important;
-}
-
-::v-deep
-  .v-text-field.v-input--is-focused
-  > .v-input__control
-  > .v-input__slot:after {
-  color: #214353;
-}
-
-::v-deep .v-list-item--link:before {
-  background-color: #1500ff !important;
-}
-
-::v-deep .v-application .primary--text {
-  color: #14202c !important;
-  caret-color: #14202c !important;
-  background-color: #1500ff !important;
-}
-
-::v-deep .v-data-footer__select {
-  visibility: hidden;
-}
-
 .title {
   letter-spacing: 1.1px;
   color: #214353;
@@ -2323,59 +2102,6 @@ td {
   color: #214353;
   opacity: 1;
   font-size: 14px;
-}
-
-.theme--light.v-data-table .v-data-footer {
-  background: #7b5151 !important;
-}
-
-::v-deep .v-data-footer {
-  width: 100%;
-  margin-right: 0px !important;
-  background: #fff !important;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 0px;
-}
-
-::v-deep tr > th:first-child {
-  border-top-left-radius: 10px !important;
-}
-
-::v-deep tr > th:last-child {
-  border-top-right-radius: 0px !important;
-}
-
-::v-deep tr > td.text-start {
-  display: flex;
-  align-items: center;
-}
-
-::v-deep .v-data-table__wrapper::-webkit-scrollbar-thumb {
-  background: #e8e8e8;
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-  border: 1px solid rgb(195, 195, 195);
-  transition: 1s;
-}
-
-::v-deep .v-data-table__wrapper::-webkit-scrollbar {
-  width: 10px;
-}
-
-::v-deep .v-data-table__wrapper::-webkit-scrollbar-track {
-  background: #ffffff;
-}
-
-::v-deep .v-data-table__wrapper::-webkit-scrollbar-thumb {
-  background: #e8e8e8;
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-  border: 1px solid rgb(195, 195, 195);
-  transition: 1s;
-}
-
-::v-deep .v-data-table__wrapper::-webkit-scrollbar-thumb:hover {
-  background: #dedede;
 }
 
 .blocInformation {
@@ -2432,14 +2158,6 @@ td {
 
 .btn:hover {
   background-color: rgb(199, 199, 199);
-}
-
-.adaptative {
-  /* width: 80%; */
-  overflow: hidden;
-  /* height: 50px; */
-  position: relative;
-  right: 0px;
 }
 
 .title {
