@@ -1,4 +1,4 @@
-# TAUX D'OCCUPATION
+# Occupancy Rate Dashboard
 
 ## Description du Projet
 
