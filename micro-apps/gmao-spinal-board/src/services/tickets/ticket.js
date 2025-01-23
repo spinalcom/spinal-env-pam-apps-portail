@@ -13,9 +13,11 @@ async function getTickets(bid, stepList) {
 
   const ticketList = await Promise.all(getTicketsPromises);
   const constructedTickets = constructTickets(ticketList.flat());
+  console.log('Constructed tickets', constructedTickets);
 
   // const results = await addDates(bid, constructedTickets);
   const results = await getEndDate(bid, constructedTickets);
+  console.log('Results', results);
   const filledDates = await dates.getAttributes(bid, results);
   return results;
 }
@@ -45,6 +47,7 @@ function constructTickets(ticketList) {
       stepId: ticket.step.dynamicId,
       ticketId: ticket.dynamicId,
       state: 'ticket',
+      description: ticket.description,
     }))
   );
 }
@@ -73,6 +76,7 @@ async function getEndDate(bid, constructed) {
     constructed[task].dates = addDates(constructed[task], detail.log_list);
     constructed[task].dates = [...constructed[task].dates, ...getRealDates(constructed[task].dates)];
     getRealDates(constructed[task].dates);
+    constructed[task].logList = detail.log_list;
   });
 
   return constructed;

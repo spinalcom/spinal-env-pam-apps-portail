@@ -133,7 +133,7 @@ export default {
   border-radius: 10px;
   overflow: hidden;
   z-index: 900;
-  transition: all 0.3s ease-in-out;
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, border 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
 .open {
   opacity: 1;
