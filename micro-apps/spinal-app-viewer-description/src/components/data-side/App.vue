@@ -162,7 +162,7 @@
               </div>
 
               <!-- Liste des éléments -->
-              <div v-else class="inventory-container" style="display: flex; flex-wrap: wrap; gap: 10px;">
+              <div v-else class="inventory-container" style="display: flex; flex-wrap: wrap;">
                 <div v-for="(item, index) in items" :key="index" class="inventory-item"
                   style="display: flex; align-items: center; width: 100%; border: 1px solid #ddd; padding: 14px 5px;border-radius: 5px;">
 

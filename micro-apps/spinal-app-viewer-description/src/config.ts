@@ -39,16 +39,16 @@ export const config: IConfig = {
 
 	inventaire: [
 		{
-		  ctx: 'Gestion des équipements',
-		  cat: 'Typologie',
-		  grp: ['Chaises', 'Bureaux']
+			ctx: 'Gestion des équipements',
+			cat: 'Typologie',
+			grp: ['Chaises', 'Bureaux']
 		},
 		{
-		  ctx: 'Gestion des équipements',
-		  cat: 'Mobilier',
-		//   grp: ['Tableaux']
+			ctx: 'Gestion des équipements',
+			cat: 'Mobilier',
+			//   grp: ['Tableaux']
 		},
-	  ],
+	],
 
 
 	//plusieur categorie d'attr -> pour les pieces
