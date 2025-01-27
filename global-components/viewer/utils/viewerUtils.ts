@@ -297,6 +297,29 @@ export class ViewerUtils {
 			SpriteManager.getInstance().addComponentAsSprite(viewer, result);
 		});
 	}
+	public async addCardComponent(viewer: Autodesk.Viewing.Viewer3D, data: any) {
+		await this._waitModelIsLoading();
+
+		const promises = data.map(async (item) => {
+			const data = item.data.map(({ bimFileId, dbIds }) => ({ dbIds, model: this._getModel(item.modelId, bimFileId) }));
+
+			return {
+				modelId: item.modelId,
+				color: item.color,
+				value: item.value,
+				models: data,
+				dbId: data[0]?.dbIds[0],
+				position: item.position || (await getPosition(data)),
+				// position: await getPosition(data),
+				data: item.parent,
+				component: item.component,
+			};
+		});
+
+		Promise.all(promises).then((result) => {
+			SpriteManager.getInstance().addCardComponent(viewer, result);
+		});
+	}
 
 	public async hideElementsByDbIds(viewer: Autodesk.Viewing.Viewer3D, dbIdObject: any) {
 		await this._waitModelIsLoading();
