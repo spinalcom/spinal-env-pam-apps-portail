@@ -264,6 +264,7 @@ const getToolbar = () => ({
                          this.loading = false;
                         })
 
+
                     }
                     else if(type === 'json') {
                         item.pdf.show = false;

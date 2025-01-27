@@ -31,6 +31,20 @@
       <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" :closecomp="ActiveData"
         @closeDialog="closeVueDoc" />
     </div>
+    <div v-if="ActiveData && selection == 'Indicateur' && labelsChart" class="graphContainer">
+
+
+<LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
+  :step="labelsChart.length" :tooltipCallbacks="{
+    title: (context) => { },
+    label: (tooltipItem) =>
+      `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
+        2
+      )} `,
+    footer: (data) => { },
+  }"></LineCardComponent>
+<!-- </sc-line-card> -->
+</div>
     <!-- style="['height: calc(100vh - 160px); background-color: red', " -->
     <div
       style="max-height: 100%; display:flex; overflow: hidden ; overflow-y: auto; flex-direction: column; align-content:space-between;"
@@ -373,20 +387,7 @@
 
         <!-- ONGLET INDICATEUR (controleEndpoint) indicateur -->
         <div style="display: flex">
-          <div v-if="ActiveData && selection == 'Indicateur' && labelsChart" class="graphContainer">
-
-
-            <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
-              :step="labelsChart.length" :tooltipCallbacks="{
-                title: (context) => { },
-                label: (tooltipItem) =>
-                  `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
-                    2
-                  )} `,
-                footer: (data) => { },
-              }"></LineCardComponent>
-            <!-- </sc-line-card> -->
-          </div>
+         
           <div style="width: 100%;" v-if="selection == 'Indicateur'">
 
             <div v-for="(item, index) in floorstaticDetails[0].controlEndpoint" class="blocInformation">
@@ -1152,7 +1153,7 @@ class dataSideApp extends Vue {
     const result = await Promise.all(promises);
     return result
   }
-  async downloadFile(referenceIds) {
+  async downloadFile(referenceIds, name) {
     const promises = [
       this.$store.dispatch(ActionTypes.POST_DOWNLOAD_FILE, {
         buildingId: localStorage.getItem("idBuilding"),
@@ -1160,16 +1161,16 @@ class dataSideApp extends Vue {
       }),
     ];
     const result = await Promise.all(promises);
-
     result.forEach(blob => {
       const type = blob.type.split('/', 2);
+      const finalType = type[1].split('+', 2) == "vnd.openxmlformats-officedocument.spreadsheetml.sheet" ? "xlsx" : type[1];
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'filename.' + type[1]);
+      link.setAttribute('download', `${name}.${finalType}`);
       document.body.appendChild(link);
       link.click();
-      link.parentNode.removeChild(link);
+      link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
     });
 

@@ -19,7 +19,7 @@
           </v-icon>
           <span> Modifier </span>
         </li>
-        <li v-if="showDownload" class="list-menu" @click="downloadFile(item.dynamicId)">
+        <li v-if="showDownload" class="list-menu" @click="downloadFile(item.dynamicId, item.Name)">
           <v-icon style="cursor: pointer; font-size: 16px;" color="#14202C">
             mdi-download-box
           </v-icon>
@@ -84,8 +84,8 @@ export default {
     showDoc(dynamicId: number, name: string) {
       this.$emit('showDoc', dynamicId, name);
     },
-    downloadFile(dynamicId: number) {
-      this.$emit('downloadFile', dynamicId);
+    downloadFile(dynamicId: number, name: string) {
+      this.$emit('downloadFile', dynamicId, name);
     },
     editFile(dynamicId: number) {
       this.$emit('editFile', dynamicId);
