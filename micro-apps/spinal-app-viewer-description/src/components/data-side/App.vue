@@ -21,30 +21,31 @@
   with this file. If not, see
   <http://resources.spinalcom.com/licenses.pdf>.
   -->
-  
-  <template>
-    
-    <div class="appli">
-      <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
-      <ConfirmDelete :show="showConfirmDelete" @delete-doc="showAlert" @close="updateCloseConfirmDelete" :idReference="confirmIdReferenceDelete" :idFile="confirmIdFileDelete" :contextFile="contextFile"/>
-      <div v-show="showDocvalue" class="doc-vue">
+
+<template>
+
+  <div class="appli">
+    <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
+    <ConfirmDelete :show="showConfirmDelete" @delete-doc="showAlert" @close="updateCloseConfirmDelete"
+      :idReference="confirmIdReferenceDelete" :idFile="confirmIdFileDelete" :contextFile="contextFile" />
+    <div v-show="showDocvalue" class="doc-vue">
       <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" :closecomp="ActiveData"
         @closeDialog="closeVueDoc" />
     </div>
     <div v-if="ActiveData && selection == 'Indicateur' && labelsChart" class="graphContainer">
 
 
-<LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
-  :step="labelsChart.length" :tooltipCallbacks="{
-    title: (context) => { },
-    label: (tooltipItem) =>
-      `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
-        2
-      )} `,
-    footer: (data) => { },
-  }"></LineCardComponent>
-<!-- </sc-line-card> -->
-</div>
+      <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
+        :step="labelsChart.length" :tooltipCallbacks="{
+          title: (context) => { },
+          label: (tooltipItem) =>
+            `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
+              2
+            )} `,
+          footer: (data) => { },
+        }"></LineCardComponent>
+      <!-- </sc-line-card> -->
+    </div>
     <!-- style="['height: calc(100vh - 160px); background-color: red', " -->
     <div
       style="max-height: 100%; display:flex; overflow: hidden ; overflow-y: auto; flex-direction: column; align-content:space-between;"
@@ -247,16 +248,16 @@
           <FormAttribute :show="showFormAttributeValue" :referenceId="selectedZone.dynamicId"
             @close-dialog="ShowFormAttribute" @add-attribute="showAlert" />
 
-            <h3>Attribut de la selection</h3>
-            
-            <div v-for="(item, index) in floorstaticDetails[0].attributsList" class="blocInformation">
-              <div 
-            
-                style="width: 100%; display: flex; justify-content: space-between; align-items:center; padding-inline: 10px; border-radius: 10px; position: relative;"
-              >
-              
-            <span style=" text-wrap: nowrap; font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">{{ item.name}}</span>
+          <h3>Attribut de la selection</h3>
+
+          <div v-for="(item, index) in floorstaticDetails[0].attributsList" class="blocInformation">
             <div
+              style="width: 100%; display: flex; justify-content: space-between; align-items:center; padding-inline: 10px; border-radius: 10px; position: relative;">
+
+              <span
+                style=" text-wrap: nowrap; font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">{{
+                item.name}}</span>
+              <div
                 style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative; padding-right: 10px;">
                 <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
                   @showDoc="showDoc" @editFile="editCattattr(floorstaticDetails[0].dynamicId, item)"
@@ -289,9 +290,10 @@
 
                 <div
                   style="display: flex; justify-content: space-between; align-items: center;  width: 20px;  position: relative;">
-                  <OverMenu :show="itemOverflowMenu == index2 && itemOverflowMenuAttr == item.dynamicId" @close="closeOverMenu" :item="attr"
-                    @showDoc="showDoc" @editFile="editattr(attr, floorstaticDetails[0].dynamicId, item)"
-                    @downloadFile="downloadFile" :showDocs="false" :showDownload="false" :editable="true"
+                  <OverMenu :show="itemOverflowMenu == index2 && itemOverflowMenuAttr == item.dynamicId"
+                    @close="closeOverMenu" :item="attr" @showDoc="showDoc"
+                    @editFile="editattr(attr, floorstaticDetails[0].dynamicId, item)" @downloadFile="downloadFile"
+                    :showDocs="false" :showDownload="false" :editable="true"
                     @DeleteFile="DeleteAttribut(floorstaticDetails[0].dynamicId, item.dynamicId, attr.label)"
                     @changeOverflowItemMenu="changeOverflowItemMenuAttr(index2, item.dynamicId)">
                   </OverMenu>
@@ -323,7 +325,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                    }}
+                      }}
                     </li>
                   </div>
                 </div>
@@ -387,7 +389,7 @@
 
         <!-- ONGLET INDICATEUR (controleEndpoint) indicateur -->
         <div style="display: flex">
-         
+
           <div style="width: 100%;" v-if="selection == 'Indicateur'">
 
             <div v-for="(item, index) in floorstaticDetails[0].controlEndpoint" class="blocInformation">
@@ -651,7 +653,7 @@ class dataSideApp extends Vue {
   activeChartData: any = []
   // variable for confirm delete
   confirmIdReferenceDelete: number | null = null
-  confirmIdFileDelete : number | null = null
+  confirmIdFileDelete: number | null = null
   showConfirmDelete = false
   contextFile = ''
 
@@ -764,7 +766,7 @@ class dataSideApp extends Vue {
   updateCloseConfirmDelete(value) {
     this.showConfirmDelete = false
   }
-  async getfetchDocRetry (){
+  async getfetchDocRetry() {
     const max = 10;
     const delay = 1000;
     for (let i = 0; i < max; i++) {
@@ -775,11 +777,11 @@ class dataSideApp extends Vue {
       const documentation = await result.then((res => {
         return res
       }))
-     
-      if ( documentation.lenght != 0 &&  documentation[documentation.length - 1]  && documentation[documentation.length - 1].dynamicId) {
+
+      if (documentation.lenght != 0 && documentation[documentation.length - 1] && documentation[documentation.length - 1].dynamicId) {
         return documentation;
 
-      }else if (documentation.length == 0) {
+      } else if (documentation.length == 0) {
         return documentation;
       }
       await new Promise((resolve) => setTimeout(resolve, delay));
@@ -802,11 +804,11 @@ class dataSideApp extends Vue {
   }
 
   async DeleteFile(fileId: number, referenceId: number, space: string) {
-      this.confirmIdFileDelete = fileId
-      this.confirmIdReferenceDelete = referenceId
-      this.showConfirmDelete = true
-      this.contextFile = space
-      this.closeOverMenu()
+    this.confirmIdFileDelete = fileId
+    this.confirmIdReferenceDelete = referenceId
+    this.showConfirmDelete = true
+    this.contextFile = space
+    this.closeOverMenu()
 
   }
 
@@ -877,7 +879,7 @@ class dataSideApp extends Vue {
     this.UpdateAttribut(item, el.dynamicId, dyn.label, formattedItem)
   }
   handleValidatedCate(id, cateId, item) {
-   
+
 
     const formattedItem = {
       "categoryName": item.name,
@@ -889,7 +891,7 @@ class dataSideApp extends Vue {
 
 
   showDoc(referencedId, nameFile) {
-    
+
     if (!this.showDocvalue) {
       this.$emit('buttonClicked', 'vueDoc')
     }
@@ -902,7 +904,7 @@ class dataSideApp extends Vue {
       this.showDocvalue = false;
       this.$emit('buttonClicked', 'vueDocClose')
     }
-   
+
   }
   resize() {
     setTimeout(() => {
@@ -922,13 +924,13 @@ class dataSideApp extends Vue {
   changeOverflowItemMenuAttr(index, item) {
     const latItem = this.itemOverflowMenu
     const itemCateg = item;
-    if(latItem === this.itemOverflowMenu && this.itemOverflowMenuAttr === itemCateg) {
+    if (latItem === this.itemOverflowMenu && this.itemOverflowMenuAttr === itemCateg) {
       this.itemOverflowMenuAttr = null
     } else {
       this.itemOverflowMenuAttr = itemCateg
       this.itemOverflowMenu = index
     }
-    
+
   }
 
 
@@ -1706,12 +1708,12 @@ class dataSideApp extends Vue {
 
 
   toDate(date) {
-    
+
     switch (this.$store.state.appDataStore.temporalitySelected.name) {
       case ITemporality.hour:
-        case ITemporality.currentValue:
+      case ITemporality.currentValue:
         return moment(date).format('HH:mm');
-        case ITemporality.day:
+      case ITemporality.day:
         return moment(date).format('HH[h]');
       case ITemporality.week:
         return moment(date).format('dd');
@@ -1772,7 +1774,7 @@ class dataSideApp extends Vue {
 
   async reloadNewChartData() {
     this.dataTable = [];
- 
+
     for (const item of this.activeChart) {
       await this.addgraphInfoCp(item.dynamicId, item.label);
     }
@@ -1817,6 +1819,7 @@ class dataSideApp extends Vue {
 
     const dynamicIdMap = {};
 
+    // Recherche des contextes nécessaires dans la config
     for (const configItem of this.config.inventaire) {
       const matchingContext = contextList.find(
         (context) => context.name === configItem.ctx
@@ -1839,7 +1842,6 @@ class dataSideApp extends Vue {
     // Exécuter toutes les requêtes pour les catégories en parallèle
     const resultCategory = await Promise.all(categoryPromises);
 
-    // Map pour stocker les catégories et leurs groupes
     const categoriesWithGroups = {};
 
     for (const [ctx, contextId] of Object.entries(dynamicIdMap)) {
@@ -1865,8 +1867,18 @@ class dataSideApp extends Vue {
           categoryDynId,
         });
 
+        // Gestion des groupes sous forme de tableau
         const groupIds = [];
-        if (configItem.grp) {
+        if (Array.isArray(configItem.grp)) {
+          configItem.grp.forEach((groupName) => {
+            const matchingGroup = groupList.find((group) => group.name === groupName);
+            if (matchingGroup) {
+              groupIds.push(matchingGroup.dynamicId);
+            } else {
+              console.warn(`Groupe "${groupName}" non trouvé pour la catégorie "${configCatName}".`);
+            }
+          });
+        } else if (configItem.grp) {
           const matchingGroup = groupList.find((group) => group.name === configItem.grp);
           if (matchingGroup) {
             groupIds.push(matchingGroup.dynamicId);
@@ -1890,7 +1902,6 @@ class dataSideApp extends Vue {
 
     console.log(categoriesWithGroups, "Catégories avec leurs groupes");
 
-    // Calculer les équipements
     const categorizedResults = {};
     floors[0].forEach((floor) => {
       if (floor.inventories) {
@@ -1946,7 +1957,6 @@ class dataSideApp extends Vue {
       }
     });
 
-
     const results = {};
     for (const [categoryName, items] of Object.entries(categorizedResults)) {
       results[categoryName] = Object.entries(items).map(
@@ -1962,6 +1972,7 @@ class dataSideApp extends Vue {
 
     return results;
   }
+
 
   getdataofelement() {
     console.warn('/////récupération des donnée');
@@ -1986,9 +1997,9 @@ class dataSideApp extends Vue {
   /**
    * Watch
    */
-  @Watch('showConfirmDelete') 
+  @Watch('showConfirmDelete')
   watchShowConfirmDelete(newVal) {
-  this.showConfirmDelete = newVal;
+    this.showConfirmDelete = newVal;
   }
   @Watch('temporality')
   @Watch('t_index')
@@ -2007,10 +2018,10 @@ class dataSideApp extends Vue {
   watchAlert(newVal) {
     if (newVal) {
       this.itemOverflowMenu = null
-   
+
       setTimeout(() => {
         this.alert = false;
-  
+
         this.showLoader_in_child = false;
         this.showLoader_in_parent = false;
       }, 2000);
@@ -2081,532 +2092,533 @@ export default dataSideApp;
 
 <style lang="scss" scoped>
 .v-select__selection--comma {
-    font-size: 20px !important;
-  }
+  font-size: 20px !important;
+}
 
 .graphDataContainer {
-    display: flex;
-    justify-content: space-between;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+
+}
+
+.graphContainer {
+  border-radius: 0px;
+  width: 160%;
+  height: 100%;
+  display: flex;
+  padding: 10px;
+}
+
+
+.back_blanc {
+  margin: 6px;
+  color: #14202c;
+  padding: 9px;
+  border-radius: 5px;
+  padding-left: 6px;
+  background-color: #f9f9f9;
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+}
+
+.title_attribut {
+  font-size: 1.5rem;
+}
+
+.cardContainer {
+  padding: 10px;
+}
+
+.displaydataCss {
+  display: none;
+}
+
+.entrence {
+  -webkit-animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+  animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+
+}
+
+@-webkit-keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.area {
+  transform: translate(0, -15px);
+}
+
+.w-full {
+  width: 100%;
+}
+
+.inactiveTable {
+  -webkit-animation: fade-out 0.3s ease-out both;
+  animation: fade-out 0.3s ease-out both;
+}
+
+@-webkit-keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+a {
+  text-decoration: none;
+
+}
+
+.inventory-container {
+  display: flex;
+  flex-wrap: wrap;
+  height: calc(100% - 260px);
+  //padding: 40px;
+  margin-top: 5px;
+}
+
+.attribut {
+  position: relative;
+  font-size: 18px;
+  font-weight: bold;
+  font-family: Arial, Helvetica, sans-serif;
+  padding-left: 20px;
+  cursor: pointer;
+}
+
+// W-full
+.appli>div>div {
+  // height: calc(100% - 45%);
+  // background-color: rgb(57, 119, 45) !important;
+
+}
+
+.attribut::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  height: 176%;
+  background-color: rgb(223, 223, 223);
+  transform: rotate(25deg);
+  transform-origin: left top;
+}
+
+.inventory-item {
+  width: 48%;
+  margin: 5px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  justify-content: space-between;
+  background-color: white;
+}
+
+// .v-select__selection--comma {
+//   font-size: 12px ;
+//   font-family: Arial, Helvetica, sans-serif;
+//   overflow: visible !important;
+//   font-weight: 200 !important;
+// }
+
+
+@media (max-width: 960px) {
+  .inventory-item {
     width: 100%;
-    height: 100%;
-  
   }
-  
-  .graphContainer {
-    border-radius: 0px;
-    width: 160%;
-    height: 100%;
-    display: flex;
-    padding: 10px;
+
+  .area {
+    transform: translate(10px, -15px);
   }
-  
-  
-  .back_blanc {
-    margin: 6px;
-    color: #14202c;
-    padding: 9px;
-    border-radius: 5px;
-    padding-left: 6px;
-    background-color: #f9f9f9;
-    box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
-  }
-  
-  .title_attribut {
-    font-size: 1.5rem;
-  }
-  
-  .cardContainer {
-    padding: 10px;
-  }
-  
-  .displaydataCss {
+
+  .el3d {
     display: none;
   }
-  
-  .entrence {
-    -webkit-animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
-    animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
-  
-  }
-  
-  @-webkit-keyframes fade-in {
-    0% {
-      opacity: 0;
-    }
-  
-    100% {
-      opacity: 1;
-    }
-  }
-
-  @keyframes fade-in {
-    0% {
-      opacity: 0;
-    }
-  
-    100% {
-      opacity: 1;
-    }
-  }
-  
-  .area {
-    transform: translate(0, -15px);
-  }
-  
-  .w-full {
-    width: 100%;
-  }
-  
-  .inactiveTable {
-    -webkit-animation: fade-out 0.3s ease-out both;
-    animation: fade-out 0.3s ease-out both;
-  }
-  
-  @-webkit-keyframes fade-out {
-    0% {
-      opacity: 1;
-    }
-  
-    100% {
-      opacity: 0;
-    }
-  }
-  
-  @keyframes fade-out {
-    0% {
-      opacity: 1;
-    }
-  
-    100% {
-      opacity: 0;
-    }
-  }
-  
-  a {
-    text-decoration: none;
-  
-  }
-  
-  .inventory-container {
-    display: flex;
-    flex-wrap: wrap;
-    height: calc(100% - 260px);
-    //padding: 40px;
-    margin-top: 5px;
-  }
-  
-  .attribut {
-    position: relative;
-    font-size: 18px;
-    font-weight: bold;
-    font-family: Arial, Helvetica, sans-serif;
-    padding-left: 20px;
-    cursor: pointer;
-  }
-  
-  // W-full
-  .appli>div>div {
-    // height: calc(100% - 45%);
-    // background-color: rgb(57, 119, 45) !important;
-  
-  }
-  
-  .attribut::before {
-    content: "";
-    position: absolute;
-    top: -10px;
-    bottom: 0;
-    left: 0;
-    width: 2px;
-    height: 176%;
-    background-color: rgb(223, 223, 223);
-    transform: rotate(25deg);
-    transform-origin: left top;
-  }
-  
-  .inventory-item {
-    width: 48%;
-    margin: 5px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
-    white-space: nowrap;
-    overflow: hidden;
-    justify-content: space-between;
-    background-color: white;
-  }
-  
-  // .v-select__selection--comma {
-  //   font-size: 12px ;
-  //   font-family: Arial, Helvetica, sans-serif;
-  //   overflow: visible !important;
-  //   font-weight: 200 !important;
-  // }
-  
-  
-  @media (max-width: 960px) {
-    .inventory-item {
-      width: 100%;
-    }
-  
-    .area {
-      transform: translate(10px, -15px);
-    }
-  
-    .el3d {
-      display: none;
-    }
-  }
-  
-  .doc-content {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: 10px;
-    width: calc(100% - 55%)
-  }
-  
-  .blocInformation {
-    background-color: #f8f8f8d0;
-    border-radius: 2px;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    margin-left: 11px;
-    padding: 5px;
-    box-shadow: 0 6px 24px #0000000d, 0 0 0 1px #00000014;
-    border: 2px dashed #dbdbdb;
-    border-radius: 6px;
-  }
-  
-  .Spinal_card {
-    font-family: Charlevoix Pro !important;
-    cursor: pointer;
-    width: 250px;
-    height: 100px;
-    border-radius: 5px;
-    background: linear-gradient(45deg, rgb(209, 209, 209) 0%, rgb(233, 233, 233) 100%);
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    overflow: hidden;
-    box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
-    margin: 5px
-  }
-  
-  .inventory:before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 120px;
-    border-top: 2px solid rgb(235, 234, 234);
-    width: auto;
-  }
-  
-  .Spinal_card::before {
-    content: "";
-    height: 100px;
-    width: 100px;
-    position: absolute;
-    top: -100%;
-    left: 100%;
-    background: url('../../assets/tets.svg') no-repeat center center;
-    background-size: contain;
-    transition: all .4s ease;
-    filter: invert(1) saturate(5) hue-rotate(200deg) opacity(0.1);
-    filter: blur(.5rem);
-  }
-
-  .Spinal_card:hover::before {
-    top: 50%;
-    left: 50%;
-    transform: translate(30%, -0%);
-    filter: blur(0rem);
-    /* Pour centrer */
-  }
-
-  .Spinal_card:hover::before {
-    width: 140px;
-    height: 140px;
-    top: -30%;
-    left: 50%;
-    filter: blur(0rem);
-  }
-
-  .text {
-    flex-grow: 1;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    color: #14202c;
-    font-weight: 900;
-    font-size: 1.2em;
-    height: 30px
-  }
-
-  .subtitle {
-    font-size: .6em;
-    font-weight: 300;
-    color: #14202c;
-  }
-
-  .icons {
-    display: flex;
-    justify-items: center;
-    align-items: center;
-    width: 250px;
-    border-radius: 0px 0px 5px 5px;
-    overflow: hidden;
-  }
-
-  .btn {
-    z-index: 1;
-    border: none;
-    width: 100%;
-    height: 35px;
-    background-color: #ececec;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.4s
-  }
-
-  .adaptative {
-    width: 80%;
-    overflow: hidden;
-    height: 50px;
-    position: relative;
-    right: 0px;
-  }
-
-  .svg-icon {
-    width: 25px;
-    height: 25px;
-    stroke: #14202c;
-  }
-
-  .btn:hover {
-    background-color: rgb(199, 199, 199);
-  }
-
-  .button {
-    display: inline-block;
-    padding: 5px;
-    text-decoration: none;
-    height: 59px;
-    padding-left: 10px;
-    padding-right: 10px;
-    transition: 0.2s;
-    white-space: nowrap;
-    margin-left: 20px;
-    margin-top: 6px;
-    margin-bottom: 18px;
-    font-size: xx-large;
-    cursor: pointer;
-    padding-left: 0px;
-  }
-
-  .button:hover {
-    background-color: rgb(228, 228, 228);
-  }
-
-  .v-text-field>.v-input__control>.v-input__slot:before {
-    border-style: none !important;
-  }
-
-  .parallelogram {
-    transform: skew(-20deg);
-  }
-
-  .skew-fix {
-    display: inline-block;
-    transform: skew(30deg);
-    font-size: 14px;
-  }
-
-  .appli {
-    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-    background-color: #fff;
-    width: 100%;
-    height: calc(100% - 10px);
-    border-radius: 5px;
-    display: flex;
-    flex-direction: row;
-    align-content: space-between;
-  }
-
-  .title {
-    position: relative;
-    width: 100%;
-    display: flex;
-  }
-
-  .inventory {
-    position: relative;
-    padding: 10px;
-    height: calc(100% - 30%);
-    overflow: auto;
-    overflow-x: hidden
-  }
-  
-  .inventory:before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    border-top: 1px solid rgb(212, 212, 212);
-    width: 100%;
-  }
-  
-  .description {
-    padding: 10px;
-    padding-top: 15px;
-    background-color: #fff;
-    border-top: 2px solid rgb(201, 201, 201);
-    overflow: hidden;
-    overflow-y: auto;
-    height: 30%;
-  }
-  
-  .container_cards {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    margin-top: 10px;
-  }
-  
-  .cardDescription {
-    cursor: pointer;
-    -webkit-user-select: none;
-    user-select: none;
-    background-color: #fff;
-    border-radius: 5px;
-    width: 100%;
-    height: 50px;
-    margin-top: 8px;
-    margin-bottom: 14px;
-    transition: all .2s;
-    display: flex;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 1px 2px #3c40434d, 0 1px 3px 1px #3c404326;
-    margin-left: 10px;
-  }
-  
-  @media (max-width: 970px) {
-    .cardDescription {
-      width: 100vw;
-    }
-  }
-  
-  @media (min-width: 970px) {
-    .hide {
-      display: none;
-      visibility: hidden;
-    }
-  }
-  
-  .cardDescription:hover {
-    background-color: rgb(221, 221, 221);
-  }
-  
-  .cardDescription:hover .gotoApp {
-    background-color: rgb(218, 218, 218);
-  }
-  
-  .data_cardDescription {
-    border-right: 1px solid rgb(202, 202, 202);
-    // width: 87%;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    padding-left: 30px;
-  }
-  
-  .gotoApp {
-    justify-content: center;
-    align-items: center;
-    display: flex;
-    // width: 13%;
-    width: 50px;
-    background-color: rgb(243, 243, 243);
-    transition: 0.2s;
-    z-index: 1;
-  }
-  
-  .nombre_data_cardDescription {
-    width: 40%;
-    display: flex;
-    align-items: center;
-    font-size: 40px;
-    height: 100%;
-  
-  }
-  
-  .description_data_cardDescription {
-    width: 90%;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-    color: #14202c;
-    padding-right: 5px;
-  }
-  
-  .microinfo {
-    margin-bottom: 40px;
-    font-size: 9px;
-    transform: translate(-20px);
-    white-space: nowrap;
-    font-weight: bold;
-  }
-  
-  .cardDescription::before {
-    content: "";
-    height: 100px;
-    width: 100px;
-    position: absolute;
-    top: -100%;
-    left: 100%;
-    background-size: contain;
-    transition: all .4s ease;
-    filter: invert(1) saturate(5) hue-rotate(200deg) opacity(0.1);
-    filter: blur(.5rem);
-  }
-  
-  .cardDescription:hover::before {
-    top: 50%;
-    left: 50%;
-    transform: translate(30%, -0%);
-    filter: blur(0rem);
-  }
-  
-  .cardDescription:hover::before {
-    width: 140px;
-    height: 140px;
-    top: -10%;
-    left: 50%;
-    filter: blur(0.05rem);
-  }
-
-  .doc-vue {
-    width: 55%;
-     height: 100%;
-     background: #14202c;
-  }
-  @media (max-width: 1024px) and (min-width: 768px) {
-  .appli {
-    flex-direction: column;
-  }
-  .doc-vue {
-    width: 100%;
-    height: 50%;
-  }
-  .doc-content {
-    width: 100%;
-    height: 50%;
-  }  
 }
-    
-  
+
+.doc-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 10px;
+  width: calc(100% - 55%)
+}
+
+.blocInformation {
+  background-color: #f8f8f8d0;
+  border-radius: 2px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  margin-left: 11px;
+  padding: 5px;
+  box-shadow: 0 6px 24px #0000000d, 0 0 0 1px #00000014;
+  border: 2px dashed #dbdbdb;
+  border-radius: 6px;
+}
+
+.Spinal_card {
+  font-family: Charlevoix Pro !important;
+  cursor: pointer;
+  width: 250px;
+  height: 100px;
+  border-radius: 5px;
+  background: linear-gradient(45deg, rgb(209, 209, 209) 0%, rgb(233, 233, 233) 100%);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
+  margin: 5px
+}
+
+.inventory:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 120px;
+  border-top: 2px solid rgb(235, 234, 234);
+  width: auto;
+}
+
+.Spinal_card::before {
+  content: "";
+  height: 100px;
+  width: 100px;
+  position: absolute;
+  top: -100%;
+  left: 100%;
+  background: url('../../assets/tets.svg') no-repeat center center;
+  background-size: contain;
+  transition: all .4s ease;
+  filter: invert(1) saturate(5) hue-rotate(200deg) opacity(0.1);
+  filter: blur(.5rem);
+}
+
+.Spinal_card:hover::before {
+  top: 50%;
+  left: 50%;
+  transform: translate(30%, -0%);
+  filter: blur(0rem);
+  /* Pour centrer */
+}
+
+.Spinal_card:hover::before {
+  width: 140px;
+  height: 140px;
+  top: -30%;
+  left: 50%;
+  filter: blur(0rem);
+}
+
+.text {
+  flex-grow: 1;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  color: #14202c;
+  font-weight: 900;
+  font-size: 1.2em;
+  height: 30px
+}
+
+.subtitle {
+  font-size: .6em;
+  font-weight: 300;
+  color: #14202c;
+}
+
+.icons {
+  display: flex;
+  justify-items: center;
+  align-items: center;
+  width: 250px;
+  border-radius: 0px 0px 5px 5px;
+  overflow: hidden;
+}
+
+.btn {
+  z-index: 1;
+  border: none;
+  width: 100%;
+  height: 35px;
+  background-color: #ececec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.4s
+}
+
+.adaptative {
+  width: 80%;
+  overflow: hidden;
+  height: 50px;
+  position: relative;
+  right: 0px;
+}
+
+.svg-icon {
+  width: 25px;
+  height: 25px;
+  stroke: #14202c;
+}
+
+.btn:hover {
+  background-color: rgb(199, 199, 199);
+}
+
+.button {
+  display: inline-block;
+  padding: 5px;
+  text-decoration: none;
+  height: 59px;
+  padding-left: 10px;
+  padding-right: 10px;
+  transition: 0.2s;
+  white-space: nowrap;
+  margin-left: 20px;
+  margin-top: 6px;
+  margin-bottom: 18px;
+  font-size: xx-large;
+  cursor: pointer;
+  padding-left: 0px;
+}
+
+.button:hover {
+  background-color: rgb(228, 228, 228);
+}
+
+.v-text-field>.v-input__control>.v-input__slot:before {
+  border-style: none !important;
+}
+
+.parallelogram {
+  transform: skew(-20deg);
+}
+
+.skew-fix {
+  display: inline-block;
+  transform: skew(30deg);
+  font-size: 14px;
+}
+
+.appli {
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  background-color: #fff;
+  width: 100%;
+  height: calc(100% - 10px);
+  border-radius: 5px;
+  display: flex;
+  flex-direction: row;
+  align-content: space-between;
+}
+
+.title {
+  position: relative;
+  width: 100%;
+  display: flex;
+}
+
+.inventory {
+  position: relative;
+  padding: 10px;
+  height: calc(100% - 30%);
+  overflow: auto;
+  overflow-x: hidden
+}
+
+.inventory:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-top: 1px solid rgb(212, 212, 212);
+  width: 100%;
+}
+
+.description {
+  padding: 10px;
+  padding-top: 15px;
+  background-color: #fff;
+  border-top: 2px solid rgb(201, 201, 201);
+  overflow: hidden;
+  overflow-y: auto;
+  height: 30%;
+}
+
+.container_cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.cardDescription {
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  background-color: #fff;
+  border-radius: 5px;
+  width: 100%;
+  height: 50px;
+  margin-top: 8px;
+  margin-bottom: 14px;
+  transition: all .2s;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 2px #3c40434d, 0 1px 3px 1px #3c404326;
+  margin-left: 10px;
+}
+
+@media (max-width: 970px) {
+  .cardDescription {
+    width: 100vw;
+  }
+}
+
+@media (min-width: 970px) {
+  .hide {
+    display: none;
+    visibility: hidden;
+  }
+}
+
+.cardDescription:hover {
+  background-color: rgb(221, 221, 221);
+}
+
+.cardDescription:hover .gotoApp {
+  background-color: rgb(218, 218, 218);
+}
+
+.data_cardDescription {
+  border-right: 1px solid rgb(202, 202, 202);
+  // width: 87%;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  padding-left: 30px;
+}
+
+.gotoApp {
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  // width: 13%;
+  width: 50px;
+  background-color: rgb(243, 243, 243);
+  transition: 0.2s;
+  z-index: 1;
+}
+
+.nombre_data_cardDescription {
+  width: 40%;
+  display: flex;
+  align-items: center;
+  font-size: 40px;
+  height: 100%;
+
+}
+
+.description_data_cardDescription {
+  width: 90%;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  color: #14202c;
+  padding-right: 5px;
+}
+
+.microinfo {
+  margin-bottom: 40px;
+  font-size: 9px;
+  transform: translate(-20px);
+  white-space: nowrap;
+  font-weight: bold;
+}
+
+.cardDescription::before {
+  content: "";
+  height: 100px;
+  width: 100px;
+  position: absolute;
+  top: -100%;
+  left: 100%;
+  background-size: contain;
+  transition: all .4s ease;
+  filter: invert(1) saturate(5) hue-rotate(200deg) opacity(0.1);
+  filter: blur(.5rem);
+}
+
+.cardDescription:hover::before {
+  top: 50%;
+  left: 50%;
+  transform: translate(30%, -0%);
+  filter: blur(0rem);
+}
+
+.cardDescription:hover::before {
+  width: 140px;
+  height: 140px;
+  top: -10%;
+  left: 50%;
+  filter: blur(0.05rem);
+}
+
+.doc-vue {
+  width: 55%;
+  height: 100%;
+  background: #14202c;
+}
+
+@media (max-width: 1024px) and (min-width: 768px) {
+  .appli {
+    flex-direction: column;
+  }
+
+  .doc-vue {
+    width: 100%;
+    height: 50%;
+  }
+
+  .doc-content {
+    width: 100%;
+    height: 50%;
+  }
+}
 </style>
