@@ -45,6 +45,7 @@ export class SpriteManager {
 	private _viewableType;
 	private dbIdToViewable: { [key: number | string]: any } = {};
 	private label3Ds = [];
+	private cards3Ds = [];
 
 	private constructor() { }
 
@@ -90,6 +91,34 @@ export class SpriteManager {
 			);
 		}
 	}
+	public async addCardComponent(viewer: Autodesk.Viewing.Viewer3D, data: any | any[]) {
+		data = Array.isArray(data) ? data : [data];
+		const dataMap = new Map();
+		data.forEach(d => dataMap.set(d.dynamicId, d));
+
+		for (const d of data) {
+			if (!d.component) continue;
+			const VueComponent = Vue.extend(d.component);
+			const vueInstance = new VueComponent({ propsData: d });
+
+			const label = new Autodesk.Edit3D.Label3D(viewer, d.position, "");
+			label.viewer.container.appendChild(label.container);
+			label.container.style.pointerEvents = "auto";
+			// viewer.overlays.impl.invalidate(true, true, true);
+
+
+			label.container.appendChild(vueInstance.$mount().$el);
+			const exists = this.cards3Ds.some(item => item.dynamicId === d.data.dynamicId);
+			if (!exists) {
+				this.cards3Ds.push({
+					dynamicId: d.data.dynamicId,
+					label: label,
+					component: vueInstance,
+				});
+			}
+  
+		}
+	}
 
 	public async selectSprites(dynamicIds: Array<number>) {
 		for(let label of this.label3Ds){
@@ -131,6 +160,11 @@ export class SpriteManager {
 		if (this._dataVizExtn) this.dataVizExtn.removeAllViewables();
 		this.label3Ds.slice().forEach(l => l.label.dtor());
 		this.label3Ds = [];
+	}
+	public removeCards() {
+		if (this._dataVizExtn) this.dataVizExtn.removeAllViewables();
+		this.cards3Ds.slice().forEach(l => l.label.dtor());
+		this.cards3Ds = [];
 	}
 
 	private _addSpriteToObject(modelId: string | number, dbId: number, viewable: any) {
