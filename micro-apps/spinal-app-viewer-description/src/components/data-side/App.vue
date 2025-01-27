@@ -467,7 +467,7 @@
 
                   <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
                     @showDoc="showDoc" @downloadFile="downloadFile"
-                    @DeleteFile="DeleteFile(item.dynamicId, parent.parentDynamicId, 'parent')"
+                    @DeleteFile="DeleteFile(item.dynamicId, parent.dynamicId, 'parent')"
                     @changeOverflowItemMenu="changeOverflowItemMenu">
                   </OverMenu>
 
@@ -724,6 +724,7 @@ class dataSideApp extends Vue {
             const parentDocResult = await Promise.all(parentDocPromise);
             parentDocumentation[parent.dynamicId] = {
               name: parent.name,
+              dynamicId: parent.dynamicId,
               documentation: parentDocResult[0]
             };
           }
@@ -745,7 +746,7 @@ class dataSideApp extends Vue {
 
   }
   updateCloseConfirmDelete(value) {
-    this.showConfirmDelete = value
+    this.showConfirmDelete = false
   }
   async getfetchDocRetry (){
     const max = 10;
@@ -822,7 +823,7 @@ class dataSideApp extends Vue {
   }
 
   async deleteCateAttr(referenceId: number, cateId: number, name: string) {
-    console.log(referenceId, cateId, name);
+
 
     const result = await this.$store.dispatch(ActionTypes.DELETE_CATE_ATTRIBUT, {
       buildingId: localStorage.getItem("idBuilding"),
@@ -836,7 +837,6 @@ class dataSideApp extends Vue {
 
 
   async updateCateAttr(referenceId: number, cateId: number, name: string, item: object) {
-    console.log(referenceId, cateId, name);
 
     const result = await this.$store.dispatch(ActionTypes.UPDATE_CATE_ATTRIBUT, {
       buildingId: localStorage.getItem("idBuilding"),
@@ -851,7 +851,7 @@ class dataSideApp extends Vue {
 
   handleValidated(updatedItem, el, dyn, item) {
     console.warn('Objet reçu après validation :', item, el.dynamicId, dyn.label, updatedItem);
-    // console.log(updatedItem , el , dyn );
+
     const formattedItem = {
       attributeLabel: updatedItem.label,
       attributeUnit: updatedItem.unit,
@@ -862,7 +862,7 @@ class dataSideApp extends Vue {
   }
   handleValidatedCate(id, cateId, item) {
    
-    // console.log(updatedItem , el , dyn );
+
     const formattedItem = {
       "categoryName": item.name,
     };
@@ -873,7 +873,7 @@ class dataSideApp extends Vue {
 
 
   showDoc(referencedId, nameFile) {
-    console.log('showDoc !!')
+    
     if (!this.showDocvalue) {
       this.$emit('buttonClicked', 'vueDoc')
     }
@@ -895,18 +895,15 @@ class dataSideApp extends Vue {
   }
 
   changeOverflowItemMenu(index) {
-    console.log('index: ', index);
     const latItem = this.itemOverflowMenu
     if (latItem === index) {
       this.itemOverflowMenu = null
     } else {
       this.itemOverflowMenu = index
-      console.log('itemOverflowMenu: ', this.itemOverflowMenu);
     }
   }
 
   changeOverflowItemMenuAttr(index, item) {
-    console.log(`index: ${index} item: ${item}`);
     const latItem = this.itemOverflowMenu
     const itemCateg = item;
     if(latItem === this.itemOverflowMenu && this.itemOverflowMenuAttr === itemCateg) {
@@ -1088,6 +1085,7 @@ class dataSideApp extends Vue {
       const parentDocResult = await Promise.all(parentDocPromise);
       parentDocumentation[parent.dynamicId] = {
         name: parent.name,
+        dynamicId: parent.dynamicId,
         documentation: parentDocResult[0]
       };
     }
@@ -1848,8 +1846,7 @@ class dataSideApp extends Vue {
    */
   @Watch('showConfirmDelete') 
   watchShowConfirmDelete(newVal) {
-    console.log('showConfirmDelete -> ', newVal);
-    this.showConfirmDelete = newVal;
+  this.showConfirmDelete = newVal;
   }
   @Watch('temporality')
   @Watch('t_index')
@@ -1868,10 +1865,10 @@ class dataSideApp extends Vue {
   watchAlert(newVal) {
     if (newVal) {
       this.itemOverflowMenu = null
-      // console.log('alert -> ', newVal)
+   
       setTimeout(() => {
         this.alert = false;
-        // console.log('hide alert in App.vue');
+  
         this.showLoader_in_child = false;
         this.showLoader_in_parent = false;
       }, 2000);
