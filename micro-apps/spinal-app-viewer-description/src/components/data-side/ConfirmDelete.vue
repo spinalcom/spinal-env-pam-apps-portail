@@ -67,7 +67,6 @@ export default {
       
         
          async DeleteFile() {
-            console.log('delete file -> ', this.show_delete);
             const buildingId = localStorage.getItem('idBuilding');
           const res = await this.$store.dispatch(ActionTypes.DELETE_FILE, {
             buildingId: buildingId,

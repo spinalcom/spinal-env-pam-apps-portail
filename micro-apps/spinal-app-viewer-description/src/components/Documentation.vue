@@ -207,7 +207,7 @@ const getToolbar = () => ({
             showFile(type: string, url: string){
               
                this.show.map(async (item, index)=> {
-                console.log(type, '-> type')
+       
                     if(type === 'pdf'){
                         item.pdf.show = true;
                         item.pdf.url = url;
@@ -263,7 +263,6 @@ const getToolbar = () => ({
                          this.tableExcelData.push(row)
                          this.loading = false;
                         })
-                       console.log(this.headersTableExcel)
 
                     }
                     else if(type === 'json') {
