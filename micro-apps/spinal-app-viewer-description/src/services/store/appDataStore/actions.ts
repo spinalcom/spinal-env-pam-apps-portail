@@ -27,6 +27,7 @@ import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
 import { getEquipments, getBuilding, getFloors, getRooms, getStaticDetails, getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails, postBIMObjectInfo, getBuildingInfo, getBuildingStaticDetails, getDocumentation, postDownloadFile, getParent, getAttributListMultiple, getTimeSeriesAsync, getNodeRead, getTicket, getpositionEquipement, getpositionRoom, getFile } from "../../spinalAPI/GeographicContext/geographicContext";
+import { getContextList, getContextCategoryList, getContextCategoryGroupList } from "../../spinalAPI/ContextGroup/groupContext";
 import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../../../../global-components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
 import { getMultipleReferenceObjects } from "../../spinalAPI/GeographicContext/getObjectList";
@@ -83,6 +84,33 @@ export const actions = {
 	async [ActionTypes.GET_FILE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId }: { buildingId: string; referenceId: any }): Promise<any> {
 		try {
 			const result = await getFile(buildingId, referenceId);
+			return result;
+		} catch (error) {
+			console.log('Erreur lors de la récuperation du fichier', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_CONTEXT_LIST]({ commit }: AugmentedActionContextAppData, { buildingId }: { buildingId: string }): Promise<any> {
+		try {
+			const result = await getContextList(buildingId);
+			return result;
+		} catch (error) {
+			console.log('Erreur lors de la récuperation du fichier', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_CONTEXT_CATEGORY_LIST]({ commit }: AugmentedActionContextAppData, { buildingId, contextId }: { buildingId: string; contextId: any }): Promise<any> {
+		try {
+			const result = await getContextCategoryList(buildingId, contextId);
+			return result;
+		} catch (error) {
+			console.log('Erreur lors de la récuperation du fichier', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_CONTEXT_CATEGORY_GROUP_LIST]({ commit }: AugmentedActionContextAppData, { buildingId, contextId, categoryDynId }: { buildingId: string; contextId: any; categoryDynId: any }): Promise<any> {
+		try {
+			const result = await getContextCategoryGroupList(buildingId, contextId, categoryDynId);
 			return result;
 		} catch (error) {
 			console.log('Erreur lors de la récuperation du fichier', error);

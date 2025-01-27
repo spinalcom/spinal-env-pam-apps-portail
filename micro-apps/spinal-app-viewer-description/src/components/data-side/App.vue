@@ -131,28 +131,43 @@
       <div class="inventory">
         <div v-if="selection == 'Vue Globale'">
           <div v-if="inventoyList">
-            <div v-if="inventoyList.length > 0" class="blocInformation">
-              <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Inventaire
-                des équipements ({{ config.inventory }})</span>
-              <div>
-                <div v-if="inventoyList == null"
-                  style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px; margin-bottom: 10px;">
-                  PAS DE DONNÉES DISPONIBLE
-                </div>
-                <div v-else class="inventory-container">
-                  <div v-for="(item, index) in inventoyList" :key="index" class="inventory-item">
-                    <li>{{ item }}</li>
-                    <div style="margin-left: 5px;">
-                      <v-icon v-if="eyes.indexOf(index) === -1" @click="() => { hideelement(item); closeeyes(index) }"
-                        style="cursor: pointer">mdi-eye-outline</v-icon>
-                      <v-icon v-else @click="() => { hideelement(item); closeeyes(index) }"
-                        style="cursor: pointer">mdi-eye-off-outline</v-icon>
-                    </div>
-                  </div>
+            <!-- Boucle sur chaque catégorie -->
+            <div v-for="(items, categoryName) in inventoyList" :key="categoryName" class="blocInformation"
+              style="margin-bottom: 20px;">
+              <!-- Titre de la catégorie -->
+              <span
+                style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold; display: block; margin-bottom: 10px;">
+                Inventaire des équipements ({{ categoryName }})
+              </span>
+
+              <!-- Message si aucun élément -->
+              <div v-if="!items || items.length === 0"
+                style="text-align: center; font-style: italic; color: #888; margin: 10px 0;">
+                PAS DE DONNÉES DISPONIBLES
+              </div>
+
+              <!-- Liste des éléments -->
+              <div v-else class="inventory-container" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <div v-for="(item, index) in items" :key="index" class="inventory-item"
+                  style="display: flex; align-items: center; width: 100%; border: 1px solid #ddd; padding: 14px 5px;border-radius: 5px;">
+
+                  <li style="flex: 1; font-size: 16px; font-family: Arial, Helvetica, sans-serif;">{{ item }}</li>
+
+                  <!-- Icônes interactives -->
+                  <v-icon v-if="eyes.indexOf(index) === -1"
+                    @click="() => { hideelement(item, categoryName); closeeyes(index) }"
+                    style="cursor: pointer; margin-left: 10px;">
+                    mdi-eye-outline
+                  </v-icon>
+                  <v-icon v-else @click="() => { hideelement(item, categoryName); closeeyes(index) }"
+                    style="cursor: pointer; margin-left: 10px;">
+                    mdi-eye-off-outline
+                  </v-icon>
                 </div>
               </div>
             </div>
           </div>
+
           <div class="blocInformation">
             <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Liste des
               attributs</span>
@@ -236,7 +251,7 @@
                   @changeOverflowItemMenu="changeOverflowItemMenu">
                 </OverMenu>
               </div>
-              </div>
+            </div>
             <div v-if="floorstaticDetails[0].attributsList == null"
               style="justify-content: center; align-items: center; width: 100%; display: flex; margin-top: 10px; margin-bottom: 10px;">
               <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
@@ -269,7 +284,7 @@
                 </div>
               </div>
 
-             
+
 
 
 
@@ -294,7 +309,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                      }}
+                    }}
                     </li>
                   </div>
                 </div>
@@ -711,7 +726,7 @@ class dataSideApp extends Vue {
 
           const documentationPromise = await this.getfetchDocRetry()
           const documentation = documentationPromise;
-          
+
 
           let parentDocumentation = {};
           for (let parent of parents) {
@@ -931,17 +946,37 @@ class dataSideApp extends Vue {
     return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
   }
 
-  hideelement(item) {
+  hideelement(item, categoryName) {
+    console.warn(item, categoryName, this.inventoryDbids, ' le test');
     this.$store.commit(MutationTypes.REMOVE_ITEM_TO_HIDE);
     const itemType = item.substring(item.indexOf(' ') + 1);
-    const numbers = this.inventoryDbids[itemType] || [];
-    this.$store.commit(MutationTypes.SET_ITEM_TO_HIDE, numbers);
+
+    const categoryData = this.inventoryDbids[categoryName];
+    if (!categoryData || !categoryData[itemType]) {
+      console.warn(`Aucun élément trouvé pour "${item}" dans la catégorie "${categoryName}".`);
+      return;
+    }
+
+    const groupData = categoryData[itemType];
+
+    const itemToHide = {};
+    for (const [bimFileId, dbids] of Object.entries(groupData)) {
+      itemToHide[bimFileId] = [...new Set(dbids)];
+    }
+
+    if (Object.keys(itemToHide).length === 0) {
+      console.warn(`Aucun élément trouvé à cacher pour "${item}" dans la catégorie "${categoryName}".`);
+      return;
+    }
+
     const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query };
     const data = {
       buildingId: this.selectedZone.staticId,
       dynamicId: currentQuery.spaceSelectedId,
-      itemToHIde: numbers
+      itemToHIde: itemToHide,
     };
+
+    this.$store.commit(MutationTypes.SET_ITEM_TO_HIDE, itemToHide);
 
     this.$store.dispatch(ActionTypes.HIDE_ITEMS, {
       items: data,
@@ -1773,48 +1808,154 @@ class dataSideApp extends Vue {
     }
   }
 
-  countInventoryTypes(floors) {
+  async countInventoryTypes(floors) {
     const inventoryCounts = {};
     const inventoryDbids = {};
 
-    floors[0].forEach(floor => {
-      if (floor.inventories) {
-        const typologyInventory = floor.inventories.find(inventory => inventory.name === this.config.inventory);
+    const buildingId = localStorage.getItem("idBuilding");
 
-        if (typologyInventory) {
-          typologyInventory.inventory.forEach(group => {
-            if (inventoryCounts[group.name]) {
-              inventoryCounts[group.name] += group.equipments?.length;
-            } else {
-              inventoryCounts[group.name] = group.equipments?.length;
+    const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
+
+    const dynamicIdMap = {};
+
+    for (const configItem of this.config.inventaire) {
+      const matchingContext = contextList.find(
+        (context) => context.name === configItem.ctx
+      );
+      if (matchingContext) {
+        dynamicIdMap[configItem.ctx] = matchingContext.dynamicId;
+      } else {
+        console.warn(`Contexte "${configItem.ctx}" non trouvé dans la liste.`);
+      }
+    }
+
+    // Préparer les requêtes pour les catégories
+    const categoryPromises = Object.entries(dynamicIdMap).map(([ctx, contextId]) => {
+      return this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_LIST, {
+        buildingId,
+        contextId,
+      });
+    });
+
+    // Exécuter toutes les requêtes pour les catégories en parallèle
+    const resultCategory = await Promise.all(categoryPromises);
+
+    // Map pour stocker les catégories et leurs groupes
+    const categoriesWithGroups = {};
+
+    for (const [ctx, contextId] of Object.entries(dynamicIdMap)) {
+      const configItems = this.config.inventaire.filter((item) => item.ctx === ctx);
+
+      for (const configItem of configItems) {
+        const configCatName = configItem.cat;
+
+        const matchingCategory = resultCategory.flat().find(
+          (category) => category.name === configCatName
+        );
+
+        if (!matchingCategory) {
+          console.warn(`Catégorie "${configCatName}" non trouvée pour le contexte "${ctx}".`);
+          continue;
+        }
+
+        const categoryDynId = matchingCategory.dynamicId;
+
+        const groupList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_GROUP_LIST, {
+          buildingId,
+          contextId,
+          categoryDynId,
+        });
+
+        const groupIds = [];
+        if (configItem.grp) {
+          const matchingGroup = groupList.find((group) => group.name === configItem.grp);
+          if (matchingGroup) {
+            groupIds.push(matchingGroup.dynamicId);
+          } else {
+            console.warn(`Groupe "${configItem.grp}" non trouvé pour la catégorie "${configCatName}".`);
+          }
+        } else {
+          groupIds.push(...groupList.map((group) => group.dynamicId));
+        }
+
+        if (!categoriesWithGroups[configCatName]) {
+          categoriesWithGroups[configCatName] = [];
+        }
+
+        categoriesWithGroups[configCatName].push({
+          categoryId: categoryDynId,
+          groupIds,
+        });
+      }
+    }
+
+    console.log(categoriesWithGroups, "Catégories avec leurs groupes");
+
+    // Calculer les équipements
+    const categorizedResults = {};
+    floors[0].forEach((floor) => {
+      if (floor.inventories) {
+        for (const [categoryName, categories] of Object.entries(categoriesWithGroups)) {
+          if (!categorizedResults[categoryName]) {
+            categorizedResults[categoryName] = {};
+          }
+
+          categories.forEach(({ categoryId, groupIds }) => {
+            const matchingCategory = floor.inventories.find(
+              (inventory) => inventory.dynamicId === categoryId
+            );
+
+            if (!matchingCategory) {
+              console.warn(`Catégorie "${categoryName}" non trouvée dans les inventaires de l'étage.`);
+              return;
             }
 
-            group.equipments.forEach(equipment => {
-              const bimFileId = equipment.bimFileId;
-
-              if (!inventoryDbids[group.name]) {
-                inventoryDbids[group.name] = {};
+            matchingCategory.inventory.forEach((group) => {
+              if (!groupIds.includes(group.dynamicId)) {
+                return;
               }
 
-              if (!inventoryDbids[group.name][bimFileId]) {
-                inventoryDbids[group.name][bimFileId] = [];
+              const itemCount = group.equipments?.length || 0;
+              if (!categorizedResults[categoryName][group.name]) {
+                categorizedResults[categoryName][group.name] = 0;
               }
 
-              inventoryDbids[group.name][bimFileId].push(equipment.dbid);
+              categorizedResults[categoryName][group.name] += itemCount;
+
+              group.equipments.forEach((equipment) => {
+                const bimFileId = equipment.bimFileId;
+
+                if (!inventoryDbids[categoryName]) {
+                  inventoryDbids[categoryName] = {};
+                }
+
+                if (!inventoryDbids[categoryName][group.name]) {
+                  inventoryDbids[categoryName][group.name] = {};
+                }
+
+                if (!inventoryDbids[categoryName][group.name][bimFileId]) {
+                  inventoryDbids[categoryName][group.name][bimFileId] = [];
+                }
+
+                inventoryDbids[categoryName][group.name][bimFileId].push(equipment.dbid);
+              });
             });
           });
-        } else {
-          console.warn(`Aucun inventaire trouvé pour le type "${this.config.inventory}" dans cet étage.`);
         }
       } else {
         console.warn(`Aucun inventaire trouvé pour cet étage :`, floor);
       }
     });
 
-    const results = [];
-    for (const [key, value] of Object.entries(inventoryCounts)) {
-      results.push(`${value} ${key}`);
+
+    const results = {};
+    for (const [categoryName, items] of Object.entries(categorizedResults)) {
+      results[categoryName] = Object.entries(items).map(
+        ([itemName, itemCount]) => `${itemCount} ${itemName}`
+      );
     }
+
+    console.log(results, "Résultats fusionnés");
 
     this.inventoyList = results;
     this.inventoryDbids = inventoryDbids;
@@ -1999,7 +2140,7 @@ export default dataSideApp;
       opacity: 1;
     }
   }
-  
+
   @keyframes fade-in {
     0% {
       opacity: 0;
@@ -2178,7 +2319,7 @@ export default dataSideApp;
     filter: invert(1) saturate(5) hue-rotate(200deg) opacity(0.1);
     filter: blur(.5rem);
   }
-  
+
   .Spinal_card:hover::before {
     top: 50%;
     left: 50%;
@@ -2186,7 +2327,7 @@ export default dataSideApp;
     filter: blur(0rem);
     /* Pour centrer */
   }
-  
+
   .Spinal_card:hover::before {
     width: 140px;
     height: 140px;
@@ -2194,7 +2335,7 @@ export default dataSideApp;
     left: 50%;
     filter: blur(0rem);
   }
-  
+
   .text {
     flex-grow: 1;
     padding: 10px;
@@ -2205,13 +2346,13 @@ export default dataSideApp;
     font-size: 1.2em;
     height: 30px
   }
-  
+
   .subtitle {
     font-size: .6em;
     font-weight: 300;
     color: #14202c;
   }
-  
+
   .icons {
     display: flex;
     justify-items: center;
@@ -2220,7 +2361,7 @@ export default dataSideApp;
     border-radius: 0px 0px 5px 5px;
     overflow: hidden;
   }
-  
+
   .btn {
     z-index: 1;
     border: none;
@@ -2232,7 +2373,7 @@ export default dataSideApp;
     justify-content: center;
     transition: 0.4s
   }
-  
+
   .adaptative {
     width: 80%;
     overflow: hidden;
@@ -2240,17 +2381,17 @@ export default dataSideApp;
     position: relative;
     right: 0px;
   }
-  
+
   .svg-icon {
     width: 25px;
     height: 25px;
     stroke: #14202c;
   }
-  
+
   .btn:hover {
     background-color: rgb(199, 199, 199);
   }
-  
+
   .button {
     display: inline-block;
     padding: 5px;
@@ -2267,25 +2408,25 @@ export default dataSideApp;
     cursor: pointer;
     padding-left: 0px;
   }
-  
+
   .button:hover {
     background-color: rgb(228, 228, 228);
   }
-  
+
   .v-text-field>.v-input__control>.v-input__slot:before {
     border-style: none !important;
   }
-  
+
   .parallelogram {
     transform: skew(-20deg);
   }
-  
+
   .skew-fix {
     display: inline-block;
     transform: skew(30deg);
     font-size: 14px;
   }
-  
+
   .appli {
     box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
     background-color: #fff;
@@ -2296,13 +2437,13 @@ export default dataSideApp;
     flex-direction: row;
     align-content: space-between;
   }
-  
+
   .title {
     position: relative;
     width: 100%;
     display: flex;
   }
-  
+
   .inventory {
     position: relative;
     padding: 10px;
@@ -2449,6 +2590,7 @@ export default dataSideApp;
     left: 50%;
     filter: blur(0.05rem);
   }
+
   .doc-vue {
     width: 55%;
      height: 100%;

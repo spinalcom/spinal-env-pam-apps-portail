@@ -84,6 +84,9 @@ export enum ActionTypes {
 	DELETE_CATE_ATTRIBUT = 'DELETE_CATE_ATTRIBUT',
 	UPDATE_CATE_ATTRIBUT = 'UPDATE_CATE_ATTRIBUT',
 	UPDATE_ATTRIBUT = 'UPDATE_ATTRIBUT',
+	GET_CONTEXT_LIST = 'GET_CONTEXT_LIST',
+	GET_CONTEXT_CATEGORY_LIST = 'GET_CONTEXT_CATEGORY_LIST',
+	GET_CONTEXT_CATEGORY_GROUP_LIST = 'GET_CONTEXT_CATEGORY_GROUP_LIST'
 }
 
 export type TFctViewerIteract = (stateContext: AugmentedActionContextAppData, payload: { buildingId: string; id: number | number[] }) => Promise<void>;
