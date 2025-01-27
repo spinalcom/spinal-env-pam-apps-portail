@@ -10,13 +10,13 @@
         <div class="btn-group">
             <v-btn
             dense
-            color="#14202C"
-            style="color: white !important; font-weight: 700;"
+            color="error"
+            style=" font-weight: 700;"
             @click="DeleteFile()" >Confirmer</v-btn>
             <v-btn
             dense
-                color="error"
-                style="font-weight: 500;"
+                color="#14202C"
+                style="font-weight: 500; color: white;"
             @click="$emit('close')" >Annuler</v-btn>
         </div>
     </div>
