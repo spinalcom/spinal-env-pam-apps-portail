@@ -250,6 +250,14 @@ export class ViewerManager {
 		return ViewerUtils.getInstance().getObjectProperties(this.viewer,dbId)
 	}
 
+	public async addCardomponent(item: IPlayloadWithComponent | IPlayloadWithComponent[], buildingId: string, component?: Vue) {
+		// console.log("addCardomponent", item);
+		const formatted = await this._getAndFormatViewerInfos(item, buildingId, component);
+		
+		const emitter = EmitterViewerHandler.getInstance();
+		emitter.emit(<any>VIEWER_EVENTS.VIEWER_ADD_CARD_COMPONENT, formatted as any);
+	}
+
 	//////////////////////////////////////////////////////////////////////////////
 
 	private async _getAndFormatViewerInfos(item: IPlayloadWithComponent | IPlayloadWithComponent[], buildingId?: string, component?: Vue) {
