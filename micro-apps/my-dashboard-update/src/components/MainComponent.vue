@@ -29,17 +29,27 @@
         @calendar="calendarSwitch"
         :stacked="true"
         :isYear="temporality.name==='Année' || temporality.name==='Trimestre'"
+        :calendar="calendar"
         :next="temporality.name !== 'Valeur Courante' ? temporality.next : ''" 
         :prev="temporality.name !== 'Valeur Courante' ? temporality.prev : ''"
         :optional="barOptions"
         style="max-height: 530px;"
-        class="BR">
+        class="BR"
+      >
         <template v-slot:extras>
-
+          <v-select v-model="domain" append-icon="mdi-chevron-down" :items="domainList" outlined menu-props="{ bottom: true }" color="#E3E7E8" item-color="#E3E7E8" dense style="margin-left: 100px !important; min-width: 200px; width: 340px; flex-grow: 0; font-size: 14px !important;" class="ml-8" label="Temporalité">
+            <template #label="{ attrs }"> <label :for="attrs.id" style="font-size: 14px;">Select an item</label></template>
+            <template #item="{ item }">
+              <SmallLegend :color="item.color" :text="item.name" :size="14"/>
+            </template>
+            <template #selection="{ item }">
+              <SmallLegend :color="item.color" :text="item.name" :size="14"/>
+            </template>
+          </v-select>
         </template>
       </BarChart>
       
-      <FloorOccupancyDetail :space="space" :temporality="temporality"/>
+      <FloorOccupancyDetail/>
     </div>
   </div>
 </template>
@@ -52,13 +62,13 @@ import env from '../../config';
 import BarChart from './BarCard.vue';
 //import StatCard from './StatsCard.vue';
 //import StackCard from './StackCard.vue';
-//import SmallLegend from "./SmallLegend.vue";
+import SmallLegend from "./SmallLegend.vue";
 import FloorOccupancyDetail from './FloorOccupancyDetail.vue';
 import { ISpaceSelectorItem } from './SpaceSelector/index';
 import { TemporalityModel } from '../models/Temporality.model';
 import { LegendModel } from '../models/Legend.model';
 import { defineComponent, ref } from 'vue';
-//import { CalendarModel } from '../models/Calendar.model';
+import { CalendarModel } from '../models/Calendar.model';
 import { getData, getTodaysData, getSolo, getTempoSuggestion, getGestionDesEspacesId, getTypologieCategoryId, getRoomIds, getMeetingRoomGroupId } from '../services/index.js';
 import moment from 'moment';
 interface ChartData {
@@ -82,7 +92,7 @@ interface tempoFilter {
     BarChart,
     //  StatCard,
     //  StackCard,
-   // SmallLegend,
+    SmallLegend,
     LineChart,
     FloorOccupancyDetail,
   },
@@ -103,8 +113,8 @@ class App extends Vue {
                           };
   currentTimestamp = {valueTime: 0};
   todaysCard: any[] = [];
-  //calendarList: CalendarModel[] = [];
-  //calendar: CalendarModel = {n: '', y: '', d: []};
+  calendarList: CalendarModel[] = [];
+  calendar: CalendarModel = {n: '', y: '', d: []};
   barOptions = {unit: this.unit, footer: ''};
   checkbox1 = {label: '', value: true};
   checkbox2 = {label: '', value: true};
@@ -170,7 +180,7 @@ class App extends Vue {
         this.chart.label = res[0] || [];
         this.chart.data = res[1] || [];
         this.defaultFilter.name = res[1] && res[1][0] ? res[1][0].label : '';
-       // this.calendarList = res[4] || [];
+        this.calendarList = res[4] || [];
       } else {
         console.warn('Les données de getData sont manquantes ou mal formatées.');
       }
@@ -195,10 +205,10 @@ class App extends Vue {
     this.interval();
     this.domainList.push({name: this.selectedYear, color: env.controlEndpoints[0].color});
     this.domain = {name: this.selectedYear, color: env.controlEndpoints[0].color};
-    // this.calculateOccupancyRate();
+    this.calculateOccupancyRate();
   }
 
-  /* @Watch('space')
+  @Watch('space')
   async spaceChange() {
     this.todaysCard = [];
     this.spreadData();
@@ -212,14 +222,14 @@ class App extends Vue {
     this.selectedReference = 0;
     this.defaultFilter.star = true;
     this.interval();
-  } */
+  }
 
-  /* @Watch('selectedControlEndpoint')
+  @Watch('selectedControlEndpoint')
   async selectedControlEndpointChange() {
     this.calendar = this.calendarList.find((e: CalendarModel) => e.n == this.selectedControlEndpoint.name)!;
-  } */
+  }
 
-  /* @Watch('selectedYear')
+  @Watch('selectedYear')
   async selectedFilterChange(v) {
     this.weeks = [];
     for (var week = 1; week <= 52; week++) {
@@ -249,12 +259,12 @@ class App extends Vue {
       };
     }
     this.$emit('chart-sent', output);
-  } */
+  }
 
-  /* @Watch('domain')
+  @Watch('domain')
   domainChange(y) {    
     this.calendar = this.calendarList.find((e: CalendarModel) => e.y == y.name)!;    
-  } */
+  }
 
   calendarSwitch(): void {  
     this.calendarSwitchState = !this.calendarSwitchState;

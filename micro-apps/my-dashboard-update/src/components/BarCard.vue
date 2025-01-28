@@ -12,9 +12,9 @@
         <span class="desc">{{subtitle}}</span>
       </p>
       <div class="d-flex align-center mln6" style="position: absolute; right: calc(50% - 55px)" v-if="isYear">
-        <!-- <v-icon  icon style="color: #0000008a !important" class="pr-3" size="default">mdi-poll</v-icon> -->
-       <!--  <v-switch @click="$emit('calendar', switchValue)" style="margin-top: 1px; padding: 0px;height: 24px;" v-model="switchValue" inset color="blue-grey" dense/> -->
-      <!--   <v-icon  icon style="color: #0000008a !important" size="default">mdi-calendar-month-outline</v-icon> -->
+        <v-icon  icon style="color: #0000008a !important" class="pr-3" size="default">mdi-poll</v-icon>
+        <v-switch @click="$emit('calendar', switchValue)" style="margin-top: 1px; padding: 0px;height: 24px;" v-model="switchValue" inset color="blue-grey" dense/>
+        <v-icon  icon style="color: #0000008a !important" size="default">mdi-calendar-month-outline</v-icon>
       </div><!--chno kaydir had div-->
       <div v-if="prev_next" style="height: 40px; align-self: flex-start; padding-top: 10px; padding-right: 10px;">
         <v-btn :disabled="false" @click="$emit('nav', -1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;"><v-icon style="color: #14202c !important" icon>mdi-chevron-left</v-icon>{{ prev }}</v-btn>
@@ -24,7 +24,7 @@
     <div class="d-flex flex-column flex-grow-1">
       <slot name="extras" v-if="switchValue && isYear"></slot>
       <div class="flex-grow-1" style="height: 0;" v-if="switchValue && isYear">
-      <!--   <CalendarAndStripe :results="calendar" :unit="optional.unit" v-if="calendar && calendar.d && calendar.d.length>0"/> -->
+        <CalendarAndStripe :results="calendar" :unit="optional.unit" v-if="calendar && calendar.d && calendar.d.length>0"/>
       </div>
       <div class="flex-grow-1" style="height: 0;" v-else>
        <Bar v-if="load" :data="barChartData" :chart-id="'1'" :options="barChartOptions" ref="barChart"/>
@@ -64,7 +64,7 @@ ChartJS.register(
   customLegendPlugin
 );
 
-/* import CalendarAndStripe from './CalendarAndStripe.vue'; */
+import CalendarAndStripe from './CalendarAndStripe.vue';
 export default {
   name: "bar-card",
   props: {
@@ -103,10 +103,10 @@ export default {
       type: Boolean,
       required: false,
     },
-    /* calendar: {
+    calendar: {
       
       required: false
-    }, */
+    },
     optional: {
       type: Object,
       default: () => {return {unit: '', footer: 'Total'}},
@@ -209,6 +209,7 @@ export default {
 
   components: {
     Bar,
+    CalendarAndStripe
   },
 
   computed: {

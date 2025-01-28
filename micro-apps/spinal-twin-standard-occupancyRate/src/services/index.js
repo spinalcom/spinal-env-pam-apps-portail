@@ -21,29 +21,52 @@ export async function getFloors(cp) {
   const buildingId = localStorage.getItem('idBuilding');
   // get all floors
   const result = await HTTP.get(`building/${buildingId}/floor/list`);
-  console.log("Liste des étages brute :", result.data); // Vérifiez que vous obtenez des données ici  
+  console.log("Liste des étages brute :", result.data); // Vérifiez que vous obtenez des données ici
+
+  if (!result.data || result.data.length === 0) {
+    console.error('No floors found');
+    return [];
+  }
+
   // for each floor get its cp names
   let promises = result.data.map(async (floor) => {
+    console.log(`Fetching control points for floor: ${floor.name}`);
     let cpList = await HTTP.get(`building/${buildingId}/node/${floor.dynamicId}/control_endpoint_list`);
+    console.log(`Control points for floor ${floor.name}:`, cpList.data);
+
     for (let j = 0; j < cpList.data.length; j++) {
       for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
+        console.log(`Checking control point ${cpList.data[j].endpoints[i].name} against ${cp[0].name}`);
         // if there is a match add floor to array + area + cp id
         if (cpList.data[j].endpoints[i].name === cp[0].name) {
+          console.log(`Matching control point found for floor ${floor.name}:`, cpList.data[j].endpoints[i]);
           let area = await HTTP.get(`building/${buildingId}/node/${floor.dynamicId}/attributsList`);
-          area = area.data[0].attributs[area.data[0].attributs.findIndex(e => e.label === 'area')].value;
-          floor.area = area;
+          if (area.data && area.data[0] && area.data[0].attributs) {
+            const areaIndex = area.data[0].attributs.findIndex(e => e.label === 'area');
+            if (areaIndex !== -1) {
+              floor.area = area.data[0].attributs[areaIndex].value;
+            } else {
+              console.warn(`No area attribute found for floor ${floor.name}`);
+              floor.area = null;
+            }
+          } else {
+            console.warn(`Invalid area data for floor ${floor.name}`, area.data);
+            floor.area = null;
+          }
           floor.cp = cpList.data[j].endpoints[i].dynamicId;
           return floor;
-          
         }
       }
     }
-    return null;
+    // Si aucun point de contrôle correspondant n'est trouvé, retourner l'étage sans points de contrôle
+    floor.area = null;
+    floor.cp = null;
+    return floor;
   });
+
   let values = await Promise.all(promises);
-  let filteredValues = values.filter((value) => value !== null);
-  console.log("Données des étages après filtrage :", filteredValues); // Log des données filtrées
-  return filteredValues;
+  console.log("Données des étages après traitement :", values); // Log des données après traitement
+  return values;
 }
 //Récupère la surface d'un espace (bâtiment ou étage).
 async function getArea(space) {
@@ -147,7 +170,12 @@ export async function getRoomIds(contextId, categoryId, groupId) {
 
     console.log(`Fetching Room IDs for context: ${contextId}, category: ${categoryId}, group: ${groupId} in building: ${buildingId}`);
     const response = await HTTP.get(`building/${buildingId}/roomsGroup/${contextId}/category/${categoryId}/group/${groupId}/roomList`);
-    console.log('Response data&&&&&&&:', response.data);
+    console.log('Response data:', response.data);
+
+    if (!response.data || !Array.isArray(response.data)) {
+      console.error('Invalid response data for room IDs');
+      return null;
+    }
 
     return response.data.map(room => room.dynamicId);
   } catch (error) {
@@ -218,7 +246,7 @@ export async function getOccupationDynamicIds(roomIds) {
         });
       }
     });
-
+    
     console.log('Dynamic IDs collected:', dynamicIds);
     return dynamicIds;
   } catch (error) {
@@ -271,9 +299,8 @@ export async function getOccupationDataByFloor(roomsByFloor) {
 
     for (const [floorId, floorData] of Object.entries(roomsByFloor)) {
       console.log(`Fetching occupation data for floor: ${floorData.floorName}`);
-      const response = await HTTP.post(`building/${buildingId}/node/control_endpoint_list_multiple`,floorData.rooms);
+      const response = await HTTP.post(`building/${buildingId}/node/control_endpoint_list_multiple`, floorData.rooms);
 
-      // Vérification de la structure de response.data
       if (!response || !response.data || !Array.isArray(response.data) || !Array.isArray(response.data[0])) {
         console.warn(`Invalid response data for floor: ${floorData.floorName}`, response);
         occupationByFloor[floorId] = {
@@ -284,18 +311,17 @@ export async function getOccupationDataByFloor(roomsByFloor) {
         continue;
       }
 
-      // Extraire les taux d'occupation pour chaque salle
       const occupationRates = [];
       response.data.forEach(roomArray => {
         roomArray.forEach(room => {
           if (!room || !room.dynamicId) {
             console.warn(`Invalid room structure:`, room);
-            return; // Ignorer cette salle
+            return;
           }
 
           if (!room.endpoints || !Array.isArray(room.endpoints)) {
             console.warn(`Invalid endpoints for room: ${room.dynamicId}`, room);
-            return; // Ignorer cette salle
+            return;
           }
 
           room.endpoints.forEach(endpoint => {
@@ -323,6 +349,7 @@ export async function getOccupationDataByFloor(roomsByFloor) {
   }
 }
 
+
 // Calcule les taux d'occupation moyens par étage.
 export function calculateAverageOccupation(roomsByFloor, occupationByFloor) {
   try {
@@ -337,7 +364,7 @@ export function calculateAverageOccupation(roomsByFloor, occupationByFloor) {
         return {
           floorId,
           floorName: floorData.floorName,
-          averageOccupation: 0, // Aucun taux d'occupation disponible
+          averageOccupation: 0,
         };
       }
 
@@ -655,6 +682,190 @@ if (dynamicIds.length > 0) {
     return [null, null, null, null, [], []];
   }
 }
+
+
+
+// ...existing code...
+// Fonction pour récupérer les IDs dynamiques d'occupation par étage
+export async function getOccupationDynamicIdsByFloor(roomIds, roomsByFloor) {
+  try {
+    console.log('Fetching occupation dynamic IDs for rooms by floor');
+    const buildingId = localStorage.getItem("idBuilding");
+    if (!buildingId) {
+      console.error('No building ID found in localStorage');
+      return {};
+    }
+
+    const response = await HTTP.post(`building/${buildingId}/node/control_endpoint_list_multiple`, roomIds);
+    const dynamicIdsByFloor = {};
+
+    response.data.forEach((roomEndpointsList) => {
+      if (roomEndpointsList && Array.isArray(roomEndpointsList)) {
+        roomEndpointsList.forEach(room => {
+          if (room.endpoints && Array.isArray(room.endpoints)) {
+            room.endpoints.forEach(endpoint => {
+              if (endpoint.name.trim().toLowerCase() === "taux d'occupation" && endpoint.type.trim().toLowerCase() === "occupation") {
+                const floorId = Object.keys(roomsByFloor).find(floorId => roomsByFloor[floorId].rooms.includes(room.dynamicId));
+                if (floorId) {
+                  if (!dynamicIdsByFloor[floorId]) {
+                    dynamicIdsByFloor[floorId] = [];
+                  }
+                  dynamicIdsByFloor[floorId].push(endpoint.dynamicId);
+                }
+              }
+            });
+          }
+        });
+      }
+    });
+
+    console.log('Dynamic IDs by floor:', dynamicIdsByFloor);
+    return dynamicIdsByFloor;
+  } catch (error) {
+    console.error('Error fetching occupation dynamic IDs by floor:', error);
+    return {};
+  }
+}
+// Fonction principale pour récupérer les données d'occupation par étage
+export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, roomIds) {
+  const buildingId = localStorage.getItem("idBuilding");
+  const spaceArea = await getArea(space); 
+  let periodArray = getPeriodArray(currentTimestamp, tempo);
+  let label = periodArray[0];
+  let tooltipDate = periodArray[5];
+  let data = [];
+  let avg = [];
+  let total = [];
+  let meter = [];
+  let timeSeries;
+
+  try {
+    console.log('Fetching floors for building:', buildingId);
+    // Récupérer tous les étages sans filtrage
+    const floors = await getFloors([{ name: 'nom_du_cp' }]); // Remplacez 'nom_du_cp' par le nom approprié
+    console.log('Floors fetched:', floors);
+
+    // Récupérer les positions des salles et les regrouper par étage
+    const roomPositions = await getRoomPositions(roomIds);
+    const roomsByFloor = groupRoomsByFloor(roomPositions);
+    console.log('Rooms grouped by floor:', roomsByFloor);
+
+    // Récupérer les IDs dynamiques des points de contrôle de taux d'occupation par étage
+    const dynamicIdsByFloor = await getOccupationDynamicIdsByFloor(roomIds, roomsByFloor);
+    console.log('Dynamic IDs by floor:', dynamicIdsByFloor);
+
+    // Ajout des logs pour vérifier les périodes
+    console.log('Period array from from :', periodArray); // Ajout de la console log pour voir les dates
+    console.log('Start date from from :', periodArray[1]); // Ajout de la console log pour voir la date de début
+    console.log('End date from from :', periodArray[2]); // Ajout de la console log pour voir la date de fin
+
+    // Récupérer les données de séries temporelles pour chaque étage
+    const aggregatedFloorData = {};
+    for (const floor of floors) {
+      const dynamicIds = dynamicIdsByFloor[floor.dynamicId];
+      if (dynamicIds && dynamicIds.length > 0) {
+        console.log(`Fetching time series data for floor: ${floor.name}`);
+        const timeSeriesResponse = await HTTP.post(
+          `/building/${buildingId}/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`,
+          dynamicIds
+        );
+        const timeSeriesData = timeSeriesResponse.data;
+        console.log(`Time series data for floor ${floor.name}:`, timeSeriesData);
+
+        // Agrégation des données par période et par étage
+        aggregatedFloorData[floor.name] = {};
+        label.forEach(periodLabel => {
+          aggregatedFloorData[floor.name][periodLabel] = [];
+        });
+
+        timeSeriesData.forEach(roomData => {
+          roomData.timeseries.forEach(point => {
+            let formattedLabel;
+            switch (tempo) {
+              case 'Journée':
+              case 'Valeur Courante':
+                formattedLabel = moment(point.date).format('HH');
+                break;
+              case 'Semaine':
+                formattedLabel = moment(point.date).format('ddd');
+                break;
+              case 'Mois':
+                formattedLabel = moment(point.date).format('DD MMM');
+                break;
+              case 'Trimestre':
+                formattedLabel = moment(point.date).format('MMM');
+                break;
+              default:
+                formattedLabel = moment(point.date).format('DD MMM');
+            }
+            console.log(`Formatted label for ${tempo}: ${formattedLabel}`);
+            if (aggregatedFloorData[floor.name][formattedLabel]) {
+              aggregatedFloorData[floor.name][formattedLabel].push(point.value);
+            }
+          });
+        });
+      } else {
+        console.log(`No dynamic IDs found for floor: ${floor.name}`);
+      }
+    }
+    console.log('Aggregated floor data:', aggregatedFloorData);
+
+    // 🛠️ **Moyenne des salles de réunion par étage**
+    const floorProcessedTimeSeries = label.map(periodLabel => {
+      const floorData = {};
+      floors.forEach(floor => {
+        const values = aggregatedFloorData[floor.name]?.[periodLabel] || [];
+        const sum = values.reduce((acc, val) => acc + val, 0);
+        floorData[floor.name] = values.length > 0 ? (sum / values.length).toFixed(2) : 0;
+      });
+      return floorData;
+    });
+    console.log('Processed time series data for floors:', floorProcessedTimeSeries);
+
+    // Calculer la moyenne des taux d'occupation pour chaque étage
+    const averages = floors.map(floor => {
+      const values = Object.values(aggregatedFloorData[floor.name] || {}).flat();
+      const sum = values.reduce((acc, val) => acc + val, 0);
+      const average = values.length > 0 ? (sum / values.length).toFixed(2) : 0;
+      return {
+        floor: floor.name,
+        average: parseFloat(average)
+      };
+    });
+    console.log('Average occupancy rates for floors:', averages);
+
+    // Préparation des données pour l'affichage
+    floors.forEach(floor => {
+      data.push({
+        label: `Taux d'occupation des salles de réunion - Étage ${floor.name}`,
+        data: floorProcessedTimeSeries.map(floorData => floorData[floor.name]),
+        backgroundColor: '#A7001E',
+        borderColor: '#A7001E',
+        borderWidth: 1,
+        fill: false,
+      });
+    });
+    console.log('Final data prepared for display:', data);
+
+    // Afficher les taux d'occupation par étage
+    floors.forEach(floor => {
+      console.log(`Taux d'occupation des salles de réunion pour l'étage ${floor.name}:`, data.find(d => d.label.includes(floor.name)).data);
+    });
+
+    // Retourner les données finales
+    return [label, data, avg, total, averages, meter];
+
+  } catch (e) {
+    console.error('Error fetching data:', e);
+    return [null, null, null, null, [], []];
+  }
+}
+// ...existing code...
+
+
+
+
+
 // Fonction principale pour récupérer les données d'occupation
 export async function getOccupancyData(space, tempo, currentTimestamp, roomIds) {
   const buildingId = localStorage.getItem("idBuilding");
@@ -732,7 +943,7 @@ export async function getOccupancyData(space, tempo, currentTimestamp, roomIds) 
         data: processedRoomTimeSeries,
         backgroundColor: '#ff6384',
         borderColor: '#ff6384',
-        borderWidth: 1,
+        borderWidth: 4,
         fill: false,
       });
     }
@@ -764,6 +975,35 @@ export async function getBuildingOccupancyData(space, tempo, currentTimestamp, r
   }
 }
 
+// Fonction pour préparer les données d'occupation
+export async function prepareOccupancyData(space, tempo, currentTimestamp) {
+  try {
+    const buildingId = localStorage.getItem("idBuilding");
+    if (!buildingId) {
+      throw new Error('idBuilding not found in localStorage');
+    }
+
+    const gestionDesEspacesId = await getGestionDesEspacesId();
+    const typologieCategoryId = await getTypologieCategoryId(gestionDesEspacesId);
+    const meetingRoomGroupId = await getMeetingRoomGroupId(gestionDesEspacesId, typologieCategoryId);
+    const roomIds = await getRoomIds(gestionDesEspacesId, typologieCategoryId, meetingRoomGroupId);
+
+    const roomPositions = await getRoomPositions(roomIds);
+    const roomsByFloor = groupRoomsByFloor(roomPositions);
+    const occupationByFloor = await getOccupationDataByFloor(roomsByFloor);
+    const averagesByFloor = calculateAverageOccupation(roomsByFloor, occupationByFloor);
+
+    const labels = averagesByFloor.map(floor => floor.floorName);
+    const data = averagesByFloor.map(floor => floor.averageOccupation);
+
+    return { labels, data };
+  } catch (error) {
+    console.error('Error preparing occupancy data:', error);
+    return { labels: [], data: [] };
+  }
+}
+
+// ...existing code...
 
 
 
@@ -1060,3 +1300,64 @@ export async function getSolo(space, tempo, currentTimestamp, format, controlEnd
 
   return [res[1][0], res[2][0], res[3][0], res[5][0], res[4][0], res[0]];
 }
+// ...existing code...
+
+// Supprimez ce bloc si vous n'en avez plus besoin
+// Fonction de test pour appeler getOccupancyDataByFloor avec des valeurs dynamiques
+/*
+async function testGetOccupancyDataByFloor(tempo) {
+  try {
+    console.log('Starting testGetOccupancyDataByFloor with tempo:', tempo);
+    const space = { type: 'building', dynamicId: localStorage.getItem("idBuilding") }; // Utiliser l'ID du bâtiment stocké
+    const currentTimestamp = Date.now(); // Utiliser le timestamp actuel
+
+    // Récupérer les IDs des salles de réunion dynamiquement
+    console.log('Fetching Gestion des Espaces ID...');
+    const gestionDesEspacesId = await getGestionDesEspacesId();
+    console.log('Gestion des Espaces ID:', gestionDesEspacesId);
+
+    console.log('Fetching Typologie Category ID...');
+    const typologieCategoryId = await getTypologieCategoryId(gestionDesEspacesId);
+    console.log('Typologie Category ID:', typologieCategoryId);
+
+    console.log('Fetching Meeting Room Group ID...');
+    const meetingRoomGroupId = await getMeetingRoomGroupId(gestionDesEspacesId, typologieCategoryId);
+    console.log('Meeting Room Group ID:', meetingRoomGroupId);
+
+    console.log('Fetching Room IDs...');
+    const roomIds = await getRoomIds(gestionDesEspacesId, typologieCategoryId, meetingRoomGroupId);
+    console.log('Room IDs:', roomIds);
+
+    if (!roomIds || roomIds.length === 0) {
+      console.error('No Room IDs found. Aborting test.');
+      return;
+    }
+
+    console.log('Calling getOccupancyDataByFloor with dynamic room IDs...');
+    const result = await getOccupancyDataByFloor(space, tempo, currentTimestamp, roomIds);
+    console.log('Result from getOccupancyDataByFloor:', result);
+
+    if (result && result[1]) {
+      // Afficher les taux d'occupation par étage
+      const [label, data, , , averages] = result;
+      data.forEach(floorData => {
+        console.log(`Taux d'occupation des salles de réunion pour ${floorData.label}:`, floorData.data);
+      });
+
+      // Afficher les moyennes des taux d'occupation pour chaque étage
+      averages.forEach(avg => {
+        console.log(`Moyenne des taux d'occupation pour ${avg.floor}: ${avg.average}%`);
+      });
+    } else {
+      console.error('No data returned from getOccupancyDataByFloor');
+    }
+  } catch (error) {
+    console.error('Error in testGetOccupancyDataByFloor:', error);
+  }
+}
+
+// Appeler la fonction de test avec une temporalité spécifique
+testGetOccupancyDataByFloor('Valeur Courante'); // Remplacez 'Mois' par la temporalité souhaitée
+*/
+
+// ...existing code...

@@ -1,17 +1,17 @@
 module.exports = {
     title: "OCCUPATION EN TEMP RÉEL",
     chart: '%',
-    //calendarLegend: 'Le jour le plus où le batiment a le plus consommé est le',
-    //monthStripeLegend: 'Le mois où le bâtiment a le plus consommé est',
+    calendarLegend: 'Le jour le plus où le batiment a le plus consommé est le',
+    monthStripeLegend: 'Le mois où le bâtiment a le plus consommé est',
     compareBy: 'date',
 
     // Cards title and subtitle
 
-    //averageCardTitle: 'Titre de la card consommation au m²',
-    //averageCardSubtitle: 'Description de la consommation au m²',
+    averageCardTitle: 'Titre de la card consommation au m²',
+    averageCardSubtitle: 'Description de la consommation au m²',
 
-/*     totalCardTitle: 'Title de la card totale',
-    totalCardSubtitle: 'Description de la card totale', */
+    totalCardTitle: 'Title de la card totale',
+    totalCardSubtitle: 'Description de la card totale',
 
     controlEndpoints: [
         {

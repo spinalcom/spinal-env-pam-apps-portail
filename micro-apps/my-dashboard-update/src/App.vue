@@ -42,7 +42,7 @@ import { Vue } from 'vue-property-decorator';
 import Component from 'vue-class-component';
 import MicroApp from './components/MainComponent.vue';
 import DownloadButton from './components/DownloadButton.vue';
-//import StackCard from './components/StackCard.vue';
+import StackCard from './components/StackCard.vue';
 import { getBuilding, getFloors } from './services/index.js';
 
 @Component({
@@ -50,7 +50,7 @@ import { getBuilding, getFloors } from './services/index.js';
     SpaceSelector,
     DownloadButton,
     MicroApp,
-    
+    StackCard,
   },
 })
 class App extends Vue {
