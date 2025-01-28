@@ -21,7 +21,7 @@ export async function getFloors(cp) {
   const buildingId = localStorage.getItem('idBuilding');
   // get all floors
   const result = await HTTP.get(`building/${buildingId}/floor/list`);
-  console.log("Liste des étages brute :", result.data); // Vérifiez que vous obtenez des données ici
+  console.log("Liste des étages brute :", result.data);
 
   if (!result.data || result.data.length === 0) {
     console.error('No floors found');
@@ -36,7 +36,7 @@ export async function getFloors(cp) {
 
     for (let j = 0; j < cpList.data.length; j++) {
       for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
-        console.log(`Checking control point ${cpList.data[j].endpoints[i].name} against ${cp[0].name}`);
+        //console.log(`Checking control point ${cpList.data[j].endpoints[i].name} against ${cp[0].name}`);
         // if there is a match add floor to array + area + cp id
         if (cpList.data[j].endpoints[i].name === cp[0].name) {
           console.log(`Matching control point found for floor ${floor.name}:`, cpList.data[j].endpoints[i]);
@@ -414,7 +414,7 @@ export async function getTotalSurface2(roomIds) {
       if (category && category.attributs) {
         const areaAttribute = category.attributs.find(attr => attr.label === "area");
         if (areaAttribute && areaAttribute.value) {
-          totalSurface2 += parseFloat(areaAttribute.value); // Ajouter la valeur de la surface
+          totalSurface2 += parseFloat(areaAttribute.value);
         }
       }
     });
@@ -532,8 +532,8 @@ export async function getGraphData() {
     }
 
     const occupancyDynamicId = occupancyEndpoint.dynamicId;
-    console.log('Occupancy dynamic ID:', occupancyDynamicId);//hna kanakhd le dynamic id dial taux d'occupation dl batiment bach ndiro f timeseries
-
+    console.log('Occupancy dynamic ID:', occupancyDynamicId);
+    
     return occupancyDynamicId;
   } catch (error) {
     console.error('Error in getGraphData:', error);
@@ -544,7 +544,7 @@ export async function getGraphData() {
 // Fonction principale pour récupérer les données
 export async function getData(space, tempo, currentTimestamp, roomIds) {
   const buildingId = localStorage.getItem("idBuilding");
-  const spaceArea = await getArea(space); // Récupère la surface de l'espace
+  const spaceArea = await getArea(space); 
   let periodArray = getPeriodArray(currentTimestamp, tempo);
   let label = periodArray[0];
   let tooltipDate = periodArray[5];
@@ -555,7 +555,7 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
   let timeSeries;
 
   try {
-    // 📊 **1. Taux d'occupation du bâtiment**
+    // 1. Taux d'occupation du bâtiment**
     console.log('Fetching occupancy dynamic ID');
     const occupancyDynamicId = await getGraphData();
     if (!occupancyDynamicId) {
@@ -571,14 +571,14 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
     let processedTimeSeries = [];
 
     if (tempo === 'Valeur Courante') {
-      // 🟢 **Traitement Spécifique pour "Valeur Courante"**
+      // Traitement Spécifique pour "Valeur Courante"**
       const currentHour = moment(currentTimestamp).hour();
       processedTimeSeries = label.map(hour => {
         const value = occupancyRateData.find(elem => moment(elem.date).format('HH') === hour)?.value || 0;
         return parseFloat(value).toFixed(2);
       }).filter((_, index) => index <= currentHour);
     } else {
-      // 🛠️ **Agrégation des données en fonction de la temporalité**
+      // Agrégation des données en fonction de la temporalité**
       let aggregatedData = {};
       label.forEach(periodLabel => {
         aggregatedData[periodLabel] = [];
@@ -604,7 +604,7 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
         }
       });
 
-      // 🛠️ **Calcul des moyennes par période**
+      // Calcul des moyennes par période**
       processedTimeSeries = label.map(periodLabel => {
         const values = aggregatedData[periodLabel] || [];
         const sum = values.reduce((acc, val) => acc + val, 0);
@@ -612,7 +612,7 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
       });
     }
 
-    // 🛠️ **Calcul des moyennes globales**
+    // Calcul des moyennes globales**
     const sumSeries = occupancyRateData.reduce((acc, current) => acc + current.value, 0);
     const average = +(sumSeries / label.length).toFixed(1);
     const normalizedValue = +(sumSeries / spaceArea).toFixed(1);
@@ -626,13 +626,13 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
       fill: false,
     });
 
-// 📊 **2. Taux d'occupation des salles de réunion**
+// 2. Taux d'occupation des salles de réunion
 console.log('Fetching dynamic IDs using getOccupationDynamicIds');
 const dynamicIds = await getOccupationDynamicIds(roomIds);
 if (dynamicIds.length > 0) {
   console.log('Period array from index:', periodArray); // Ajout de la console log pour voir les dates
-  console.log('Start date from index:', periodArray[1]); // Ajout de la console log pour voir la date de début
-  console.log('End date from index:', periodArray[2]); // Ajout de la console log pour voir la date de fin
+  console.log('Start date from index:', periodArray[1]);
+  console.log('End date from index:', periodArray[2]);
 
   const timeSeriesResponse = await HTTP.post(
     `/building/${buildingId}/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`,
@@ -657,7 +657,7 @@ if (dynamicIds.length > 0) {
         });
       });
 
-      // 🛠️ **Moyenne des salles de réunion**
+      // Moyenne des salles de réunion
       const roomProcessedTimeSeries = label.map(periodLabel => {
         const values = aggregatedRoomData[periodLabel] || [];
         const sum = values.reduce((acc, val) => acc + val, 0);
@@ -685,7 +685,6 @@ if (dynamicIds.length > 0) {
 
 
 
-// ...existing code...
 // Fonction pour récupérer les IDs dynamiques d'occupation par étage
 export async function getOccupationDynamicIdsByFloor(roomIds, roomsByFloor) {
   try {
@@ -742,7 +741,7 @@ export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, ro
   try {
     console.log('Fetching floors for building:', buildingId);
     // Récupérer tous les étages sans filtrage
-    const floors = await getFloors([{ name: 'nom_du_cp' }]); // Remplacez 'nom_du_cp' par le nom approprié
+    const floors = await getFloors([{ name: 'nom_du_cp' }]); 
     console.log('Floors fetched:', floors);
 
     // Récupérer les positions des salles et les regrouper par étage
@@ -756,8 +755,8 @@ export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, ro
 
     // Ajout des logs pour vérifier les périodes
     console.log('Period array from from :', periodArray); // Ajout de la console log pour voir les dates
-    console.log('Start date from from :', periodArray[1]); // Ajout de la console log pour voir la date de début
-    console.log('End date from from :', periodArray[2]); // Ajout de la console log pour voir la date de fin
+    console.log('Start date from from :', periodArray[1]); 
+    console.log('End date from from :', periodArray[2]); 
 
     // Récupérer les données de séries temporelles pour chaque étage
     const aggregatedFloorData = {};
@@ -810,7 +809,7 @@ export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, ro
     }
     console.log('Aggregated floor data:', aggregatedFloorData);
 
-    // 🛠️ **Moyenne des salles de réunion par étage**
+    // Moyenne des salles de réunion par étage
     const floorProcessedTimeSeries = label.map(periodLabel => {
       const floorData = {};
       floors.forEach(floor => {
@@ -860,7 +859,6 @@ export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, ro
     return [null, null, null, null, [], []];
   }
 }
-// ...existing code...
 
 
 
@@ -869,7 +867,7 @@ export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, ro
 // Fonction principale pour récupérer les données d'occupation
 export async function getOccupancyData(space, tempo, currentTimestamp, roomIds) {
   const buildingId = localStorage.getItem("idBuilding");
-  const spaceArea = await getArea(space); // Récupère la surface de l'espace
+  const spaceArea = await getArea(space); 
   let periodArray = getPeriodArray(currentTimestamp, tempo);
   let label = periodArray[0];
   let tooltipDate = periodArray[5];
@@ -880,7 +878,7 @@ export async function getOccupancyData(space, tempo, currentTimestamp, roomIds) 
   let timeSeries;
 
   try {
-    // 📊 **1. Taux d'occupation du bâtiment**
+    // 1. Taux d'occupation du bâtiment
     console.log('Fetching occupancy dynamic ID');
     const occupancyDynamicId = await getGraphData();
     if (!occupancyDynamicId) {
@@ -901,7 +899,7 @@ export async function getOccupancyData(space, tempo, currentTimestamp, roomIds) 
       processedTimeSeries = occupancyRateData.map(item => item.value);
     }
 
-    // 🛠️ **Calcul des moyennes globales**
+    // Calcul des moyennes globales
     const sumSeries = occupancyRateData.reduce((acc, current) => acc + current.value, 0);
     const average = +(sumSeries / label.length).toFixed(1);
     const normalizedValue = +(sumSeries / spaceArea).toFixed(1);
@@ -915,7 +913,7 @@ export async function getOccupancyData(space, tempo, currentTimestamp, roomIds) 
       fill: false,
     });
 
-    // 📊 **2. Taux d'occupation des salles de réunion**
+    // Taux d'occupation des salles de réunion
     console.log('Fetching dynamic IDs using getOccupationDynamicIds');
     const dynamicIds = await getOccupationDynamicIds(roomIds);
     if (dynamicIds.length > 0) {
@@ -1003,7 +1001,6 @@ export async function prepareOccupancyData(space, tempo, currentTimestamp) {
   }
 }
 
-// ...existing code...
 
 
 
@@ -1158,17 +1155,6 @@ function getPeriodArray(timestamp, period) {
 }
  //Récupère les données pour aujourd'hui pour un espace donné et des points de contrôle.
 export async function getTodaysData(space, controlEndpoints) {
-  // var data = [
-  //   {
-  //     label: 'Energie globale',
-  //     name: 'Energie globale',
-  //     color: '#14202c',
-  //     unit: 'Kw',
-  //     title: 'title',
-  //     subtitle: 'sub',
-  //     root: true,
-  //   }
-  // ]
   const data = [];
   const buildingId = localStorage.getItem("idBuilding");
   var startOfDay = moment().startOf('day').format('DD-MM-yyyy HH:mm:ss');
@@ -1176,12 +1162,7 @@ export async function getTodaysData(space, controlEndpoints) {
   let cpList, cpID, timeSeries, sumSeries, sub;
   for (const controlEndpoint of controlEndpoints) {
     cpList = await HTTP.get(`building/${buildingId}/node/${space.dynamicId}/control_endpoint_list`);
-    // cpList = cpList.data[1].endpoints;
-    // for (let i = 0; i < cpList.length; i++) {
-    //   if (cpList[i].name === controlEndpoint.name) {
-    //     cpID = cpList[i].dynamicId;
-    //   }
-    // }
+   
 
     for (let j = 0; j < cpList.data.length; j++) {
       for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
@@ -1224,7 +1205,6 @@ export async function getTodaysData(space, controlEndpoints) {
 function generateMonthlyData(y) {
   const monthlyData = [];
   const date = moment(y, 'YYYY');
-  // loop through 12 months
   for (let i = 0; i < 12; i++) {
     let daysInMonth = date.month(i).daysInMonth();
     if (i === 1) { // February
@@ -1300,64 +1280,3 @@ export async function getSolo(space, tempo, currentTimestamp, format, controlEnd
 
   return [res[1][0], res[2][0], res[3][0], res[5][0], res[4][0], res[0]];
 }
-// ...existing code...
-
-// Supprimez ce bloc si vous n'en avez plus besoin
-// Fonction de test pour appeler getOccupancyDataByFloor avec des valeurs dynamiques
-/*
-async function testGetOccupancyDataByFloor(tempo) {
-  try {
-    console.log('Starting testGetOccupancyDataByFloor with tempo:', tempo);
-    const space = { type: 'building', dynamicId: localStorage.getItem("idBuilding") }; // Utiliser l'ID du bâtiment stocké
-    const currentTimestamp = Date.now(); // Utiliser le timestamp actuel
-
-    // Récupérer les IDs des salles de réunion dynamiquement
-    console.log('Fetching Gestion des Espaces ID...');
-    const gestionDesEspacesId = await getGestionDesEspacesId();
-    console.log('Gestion des Espaces ID:', gestionDesEspacesId);
-
-    console.log('Fetching Typologie Category ID...');
-    const typologieCategoryId = await getTypologieCategoryId(gestionDesEspacesId);
-    console.log('Typologie Category ID:', typologieCategoryId);
-
-    console.log('Fetching Meeting Room Group ID...');
-    const meetingRoomGroupId = await getMeetingRoomGroupId(gestionDesEspacesId, typologieCategoryId);
-    console.log('Meeting Room Group ID:', meetingRoomGroupId);
-
-    console.log('Fetching Room IDs...');
-    const roomIds = await getRoomIds(gestionDesEspacesId, typologieCategoryId, meetingRoomGroupId);
-    console.log('Room IDs:', roomIds);
-
-    if (!roomIds || roomIds.length === 0) {
-      console.error('No Room IDs found. Aborting test.');
-      return;
-    }
-
-    console.log('Calling getOccupancyDataByFloor with dynamic room IDs...');
-    const result = await getOccupancyDataByFloor(space, tempo, currentTimestamp, roomIds);
-    console.log('Result from getOccupancyDataByFloor:', result);
-
-    if (result && result[1]) {
-      // Afficher les taux d'occupation par étage
-      const [label, data, , , averages] = result;
-      data.forEach(floorData => {
-        console.log(`Taux d'occupation des salles de réunion pour ${floorData.label}:`, floorData.data);
-      });
-
-      // Afficher les moyennes des taux d'occupation pour chaque étage
-      averages.forEach(avg => {
-        console.log(`Moyenne des taux d'occupation pour ${avg.floor}: ${avg.average}%`);
-      });
-    } else {
-      console.error('No data returned from getOccupancyDataByFloor');
-    }
-  } catch (error) {
-    console.error('Error in testGetOccupancyDataByFloor:', error);
-  }
-}
-
-// Appeler la fonction de test avec une temporalité spécifique
-testGetOccupancyDataByFloor('Valeur Courante'); // Remplacez 'Mois' par la temporalité souhaitée
-*/
-
-// ...existing code...

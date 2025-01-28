@@ -15,7 +15,7 @@
         <v-icon  icon style="color: #0000008a !important" class="pr-3" size="default">mdi-poll</v-icon>
         <v-switch @click="$emit('calendar', switchValue)" style="margin-top: 1px; padding: 0px;height: 24px;" v-model="switchValue" inset color="blue-grey" dense/>
         <v-icon  icon style="color: #0000008a !important" size="default">mdi-calendar-month-outline</v-icon>
-      </div><!--chno kaydir had div-->
+      </div>
       <div v-if="prev_next" style="height: 40px; align-self: flex-start; padding-top: 10px; padding-right: 10px;">
         <v-btn :disabled="false" @click="$emit('nav', -1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;"><v-icon style="color: #14202c !important" icon>mdi-chevron-left</v-icon>{{ prev }}</v-btn>
         <v-btn :disabled="false" @click="$emit('nav', +1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;">{{ next }}<v-icon style="color: #14202c !important" icon>mdi-chevron-right</v-icon></v-btn>
@@ -220,8 +220,7 @@ export default {
           ...this.datasets,
           /* {
            label: 'Salles de réunionssalles de réunions',
-            data: Array(this.labels.length).fill(this.occupancyRate),//hna fin anzid data li gha naffichi f chart
-            backgroundColor: '#A7001E',
+            data: Array(this.labels.length).fill(this.occupancyRate),
             borderColor: '#A7001E',
             borderWidth: 1,
             type: 'line',

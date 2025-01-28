@@ -40,7 +40,7 @@
         </template>
       </BarChart>
       
-      <FloorOccupancyDetail :space="space" :temporality="temporality"/>
+      <FloorOccupancyDetail ref="floorOccupancyDetail" :space="space" :temporality="temporality"/>
     </div>
   </div>
 </template>
@@ -57,7 +57,7 @@ import { TemporalityModel } from '../models/Temporality.model';
 import { LegendModel } from '../models/Legend.model';
 import { defineComponent, ref } from 'vue';
 import { CalendarModel } from '../models/Calendar.model';
-import { getData, getTodaysData, getSolo, getTempoSuggestion, getGestionDesEspacesId, getTypologieCategoryId, getRoomIds, getMeetingRoomGroupId } from '../services/index.js';
+import { getData, getTodaysData, getSolo, getTempoSuggestion, getGestionDesEspacesId, getTypologieCategoryId, getRoomIds, getMeetingRoomGroupId, getOccupancyDataByFloor } from '../services/index.js';
 import moment from 'moment';
 interface ChartData {
   label: string;
@@ -150,29 +150,33 @@ class App extends Vue {
   }
 
   async spreadData() {
-    try {
-      let res;
-      const gestionDesEspacesId = await getGestionDesEspacesId();
-      const typologieCategoryId = await getTypologieCategoryId(gestionDesEspacesId);
-      const meetingRoomGroupId = await getMeetingRoomGroupId(gestionDesEspacesId, typologieCategoryId);
-      const roomIds = await getRoomIds(gestionDesEspacesId, typologieCategoryId, meetingRoomGroupId);
+  try {
+    let res;
+    const gestionDesEspacesId = await getGestionDesEspacesId();
+    const typologieCategoryId = await getTypologieCategoryId(gestionDesEspacesId);
+    const meetingRoomGroupId = await getMeetingRoomGroupId(gestionDesEspacesId, typologieCategoryId);
+    const roomIds = await getRoomIds(gestionDesEspacesId, typologieCategoryId, meetingRoomGroupId);
 
-      console.log('Room IDs:', roomIds);
+    console.log('Room IDs:', roomIds);
 
+    if (this.space.type === 'building') {
       res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds);
-
-      if (res && res.length >= 6) {
-        this.chart.label = res[0] || [];
-        this.chart.data = res[1] || [];
-        this.defaultFilter.name = res[1] && res[1][0] ? res[1][0].label : '';
-        this.calendarList = res[4] || [];
-      } else {
-        console.warn('Les données de getData sont manquantes ou mal formatées.');
-      }
-    } catch (error) {
-      console.error("Erreur lors de l'exécution de spreadData:", error);
+    } else if (this.space.type === 'floor') {
+      res = await getOccupancyDataByFloor(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds);
     }
+
+    if (res && res.length >= 6) {
+      this.chart.label = res[0] || [];
+      this.chart.data = res[1] || [];
+      this.defaultFilter.name = res[1] && res[1][0] ? res[1][0].label : '';
+      this.calendarList = res[4] || [];
+    } else {
+      console.warn('Les données de getData sont manquantes ou mal formatées.');
+    }
+  } catch (error) {
+    console.error("Erreur lors de l'exécution de spreadData:", error);
   }
+}
 
   async mounted() {
     this.selectedYear = moment().format('YYYY');
@@ -256,101 +260,107 @@ class App extends Vue {
   }
 
   async nav(payload: number): Promise<void> {
-    if (this.temporality.name === 'Journée'|| this.temporality.name === 'Valeur Courante') {
-        if (!this.defaultFilter.lock)
-            this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'days').valueOf()};
-        for (let i = 0; i < this.selectedFilter.length; i++) {
-            let date = moment(this.selectedFilter[i].value, 'DD/MM/YYYY');
-            if (this.selectedFilter[i].lock === false)
-                date.add(payload, 'days');
-            let newValue = date.format('DD/MM/YYYY');
-            let newMonthName = date.format('DD MMMM YYYY');
-            this.selectedFilter[i].name = newMonthName;
-            this.selectedFilter[i].value = newValue;
-            this.selectedFilter[i].color = this.selectedFilter[i].color;
-        }
-    }
-    if (this.temporality.name === 'Semaine') {
-        if (!this.defaultFilter.lock)
-            this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'weeks').valueOf()};
-        for (let i = 0; i < this.selectedFilter.length; i++) {
-            let date = moment(this.selectedFilter[i].value, 'WW/YYYY');
-            if (this.selectedFilter[i].lock === false)
-                date.add(payload, 'weeks');
-            let newValue = date.format('WW/YYYY');
-            let newMonthName = 'S' + date.format('WW YYYY');
-            this.selectedFilter[i].name = newMonthName;
-            this.selectedFilter[i].value = newValue;
-            this.selectedFilter[i].color = this.selectedFilter[i].color;
-        }
-    }
-    if (this.temporality.name === 'Mois') {
-        if (!this.defaultFilter.lock)
-            this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'months').valueOf()};
-        for (let i = 0; i < this.selectedFilter.length; i++) {
-            let date = moment(this.selectedFilter[i].value, 'MM/YYYY');
-            if (this.selectedFilter[i].lock === false)
-                date.add(payload, 'month');
-            let newValue = date.format('MM/YYYY');
-            let newMonthName = date.format('MMMM YYYY');
-            this.selectedFilter[i].name = newMonthName;
-            this.selectedFilter[i].value = newValue;
-            this.selectedFilter[i].color = this.selectedFilter[i].color;
-        }
-    }
-    if (this.temporality.name === 'Trimestre') {
-        if (!this.defaultFilter.lock)
-            this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload * 3, 'months').valueOf()};
-        for (let i = 0; i < this.selectedFilter.length; i++) {
-            let t = this.selectedFilter[i].value.split('/');
-            let date;
-            switch (t[0]) {
-                case 'T1': date = moment(`01/01/${t[1]}`, 'DD/MM/YYYY'); break;
-                case 'T2': date = moment(`01/04/${t[1]}`, 'DD/MM/YYYY'); break;
-                case 'T3': date = moment(`01/07/${t[1]}`, 'DD/MM/YYYY'); break;
-                case 'T4': date = moment(`01/10/${t[1]}`, 'DD/MM/YYYY'); break;
-            }
-            if (this.selectedFilter[i].lock === false) {
-                date.add(payload * 3, 'months');
-            }
-            let currentMM = date.format('MM');
-            let T = 'T' + Math.ceil(+currentMM / 3);
-            let newValue = date.format('MM/YYYY');
-            let newMonthName = date.format('MMMM YYYY');
-            this.selectedFilter[i].name = `${T} ${date.format('YYYY')}`;
-            this.selectedFilter[i].value = `${T}/${date.format('YYYY')}`;
-            this.selectedFilter[i].color = this.selectedFilter[i].color;
-        }
-    }
-    if (this.temporality.name === 'Année') {
-        this.domain.name = '' + (+this.domain.name + payload);
-        if (!this.defaultFilter.lock) {
-            this.currentTimestamp = {valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf()};
-        }
-        for (let i = 0; i < this.selectedFilter.length; i++) {
-            let date = moment(this.selectedFilter[i].value, 'YYYY');
-            if (this.selectedFilter[i].lock === false)
-                date.add(payload, 'years');
-            let newValue = date.format('YYYY');
-            let newMonthName = date.format('YYYY');
-            this.selectedFilter[i].name = newMonthName;
-            this.selectedFilter[i].value = newValue;
-            this.selectedFilter[i].color = this.selectedFilter[i].color;
-        }
-    }
-    await this.spreadData();
-    if (this.temporality.name === 'Année') {
-        this.domainList = [];
-        this.domainList.push({name: this.defaultFilter.name, color: this.defaultFilter.color});
-        for (let filter = 0; filter < this.selectedFilter.length; filter++) {
-            this.domainList.push({name: this.selectedFilter[filter].name, color: this.selectedFilter[filter].color});
-        }
-        if (!this.domain.name) {
-            this.domain = {name: this.defaultFilter.name, color: this.defaultFilter.color};
-        }
+  if (this.temporality.name === 'Journée' || this.temporality.name === 'Valeur Courante') {
+    if (!this.defaultFilter.lock)
+      this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'days').valueOf() };
+    for (let i = 0; i < this.selectedFilter.length; i++) {
+      let date = moment(this.selectedFilter[i].value, 'DD/MM/YYYY');
+      if (this.selectedFilter[i].lock === false)
+        date.add(payload, 'days');
+      let newValue = date.format('DD/MM/YYYY');
+      let newMonthName = date.format('DD MMMM YYYY');
+      this.selectedFilter[i].name = newMonthName;
+      this.selectedFilter[i].value = newValue;
+      this.selectedFilter[i].color = this.selectedFilter[i].color;
     }
   }
-
+  if (this.temporality.name === 'Semaine') {
+    if (!this.defaultFilter.lock)
+      this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'weeks').valueOf() };
+    for (let i = 0; i < this.selectedFilter.length; i++) {
+      let date = moment(this.selectedFilter[i].value, 'WW/YYYY');
+      if (this.selectedFilter[i].lock === false)
+        date.add(payload, 'weeks');
+      let newValue = date.format('WW/YYYY');
+      let newMonthName = 'S' + date.format('WW YYYY');
+      this.selectedFilter[i].name = newMonthName;
+      this.selectedFilter[i].value = newValue;
+      this.selectedFilter[i].color = this.selectedFilter[i].color;
+    }
+  }
+  if (this.temporality.name === 'Mois') {
+    if (!this.defaultFilter.lock)
+      this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'months').valueOf() };
+    for (let i = 0; i < this.selectedFilter.length; i++) {
+      let date = moment(this.selectedFilter[i].value, 'MM/YYYY');
+      if (this.selectedFilter[i].lock === false)
+        date.add(payload, 'months');
+      let newValue = date.format('MM/YYYY');
+      let newMonthName = date.format('MMMM YYYY');
+      this.selectedFilter[i].name = newMonthName;
+      this.selectedFilter[i].value = newValue;
+      this.selectedFilter[i].color = this.selectedFilter[i].color;
+    }
+  }
+  if (this.temporality.name === 'Trimestre') {
+    if (!this.defaultFilter.lock)
+      this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload * 3, 'months').valueOf() };
+    for (let i = 0; i < this.selectedFilter.length; i++) {
+      let t = this.selectedFilter[i].value.split('/');
+      let date;
+      switch (t[0]) {
+        case 'T1': date = moment(`01/01/${t[1]}`, 'DD/MM/YYYY'); break;
+        case 'T2': date = moment(`01/04/${t[1]}`, 'DD/MM/YYYY'); break;
+        case 'T3': date = moment(`01/07/${t[1]}`, 'DD/MM/YYYY'); break;
+        case 'T4': date = moment(`01/10/${t[1]}`, 'DD/MM/YYYY'); break;
+      }
+      if (this.selectedFilter[i].lock === false) {
+        date.add(payload * 3, 'months');
+      }
+      let currentMM = date.format('MM');
+      let T = 'T' + Math.ceil(+currentMM / 3);
+      let newValue = date.format('MM/YYYY');
+      let newMonthName = date.format('MMMM YYYY');
+      this.selectedFilter[i].name = `${T} ${date.format('YYYY')}`;
+      this.selectedFilter[i].value = `${T}/${date.format('YYYY')}`;
+      this.selectedFilter[i].color = this.selectedFilter[i].color;
+    }
+  }
+  if (this.temporality.name === 'Année') {
+    this.domain.name = '' + (+this.domain.name + payload);
+    if (!this.defaultFilter.lock) {
+      this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf() };
+    }
+    for (let i = 0; i < this.selectedFilter.length; i++) {
+      let date = moment(this.selectedFilter[i].value, 'YYYY');
+      if (this.selectedFilter[i].lock === false)
+        date.add(payload, 'years');
+      let newValue = date.format('YYYY');
+      let newMonthName = date.format('YYYY');
+      this.selectedFilter[i].name = newMonthName;
+      this.selectedFilter[i].value = newValue;
+      this.selectedFilter[i].color = this.selectedFilter[i].color;
+    }
+  }
+  await this.spreadData();
+  if (this.temporality.name === 'Année') {
+    this.domainList = [];
+    this.domainList.push({ name: this.defaultFilter.name, color: this.defaultFilter.color });
+    for (let filter = 0; filter < this.selectedFilter.length; filter++) {
+      this.domainList.push({ name: this.selectedFilter[filter].name, color: this.selectedFilter[filter].color });
+    }
+    if (!this.domain.name) {
+      this.domain = { name: this.defaultFilter.name, color: this.defaultFilter.color };
+    }
+  }
+  await this.spreadData();
+  if (this.$refs.floorOccupancyDetail) {
+    (this.$refs.floorOccupancyDetail as Vue & { fetchFloorData: (name: string) => void }).fetchFloorData(this.temporality.name);
+  }
+  if (this.$refs.floorOccupancyDetail) {
+    (this.$refs.floorOccupancyDetail as Vue & { fetchSecondFloorData: () => void }).fetchSecondFloorData();
+  }
+}
   data() {
     return {
       OccupancyRate: 75 // Remplacez par le calcul réel ou une valeur API
