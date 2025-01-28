@@ -91,7 +91,6 @@
           <!-- TICKETS -->
           <template v-if="process.state === 'open'">
             <div
-              @click="logTicketDetails(ticket)"
               v-for="(ticket, index) in process.ticketList"
               :key="ticket.name + index"
               :style="[
@@ -105,7 +104,8 @@
                 :fontSize="fontSize"
                 :status="ticket.status"
                 />
-              <span class="ellipsis">
+              <span class="ellipsis clickable-ticket"
+                @click="logTicketDetails(ticket)">
                 {{ ticket.name }}
               </span>
               <div
@@ -456,6 +456,13 @@ export default {
 }
 .close {
   transform: rotate(0deg) !important;
+}
+.clickable-ticket {
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.clickable-ticket:hover {
+  color: #0033ce;
 }
 .goto-icon {
 }

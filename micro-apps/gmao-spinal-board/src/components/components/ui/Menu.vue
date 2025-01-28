@@ -9,6 +9,7 @@
       first-day-of-week="1"
       color="#14202C"
       no-title
+      locale="fr"
     ></v-date-picker>
     <div
       v-if="isActive"
@@ -71,6 +72,7 @@ export default {
   width: fit-content !important;
   max-width: fit-content !important;
   border-radius: 10px !important;
+  border: 1px solid #848484;
   box-shadow: -5px 3px 20px 1px #d9d9d933, -1px 16px 20px 13px #e7e7e724, 4px -6px 20px 2px #8989891f !important;
   z-index: 99;
 }
@@ -81,6 +83,9 @@ export default {
   width: 100%;
   height: 100%;
   z-index: 98;
+}
+.v-date-picker-header__value button {
+  font-weight: 400 !important;
 }
 </style>
 
