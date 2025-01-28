@@ -45,26 +45,24 @@ export default {
       return moment(this.task.logList[0].date).format('DD/MM/YYYY, HH:mm');
     },
     logList() {
-      console.log(this.task.logList.slice(1));
       return this.task.logList.slice(1);
     },
   },
-  mounted() {
-    console.log('ttt', this.task);
-      console.log('config', config.config);
-  },
   data: () => ({
-    step: {
-      icon: 'mdi-check',
-      name: 'Ticket créé',
-      date: '05/05/2021, 14:00',
-    },
+    stepList: [],
   }),
+  mounted() {
+    this.stepList = config.config.workflow.find((workflow) => 
+      workflow.name === this.task.workflowName).steps;
+  },
   methods: {
     stepExtraction(step) {
       const { event, date } = step;
       const name = event.split(' to ')[1];
-
+      const currentStep = this.stepList.find((s) => s.name === name);
+      const icon = currentStep.icon || 'mdi-cloud-off-outline';
+      const color = currentStep.defaultColor || '#c4c4c4';
+      return { icon, name, date, color };
     },
   },
 };

@@ -74,13 +74,13 @@ export default {
           {
             id: 8,
             name: 'second',
-            icon: 'mdi-clock',
-            defaultColor: '#c4c4c4',
+            icon: 'mdi-dots-horizontal-circle-outline',
+            defaultColor: '#4caf50',
           },
           {
             id: 9,
             name: 'third',
-            icon: 'mdi-clock',
+            icon: 'mdi-adjust',
             defaultColor: '#c4c4c4',
           },
           {

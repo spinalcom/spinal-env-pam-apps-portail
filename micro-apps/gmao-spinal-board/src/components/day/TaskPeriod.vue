@@ -145,10 +145,12 @@ export default {
     }, 10),
     resizeWholePeriod(event) {
       if (this.isResizingWhole) {
-        this.moveFlag = true;
         this.diffWhole = event.clientX - this.startResizeWx;
         this.diffLeft = -this.diffWhole;
         this.diffRight = -this.diffWhole;
+        if (this.diffWhole !== 0) {
+          this.moveFlag = true;
+        }
       }
     },
     stopResizeWholePeriod() {
@@ -167,6 +169,7 @@ export default {
         if (!this.moveFlag) {
           this.showTicketDetails();
         }
+        this.moveFlag = false;
         return;
       }
       let days;
@@ -190,6 +193,7 @@ export default {
       this.diffLeft = 0;
       this.diffRight = 0;
       this.startResizeWx = 0;
+      this.moveFlag = false;
       this.$emit('resizeWholePeriod', this.task, newStartDate, newEndDate);
       document.removeEventListener('mousemove', this.resizeWholePeriod);
       document.removeEventListener('mouseup', this.stopResizeWholePeriod);

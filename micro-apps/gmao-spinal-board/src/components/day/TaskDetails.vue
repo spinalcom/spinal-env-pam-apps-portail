@@ -2,6 +2,8 @@
 <template>
   <div 
     :style="[
+      { 'width': taskDetails ? 'calc(100% - 20px)' : '0px' },
+      { 'max-width': taskDetails ? 'calc(100% - 20px)' : '0px' },
       { 'z-index': taskDetails ? '130' : '0' },
     ]"
     class="task-details-container">

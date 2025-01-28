@@ -12,7 +12,6 @@ export default {
   name: 'Chip',
   props: ['text', 'status'],
   mounted() {
-    console.log(this.text, this.status);
   },
   data: () => ({
   }),

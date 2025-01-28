@@ -13,11 +13,9 @@ async function getTickets(bid, stepList) {
 
   const ticketList = await Promise.all(getTicketsPromises);
   const constructedTickets = constructTickets(ticketList.flat());
-  console.log('Constructed tickets', constructedTickets);
 
   // const results = await addDates(bid, constructedTickets);
   const results = await getEndDate(bid, constructedTickets);
-  console.log('Results', results);
   const filledDates = await dates.getAttributes(bid, results);
   return results;
 }
@@ -91,17 +89,41 @@ async function getEndDate(bid, constructed) {
 function getRealDates(dates) {
   try {
     const { starts, ends, workflow } = config.config;
-    const startSteps = workflow.flatMap(w => w.steps.filter(s => starts.includes(s.id)));
-    const endSteps = workflow.flatMap(w => w.steps.filter(s => ends.includes(s.id)));
-    const startDate = dates.find(date => startSteps.some(step => step.name === date.name));
-    const start = { name: 'Date de début réelle', value: startDate ? startDate.value : null };
-    const endDate = dates.find(date => endSteps.some(step => step.name === date.name));
-    const end = { name: 'Date de fin réelle', value: endDate ? endDate.value : null };
+
+    // Get the start and end steps based on the config file
+    const startSteps = workflow.flatMap(w =>
+      w.steps.filter(s => starts.includes(s.id))
+    );
+
+    const endSteps = workflow.flatMap(w =>
+      w.steps.filter(s => ends.includes(s.id))
+    );
+
+    // Find the real start and end dates
+    const startDate = dates.find(date =>
+      startSteps.some(step => step.name === date.name)
+    );
+    const start = {
+      name: 'Date de début réelle',
+      value: startDate ? startDate.value : null
+    };
+
+    const endDate = dates.find(date =>
+      endSteps.some(step => step.name === date.name)
+    );
+    const end = {
+      name: 'Date de fin réelle',
+      value: endDate ? endDate.value : null
+    };
+
     return [start, end];
   } catch (error) {
     console.error('Error getting real dates', error);
+
+    // Return default values if an error occurs
     const start = { name: 'Date de début réelle', value: null };
     const end = { name: 'Date de fin réelle', value: null };
+
     return [start, end];
   }
 }
