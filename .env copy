@@ -1,10 +1,13 @@
-SPINAL_API_URL="https://localhost:2023"
-PORT=
-PROTOCOL= http | https
-SSL_CERT=
-SSL_KEY=
+SPINAL_API_URL="http://localhost:9036"
+PORT="1234"
+PROTOCOL="http" #https or http
+
+SSL_CERT="/export/soft/appl/cert/cert.pem"
+SSL_KEY="/export/soft/appl/cert/key.pem"
+
 MAPBOX_USERNAME=""
 MAPBOX_STYLEID=""
 MAPBOX_ACCESSTOKEN=""
 
 FORCE_SHOW_VIEWER=false
+NODE_TLS_REJECT_UNAUTHORIZED=0
