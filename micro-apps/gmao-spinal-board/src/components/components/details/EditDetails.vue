@@ -5,9 +5,7 @@
       <div class="edit-row">
         <span class="label">Statut</span>
         <div class="action">
-          <Chip
-            :text="'Ouvert'"
-            :status="'open'" />
+          <StepSelector :stepList="stepList"></StepSelector>
         </div>
       </div>
       <div class="edit-row">
@@ -56,19 +54,23 @@
 
 <script>
 import dates from '../../../services/tickets/dates.js';
+import step from '../../../services/tickets/step.js';
 import moment from 'moment';
 import Chip from './Chip.vue';
 import Menu from '../ui/Menu.vue';
+import StepSelector from '../ui/StepSelector.vue';
 export default {
   name: 'EditDetails',
   components: {
     Chip,
     Menu,
+    StepSelector,
   },
   props: [
     'task',
   ],
   data: () => ({
+    stepList: [],
     menuEstimatedStart: false,
     menuEstimatedEnd: false,
   }),
@@ -118,7 +120,11 @@ export default {
       }
     },
   },
-  mounted() {
+  async mounted() {
+    const wid = this.task.workflowId;
+    const pid = this.task.processId;
+    this.stepList = await step.getStepsByProcess(wid, pid);
+    console.log('stepList', this.stepList);
   },
   methods: {
     async updateEstimatedStartDate(date) {

@@ -3,7 +3,7 @@
   <div class="menu">
     <span class="menu-text" @click="toggleMenu">{{ formattedDate }}</span>
     <v-date-picker
-      v-if="isActive"
+      :class="[isActive ? 'active' : 'hidden']"
       v-model="date"
       class="date-picker"
       first-day-of-week="1"
@@ -52,7 +52,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .menu {
   height: 30px;
   width: 160px;
@@ -72,9 +72,22 @@ export default {
   width: fit-content !important;
   max-width: fit-content !important;
   border-radius: 10px !important;
+  z-index: 99;
+  transition: all .3s cubic-bezier(1, 0, 0, 1.07) !important;
+  overflow: hidden;
+}
+.active {
+  height: 300px !important;
+  max-height: 300px !important;
   border: 1px solid #848484;
   box-shadow: -5px 3px 20px 1px #d9d9d933, -1px 16px 20px 13px #e7e7e724, 4px -6px 20px 2px #8989891f !important;
-  z-index: 99;
+}
+.hidden {
+  background: transparent !important;
+  height: 0px !important;
+  max-height: 0px !important;
+  border: 1px solid transparent;
+  box-shadow: 0 2px 4px 0 rgba(0,0,0,0);
 }
 .menu-overlay {
   position: fixed;

@@ -25,6 +25,7 @@
       @startTicket="startTicket"
       @bringDay="bringDay"
       @resizedSideBar="resizedSideBar"
+      @showTicketDetails="showTicketDetails"
       @goto="goto"
       @taskListChanged="updateTaskList"
       />
@@ -122,6 +123,7 @@ export default {
   },
   methods: {
     showTicketDetails(task) {
+      console.log('showTicketDetails', task);
       this.$emit('showTicketDetails', task);
     },
     resizeWholePeriod(task, estimatedStartDate, estimatedEndDate) {

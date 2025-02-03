@@ -1,6 +1,7 @@
 
 import { HTTP } from '../http-constants';
 import dates from './dates.js';
+import locate from './locate.js';
 import { chunkArray } from './utils.js';
 import config from '../../config.js';
 
@@ -65,6 +66,8 @@ async function getEndDate(bid, constructed) {
   );
 
   const ticketDetails = taskLogs.flat();
+
+  const newTicketDetails = await locate.ticket(ticketDetails);
 
   ticketDetails.forEach((detail) => {
     const task = constructed.findIndex(t => t.ticketId === detail.dynamicId);

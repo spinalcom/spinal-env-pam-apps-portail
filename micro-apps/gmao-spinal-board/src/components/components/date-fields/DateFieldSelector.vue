@@ -133,13 +133,13 @@ export default {
   border-radius: 10px;
   overflow: hidden;
   z-index: 900;
-  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, border 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  transition: max-height .3s cubic-bezier(1, 0.01, 0, 1.1), opacity .1s ease-in-out, border .1s ease-in-out, box-shadow .3s ease-in-out;
 }
 .open {
   opacity: 1;
   max-height: 900px;
-  border: 1px solid #F2F2F2;
-  box-shadow: 0 2px 4px 0 rgba(0,0,0,0.04);
+  border: 1px solid #848484;
+  box-shadow: -5px 3px 20px 1px #d9d9d933, -1px 16px 20px 13px #e7e7e724, 4px -6px 20px 2px #8989891f !important;
 }
 .close {
   opacity: 0;

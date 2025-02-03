@@ -22,8 +22,30 @@ async function getSteps(bid, processList) {
   return stepList.flat();
 }
 
+/**
+  * Get all steps for a given process
+  * @param {string} bid - Building ID
+  * @param {string} workflowId - Workflow ID
+  * @param {string} processId - Process ID
+  * @returns {array} List of steps
+  */
+async function getStepsByProcess(workflowId, processId) {
+  const bid = localStorage.getItem('idBuilding');
+  const stepList = await HTTP
+    .get(`/building/${bid}/workflow/${workflowId}/process/${processId}/stepList`);
+  const steps = stepList.data.map(s => ({
+    name: s.name,
+    color: s.color,
+    order: s.order,
+    dynamicId: s.dynamicId,
+  }));
+  console.log(steps);
+  return steps;
+}
+
 const step = {
   getSteps,
+  getStepsByProcess,
 };
 
 export default step;

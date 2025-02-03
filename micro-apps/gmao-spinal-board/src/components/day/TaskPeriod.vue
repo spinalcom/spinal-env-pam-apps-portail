@@ -11,6 +11,10 @@
       { 'width': isResizingRight ? (taskWidth + diffRight) + 'px !important' : taskWidth + 'px !important' },
       { 'min-width': dayWidth + 'px !important' },
     ]"
+    :class="[
+      { 'no-border-right': !estimatedEndDate },
+      { 'no-border-left': !estimatedStartDate },
+    ]"
     class="period"
     @mousedown="startResizeWholePeriod">
     <Status
@@ -350,6 +354,32 @@ export default {
 }
 .resize-task-left:hover {
   background: #000;
+}
+/* flash red in right border */
+@keyframes flash-right {
+  0% {
+    border-right: 2px solid #ff7070;
+  }
+  100% {
+    border-right: 2px solid #E2E2E2;
+  }
+}
+/* flash red in left border */
+@keyframes flash-left {
+  0% {
+    border-left: 2px solid #ff7070;
+  }
+  100% {
+    border-left: 2px solid #E2E2E2;
+  }
+}
+.no-border-right {
+  border-right: 2px solid #ff7070;
+  animation: flash-right 1s infinite;
+}
+.no-border-left {
+  border-left: 2px solid #ff7070;
+  animation: flash-left 1s infinite;
 }
 </style>
 
