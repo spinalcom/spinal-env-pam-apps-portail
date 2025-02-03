@@ -40,11 +40,15 @@ app.use("/*", (req, res) => {
     res.sendFile(path.resolve(vue_dir, 'index.html'))
 });
 
-const sslOptions = {
-    key: fs.readFileSync(process.env.SSL_KEY),
-    cert: fs.readFileSync(process.env.SSL_CERT)
-};
 
+if (process.env.PROTOCOL === "http") {
+    app.listen(port, () => console.log(`app listening at http://localhost:${port} ....`));
+    return;
+} else if (process.env.PROTOCOL === "https") {
+    const sslOptions = {
+        key: fs.readFileSync(process.env.SSL_KEY),
+        cert: fs.readFileSync(process.env.SSL_CERT)
+    };
 
-
-https.createServer(sslOptions, app).listen(port, () => console.log(`app listening at https://localhost:${port} ....`));
+    https.createServer(sslOptions, app).listen(port, () => console.log(`app listening at https://localhost:${port} ....`));
+}

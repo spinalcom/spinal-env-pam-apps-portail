@@ -27,7 +27,7 @@ with this file. If not, see
     <RegisterForm v-if="page === pages.creation" :showError="showError" @submit="registerAuthPlateform" />
 
     <PlateformeInfo v-else-if="page === pages.info" @delete="deletePlatform" @update="updatePlatform"
-      :data="authPlatformInfo" />
+      @updateToken="updatePlatformToken" :data="authPlatformInfo" />
 
     <div class="loading" v-else-if="page === pages.loading">
       <v-progress-circular :size="70" color="primary" indeterminate></v-progress-circular>
@@ -71,6 +71,7 @@ export default Vue.extend({
       "_registerAuthPlatform",
       "updateAuthPlatform",
       "deleteAuthPlatform",
+      "updateAuthPlatformToken"
     ]),
     async registerAuthPlateform(data: any) {
       let isSuccess;
@@ -146,12 +147,36 @@ export default Vue.extend({
         timer: 3000,
         icon: isSuccess ? "success" : "error",
         text: isSuccess
-          ? "Mis à jour envoyée"
-          : "oups, une erreur s'est produite !",
+          ? "les données ont été mises à jour !"
+          : "oups, une erreur s'est produite ! Veuillez vérifier que le token est valide et réessayer.",
       });
 
       this.page = this.pages.info;
     },
+
+    async updatePlatformToken() {
+      let isSuccess;
+      try {
+        this.page = this.pages.loading;
+        await this.updateAuthPlatformToken();
+        isSuccess = true;
+      } catch (error) {
+        isSuccess = false;
+      }
+
+      this.$swal({
+        toast: true,
+        position: "bottom-end",
+        showConfirmButton: false,
+        timer: 3000,
+        icon: isSuccess ? "success" : "error",
+        text: isSuccess
+          ? "Le token a été mis à jour !"
+          : "oups, une erreur s'est produite !",
+      });
+
+      this.page = this.pages.info;
+    }
   },
   computed: {
     ...mapState(["authPlatformInfo"]),

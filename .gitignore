@@ -4,6 +4,5 @@ dist/
 .idea
 .vscode
 .env
-*.env
 .parcel-cache
 package-lock.json

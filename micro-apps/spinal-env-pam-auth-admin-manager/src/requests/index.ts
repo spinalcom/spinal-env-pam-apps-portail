@@ -50,3 +50,7 @@ export function updateAuthPlatformRequest() {
 export function deleteAuthPlatformRequest() {
     return http.delete("/delete_admin");
 }
+
+export function updateAuthPlatformTokenRequest() {
+    return http.post("/update_platform_token");
+}
