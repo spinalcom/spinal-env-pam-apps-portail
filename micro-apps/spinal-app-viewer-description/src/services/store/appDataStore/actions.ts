@@ -39,7 +39,7 @@ import SpriteManager from "../../../../../../global-components/viewer/manager/sp
 import ViewerManager from "../../../../../../global-components/viewer/manager/viewerManager";
 import { IConfig } from "../../../interfaces/IConfig";
 import { classifyItemByBimFileId } from "./utils/openViewer";
-import { error, log } from "console";
+import { error, log, warn } from "console";
 import { addTicketDoc, createTicket, getProcess, getWorkFlowList, Ticket } from "../../spinalAPI/CreateTicket";
 // import { uploadDoc } from "../../spinalAPI/UploadDoc/Doc";
 import { createAttribut, createCategory, getCategoriesList } from "../../spinalAPI/NodeAttributs/nodeAttributs";
@@ -758,8 +758,14 @@ export const actions = {
 		return ViewerManager.getInstance().addSprites(items, buildingId);
 	},
 
-	[ActionTypes.ADD_COMPONENT_AS_SPRITES]({ commit, dispatch, state }, { items, buildingId, component }: any) {
-		return ViewerManager.getInstance().addComponentAsSprites(items, buildingId, component);
+	[ActionTypes.ADD_COMPONENT_AS_SPRITES]({ commit, dispatch, state }, { items, buildingId, component, group }: any) {
+		console.warn(group , ' aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+		
+		return ViewerManager.getInstance().addComponentAsSprites(items, buildingId, component, group);
+	},
+
+	[ActionTypes.REMOVE_SPRITES_BY_GROUP]({ commit, dispatch, state }, group: string) {
+		return SpriteManager.getInstance().removeSpritesByGroup(group);
 	},
 
 	[ActionTypes.REMOVE_ALL_SPRITES]({ commit, dispatch, state }) {

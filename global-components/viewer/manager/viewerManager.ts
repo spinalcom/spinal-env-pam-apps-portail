@@ -40,6 +40,7 @@ export class ViewerManager {
 	private _viewerStores = {};
 	private _viewerIdStocked = [];
 	private _viewerStartedList: { [key: string]: Set<string> } = {};
+	private spritesByGroup: { data: any; group?: string }[] = [];
 
 	private constructor() { }
 
@@ -142,12 +143,10 @@ export class ViewerManager {
 			} else {
 				if(!dynId){
 					dynId = body?.dynamicId
-
 				}
 				this._viewerStores["GET_VIEWER_INFO"][dynId] = generator(dynId, body?.floorRef!, body?.roomRef!, body?.equipements!);
 				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;
 				if (itemData) res.push(itemData);
-				// nodeTofetech.push(dynId);
 			}
 		}
 		// const itemstacked = this._viewerIdStocked;
@@ -208,9 +207,7 @@ export class ViewerManager {
 
 
 	public isolate(item: IPlayload) {
-
-		this.hide(item) //TODO A BASCULER SUR UNE AUTRE ACTION ........  GABRIEL
-
+		this.hide(item) //TODO A BASCULER SUR UNE AUTRE ACTION ..
 		return this._fctViewerIteract(VIEWER_OBJ_ISOLATE, item.item, item.config);
 	}
 

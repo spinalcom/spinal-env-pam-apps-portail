@@ -186,13 +186,11 @@ class App extends Vue {
           buildingId: buildingId,
         });
       }
-
     });
 
 
     EventBus.$on('descolorRoom', (dynamicId) => {
       const buildingId = localStorage.getItem("idBuilding");
-
       const itemsToColor = [{
         buildingId: buildingId,
         color: null,
@@ -221,8 +219,8 @@ class App extends Vue {
     }
 
     this.$nextTick(() => {
-      this.query.app = "eyJuYW1lIjoidGlja2V0cy1WMiIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiMDc2Ni1jMmVjLTE1NDYtMTk0YTgwYTQ0NjIiLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzM3OTg2MDU4ODAwLCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3Mzc5ODYwMzI3MzgsImljb24iOiJtZGktYmxhY2stbWVzYSIsImRlc2NyaXB0aW9uIjoiIiwidGFncyI6W10sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWFwcC12aWV3ZXItdGlja2V0cy12MiIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwiZG9jdW1lbnRhdGlvbkxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19"
-      window.parent.router.query.app = this.query.app
+      // this.query.app = "eyJuYW1lIjoidGlja2V0cy1WMiIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiMDc2Ni1jMmVjLTE1NDYtMTk0YTgwYTQ0NjIiLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzM3OTg2MDU4ODAwLCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3Mzc5ODYwMzI3MzgsImljb24iOiJtZGktYmxhY2stbWVzYSIsImRlc2NyaXB0aW9uIjoiIiwidGFncyI6W10sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWFwcC12aWV3ZXItdGlja2V0cy12MiIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwiZG9jdW1lbnRhdGlvbkxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjU5MzItNjA4Ni05ZTFhLTE4NTA2NDc4NDYwIn19"
+      // window.parent.router.query.app = this.query.app
       const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
       this.applyURLParam(currentQuery);
     });

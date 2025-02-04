@@ -136,47 +136,51 @@
             v-if="floorstaticDetails.length && floorstaticDetails[0].attributsList.length">
             <div style="" v-for="(item, index) in floorstaticDetails[0].attributsList[0].attributs">
               <div v-if="item.label == 'area'">
-                {{ item.value }} m²
+                {{ typeof item.value === 'number' ? item.value.toFixed(2) : item.value }} m²
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="inventory">
+      <ProgressBar v-if="data_loading < 100" :value="data_loading" :size="120" :width="20" />
+
+      <div v-if="data_loading >= 100" class="inventory">
+
         <div v-if="selection == 'Vue Globale'">
           <div v-if="inventoyList">
-            <!-- Boucle sur chaque catégorie -->
             <div v-for="(items, categoryName) in inventoyList" :key="categoryName" class="blocInformation"
               style="margin-bottom: 20px;">
-              <!-- Titre de la catégorie -->
               <span
                 style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold; display: block; margin-bottom: 10px;">
                 Inventaire des équipements ({{ categoryName }})
               </span>
-
-              <!-- Message si aucun élément -->
               <div v-if="!items || items.length === 0"
                 style="text-align: center; font-style: italic; color: #888; margin: 10px 0;">
                 PAS DE DONNÉES DISPONIBLES
               </div>
-
-              <!-- Liste des éléments -->
               <div v-else class="inventory-container" style="display: flex; flex-wrap: wrap;">
                 <div v-for="(item, index) in items" :key="index" class="inventory-item"
                   style="display: flex; align-items: center; width: 100%; border: 1px solid #ddd; padding: 14px 5px;border-radius: 5px;">
 
                   <li style="flex: 1; font-size: 16px; font-family: Arial, Helvetica, sans-serif;">{{ item }}</li>
-
-                  <!-- Icônes interactives -->
-                  <v-icon v-if="eyes.indexOf(index) === -1"
-                    @click="() => { hideelement(item, categoryName); closeeyes(index) }"
+                  <v-icon v-if="!eyes[categoryName] || eyes[categoryName].indexOf(item) === -1"
+                    @click="() => { hideelement(item, categoryName); closeeyes(item, categoryName) }"
                     style="cursor: pointer; margin-left: 10px;">
                     mdi-eye-outline
                   </v-icon>
-                  <v-icon v-else @click="() => { hideelement(item, categoryName); closeeyes(index) }"
+                  <v-icon v-else @click="() => { hideelement(item, categoryName); closeeyes(item, categoryName) }"
                     style="cursor: pointer; margin-left: 10px;">
                     mdi-eye-off-outline
+                  </v-icon>
+                  <v-icon v-if="!ink[categoryName] || ink[categoryName].indexOf(item) === -1"
+                    @click="() => { showIconElement(item, categoryName); closeink(item, categoryName) }"
+                    style="cursor: pointer; margin-left: 10px;">
+                    mdi-map-marker-circle
+                  </v-icon>
+                  <v-icon v-else @click="() => { deleteIconElement(item, categoryName); closeink(item, categoryName) }"
+                    style="cursor: pointer; margin-left: 10px;">
+                    mdi-map-marker-remove-variant
                   </v-icon>
                 </div>
               </div>
@@ -256,7 +260,7 @@
 
               <span
                 style=" text-wrap: nowrap; font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">{{
-                item.name}}</span>
+                  item.name }}</span>
               <div
                 style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative; padding-right: 10px;">
                 <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
@@ -277,7 +281,7 @@
                 v-for="(attr, index2) in item.attributs">
                 <li v-if="isLink(attr.value)" style="list-style: none; background-color: red; width: 95%;">
                   {{ attr.label }}:
-                  <a :href="attr.value" target="_blank" style="color: #3498db;">{{ attr.value }}</a>
+                  <a :href="attr.value" target="_blank" style="color: #3498db;">{{ attr.value }} {{ attr.unit }}</a>
                 </li>
                 <li v-else style="list-style: none; width: 100%; overflow: hidden; overflow-x: auto;">
                   <span style="font-weight: 600;">
@@ -325,7 +329,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                      }}
+                    }}
                     </li>
                   </div>
                 </div>
@@ -404,7 +408,8 @@
                   v-for="(item, index2) in floorstaticDetails[0].controlEndpoint[index].endpoints" :key="index2">
                   <div class=" inventory-item"
                     :style="{ width: '100%', color: '#14202c', padding: '16px', borderRadius: '5px', paddingLeft: '6px', boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px' }">
-                    <li>{{ item.name }}: {{ item.value }}</li>
+                    <li> {{ item.name }}: {{ typeof item.value === 'number' ? item.value.toFixed(2) : item.value }} {{
+                      item.unit }} </li>
                     <v-icon @click="() => {
                       fullData()
                       addOrRemove(item.dynamicId, item.name);
@@ -427,9 +432,7 @@
         <!-- ONGLET DOCUMENTATION -->
         <div v-if="selection == 'Documentation'"
           style="display: flex; flex-direction: column; overflow: hidden !important; overflow-y: auto !important ;">
-          <!-- Notification -->
           <!-- Box pour afficher le document -->
-          <!-- Boutton d'ajout d'un document -->
           <v-row style="padding: 20px;">
             <AddBtn @open-dialog="ShowFormDoc" name="Ajouter un document" icon="mdi-file-plus-outline" />
           </v-row>
@@ -539,6 +542,7 @@ import { State } from "vuex-class";
 import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import { mapState } from "vuex";
 import SpriteComponent from "./SpriteComponent.vue"
+import SpriteComponent2 from "./SpriteComponent2.vue"
 import GroupDataView from "./groupDataView.vue";
 import BreadcrumbSelector from "./breadcrumb.vue";
 import { computed } from 'vue';
@@ -562,7 +566,8 @@ import getIcon from "../../services/function/getIcon";
 import FormAttribute from '../FormAttribute.vue';
 import OverMenu from "./OverMenu.vue";
 import ConfirmDelete from "./ConfirmDelete.vue";
-
+import ProgressBar from "./ProgressBar.vue";
+import { EventBus } from '../../../../../global-components/SpaceSelector/eventBus';
 
 @Component({
   components: {
@@ -581,7 +586,8 @@ import ConfirmDelete from "./ConfirmDelete.vue";
     FormAttribute,
     OverMenu,
     FormDocCateAttr,
-    ConfirmDelete
+    ConfirmDelete,
+    ProgressBar
   },
   filters: {},
 })
@@ -593,6 +599,7 @@ class dataSideApp extends Vue {
   @Prop() floor: any;
   @Prop() DActive: boolean;
   @Prop() ActiveData: boolean;
+  @Prop() changeData: boolean;
 
   showFormTicket: boolean = false;
   showDocvalue: boolean = false;
@@ -616,8 +623,8 @@ class dataSideApp extends Vue {
   displaySprite: boolean = false;
   parentAttribut: any = [];
   ticketsList: any = [];
-  eyes: [] = [];
-  ink: [] = [];
+  eyes: any = {};
+  ink: any = {};
   referencedId: any = 0;
   referencedType: any = 'building';
   cpIdToDraw: [];
@@ -656,7 +663,8 @@ class dataSideApp extends Vue {
   confirmIdFileDelete: number | null = null
   showConfirmDelete = false
   contextFile = ''
-
+  data_loading = 0
+  interval: {}
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
@@ -891,7 +899,6 @@ class dataSideApp extends Vue {
 
 
   showDoc(referencedId, nameFile) {
-
     if (!this.showDocvalue) {
       this.$emit('buttonClicked', 'vueDoc')
     }
@@ -899,6 +906,7 @@ class dataSideApp extends Vue {
     this.idDoc = referencedId
     this.showDocvalue = true;
   }
+
   closeVueDoc() {
     if (this.showDocvalue) {
       this.showDocvalue = false;
@@ -946,11 +954,105 @@ class dataSideApp extends Vue {
     return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
   }
 
-  hideelement(item, categoryName) {
-    console.warn(item, categoryName, this.inventoryDbids, ' le test');
-    this.$store.commit(MutationTypes.REMOVE_ITEM_TO_HIDE);
+  async deleteIconElement(item, categoryName) {
+    // this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+    // console.log('elemtn toto delete ' , item);
+    this.$store.dispatch(ActionTypes.REMOVE_SPRITES_BY_GROUP, item + categoryName);
+  }
+
+  async showIconElement(item, categoryName) {
+    console.warn(item, categoryName, this.inventoryDbids, '🔍 Test - showIconElement');
+
     const itemType = item.substring(item.indexOf(' ') + 1);
 
+    const categoryData = this.inventoryDbids[categoryName];
+    if (!categoryData || !categoryData[itemType]) {
+      console.warn(`⚠ Aucun élément trouvé pour "${item}" dans la catégorie "${categoryName}".`);
+      return;
+    }
+
+    const groupData = categoryData[itemType];
+
+    const equipmentMap = {};
+    for (const [bimFileId, entries] of Object.entries(groupData)) {
+      entries.forEach(equipment => {
+        equipmentMap[equipment.dynamicId] = {
+          dbid: equipment.dbid,
+          bimFileId,
+        };
+      });
+    }
+
+
+    const uniqueReferenceIds = Object.keys(equipmentMap).map(id => Number(id));
+
+    if (uniqueReferenceIds.length === 0) {
+      return;
+    }
+
+    const buildingId = localStorage.getItem("idBuilding");
+    const batchSize = 50;
+    const batchedPromises = [];
+
+    for (let i = 0; i < uniqueReferenceIds.length; i += batchSize) {
+      const batch = uniqueReferenceIds.slice(i, i + batchSize);
+
+      batchedPromises.push(
+        this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
+          buildingId,
+          referenceIds: batch,
+        })
+      );
+    }
+
+    const results = await Promise.all(batchedPromises);
+
+    const flatResults = results.flat();
+
+    flatResults.forEach(obj => {
+      const ref = equipmentMap[obj.dynamicId];
+      if (!ref) {
+        return;
+      }
+
+      let center = null;
+      obj.categoryAttributes.forEach(category => {
+        category.attributs.forEach(attr => {
+          if (attr.label === "XYZ center") {
+            // Transformer la string "-37.1215;-45.4714;1.25" en un objet { x, y, z }
+            const values = attr.value.split(";").map(Number);
+            if (values.length === 3) {
+              center = { x: values[0], y: values[1], z: values[2] };
+            }
+          }
+        });
+      });
+
+      if (!center) {
+        return;
+      }
+
+      const wrappedResult = [obj];
+
+      this.forgeVignette(wrappedResult, buildingId, ref.dbid, ref.bimFileId, center, item, categoryName);
+    });
+  }
+
+
+
+
+
+
+  hideelement(item, categoryName) {
+    console.warn(item, categoryName, this.inventoryDbids, ' le test');
+
+    // Réinitialiser les éléments à cacher
+    this.$store.commit(MutationTypes.REMOVE_ITEM_TO_HIDE);
+
+    // Extraire le type d'élément à partir de la chaîne `item`
+    const itemType = item.substring(item.indexOf(' ') + 1);
+
+    // Vérifier si la catégorie et le type existent dans `inventoryDbids`
     const categoryData = this.inventoryDbids[categoryName];
     if (!categoryData || !categoryData[itemType]) {
       console.warn(`Aucun élément trouvé pour "${item}" dans la catégorie "${categoryName}".`);
@@ -959,16 +1061,20 @@ class dataSideApp extends Vue {
 
     const groupData = categoryData[itemType];
 
+    // Construire l'objet `itemToHide` avec uniquement les `dbid`
     const itemToHide = {};
-    for (const [bimFileId, dbids] of Object.entries(groupData)) {
-      itemToHide[bimFileId] = [...new Set(dbids)];
+    for (const [bimFileId, entries] of Object.entries(groupData)) {
+      // Extraire uniquement les `dbid` de chaque équipement dans le tableau d'objets
+      itemToHide[bimFileId] = [...new Set(entries.map(equipment => equipment.dbid))];
     }
 
+    // Vérifier s'il y a des éléments à cacher
     if (Object.keys(itemToHide).length === 0) {
       console.warn(`Aucun élément trouvé à cacher pour "${item}" dans la catégorie "${categoryName}".`);
       return;
     }
 
+    // Construire les données à envoyer à l'action
     const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query };
     const data = {
       buildingId: this.selectedZone.staticId,
@@ -976,13 +1082,16 @@ class dataSideApp extends Vue {
       itemToHIde: itemToHide,
     };
 
+    // Enregistrer les éléments à cacher dans le store
     this.$store.commit(MutationTypes.SET_ITEM_TO_HIDE, itemToHide);
 
+    // Lancer l'action pour cacher les éléments
     this.$store.dispatch(ActionTypes.HIDE_ITEMS, {
       items: data,
       buildingId: this.selectedZone.staticId,
     });
   }
+
 
   gestionBouton() {
     if (!this.displaySprite) {
@@ -994,8 +1103,30 @@ class dataSideApp extends Vue {
     }
   }
 
-
   async mounted() {
+
+    EventBus.$on('vignette', async (data) => {
+      console.log('on reçoit bien la donnée')
+      const buildingId = localStorage.getItem("idBuilding");
+
+      // const referenceIds = referenceResult[0][0].bimObjects[0].dynamicId
+      const promises = [
+        this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
+          buildingId,
+          referenceIds: data.dynamicId
+        }),
+      ];
+
+
+      const result = await Promise.all(promises);
+      this.forgeItem(result, buildingId, data.dbid, data.bimFileId, data.position)
+
+      return;
+
+    });
+
+
+
     this.timeactuelle = this.getFormattedDateFromTemporalData();
     await this.getBuildingInfo();
 
@@ -1012,13 +1143,19 @@ class dataSideApp extends Vue {
     });
     this.pageSate = PAGE_STATES.loaded;
     this.isBuildingSelected = true;
+
+    console.log('0.5%');
+    this.data_loading += 5
   }
 
   async loadBuildingInfo() {
     await this.getBuildingInfo();
+
+
     if (this.buildingInfo[0].dynamicId) {
 
       const result = await this.getBuildingStaticDetails();
+
 
       this.floorstaticDetails = result
       this.filteredEndpoints('building')
@@ -1045,7 +1182,6 @@ class dataSideApp extends Vue {
 
     const tickets = resultParent;
     this.ticketsList = tickets[0].reverse();
-
 
   }
 
@@ -1133,6 +1269,7 @@ class dataSideApp extends Vue {
       parents: parentDocumentation
     };
 
+    this.data_loading += 5
     this.$forceUpdate();
   }
 
@@ -1190,6 +1327,9 @@ class dataSideApp extends Vue {
     ];
     const result = await Promise.all(promises);
     this.buildingInfo = [...result]
+    this.data_loading += 5
+    console.log('0%');
+
   }
 
 
@@ -1238,11 +1378,13 @@ class dataSideApp extends Vue {
               ];
               const result = await Promise.all(promises);
               this.forgeItem(result, buildingId, ref.dbid, obj.bimFileId, data.center)
+
               return;
             }
           }
         }
       }
+
       return null;
     }
     else {
@@ -1257,8 +1399,11 @@ class dataSideApp extends Vue {
 
       const result = await Promise.all(promises);
       this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0], data.center)
+
       return;
     }
+
+
   }
 
   async getfloorstaticdetails(id) {
@@ -1289,6 +1434,7 @@ class dataSideApp extends Vue {
         referenceIds: [id]
       }),
     ];
+
 
     const node_read = await Promise.all(promises_node);
 
@@ -1338,6 +1484,7 @@ class dataSideApp extends Vue {
       this.referencedType = 'etage'
       this.referencedId = id
     }
+
 
   }
 
@@ -1460,7 +1607,8 @@ class dataSideApp extends Vue {
       }
     }
     this.attributProfil = attributProfil
-
+    this.data_loading += 5
+    console.log('9%');
   }
 
 
@@ -1478,9 +1626,12 @@ class dataSideApp extends Vue {
       const profile = this.floorstaticDetails[0].controlEndpoint.find(profile => profile.profileName === this.config.room.profileNameControlePts);
       this.endpointProfil = profile ? profile.endpoints : [];
     }
+    this.data_loading += 5
+    console.log('7%');
+
   }
 
-  forgeItem(result, buildingId, dbid, bimFileId, center) {
+  forgeVignette(result, buildingId, dbid, bimFileId, center, items, categoryName) {
 
     let X = center.x;
     let Y = center.y;
@@ -1495,9 +1646,52 @@ class dataSideApp extends Vue {
       name: result[0].name,
       position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
       data: result[0],
-      config: this.config
+      config: this.config,
+      group: items + categoryName
     }
-    this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+
+    // this.$store.dispatch(ActionTypes.REMOVE_SPRITES_BY_GROUP, {
+    //   group: 'toto'
+    // });
+
+
+
+    const screenWidth = window.innerWidth;
+    if (screenWidth <= 700) {
+      this.displaySprite = false;
+      this.isSmallScreen = item;
+      this.displaySprite = true;
+    } else {
+      this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+        items: item,
+        buildingId: buildingId,
+        component: SpriteComponent2,
+      });
+    }
+  }
+
+  forgeItem(result, buildingId, dbid, bimFileId, center) {
+    console.log('alo ?');
+
+    let X = center.x;
+    let Y = center.y;
+    let Z = center.z;
+
+    const item = {
+      color: '#ded638',
+      dynamicId: result[0].dynamicId,
+      buildingId: buildingId,
+      dbid: dbid,
+      bimFileId: bimFileId,
+      name: result[0].name,
+      position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
+      data: result[0],
+      config: this.config,
+      group: 'card',
+    }
+    // this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+
+    this.$store.dispatch(ActionTypes.REMOVE_SPRITES_BY_GROUP, 'card');
 
     const screenWidth = window.innerWidth;
     if (screenWidth <= 700) {
@@ -1546,6 +1740,9 @@ class dataSideApp extends Vue {
         }),
       ];
       const result = await Promise.all(promises);
+      this.data_loading += 5
+      console.log('1%');
+
 
       this.$store.commit(MutationTypes.SET_DATA, result[0]);
       this.pageSate = PAGE_STATES.loaded;
@@ -1554,6 +1751,9 @@ class dataSideApp extends Vue {
       this.retry = this.retriveData;
       this.pageSate = PAGE_STATES.error;
     }
+    this.data_loading += 5
+    console.log('2%');
+
   }
 
   selectDataView(item) {
@@ -1577,7 +1777,8 @@ class dataSideApp extends Vue {
     ];
     const result = await Promise.all(promises);
     this.referenceObjects = [...result];
-
+    this.data_loading += 5
+    console.log('5%');
   }
   async getInventoryObject(referenceIds) {
     const buildingId = localStorage.getItem("idBuilding");
@@ -1590,6 +1791,9 @@ class dataSideApp extends Vue {
     const result = await Promise.all(promises);
     this.inventory = [...result];
     this.countInventoryTypes([...result]);
+    this.data_loading += 5
+    console.log('15%');
+
   }
 
   async addOrRemove(dyn, name) {
@@ -1621,6 +1825,7 @@ class dataSideApp extends Vue {
   }
 
   async addgraphInfoCp(dyn, name) {
+
     console.log('dyn: ', dyn);
     if (!this.cpIdToDraw.includes(dyn)) return;
 
@@ -1792,24 +1997,44 @@ class dataSideApp extends Vue {
   }
 
 
-  closeeyes(index) {
-    const indexPosition = this.eyes.indexOf(index);
-    if (indexPosition === -1) {
-      this.eyes.push(index);
-    } else {
-      this.eyes.splice(indexPosition, 1);
+  closeeyes(item, categoryName) {
+    if (!this.eyes[categoryName]) {
+      // Utilisation de $set pour rendre la propriété réactive
+      this.$set(this.eyes, categoryName, []);
     }
-  }
-  closeink(index) {
-    const indexPosition = this.ink.indexOf(index);
-    if (indexPosition === -1) {
-      this.ink.push(index);
+
+    const itemIndex = this.eyes[categoryName].indexOf(item);
+
+    if (itemIndex === -1) {
+      this.eyes[categoryName].push(item);
     } else {
-      this.ink.splice(indexPosition, 1);
+      this.eyes[categoryName].splice(itemIndex, 1);
     }
   }
 
+  closeink(item, categoryName) {
+    if (!this.ink[categoryName]) {
+      // Utilisation de $set pour rendre la propriété réactive
+      this.$set(this.ink, categoryName, []);
+    }
+
+    const itemIndex = this.ink[categoryName].indexOf(item);
+
+    if (itemIndex === -1) {
+      this.ink[categoryName].push(item);
+    } else {
+      this.ink[categoryName].splice(itemIndex, 1);
+    }
+  }
+
+
+
+
   async countInventoryTypes(floors) {
+
+    this.data_loading += 5
+    console.log('10%');
+
     const inventoryCounts = {};
     const inventoryDbids = {};
 
@@ -1819,7 +2044,9 @@ class dataSideApp extends Vue {
 
     const dynamicIdMap = {};
 
-    // Recherche des contextes nécessaires dans la config
+    this.data_loading += 16
+    console.log('20%');
+
     for (const configItem of this.config.inventaire) {
       const matchingContext = contextList.find(
         (context) => context.name === configItem.ctx
@@ -1831,7 +2058,6 @@ class dataSideApp extends Vue {
       }
     }
 
-    // Préparer les requêtes pour les catégories
     const categoryPromises = Object.entries(dynamicIdMap).map(([ctx, contextId]) => {
       return this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_LIST, {
         buildingId,
@@ -1839,7 +2065,6 @@ class dataSideApp extends Vue {
       });
     });
 
-    // Exécuter toutes les requêtes pour les catégories en parallèle
     const resultCategory = await Promise.all(categoryPromises);
 
     const categoriesWithGroups = {};
@@ -1875,7 +2100,7 @@ class dataSideApp extends Vue {
             if (matchingGroup) {
               groupIds.push(matchingGroup.dynamicId);
             } else {
-              console.warn(`Groupe "${groupName}" non trouvé pour la catégorie "${configCatName}".`);
+              // console.warn(`Groupe "${groupName}" non trouvé pour la catégorie "${configCatName}".`);
             }
           });
         } else if (configItem.grp) {
@@ -1883,7 +2108,7 @@ class dataSideApp extends Vue {
           if (matchingGroup) {
             groupIds.push(matchingGroup.dynamicId);
           } else {
-            console.warn(`Groupe "${configItem.grp}" non trouvé pour la catégorie "${configCatName}".`);
+            // console.warn(`Groupe "${configItem.grp}" non trouvé pour la catégorie "${configCatName}".`);
           }
         } else {
           groupIds.push(...groupList.map((group) => group.dynamicId));
@@ -1904,6 +2129,7 @@ class dataSideApp extends Vue {
 
     const categorizedResults = {};
     floors[0].forEach((floor) => {
+
       if (floor.inventories) {
         for (const [categoryName, categories] of Object.entries(categoriesWithGroups)) {
           if (!categorizedResults[categoryName]) {
@@ -1916,7 +2142,6 @@ class dataSideApp extends Vue {
             );
 
             if (!matchingCategory) {
-              console.warn(`Catégorie "${categoryName}" non trouvée dans les inventaires de l'étage.`);
               return;
             }
 
@@ -1947,15 +2172,27 @@ class dataSideApp extends Vue {
                   inventoryDbids[categoryName][group.name][bimFileId] = [];
                 }
 
-                inventoryDbids[categoryName][group.name][bimFileId].push(equipment.dbid);
+                // Ajouter à la liste un objet contenant dbid et dynamicId
+                inventoryDbids[categoryName][group.name][bimFileId].push({
+                  dbid: equipment.dbid,
+                  dynamicId: equipment.dynamicId,
+                  name: equipment.name
+                });
               });
+
             });
           });
         }
+
+
       } else {
         console.warn(`Aucun inventaire trouvé pour cet étage :`, floor);
       }
+
+
     });
+
+    this.data_loading += 100
 
     const results = {};
     for (const [categoryName, items] of Object.entries(categorizedResults)) {
@@ -1963,8 +2200,6 @@ class dataSideApp extends Vue {
         ([itemName, itemCount]) => `${itemCount} ${itemName}`
       );
     }
-
-    console.log(results, "Résultats fusionnés");
 
     this.inventoyList = results;
     this.inventoryDbids = inventoryDbids;
@@ -1975,8 +2210,6 @@ class dataSideApp extends Vue {
 
 
   getdataofelement() {
-    console.warn('/////récupération des donnée');
-
     this.referencedId = 0;
     this.referencedType = ''
     if (this.selectedZone.type != "building") {
@@ -2029,6 +2262,7 @@ class dataSideApp extends Vue {
   }
   @Watch("selectedZone")
   watchSelectedZone() {
+
     this.itemOverflowMenu = null
     if (this.selectedZone.type === "building") {
       this.loadBuildingInfo()
@@ -2044,8 +2278,14 @@ class dataSideApp extends Vue {
   watchShowDocvalue(newVal) {
     this.showDocvalue = newVal;
   }
+  @Watch("changeData")
+  changeDataLoading(newVal) {
+    this.data_loading = 10;
+  }
   @Watch("floorstaticDetails")
   async watchFloorstaticDetails(newVal, oldVal) {
+    console.warn('9.5%', this.selectedZone.type);
+
     const dynamicIds = newVal[0].controlEndpoint.flatMap(profile => profile.endpoints.map(endpoint => endpoint.dynamicId));
     const buildingId = localStorage.getItem("idBuilding");
     const parentDocPromise = [
@@ -2065,6 +2305,10 @@ class dataSideApp extends Vue {
 
     this.cpIdToDraw = attributs
 
+    if (this.selectedZone.type == 'building') {
+      this.data_loading += 100
+    }
+
   }
 
   @Watch("data")
@@ -2073,6 +2317,7 @@ class dataSideApp extends Vue {
     this.referencedType = ''
     if (this.selectedZone.type != "building") {
       if (this.data.length == 0) {
+
         this.getroomstaticdetails(this.selectedZone.dynamicId)
         this.getInventoryObject([this.selectedZone.dynamicId])
       } else {

@@ -76,11 +76,8 @@
       return this.apiUrl + apiRoute;
     }
     public createUrlWithPlatformId(buildingId: string, apiRoute: string): string {
-      console.log(this.api_mode);
-      
       if (this.api_mode === API_MODE.BOS_APP){
-        console.warn('aaaa');
-        
+
         return this.createUrl(apiRoute);
       }
       if (apiRoute.startsWith('/')) apiRoute = apiRoute.substring(1);
