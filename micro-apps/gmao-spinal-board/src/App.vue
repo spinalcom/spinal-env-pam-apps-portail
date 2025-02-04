@@ -3,7 +3,7 @@
   <v-app id="application" class="v-app">
     <div class="selectors">
       <div class="Hx1">
-        <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="1"
+        <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"
           :GetChildrenFct="onSpaceSelectOpen" v-model="defaultSelected" label="ESPACE" />
       </div>
       <div class="Hx2">
@@ -206,18 +206,6 @@ class App extends Vue {
   }
 
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<any> {
-    var source = [
-      {
-        title: 'Energie globale',
-        type: 'controlEndpoint',
-        name: 'Energie globale',
-        profile: 'KPI',
-        capacity: 500,
-        max: 100,
-        min: null,
-        color: '#4287f5',
-      },
-    ];
     var floorList: any[] = [];
     switch (item?.type) {
       case undefined:
@@ -239,7 +227,6 @@ class App extends Vue {
           haveChildren: false,
           area: building.area,
           cp: '',
-          source: building.source
         }];
       case 'building':
         const floors = await getFloors();
@@ -257,14 +244,36 @@ class App extends Vue {
             parents: [],
             isLastInGrp: true,
             drawLink: [],
-            haveChildren: false,
+            haveChildren: true,
             area: floor.area,
             cp: floor.cp,
-            source: floor.sources
           })
         }
 
         return floorList;
+      case 'floor':
+        const rooms = await getRooms(item);
+        const listOfRooms = [];
+
+        for (let room of rooms) {
+          listOfRooms.push({
+            name: room.name,
+            staticId: room.staticId,
+            dynamicId: room.dynamicId,
+            type: 'room',
+            level: 0,
+            isOpen: true,
+            loading: false,
+            patrimoineId: 'patrimoineId',
+            parents: [],
+            isLastInGrp: true,
+            drawLink: [],
+            haveChildren: false,
+            color: room.color,
+          })
+        }
+
+        return listOfRooms;
       default:
         return [];
     }
