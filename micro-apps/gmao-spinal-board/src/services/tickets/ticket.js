@@ -65,9 +65,9 @@ async function getEndDate(bid, constructed) {
     })
   );
 
-  const ticketDetails = taskLogs.flat();
+  const ticketDetailsFlat = taskLogs.flat();
 
-  const newTicketDetails = await locate.ticket(ticketDetails);
+  const ticketDetails = await locate.ticket(ticketDetailsFlat);
 
   ticketDetails.forEach((detail) => {
     const task = constructed.findIndex(t => t.ticketId === detail.dynamicId);
@@ -78,6 +78,7 @@ async function getEndDate(bid, constructed) {
     constructed[task].dates = [...constructed[task].dates, ...getRealDates(constructed[task].dates)];
     getRealDates(constructed[task].dates);
     constructed[task].logList = detail.log_list;
+    constructed[task].location = detail.location;
   });
 
   return constructed;
