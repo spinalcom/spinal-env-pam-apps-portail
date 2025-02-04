@@ -1647,7 +1647,8 @@ class dataSideApp extends Vue {
       position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
       data: result[0],
       config: this.config,
-      group: items + categoryName
+      group: items + categoryName,
+      z_index: 0
     }
 
     // this.$store.dispatch(ActionTypes.REMOVE_SPRITES_BY_GROUP, {
@@ -1688,6 +1689,7 @@ class dataSideApp extends Vue {
       data: result[0],
       config: this.config,
       group: 'card',
+      z_index:1
     }
     // this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
 

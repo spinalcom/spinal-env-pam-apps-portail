@@ -74,10 +74,8 @@ export class SpriteManager {
 
 	public async addComponentAsSprite(viewer: Autodesk.Viewing.Viewer3D, data: ISpriteData | ISpriteData[]) {
 		data = Array.isArray(data) ? data : [data];
-		// console.warn(data[0]?.data?.group , ' aaaaaaaaaaaaaaaa');
-		
+	
 		for (const d of data) {
-
 			const VueComponent = Vue.extend(d.component);
 			const vueInstance = new VueComponent({ propsData: d });
 	
@@ -86,22 +84,27 @@ export class SpriteManager {
 			label.container.style.pointerEvents = "auto";
 			label.container.appendChild(vueInstance.$mount().$el);
 	
+			if (d.data?.z_index != null) {
+				label.container.style.zIndex = d.data.z_index.toString();
+			}
+	
 			const viewable = {
 				dynamicId: d.data.dynamicId,
 				label: label,
 				component: vueInstance,
-				group: data[0]?.data?.group 
+				group: d.data.group,
+				z_index: d.data.z_index
 			};
 	
-			// Ajoute le viewable avec le groupe
 			this.label3Ds.push(viewable);
 	
-			if (!this.viewableDataMap[data[0]?.data?.group]) this.viewableDataMap[data[0]?.data?.group] = [];
-			this.viewableDataMap[data[0]?.data?.group].push(viewable);
+			if (!this.viewableDataMap[d.data.group]) this.viewableDataMap[d.data.group] = [];
+			this.viewableDataMap[d.data.group].push(viewable);
 		}
 	
-		// console.log('Map des viewables après ajout :', this.viewableDataMap);
+		console.log('Map des viewables après ajout :', this.viewableDataMap);
 	}
+	
 	
 
 
@@ -118,14 +121,11 @@ export class SpriteManager {
 
 	public removeSpritesByGroup(group: string) {
 		const viewables = this.viewableDataMap[group] || [];
-
 		viewables.forEach(viewable => {
 			viewable.label.dtor();
 		});
-
 		delete this.viewableDataMap[group];
 	}
-
 
 
 	public async addCardComponent(viewer: Autodesk.Viewing.Viewer3D, data: any | any[]) {
