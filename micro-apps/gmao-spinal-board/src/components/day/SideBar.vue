@@ -162,7 +162,6 @@ export default {
         this.$emit('resizedSideBar', this.sidebarWidth);
       }
     });
-
     this.resizeObserver.observe(this.$refs.sideBar);
   },
   methods:{
@@ -275,6 +274,11 @@ export default {
         }
       }
       return null;
+    },
+  },
+  watch: {
+    nestedList(value) {
+      this.$emit('taskListChanged', this.flattenedList(value));
     },
   },
   beforeDestroy() {
