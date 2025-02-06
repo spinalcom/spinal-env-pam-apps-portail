@@ -124,6 +124,24 @@ export default {
           } catch (error) {
             console.error('Error filtering tickets by floor', error);
           }
+        } else if (space.type === 'room') {
+          try {
+            this.ticketList = this.freezedTicketList.filter((ticket) =>
+              ticket.location && ticket.location.room === space.dynamicId);
+            this.nestedList = this.freezedNestedList.map((w) => ({
+              ...w,
+              processes: w.processes.map((p) => ({
+                ...p,
+                ticketList: p.ticketList.filter((t) =>
+                  t.location &&
+                  t.location.room === space.dynamicId
+                )
+              }))
+            }));
+            this.nestedList = tickets.removeProcessWithNoTickets(this.nestedList);
+          } catch (error) {
+            console.error('Error filtering tickets by room', error);
+          }
         }
       },
       deep: true,

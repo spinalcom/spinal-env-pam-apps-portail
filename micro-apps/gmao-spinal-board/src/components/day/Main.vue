@@ -6,6 +6,7 @@
       :task="selectedTaskDetails"
       @resetTaskDetails="selectedTaskDetails = null"
       />
+
     <div class="action-bar">
       <div class="icon-action-group">
         <v-icon class="action-icon icon" @click="verticalScroll('left')">mdi-chevron-left</v-icon>
@@ -45,17 +46,21 @@
         <v-icon class="action-icon icon">mdi-filter</v-icon>
         Filter
       </div>
+      <div class="action-group">
+        <v-icon class="action-icon icon rainbow-text">mdi-palette</v-icon>
+        <span class="rainbow-text">Couleur</span>
+      </div>
     </div>
 
     <div :style="[
       { 'width': planWidth + dayWidth + 'px' },
-      { 'height': planHeight + (taskHeight * 2) + 'px' },
-      { 'min-height': planHeight + (taskHeight * 2) + 'px' },
+      { 'height': planHeight + (taskHeight * 3) + 'px' },
+      { 'min-height': planHeight + (taskHeight * 3) + 'px' },
       ]" class="plan">
 
       <div 
         :style="[
-          { 'font-size': fontSize.medium + 'px' },
+        { 'font-size': fontSize.medium + 'px' },
         ]"
         class="month-strip top-bar">
         <div
@@ -63,9 +68,26 @@
           :key="month.name + '/' + month.year"
           class="month-placement"
           :style="[
-            { 'width': month.days * dayWidth + 'px' },
-            { 'font-size': fontSize.medium + 'px' },
-            { 'z-index': index },
+          { 'width': month.days * dayWidth + 'px' },
+          { 'font-size': fontSize.medium + 'px' },
+          { 'z-index': index },
+          ]">
+        </div>
+      </div>
+
+      <div 
+        :style="[
+        { 'font-size': fontSize.medium + 'px' },
+        ]"
+        class="month-strip top-bar">
+        <div
+          v-for="(month, index) in monthList"
+          :key="month.name + '/' + month.year"
+          class="month-placement"
+          :style="[
+          { 'width': month.days * dayWidth + 'px' },
+          { 'font-size': fontSize.medium + 'px' },
+          { 'z-index': index },
           ]">
           {{ month.name.charAt(0).toUpperCase() + month.name.slice(1) }} {{ month.year }}
         </div>
@@ -82,8 +104,8 @@
             :key="day + '/' + month.name + '/' + month.year"
             :class="{ today: currentMarker === day + '/' + month.name + '/' + month.year }"
             :style="[
-              { 'font-size': fontSize.small + 'px' },
-              { 'width': dayWidth + 'px !important' },
+            { 'font-size': fontSize.small + 'px' },
+            { 'width': dayWidth + 'px !important' },
             ]"
             class="day full-center">
             {{ day }}
@@ -96,7 +118,8 @@
         <div class="dot" 
           :style="[
             { 'left': markerOffset + (dayWidth / 2 - 3) + 'px' },
-          ]"></div>
+          ]">
+        </div>
       </div>
 
       <div class="plan-background" :style="{ 'height': planHeight  + 'px' }">
@@ -609,6 +632,21 @@ export default {
 }
 .active {
   background: #d9d9d9;
+}
+.rainbow-text {
+  background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: rainbow-animation 5s linear infinite;
+}
+@keyframes rainbow-animation {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
 }
 .v-slider__thumb:before {
   background: transparent !important;

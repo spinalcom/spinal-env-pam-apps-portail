@@ -136,6 +136,7 @@ export default {
       this.$emit('resizeEnd', task, estimatedEndDate);
     },
     updateTaskList(event) {
+      this.calculateHeight();
       this.taskList = event;
     },
     resizedSideBar(event) {

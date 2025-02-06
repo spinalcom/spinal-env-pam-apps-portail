@@ -47,7 +47,6 @@ export default {
   methods: {
     toggleSelector() {
       this.showSelector = !this.showSelector;
-      console.log('toggleSelector', this.showSelector);
     },
     closeSelector(event) {
       event.stopPropagation();
