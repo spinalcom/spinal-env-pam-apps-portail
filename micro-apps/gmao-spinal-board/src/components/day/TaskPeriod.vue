@@ -312,7 +312,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .period {
   position: absolute;
   display: flex;

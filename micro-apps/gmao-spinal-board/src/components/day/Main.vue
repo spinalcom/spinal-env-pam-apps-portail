@@ -33,7 +33,8 @@
         Aujourd'hui
       </div>
 
-      <DateField 
+      <DateField
+        ref="dateField"
         @start="selectedStart = $event"
         @end="selectedEnd = $event"
         />
@@ -46,10 +47,7 @@
         <v-icon class="action-icon icon">mdi-filter</v-icon>
         Filter
       </div>
-      <div class="action-group">
-        <v-icon class="action-icon icon rainbow-text">mdi-palette</v-icon>
-        <span class="rainbow-text">Couleur</span>
-      </div>
+      <ColorSelector @close="closeMenus"/>
     </div>
 
     <div :style="[
@@ -155,8 +153,10 @@
 import CalendarContent from './CalendarContent.vue';
 import TaskDetails from './TaskDetails.vue';
 import DateField from '../components/date-fields/DateField.vue';
+import ColorSelector from '../components/color-selector/ColorSelector.vue';
 import { throttle } from 'lodash';
 import moment from 'moment';
+import 'moment/locale/fr';
 moment.locale('fr');
 export default {
   name: 'MonthView',
@@ -165,6 +165,7 @@ export default {
     CalendarContent,
     TaskDetails,
     DateField,
+    ColorSelector,
   },
   data: () => ({
     selectedTaskDetails: null,
@@ -420,6 +421,10 @@ export default {
     showTicketDetails(task) {
       this.selectedTaskDetails = task;
     },
+    closeMenus() {
+      console.log('closing menus');
+      this.$refs.dateField.closeDateFields();
+    }
   },
   watch: {
     zoom(v1) {
@@ -537,7 +542,8 @@ export default {
   left: 0;
   height: 30px !important;
   width: 1px;
-  border-left: 1px solid #E2E2E2;
+  /*border-left: 1px solid #E2E2E2;*/
+  border-left: 1px solid transparent;
   transition: width 0.3s ease-in-out, left 0.3s ease-in-out, height 0.3s ease-in-out, font-size 0.3s ease-in-out;
 }
 .dot {
@@ -634,11 +640,12 @@ export default {
   background: #d9d9d9;
 }
 .rainbow-text {
+  /*background: linear-gradient(90deg, #000000DE, #000000DE, #000000DE, red, orange, #ff0, green, #000000DE, #000000DE, #000000DE, #000000DE, #000000DE, #000000DE, #000000DE) 0 0 / 200% 100%;*/
   background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
   background-size: 200% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: rainbow-animation 5s linear infinite;
+  animation: 10s cubic-bezier(1, 0, 0, 1.01) infinite rainbow-animation;
 }
 @keyframes rainbow-animation {
   0% {
