@@ -97,11 +97,11 @@ class App extends Vue {
 
   toggleSet = new Set();
 
-  chart = 'line';  // calendar / line
+  chart = 'calendar';  // calendar / line
 
-  //  calMonths = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jui', 'Juil', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'];
+   calMonths = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jui', 'Juil', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  calMonths = ['Oct', 'Nov', 'Dec'];
+  // calMonths = ['Oct', 'Nov', 'Dec'];
 
   monthMap = {
     'T1': ['Jan', 'Fev', 'Mar'],

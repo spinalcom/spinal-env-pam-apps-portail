@@ -102,10 +102,26 @@ class App extends Vue {
     haveChildren: false
   }
 
-  selectedTime = {
-      name: 'Trimestre',
-      next: 'Trimestre suivant',
-      prev: 'Trimestre précédent',
+  // selectedTime = {
+  //     name: 'Trimestre',
+  //     next: 'Trimestre suivant',
+  //     prev: 'Trimestre précédent',
+  //     staticId: 'Annee',
+  //     dynamicId: 3,
+  //     level: 0,
+  //     isOpen: true,
+  //     loading: false,
+  //     patrimoineId: 'Annee',
+  //     parents: [],
+  //     isLastInGrp: true,
+  //     drawLink: [],
+  //     haveChildren: false,
+  //   };
+
+    selectedTime = {
+      name: 'Année',
+      next: 'Année suivante',
+      prev: 'Année précédente',
       staticId: 'Annee',
       dynamicId: 3,
       level: 0,
@@ -117,22 +133,6 @@ class App extends Vue {
       drawLink: [],
       haveChildren: false,
     };
-
-    // selectedTime = {
-    //   name: 'Année',
-    //   next: 'Année suivante',
-    //   prev: 'Année précédente',
-    //   staticId: 'Annee',
-    //   dynamicId: 3,
-    //   level: 0,
-    //   isOpen: true,
-    //   loading: false,
-    //   patrimoineId: 'Annee',
-    //   parents: [],
-    //   isLastInGrp: true,
-    //   drawLink: [],
-    //   haveChildren: false,
-    // };
 
   async mounted() {
     this.building = await getBuilding(this.source);
