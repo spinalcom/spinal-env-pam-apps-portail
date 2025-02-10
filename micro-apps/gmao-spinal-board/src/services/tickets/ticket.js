@@ -44,10 +44,12 @@ function constructTickets(ticketList) {
       processId: ticket.process.dynamicId,
       processName: ticket.process.name,
       stepId: ticket.step.dynamicId,
+      stepColor: ticket.step.color,
       ticketId: ticket.dynamicId,
       state: 'ticket',
       description: ticket.description,
       priority: ticket.priority,
+      processColor: ticket.processColor,
     }))
   );
 }

@@ -86,8 +86,8 @@ export default {
           return '#ffffff';
         }
         return this.priorityColors[this.task.priority];
-      } else if (this.colorType === 'Etape') {
-        return this.priorityColors[this.task.priority];
+      } else if (this.colorType === 'Etape' && this.task.stepColor) {
+        return this.task.stepColor;
       } else if (this.colorType === 'Processus') {
         return this.priorityColors[this.task.priority];
       } else {

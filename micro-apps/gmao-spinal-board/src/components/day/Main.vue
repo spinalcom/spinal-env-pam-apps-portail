@@ -79,7 +79,7 @@
         :style="[
         { 'font-size': fontSize.medium + 'px' },
         ]"
-        class="month-strip top-bar">
+        class="month-strip secondary-bar">
         <div
           v-for="(month, index) in monthList"
           :key="month.name + '/' + month.year"
@@ -93,7 +93,7 @@
         </div>
       </div>
 
-      <div class="month-strip secondary-bar bottom-divider">
+      <div class="month-strip third-bar bottom-divider">
         <div
           v-for="month in monthList"
           :key="month.name + '/' + month.year"
@@ -535,6 +535,9 @@ export default {
 }
 .secondary-bar {
   top: 30px;
+}
+.third-bar {
+  top: 60px;
 }
 .plan-background {
   height: 0;

@@ -9,11 +9,12 @@ async function processWorkflowProcesses(bid, workflow) {
     if (!processList.data) {
       throw new Error('Invalid response structure');
     }
-    
+
     return processList.data.map(process => ({
       ...workflow,
       processId: process.dynamicId,
       processName: process.name,
+      processColor: process.color,
     }));
   } catch (error) {
     console.error(`Error processing workflow ${workflow.workflowId}`, error);
