@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 SpinalCom - www.spinalcom.com
+ * Copyright 2023 SpinalCom - www.spinalcom.com
  *
  * This file is part of SpinalCore.
  *
@@ -22,12 +22,20 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { SpinalAPI } from 'global-components/requests/SpinalAPI';
+import Vue from "vue";
 
-export function getAPINormalisePath(
-  path: string,
-  buildingId: string = ''
-): string {
-  const api = SpinalAPI.getInstance();
-  return api.createUrlWithPlatformId(buildingId, `/BIM/file/${path}`);
+export interface IPlayload {
+	id: string;
+	staticId: string;
+	buildingId: string;
+	floorId: string;
+	roomId?: string;
+	patrimoineId?: string;
+	dynamicId: number;
+	displayValue?: string | number;
+	color?: string;
+}
+
+export interface IPlayloadWithComponent extends IPlayload {
+	component?: Vue;
 }

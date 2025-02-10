@@ -179,7 +179,7 @@
                     mdi-map-marker-circle
                   </v-icon>
                   <v-icon v-else @click="() => { deleteIconElement(item, categoryName); closeink(item, categoryName) }"
-                    style="cursor: pointer; margin-left: 10px;">
+                    :style="{ cursor: 'pointer', marginLeft: '10px', color: iconColors[`${categoryName}-${item}`] || '#000' }">
                     mdi-map-marker-remove-variant
                   </v-icon>
                 </div>
@@ -665,6 +665,8 @@ class dataSideApp extends Vue {
   contextFile = ''
   data_loading = 0
   interval: {}
+  // iconColors: {}
+  iconColors: Record<string, string> = {};
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
@@ -963,6 +965,13 @@ class dataSideApp extends Vue {
   async showIconElement(item, categoryName) {
     console.warn(item, categoryName, this.inventoryDbids, '🔍 Test - showIconElement');
 
+
+    function getRandomColor() {
+      return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+    }
+    const color = getRandomColor()
+    this.$set(this.iconColors, `${categoryName}-${item}`, color);
+
     const itemType = item.substring(item.indexOf(' ') + 1);
 
     const categoryData = this.inventoryDbids[categoryName];
@@ -1032,9 +1041,10 @@ class dataSideApp extends Vue {
         return;
       }
 
+
       const wrappedResult = [obj];
 
-      this.forgeVignette(wrappedResult, buildingId, ref.dbid, ref.bimFileId, center, item, categoryName);
+      this.forgeVignette(wrappedResult, buildingId, ref.dbid, ref.bimFileId, center, item, categoryName, color);
     });
   }
 
@@ -1631,14 +1641,15 @@ class dataSideApp extends Vue {
 
   }
 
-  forgeVignette(result, buildingId, dbid, bimFileId, center, items, categoryName) {
+  forgeVignette(result, buildingId, dbid, bimFileId, center, items, categoryName, color) {
 
     let X = center.x;
     let Y = center.y;
     let Z = center.z;
 
+
     const item = {
-      color: '#ded638',
+      color: color,
       dynamicId: result[0].dynamicId,
       buildingId: buildingId,
       dbid: dbid,
@@ -1689,7 +1700,7 @@ class dataSideApp extends Vue {
       data: result[0],
       config: this.config,
       group: 'card',
-      z_index:1
+      z_index: 1
     }
     // this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
 

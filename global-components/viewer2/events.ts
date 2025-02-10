@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 SpinalCom - www.spinalcom.com
+ * Copyright 2023 SpinalCom - www.spinalcom.com
  *
  * This file is part of SpinalCore.
  *
@@ -22,12 +22,15 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { SpinalAPI } from 'global-components/requests/SpinalAPI';
+import Vue from "vue";
 
-export function getAPINormalisePath(
-  path: string,
-  buildingId: string = ''
-): string {
-  const api = SpinalAPI.getInstance();
-  return api.createUrlWithPlatformId(buildingId, `/BIM/file/${path}`);
+export const enum VIEWER_EVENTS {
+	UNLOAD = "unload",
+	UNLOADED = "unloaded",
+	LOADED = "loaded",
+	VIEWER_ADD_COMPONENT_SPRITE = "viewer add component as sprite",
+	VIEWER_ADD_CARD_COMPONENT = "VIEWER_ADD_CARD_COMPONENT",
+	VIEWER_REMOVE_COMPONENT_SPRITE_GROUP = "viewer remove component sprite group"
 }
+
+export const EventBus = new Vue();

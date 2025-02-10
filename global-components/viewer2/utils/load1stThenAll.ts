@@ -22,12 +22,29 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { SpinalAPI } from 'global-components/requests/SpinalAPI';
+export async function load1stThenAll<T, K>(tasks: T[], callback: (itm: T) => Promise<K>, isFirstCall: boolean ): Promise<K[]> {
+  const results: K[] = [];
+  let idx = 0;
+  if (tasks.length > 0 && isFirstCall) {
+    idx = 1;
+    await callback(tasks[0]).then((res: K): void => {
+      if (res) {
+        res.bimFileId = tasks[0].bimFileId;
+        results.push(res);
+      }
+    });
+  }
 
-export function getAPINormalisePath(
-  path: string,
-  buildingId: string = ''
-): string {
-  const api = SpinalAPI.getInstance();
-  return api.createUrlWithPlatformId(buildingId, `/BIM/file/${path}`);
+  const proms: Promise<void>[] = [];
+
+  for (; idx < tasks.length; idx++) {
+    const el = tasks[idx];
+    proms.push(callback(el).then(function (res: K): void {
+      if (res) {
+        res.bimFileId = el.bimFileId;
+        results.push(res);
+      }
+    }));
+  }
+  return Promise.all(proms).then(() => results);
 }

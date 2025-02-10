@@ -22,12 +22,10 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { SpinalAPI } from 'global-components/requests/SpinalAPI';
+import Axios from 'axios';
+import { IAecData } from '../interfaces/IAECData';
 
-export function getAPINormalisePath(
-  path: string,
-  buildingId: string = ''
-): string {
-  const api = SpinalAPI.getInstance();
-  return api.createUrlWithPlatformId(buildingId, `/BIM/file/${path}`);
+export async function getAecModelData(aecPath: string): Promise<IAecData> {
+  const a  = await Axios.get(aecPath)
+  return a.data;
 }

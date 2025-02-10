@@ -22,12 +22,18 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { SpinalAPI } from 'global-components/requests/SpinalAPI';
+import type { SpinalAPI } from '../SpinalAPI';
+import { ISceneDefaultRes } from '../../../interfaces/ISceneDefaultRes';
 
-export function getAPINormalisePath(
-  path: string,
-  buildingId: string = ''
-): string {
-  const api = SpinalAPI.getInstance();
-  return api.createUrlWithPlatformId(buildingId, `/BIM/file/${path}`);
+export async function sceneDefaut(spinalAPI: SpinalAPI, buildingId: string): Promise<ISceneDefaultRes> {
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, 'api/v1/BIM/scene/default');
+  const res = await spinalAPI.get<ISceneDefaultRes>(url);
+  return res.data;
+}
+
+
+export async function getSceneList(spinalAPI: SpinalAPI, buildingId: string): Promise<ISceneDefaultRes> {
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, 'api/v1/BIM/scene/list');
+  const res = await spinalAPI.get<ISceneDefaultRes>(url);
+  return res.data;
 }
