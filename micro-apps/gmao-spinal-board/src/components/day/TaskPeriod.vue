@@ -87,9 +87,9 @@ export default {
         }
         return this.priorityColors[this.task.priority];
       } else if (this.colorType === 'Etape' && this.task.stepColor) {
-        return this.task.stepColor;
-      } else if (this.colorType === 'Processus') {
-        return this.priorityColors[this.task.priority];
+        return this.task.stepColor + '73';
+      } else if (this.colorType === 'Processus' && this.task.processColor) {
+        return this.task.processColor + '73';
       } else {
         return '#ffffff';
       }
@@ -327,6 +327,7 @@ export default {
       this.$emit('showTicketDetails', this.task);
     },
     getContrastTextColor(bgColor) {
+      return '#000000DE';
       let r, g, b;
 
       if (!bgColor) {

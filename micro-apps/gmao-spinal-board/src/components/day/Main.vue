@@ -426,7 +426,6 @@ export default {
       this.selectedTaskDetails = task;
     },
     closeMenus() {
-      console.log('closing menus');
       this.$refs.dateField.closeDateFields();
     },
     selectColorType(color) {

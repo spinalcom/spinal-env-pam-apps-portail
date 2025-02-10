@@ -13,7 +13,7 @@ async function getTickets(bid, stepList) {
     .map(chunk => getMultipleTickets(bid, chunk));
 
   const ticketList = await Promise.all(getTicketsPromises);
-  const constructedTickets = constructTickets(ticketList.flat());
+  const constructedTickets = constructTickets(ticketList.flat(), stepList);
 
   // const results = await addDates(bid, constructedTickets);
   const results = await getEndDate(bid, constructedTickets);
@@ -28,7 +28,7 @@ async function getMultipleTickets(bid, stepList) {
   return ticketList.data;
 }
 
-function constructTickets(ticketList) {
+function constructTickets(ticketList, stepList) {
   return ticketList.flatMap(list =>
     list.tickets.map(ticket => ({
       name: ticket.name,
@@ -49,7 +49,7 @@ function constructTickets(ticketList) {
       state: 'ticket',
       description: ticket.description,
       priority: ticket.priority,
-      processColor: ticket.processColor,
+      processColor: stepList.find(step => step.processId === ticket.process.dynamicId).processColor,
     }))
   );
 }

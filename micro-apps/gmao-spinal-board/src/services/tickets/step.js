@@ -20,7 +20,6 @@ async function getSteps(bid, processList) {
   const uniqueSteps = new Set();
   stepList.forEach(steps => steps.forEach(step => uniqueSteps.add(step.stepName)));
   const result = stepList.flat();
-  console.log(result);
   return result;
 }
 
@@ -41,7 +40,6 @@ async function getStepsByProcess(workflowId, processId) {
     order: s.order,
     dynamicId: s.dynamicId,
   }));
-  console.log(steps);
   return steps;
 }
 
