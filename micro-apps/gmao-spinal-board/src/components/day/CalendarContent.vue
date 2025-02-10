@@ -40,6 +40,7 @@
       :taskHeight="taskHeight"
       :fontSize="fontSize"
       :selectedDateFields="selectedDateFields"
+      :colorType="colorType"
       @resizeWholePeriod="resizeWholePeriod"
       @resizeStart="resizeStart"
       @resizeEnd="resizeEnd"
@@ -81,6 +82,7 @@ export default {
     'taskHeight',
     'fontSize',
     'selectedDateFields',
+    'colorType',
   ],
   components: {
     Task,

@@ -9,23 +9,23 @@
       </div>
       <div class="date-field-list">
         <div
-          v-for="(dateField, index) in typeColor"
+          v-for="(color, index) in typeColor"
           class="date-field-item"
-          @click="selectDateField(dateField.name)">
+          @click="selectColorType(color.name)">
           <v-icon
             :style="[
-            { 'color': selected === dateField.name ? '#757575' : 'transparent' },
+            { 'color': selected === color.name ? '#757575' : 'transparent' },
             ]"
             class="date-icon">mdi-check</v-icon>
           <!--
-            <v-icon class="date-icon">{{ dateField.icon }}</v-icon>
+            <v-icon class="date-icon">{{ color.icon }}</v-icon>
           -->
           <span
             :style="[
-              { 'font-weight': selected === dateField.name ? '700' : '400' },
+              { 'font-weight': selected === color.name ? '700' : '400' },
             ]"
             class="item-name">
-            {{ dateField.name }}
+            {{ color.name }}
           </span>
         </div>
         <div style="height: 5px;"></div>
@@ -58,25 +58,24 @@ export default {
         icon: 'mdi-palette-outline',
         name: 'Processus',
       },
+      {
+        icon: 'mdi-palette-outline',
+        name: 'Réinitialiser la couleur',
+      },
     ],
   }),
-  mounted() {
-    this.selected = this.type === 'start' ? 'Date de début estimée' : 'Date de fin estimée';
-    this.emitDateField();
-    const workflowList = config.config.workflow;
-    const stepList = workflowList.flatMap(workflow => workflow.steps);
-    this.typeColor = this.typeColor.concat(stepList.map(step => ({
-      icon: 'mdi-note-text-outline',
-      name: step.name,
-    })));
-  },
+  mounted() {},
   methods: {
-    selectDateField(name) {
-      this.selected = name;
+    async selectColorType(name) {
+      if (name === 'Réinitialiser la couleur') {
+        this.selected = null;
+      } else {
+        this.selected = name;
+      }
       this.emitDateField();
     },
     emitDateField() {
-      this.$emit('select-date-field', this.type, this.selected);
+      this.$emit('select-color-type', this.selected);
     },
   }
 }

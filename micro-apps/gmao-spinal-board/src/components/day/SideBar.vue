@@ -69,7 +69,7 @@
             ]"
             class="process">
             <span class="ellipsis">
-              {{ process.processName }} {{ process.ticketList.length }}
+              {{ process.processName }}
             </span>
             <v-icon 
               :class="[

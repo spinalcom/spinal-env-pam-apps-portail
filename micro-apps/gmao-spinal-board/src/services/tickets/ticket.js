@@ -47,6 +47,7 @@ function constructTickets(ticketList) {
       ticketId: ticket.dynamicId,
       state: 'ticket',
       description: ticket.description,
+      priority: ticket.priority,
     }))
   );
 }

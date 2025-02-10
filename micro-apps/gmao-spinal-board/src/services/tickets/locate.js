@@ -34,7 +34,6 @@ async function ticket(ticketList) {
   await getRoomPosition(groupedByType);
   // Set the location of tickets by equipment
   await getEquipmentPosition(groupedByType);
-  console.log('grouped by type:', groupedByType);
   const tickets = prepareTickets(groupedByType);
   return tickets;
 }
@@ -145,7 +144,6 @@ async function getEquipmentPosition(group) {
   */
 function prepareTickets(group) {
   const tickets = Object.values(group).flat();
-  console.log(tickets);
   return tickets;
 }
 

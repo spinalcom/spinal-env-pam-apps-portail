@@ -5,6 +5,9 @@
     v-if="estimatedStartDate || estimatedEndDate"
     @click=""
     :style="[
+      { 'color': textFit ? textColor : '#000000DE' },
+      { 'font-weight': textFit && textColor !== '#000000DE' ? '700' : '400' },
+      { 'background': bgColor ? bgColor : '#ffffff' },
       { 'font-size': fontSize.small + 'px' },
       { 'left': isResizingWhole ? (dayWidth * locate - diffLeft) + 'px' : dayWidth * locate + 'px' },
       { 'height': (taskHeight - 8) + 'px' },
@@ -55,6 +58,7 @@ export default {
     'taskHeight',
     'fontSize',
     'selectedDateFields',
+    'colorType',
   ],
   components: {
     Status,
@@ -73,8 +77,23 @@ export default {
     diffRight: 0,
     diffLeft: 0,
     moveFlag: false,
+    priorityColors: ['#6ae69e', '#ffcc7c', '#f46456'],
   }),
   computed: {
+    bgColor() {
+      if (this.colorType === 'Priorité') {
+        if (this.task.priority === '') {
+          return '#ffffff';
+        }
+        return this.priorityColors[this.task.priority];
+      } else if (this.colorType === 'Etape') {
+        return this.priorityColors[this.task.priority];
+      } else if (this.colorType === 'Processus') {
+        return this.priorityColors[this.task.priority];
+      } else {
+        return '#ffffff';
+      }
+    },
     estimatedStartDate() {
       try {
         const selectedStartDate = this.selectedDateFields.selectedStart;
@@ -118,7 +137,10 @@ export default {
     },
     textFit() {
       return (this.textDim.width + this.dayWidth) < this.rectDim.width;
-    }
+    },
+    textColor() {
+      return this.getContrastTextColor(this.bgColor);
+    },
   },
   mounted() {
     if (this.estimatedStartDate || this.estimatedEndDate) {
@@ -303,7 +325,25 @@ export default {
     },
     showTicketDetails() {
       this.$emit('showTicketDetails', this.task);
-    }
+    },
+    getContrastTextColor(bgColor) {
+      let r, g, b;
+
+      if (!bgColor) {
+        return '#000000';
+      }
+      if (bgColor.startsWith("#")) {
+        const bigint = parseInt(bgColor.substring(1), 16);
+        r = (bigint >> 16) & 255;
+        g = (bigint >> 8) & 255;
+        b = bigint & 255;
+      } else {
+        [r, g, b] = bgColor.match(/\d+/g).map(Number);
+      }
+
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return luminance > 0.5 ? '#000000DE' : '#fff';
+    },
   },
   watch: {
     selectedDateFields(v1) {
@@ -325,6 +365,11 @@ export default {
   box-shadow: 4px 3px 5px 0px #A0A0A024;
   white-space: nowrap;
   transition: all 0.3s, width 0s, left 0s;
+}
+.period:hover {
+  border: 1px solid #adadad;
+  box-shadow: 4px 3px 5px 0px #A0A0A024;
+  cursor: pointer;
 }
 .text-position {
   position: absolute;

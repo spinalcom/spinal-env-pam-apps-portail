@@ -47,7 +47,9 @@
         <v-icon class="action-icon icon">mdi-filter</v-icon>
         Filter
       </div>
-      <ColorSelector @close="closeMenus"/>
+      <ColorSelector
+        @close="closeMenus" 
+        @select-color-type="selectColorType"/>
     </div>
 
     <div :style="[
@@ -123,27 +125,28 @@
       <div class="plan-background" :style="{ 'height': planHeight  + 'px' }">
         <!-- CalendarContent component -->
           <CalendarContent
-          :ticketList="ticketList"
-          :nestedList="nestedList"
-          :separator="separator"
-          :start="start"
-          :end="end"
-          :selectedDateFields="{ selectedStart, selectedEnd }"
-          :viewPortEdges="viewPortEdges"
-          :dayWidth="dayWidth"
-          :taskHeight="taskHeight"
-          :fontSize="fontSize"
-          @bringDay="bringDay"
-          @goto="bringTheDay"
-          @planHeight="planH"
-          @resizedSideBar="resizedSideBar"
-          @resizeWholePeriod="(task, estimatedStartDate, estimatedEndDate) => $emit('resizeWholePeriod', task, estimatedStartDate, estimatedEndDate)"
-          @resizeStart="(task, estimatedStartDate) => $emit('resizeStart', task, estimatedStartDate)"
-          @resizeEnd="(task, estimatedEndDate) => $emit('resizeEnd', task, estimatedEndDate)"
-          @showTicketDetails="showTicketDetails"
-          @startTicket="(task, estimatedStartDate) => $emit('startTicket', task, estimatedStartDate)"
-          @createTicket="(task, estimatedStartDate, estimatedEndDate) => $emit('createTicket', task, estimatedStartDate, estimatedEndDate)"
-          />
+            :ticketList="ticketList"
+            :nestedList="nestedList"
+            :separator="separator"
+            :start="start"
+            :end="end"
+            :selectedDateFields="{ selectedStart, selectedEnd }"
+            :viewPortEdges="viewPortEdges"
+            :dayWidth="dayWidth"
+            :taskHeight="taskHeight"
+            :fontSize="fontSize"
+            :colorType="colorType"
+            @bringDay="bringDay"
+            @goto="bringTheDay"
+            @planHeight="planH"
+            @resizedSideBar="resizedSideBar"
+            @resizeWholePeriod="(task, estimatedStartDate, estimatedEndDate) => $emit('resizeWholePeriod', task, estimatedStartDate, estimatedEndDate)"
+            @resizeStart="(task, estimatedStartDate) => $emit('resizeStart', task, estimatedStartDate)"
+            @resizeEnd="(task, estimatedEndDate) => $emit('resizeEnd', task, estimatedEndDate)"
+            @showTicketDetails="showTicketDetails"
+            @startTicket="(task, estimatedStartDate) => $emit('startTicket', task, estimatedStartDate)"
+            @createTicket="(task, estimatedStartDate, estimatedEndDate) => $emit('createTicket', task, estimatedStartDate, estimatedEndDate)"
+            />
       </div>
     </div>
   </div>
@@ -197,6 +200,7 @@ export default {
     },
     selectedStart: 'Date de début estimée',
     selectedEnd: 'Date de fin estimée',
+    colorType: null,
   }),
   created() {
     this.current = moment();
@@ -424,6 +428,9 @@ export default {
     closeMenus() {
       console.log('closing menus');
       this.$refs.dateField.closeDateFields();
+    },
+    selectColorType(color) {
+      this.colorType = color;
     }
   },
   watch: {

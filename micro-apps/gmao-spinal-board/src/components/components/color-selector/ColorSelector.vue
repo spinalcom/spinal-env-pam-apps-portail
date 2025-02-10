@@ -5,9 +5,11 @@
       { 'background': toggleColorField ? '#d9d9d9' : 'transparent' },
     ]">
     <v-icon class="action-icon icon rainbow-text">mdi-palette</v-icon>
-    <span class="rainbow-text">Couleur</span>
-    <ColorMenu 
-      :toggle="toggleColorField" :type="'start'"/>
+    <span class="rainbow-text">{{ selected || 'Couleur' }}</span>
+    <ColorMenu
+      :toggle="toggleColorField"
+      @select-color-type="selectColorType"
+      />
   </div>
 </template>
 
@@ -20,9 +22,14 @@ export default {
   },
   props: [],
   data: () => ({
+    selected: null,
     toggleColorField: true,
   }),
   methods: {
+    selectColorType(name) {
+      this.selected = name;
+      this.$emit('select-color-type', this.selected);
+    },
     openColorField() {
       this.$emit('close');
       this.toggleColorField = !this.toggleColorField;

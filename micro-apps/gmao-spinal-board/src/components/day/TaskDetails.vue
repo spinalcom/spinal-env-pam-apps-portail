@@ -68,6 +68,7 @@ export default {
     taskDetails: null,
   }),
   mounted() {
+    console.log('Task details', this.task);
     this.taskDetails = this.task;
     /*
     this.taskDetails = {
