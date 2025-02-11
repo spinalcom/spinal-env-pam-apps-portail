@@ -3,22 +3,23 @@
     style=" width: 100%; font-size: 14px !important;background-color: rgb(255, 255, 255);border-radius: 10px !important;border-color: black !important;">
 
     <!-- BREADCRUMBS -->
-    <SpinalbreadCrumb @itemSelected="emitValue($event.listType, $event.value)" :ctx_list="ctx_list" :cat_list="cat_list"
+    <SpinalbreadCrumb @itemSelected="emitValue($event.listType, $event.value)" :sconfig="sconfig" :ctx_list="ctx_list" :cat_list="cat_list"
       :grp_list="grp_list"></SpinalbreadCrumb>
 
     <!-- LE TREEVIEW -->
-    <div title="Sélection de la catégory d'attribut / attribut" style="width: 100%; display: flex; margin-top: 10px; position: relative;">
+    <div title="Sélection de la catégory d'attribut / attribut"
+      style="width: 100%; display: flex; margin-top: 10px; position: relative;">
       <div
-        style="margin-left: 2px; z-index: 10; position: absolute; width: calc(100% - 70px - 10px); border-radius: 5px; background-color: rgb(255, 255, 255);">
+        style="margin-left: 2px; z-index: 10; position: absolute; width: calc(100% - 90px); border-radius: 5px; background-color: rgb(255, 255, 255);">
         <div class="mouse" @click="showattribut = !showattribut" style="">
           <v-icon v-if="!showattribut" color="black" style="font-size: 2em">mdi-chevron-down</v-icon>
           <v-icon v-else color="black" style="font-size: 2em">mdi-chevron-up</v-icon>
           <div v-if="!keyselected[0]">Selectionner des attributs.</div>
           <div style="padding-top: 5px;">
             <v-chip style="margin: 2px " v-for="(element, index) in keyselected" :key="index" :class="{
-      'blue-background': element.parentName === element.childName,
-      'red-background': element.parentName !== element.childName
-    }">
+              'blue-background': element.parentName === element.childName,
+              'red-background': element.parentName !== element.childName
+            }">
               {{ element.childName }}
               <div
                 style="top: -5px;right:-5px;position: absolute;background-color: white;border-radius: 20px;height: 15px;width: 15px;display: flex;justify-content: center;align-items: center;border: 1px solid #14202c; color: #14202c;">
@@ -45,6 +46,26 @@
     <!-- LE DATA TABLE -->
     <!-- items = filtred items / headers = headers / contexts = global items / selection = items du select / -->
     <div style="padding: 2px;margin-top: 65px;" class="scrollable-table-container">
+
+      <v-icon v-if="!ink" class="vignette_color" color="black" style="    position: fixed;
+    right: 66px;
+    z-index: 89;
+    background: white;
+    height: 50px;
+    margin-bottom: 50px;
+    transform: translate(-3px, -66px);" @click="changeColor(filteredContextsV); toggleInk()">mdi-invert-colors</v-icon>
+
+      <v-icon v-else class="vignette_color" color="black" style="
+    position: fixed;
+    right: 66px;
+    z-index: 89;
+    height: 50px;
+    background: white;
+    margin-bottom: 50px;
+    transform: translate(-3px, -66px);
+    " @click="desColor(filteredContextsV); toggleInk()">mdi-invert-colors-off</v-icon>
+
+
       <DataTable :selectedItemTab="selectedItemTab" :height="'74vh'" :items="filteredContextsV"
         :headers="dynamicHeaders()" :contexts="contexts" :selections="selections"
         @item-selected="selectDataView($event)" @filter="filtercolumn($event)" />
@@ -66,6 +87,8 @@ import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import SpinalComparaison from './SpinalComparaison.vue';
 import SpinalbreadCrumb from './SpinalbreadCrumb.vue';
 import DataTable from './SpinalDataTable';
+import { ActionTypes } from "../../interfaces/vuexStoreTypes";
+
 export default {
   components: {
     SmallLegend,
@@ -73,7 +96,7 @@ export default {
     SpinalbreadCrumb,
     DataTable
   },
-  props: ['contexts', 'temporality', 'unit', 'label', 'reference', 'selectedItemTab', 'ctx_list', 'cat_list', 'grp_list'],
+  props: ['contexts', 'temporality', 'unit', 'label', 'reference', 'selectedItemTab', 'ctx_list', 'cat_list', 'grp_list' , 'sconfig'],
   data: () => ({
     selections: {},
     tableData: [],
@@ -89,7 +112,11 @@ export default {
     checked: false,
     allFilteredData: [],
     currentfilter: null,
-    order: false
+    order: false,
+    ink: false,
+    Color_tab: [],
+    viewerLoadedValue: localStorage.getItem('viewer_loaded') || null,
+
   }),
   mounted() {
     this.extractData();
@@ -193,6 +220,74 @@ export default {
 
   methods: {
 
+    toggleInk() {
+      this.ink = !this.ink
+    },
+
+    changeColor(value) {
+      const buildingId = localStorage.getItem("idBuilding");
+      let itemsToColor = [];
+
+      // Fonction pour générer une couleur aléatoire
+      function getRandomColor() {
+        return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+      }
+
+      value.forEach(equipment => {
+        const color = getRandomColor();
+
+        // Ajouter l'élément avec sa couleur dans le tableau Color_tab
+        this.Color_tab.push({
+          dynamicId: equipment.dynamicId,
+          color: color,
+        });
+
+        // Préparer les données à envoyer au store
+        itemsToColor.push({
+          buildingId: buildingId,
+          dynamicId: equipment.dynamicId,
+          dbid: equipment.dbid,
+          bimFileId: equipment.bimFileId,
+          color: color,
+          floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+        });
+      });
+
+      // Envoyer les éléments à colorer au store via l'action
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: buildingId,
+      });
+
+      this.$emit('update-color-tab', this.Color_tab);
+
+    }
+    ,
+
+    desColor(value) {
+      this.Color_tab = []
+      const buildingId = localStorage.getItem("idBuilding");
+      let itemsToColor = []
+      value.forEach(equipment => {
+        itemsToColor.push({
+          buildingId: buildingId,
+          dynamicId: equipment.dynamicId,
+          dbid: equipment.dbid,
+          bimFileId: equipment.bimFileId,
+          color: "null",
+          floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+        });
+      });
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: buildingId,
+      });
+
+      this.$emit('update-color-tab', false);
+
+
+    },
+
     handleSuccess() {
       this.importAttr = false;
       this.$emit('updateSuccess');
@@ -248,6 +343,12 @@ export default {
         this.selected_cat = ""
       }
       this.$emit('itemSelected', { listType, value });
+
+
+      this.ink = false
+      this.desColor(this.filteredContextsV)
+      // this.changeColor(this.filteredContextsV)
+      // this.ink = true
     },
 
     onHeaderClick(headerName) {
@@ -403,6 +504,18 @@ export default {
     }
   },
   watch: {
+    '$store.state.appDataStore.zoneSelected.dynamicId': {
+      handler(newVal, oldVal) {
+        console.warn(`zoneSelected.dynamicId a changé : ancien = ${oldVal}, nouveau = ${newVal}`);
+        // this.handleZoneChange(newVal);
+        // this.$emit('update-color-tab', false);
+        this.$emit('update-color-false', true);
+        this.ink = false
+      },
+      deep: true
+    },
+
+
 
     allFilteredData(newVal, oldVal) {
       this.$emit('allFiltredData', newVal);
@@ -512,6 +625,18 @@ export default {
   z-index: 9;
 }
 
+.vignette_color {
+  font-size: 2em;
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 3px;
+  padding-left: 12px;
+  padding-right: 12px;
+  cursor: pointer;
+  transition: 0.5s;
+
+}
+
 .blur-background {
   background-color: rgba(0, 0, 0, 0.528);
   top: 0;
@@ -560,7 +685,7 @@ td {
 }
 
 .mouse {
-  width: 101%;
+  width: 96%;
   height: 50px;
   background-color: rgb(255, 255, 255);
   border-radius: 5px;

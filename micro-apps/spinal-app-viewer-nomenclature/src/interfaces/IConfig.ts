@@ -25,11 +25,12 @@
 import { ActionTypes } from "./vuexStoreTypes";
 
 export interface IConfig {
-	entryPoint: EntryPoint;
+	// entryPoint: EntryPoint;
 	viewButtons: "base" | "advanced";
 	viewerInfo: { roomRef: boolean; floorRef: boolean; equipments: "all" | "groupItem" | "none" };
 	sprites: boolean;
 	temporality: ITemporality[];
+	contextList: string[]
 }
 
 export const enum ITemporality {
@@ -39,4 +40,4 @@ export const enum ITemporality {
 	month = "Mois",
 	year = "Année",
 }
-export type EntryPoint = { context: string; group?: string; category?: string };
+// export type EntryPoint = { context: string; group?: string; category?: string };

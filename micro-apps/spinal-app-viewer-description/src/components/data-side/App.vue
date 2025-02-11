@@ -182,6 +182,16 @@
                     :style="{ cursor: 'pointer', marginLeft: '10px', color: iconColors[`${categoryName}-${item}`] || '#000' }">
                     mdi-map-marker-remove-variant
                   </v-icon>
+
+                  <v-icon v-if="!col[categoryName] || col[categoryName].indexOf(item) === -1"
+                    @click="() => { colorElement(item, categoryName); closecol(item, categoryName)}" style="cursor: pointer; margin-left: 10px;">
+                    mdi-invert-colors
+                  </v-icon>
+                  <v-icon v-else @click="() => { descolorElement(item, categoryName); closecol(item, categoryName) }"
+                    :style="{ cursor: 'pointer', marginLeft: '10px', color: iconColors[`${categoryName}-${item}`] || '#000' }">
+                    mdi-invert-colors-off
+                  </v-icon>
+
                 </div>
               </div>
             </div>
@@ -625,6 +635,7 @@ class dataSideApp extends Vue {
   ticketsList: any = [];
   eyes: any = {};
   ink: any = {};
+  col: any = {};
   referencedId: any = 0;
   referencedType: any = 'building';
   cpIdToDraw: [];
@@ -960,6 +971,70 @@ class dataSideApp extends Vue {
     // this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
     // console.log('elemtn toto delete ' , item);
     this.$store.dispatch(ActionTypes.REMOVE_SPRITES_BY_GROUP, item + categoryName);
+  }
+
+  async colorElement(item, categoryName) {
+
+    const itemType = item.substring(item.indexOf(' ') + 1);
+
+    const categoryData = this.inventoryDbids[categoryName];
+    if (!categoryData || !categoryData[itemType]) {
+      console.warn(`⚠ Aucun élément trouvé pour "${item}" dans la catégorie "${categoryName}".`);
+      return;
+    }
+
+    const groupData = categoryData[itemType];
+    const buildingId = localStorage.getItem("idBuilding");
+    const itemsToColor = [];
+    for (const [bimFileId, entries] of Object.entries(groupData)) {
+      entries.forEach(equipment => {
+        itemsToColor.push({
+          buildingId: buildingId,
+          dynamicId: equipment.dynamicId,
+          dbid: equipment.dbid,
+          bimFileId,
+          color: "#24CBD9",
+          floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+        });
+      });
+    }
+
+    this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+      items: itemsToColor,
+      buildingId: buildingId,
+    });
+  }
+
+  async descolorElement(item, categoryName) {
+
+    const itemType = item.substring(item.indexOf(' ') + 1);
+
+    const categoryData = this.inventoryDbids[categoryName];
+    if (!categoryData || !categoryData[itemType]) {
+      console.warn(`⚠ Aucun élément trouvé pour "${item}" dans la catégorie "${categoryName}".`);
+      return;
+    }
+
+    const groupData = categoryData[itemType];
+    const buildingId = localStorage.getItem("idBuilding");
+    const itemsToColor = [];
+    for (const [bimFileId, entries] of Object.entries(groupData)) {
+      entries.forEach(equipment => {
+        itemsToColor.push({
+          buildingId: buildingId,
+          dynamicId: equipment.dynamicId,
+          dbid: equipment.dbid,
+          bimFileId,
+          color: null,
+          floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+        });
+      });
+    }
+
+    this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+      items: itemsToColor,
+      buildingId: buildingId,
+    });
   }
 
   async showIconElement(item, categoryName) {
@@ -2037,6 +2112,21 @@ class dataSideApp extends Vue {
       this.ink[categoryName].push(item);
     } else {
       this.ink[categoryName].splice(itemIndex, 1);
+    }
+  }
+
+  closecol(item, categoryName) {
+    if (!this.col[categoryName]) {
+      // Utilisation de $set pour rendre la propriété réactive
+      this.$set(this.col, categoryName, []);
+    }
+
+    const itemIndex = this.col[categoryName].indexOf(item);
+
+    if (itemIndex === -1) {
+      this.col[categoryName].push(item);
+    } else {
+      this.col[categoryName].splice(itemIndex, 1);
     }
   }
 

@@ -25,13 +25,7 @@
 import { IConfig, ITemporality } from "./interfaces/IConfig";
 
 export const config: IConfig = {
-	// entryPoint: { context: "Espace Cardiweb", category: "isMeetingRoom", group: "Yes" },
-	entryPoint: { context: "Gestion des équipements", category: "Typologie", group: "CVC" },
-	// entryPoint: {
-	// 	context: "Gestion des espaces",
-	// 	category: "Typologie",
-	// 	group: "Bureaux",
-	// },
+	contextList: ['Gestion des équipements', 'Gestion des espaces'],
 	viewButtons: "base",
 	sprites: true,
 	viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },
