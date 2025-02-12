@@ -17,13 +17,14 @@
         @dayFilter="dayFilter"
         @toggle="toggle"
         :defaultSource="defaultSource"
+        :loading="loading"
         :calMonths="calMonths"
       ></HeatCal>
-      <LoadingCard v-if="loading" style="width: 100%; height: 60%; position: absolute; "/>
+      <!-- <LoadingCard v-if="loading" style="width: 100%; height: 60%; position: absolute; "/> -->
       <div class="stat-heat">
         <div class="stats">
           <StatsCard v-if="calendar && calendar.d" :value="unit.shortName === '%' ? stat.value : stat.maxCapacity" :unit="unit.shortName" :title="stat.text"/>
-          <LoadingCard v-else style="width: 100%; height: 74px;"/>
+          <LoadingCard v-if="loading" style="width: 100%; height: 74px; position: absolute; top: 0;"/>
         </div>
         <div class="heat" style="position: relative;">
           <p v-if="!weekData" class="text-center">Aucune donnée</p>
@@ -431,6 +432,11 @@ class App extends Vue {
     this.loading = false;
   }
 
+
+  @Watch('loading')
+  async loadingChange(v) {
+    this.loading = v;
+  }
   @Watch('temporality')
   async timeChange(v) {
     if (v.name === 'Année') {
@@ -589,6 +595,7 @@ export default App;
 
 .stats {
   width: 50%;
+  position: relative;
 }
 .heat {
   width: 50%;

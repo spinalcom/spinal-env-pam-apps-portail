@@ -2,6 +2,7 @@
     <v-card
         class="bar-card  d-flex flex-shrink-1 flex-column"
     >
+    <LoadingCard v-if="loading"  style="width: 100%; height: 100%; position: absolute; top: 0; z-index: 1000;"/>
     <v-card-title class="card-title flex-shrink-1 justify-space-between">
         <p class="mb-0" style="padding: 10px;">
             {{ title }}
@@ -121,7 +122,8 @@ export default {
         source: {required: true},
         defaultSource: {required: true},
         chart: {type: String, required: false},
-        calMonths: {required: true}
+        calMonths: {required: true},
+        loading : {type: Boolean, required: true}
     },
     mounted() {
         this.arrCal = this.data.d;
