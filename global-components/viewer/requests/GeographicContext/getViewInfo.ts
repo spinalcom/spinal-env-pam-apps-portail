@@ -111,7 +111,8 @@ export async function getAndFormatModels(buildingId: string, res : IViewInfoTmpR
         name: itm.name,
         path: getPath(itm),
         aecPath: getAecPath(itm),
-        dbids
+        dbids,
+        offset: itm.offset
       })
     }
 
@@ -141,7 +142,6 @@ async function getFirstScene(spinalAPi: SpinalAPI, buildingId: string) {
 
 // export async function getAndFormatModels(res: IViewInfoTmpRes[]) {
 //   return res.map((it: IViewInfoTmpRes) => {
-//     console.log(it);
 //     return {
 //       id: it.bimFileId,
 //       dbIds: Array.from(it.dbIds),

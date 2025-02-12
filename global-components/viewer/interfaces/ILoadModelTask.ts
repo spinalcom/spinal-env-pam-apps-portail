@@ -22,6 +22,7 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
+
 export interface IloadModelTask {
    path: string;
    dbids?: number[];
@@ -29,4 +30,5 @@ export interface IloadModelTask {
    id: string;
    name: string;
    bimFileId?: string;
-}
+   offset?: any;
+ }

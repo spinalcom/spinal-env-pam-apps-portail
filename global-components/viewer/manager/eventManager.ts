@@ -25,7 +25,7 @@ import { VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_C
 import { ViewerUtils } from "../utils/viewerUtils";
 import ModelManager from "./modelManager";
 import { VIEWER_EVENTS } from "../events";
-
+// import { store } from "../../../services/store";
 const emitterHandler = EmitterViewerHandler.getInstance();
 emitterHandler.setTarget(window.parent, "viewer");
 
@@ -50,19 +50,22 @@ export class EventManager {
 			const viewerUtils = ViewerUtils.getInstance();
 
 			emitterHandler.on(VIEWER_START_LOAD_MODEL, async (data: any) => {
+				// localStorage.setItem("viewer_loaded", 'unload');
 				const models = await viewerUtils.load3DModels(viewer, data);
 				// emitterHandler.emit(<any>VIEWER_EVENTS.LOADED,{id: data.item.staticId, models})
 				emitterHandler.emit(<any>VIEWER_EVENTS.LOADED, { id: data.item.dynamicId, models });
-				console.log('VIEWER FINISHED LOADING YOUPII')
+
+				localStorage.setItem("viewer_loaded", 'loaded');
 			});
 
 			emitterHandler.on(VIEWER_OBJ_ISOLATE, (data: any) => {
+				// localStorage.setItem("viewer_loaded", 'unload');
 				if (data && data.length > 0) return viewerUtils.viewerIsolation(viewer, data);
 				viewerUtils.showAllObject(viewer);
+				localStorage.setItem("viewer_loaded", 'loaded');
 			});
 
 			// emitterHandler.on(VIEWER_HIDE_ELEMENT, (data: any) => {
-			// 	console.warn('toto888888888888888888888888888888');
 
 			// 	if (data && data.length > 0) return viewerUtils.viewerIsolation(viewer, data);
 			// 	viewerUtils.hideElementsByDbIds(viewer , []);
@@ -132,36 +135,14 @@ export class EventManager {
 				viewerUtils.addSphere(viewer, data);
 			});
 
-			// Code dans eventManager.ts
 			emitterHandler.on(VIEWER_REM_SPHERE, (data: any) => {
-
-				console.log('ICI SALUT ,,,', '///////////////////////////////////////////////////////////////////');
 				
-
-				const storedNumbers = localStorage.getItem('Hidendbid');
-				let numbersArray = [];
-
-				if (storedNumbers !== null) {
-					try {
-						// Vérifier si la chaîne est valide
-						if (storedNumbers.startsWith('[') && storedNumbers.endsWith(']')) {
-							numbersArray = JSON.parse(storedNumbers);
-						} else {
-							// Essayer de corriger la chaîne si possible
-							const correctedString = '[' + storedNumbers.split(',').map(Number).join(',') + ']';
-							numbersArray = JSON.parse(correctedString);
-						}
-					} catch (e) {
-						console.error("Erreur de parsing JSON:", e);
-					}
-				}
-
-
-				if (data && data.length > 0) {
-					viewerUtils.hideElementsByDbIds(viewer, numbersArray);
-				} else {
-					viewerUtils.hideElementsByDbIds(viewer, [4247]);
-				}
+				// const $store = store
+				// const storedItem = $store.state.appDataStore.itemToHide
+				viewerUtils.hideElementsByDbIds(viewer, data?.itemToHIde);
+				// if (data && data.length > 0) {					
+					
+				// } 
 			});
 
 
