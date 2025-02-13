@@ -457,7 +457,6 @@ export default {
   },
   watch: {
     async zoom(v1, v2) {
-      console.log(`Zooming from ${v2} to ${v1}`);
       this.isScrolling = false;
       const checkPointStart = this.viewPortEdges.start;
       const checkPointEnd = this.viewPortEdges.end;
@@ -477,7 +476,7 @@ export default {
       this.fontSize.medium = minFontSize + ((v1 - this.minZoom) / (this.maxZoom - this.minZoom)) * (maxFontSize - minFontSize);
 
       // Ensure the fontSize is within the bounds of 6 and 18
-      this.fontSize.medium  = Math.max(minFontSize, Math.min(this.fontSize.medium, maxFontSize));
+      this.fontSize.medium = Math.max(minFontSize, Math.min(this.fontSize.medium, maxFontSize));
 
       // Calculate the smaller font size, starting from 10
       const minSmallFontSize = 6;
