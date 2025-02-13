@@ -23,7 +23,7 @@ export default {
   props: [],
   data: () => ({
     selected: null,
-    toggleColorField: true,
+    toggleColorField: false,
   }),
   methods: {
     selectColorType(name) {

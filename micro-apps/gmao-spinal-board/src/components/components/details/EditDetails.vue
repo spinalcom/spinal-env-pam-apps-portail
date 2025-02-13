@@ -124,7 +124,6 @@ export default {
     const wid = this.task.workflowId;
     const pid = this.task.processId;
     this.stepList = await step.getStepsByProcess(wid, pid);
-    console.log('stepList', this.stepList);
   },
   methods: {
     async updateEstimatedStartDate(date) {

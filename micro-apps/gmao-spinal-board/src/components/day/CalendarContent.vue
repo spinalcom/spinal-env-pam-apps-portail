@@ -125,7 +125,6 @@ export default {
   },
   methods: {
     showTicketDetails(task) {
-      console.log('showTicketDetails', task);
       this.$emit('showTicketDetails', task);
     },
     resizeWholePeriod(task, estimatedStartDate, estimatedEndDate) {

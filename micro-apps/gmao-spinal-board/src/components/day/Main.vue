@@ -18,7 +18,6 @@
             v-model="zoom"
             :min="minZoom"
             :max="maxZoom"
-            step="5"
             ticks="always"
             tick-size="1"
             thumb-color="#14202c"
@@ -201,6 +200,7 @@ export default {
     selectedStart: 'Date de début estimée',
     selectedEnd: 'Date de fin estimée',
     colorType: null,
+    centeredDateCheckpoints: null, // this where the date is centered and where it should be after zooming in or out,
   }),
   created() {
     this.current = moment();
@@ -319,7 +319,7 @@ export default {
       } else if (this.scrollLeft + parentWidth >= childWidth - this.margin) {
         this.triggerNearRightEdge();
       }
-    }, 100),
+    }, 500),
     triggerNearLeftEdge() {
       const tempStart = this.start;
       this.prependPeriod();
@@ -346,11 +346,33 @@ export default {
       const date = this.current
       this.isScrolling = animation;
       await this.$nextTick();
-      this.$refs.calendar.scrollLeft = date.diff(this.start, 'days') * this.dayWidth - this.sidebarWidth - ( (this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2 );
+      this.$refs.calendar.scrollLeft = 
+        date.diff(this.start, 'days') * this.dayWidth - this.sidebarWidth 
+        - ((this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2);
       await this.$nextTick();
       this.isScrolling = true;
     },
-    bringTheDay(date) {
+    async bringTheDay(date, position) {
+      if (position === 'right') {
+        const diff = moment(date).diff(this.end, 'months');
+        if (diff > 0) {
+          for (let i = 0; i < (diff + 6); i += 3) {
+            await this.appendPeriod();
+          }
+        }
+      }
+      else if (position === 'left') {
+        const diff = moment(date).diff(this.start, 'months');
+        if (diff < 0) {
+          for (let i = 0; i < -(diff - 6); i += 3) {
+            await this.prependPeriod();
+          }
+        }
+      }
+      this.$refs.calendar.scrollLeft = moment(date)
+        .diff(this.start, 'days') * this.dayWidth
+        - this.sidebarWidth
+        - ( (this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2 );
     },
     async bringDay(ticket) {
       const { position } = ticket;
@@ -375,6 +397,7 @@ export default {
       this.$refs.calendar.scrollLeft = moment(estimatedStartDate).diff(this.start, 'days') * this.dayWidth - this.sidebarWidth - ( (this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2 );
     },
     async verticalScroll(direction) {
+
       if (direction === 'right') {
         if ((this.end.diff(this.viewPortEdges.end, 'days') - this.viewPortWidthInDays) < this.viewPortWidthInDays) {
           await this.appendPeriod();
@@ -414,7 +437,7 @@ export default {
     handleResize() {
       this.updatePlanDimensions();
     },
-    zoomAction(type) {
+    async zoomAction(type) {
       if (type === 'in') {
         this.zoom += 5;
       }
@@ -433,7 +456,13 @@ export default {
     }
   },
   watch: {
-    zoom(v1) {
+    async zoom(v1, v2) {
+      console.log(`Zooming from ${v2} to ${v1}`);
+      this.isScrolling = false;
+      const checkPointStart = this.viewPortEdges.start;
+      const checkPointEnd = this.viewPortEdges.end;
+      const center = moment(checkPointStart).add(this.viewPortWidthInDays / 2, 'days');
+      const position = v1 > v2 ? 'right' : 'left';
       this.taskHeight = v1;
       this.dayWidth = v1;
       const minBigFontSize = 8;
@@ -458,6 +487,10 @@ export default {
       // Ensure the fontSizeSmall is within the bounds of 6 and 12
       this.fontSize.small = Math.max(minSmallFontSize, Math.min(this.fontSize.small, maxSmallFontSize));
 
+      await this.$nextTick();
+      this.bringTheDay(center, position);
+      await this.$nextTick();
+      this.isScrolling = true;
       this.updateViewport();
     }
   },

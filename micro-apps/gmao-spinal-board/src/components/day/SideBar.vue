@@ -197,7 +197,7 @@ export default {
       this.$emit('taskListChanged', this.flattenedList(this.nestedList));
     },
     flattenedList(nestedList) {
-      return nestedList.reduce((acc, workflow) => {
+      const flatRes = nestedList.reduce((acc, workflow) => {
         acc.push(workflow);
         if (workflow.state === 'open') {
           workflow.processes.forEach(process => {
@@ -209,6 +209,8 @@ export default {
         }
         return acc;
       }, []);
+      console.log('FlatRes:', flatRes);
+      return flatRes;
     },
     workflowHeight(workflow) {
       if (!Array.isArray(workflow.processes) || workflow.state === 'close') {
