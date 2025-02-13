@@ -4,7 +4,7 @@ import process from './process';
 import step from './step';
 import ticket from './ticket';
 
-export default async function () {
+async function getAll() {
   const bid = localStorage.getItem('idBuilding');
 
   const workflowList = await workflow.list(bid);
@@ -45,3 +45,11 @@ function removeProcessWithNoTickets(workflowList) {
     };
   });
 }
+
+const ticketService = {
+  getAll,
+  removeProcessWithNoTickets,
+};
+
+export default ticketService;
+

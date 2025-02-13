@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import tickets from '../services/tickets';
+import tickets from '../services/tickets/index.js';
 import dates from '../services/tickets/dates.js';
 import MonthView from './month/Main';
 import WeekView from './week/Main';
@@ -33,18 +33,22 @@ export default {
     DayView,
     YearView,
   },
-  props: ['temporality'],
+  props: ['temporality', 'space'],
   computed: {},
   data: () => ({
+    freezedTicketList: [],
+    freezedNestedList: [],
     loaded: false,
     ticketList: null,
     nestedList: [],
   }),
   created() {},
   async mounted () {
-    const response = await tickets();
+    const response = await tickets.getAll();
     this.ticketList = response.flat;
     this.nestedList = response.nested;
+    this.freezedTicketList = response.flat;
+    this.freezedNestedList = response.nested;
     this.loaded = true;
   },
   methods: {
@@ -63,8 +67,8 @@ export default {
       try {
         this.ticketList = this.ticketList.map((ticket) => {
           if (ticket.ticketId === task.ticketId) {
-            ticket.estimatedStartDate = estimatedStartDate;
-            ticket.estimatedEndDate = estimatedEndDate;
+            ticket.dates.find(date => date.name === 'Date de début estimée').value = estimatedStartDate;
+            ticket.dates.find(date => date.name === 'Date de fin estimée').value = estimatedEndDate;
           }
           return ticket;
         });
@@ -77,7 +81,7 @@ export default {
     resizeStart(task, estimatedStartDate) {
       this.ticketList = this.ticketList.map((ticket) => {
         if (ticket.ticketId === task.ticketId) {
-          ticket.estimatedStartDate = estimatedStartDate;
+          ticket.dates.find(date => date.name === 'Date de début estimée').value = estimatedStartDate;
         }
         return ticket;
       });
@@ -86,7 +90,7 @@ export default {
       try {
         this.ticketList = this.ticketList.map((ticket) => {
           if (ticket.ticketId === task.ticketId) {
-            ticket.estimatedEndDate = estimatedEndDate;
+            ticket.dates.find(date => date.name === 'Date de fin estimée').value = estimatedEndDate;
           }
           return ticket;
         });
@@ -96,7 +100,53 @@ export default {
       }
     },
   },
-  watch: {},
+  watch: {
+    space: {
+      handler: async function (space) {
+        if (space.type === 'building') {
+          this.ticketList = this.freezedTicketList;
+          this.nestedList = this.freezedNestedList;
+        } else if (space.type === 'floor') {
+          try {
+            this.ticketList = this.freezedTicketList.filter((ticket) =>
+              ticket.location && ticket.location.floor === space.dynamicId);
+            this.nestedList = this.freezedNestedList.map((w) => ({
+              ...w,
+              processes: w.processes.map((p) => ({
+                ...p,
+                ticketList: p.ticketList.filter((t) =>
+                  t.location &&
+                  t.location.floor === space.dynamicId
+                )
+              }))
+            }));
+            this.nestedList = tickets.removeProcessWithNoTickets(this.nestedList);
+          } catch (error) {
+            console.error('Error filtering tickets by floor', error);
+          }
+        } else if (space.type === 'room') {
+          try {
+            this.ticketList = this.freezedTicketList.filter((ticket) =>
+              ticket.location && ticket.location.room === space.dynamicId);
+            this.nestedList = this.freezedNestedList.map((w) => ({
+              ...w,
+              processes: w.processes.map((p) => ({
+                ...p,
+                ticketList: p.ticketList.filter((t) =>
+                  t.location &&
+                  t.location.room === space.dynamicId
+                )
+              }))
+            }));
+            this.nestedList = tickets.removeProcessWithNoTickets(this.nestedList);
+          } catch (error) {
+            console.error('Error filtering tickets by room', error);
+          }
+        }
+      },
+      deep: true,
+    },
+  },
 }
 </script>
 

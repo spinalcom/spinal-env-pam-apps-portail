@@ -10,7 +10,7 @@
     @mouseleave="stopListening"
   >
     <div
-      v-if="!task.estimatedStartDate && task.state === 'ticket' && mouseMoveHandler"
+      v-if="!estimatedStartDate && task.state === 'ticket' && mouseMoveHandler && selectedDateFields.selectedStart === 'Date de début estimée'"
       :style="[
         { 'left': Math.floor(mouseX / dayWidth) * dayWidth + 'px' },
         { 'height': (taskHeight - 8) + 'px' },
@@ -32,6 +32,8 @@
       :task="task"
       :start="start"
       :fontSize="fontSize"
+      :selectedDateFields="selectedDateFields"
+      :colorType="colorType"
       @resizeWholePeriod="resizeWholePeriod"
       @resizeStart="resizeStart"
       @resizeEnd="resizeEnd"
@@ -53,6 +55,8 @@ export default {
     'dayWidth',
     'taskHeight',
     'fontSize',
+    'selectedDateFields',
+    'colorType',
   ],
   components: {
     Period,
@@ -60,6 +64,37 @@ export default {
   mounted() {
     // client width of the task container
     const taskContainer = this.$refs.wideTask.clientWidth;
+  },
+  computed: {
+    estimatedStartDate() {
+      try {
+        const selectedStartDate = this.selectedDateFields.selectedStart;
+        const date = this.task.dates.find(date => date.name === selectedStartDate);
+        const value = date ? date.value : null;
+        if (value) {
+          return value;
+        } else {
+          const selectedEndDate = this.selectedDateFields.selectedEnd;
+          const endDate = this.task.dates.find(date => date.name === selectedEndDate);
+          const endValue = endDate ? endDate.value : null;
+          if (endValue) {
+            return moment(endValue).startOf('day').valueOf();
+          }
+        }
+        return null;
+      } catch (error) {
+        return null;
+      }
+    },
+    estimatedEndDate() {
+      try {
+        const selectedEndDate = this.selectedDateFields.selectedEnd;
+        const d = this.task.dates.find(date => date.name === selectedEndDate);
+        return d ? d.value : null;
+      } catch (error) {
+        return null;
+      }
+    },
   },
   data: () => ({
     mouseX: null,
@@ -75,7 +110,7 @@ export default {
       this.$emit('startTicket', this.task, estimatedStartDate);
     },
     startListening() {
-      if (this.task.estimatedStartDate || this.task.state !== 'ticket') {
+      if (this.estimatedStartDate || this.task.state !== 'ticket') {
         return;
       }
 
@@ -99,7 +134,6 @@ export default {
       }
     },
     showTicketDetails(task) {
-      console.log('showTicketDetails', task);
       this.$emit('showTicketDetails', task);
     },
     resizeWholePeriod(task, estimatedStartDate, estimatedEndDate) {

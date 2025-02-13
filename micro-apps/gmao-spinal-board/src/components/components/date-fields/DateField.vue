@@ -1,44 +1,28 @@
 
 <template>
   <div class="date-field">
+
     <div style="position: relative;">
-      <div
-        :style="[
+      <div :style="[
         { 'background': toggleStartDateField ? '#d9d9d9' : 'transparent' },
-        ]"
-        class="action-group"
-        @click="openStartDateField()">
-        <v-icon class="action-icon icon">
-          mdi-calendar-week-begin-outline
-        </v-icon>
+        ]" class="action-group" @click="openStartDateField()">
+        <v-icon class="action-icon icon"> mdi-calendar-week-begin-outline </v-icon>
         Début
       </div>
-      <DateFieldSelector
-        :toggle="toggleStartDateField"
-        :type="'start'"
-        @select-date-field="selectDateField"
-        class="date-fields-selector"
-      />
+      <DateFieldSelector :toggle="toggleStartDateField" :type="'start'"
+        @select-date-field="selectDateField" class="date-fields-selector" />
     </div>
+
     <div style="position: relative;">
-      <div
-        :style="[
-        { 'background': toggleEndDateField ? '#d9d9d9' : 'transparent' },
-        ]"
-        class="action-group"
-        @click="openEndDateField()">
-        <v-icon class="action-icon icon transpose">
-          mdi-calendar-week-begin-outline
-        </v-icon>
+      <div :style="[{ 'background': toggleEndDateField ? '#d9d9d9' : 'transparent' }]"
+        class="action-group" @click="openEndDateField()">
+        <v-icon class="action-icon icon transpose">mdi-calendar-week-begin-outline</v-icon>
         Fin
       </div>
-      <DateFieldSelector
-      :toggle="toggleEndDateField"
-      :type="'end'"
-      @select-date-field="selectDateField"
-      class="date-fields-selector"
-      />
+      <DateFieldSelector :toggle="toggleEndDateField" :type="'end'"
+      @select-date-field="selectDateField" class="date-fields-selector"/>
     </div>
+
   </div>
 </template>
 
@@ -49,7 +33,7 @@ export default {
   components: {
     DateFieldSelector,
   },
-  props: [ ],
+  props: [],
   mounted() { },
   data: () => ({
     toggleStartDateField: false,
@@ -78,6 +62,11 @@ export default {
       } else {
         this.selected.endDate = name;
       }
+      this.$emit(type, name);
+      this.toggleStartDateField = false;
+      this.toggleEndDateField = false;
+    },
+    closeDateFields() {
       this.toggleStartDateField = false;
       this.toggleEndDateField = false;
     },

@@ -6,6 +6,7 @@
       :task="selectedTaskDetails"
       @resetTaskDetails="selectedTaskDetails = null"
       />
+
     <div class="action-bar">
       <div class="icon-action-group">
         <v-icon class="action-icon icon" @click="verticalScroll('left')">mdi-chevron-left</v-icon>
@@ -17,7 +18,6 @@
             v-model="zoom"
             :min="minZoom"
             :max="maxZoom"
-            step="5"
             ticks="always"
             tick-size="1"
             thumb-color="#14202c"
@@ -32,7 +32,11 @@
         Aujourd'hui
       </div>
 
-      <DateField />
+      <DateField
+        ref="dateField"
+        @start="selectedStart = $event"
+        @end="selectedEnd = $event"
+        />
 
       <div class="action-group">
         <v-icon class="action-icon icon">mdi-sort</v-icon>
@@ -42,17 +46,20 @@
         <v-icon class="action-icon icon">mdi-filter</v-icon>
         Filter
       </div>
+      <ColorSelector
+        @close="closeMenus" 
+        @select-color-type="selectColorType"/>
     </div>
 
     <div :style="[
       { 'width': planWidth + dayWidth + 'px' },
-      { 'height': planHeight + (taskHeight * 2) + 'px' },
-      { 'min-height': planHeight + (taskHeight * 2) + 'px' },
+      { 'height': planHeight + (taskHeight * 3) + 'px' },
+      { 'min-height': planHeight + (taskHeight * 3) + 'px' },
       ]" class="plan">
 
       <div 
         :style="[
-          { 'font-size': fontSize.medium + 'px' },
+        { 'font-size': fontSize.medium + 'px' },
         ]"
         class="month-strip top-bar">
         <div
@@ -60,15 +67,32 @@
           :key="month.name + '/' + month.year"
           class="month-placement"
           :style="[
-            { 'width': month.days * dayWidth + 'px' },
-            { 'font-size': fontSize.medium + 'px' },
-            { 'z-index': index },
+          { 'width': month.days * dayWidth + 'px' },
+          { 'font-size': fontSize.medium + 'px' },
+          { 'z-index': index },
+          ]">
+        </div>
+      </div>
+
+      <div 
+        :style="[
+        { 'font-size': fontSize.medium + 'px' },
+        ]"
+        class="month-strip secondary-bar">
+        <div
+          v-for="(month, index) in monthList"
+          :key="month.name + '/' + month.year"
+          class="month-placement"
+          :style="[
+          { 'width': month.days * dayWidth + 'px' },
+          { 'font-size': fontSize.medium + 'px' },
+          { 'z-index': index },
           ]">
           {{ month.name.charAt(0).toUpperCase() + month.name.slice(1) }} {{ month.year }}
         </div>
       </div>
 
-      <div class="month-strip secondary-bar bottom-divider">
+      <div class="month-strip third-bar bottom-divider">
         <div
           v-for="month in monthList"
           :key="month.name + '/' + month.year"
@@ -79,8 +103,8 @@
             :key="day + '/' + month.name + '/' + month.year"
             :class="{ today: currentMarker === day + '/' + month.name + '/' + month.year }"
             :style="[
-              { 'font-size': fontSize.small + 'px' },
-              { 'width': dayWidth + 'px !important' },
+            { 'font-size': fontSize.small + 'px' },
+            { 'width': dayWidth + 'px !important' },
             ]"
             class="day full-center">
             {{ day }}
@@ -93,32 +117,35 @@
         <div class="dot" 
           :style="[
             { 'left': markerOffset + (dayWidth / 2 - 3) + 'px' },
-          ]"></div>
+          ]">
+        </div>
       </div>
 
       <div class="plan-background" :style="{ 'height': planHeight  + 'px' }">
         <!-- CalendarContent component -->
           <CalendarContent
-          :ticketList="ticketList"
-          :nestedList="nestedList"
-          :separator="separator"
-          :start="start"
-          :end="end"
-          :viewPortEdges="viewPortEdges"
-          :dayWidth="dayWidth"
-          :taskHeight="taskHeight"
-          :fontSize="fontSize"
-          @bringDay="bringDay"
-          @goto="bringTheDay"
-          @planHeight="planH"
-          @resizedSideBar="resizedSideBar"
-          @resizeWholePeriod="(task, estimatedStartDate, estimatedEndDate) => $emit('resizeWholePeriod', task, estimatedStartDate, estimatedEndDate)"
-          @resizeStart="(task, estimatedStartDate) => $emit('resizeStart', task, estimatedStartDate)"
-          @resizeEnd="(task, estimatedEndDate) => $emit('resizeEnd', task, estimatedEndDate)"
-          @showTicketDetails="showTicketDetails"
-          @startTicket="(task, estimatedStartDate) => $emit('startTicket', task, estimatedStartDate)"
-          @createTicket="(task, estimatedStartDate, estimatedEndDate) => $emit('createTicket', task, estimatedStartDate, estimatedEndDate)"
-          />
+            :ticketList="ticketList"
+            :nestedList="nestedList"
+            :separator="separator"
+            :start="start"
+            :end="end"
+            :selectedDateFields="{ selectedStart, selectedEnd }"
+            :viewPortEdges="viewPortEdges"
+            :dayWidth="dayWidth"
+            :taskHeight="taskHeight"
+            :fontSize="fontSize"
+            :colorType="colorType"
+            @bringDay="bringDay"
+            @goto="bringTheDay"
+            @planHeight="planH"
+            @resizedSideBar="resizedSideBar"
+            @resizeWholePeriod="(task, estimatedStartDate, estimatedEndDate) => $emit('resizeWholePeriod', task, estimatedStartDate, estimatedEndDate)"
+            @resizeStart="(task, estimatedStartDate) => $emit('resizeStart', task, estimatedStartDate)"
+            @resizeEnd="(task, estimatedEndDate) => $emit('resizeEnd', task, estimatedEndDate)"
+            @showTicketDetails="showTicketDetails"
+            @startTicket="(task, estimatedStartDate) => $emit('startTicket', task, estimatedStartDate)"
+            @createTicket="(task, estimatedStartDate, estimatedEndDate) => $emit('createTicket', task, estimatedStartDate, estimatedEndDate)"
+            />
       </div>
     </div>
   </div>
@@ -128,9 +155,10 @@
 import CalendarContent from './CalendarContent.vue';
 import TaskDetails from './TaskDetails.vue';
 import DateField from '../components/date-fields/DateField.vue';
-import DateFieldsSelector from '../components/DateFieldsSelector.vue';
+import ColorSelector from '../components/color-selector/ColorSelector.vue';
 import { throttle } from 'lodash';
 import moment from 'moment';
+import 'moment/locale/fr';
 moment.locale('fr');
 export default {
   name: 'MonthView',
@@ -139,7 +167,7 @@ export default {
     CalendarContent,
     TaskDetails,
     DateField,
-    DateFieldsSelector,
+    ColorSelector,
   },
   data: () => ({
     selectedTaskDetails: null,
@@ -169,8 +197,10 @@ export default {
       medium: 12,
       small: 10,
     },
-    toggleStartDateField: false,
-    toggleEndDateField: false,
+    selectedStart: 'Date de début estimée',
+    selectedEnd: 'Date de fin estimée',
+    colorType: null,
+    centeredDateCheckpoints: null, // this where the date is centered and where it should be after zooming in or out,
   }),
   created() {
     this.current = moment();
@@ -289,7 +319,7 @@ export default {
       } else if (this.scrollLeft + parentWidth >= childWidth - this.margin) {
         this.triggerNearRightEdge();
       }
-    }, 100),
+    }, 500),
     triggerNearLeftEdge() {
       const tempStart = this.start;
       this.prependPeriod();
@@ -316,14 +346,38 @@ export default {
       const date = this.current
       this.isScrolling = animation;
       await this.$nextTick();
-      this.$refs.calendar.scrollLeft = date.diff(this.start, 'days') * this.dayWidth - this.sidebarWidth - ( (this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2 );
+      this.$refs.calendar.scrollLeft = 
+        date.diff(this.start, 'days') * this.dayWidth - this.sidebarWidth 
+        - ((this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2);
       await this.$nextTick();
       this.isScrolling = true;
     },
-    bringTheDay(date) {
+    async bringTheDay(date, position) {
+      if (position === 'right') {
+        const diff = moment(date).diff(this.end, 'months');
+        if (diff > 0) {
+          for (let i = 0; i < (diff + 6); i += 3) {
+            await this.appendPeriod();
+          }
+        }
+      }
+      else if (position === 'left') {
+        const diff = moment(date).diff(this.start, 'months');
+        if (diff < 0) {
+          for (let i = 0; i < -(diff - 6); i += 3) {
+            await this.prependPeriod();
+          }
+        }
+      }
+      this.$refs.calendar.scrollLeft = moment(date)
+        .diff(this.start, 'days') * this.dayWidth
+        - this.sidebarWidth
+        - ( (this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2 );
     },
     async bringDay(ticket) {
-      const { position, estimatedStartDate } = ticket;
+      const { position } = ticket;
+      const estimatedStartDate = moment(ticket.dates
+        .find(date => date.name === this.selectedStart).value);
       if (position === 'right') {
         const diff = moment(estimatedStartDate).diff(this.end, 'months');
         if (diff > 0) {
@@ -343,6 +397,7 @@ export default {
       this.$refs.calendar.scrollLeft = moment(estimatedStartDate).diff(this.start, 'days') * this.dayWidth - this.sidebarWidth - ( (this.$refs.calendar.offsetWidth - this.sidebarWidth) / 2 );
     },
     async verticalScroll(direction) {
+
       if (direction === 'right') {
         if ((this.end.diff(this.viewPortEdges.end, 'days') - this.viewPortWidthInDays) < this.viewPortWidthInDays) {
           await this.appendPeriod();
@@ -382,7 +437,7 @@ export default {
     handleResize() {
       this.updatePlanDimensions();
     },
-    zoomAction(type) {
+    async zoomAction(type) {
       if (type === 'in') {
         this.zoom += 5;
       }
@@ -393,9 +448,21 @@ export default {
     showTicketDetails(task) {
       this.selectedTaskDetails = task;
     },
+    closeMenus() {
+      this.$refs.dateField.closeDateFields();
+    },
+    selectColorType(color) {
+      this.colorType = color;
+    }
   },
   watch: {
-    zoom(v1) {
+    async zoom(v1, v2) {
+      console.log(`Zooming from ${v2} to ${v1}`);
+      this.isScrolling = false;
+      const checkPointStart = this.viewPortEdges.start;
+      const checkPointEnd = this.viewPortEdges.end;
+      const center = moment(checkPointStart).add(this.viewPortWidthInDays / 2, 'days');
+      const position = v1 > v2 ? 'right' : 'left';
       this.taskHeight = v1;
       this.dayWidth = v1;
       const minBigFontSize = 8;
@@ -420,6 +487,10 @@ export default {
       // Ensure the fontSizeSmall is within the bounds of 6 and 12
       this.fontSize.small = Math.max(minSmallFontSize, Math.min(this.fontSize.small, maxSmallFontSize));
 
+      await this.$nextTick();
+      this.bringTheDay(center, position);
+      await this.$nextTick();
+      this.isScrolling = true;
       this.updateViewport();
     }
   },
@@ -497,6 +568,9 @@ export default {
 .secondary-bar {
   top: 30px;
 }
+.third-bar {
+  top: 60px;
+}
 .plan-background {
   height: 0;
   flex-grow: 1;
@@ -510,7 +584,8 @@ export default {
   left: 0;
   height: 30px !important;
   width: 1px;
-  border-left: 1px solid #E2E2E2;
+  /*border-left: 1px solid #E2E2E2;*/
+  border-left: 1px solid transparent;
   transition: width 0.3s ease-in-out, left 0.3s ease-in-out, height 0.3s ease-in-out, font-size 0.3s ease-in-out;
 }
 .dot {
@@ -605,6 +680,22 @@ export default {
 }
 .active {
   background: #d9d9d9;
+}
+.rainbow-text {
+  /*background: linear-gradient(90deg, #000000DE, #000000DE, #000000DE, red, orange, #ff0, green, #000000DE, #000000DE, #000000DE, #000000DE, #000000DE, #000000DE, #000000DE) 0 0 / 200% 100%;*/
+  background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: 10s cubic-bezier(1, 0, 0, 1.01) infinite rainbow-animation;
+}
+@keyframes rainbow-animation {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
 }
 .v-slider__thumb:before {
   background: transparent !important;

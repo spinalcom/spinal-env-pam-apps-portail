@@ -69,7 +69,7 @@
             ]"
             class="process">
             <span class="ellipsis">
-              {{ process.processName }} {{ process.ticketList.length }}
+              {{ process.processName }}
             </span>
             <v-icon 
               :class="[
@@ -104,60 +104,27 @@
                 :fontSize="fontSize"
                 :status="ticket.status"
                 />
-              <span class="ellipsis">
+              <span class="ellipsis clickable-ticket"
+                @click="logTicketDetails(ticket)">
                 {{ ticket.name }}
               </span>
               <div
-                v-if="fallingIn(ticket.estimatedStartDate)"
+                v-if="fallingIn(startDate(ticket))"
                 :style="[
                   { height: (taskHeight - 5) + 'px' },
                 ]"
                 class="goto-ticket"
-                @click="bringDay(ticket, fallingIn(ticket.estimatedStartDate))">
+                @click="bringDay(ticket, fallingIn(startDate(ticket)))">
                 <v-icon 
                   :style="[{ 'font-size': fontSize.medium + 'px' }]"
                   class="goto-icon icon">
-                  {{ fallingIn(ticket.estimatedStartDate) }}
+                  {{ fallingIn(startDate(ticket)) }}
                 </v-icon>
               </div>
             </div>
           </template>
         </div>
       </template>
-    </div>
-
-    <!--
-    <div
-      v-for="(ticket, index) in ticketList"
-      :key="ticket.name + index"
-      :style="[
-        { 'font-size': fontSize.medium + 'px' },
-        { height: taskHeight + 'px' },
-      ]"
-      class="ticket">
-      <!-- STATUS COMPONENT -->
-      <!--
-      <Status 
-        :fontSize="fontSize"
-        :status="ticket.status"
-        />
-      <span class="ellipsis">
-        {{ ticket.name }}
-      </span>
-      <div
-        v-if="fallingIn(ticket.startDate)"
-        :style="[
-          { height: (taskHeight - 5) + 'px' },
-        ]"
-        class="goto-ticket"
-        @click="bringDay(ticket, fallingIn(ticket.startDate))">
-        <v-icon 
-          :style="[{ 'font-size': fontSize.medium + 'px' }]"
-          class="goto-icon icon">
-          {{ fallingIn(ticket.startDate) }}
-        </v-icon>
-      </div>
-      -->
     </div>
   </div>
 </template>
@@ -176,6 +143,7 @@ export default {
     'dayWidth',
     'taskHeight',
     'fontSize',
+    'selectedDateFields',
   ],
   components: {
     Status
@@ -194,10 +162,31 @@ export default {
         this.$emit('resizedSideBar', this.sidebarWidth);
       }
     });
-
     this.resizeObserver.observe(this.$refs.sideBar);
   },
   methods:{
+    logTicketDetails(ticket) {
+      this.$emit('showTicketDetails', ticket);
+    },
+    startDate(ticket) {
+      if (!ticket.dates || !Array.isArray(ticket.dates)) {
+        return null;
+      }
+      try {
+        const date = ticket.dates
+          .find(date => date.name === this.selectedDateFields.selectedStart);
+        if (ticket.name === 'démo') {
+        }
+        return ticket.dates
+          .find(date => date.name === this.selectedDateFields.selectedStart).value;
+      } catch (error) {
+        return null;
+      }
+    },
+    endDate(ticket) {
+      return ticket.dates
+        .find(date => date.name === this.selectedDateFields.selectedEnd).value;
+    },
     toggle(type, item) {
       if (type === 'workflow') {
         item.state = item.state === 'open' ? 'close' : 'open';
@@ -208,7 +197,7 @@ export default {
       this.$emit('taskListChanged', this.flattenedList(this.nestedList));
     },
     flattenedList(nestedList) {
-      return nestedList.reduce((acc, workflow) => {
+      const flatRes = nestedList.reduce((acc, workflow) => {
         acc.push(workflow);
         if (workflow.state === 'open') {
           workflow.processes.forEach(process => {
@@ -220,6 +209,8 @@ export default {
         }
         return acc;
       }, []);
+      console.log('FlatRes:', flatRes);
+      return flatRes;
     },
     workflowHeight(workflow) {
       if (!Array.isArray(workflow.processes) || workflow.state === 'close') {
@@ -260,7 +251,7 @@ export default {
       if (positionIconName === 'mdi-plus') {
         const today = moment().startOf('day');
         const estimatedStartDate = today.valueOf();
-        ticket.estimatedStartDate = estimatedStartDate;
+        ticket.dates.find(date => date.name === 'Date de début estimée').value = estimatedStartDate;
         // ticket.endDate = nextDay;
         this.$emit('startTicket', ticket, estimatedStartDate);
         return;
@@ -280,9 +271,16 @@ export default {
         return 'mdi-arrow-left';
       }
       else if (!date) {
-        return 'mdi-plus';
+        if (this.selectedDateFields.selectedStart === 'Date de début estimée') {
+          return 'mdi-plus';
+        }
       }
       return null;
+    },
+  },
+  watch: {
+    nestedList(value) {
+      this.$emit('taskListChanged', this.flattenedList(value));
     },
   },
   beforeDestroy() {
@@ -430,6 +428,13 @@ export default {
 }
 .close {
   transform: rotate(0deg) !important;
+}
+.clickable-ticket {
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.clickable-ticket:hover {
+  color: #0033ce;
 }
 .goto-icon {
 }

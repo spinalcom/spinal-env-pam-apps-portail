@@ -1,89 +1,113 @@
-
 <template>
   <div class="date-fields-selector"
-    :style="[
-      { 'left': type === 'start' ? '-62px' : '-75px' },
-    ]"
-    :class="toggle ? 'open' : 'close'">
+    :class="toggle ? 'open' : 'close'"
+  >
     <div class="date-field-selector">
       <div class="header">
         <span class="date-title">
-          Date de {{ type === 'start' ? 'début' : 'fin' }}
+          Date de début
         </span>
       </div>
+      
       <div class="date-field-list">
         <div
-          v-for="(dateField, index) in dateFields"
+          v-for="(dateField, index) in startDateFields"
           class="date-field-item"
-          @click="selectDateField(dateField.name)">
+          @click="selectDateField('startDate', dateField.name)">
           <v-icon
             :style="[
-            { 'color': selected === dateField.name ? '#757575' : 'transparent' },
+            { 'color': selected.startDate === dateField.name ? '#757575' : 'transparent' },
             ]"
             class="date-icon"
           >mdi-check</v-icon>
           <v-icon class="date-icon">{{ dateField.icon }}</v-icon>
           <span
             :style="[
-              { 'font-weight': selected === dateField.name ? '700' : '400' },
+              { 'font-weight': selected.startDate === dateField.name ? '700' : '400' },
             ]"
             class="item-name">
             {{ dateField.name }}
           </span>
         </div>
         <div 
-          v-if="type === 'start'"
-          @click="selectDateField('Aucune date de début')"
+          @click="selectDateField('startDate', 'Aucune date de début')"
           class="date-field-item">
           <v-icon
             :style="[
-            { 'color': selected === 'Aucune date de début' ? '#757575' : 'transparent' },
+            { 'color': selected.startDate === 'Aucune date de début' ? '#757575' : 'transparent' },
             ]"
             class="date-icon"
           >mdi-check</v-icon>
           <span
             :style="[
-              { 'font-weight': selected === 'Aucune date de début' ? '700' : '400' },
+              { 'font-weight': selected.startDate === 'Aucune date de début' ? '700' : '400' },
             ]"
             class="item-name">Aucune date de début</span>
         </div>
+      </div>
+    </div>
+
+    <div class="date-field-selector">
+      <div class="header">
+        <span class="date-title">
+          Date de fin
+        </span>
+      </div>
+
+      <div class="date-field-list">
+        <div
+          v-for="(dateField, index) in endDateFields"
+          class="date-field-item"
+          @click="selectDateField('endDate', dateField.name)">
+          <v-icon
+            :style="[
+            { 'color': selected.endDate === dateField.name ? '#757575' : 'transparent' },
+            ]"
+            class="date-icon">
+            mdi-check
+          </v-icon>
+          <v-icon class="date-icon">{{ dateField.icon }}</v-icon>
+          <span 
+            :style="[
+              { 'font-weight': selected.endDate === dateField.name ? '700' : '400' },
+            ]"
+            class="item-name">{{ dateField.name }}</span>
+        </div>
         <div 
-          v-else-if="type === 'end'"
-          @click="selectDateField('Aucune date de fin')"
+          @click="selectDateField('endDate', 'Aucune date de fin')"
           class="date-field-item">
           <v-icon
             :style="[
-            { 'color': selected === 'Aucune date de fin' ? '#757575' : 'transparent' },
+            { 'color': selected.endDate === 'Aucune date de fin' ? '#757575' : 'transparent' },
             ]"
             class="date-icon">
             mdi-check
           </v-icon>
           <span 
             :style="[
-              { 'font-weight': selected === 'Aucune date de fin' ? '700' : '400' },
+              { 'font-weight': selected.endDate === 'Aucune date de fin' ? '700' : '400' },
             ]"
             class="item-name">Aucune date de fin</span>
         </div>
         <div style="height: 5px;"></div>
       </div>
     </div>
-
   </div>
 </template>
 
 <script>
-import config from '../../../config.js';
+import config from '../../../config';
 export default {
   name: 'DateFieldsSelector',
   props: [
     'toggle',
-    'type',
   ],
-  mounted() {
-  },
   data: () => ({
-    selected: null,
-    dateFields: [
+    selected: {
+      startDate: 'Date de début estimée',
+      endDate: 'Date de fin estimée',
+    },
+    startDateFields: [
       {
         icon: 'mdi-calendar-blank-outline',
         name: 'Date de début estimée',
@@ -92,6 +116,8 @@ export default {
         icon: 'mdi-calendar-blank-outline',
         name: 'Date de début réelle',
       },
+    ],
+    endDateFields: [
       {
         icon: 'mdi-calendar-blank-outline',
         name: 'Date de fin estimée',
@@ -103,22 +129,22 @@ export default {
     ],
   }),
   mounted() {
-    this.selected = this.type === 'start' ? 'Date de début estimée' : 'Date de fin estimée';
-    this.emitDateField();
     const workflowList = config.config.workflow;
-    const stepList = workflowList.flatMap(workflow => workflow.steps);
-    this.dateFields = this.dateFields.concat(stepList.map(step => ({
-      icon: 'mdi-note-text-outline',
-      name: step.name,
-    })));
+    /*
+      const stepList = workflowList.flatMap(workflow => workflow.steps);
+      this.startDateFields = this.startDateFields.concat(stepList.map(step => ({
+        icon: 'mdi-note-text-outline',
+        name: step.name,
+      })));
+      this.endDateFields = this.endDateFields.concat(stepList.map(step => ({
+        icon: 'mdi-note-text-outline',
+        name: step.name,
+      })));
+    */
   },
   methods: {
-    selectDateField(name) {
-      this.selected = name;
-      this.emitDateField();
-    },
-    emitDateField() {
-      this.$emit('select-date-field', this.type, this.selected);
+    selectDateField(type, name) {
+      this.selected[type] = name;
     },
   }
 }
@@ -128,18 +154,19 @@ export default {
 .date-fields-selector {
   position: absolute;
   top: 25px;
-  width: 202px;
+  left: -40px;
+  width: 222px;
   background-color: #fff;
   border-radius: 10px;
   overflow: hidden;
   z-index: 900;
-  transition: max-height .3s cubic-bezier(1, 0.01, 0, 1.1), opacity .1s ease-in-out, border .1s ease-in-out, box-shadow .3s ease-in-out;
+  transition: all 0.3s ease-in-out;
 }
 .open {
   opacity: 1;
   max-height: 900px;
-  border: 1px solid #848484;
-  box-shadow: -5px 3px 20px 1px #d9d9d933, -1px 16px 20px 13px #e7e7e724, 4px -6px 20px 2px #8989891f !important;
+  border: 1px solid #F2F2F2;
+  box-shadow: 0 2px 4px 0 rgba(0,0,0,0.04);
 }
 .close {
   opacity: 0;

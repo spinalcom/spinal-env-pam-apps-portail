@@ -21,9 +21,11 @@
       :dayWidth="dayWidth"
       :taskHeight="taskHeight"
       :fontSize="fontSize"
+      :selectedDateFields="selectedDateFields"
       @startTicket="startTicket"
       @bringDay="bringDay"
       @resizedSideBar="resizedSideBar"
+      @showTicketDetails="showTicketDetails"
       @goto="goto"
       @taskListChanged="updateTaskList"
       />
@@ -37,6 +39,8 @@
       :dayWidth="dayWidth"
       :taskHeight="taskHeight"
       :fontSize="fontSize"
+      :selectedDateFields="selectedDateFields"
+      :colorType="colorType"
       @resizeWholePeriod="resizeWholePeriod"
       @resizeStart="resizeStart"
       @resizeEnd="resizeEnd"
@@ -77,6 +81,8 @@ export default {
     'dayWidth',
     'taskHeight',
     'fontSize',
+    'selectedDateFields',
+    'colorType',
   ],
   components: {
     Task,
@@ -131,6 +137,7 @@ export default {
       this.$emit('resizeEnd', task, estimatedEndDate);
     },
     updateTaskList(event) {
+      this.calculateHeight();
       this.taskList = event;
     },
     resizedSideBar(event) {
@@ -155,8 +162,6 @@ export default {
     },
   },
   watch: {
-    taskList(v1) {
-    },
     taskHeight(v1) {
       this.calculateHeight();
     },
