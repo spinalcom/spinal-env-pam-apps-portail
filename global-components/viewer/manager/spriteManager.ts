@@ -102,7 +102,6 @@ export class SpriteManager {
 			this.viewableDataMap[d.data.group].push(viewable);
 		}
 	
-		console.log('Map des viewables après ajout :', this.viewableDataMap);
 	}
 	
 	

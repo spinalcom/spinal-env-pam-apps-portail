@@ -120,6 +120,7 @@ import type { IZoneItem, IButton } from './interfaces/IBuildingItem';
 import type { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
 import SpaceSelectorItem from './SpaceSelectorItem.vue';
 import { convertZonesToISpaceSelectorItems } from './convertZonesToISpaceSelectorItems';
+import { EventBus } from './eventBus';
 import moment from 'moment';
 import { log } from 'console';
 
@@ -185,24 +186,24 @@ class SpaceSelector extends Vue {
 
   @Watch("selectedZone")
   async onSelectedChange() {
+    if (!this.selectedZone) return; // Vérifie que selectedZone est défini
+
     for (let idx = 0; idx < this.buildingStructure.length; idx++) {
       const item = this.buildingStructure[idx];
       let found = false;
+
       if (
         item.platformId === this.selectedZone.platformId &&
         item.dynamicId === this.selectedZone.dynamicId &&
         item.staticId === this.selectedZone.staticId
       ) {
         found = true;
-        // if (!item.isOpen) {
-        //   await this.openItem(item, idx);
-        // }
       } else {
-        for (const parentId of this.selectedZone.parents) {
+        const parents = Array.isArray(this.selectedZone.parents) ? this.selectedZone.parents : []; // Assure que parents est un tableau
+        for (const parentId of parents) {
           if (
             parentId === item.staticId &&
-            (this.selectedZone.platformId === item.platformId ||
-              item.type === "patrimoine")
+            (this.selectedZone.platformId === item.platformId || item.type === "patrimoine")
           ) {
             found = true;
             if (!item.isOpen) {
@@ -212,13 +213,16 @@ class SpaceSelector extends Vue {
             break;
           }
         }
-        if (found === false) {
+
+        if (!found) {
           // await this.closeItem(item);
         }
       }
     }
+
     this.checkingOverflow();
   }
+
 
 
   @Watch("date")
@@ -292,6 +296,10 @@ class SpaceSelector extends Vue {
       const currentStatus = ["loaded", "initialize"].includes(localStorage.getItem("viewer_loaded") || "");
       if (this.viewerLoaded !== currentStatus) {
         this.viewerLoaded = currentStatus;
+
+        if (currentStatus)
+          EventBus.$emit('loadedviewer');
+
       }
     }
 

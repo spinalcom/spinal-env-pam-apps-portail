@@ -358,7 +358,6 @@ export class ViewerUtils {
 			if (modelData.dbids) {
 				option.ids = modelData.dbids;
 			}
-			console.log("modelData.offset", modelData.offset)
 
 			if(modelData.offset) {
 				if(sceneAlignMethod === SceneAlignMethod.ShareCoordinates) option.applyRefPoint = true;

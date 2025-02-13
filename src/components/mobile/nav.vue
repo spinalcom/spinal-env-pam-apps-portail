@@ -83,7 +83,7 @@ with this file. If not, see
         </v-list-item>
 
         <v-list-item v-for="item in apps"
-                     :key="item.id"
+                     
                      link
                      @click="goToApp(item, $event)">
           <v-list-item-icon>
