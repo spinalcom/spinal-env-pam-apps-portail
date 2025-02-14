@@ -129,7 +129,7 @@ class App extends Vue {
   dataTable: IZoneItem[] = [];
   viewerManager: ViewerManager | undefined = undefined;
   $refs: { spaceSelector };
-  query: { app: string; mode: string; name: string; spaceSelectedId: string;spaceSelectedType: string; buildingId: string } = {
+  query: { app: string; mode: string; name: string; spaceSelectedId: string; spaceSelectedType: string; buildingId: string } = {
     app: '',
     mode: 'null',
     name: '',
@@ -358,7 +358,7 @@ class App extends Vue {
       case undefined:
 
         const buildingId = localStorage.getItem("idBuilding");
-          if (buildingId) {
+        if (buildingId) {
           const playload = {
             config,
             item: { buildingId, type: "building" },
@@ -479,23 +479,9 @@ class App extends Vue {
 
 
   onActionClick({ button, item }) {
-    // const data = {
-    //   "isOpen": false,
-    //   "loading": false,
-    //   "dynamicId": 44035200,
-    //   "name": "194-Hall d'accueil",
-    //   "buildingId": "5932-6086-9e1a-18506478460",
-    //   "type": "geographicFloor"
-    // }
 
     this.loadingdata = !this.loadingdata
-
-    console.warn('le lancement du projetttttttttttttttttttt');
-    
-    
     const buildingId = localStorage.getItem("idBuilding");
-
-
     const data = {
       "isOpen": false,
       "loading": false,
@@ -537,13 +523,14 @@ class App extends Vue {
         this.$store.dispatch(button.onclickEvent, data);
         break;
     }
+
+    this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, data);
   }
 
   listenSpritesEvent() {
 
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
-
       this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
       if (result.navigate) {
 

@@ -742,7 +742,7 @@ class InsightApp extends Vue {
       case ITemporality.hour:
         if (!this.t_index) return 'Dernière heure';
         currentDay.add(this.t_index, 'hours');
-        end = moment(currentDay).add(1, 'hours');
+        end = moment(currentDay).add(this.t_index, 'hours');
         return (
           currentDay.format('DD/MM/YY HH[h]') + ' - ' + end.format('HH[h]')
         );

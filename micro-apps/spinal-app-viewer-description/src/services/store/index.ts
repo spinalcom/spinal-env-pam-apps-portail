@@ -60,3 +60,4 @@ export type Store = Omit<VuexStore<IStoreModules>, 'commit' | 'dispatch'> & {
     options?: DispatchOptions
   ): ReturnType<Actions[K]>;
 };
+

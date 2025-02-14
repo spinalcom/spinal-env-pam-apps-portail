@@ -1,7 +1,7 @@
 <template>
   <div style="cursor: pointer;" ref="container" class="sprite_container">
 
-    <div class="sprite_color" :style="{ ...dynamicStyle }"></div>
+    <div class="sprite_color"  :style="{ background: this.data.color , border : '3px solid #F9F9F9'}"></div>
     <div v-if="data.attr"
       style="border-radius: 10px;top: 2px;left: 5px;text-overflow: ellipsis;max-width: 140px;white-space: nowrap;overflow: hidden;position: absolute;border-radius: 10px !important;min-width: 20px;height: 12px;background-color: rgb(255, 255, 255);color: black;padding-bottom: 4px;padding-left: 15px;font-size: 12px;padding-right: 5px;z-index: -1;"
       :title="findValueByLabel()">
@@ -22,6 +22,7 @@ import {
   VIEWER_SPRITE_CLICK,
 } from "spinal-viewer-event-manager";
 import { EventBus } from "../../../../../global-components/SpaceSelector/eventBus";
+import { error } from "console";
 
 export default {
   props: {
@@ -49,7 +50,7 @@ export default {
     dynamicStyle: {
       border: "3px solid #F9F9F9",
       boxShadow: "none",
-      background: '#13A9E0'
+      background:'blue'
     },
     isClicked: false,
   }),

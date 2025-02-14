@@ -1,17 +1,22 @@
 <template>
-  <v-breadcrumbs v-if="etage" divider=">">
-    <div class="breadcrumb-item" @click="setPosition(id_etage, etage)">
+  <v-breadcrumbs v-if="etage || show" divider=">">
+    <div class="breadcrumb-item" @click="setPosition(id_building, building);">
+      <v-breadcrumbs-item v-if="building">
+        {{ building }}
+      </v-breadcrumbs-item>
+    </div>
+    <div class="breadcrumb-item" @click="setPosition(id_etage, etage); clearRoom()">
       <v-breadcrumbs-item v-if="etage">
         {{ etage }}
       </v-breadcrumbs-item>
     </div>
     <div v-if="piece" @click="setPosition(id_piece, piece)" class="breadcrumb-item">
-      <v-breadcrumbs-item >
+      <v-breadcrumbs-item>
         {{ piece }}
       </v-breadcrumbs-item>
     </div>
     <div v-if="equipement" @click="setPosition('equipement')" class="breadcrumb-item">
-      <v-breadcrumbs-item >
+      <v-breadcrumbs-item>
         {{ equipement }}
       </v-breadcrumbs-item>
     </div>
@@ -74,6 +79,7 @@ import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
 } from "spinal-viewer-event-manager";
+import { error, warn } from 'console';
 
 
 export default defineComponent({
@@ -96,62 +102,142 @@ export default defineComponent({
       equipement: null,
       id_etage: null,
       id_piece: null,
+      building: null,
+      id_building: null,
+      show: false
     };
   },
   // async mounted() {
   //   // console.error('////////////////////////////////////////////////');
   //   // console.error('////////////////////////////////////////////////');
-  // },
+  // },GET_BUILDING_INFO
   watch: {
-    ids: {
-      handler: async function (newIds) {
+    combinedIdsAndQuery: {
+
+      handler: async function ([newIds, newSpaceSelectedId]) {
         const buildingId = localStorage.getItem("idBuilding");
+        const res1 = await this.$store.dispatch(ActionTypes.GET_BUILDING_INFO, {
+          buildingId,
+        });
+        this.id_building = res1.dynamicId
+        this.building = res1.name
+
+        if (this.id_building == newIds) {
+          this.etage = null;
+          this.id_etage = null;
+          this.id_piece = null;
+          this.id_building = null;
+          this.piece = null;
+          this.equipement = null;
+          this.building = null;
+          this.show = false
+
+          return
+        }
+
+
 
         try {
+
           if (this.type === 'BIMObject') {
-            const parentPromise = [
-              this.$store.dispatch(ActionTypes.GET_POSTION_EQUIPEMENT, {
-                buildingId: buildingId,
-                referenceIds: newIds,
-              }),
-            ];
-            const resultParent = await Promise.all(parentPromise);
-            this.etage = resultParent[0].info.floor.name;
-            this.id_etage = resultParent[0].info.floor.dynamicId
-            this.id_piece = resultParent[0].info?.room?.dynamicId
-            this.piece = resultParent[0].info?.room?.name;
-            this.equipement = resultParent[0].name;
+            const resultParent = await this.$store.dispatch(ActionTypes.GET_POSTION_EQUIPEMENT, {
+              buildingId,
+              referenceIds: newIds,
+            });
 
-            console.log('Résultat Équipement:', resultParent);
+            this.etage = resultParent.info.floor.name;
+            this.id_etage = resultParent.info.floor.dynamicId;
+            this.id_piece = resultParent.info?.room?.dynamicId;
+            this.id_building = resultParent.info?.building?.dynamicId;
+            this.piece = resultParent.info?.room?.name;
+            this.equipement = resultParent.name;
+            this.building = resultParent.info.building.name;
+
           } else if (this.type === 'geographicRoom') {
-            const parentPromise = [
-              this.$store.dispatch(ActionTypes.GET_POSTION_ROOM, {
-                buildingId: buildingId,
-                referenceIds: newIds,
-              }),
-            ];
-            const resultParent = await Promise.all(parentPromise);
+            const resultParent = await this.$store.dispatch(ActionTypes.GET_POSTION_ROOM, {
+              buildingId,
+              referenceIds: newIds,
+            });
 
-            this.etage = resultParent[0].info.floor.name;
-            this.id_etage = resultParent[0].info.floor.dynamicId
-            this.id_piece = resultParent[0].dynamicId
-            this.piece = resultParent[0].name;
+            this.etage = resultParent.info.floor.name;
+            this.id_etage = resultParent.info.floor.dynamicId;
+            this.id_piece = resultParent.dynamicId;
+            this.id_building = resultParent.info?.building?.dynamicId;
+            this.piece = resultParent.name;
             this.equipement = null;
+            this.building = resultParent.info.building.name;
+
+          } else if (this.type === 'building') {
+
+
+            const resultParent = await this.$store.dispatch(ActionTypes.GET_NODE_READ, {
+              buildingId,
+              referenceIds: [newSpaceSelectedId],
+            });
+
+            if (resultParent.type === "geographicFloor") {
+
+              this.etage = resultParent.name;
+              this.id_etage = resultParent.dynamicId;
+              this.piece = null;
+              this.equipement = null;
+              this.show = true;
+
+            } else {
+              this.show = false;
+            }
+          } else if (this.type === 'etage' || this.type === 'geographicFloor' && newSpaceSelectedId) {
+
+            const resultParent = await this.$store.dispatch(ActionTypes.GET_NODE_READ, {
+              buildingId,
+              referenceIds: [newIds],
+            });
+
+            if (resultParent.type === "geographicFloor") {
+              this.etage = resultParent.name;
+              this.id_etage = resultParent.dynamicId;
+              this.show = true;
+              this.piece = null;
+              this.equipement = null;
+            } else {
+              this.show = false;
+            }
           } else {
-            this.etage = null
-            this.piece = null
-            this.equipement = null
+            this.etage = null;
+            this.piece = null;
+            this.equipement = null;
           }
         } catch (error) {
           console.error('Erreur lors de la récupération des données:', error);
         }
       },
-      immediate: true
+      immediate: true,
+    }
+  },
+  computed: {
+    combinedIdsAndQuery() {
+      return [this.ids, window.parent.routerFontion.apps[0]._route.query.spaceSelectedId];
     }
   }
+
   ,
   methods: {
+    clearRoom() {
+      this.piece = null;
+      this.equipement = null;
+
+    },
+    clearFLoor() {
+      this.piece = null;
+      this.equipement = null;
+      this.show = false;
+      this.etage = null;
+    },
+
     setPosition(id, position: string) {
+      const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
+      if (id == currentQuery.spaceSelectedId)
+        return
       const buildingId = localStorage.getItem("idBuilding");
       const item = {
         color: '#ded638',
@@ -164,8 +250,6 @@ export default defineComponent({
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { navigate: 'la page', node: item });
       this.currentPosition = position;
-      console.log('Nouvelle position:', window.parent.router.query.app);
-
 
       const query = {
         app: window.parent.router.query.app,

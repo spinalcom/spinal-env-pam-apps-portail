@@ -25,9 +25,9 @@ with this file. If not, see
 <template>
   <v-card elevation="4" class="cardContainer">
     <button @click="() => {
-        $emit('buttonClicked');
-        resize();
-      }
+      $emit('buttonClicked');
+      resize();
+    }
       " style="
           position: absolute;
           top: 47.5%;
@@ -48,9 +48,9 @@ with this file. If not, see
       <v-icon v-else>mdi-chevron-left</v-icon>
     </button>
     <button @click="() => {
-        $emit('buttonClicked3D');
-        resize();
-      }
+      $emit('buttonClicked3D');
+      resize();
+    }
       " style="
           position: absolute;
           top: 52.5%;
@@ -69,12 +69,13 @@ with this file. If not, see
       <v-icon v-else-if="DActive">mdi-chevron-left</v-icon>
       <v-icon v-else>mdi-chevron-right</v-icon>
     </button>
-    <div class="dataContainer" >
-      <SpinalTable class="entrence" :class="{ 'inactiveTable': DActive, 'displaydataCss': displaydata }"
+    <div class="dataContainer">
+      <SpinalTable :sconfig="config" class="entrence" :class="{ 'inactiveTable': DActive, 'displaydataCss': displaydata }"
         :selectedItemTab="element_clicked" @item-selected="selectDataView" @allFiltredData="putAllFiltredData"
-        @update:selectedItem="handleAttributeChange" @updateSuccess="updateData"
-        @update:selectedAttribute="handleAttributeChange" :headers="[]" :id="0" :label="'test'" :reference="''"
-        :unit="''" :contexts="data" :temporality="''" :ctx_list="$store.state.appDataStore.user_selection_list.ctx"
+        @update:selectedItem="handleAttributeChange" @updateSuccess="updateData"  @update-color-false="updatecolorTab()"
+        @update-color-tab="handleColorTabUpdate" @update:selectedAttribute="handleAttributeChange" :headers="[]" :id="0"
+        :label="'test'" :reference="''" :unit="''" :contexts="data" :temporality="''"
+        :ctx_list="$store.state.appDataStore.user_selection_list.ctx"
         :cat_list="$store.state.appDataStore.user_selection_list.cat"
         :grp_list="$store.state.appDataStore.user_selection_list.grp" @itemSelected="handleItemSelected" />
 
@@ -97,6 +98,7 @@ import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import { mapState } from "vuex";
 import SpriteComponent from "./SpriteComponent.vue"
 import { WASI } from "wasi";
+import { log } from "console";
 
 @Component({
   components: {
@@ -125,7 +127,9 @@ class dataSideApp extends Vue {
   allFilteredData: any;
   CurrentLoading: boolean;
   displaydata: boolean = false
-
+  changedPropertyColor: any = false
+  newvalColor: any = false
+  colorTab: any = false
 
   resize() {
     setTimeout(() => {
@@ -213,9 +217,63 @@ class dataSideApp extends Vue {
     this.selectedItem2 = updatedValue;
   }
 
+  updatecolorTab(){
+    // this.settruecolordefault =
+    this.colorTab = false
+  }
+
+  handleColorTabUpdate(colorTab) {
+    this.colorTab = colorTab
+
+    let newVal = this.newvalColor
+    let changedProperty = this.changedPropertyColor
+
+    if (this.config.sprites)
+      this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+    if (this.isBuildingSelected) return;
+
+    let itemsToColor, originalArray;
+
+    if (changedProperty === 'AllFiltredData') {
+      originalArray = newVal;
+    } else {
+      originalArray = this.data[0].data;
+    }
+
+    itemsToColor = originalArray.map((el) => el.children || []).flat();
+    let newArray = originalArray.map(item => {
+      // La logique reste la même
+      let spatial = item.categoryAttributes.find(cat => cat.name === "Spatial");
+      let position;
+      if (spatial) {
+        let xyz = spatial.attributs.find(attr => attr.label === "XYZ center");
+        if (xyz) {
+          let [x, y, z] = xyz.value.split(';').map(Number);
+          position = { x, y, z };
+        }
+      }
+      return { ...item, position: position || null, color: "#0074FF", displayValue: "-", toto: position, attr: this.selected_attr, newColorItem: colorTab };
+    });
+
+    if (this.config.sprites) {
+      this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+        items: newArray,
+        buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
+        component: SpriteComponent,
+      });
+      return;
+    }
+    // const buildingId = localStorage.getItem("idBuilding");
+
+    this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+      items: newArray,
+      buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
+    });
+  }
+
   handleAttributeChange(emitedInfo) {
 
-
+    this.emitedInfo = emitedInfo
 
     if (this.config.sprites)
       this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
@@ -284,7 +342,6 @@ class dataSideApp extends Vue {
 
   @Watch('selected_attr')
   onSelectedAttrChange(newVal, oldVal) {
-    // console.log('selected attr ???');
     if (this.allFilteredData) {
       this.watchData(this.allFilteredData, 'AllFiltredData');
     } else
@@ -318,6 +375,10 @@ class dataSideApp extends Vue {
 
   async watchData(newVal, changedProperty) {
     // console.log('toto?' , newVal);
+    console.log('le changement ?');
+    
+    this.newvalColor = newVal
+    this.changedPropertyColor = changedProperty
 
     if (this.config.sprites)
       this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
@@ -343,7 +404,7 @@ class dataSideApp extends Vue {
           position = { x, y, z };
         }
       }
-      return { ...item, position: position || null, color: "#0074FF", displayValue: "-", toto: position, attr: this.selected_attr };
+      return { ...item, position: position || null, color: "#0074FF", displayValue: "-", toto: position, attr: this.selected_attr , newColorItem: this.colorTab};
     });
 
     if (this.config.sprites) {
@@ -354,12 +415,20 @@ class dataSideApp extends Vue {
       });
       return;
     }
-    // const buildingId = localStorage.getItem("idBuilding");
-
+    
+    const buildingId = localStorage.getItem("idBuilding");
     this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
-      items: newArray,
-      buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
-    });
+        items: itemsToColor,
+        buildingId: buildingId,
+      });
+
+
+    // this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+    //   items: newArray,
+    //   buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
+    // });
+
+
   }
 }
 

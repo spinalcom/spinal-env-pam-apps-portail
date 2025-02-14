@@ -109,7 +109,7 @@ export default {
     showDocs: {
       immediate: true,
       handler(newVal) {
-        console.log('showDocs updated:', newVal);
+        // console.log('showDocs updated:', newVal);
       }
     }
   }

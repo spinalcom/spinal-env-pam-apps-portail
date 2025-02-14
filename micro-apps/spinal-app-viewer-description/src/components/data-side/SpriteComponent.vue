@@ -69,6 +69,13 @@
 
         </div>
 
+        <div v-if="data.data.type == 'BIMObject'"
+          style="background-color: white;color: black; border: 1px solid black; cursor: pointer;border-radius: 5px;text-align: center;align-self: auto ;     position: relative;
+    left: 50%;
+    transform: translate(-50%, 0);
+"
+          ref="focusRoom">Voir la pièce</div>
+
 
         <div class="bottom-section">
 
@@ -99,6 +106,7 @@
 </template>
 <script>
 
+import { log } from "console";
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
@@ -143,22 +151,32 @@ export default {
 
     const button = this.$refs.closeButton;
     const navigation = this.$refs.navigationButton;
+    const focusRoom = this.$refs.focusRoom;
     if (button) {
       button.removeEventListener('click', this.close);
     }
     if (navigation) {
       navigation.removeEventListener('click', this.onClickNavigate);
     }
+    if (focusRoom) {
+      focusRoom.removeEventListener('click', this.onClickFocus);
+    }
   },
   mounted() {
+    console.warn('222', this.data);
+
     setTimeout(() => {
       const button = this.$refs.closeButton;
       const navigation = this.$refs.navigationButton;
+      const focusRoom = this.$refs.focusRoom;
       if (button) {
         button.addEventListener('click', this.close);
       }
       if (navigation) {
         navigation.addEventListener('click', this.onClickNavigate);
+      }
+      if (focusRoom) {
+        focusRoom.addEventListener('click', this.onClickFocus);
       }
     }, 1);
 
@@ -271,6 +289,35 @@ export default {
 
       window.parent.routerFontion.customPush(window.parent.router.path, query);
     },
+
+    onClickFocus() {
+
+      const geographicRoom = this.data.data.groupParents.find(item => item.type === "geographicRoom");
+
+      const name = geographicRoom.name;
+      const spaceSelectedId = geographicRoom.dynamicId;
+
+      console.log(name, geographicRoom, this.data);
+
+      const data = {
+        dynamicId: spaceSelectedId,
+        name: name,
+        buildingId: this.data.buildingId
+      }
+
+      const emitterHandler = EmitterViewerHandler.getInstance();
+      emitterHandler.emit(VIEWER_SPRITE_CLICK, { navigate: 'la page', node: data });
+
+      const query = {
+        app: window.parent.router.query.app,
+        buildingId: this.data.buildingId,
+        spaceSelectedId,
+        name
+      };
+
+      window.parent.routerFontion.customPush(window.parent.router.path, query);
+    },
+
 
     // onClick(ev) {
     //   ev.stopPropagation();

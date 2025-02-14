@@ -17,7 +17,6 @@
 
         <div v-if="showSelection" @click="showSelection = !showSelection"
             style="width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.412);position:fixed;z-index: 99;top: 0px;left : 0px;display: flex;justify-content: center;align-items: center;flex-direction: column;">
-
             <div @click.stop style="display: flex;background-color: white;border-radius: 8px;height: 500px;">
 
                 <div
@@ -28,9 +27,10 @@
                         Selectionner un contexte:</div>
                     <ul>
                         <div :class="{ 'selected': selected_ctx === ctx.name }" class="choose_li"
-                            style="cursor: pointer;" v-for="ctx in ctx_list" :key="ctx.name"
-                            @click="emitValue('ctx', ctx); selected_ctx = ctx.name">{{
-            ctx.name }}</div>
+                            style="cursor: pointer;" v-for="ctx in filteredContexts" :key="ctx.name"
+                            @click="emitValue('ctx', ctx); selected_ctx = ctx.name">
+                            {{ ctx.name }}
+                        </div>
                     </ul>
                 </div>
                 <div
@@ -42,7 +42,7 @@
                         <div :class="{ 'selected': selected_cat === cat.name }" class="choose_li"
                             style="cursor: pointer;" v-for="cat in cat_list" :key="cat.name"
                             @click="emitValue('cat', cat); selected_cat = cat.name">{{
-            cat.name }}</div>
+                                cat.name }}</div>
                     </ul>
                 </div>
                 <div
@@ -56,7 +56,7 @@
                         <div @click="toggleSelection(grp.name)" :class="{ 'selected': selected_grp.includes(grp.name) }"
                             class="choose_li" v-for="grp in grp_list" :key="grp.name"><label style="cursor: pointer;"
                                 :for="grp.name">{{
-            grp.name }}</label></div>
+                                    grp.name }}</label></div>
 
                     </ul>
                 </div>
@@ -80,7 +80,7 @@
 <script>
 
 export default {
-    props: ['ctx_list', 'cat_list', 'grp_list'],
+    props: ['ctx_list', 'cat_list', 'grp_list', 'sconfig'],
     data: () => ({
         selected_ctx: "",
         selected_grp: [],
@@ -93,6 +93,10 @@ export default {
     },
 
     methods: {
+        adop() {
+            console.log(this.sconfig);
+
+        },
 
         tarrr(i) {
             this.selected_grp.splice(i, 1);
@@ -124,6 +128,23 @@ export default {
         },
 
     },
+    computed: {
+        filteredContexts() {
+            // Vérifier si `ctx_list` et `sconfig` sont définis
+            if (!this.ctx_list || !this.sconfig || !Array.isArray(this.ctx_list)) {
+                return []; // Retourner un tableau vide si les données ne sont pas prêtes
+            }
+
+            // Vérifier si `contextList` est défini et contient des éléments
+            if (this.sconfig.contextList && this.sconfig.contextList.length > 0) {
+                return this.ctx_list.filter(ctx => this.sconfig.contextList.includes(ctx.name));
+            }
+
+            // Sinon, retourner tous les contextes
+            return this.ctx_list;
+        }
+    },
+
 
 
 
@@ -135,94 +156,91 @@ export default {
 
 </script>
 <style scoped>
-
-
-
 .breadcrumbs {
-  border: 1px solid #cbd2d9;
-  border-radius: 0.3rem;
-  display: inline-flex;
-  overflow: hidden;
+    border: 1px solid #cbd2d9;
+    border-radius: 0.3rem;
+    display: inline-flex;
+    overflow: hidden;
 }
 
 .breadcrumbs__item {
-  background: #fff;
-  color: #333;
-  outline: none;
-  padding: 0.75em 0.75em 0.75em 1.25em;
-  position: relative;
-  text-decoration: none;
-  transition: background 0.2s linear;
-  justify-content: center;
-  display: flex;
-  align-items: center;
+    background: #fff;
+    color: #333;
+    outline: none;
+    padding: 0.75em 0.75em 0.75em 1.25em;
+    position: relative;
+    text-decoration: none;
+    transition: background 0.2s linear;
+    justify-content: center;
+    display: flex;
+    align-items: center;
 }
 
 .breadcrumbs__item_chips {
-  background: #fff;
-  color: #333;
-  outline: none;
-  padding: 0.75em 0.75em 0.75em 1.25em;
-  position: relative;
-  text-decoration: none;
-  transition: background 0.2s linear;
+    background: #fff;
+    color: #333;
+    outline: none;
+    padding: 0.75em 0.75em 0.75em 1.25em;
+    position: relative;
+    text-decoration: none;
+    transition: background 0.2s linear;
 
 }
 
 .breadcrumbs__item:hover:after,
 .breadcrumbs__item:hover {
-  background: #edf1f5;
+    background: #edf1f5;
 }
 
 .breadcrumbs__item:focus:after,
 .breadcrumbs__item:focus,
 .breadcrumbs__item.is-active:focus {
-  background: #323f4a;
-  color: #fff;
+    background: #323f4a;
+    color: #fff;
 }
 
 .breadcrumbs__item:after,
 .breadcrumbs__item:before {
-  background: white;
-  bottom: 0;
-  clip-path: polygon(50% 50%, -50% -50%, 0 100%);
-  content: "";
-  left: 100%;
-  position: absolute;
-  top: 0;
-  transition: background 0.2s linear;
-  width: 1em;
-  z-index: 1;
+    background: white;
+    bottom: 0;
+    clip-path: polygon(50% 50%, -50% -50%, 0 100%);
+    content: "";
+    left: 100%;
+    position: absolute;
+    top: 0;
+    transition: background 0.2s linear;
+    width: 1em;
+    z-index: 1;
 }
 
 .breadcrumbs__item:before {
-  background: #cbd2d9;
-  margin-left: 1px;
+    background: #cbd2d9;
+    margin-left: 1px;
 }
 
 .breadcrumbs__item:last-child {
-  border-right: none;
+    border-right: none;
 }
 
 .breadcrumbs__item.is-active {
-  background: #edf1f5;
+    background: #edf1f5;
 }
 
 .choose_li {
-  margin: 5px;
-  padding: 5px;
-  cursor: pointer;
+    margin: 5px;
+    padding: 5px;
+    cursor: pointer;
 }
 
 .choose_li:hover {
-  background-color: rgb(229, 229, 229);
-  border-radius: 5px;
+    background-color: rgb(229, 229, 229);
+    border-radius: 5px;
 }
 
 
 .selected {
-  background-color: #e9e9e98f;
-  border-radius: 5px;
-  border: 1px solid #14202c;
+    background-color: #e9e9e98f;
+    border-radius: 5px;
+    border: 1px solid #14202c;
 }
 </style>

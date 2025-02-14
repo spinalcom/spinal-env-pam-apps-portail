@@ -1,7 +1,7 @@
 <template>
   <div style="cursor: pointer;" @click="onClick" ref="container" class="sprite_container">
 
-    <div class="sprite_color" :style="{ ...dynamicStyle }"></div>
+    <div class="sprite_color" :style="{ ...dynamicStyle, backgroundColor: getElementColor()}"></div>
     <div v-if="data.attr"
       style="border-radius: 10px;top: 2px;left: 5px;text-overflow: ellipsis;max-width: 140px;white-space: nowrap;overflow: hidden;position: absolute;border-radius: 10px !important;min-width: 20px;height: 12px;background-color: rgb(255, 255, 255);color: black;padding-bottom: 4px;padding-left: 15px;font-size: 12px;padding-right: 5px;z-index: -1;"
       :title="findValueByLabel()">
@@ -87,11 +87,11 @@ export default {
     dynamicStyle: {
       border: "3px solid #F9F9F9",
       boxShadow: "none",
-      background: '#13A9E0'
     },
     isClicked: false,
   }),
   mounted() {
+
     document.addEventListener("click", (evt) => {
       const flyoutEl = this.$refs.container;
       let targetEl = evt.target;
@@ -131,6 +131,21 @@ export default {
     //     this.isClicked = false;
     //   }
     // },
+
+    getElementColor() {
+      if (!this.data || !this.data.newColorItem) {
+        console.warn("Les données ou les couleurs sont absentes.");
+        return "blue"; // Retourne null si les données sont manquantes
+      }
+
+      // Recherche dans le tableau newColorItem le dynamicId correspondant
+      const colorItem = this.data.newColorItem.find(item => item.dynamicId === this.data.dynamicId);
+
+      // Retourne la couleur si trouvée, sinon retourne null
+      return colorItem ? colorItem.color : null;
+    },
+
+
     isUrl(value) {
       return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
     },
