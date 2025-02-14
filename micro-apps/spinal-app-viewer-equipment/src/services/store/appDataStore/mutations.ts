@@ -123,30 +123,8 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 	},
 	[MutationTypes.SET_USER_SELECTED](state: StateAppData, payload: { key: 'cat' | 'grp' | 'ctx'; value: any }): void {
 		if (typeof state.user_selected !== 'object') state.user_selected = {};
-		if (payload.key === 'grp') {
-			if (!Array.isArray(state.user_selected.grp)) {
-			  state.user_selected.grp = [];
-			}
-			let updatedGrp = [];
-			payload?.value?.forEach(value => {
-			  if (state.user_selected.grp.indexOf(value) === -1) {
-				updatedGrp.push(value);
-			  }
-			});
-
-			state.user_selected?.grp?.forEach(value => {
-			  if (payload.value.indexOf(value) !== -1) {
-				updatedGrp.push(value);
-			  }
-			});
-		
-			updatedGrp = [...new Set(updatedGrp)];
-		
-			state.user_selected.grp = updatedGrp;
-		  }else {
-			// Pour 'cat' et 'ctx', garder le comportement existant
-			state.user_selected = { ...state.user_selected, [payload.key]: payload.value };
-		}
+		// Pour 'cat' et 'ctx' et 'grp', garder le comportement existant
+		state.user_selected = { ...state.user_selected, [payload.key]: payload.value };
 	}
 };
 

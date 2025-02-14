@@ -76,9 +76,9 @@ with this file. If not, see
         @fit-to-view="fitToView"
         @unselect-data-view="unselectDataView"
         @allFiltredData="putAllFiltredData"
-        @update:selectedItem="handleAttributeChange" @updateSuccess="updateData"
+        @update:selectedItem="handleAttributeChange" @updateSuccess="retriveData"
         @update:selectedAttribute="handleAttributeChange" :headers="[]" :id="0" :label="'test'" :reference="''"
-        :unit="''" :contexts="data" :temporality="''" :ctx_list="$store.state.appDataStore.user_selection_list.ctx"
+        :unit="''" :contexts="tableData" :temporality="''" :ctx_list="$store.state.appDataStore.user_selection_list.ctx"
         :cat_list="$store.state.appDataStore.user_selection_list.cat"
         :grp_list="$store.state.appDataStore.user_selection_list.grp" 
         :ActiveData="ActiveData" :DActive="DActive"
@@ -121,7 +121,7 @@ class dataSideApp extends Vue {
 
   @Prop() config!: IConfig;
   @Prop() selectedZone: ISpaceSelectorItem;
-  @Prop() data: any[];
+  @Prop() tableData: any;
   @Prop() element_clicked: any;
   @Prop() selected_attr: any;
   @Prop() DActive: boolean;
@@ -150,7 +150,17 @@ class dataSideApp extends Vue {
 
   async mounted() {
     localStorage.setItem("viewer_loaded", 'initialize');
-    await this.retriveData();
+    //await this.retriveData();
+    // -> update contexts
+    await this.getAndUpdateEquipmentContexts();
+    await this.updateTableData();
+    
+
+    //- Set Data to contexts
+
+
+
+
     this.pageSate = PAGE_STATES.loaded;
     this.isBuildingSelected = true;
 
@@ -159,35 +169,46 @@ class dataSideApp extends Vue {
   // double = computed(() => count.value * 2)
 
   async handleItemSelected(payload) {
+    if(payload.listType == "ctx" && !payload.value) {
+      this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "ctx", value: null });
+      this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "cat", value: null });
+      this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: null });
+      await this.getAndUpdateEquipmentContexts();
+      await this.updateTableData();
+      return;
+    }
 
     if (payload.listType == "ctx") {
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "ctx", value: payload.value.name });
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "cat", value: null });
-      this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: [] });
+      this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: null });
+      await this.getAndUpdateEquipmentCategories();
+      await this.updateTableData();
+      return;
     }
 
     if (payload.listType == "cat") {
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "cat", value: payload.value.name });
-      this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: [] });
+      this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: null });
+      await this.getAndUpdateEquipmentGroups();
+      await this.updateTableData();
+      return;
     }
 
     if (payload.listType == "grp"){
-      this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: payload.value });
-      if(payload.value.length == 0) {
+      this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: payload.value.name });
+      await this.getAndUpdateEquipmentList();
+      await this.updateTableData();
+
+
+      if(!payload.value) {
         // Load all equipments of category
         await this.retriveData(true);
         return;
       }
     }
-
     await this.retriveData();
   }
-
-  async updateData() {
-
-    await this.retriveData();
-  }
-
 
   async retriveData(getAllCategoryEquipments = false) {
     let actionType = ActionTypes.GET_GROUP_CONTEXT
@@ -200,13 +221,10 @@ class dataSideApp extends Vue {
     dispatchObject.forceUpdate = true;
 
     try {
-      const buildingId = localStorage.getItem("idBuilding");
-      const patrimoineId = JSON.parse(localStorage.getItem("patrimoine")).id;
-      const promises = [
-        this.$store.dispatch(actionType, dispatchObject),
-      ];
-      const result = await Promise.all(promises);
-      this.$store.commit(MutationTypes.SET_DATA, result);
+      const result = await this.$store.dispatch(actionType, dispatchObject)
+      this.$store.commit(MutationTypes.SET_DATA, result.data);
+      console.log(result.data)
+
       this.pageSate = PAGE_STATES.loaded;
     } catch (err) {
       console.log(err);
@@ -215,6 +233,164 @@ class dataSideApp extends Vue {
     }
   }
 
+  
+
+  async getAndUpdateEquipmentContexts(){
+    let dispatchObject = {
+      buildingId: localStorage.getItem("idBuilding"),
+      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id
+    } as any;
+    dispatchObject.forceUpdate = true;
+
+    try {
+      const result = await this.$store.dispatch(ActionTypes.GET_EQUIPMENTS_GROUP, dispatchObject);
+      this.$store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": result });
+      this.pageSate = PAGE_STATES.loaded;
+    } catch (err) {
+      console.log(err);
+      this.retry = this.getAndUpdateEquipmentContexts;
+      this.pageSate = PAGE_STATES.error;
+    }
+  }
+
+  async updateTableData(){
+    if (!this.$store.state.appDataStore.user_selected.ctx) {
+      let dispatchObject = {
+      buildingId: localStorage.getItem("idBuilding"),
+      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+      nodeIds: this.$store.state.appDataStore.user_selection_list.ctx.map(ctx => ctx.dynamicId),
+      includeChildrenRelations : true,
+      includeParentRelations : false
+    } as any;
+    dispatchObject.forceUpdate = true;
+      const result = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, dispatchObject);
+      const futurData = this.$store.state.appDataStore.user_selection_list.ctx.map(ctx => {
+        const read = result.find((node) => node.dynamicId === ctx.dynamicId);
+        const hasCategoryRelation = read.children_relation_list.find(relation => relation.name === "hasCategory")
+        return { ...ctx, nbr_categories: hasCategoryRelation.children_number }
+      })
+      console.log('***updateTableData', result);
+      this.$store.commit(MutationTypes.SET_DATA, futurData);
+      return;
+    }
+
+    if (!this.$store.state.appDataStore.user_selected.cat) {
+      let dispatchObject = {
+      buildingId: localStorage.getItem("idBuilding"),
+      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+      nodeIds: this.$store.state.appDataStore.user_selection_list.cat.map(cat => cat.dynamicId),
+      includeChildrenRelations : true,
+      includeParentRelations : false
+    } as any;
+    dispatchObject.forceUpdate = true;
+      const result = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, dispatchObject);
+      const futurData = this.$store.state.appDataStore.user_selection_list.cat.map(cat => {
+        const read = result.find((node) => node.dynamicId === cat.dynamicId);
+        const hasGroupRelation = read.children_relation_list.find(relation => relation.name === "hasGroup")
+        return { ...cat, nbr_groups: hasGroupRelation.children_number }
+      })
+      console.log('***updateTableData', result);
+      this.$store.commit(MutationTypes.SET_DATA, futurData);
+      return;
+    }
+
+    if (!this.$store.state.appDataStore.user_selected.grp) {
+      let dispatchObject = {
+      buildingId: localStorage.getItem("idBuilding"),
+      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+      nodeIds: this.$store.state.appDataStore.user_selection_list.grp.map(grp => grp.dynamicId),
+      includeChildrenRelations : true,
+      includeParentRelations : false
+    } as any;
+    dispatchObject.forceUpdate = true;
+      const result = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, dispatchObject);
+      const futurData = this.$store.state.appDataStore.user_selection_list.grp.map(grp => {
+        const read = result.find((node) => node.dynamicId === grp.dynamicId);
+        const hasBimObjectRelation = read.children_relation_list.find(relation => relation.name === "groupHasBIMObject")
+        return { ...grp, nbr_equipments: hasBimObjectRelation.children_number }
+      })
+      console.log('***updateTableData', result);
+      this.$store.commit(MutationTypes.SET_DATA, futurData);
+      return;
+    }
+
+    
+
+  }
+
+  async getAndUpdateEquipmentCategories(){
+    const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
+    let actionType = ActionTypes.GET_CATEGORY_LIST
+    let dispatchObject = {
+      buildingId: localStorage.getItem("idBuilding"),
+      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+      contextDynId: matchingContext.dynamicId
+    } as any;
+    dispatchObject.forceUpdate = true;
+
+    try {
+      const result = await this.$store.dispatch(actionType, dispatchObject);
+      this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "cat": result });
+
+      this.pageSate = PAGE_STATES.loaded;
+    } catch (err) {
+      console.log(err);
+      this.retry = this.getAndUpdateEquipmentCategories;
+      this.pageSate = PAGE_STATES.error;
+    }
+
+  }
+
+  async getAndUpdateEquipmentGroups(){
+    const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
+    const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
+    let actionType = ActionTypes.GET_GROUP_LIST
+    let dispatchObject = {
+      buildingId: localStorage.getItem("idBuilding"),
+      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+      contextDynId: matchingContext.dynamicId,
+      categoryDynId: matchingCategory.dynamicId
+    } as any;
+    dispatchObject.forceUpdate = true;
+
+    try {
+      const result = await this.$store.dispatch(actionType, dispatchObject);
+      this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
+
+      this.pageSate = PAGE_STATES.loaded;
+    } catch (err) {
+      console.log(err);
+      this.retry = this.getAndUpdateEquipmentGroups;
+      this.pageSate = PAGE_STATES.error;
+    }
+
+  }
+
+  async getAndUpdateEquipmentList(){
+    const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
+    const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
+    const matchingGroup = this.$store.state.appDataStore.user_selection_list.grp.find(grp => grp.name === this.$store.state.appDataStore.user_selected.grp);
+    let actionType = ActionTypes.GET_EQUIPEMENT_LIST;
+    let dispatchObject = {
+      buildingId: localStorage.getItem("idBuilding"),
+      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+      contextDynId: matchingContext.dynamicId,
+      categoryDynId: matchingCategory.dynamicId,
+      groupDynId: matchingGroup.dynamicId
+
+    } as any;
+    dispatchObject.forceUpdate = true;
+
+    try {
+      const result = await this.$store.dispatch(actionType, dispatchObject);
+      this.$store.commit(MutationTypes.SET_DATA, result);
+      this.pageSate = PAGE_STATES.loaded;
+    } catch (err) {
+      console.log(err);
+      this.retry = this.getAndUpdateEquipmentList;
+      this.pageSate = PAGE_STATES.error;
+    }
+  }
 
 
   async putAllFiltredData(allFilteredData) {
@@ -245,8 +421,8 @@ class dataSideApp extends Vue {
     if (this.config.sprites)
       this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
     if (this.isBuildingSelected) return;
-    const itemsToColor = this.data[0].data.map((el) => el.children || []).flat();
-    let originalArray = this.data[0].data;
+    const itemsToColor = this.tableData.map((el) => el.children || []).flat();
+    let originalArray = this.tableData;
     let newArray = originalArray.map(item => {
       // Trouver l'attribut 'Spatial'
       let cate = item.categoryAttributes.find(cat => cat.name === emitedInfo.cate);
@@ -324,7 +500,7 @@ class dataSideApp extends Vue {
     else {
       this.isBuildingSelected = false;
     }
-    const shouldGetAllEquipments = this.$store.state.appDataStore.user_selected.grp.length == 0;
+    const shouldGetAllEquipments = !this.$store.state.appDataStore.user_selected.grp;
     this.retriveData(shouldGetAllEquipments);
   }
 
@@ -333,15 +509,11 @@ class dataSideApp extends Vue {
     this.updateComponentProp(newVal);
   }
 
-
-  // @Watch('data')
-  // onDataChange(newVal, oldVal) {
-  // }
-
-
-
   async watchData(newVal, changedProperty) {
-
+    if(!this.$store.state.appDataStore.user_selected.ctx ||
+      !this.$store.state.appDataStore.user_selected.cat ||
+      !this.$store.state.appDataStore.user_selected.grp
+    ) return;
     if (this.config.sprites)
       this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
     //if (this.isBuildingSelected) return; // If building is selected don't add sprites
@@ -351,8 +523,11 @@ class dataSideApp extends Vue {
     if (changedProperty === 'AllFiltredData') {
       originalArray = newVal;
     } else {
-      originalArray = this.data[0].data;
+      originalArray = this.$store.state.appDataStore.data;
     }
+
+    // originalArray = this.$store.state.appDataStore.data;
+    console.log('originalArray', originalArray);
 
     itemsToColor = originalArray.map((el) => el.children || []).flat();
     let newArray = originalArray.map(item => {

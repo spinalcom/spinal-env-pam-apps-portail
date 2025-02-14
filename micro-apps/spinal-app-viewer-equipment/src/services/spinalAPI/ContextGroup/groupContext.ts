@@ -42,51 +42,36 @@ import type {
 
 
 export async function getGroupContext(patrimoineId: string, buildingId: string, position_type: any, getAllCategoryEquipments = true): Promise<any | null> { 
-    console.log('getGroupContext', position_type);
-    const spinalAPI = SpinalAPI.getInstance();
-    const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/groupContext/list`);
-    let result = await spinalAPI.get<IZoneItem[]>(url);
-    let resultCopy = JSON.parse(JSON.stringify(result));
-
-    // On ne garde que les contexte d'équipements
-    resultCopy.data = resultCopy.data.filter(item =>
-        item.type === 'BIMObjectGroupContext'
-    );
-
-    store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy.data });
-
-
-    // get the context selected by the user
-    const matchedContext = resultCopy.data.find(context => context.name === store.state.appDataStore.user_selected.ctx);
+    let resultCopy = store.state.appDataStore.user_selection_list.ctx;
+    const matchedContext = resultCopy.find(context => context.name === store.state.appDataStore.user_selected.ctx);
     let type;
     let List: IZoneItem[] | null = null;
+
+
+
 
     // if user selected a context
     if (matchedContext) {
 
         let tree = await getGroupContextCategoryList(patrimoineId, buildingId, matchedContext.dynamicId);
-        store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy.data, "cat": tree });
+        store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy , "cat": tree });
         const matchedCategory = tree.find(context => context.name === store.state.appDataStore.user_selected.cat);
         // if user selected a category
         if (matchedCategory) {
 
             let grpList = await getGroupContextGroupList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId);
             // console.log('grpList', grpList);
-            store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy.data, "cat": tree, "grp": grpList });
+            store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy, "cat": tree, "grp": grpList });
 
             let allLists = [];
             if(!getAllCategoryEquipments){
-                for (const selectedGroupName of store.state.appDataStore.user_selected.grp) {
-                    const matchedGrpList = grpList.find(context => context.name === selectedGroupName);
+                // refacto, now we only have 1 group selected ( no longer a list)
+                if(store.state.appDataStore.user_selected.grp){
+                    const matchedGrpList = grpList.find(context => context.name === store.state.appDataStore.user_selected.grp);
                     if (matchedGrpList) {
                         let list;
-                        type = matchedGrpList.type;
-                        if (matchedGrpList.type === "BIMObjectGroup") {
-                            list = await getequipementList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, matchedGrpList.dynamicId);
-                            if(store.state.appDataStore.user_selected.grp.length > 1){
-                                list = list.map((obj) => {return {...obj,color:matchedGrpList.color, group:matchedGrpList.name}});
-                            }
-                        }
+                        list = await getequipementList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, matchedGrpList.dynamicId);
+                        list = list.map((obj) => {return {...obj,color:matchedGrpList.color, group:matchedGrpList.name}});
                         if (list) {
                             allLists.push(...list);
                         }
@@ -114,6 +99,10 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
     }
 
 }
+
+
+
+
 
 async function processPositionType(position_type, buildingId, allLists) {
     
@@ -190,11 +179,8 @@ async function processPositionType(position_type, buildingId, allLists) {
         return acc;
     }, []);
 
-    const nomenclature = createUnifiedNomenclature(attribut);
-
     return {
         data: enrichBIMObjects(roomsOnFloor, attribut),
-        nomenclature: nomenclature,
     };
 }
 
@@ -227,26 +213,6 @@ export async function getAttributeListMultiple(buildingId: string, roomIds: stri
         throw error;
     }
 }
-
-function createUnifiedNomenclature(dataArray: any[]): any {
-    const unifiedNomenclature = {};
-    dataArray?.forEach(data => {
-        data.categoryAttributes?.forEach(category => {
-            if (!unifiedNomenclature[category.name]) {
-                unifiedNomenclature[category.name] = [];
-            }
-
-            category?.attributs?.forEach(attribut => {
-                if (!unifiedNomenclature[category.name].includes(attribut.label)) {
-                    unifiedNomenclature[category.name].push(attribut.label);
-                }
-            });
-        });
-    });
-    return unifiedNomenclature
-}
-
-
 
 function getRoomsByFloor(floorId: number, rooms: any, roomFloorInfos: any): any[] {
 

@@ -30,14 +30,12 @@ import type {
     IZoneItem
 } from '../../../../../../global-components/SpaceSelector/interfaces/IBuildingItem';
 
-
-
-export async function getEquipmentGroup(patrimoineId: string, buildingId: string, floorId: string): Promise<IZoneItem[]> {
+export async function getEquipmentContexts(patrimoineId: string, buildingId: string): Promise<IZoneItem[]> {
     const spinalAPI = SpinalAPI.getInstance();
     const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipementsGroup/list`);
     let result = await spinalAPI.get<IZoneItem[]>(url);
     const res = result.data.map((obj) => {
-        Object.assign(obj, { patrimoineId, buildingId, floorId, color: '#ded638', req: 'EquipmentGroup' });
+        Object.assign(obj, { patrimoineId, buildingId, req: 'ContextList' });
         return obj;
     });
     return res;
@@ -45,7 +43,7 @@ export async function getEquipmentGroup(patrimoineId: string, buildingId: string
 
 export async function getCategoryList(patrimoineId: string, buildingId: string, contextDynId: number): Promise<IZoneItem[]> {
     const spinalAPI = SpinalAPI.getInstance();
-    const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipementsGroup/${contextDynId}/category_list`);
+    const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/groupeContext/${contextDynId}/category_list`);
     let result = await spinalAPI.get<IZoneItem[]>(url);
     const res = result.data.map((obj) => {
         Object.assign(obj, { patrimoineId, buildingId, req: 'CategoryList' });
@@ -54,13 +52,9 @@ export async function getCategoryList(patrimoineId: string, buildingId: string, 
     return res;
 }
 
-export async function getGroupList(patrimoineId: string, buildingId: string, contextDynId: number, categoryDynId: number): Promise<IZoneItem[]> {
-    // console.log('RAPELLLLE ,,,,');
-    
-    // console.log('CONTAXT ,',contextDynId);
-    
+export async function getGroupList(patrimoineId: string, buildingId: string, contextDynId: number, categoryDynId: number): Promise<IZoneItem[]> {    
     const spinalAPI = SpinalAPI.getInstance();
-    const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipementsGroup/${contextDynId}/category/${categoryDynId}/group_list`);
+    const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/groupeContext/${contextDynId}/category/${categoryDynId}/group_list`);
     let result = await spinalAPI.get<IZoneItem[]>(url);
     const res = result.data.map((obj) => {
         Object.assign(obj, { patrimoineId, buildingId, req: 'GroupList' });
@@ -70,10 +64,7 @@ export async function getGroupList(patrimoineId: string, buildingId: string, con
 }
 
 
-export async function getequipementList(patrimoineId: string, buildingId: string, contextDynId: number, categoryDynId: number, groupDynId: number): Promise<IZoneItem[]> {
-    // console.log('LA FONCTION EST APPELLE ,,,,');
-    
-    
+export async function getequipementList(patrimoineId: string, buildingId: string, contextDynId: number, categoryDynId: number, groupDynId: number): Promise<IZoneItem[]> {    
     const spinalAPI = SpinalAPI.getInstance();
     const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipementsGroup/${contextDynId}/category/${categoryDynId}/group/${groupDynId}/equipementList`);
     let result = await spinalAPI.get<IZoneItem[]>(url);

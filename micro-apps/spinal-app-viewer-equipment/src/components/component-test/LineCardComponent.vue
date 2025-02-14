@@ -210,7 +210,9 @@ export default {
         maintainAspectRatio: false,
         borderWidth: 2,
         animations: false,
-        tension: 0.3,
+        tension: 0,
+        parsing: false,
+        normalized: true,
         scales: {
           ...yAxes,
           x: {

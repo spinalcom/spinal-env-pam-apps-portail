@@ -5,43 +5,9 @@
       @click.stop="showSelection = !showSelection"
       class="breadcrumbs"
     >
-      <a href="#selected_ctx" class="breadcrumbs__item">{{ selected_ctx }}</a>
-      <a href="#selected_cat" class="breadcrumbs__item">{{ selected_cat }}</a>
-      <div v-if="selected_grp.length>0" href="#selected_grp" class="breadcrumbs__item">
-        <v-chip
-          color="#14202c"
-          style="
-            background-color: #14202c;
-            margin-top: 10px !important;
-            color: white;
-          "
-          density="comfortable"
-          size="small"
-          v-for="(item, i) in selected_grp"
-        >
-          {{ selected_grp[i] }}
-          <div
-            style="
-              top: -5px;
-              right: -5px;
-              position: absolute;
-              background-color: white;
-              border-radius: 20px;
-              height: 15px;
-              width: 15px;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              border: 1px solid #14202c;
-              color: #14202c;
-            "
-          >
-            <v-icon style="margin-top: 1px" size="13px" @click.stop="tarrr(i)"
-              >mdi-close</v-icon
-            >
-          </div>
-        </v-chip>
-      </div>
+      <a href="#selected_ctx" class="breadcrumbs__item">{{ $store.state.appDataStore.user_selected.ctx }}</a>
+      <a href="#selected_cat" class="breadcrumbs__item" v-if="$store.state.appDataStore.user_selected.cat">{{ $store.state.appDataStore.user_selected.cat }}</a>
+      <a href="#selected_cat" class="breadcrumbs__item" v-if="$store.state.appDataStore.user_selected.grp">{{ $store.state.appDataStore.user_selected.grp }}</a>
       <div v-if="selected_item" href="#selected_item" class="breadcrumbs__item">
         <div
             style="
@@ -194,12 +160,15 @@
               font-weight: bold;
             "
           >
-            Sélectionner un ou plusieurs groupe:</div
+            Sélectionner un groupe:</div
           >
           <ul>
             <div
-              @click="toggleSelection(grp.name)"
-              :class="{ selected: selected_grp.includes(grp.name) }"
+              @click="
+                emitValue('grp', grp);
+                selected_grp = grp.name;
+              "
+              :class="{ selected: selected_grp === grp.name }"
               class="choose_li"
               v-for="grp in grp_list"
               :key="grp.name"
@@ -279,39 +248,27 @@ export default {
   props: ['ctx_list', 'cat_list', 'grp_list', 'selected_item'],
   data: () => ({
     selected_ctx: '',
-    selected_grp: [],
+    selected_grp: '',
     selected_cat: '',
-    showSelection: true,
+    showSelection: false,
   }),
 
   mounted() {},
 
   methods: {
-    tarrr(i) {
-      this.selected_grp.splice(i, 1);
-      this.validate();
-    },
-
     deselectItem(){
         this.emitValue('item', '');
     },
-
-    toggleSelection(groupName) {
-      const index = this.selected_grp.indexOf(groupName);
-      if (index === -1) {
-        this.selected_grp.push(groupName);
-      } else {
-        this.selected_grp.splice(index, 1);
-      }
-    },
     validate() {
-      this.emitValue('grp', this.selected_grp);
+      //this.emitValue('grp', this.selected_grp);
       this.showSelection = false;
     },
 
+
+
     emitValue(listType, value) {
       if (listType == 'ctx' || listType == 'cat') {
-        this.selected_grp = [];
+        this.selected_grp = '';
       }
       if (listType == 'ctx') {
         this.selected_cat = '';

@@ -28,7 +28,7 @@ import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
 import { getEquipments, getFloors, getRooms, getBuilding ,
 	getAttributListMultiple, getDocumentation ,postDownloadFile ,getTicket,
-	getNotes, getNodeEndpointList, getNodeControlEndpointList ,getTimeSeriesAsync , getFile
+	getNotes, getNodeEndpointList, getNodeControlEndpointList ,getTimeSeriesAsync , getFile, getNodeReadMultiple
 } from "../../spinalAPI/GeographicContext/geographicContext";
 import { addTicketDoc, createTicket, getProcess, getWorkFlowList, Ticket } from "../../spinalAPI/CreateTicket";
 
@@ -38,7 +38,7 @@ import { getGroupContext, getGroupContextCategoryList, getGroupContextGroupList,
 
 import { createAttribut, createCategory, getCategoriesList } from "../../spinalAPI/NodeAttributs/nodeAttributs";
 
-import { getEquipmentGroup, getCategoryList, getGroupList, getequipementList } from "../../spinalAPI/EquipementsGroup/equipementsGroup";
+import { getEquipmentContexts, getCategoryList, getGroupList, getequipementList } from "../../spinalAPI/EquipementsGroup/equipementsGroup";
 import type { IEquipmentItem, IZoneItem, ISpaceSelectorItem } from "../../../../../../global-components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
 import { IViewInfoBody, IViewInfoItemRes } from "../../spinalAPI/GeographicContext/getViewInfo";
@@ -163,6 +163,18 @@ export const actions = {
 		}
 	},
 
+	async [ActionTypes.READ_NODE_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, nodeIds, includeChildrenRelations, includeParentRelations }: { buildingId: string; nodeIds: number []; includeChildrenRelations: boolean; includeParentRelations: boolean }): Promise<any> {
+		// console.log(buildingId , referenceIds , 'RR');
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getNodeReadMultiple(buildingId, nodeIds, includeChildrenRelations, includeParentRelations);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
 
 
 
@@ -223,7 +235,7 @@ export const actions = {
 		const floorObjStore = ApiIteratorStore[ActionTypes.GET_EQUIPMENTS_GROUP]!;
 
 		if (typeof floorObjStore[id] === "undefined" || forceUpdate === true) {
-			floorObjStore[id] = spinalAPI.createIteratorCall(getEquipmentGroup, patrimoineId, buildingId, floorId);
+			floorObjStore[id] = spinalAPI.createIteratorCall(getEquipmentContexts, patrimoineId, buildingId, floorId);
 		}
 		const floors = await floorObjStore[id].next();
 		// commit(MutationTypes.SET_DATA, { id: id, items: floors.value });

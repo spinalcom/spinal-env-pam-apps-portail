@@ -74,7 +74,7 @@ with this file. If not, see
       <viewerApp :class="{ 'active3D': isActive3D }" class="viewerContainer"></viewerApp>
       <dataSideApp :DActive="isActive3D" :ActiveData="isActive" :class="{ 'active': isActive, 'inactive': isActive3D }"
         :selected_attr="$store.state.appDataStore.attr" class="appContainer" :element_clicked="el_clicked"
-        :config="config" :selectedZone="selectedZone" :data="displayedData" 
+        :config="config" :selectedZone="selectedZone" :tableData="displayedData" 
         @clickOnDataView="onDataViewClicked"
         @unselect-data-view="unselectDataView"
         @fit-to-view="fitToView"
@@ -366,6 +366,7 @@ class App extends Vue {
 
   async fitToView(item: TGeoItem | TGeoItem[]) {
     if (!item) return;
+    console.log('fitToView', item);
     this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
   }
 

@@ -69,14 +69,20 @@
       style="padding: 2px;"
       class="scrollable-table-container"
     >
+      <v-icon class="icon-rounded-square"
+      v-if="$store.state.appDataStore.user_selected.ctx"
+      @click="goBack()">
+        mdi-arrow-left
+      </v-icon>
       <DataTable
         :selectedItemTab="selectedItemTab"
         :height="'74vh'"
-        :items="filteredContextsV"
+        :items="filteredContexts"
         :headers="dynamicHeaders()"
         :contexts="contexts"
         :selections="selections"
         @item-selected="selectDataView($event)"
+        @table-item-selected="emitValue($event.listType, $event.value)"
         @unselect-data-view="unselectDataView($event)"
         @fit-to-view="fitToView($event)"
         @filter="filtercolumn($event)"
@@ -309,7 +315,7 @@
       <div v-if="ActiveData && labelsChart"
         class="graphContainer"
       >
-      <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
+      <!-- <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
             :step="labelsChart.length" :tooltipCallbacks="{
               title: (context) => { },
               label: (tooltipItem) =>
@@ -317,7 +323,17 @@
                   2
                 )} `,
               footer: (data) => { },
-      }"></LineCardComponent>
+      }"></LineCardComponent> -->
+
+          <FastLineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
+            :step="labelsChart.length" :tooltipCallbacks="{
+              title: (context) => { },
+              label: (tooltipItem) =>
+                `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
+                  2
+                )} `,
+              footer: (data) => { },
+            }"></FastLineCardComponent>
       </div>
 
       <!-- ONGLET INDICATEUR -->
@@ -479,6 +495,7 @@ import SpinalbreadCrumb from './SpinalbreadCrumb.vue';
 import DataTable from './SpinalDataTable';
 import { ActionTypes } from '../../interfaces/vuexStoreTypes';
 import LineCardComponent from './LineCardComponent.vue';
+import FastLineCardComponent from './FastLineCardComponent.vue';
 import { IConfig, ITemporality } from '../../interfaces/IConfig';
 import moment from 'moment';
 
@@ -514,7 +531,8 @@ export default {
     FormTicket,
     AddTicketBtn,
     OverMenu,
-    Radar
+    Radar,
+    FastLineCardComponent,
   },
   props: [
     'contexts',
@@ -530,7 +548,7 @@ export default {
     'DActive',
   ],
   data: () => ({
-    selections: {},
+    selections: {}, // for table header selection -- useless now, remove when possible
     tableData: [],
     selectedAttribute: null,
     filteredAttributes: [],
@@ -625,200 +643,22 @@ export default {
     });
   },
   computed: {
-    // treeviewItems() {
-    //   console.log('------> contexts', this.contexts);
-    //   if (!this.contexts[0].nomenclature) {
-    //     return [];
-    //   }
-    //   let index = 0;
-    //   let res = [];
-    //   const nomenclatureObj = this.contexts[0].nomenclature;
-    //   const attributeItems = Object.entries(nomenclatureObj).map(
-    //     ([key, value]) => {
-    //       const obj = {
-    //         id: key + index,
-    //         name: "Catégorie d'attribut: " + key,
-    //         children: value?.map((item, itemIndex) => ({
-    //           id: `${key}-${itemIndex}`,
-    //           name: item,
-    //         })),
-    //       };
-    //       index += 1;
-    //       return obj;
-    //     }
-    //   );
-    //   res = res.concat(attributeItems);
-    //   res.push({
-    //     id: 'Tickets' + index,
-    //     name: 'Tickets',
-    //     children: [
-    //       { id: 'Tickets-declare0', name: 'Tickets déclarés', children: [] },
-    //       { id: 'Tickets-en-cours1', name: 'Tickets en cours', children: [] },
-    //       { id: 'Tickets-ferme2', name: 'Tickets cloturés', children: [] },
-    //     ],
-    //   });
-    //   index += 1;
-    //   res.push({
-    //     id: 'Insights' + index,
-    //     name: 'Insights',
-    //     children: [
-    //       { id: 'cp0', name: 'cp1', children: [] },
-    //       { id: 'cp1', name: 'cp2', children: [] },
-    //       { id: 'cp2', name: 'cp3', children: [] },
-    //     ],
-    //   });
-    //   index += 1;
-
-    //   res.push({
-    //     id: 'Endoints' + index,
-    //     name: 'Endpoints',
-    //     children: [
-    //       { id: 'ep0', name: 'ep1', children: [] },
-    //       { id: 'ep1', name: 'ep2', children: [] },
-    //       { id: 'ep2', name: 'ep3', children: [] },
-    //     ],
-    //   });
-    //   index += 1;
-
-    //   res.push({
-    //     id: 'Notes' + index,
-    //     name: 'Notes',
-    //     children: [
-    //       { id: 'Nombre de notes', name: 'Nombre de notes', children: [] },
-    //     ],
-    //   });
-    //   index += 1;
-
-    //   res.push({
-    //     id: 'Documents' + index,
-    //     name: 'Documents',
-    //     children: [
-    //       {
-    //         id: 'Nombre de documents',
-    //         name: 'Nombre de documents',
-    //         children: [],
-    //       },
-    //     ],
-    //   });
-    //   index += 1;
-
-    //   console.log('------> items', res);
-
-    //   return res;
-    // },
-
+    
     filteredContexts() {
       if (this.contexts) {
-        return this.contexts[0]?.data;
+        this.$emit('allFiltredData', this.contexts); // will make sprites appear
+        return this.contexts;
       }
     },
-
-    filteredContextsV() {
-      if (this.contexts && this.contexts[0]?.data) {
-        Object.keys(this.selections).forEach((key) => {
-          if (
-            Array.isArray(this.selections[key]) &&
-            this.selections[key].length === 0
-          ) {
-            delete this.selections[key];
-          }
-        });
-
-        if (Object.keys(this.selections).length === 0) {
-          let allFilteredData = this.contexts[0]?.data;
-          this.$emit('allFiltredData', allFilteredData);
-          if (this.currentfilter) {
-            this.$store.commit(
-              MutationTypes.SET_DLDATA,
-              this.sortDataByAttribute(this.currentfilter, [...allFilteredData])
-            );
-            return this.sortDataByAttribute(this.currentfilter, [
-              ...allFilteredData,
-            ]);
-          } else {
-            //this.extractData();
-            return this.contexts[0]?.data;
-          }
-        }
-
-        const criteria = Object.entries(this.selections).map(
-          ([key, values]) => {
-            const [label, category] = key.split('/');
-            return { label, category, values };
-          }
-        );
-
-        let allFilteredData = [];
-
-        criteria.forEach((criterion, index) => {
-          const filteredDataForCriterion = this.contexts[0].data.filter(
-            (object) => {
-              const category = object.categoryAttributes.find(
-                (cat) => cat.name === criterion.category
-              );
-              return criterion.values.some((value) => {
-                if (value === '<empty>') {
-                  if (
-                    !category ||
-                    !category.attributs.some(
-                      (attr) => attr.label === criterion.label
-                    )
-                  ) {
-                    return true;
-                  }
-                  const attribute = category.attributs.find(
-                    (attr) => attr.label === criterion.label
-                  );
-                  return !attribute || attribute.value === '';
-                } else {
-                  return (
-                    category &&
-                    category.attributs.some(
-                      (attr) =>
-                        attr.label === criterion.label && attr.value === value
-                    )
-                  );
-                }
-              });
-            }
-          );
-          if (index === 0) {
-            allFilteredData = filteredDataForCriterion;
-          } else {
-            allFilteredData = allFilteredData.filter((item) =>
-              filteredDataForCriterion.includes(item)
-            );
-          }
-        });
-        this.$emit('allFiltredData', allFilteredData);
-        if (this.currentfilter && allFilteredData != []) {
-          this.$store.commit(
-            MutationTypes.SET_DLDATA,
-            this.sortDataByAttribute(this.currentfilter, [...allFilteredData])
-          );
-          return this.sortDataByAttribute(this.currentfilter, [
-            ...allFilteredData,
-          ]);
-        } else {
-          //this.extractData(allFilteredData);
-
-          return allFilteredData;
-        }
-      }
-    },
-
-    // temporality() {
-    //   return this.$store.state.appDataStore.temporalitySelected.name;
-    // },
 
     currentTargetItemId() {
       let dynamicId = null;
       if (this.selected_id) {
         dynamicId = this.selected_id;
-      } else if (this.$store.state.appDataStore.user_selected.grp.length > 0) {
+      } else if (this.$store.state.appDataStore.user_selected.grp) {
         let found = this.grp_list.find(
           (grp) =>
-            grp.name === this.$store.state.appDataStore.user_selected.grp[0]
+            grp.name === this.$store.state.appDataStore.user_selected.grp
         );
         dynamicId = found.dynamicId;
       } else if (this.$store.state.appDataStore.user_selected.cat) {
@@ -848,7 +688,7 @@ export default {
       ]
       if (this.selected_id) {
         return vSelectTabs.filter((tab) => tab !== 'Radar');
-      } else if (this.$store.state.appDataStore.user_selected.grp.length > 0) {
+      } else if (this.$store.state.appDataStore.user_selected.grp) {
         return vSelectTabs.filter((tab) => tab !== 'Radar');
       } else if (this.$store.state.appDataStore.user_selected.cat) {
         return vSelectTabs;
@@ -857,10 +697,10 @@ export default {
     },
 
     radarData(){
-      console.log('selection', this.filteredContextsV);
+      console.log('selection', this.filteredContexts);
 
       // Récupérer les groupes uniques et compter les équipements par groupe
-      const groupCounts = this.filteredContextsV.reduce((acc, item) => {
+      const groupCounts = this.filteredContexts.reduce((acc, item) => {
       acc[item.group] = (acc[item.group] || 0) + 1;
       return acc;
       }, {});
@@ -939,25 +779,19 @@ export default {
       return dataArray;
     },
 
-    deleteAttrSelected(item) {
-      let selectedKeys = this.selectedKeys;
-      if (item.parentName === item.childName) {
-        this.selectedKeys = selectedKeys.filter(
-          (key) => !key.startsWith(item.parentName)
-        );
-      } else {
-        const childIndex = this.contexts[0].nomenclature[
-          item.parentName
-        ].indexOf(item.childName);
-        if (childIndex !== -1) {
-          const keyToRemove = `${item.parentName}-${childIndex}`;
-          this.selectedKeys = this.selectedKeys.filter(
-            (key) => key !== keyToRemove
-          );
-        }
+
+    goBack(){
+      console.warn('goBack');
+      if(this.$store.state.appDataStore.user_selected.grp){
+        const cat = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat)
+        this.emitValue('cat', cat);
+      } else if(this.$store.state.appDataStore.user_selected.cat){
+        const ctx = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx)
+        this.emitValue('ctx',ctx);
+      } else if(this.$store.state.appDataStore.user_selected.ctx){
+        this.emitValue('ctx',null);
       }
     },
-
     emitValue(listType, value) {
       if (listType == 'item') {
         this.selected_id = null;
@@ -965,7 +799,7 @@ export default {
         return;
       }
       if (listType == 'ctx' || listType == 'cat') {
-        this.selected_grp = [];
+        this.selected_grp = '';
       }
       if (listType == 'ctx') {
         this.selected_cat = '';
@@ -979,52 +813,6 @@ export default {
       //   this.$store.commit(MutationTypes.SET_ATTR, headerName);
     },
 
-    // extractData(givendata = this.filteredContexts) {
-    //   const dynamicHeaders = this.dynamicHeaders()?.map(
-    //     (header) => header.text
-    //   );
-    //   const filteredContexts = givendata;
-
-    //   // const { filteredContexts } = this;
-    //   if (
-    //     this.$store.state.appDataStore.dl_data_option == false ||
-    //     this.checked == true
-    //   ) {
-    //     this.tableData = filteredContexts?.map((item) => {
-    //       const dataForRow = {};
-    //       dynamicHeaders.forEach((header) => {
-    //         dataForRow['dynamicId'] = item.dynamicId;
-    //         dataForRow['staticId'] = item.staticId;
-    //         if (header.includes('Nom')) {
-    //           dataForRow['Nom'] = item.name;
-    //         } else {
-    //           const attributeValue = this.getAttributeValueDL(item, header);
-    //           dataForRow[header] = attributeValue;
-    //         }
-    //       });
-    //       return dataForRow;
-    //     });
-    //   } else {
-    //     this.tableData = filteredContexts?.map((item) => {
-    //       const dataForRow = {
-    //         dynamicId: item.dynamicId,
-    //         staticId: item.staticId,
-    //         Nom: item.name,
-    //       };
-
-    //       item.categoryAttributes.forEach((category) => {
-    //         category.attributs.forEach((attr) => {
-    //           const attrKey = `${attr.label}/${category.name}`;
-    //           dataForRow[attrKey] = attr.value;
-    //         });
-    //       });
-
-    //       return dataForRow;
-    //     });
-    //   }
-    //   this.ChipKeySlected();
-    //   this.$store.commit(MutationTypes.SET_DLDATA, this.tableData);
-    // },
 
     getAttributeValueDL(item, attrLabel) {
       const [childName, parentName] = attrLabel.split('/');
@@ -1068,83 +856,41 @@ export default {
       this.$emit('fit-to-view', item);
     },
 
-    ChipKeySlected() {
-      const headers = [
-        {
-          text: 'Nom',
-          value: 'name',
-          sortable: true,
-          filtrable: true,
-          filtrable: true,
-        },
-      ];
-      const selectedItems = this.selectedKeys
-        ?.map((key) => {
-          const foundItem = this.treeviewItems?.find(
-            (item) =>
-              item.children && item.children.find((child) => child.id === key)
-          );
-          if (foundItem) {
-            const foundChild = foundItem.children.find(
-              (child) => child.id === key
-            );
-
-            return {
-              parentName: foundItem.name,
-              childName: foundChild ? foundChild.name : null,
-            };
-          }
-          return null;
-        })
-        .filter((item) => item && item.childName !== null);
-      selectedItems.forEach(({ parentName, childName }) => {
-        headers.push({
-          text: `${childName}/${parentName}`,
-          value: childName,
-          filtrable: true,
-        });
-      });
-
-      let parentCounts = {};
-      let optimizedItems = [];
-
-      if (!this.contexts) {
-        return;
-      }
-      let nomenclature = this.contexts[0].nomenclature;
-
-      selectedItems.forEach((item) => {
-        const { parentName, childName } = item;
-        if (!parentCounts[parentName]) {
-          parentCounts[parentName] = { count: 1, children: [childName] };
-        } else {
-          parentCounts[parentName].count++;
-          parentCounts[parentName].children.push(childName);
-        }
-      });
-
-      for (const parentName in parentCounts) {
-        const parentInfo = parentCounts[parentName];
-        if (
-          nomenclature[parentName] &&
-          nomenclature[parentName].length === parentInfo.count &&
-          nomenclature[parentName].every((child) =>
-            parentInfo.children.includes(child)
-          )
-        ) {
-          optimizedItems.push({ parentName, childName: parentName });
-        } else {
-          parentInfo.children.forEach((childName) =>
-            optimizedItems.push({ parentName, childName })
-          );
-        }
-      }
-      this.keyselected = optimizedItems;
-    },
 
     dynamicHeaders() {
-      let headers = [
+      // Headers depend on user selected context, category or group
+      // if context is selected , show categories.
+      // if category is selected, show groups.
+      // if group is selected, show equipments as we used to do.
+
+
+      if(!this.$store.state.appDataStore.user_selected.ctx){ // Show Contexts
+        return [
+          { text: 'Nom', value: 'name', sortable: true },
+          { text: 'Nombre de catégories', value: 'nbr_categories', sortable: true },
+        ];
+      }
+
+      if(!this.$store.state.appDataStore.user_selected.cat){ // Show Categories
+        return [
+          { text: 'Nom', value: 'name', sortable: true },
+          { text: 'Nombre de groupes', value: 'nbr_groups', sortable: true },
+        ];
+      }
+
+      if(!this.$store.state.appDataStore.user_selected.grp){ // Show Groups
+        return [
+          { text: 'Nom', value: 'name', sortable: true },
+          { text: 'Actions', value: 'actions', sortable: false },
+          { text: 'Nombre d\'équipements', value: 'nbr_equipments', sortable: true },
+        ];
+      }
+
+      // Show Equipments
+
+      return [
         { text: 'Nom', value: 'name', sortable: true },
+        { text: 'Actions', value: 'actions', sortable: false },
         { text: 'Etage', value: 'floor', sortable: true },
         { text: 'Pièce', value: 'room', sortable: true },
         { text: 'Nombre de tickets', value: 'nbr_tickets', sortable: true },
@@ -1153,44 +899,7 @@ export default {
         { text: 'Nombre de points de mesure', value: 'nbr_ep', sortable: true },
         { text: 'Nombre d\'insights (profils)', value: 'nbr_cp', sortable: true },
         { text: 'Nombre de catégories d\'attributs', value: 'nbr_category_attributes', sortable: true },
-
-
       ];
-      if (
-        this.$store.state.appDataStore.user_selected.grp.length !=1 
-      ) {
-        headers.push({ text: 'Groupe', value: 'group', sortable: true });
-      }
-
-      const selectedItems = this.selectedKeys
-        ?.map((key) => {
-          const foundItem = this.treeviewItems.find(
-            (item) =>
-              item.children && item.children.find((child) => child.id === key)
-          );
-          if (foundItem) {
-            const foundChild = foundItem.children.find(
-              (child) => child.id === key
-            );
-            return {
-              parentName: foundItem.name,
-              childName: foundChild ? foundChild.name : null,
-            };
-          }
-          return null;
-        })
-        .filter((item) => item && item.childName !== null);
-
-      selectedItems.forEach(({ parentName, childName }) => {
-        if (childName !== 'name') {
-          headers.push({
-            text: `${childName}/${parentName}`,
-            value: childName,
-            filterable: true,
-          });
-        }
-      });
-      return headers;
     },
 
     async downloadFile(referenceIds, filename) {
@@ -1267,25 +976,25 @@ export default {
         end: endtime,
       });
 
-      const timeStep = 60000; // Une minute en millisecondes
-      const seenMinutes = new Map();
+      // const timeStep = 60000; // Une minute en millisecondes
+      // const seenMinutes = new Map();
 
-      result.forEach(({ date, value }) => {
-        const minuteTimestamp =
-          Math.floor(new Date(date).getTime() / timeStep) * timeStep;
-        seenMinutes.set(minuteTimestamp, value);
-      });
+      // result.forEach(({ date, value }) => {
+      //   const minuteTimestamp =
+      //     Math.floor(new Date(date).getTime() / timeStep) * timeStep;
+      //   seenMinutes.set(minuteTimestamp, value);
+      // });
 
-      const processedResult = Array.from(
-        { length: Math.floor((endTimestamp - beginTimestamp) / timeStep) + 1 },
-        (_, i) => {
-          const date = beginTimestamp + i * timeStep;
-          return {
-            date,
-            value: seenMinutes.get(date) ?? NaN,
-          };
-        }
-      );
+      // const processedResult = Array.from(
+      //   { length: Math.floor((endTimestamp - beginTimestamp) / timeStep) + 1 },
+      //   (_, i) => {
+      //     const date = beginTimestamp + i * timeStep;
+      //     return {
+      //       date,
+      //       value: seenMinutes.get(date) ?? NaN,
+      //     };
+      //   }
+      // );
       let findEp = this.vSelectItemEndpoints.find((item) => item.dynamicId == dyn);
       if (!findEp) {
         for(const profil of this.vSelectItemInsights){
@@ -1296,14 +1005,22 @@ export default {
       // Mettre à jour le tableau de données
       const actuelleTable = {
         dynamicId: dyn,
-        data: processedResult.map(({ date, value }) => ({ x: date, y: value })),
+        data: result.map(({ date, value }) => ({ x: date, y: value })),
         unit: findEp.unit,
         name: findEp.name,
       };
 
-      this.dataTable = [...this.dataTable, actuelleTable];
-      this.labelsChart = this.labels(begintime, endtime).map(this.toDate);
-      this.chartData = this.chartDataObject(this.dataTable);
+       this.dataTable = [...this.dataTable, actuelleTable];
+       this.labelsChart = this.labels(begintime, endtime).map(this.toDate);
+       this.chartData = this.chartDataObject(this.dataTable);
+       //this.chartData = actuelleTable;
+       console.log('*****',this.chartData);
+      // this.chartData = [{x: 1, y:1},
+      //   {x: 2, y:2},
+      //   {x: 3, y:3},
+      //   {x: 4, y:4},
+      // ]
+
     },
 
     //fonction pour retourner la date string ( beging et end )
@@ -1504,8 +1221,7 @@ export default {
       console.log('dataTable', dataTable);
       return dataTable.map((el, index) => ({
         data: [...el.data],
-        label: `${el.name} ${el.unit || ''}`,
-        color: 'blue',
+        label: el.unit ? `${el.name} (${el.unit})` : el.name,
         dynamicId: el.dynamicId,
         specialAxis: index,
       }));
@@ -1543,7 +1259,10 @@ export default {
     },
 
     ShowFormDocAttr() {
-    this.ShowFormDocAttrs = !this.ShowFormDocAttrs;
+      this.ShowFormDocAttrs = !this.ShowFormDocAttrs;
+      if(!this.ShowFormDocAttrs){
+          this.updateAttributes();
+      }
     },
     ShowFormDocCate() {
       this.ShowFormDocCat = !this.ShowFormDocCat;
@@ -1577,7 +1296,8 @@ export default {
         fileId: fileId
       })
       result.status == 200 ? this.showAlert({ status: 'success', message: 'Document supprimé avec succès', context: 'document' }) :
-        this.showAlert({ status: 'error', message: 'Erreur lors de la suppression du document', context: 'document', space_context: space })
+      this.showAlert({ status: 'error', message: 'Erreur lors de la suppression du document', context: 'document', space_context: space })
+      this.updateDocumentation();
     },
 
     async DeleteAttribut(referenceId, cateId, name) {
@@ -1589,7 +1309,8 @@ export default {
       })
       result.status == 200 ? this.showAlert({ status: 'success', message: 'Attribut supprimé avec succès', context: 'Attribut' }) :
         this.showAlert({ status: 'error', message: "Erreur lors de la suppression de l'attribut", context: 'document', space_context: name })
-      this.getdataofelement()
+      // this.getdataofelement()
+      this.updateAttributes();
     },
 
     async UpdateAttribut(referenceId, cateId, name, item) {
@@ -1605,7 +1326,8 @@ export default {
       })
       result.status == 200 ? this.showAlert({ status: 'success', message: 'Attribut modifié avec succès', context: 'Attribut' }) :
         this.showAlert({ status: 'error', message: "Erreur lors de la mise à jour de l'attribut", context: 'document', space_context: name })
-      this.getdataofelement()
+      // this.getdataofelement()
+      this.updateAttributes();
     },
 
     async deleteCateAttr(referenceId, cateId, name) {
@@ -1618,7 +1340,8 @@ export default {
       })
       result.status == 200 ? this.showAlert({ status: 'success', message: 'Catégory supprimé avec succès', context: 'catégory attribut' }) :
         this.showAlert({ status: 'error', message: "Erreur lors de la suppression de la catégorie", context: 'cétegory', space_context: name })
-      this.getdataofelement()
+      // this.getdataofelement()
+      this.updateAttributes()
     },
 
 
@@ -1634,6 +1357,7 @@ export default {
       result.status == 200 ? this.showAlert({ status: 'success', message: 'Catégory edité avec succès', context: 'catégory attribut' }) :
         this.showAlert({ status: 'error', message: "Erreur lors de l'edit de la catégorie", context: 'cétegory', space_context: name })
       //this.getdataofelement()
+      this.updateAttributes()
     },
 
     showDoc(referencedId, nameFile) {
@@ -2172,6 +1896,21 @@ export default {
   margin-top: 10px;
   border-radius: 4px; /* Add a slight border radius for aesthetics */
   object-fit: contain; /* Maintain aspect ratio */
+}
+
+.icon-rounded-square {
+  margin-bottom: 5px;
+  margin-left: 5px;
+  background-color: #14202c;  /* Background color for the square */
+  color: #fff;                /* Makes the icon white */
+  border-radius: 8px;         /* Adjust for rounded corners */
+  padding: 8px;               /* Space between the icon and the square's border */
+  width: 40px;                /* Fixed width for the square */
+  height: 40px;               /* Fixed height for the square */
+  display: flex;              /* Center the icon horizontally and vertically */
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: adds a subtle shadow */
 }
 
 ::v-deep .scrollable-content {

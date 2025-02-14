@@ -48,7 +48,7 @@ export const state = {
 	user_selected: {
 		cat: null,
 		ctx: null,
-		grp: [] // Changez ceci pour un tableau
+		grp: null 
 	}
 
 };

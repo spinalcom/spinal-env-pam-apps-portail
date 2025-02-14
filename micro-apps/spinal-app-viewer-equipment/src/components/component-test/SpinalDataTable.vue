@@ -43,49 +43,9 @@
             transform: translate(-10px, -3px);
           "
         >
-          <v-select
-            v-model="selections[header.text]"
-            :menu-props="{ offsetY: true }"
-            :label="' '"
-            multiple
-            append-icon="mdi-chevron-down"
-            color="#14202C"
-            item-color="#14202C"
-            class="d-inline-block"
-            style="
-              width: 20px;
-              min-width: 20px;
-              font-size: 14px !important;
-              transform: translate(-5%, 10%);
-            "
-            v-if="header.filterable"
-            :items="getUniqueColumnValues(filteredContexts, header.text)"
-          >
-            >
-            <template v-slot:selection="{ item, index }">
-              <div
-                v-if="index == 0"
-                style="
-                  position: absolute;
-                  background-color: #14202c;
-                  color: white;
-                  border-radius: 10px;
-                  width: 14px;
-                  height: 14px;
-                  font-size: 11px;
-                  display: flex;
-                  justify-content: center;
-                  align-items: center;
-                  transform: translate(20px, -8px);
-                "
-              >
-                {{ selections[header.text].length }}
-              </div>
-            </template>
-          </v-select>
+          
         </div>
         <span
-          title="Cliquez pour afficher les éléments dans la 3D"
           id="headerName"
           >{{ header.text }}</span
         >
@@ -126,8 +86,9 @@
 
     <!-- Rows -->
     <template v-slot:item="{ item }">
-  <tr :key="selected_id === item.dynamicId ? `selected-${item.dynamicId}` : `row-${item.dynamicId}`"
+    <tr :key="selected_id === item.dynamicId ? `selected-${item.dynamicId}` : `row-${item.dynamicId}`"
       :class="{ colortd: selected_id === item.dynamicId }" 
+      
       @mouseenter="handleMouseEnter" 
       @mouseleave="handleMouseLeave" 
       :ref="`row-${item.dynamicId}`"
@@ -151,12 +112,27 @@
       {{ item.name }}
     </td>
 
+    <!-- Second Column: Action Icons -->
+    <td v-if="hasActions" :class="{ colortd: selected_id === item.dynamicId }">
+      <div style="display:flex;  justify-content: center; gap:10px  ">
+        <v-icon small class="icon-rounded-square" @click.stop="explore(item)" title="Cadrer sur l'objet">
+          mdi-fit-to-screen
+        </v-icon>
+        <v-icon small class="icon-rounded-square" @click.stop="editItem(item)" title="Colorier l'objet">
+          mdi-palette
+        </v-icon>
+        <v-icon small class="icon-rounded-square" @click.stop="deleteItem(item)" title="Basculer sur l'app description">
+          mdi-arrow-top-right-thick
+        </v-icon>
+      </div>
+    </td>
+
     <!-- Other Columns -->
-    <td v-for="(header, index) in headers" 
+    <td v-for="(header, index) in normalHeaders" 
         :key="`td-${index}-${item.id}`" 
         style="text-align: center;"
         :class="{ colortd: selected_id === item.dynamicId }" 
-        v-if="header.value !== 'name'">
+      >
       <template v-if="isUrl(getAttributeValue(item, header.value))">
         <a :href="getAttributeValue(item, header.value)" target="_blank">
           {{ getAttributeValue(item, header.value) }}
@@ -166,6 +142,8 @@
         {{ getAttributeValue(item, header.value) }}
       </template>
     </td>
+
+    
   </tr>
 </template>
   </v-data-table>
@@ -173,6 +151,8 @@
 
 <script>
 
+import { ActionTypes } from "../../interfaces/vuexStoreTypes";
+import { MutationTypes } from "../../services/store/appDataStore/mutations";
 
 export default {
   props: [
@@ -213,6 +193,15 @@ export default {
         overflowX: 'hidden',
       };
     },
+
+    hasActions() {
+      return this.headers.some((header) => header.text === 'Actions');
+    },
+
+    normalHeaders() {
+      console.log('nonActionHeaders', this.headers);
+      return this.headers.filter(header => header.text !== 'Actions' && header.text !== 'Nom');
+    }
   },
   methods: {
     isUrl(value) {
@@ -224,8 +213,20 @@ export default {
     },
 
     selectDataView(item) {
+      if(item.type === 'BIMObjectGroupContext'){
+        this.$emit('table-item-selected', { listType : 'ctx', value : item });
+        return
+      }
+      if(item.type === 'groupingCategory'){
+        this.$emit('table-item-selected', { listType : 'cat', value : item });
+        return
+      }
+      if(item.type === 'BIMObjectGroup'){
+        this.$emit('table-item-selected', { listType : 'grp', value : item });
+        return
+      }
       this.selected_id = item.dynamicId;
-      // console.log('item', item);
+      console.log('selectDataView', item);
       this.$emit('item-selected', item);
     },
     fitToView(item){
@@ -242,6 +243,7 @@ export default {
       this.$emit('table-click');
     },
     selectItem(item) {
+      console.log('selectItem', item);
       this.$emit('item-selected', item);
     },
     headershow(header) {
@@ -255,37 +257,6 @@ export default {
         this.arrow = null;
       }
       this.$emit('filter', header);
-    },
-    filterColumn(header) {
-      // console.log('sort');
-      // this.$emit('filter-column', header);
-    },
-    getUniqueColumnValues(context, columnName) {
-      const [attributeName, categoryName] = columnName.split('/');
-      const uniqueValues = new Set();
-      let attributeNotFound = false;
-      context.forEach((item) => {
-        let foundInItem = false;
-        item.categoryAttributes.forEach((category) => {
-          if (category.name === categoryName) {
-            category.attributs.forEach((attribute) => {
-              if (attribute.label === attributeName) {
-                uniqueValues.add(attribute.value);
-                foundInItem = true;
-              }
-            });
-          }
-        });
-
-        if (!foundInItem) {
-          attributeNotFound = true;
-        }
-      });
-
-      if (attributeNotFound) {
-        uniqueValues.add('<empty>');
-      }
-      return uniqueValues.size >= 10 ? [] : [...uniqueValues];
     },
     getAttributeValue(item, attrLabel) {
       if (Array.isArray(item.categoryAttributes)) {
@@ -555,6 +526,7 @@ td {
   left: 0;
   z-index: 2;
   background-color: white;
+  border: 1px solid #14202c !important;
 }
 
 .select-attr {
@@ -637,15 +609,18 @@ td {
 ::v-deep th {
   height: 48px !important;
   font-size: 14px !important;
-  color: #214353 !important;
+  color: #14202c !important;
+  border: 1px solid #14202c !important;
 }
 
 ::v-deep td {
   font-size: 14px !important;
   color: #14202c !important;
   background-color: #f4f4f4;
-  border-bottom: 1px solid white !important;
-  border-right: 1px solid white !important;
+  border-bottom: 1px solid #14202c !important;
+  border-right: 1px solid #14202c !important;
+  border-left : 1px solid #14202c !important;
+  vertical-align: middle;
 }
 
 ::v-deep tr:hover td {
@@ -741,5 +716,18 @@ td {
 }
 ::v-deep .v-data-table__wrapper::-webkit-scrollbar-thumb:hover {
   background: #dedede;
+}
+
+
+.icon-rounded-square {
+  background-color: #14202c;
+  color: #fff;               
+  border-radius: 4px;         
+  padding: 8px;               
+  width: 25px;                
+  height: 25px;               
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
 }
 </style>
