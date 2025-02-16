@@ -364,9 +364,8 @@ class App extends Vue {
   data() {
     return {
       OccupancyRate: 75 // Remplacez par le calcul réel ou une valeur API
-    }
+    };
   }
-
 };
 
 export default App;
