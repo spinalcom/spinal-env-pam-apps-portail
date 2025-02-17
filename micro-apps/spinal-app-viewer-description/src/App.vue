@@ -47,8 +47,9 @@ with this file. If not, see
       <viewerApp :class="{ 'active3D': isActive3D }" class="viewerContainer"></viewerApp>
       <dataSideApp :changeData="loadingdata" :floor="floor" :DActive="isActive3D" :ActiveData="isActive"
         :class="{ 'active': isActive, 'inactive': isActive3D }" class="appContainer" :config="config"
-        :selectedZone="selectedZone" :data="displayedData" @changeRoute="changeApp" @clickOnDataView="onDataViewClicked"
-        @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D" @full3D="full3D()">
+        :selectedZone="selectedZone" :data="displayedData" @changeRoute="changeApp" @gotoView="gotoView"
+        @clickOnDataView="onDataViewClicked" @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D"
+        @full3D="full3D()">
       </dataSideApp>
     </div>
   </v-app>
@@ -209,6 +210,46 @@ class App extends Vue {
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.off(VIEWER_REM_SPHERE);
     emitterHandler.off(VIEWER_SPRITE_CLICK);
+  }
+
+  gotoView(data) {
+    console.log('les data instance');
+    
+    const buildingId = localStorage.getItem("idBuilding");
+    this.query.spaceSelectedId = data.dynamicId
+    this.query.name = data.name
+    this.query.buildingId = buildingId
+
+
+    const item = {
+      buildingId: buildingId,
+      dynamicId: data.dynamicId,
+      name: data.name
+    };
+    const button = {
+      "title": "charger",
+      "icon": "mdi-video-3d",
+      "onclickEvent": "OPEN_VIEWER",
+      "isShownTypes": [
+        "geographicFloor"
+      ]
+    }
+    this.onActionClick({ button, item })
+
+    const itemToSelect = {
+      "isOpen": false,
+      "loading": false,
+      "dynamicId": data.dynamicId,
+      "name": data.name,
+      "buildingId": buildingId,
+      "type": "geographicFloor",
+    }
+
+    if (this.$refs['space-selector']) {
+      this.$refs['space-selector'].select(itemToSelect);
+      // this.$refs['space-selector'].closeItem(itemToSelect);
+    }
+    this.openSpaceSelector = false
   }
 
 
@@ -524,7 +565,7 @@ class App extends Vue {
         break;
     }
 
-    this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, data);
+
   }
 
   listenSpritesEvent() {
