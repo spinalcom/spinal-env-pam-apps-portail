@@ -217,15 +217,7 @@ export default {
       return {
         labels: this.labels,
         datasets: [
-          ...this.datasets,
-           {
-           label: 'Salles de réunionssalles de réunions',
-            data: Array(this.labels.length).fill(this.occupancyRate),
-            borderColor: '#A7001E',
-            borderWidth: 1,
-            type: 'line',
-            fill: false,
-          }, 
+          ...this.datasets,  
         ],
       };
     },
@@ -255,7 +247,7 @@ export default {
           display: false,
         },
         type: this.scaleType,
-        stacked: this.stacked,
+        stacked: false,
         ticks: {
           font: {
             family: "Charlevoix Pro",
@@ -271,7 +263,7 @@ export default {
         },
       },
       x: {
-        stacked: this.stacked,
+        stacked: false,
         border: {
           display: false,
         },

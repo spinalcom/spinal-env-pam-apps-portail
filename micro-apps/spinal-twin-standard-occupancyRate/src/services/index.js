@@ -1,4 +1,4 @@
-import config from '../../config.js'; // Ajoutez cette ligne
+import config from '../../config.js'; 
 import { HTTP } from "./http-constants";
 import moment from 'moment';
 import fr from 'moment/locale/fr';
@@ -344,7 +344,6 @@ export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, ro
           aggregatedFloorData[floor.name][periodLabel] = [];
         });
 
-        // Dans getOccupancyDataByFloor
         timeSeriesData.forEach(roomData => {
           roomData.timeseries.forEach(point => {
             let formattedLabel;
@@ -479,7 +478,6 @@ export async function getTotalSurface2(roomIds) {
     console.log('Building ID:', buildingId);
     console.log('Room IDs:', roomIds);
 
-    // Effectuer la requête pour obtenir les attributs des salles
     const response = await HTTP.post(
       `building/${buildingId}/node/attribute_list_multiple`,
       roomIds
@@ -629,6 +627,44 @@ export async function getGraphData() {
 }
 //Récupère les données pour un espace donné, une temporalité et un timestamp.
 // Fonction principale pour récupérer les données
+function calculateTimeWeightedAverage(timeSeriesData, labels, tempo) {
+  let weightedAverages = [];
+  let aggregatedData = {};
+  labels.forEach(periodLabel => {
+    aggregatedData[periodLabel] = [];
+  });
+
+  timeSeriesData.forEach(point => {
+    let formattedLabel = tempo === 'Journée' || tempo === 'Valeur Courante'
+      ? moment(point.date).format('HH')
+      : moment(point.date).format('DD MMM');
+    if (aggregatedData[formattedLabel]) {
+      aggregatedData[formattedLabel].push({ value: point.value, timestamp: moment(point.date).valueOf() });
+    }
+  });
+
+  labels.forEach(periodLabel => {
+    const values = aggregatedData[periodLabel] || [];
+    if (values.length < 2) {
+      weightedAverages.push(0);
+      return;
+    }
+
+    let totalTime = 0;
+    let weightedSum = 0;
+
+    for (let i = 0; i < values.length - 1; i++) {
+      let deltaTime = values[i + 1].timestamp - values[i].timestamp;
+      totalTime += deltaTime;
+      weightedSum += values[i].value * deltaTime;
+    }
+
+    weightedAverages.push(totalTime > 0 ? (weightedSum / totalTime).toFixed(2) : 0);
+  });
+
+  return weightedAverages;
+}
+
 export async function getData(space, tempo, currentTimestamp, roomIds) {
   const buildingId = localStorage.getItem("idBuilding");
   const spaceArea = await getArea(space); 
@@ -654,55 +690,39 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
       config.apiEndpoints.timeSeries.replace('{buildingId}', buildingId).replace('{dynamicId}', occupancyDynamicId).replace('{start}', periodArray[1]).replace('{end}', periodArray[2])
     );
     const occupancyRateData = timeSeries.data;
+    console.log('Occupancy rate data:', occupancyRateData);
 
     let processedTimeSeries = [];
 
     if (tempo === 'Valeur Courante') {
-      // Traitement Spécifique pour "Valeur Courante"
       const currentHour = moment(currentTimestamp).hour();
       processedTimeSeries = label.map(hour => {
         const value = occupancyRateData.find(elem => moment(elem.date).format('HH') === hour)?.value || 0;
         return parseFloat(value).toFixed(2);
       }).filter((_, index) => index <= currentHour);
+    } else if (tempo === 'Journée') {
+      processedTimeSeries = label.map(hour => {
+        const value = occupancyRateData.find(elem => moment(elem.date).format('HH') === hour)?.value || 0;
+        return parseFloat(value).toFixed(2);
+      });
     } else {
-      // Agrégation des données en fonction de la temporalité
-      let aggregatedData = {};
-      label.forEach(periodLabel => {
-        aggregatedData[periodLabel] = [];
-      });
-
-      occupancyRateData.forEach(point => {
-        let formattedLabel;
-        switch (tempo) {
-          case 'Journée':
-            formattedLabel = moment(point.date).format('HH');
-            break;
-          case 'Semaine':
-          case 'Mois':
-            formattedLabel = moment(point.date).format('DD MMM');
-            break;
-          case 'Année':
-            formattedLabel = moment(point.date).format('MMM');
-            break;
-        }
-
-        if (aggregatedData[formattedLabel]) {
-          aggregatedData[formattedLabel].push(point.value);
-        }
-      });
-
-      // Calcul des moyennes par période
-      processedTimeSeries = label.map(periodLabel => {
-        const values = aggregatedData[periodLabel] || [];
-        const sum = values.reduce((acc, val) => acc + val, 0);
-        return values.length > 0 ? (sum / values.length).toFixed(2) : 0;
-      });
+      processedTimeSeries = calculateTimeWeightedAverage(occupancyRateData, label, tempo);
     }
 
-    // Calcul des moyennes globales
-    const sumSeries = occupancyRateData.reduce((acc, current) => acc + current.value, 0);
-    const average = +(sumSeries / label.length).toFixed(1);
-    const normalizedValue = +(sumSeries / spaceArea).toFixed(1);
+    // Calcul des moyennes globales avec pondération temporelle
+    const totalTime = occupancyRateData.reduce((acc, current, index, arr) => {
+      if (index === arr.length - 1) return acc;
+      return acc + (arr[index + 1].timestamp - current.timestamp);
+    }, 0);
+
+    const weightedSum = occupancyRateData.reduce((acc, current, index, arr) => {
+      if (index === arr.length - 1) return acc;
+      const deltaTime = arr[index + 1].timestamp - current.timestamp;
+      return acc + (current.value * deltaTime);
+    }, 0);
+
+    const average = +(weightedSum / totalTime).toFixed(1);
+    const normalizedValue = +(weightedSum / (totalTime * spaceArea)).toFixed(1);
 
     data.push({
       label: 'Taux d\'occupation du bâtiment',
@@ -713,13 +733,13 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
       fill: false,
     });
 
-// 2. Taux d'occupation des salles de réunion
-console.log('Fetching dynamic IDs using getOccupationDynamicIds');
-const dynamicIds = await getOccupationDynamicIds(roomIds);
-if (dynamicIds.length > 0) {
-  console.log('Period array from index:', periodArray); // Ajout de la console log pour voir les dates
-  console.log('Start date from index:', periodArray[1]);
-  console.log('End date from index:', periodArray[2]);
+    // 2. Taux d'occupation des salles de réunion
+    console.log('Fetching dynamic IDs using getOccupationDynamicIds');
+    const dynamicIds = await getOccupationDynamicIds(roomIds);
+    if (dynamicIds.length > 0) {
+      console.log('Period array from index:', periodArray); // Ajout de la console log pour voir les dates
+      console.log('Start date from index:', periodArray[1]);
+      console.log('End date from index:', periodArray[2]);
 
       const timeSeriesResponse = await HTTP.post(
         config.apiEndpoints.timeSeriesMultiple.replace('{buildingId}', buildingId).replace('{start}', periodArray[1]).replace('{end}', periodArray[2]),
@@ -771,7 +791,6 @@ if (dynamicIds.length > 0) {
 }
 
 
-
 // Fonction pour récupérer les IDs dynamiques d'occupation par étage
 export async function getOccupationDynamicIdsByFloor(roomIds, roomsByFloor) {
   try {
@@ -816,148 +835,6 @@ export async function getOccupationDynamicIdsByFloor(roomIds, roomsByFloor) {
   }
 }
 
-// Fonction principale pour récupérer les données d'occupation par étage
-/* export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, roomIds) {
-  const buildingId = localStorage.getItem("idBuilding");
-  const spaceArea = await getArea(space); 
-  let periodArray = getPeriodArray(currentTimestamp, tempo);
-  let label = periodArray[0];
-  let tooltipDate = periodArray[5];
-  let data = [];
-  let avg = [];
-  let total = [];
-  let meter = [];
-  let timeSeries;
-
-  try {
-    console.log('Fetching floors for building:', buildingId);
-    // Récupérer tous les étages sans filtrage
-    const floors = await getFloors([{ name: 'nom_du_cp' }]); 
-    console.log('Floors fetched:', floors);
-
-    // Récupérer les positions des salles et les regrouper par étage
-    const roomPositions = await getRoomPositions(roomIds);
-    const roomsByFloor = groupRoomsByFloor(roomPositions);
-    console.log('Rooms grouped by floor:', roomsByFloor);
-
-    // Récupérer les IDs dynamiques des points de contrôle de taux d'occupation par étage
-    const dynamicIdsByFloor = await getOccupationDynamicIdsByFloor(roomIds, roomsByFloor);
-    console.log('Dynamic IDs by floor:', dynamicIdsByFloor);
-
-    // Ajout des logs pour vérifier les périodes
-    console.log('Period array from index index:', periodArray); // Ajout de la console log pour voir les dates
-    console.log('Start date from index index:', periodArray[1]); 
-    console.log('End date from index index:', periodArray[2]); 
-
-    // Récupérer les données de séries temporelles pour chaque étage
-    const aggregatedFloorData = {};
-    for (const floor of floors) {
-      const dynamicIds = dynamicIdsByFloor[floor.dynamicId];
-      if (dynamicIds && dynamicIds.length > 0) {
-        console.log(`Fetching time series data for floor: ${floor.name}`);
-        const timeSeriesResponse = await HTTP.post(
-          config.apiEndpoints.timeSeriesMultiple.replace('{buildingId}', buildingId).replace('{start}', periodArray[1]).replace('{end}', periodArray[2]),
-          dynamicIds
-        );
-        const timeSeriesData = timeSeriesResponse.data;
-        console.log(`Time series data for floor ${floor.name}:`, timeSeriesData);
-
-        // Agrégation des données par période et par étage
-        aggregatedFloorData[floor.name] = {};
-        label.forEach(periodLabel => {
-          aggregatedFloorData[floor.name][periodLabel] = [];
-        });
-
-        // Dans getOccupancyDataByFloor
-        timeSeriesData.forEach(roomData => {
-          roomData.timeseries.forEach(point => {
-            let formattedLabel;
-            switch (tempo) {
-              case 'Journée':
-              case 'Valeur Courante':
-                formattedLabel = moment(point.date).format('HH');
-                break;
-              case 'Semaine':
-                formattedLabel = moment(point.date).format('ddd');
-                break;
-              case 'Mois':
-                formattedLabel = moment(point.date).format('DD MMM');
-                break;
-              case 'Trimestre':
-                formattedLabel = moment(point.date).format('DD MMM');
-                break;
-              case 'Année':
-                formattedLabel = moment(point.date).format('MMM');
-                break;
-              case 'Décennie':
-                formattedLabel = moment(point.date).format('YYYY');
-                break;
-              default:
-                formattedLabel = moment(point.date).format('DD MMM');
-            }
-            if (aggregatedFloorData[floor.name][formattedLabel]) {
-              aggregatedFloorData[floor.name][formattedLabel].push(point.value);
-            }
-          });
-        });
-      } else {
-        console.log(`No dynamic IDs found for floor: ${floor.name}`);
-      }
-    }
-    console.log('Aggregated floor data:', aggregatedFloorData);
-
-    // Moyenne des salles de réunion par étage
-    const floorProcessedTimeSeries = label.map(periodLabel => {
-      const floorData = {};
-      floors.forEach(floor => {
-        const values = aggregatedFloorData[floor.name]?.[periodLabel] || [];
-        const sum = values.reduce((acc, val) => acc + val, 0);
-        floorData[floor.name] = values.length > 0 ? (sum / values.length).toFixed(2) : 0;
-      });
-      return floorData;
-    });
-    console.log('Processed time series data for floors:', floorProcessedTimeSeries);
-
-    // Calculer la moyenne des taux d'occupation pour chaque étage
-    const averages = floors.map(floor => {
-      const values = Object.values(aggregatedFloorData[floor.name] || {}).flat();
-      const sum = values.reduce((acc, val) => acc + val, 0);
-      const average = values.length > 0 ? (sum / values.length).toFixed(2) : 0;
-      return {
-        floor: floor.name,
-        average: parseFloat(average)
-      };
-    });
-    console.log('Average occupancy rates for floors:', averages);
-
-    // Préparation des données pour l'affichage
-    floors.forEach(floor => {
-      data.push({
-        label: `Taux d'occupation des salles de réunion - Étage ${floor.name}`,
-        data: floorProcessedTimeSeries.map(floorData => floorData[floor.name]),
-        backgroundColor: '#A7001E',
-        borderColor: '#A7001E',
-        borderWidth: 1,
-        fill: false,
-      });
-    });
-    console.log('Final data prepared for display:', data);
-
-    // Afficher les taux d'occupation par étage
-    floors.forEach(floor => {
-      console.log(`Taux d'occupation des salles de réunion pour l'étage ${floor.name}:`, data.find(d => d.label.includes(floor.name)).data);
-    });
-
-    // Retourner les données finales
-    return [label, data, avg, total, averages, meter];
-
-  } catch (e) {
-    console.error('Error fetching data:', e);
-    return [null, null, null, null, [], []];
-  }
-} */
-
-// Fonction principale pour récupérer les données d'occupation
 // Fonction principale pour récupérer les données d'occupation
 export async function getOccupancyData(space, tempo, currentTimestamp, roomIds) {
   const buildingId = localStorage.getItem("idBuilding");
@@ -1309,50 +1186,7 @@ export async function getTodaysData(space, controlEndpoints) {
   }
   return data;
 }
-/* // Génère des données mensuelles pour une année donnée.
-function generateMonthlyData(y) {
-  const monthlyData = [];
-  const date = moment(y, 'YYYY');
-  for (let i = 0; i < 12; i++) {
-    let daysInMonth = date.month(i).daysInMonth();
-    if (i === 1) { // February
-      if (moment([y]).isLeapYear()) {
-        daysInMonth = 29;
-      }
-    }
-    const monthArray = Array(daysInMonth).fill(-1);
-    monthlyData.push(monthArray);
-  }
-// console.log({
-//   y: year,
-//   d: monthlyData
-// })
-  return {
-    n: '',
-    y: y,
-    d: monthlyData
-  };
-}
-//Prépare un calendrier avec des séries temporelles.
-function prepareCalendar(year, timeSeries) {
-  var data = generateMonthlyData(year).d;
-  var month, day;
-  for (const timeSerie of timeSeries) {
-    month = +moment(timeSerie.date).format('MM') - 1;
-    day = +moment(timeSerie.date).format('DD') - 1;
-    data[month][day] = (data[month][day] == -1) ? timeSerie.value : data[month][day] + timeSerie.value;
-  }
-  return data;
-}
-// Récupère des suggestions de temporalité.
-export function getTempoSuggestion(tempo, currentTimestamp) {
-  if (tempo === 'Mois') {
-    return [
-      'Mois choisi (' + moment(currentTimestamp).format('MMMM YYYY') + ')',
-      'Mois précédent (' + moment(currentTimestamp).add(-1,'months').format('MMMM YYYY') + ')',
-      'Même mois que l\'année dernière (' + moment(currentTimestamp).add(-12, 'months').format('MMMM YYYY') + ')']
-  }
-} */
+
 //Récupère des données pour un espace donné, une temporalité, un timestamp, un format, des points de contrôle, une couleur et une carte totale.
 export async function getSolo(space, tempo, currentTimestamp, format, controlEndpoints, color, totalCard) {
   let ts = moment(currentTimestamp, format).valueOf();

@@ -48,8 +48,8 @@ module.exports = {
         controlEndpointListMultiple: 'building/{buildingId}/node/control_endpoint_list_multiple',
         contextList: 'building/{buildingId}/context/list',
         contextTree: 'building/{buildingId}/context/{contextId}/tree/{numberOfLevel}/depth',
-        nodeChildren: 'building/{buildingId}/node/{nodeId}/children'
-      },
+        floorAttributes: 'building/{buildingId}/node/{dynamicId}/attributsList',
+    },
     filters: {
         occupationRate: 'taux d\'occupation',
         floor: 'floor',
@@ -58,5 +58,8 @@ module.exports = {
     endpointCriteria: {
         name: 'taux d\'occupation',
         type: 'Occupation'
+    },
+    contextNames: {
+        gestionDesEspaces: 'Gestion des espaces', // Ajoutez cette ligne
     }
 };
