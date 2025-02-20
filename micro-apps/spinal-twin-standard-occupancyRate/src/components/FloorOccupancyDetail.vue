@@ -89,28 +89,37 @@ const fetchFloorData = async (period, timestamp) => {
   try {
     console.log(`Récupération des données des étages pour la période : ${period}`);
     
+    // Récupérer les IDs d'occupation et les noms des étages
     const { dynamicIds, floorNames, floorOccupancyMapping } = await getFloorOccupancyDynamicIds();
-
+    console.log('Dynamic IDs:', dynamicIds);
+    console.log('Floor Names:', floorNames);
+    console.log('Mapping Dynamic ID → Étages:', floorOccupancyMapping);
 
     if (dynamicIds.length === 0) {
       throw new Error('Aucun Dynamic ID trouvé pour les taux d\'occupation.');
     }
 
+    // Récupérer les taux d'occupation
     const occupancyRates = await getFloorOccupancyRatesByPeriod(period, timestamp, dynamicIds);
     console.log('Occupancy Rates:', occupancyRates);
 
+    // Transformer les Dynamic IDs en noms d'étages
     floorData.value = occupancyRates.map(floor => {
-      const realFloorId = floorOccupancyMapping[floor.dynamicId]; 
+      const realFloorId = floorOccupancyMapping ? floorOccupancyMapping[floor.dynamicId] : null; // Associer au bon étage
       return {
         floor: mapFloorDynamicId(realFloorId, floorNames),
-        occupancy: parseFloat(floor.occupancy), 
+        occupancy: parseFloat(floor.occupancy), // S'assurer que l'occupation est un nombre
         area: floor.area
       };
     });
 
+    console.log('Étages après correction:', floorData.value.map(f => f.floor));
 
+    // Mettre à jour la liste des étages pour le graphique
     allFloors.value = floorData.value.map(floor => floor.floor);
+    console.log('Labels envoyés au graphique:', allFloors.value);
 
+    // Rafraîchir les graphiques
     renderChart();
     renderSecondChart();
   } catch (error) {
@@ -120,21 +129,24 @@ const fetchFloorData = async (period, timestamp) => {
 
 const fetchSecondFloorData = async (timestamp) => {
   try {
-    const space = { type: 'building' }; 
+    const space = { type: 'building' }; // ou 'floor' selon votre besoin
     const tempo = props.temporality.name;
 
- 
+    // Récupérer les IDs nécessaires
     const contextId = await getContextId(config.contextNames.gestionDesEspaces);
     const categoryId = await getCategoryId(contextId, config.categoryNames.typologie);
     const groupId = await getGroupId(contextId, categoryId, config.groupNames.meetingRoom);
 
+    // Récupérer les IDs des salles de réunion
     const roomIds = await getRoomIds(contextId, categoryId, groupId);
     if (!roomIds || roomIds.length === 0) {
       throw new Error('No room IDs found');
     }
 
+    // Appeler getOccupancyDataByFloor avec les IDs des salles
     const [label, data, avg, total, averages, meter] = await getOccupancyDataByFloor(space, tempo, timestamp, roomIds);
 
+    // Mettre à jour les données pour le graphique
     secondFloorData.value = averages.map(floor => ({
       floor: floor.floor,
       occupancy: floor.average,
@@ -186,6 +198,7 @@ const fetchSecondFloorData = async (timestamp) => {
       return { dynamicIds: [], floorNames: {} };
     }
 
+    // Récupérer la liste des étages
     const floorsResponse = await HTTP.get(config.apiEndpoints.floors.replace('{buildingId}', buildingId));
     const floors = floorsResponse.data;
 
@@ -195,14 +208,16 @@ const fetchSecondFloorData = async (timestamp) => {
     }
     console.log('Étages récupérés :', floors);
 
+    // Construire l'objet associant `dynamicId` → `nom d'étage`
     const floorNames = {};
     const floorDynamicIds = floors.map(floor => {
-      floorNames[floor.dynamicId] = floor.name;
-      return floor.dynamicId; 
+      floorNames[floor.dynamicId] = floor.name; // Associer l'ID dynamique au nom d'étage
+      return floor.dynamicId; // Retourner uniquement les IDs
     });
 
     console.log('Correspondance ID → Nom des étages :', floorNames);
 
+    // Récupérer les endpoints d'occupation associés aux étages
     const response = await HTTP.post(config.apiEndpoints.controlEndpointListMultiple.replace('{buildingId}', buildingId), floorDynamicIds);
     const endpointsData = response.data;
 
@@ -212,11 +227,12 @@ const fetchSecondFloorData = async (timestamp) => {
     }
     console.log('Endpoints récupérés :', endpointsData);
 
+    // Extraire les Dynamic IDs des points de contrôle des taux d'occupation
     const dynamicIds = [];
-    const floorOccupancyMapping = {}; 
+    const floorOccupancyMapping = {}; // Associe chaque Dynamic ID d'occupation à son étage
 
     endpointsData.forEach(floorEndpointsList => {
-      const floorId = floorEndpointsList[0]?.dynamicId;
+      const floorId = floorEndpointsList[0]?.dynamicId; // L'ID de l'étage
 
       floorEndpointsList.forEach(profile => {
         profile.endpoints.forEach(endpoint => {

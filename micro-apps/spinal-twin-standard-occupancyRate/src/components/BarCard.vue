@@ -120,7 +120,7 @@ export default {
     isD: false,
     switchValue: false,
     results: {
-      y: '2023',
+      y: '2025',
       d: [
         [
           182, 400, 200, 201, 201, 170,
@@ -250,13 +250,13 @@ export default {
             size: 11,
             letterSpacing: 1.1,
           },
-          min: 0,
-          max: 100,
         },
         grid: {
           color: "#f9f9f9",
           lineWidth: 2,
         },
+        min: 0,
+        max: 100,
       },
       x: {
         stacked: false,

@@ -99,15 +99,12 @@ class App extends Vue {
                           };
   currentTimestamp = {valueTime: 0};
   todaysCard: any[] = [];
-  calendarList: CalendarModel[] = [];
-  calendar: CalendarModel = {n: '', y: '', d: []};
   barOptions = {unit: this.unit, footer: ''};
   checkbox1 = {label: '', value: true};
   checkbox2 = {label: '', value: true};
   checkbox3 = {label: '', value: true};
   selectedControlEndpoint: LegendModel = {name: this.controlEndpoints[0].name, color: this.controlEndpoints[0].color};
   controlEndpointList: LegendModel[] = [];
-  calendarSwitchState = false;
 
   selectedDay = '';
   selectedWeek = '';
@@ -123,7 +120,7 @@ class App extends Vue {
   weeks = ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17', 'S18', 'S19', 'S20', 'S21', 'S22', 'S23', 'S24', 'S25', 'S26', 'S27', 'S28', 'S29', 'S30', 'S31', 'S32', 'S33', 'S34', 'S35', 'S36', 'S37', 'S38', 'S39', 'S40', 'S41', 'S42', 'S43', 'S44', 'S45', 'S46', 'S47', 'S48', 'S49', 'S50', 'S51', 'S52'];
   months = [ {name: 'Janvier', value: '01'}, {name: 'Février', value: '02'}, {name: 'Mars', value: '03'}, {name: 'Avril', value: '04'}, {name: 'Mai', value: '05'}, {name: 'Juin', value: '06'}, {name: 'Juillet', value: '07'}, {name: 'Août', value: '08'}, {name: 'Septembre', value: '09'}, {name: 'Octobre', value: '10'}, {name: 'Novembre', value: '11'}, {name: 'Décembre', value: '12'}];
   trimester = ['T1', 'T2', 'T3', 'T4'];
-  years = ['2023', '2022', '2021'];
+  years = ['2025', '2024','2023', '2022', '2021'];
   selectedFilter: tempoFilter[] = [];
 
   defaultFilter: tempoFilter = {name: '', color: env.controlEndpoints[0].color, value: '', lock: false, star: true};
@@ -195,7 +192,6 @@ class App extends Vue {
     this.interval();
     this.domainList.push({name: this.selectedYear, color: env.controlEndpoints[0].color});
     this.domain = {name: this.selectedYear, color: env.controlEndpoints[0].color};
-    this.calculateOccupancyRate();
   }
 
   @Watch('space')
@@ -256,9 +252,7 @@ class App extends Vue {
     this.calendar = this.calendarList.find((e: CalendarModel) => e.y == y.name)!;    
   }
 
-  calendarSwitch(): void {  
-    this.calendarSwitchState = !this.calendarSwitchState;
-  }
+
 
   async nav(payload: number): Promise<void> {
   if (this.temporality.name === 'Journée' || this.temporality.name === 'Valeur Courante') {
@@ -358,11 +352,7 @@ class App extends Vue {
     (this.$refs.floorOccupancyDetail as Vue & { fetchSecondFloorData: (timestamp: number) => void }).fetchSecondFloorData(this.currentTimestamp.valueTime);
   }
 }
-  data() {
-    return {
-      OccupancyRate: 75 // Remplacez par le calcul réel ou une valeur API
-    };
-  }
+  
 };
 
 export default App;

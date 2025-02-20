@@ -126,10 +126,8 @@ export default {
               display: false,
             },
             type: this.scaleType,
-            ticks: {
-              min: 0,
-              max: 100,
-            },
+            min: 0,
+            max: 100,
             grid: {
               color: "#f0f0f0",
             },
@@ -189,7 +187,6 @@ export default {
       set.borderRadius = borderRadius;
       set.borderWidth = 1;
     });
-    // Enregistrement du plugin de légende en HTML/CSS
   },
   data() {
   return {

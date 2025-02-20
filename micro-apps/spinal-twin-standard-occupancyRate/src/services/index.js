@@ -1,12 +1,10 @@
 import config from '../../config.js'; 
 import { HTTP } from "./http-constants";
 import moment from 'moment';
-import fr from 'moment/locale/fr';
 
 //Récupère les informations sur un bâtiment spécifique.
 export async function getBuilding(cp) {
   const buildingId = localStorage.getItem("idBuilding");
-  // Utilisation de l'endpoint configuré dans config.js
   const result = await HTTP.get(config.apiEndpoints.building.replace('{buildingId}', buildingId));
   let cpList = await HTTP.get(config.apiEndpoints.controlEndpointList.replace('{buildingId}', buildingId).replace('{dynamicId}', result.data.dynamicId));
   for (let j = 0; j < cpList.data.length; j++) {
@@ -27,7 +25,6 @@ export async function getFloors(cp) {
   }
 
   try {
-    // Utilisation de l'endpoint configuré dans config.js
     const result = await HTTP.get(config.apiEndpoints.floors.replace('{buildingId}', buildingId));
     console.log("Liste des étages brute :", result.data);
 
@@ -44,7 +41,7 @@ export async function getFloors(cp) {
 
       for (let j = 0; j < cpList.data.length; j++) {
         for (let i = 0; i < cpList.data[j].endpoints.length; i++) {
-        //console.log(`Checking control point ${cpList.data[j].endpoints[i].name} against ${cp[0].name}`);
+
         // if there is a match add floor to array + area + cp id
         if (cpList.data[j].endpoints[i].name === cp[0].name) {
           console.log(`Matching control point found for floor ${floor.name}:`, cpList.data[j].endpoints[i]);
@@ -73,7 +70,7 @@ export async function getFloors(cp) {
     });
 
     let values = await Promise.all(promises);
-    console.log("Données des étages après traitement :", values); // Log des données après traitement
+    console.log("Données des étages après traitement :", values); 
     return values;
   } catch (error) {
     console.error('Error in getFloors:', error);
@@ -96,6 +93,8 @@ async function getArea(space) {
     return +area;
   }
 }
+
+//Récupère l'ID du contexte "Gestion des espaces" pour un bâtiment.
 //Récupère l'ID du contexte pour un bâtiment.
 export async function getContextId(contextName) {
   try {
@@ -261,22 +260,16 @@ export async function getOccupationDynamicIds(roomIds) {
     return [];
   }
 }
-
-
-
-
 //Regroupe les salles par étage.
 export function groupRoomsByFloor(roomPositions) {
   try {
     console.log('Grouping rooms by floor');
     const roomsByFloor = {};
-      //La fonction vérifie si floorId et floorName existent avant de les utiliser pour éviter les erreurs.
     roomPositions.forEach(room => {
       const floorId = room.info?.floor?.dynamicId;
       const floorName = room.info?.floor?.name;
 
       if (!floorId || !floorName) return;
-      //Les salles sont regroupées par floorId et ajoutées à un objet roomsByFloor avec le nom de l'étage et les IDs des salles.
       if (!roomsByFloor[floorId]) {
         roomsByFloor[floorId] = { floorName, rooms: [] };
       }
@@ -346,7 +339,7 @@ export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, ro
                 formattedLabel = moment(point.date).format('HH');
                 break;
               case 'Semaine':
-                formattedLabel = moment(point.date).format('ddd');
+                formattedLabel = moment(point.date).format('DD MMM');
                 break;
               case 'Mois':
               case 'Trimestre':
@@ -475,7 +468,7 @@ export async function getTotalSurface2(roomIds) {
     console.log('Attribute data:', response.data);
 
     // Extraire les surfaces et calculer la somme totale
-    let totalSurface2 = 0; // Define the variable here
+    let totalSurface2 = 0; 
     response.data.forEach(room => {
       const category = room.categoryAttributes.find(cat => cat.name === "Spatial");
       if (category && category.attributs) {
@@ -498,7 +491,6 @@ export async function getTotalSurface2(roomIds) {
 export async function executeFlow() {
   try {
     console.log('Starting flow execution');
-    // Appel de `getGraphData`
     const graphData = await getGraphData();
     if (!graphData) {
       console.error("Graph data could not be retrieved. Aborting flow.");
@@ -530,7 +522,6 @@ export async function executeFlow() {
       return;
     }
 
-    // Appel de `getOccupationDynamicIds` avec `roomIds`
     const occupationDynamicIds = await getOccupationDynamicIds(roomIds);
     if (!occupationDynamicIds) {
       console.error("Occupation DynamicIds could not be retrieved. Aborting flow.");
@@ -569,7 +560,6 @@ export async function executeFlow() {
   }
 }
 
-// Execute the flow
 executeFlow();
 
 //Récupère les données de graphe pour un bâtiment.
@@ -586,7 +576,7 @@ export async function getGraphData() {
     let occupancyEndpoint = null;
     controlEndpointResponse.data.forEach((profile) => {
       const endpoint = profile.endpoints.find(
-        (ep) => ep.name === "taux d'occupation" && ep.type === "Occupation"//!!!!!!!!!!!!
+        (ep) => ep.name === "taux d'occupation" && ep.type === "Occupation"
       );
       if (endpoint) {
         occupancyEndpoint = endpoint;
@@ -724,7 +714,7 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
     console.log('Fetching dynamic IDs using getOccupationDynamicIds');
     const dynamicIds = await getOccupationDynamicIds(roomIds);
     if (dynamicIds.length > 0) {
-      console.log('Period array from index:', periodArray); // Ajout de la console log pour voir les dates
+      console.log('Period array from index:', periodArray); 
       console.log('Start date from index:', periodArray[1]);
       console.log('End date from index:', periodArray[2]);
 
@@ -770,7 +760,6 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
       });
     }
 
-    // Retourner les données finales
     return [label, data, avg, total, [], meter];
 
   } catch (e) {
@@ -877,7 +866,7 @@ export async function getOccupancyData(space, tempo, currentTimestamp, roomIds) 
     console.log('Fetching dynamic IDs using getOccupationDynamicIds');
     const dynamicIds = await getOccupationDynamicIds(roomIds);
     if (dynamicIds.length > 0) {
-      console.log('Period array from index:', periodArray); // Ajout de la console log pour voir les dates
+      console.log('Period array from index:', periodArray); 
       console.log('Start date from index:', periodArray[1]);
       console.log('End date from index:', periodArray[2]);
 

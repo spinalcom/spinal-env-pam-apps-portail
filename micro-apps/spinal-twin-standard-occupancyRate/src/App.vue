@@ -25,7 +25,7 @@
         />
       </div>
       <div class="DB">
-        <DownloadButton :fileName="'consomation d\'energie globale'" :data="table"/>
+        <DownloadButton :fileName="'Taux d\'occupation'" :data="table"/>
       </div>
     </div>
     <MicroApp @chart-sent="handleChart" :temporality="selectedTime" :space="defaultSelected" v-if="defaultSelected.dynamicId !== 0"/>
@@ -267,9 +267,7 @@ class App extends Vue {
       case 'building':
         const floors = await getFloors(this.controlEndpoints);
         console.log('case building ??');
-        
         for (let floor of floors) {
-          
           floorList.push({
               name: floor.name,
               staticId: floor.staticId, 
