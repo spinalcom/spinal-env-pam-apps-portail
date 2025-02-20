@@ -28,7 +28,7 @@ import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
 import { getEquipments, getFloors, getRooms, getBuilding ,
 	getAttributListMultiple, getDocumentation ,postDownloadFile ,getTicket,
-	getNotes, getNodeEndpointList, getNodeControlEndpointList ,getTimeSeriesAsync , getFile, getNodeReadMultiple
+	getNotes, getNodeEndpointList, getNodeControlEndpointList ,getTimeSeriesAsync , getFile, getNodeReadMultiple, getEquipementPositions
 } from "../../spinalAPI/GeographicContext/geographicContext";
 import { addTicketDoc, createTicket, getProcess, getWorkFlowList, Ticket } from "../../spinalAPI/CreateTicket";
 
@@ -49,6 +49,7 @@ import ViewerManager from "../../../../../../global-components/viewer/manager/vi
 import ModelManager  from "../../../../../../global-components/viewer/manager/modelManager";
 import { IConfig } from "../../../interfaces/IConfig";
 import { classifyItemByBimFileId } from "./utils/openViewer";
+import * as lodash from "lodash";
 
 const ApiIteratorStore: ApiIteratorStoreType & ApiIteratorStoreRecordStringType & ApiIteratorStoreRecordNumberType = {};
 
@@ -68,10 +69,20 @@ export const actions = {
 
 	async [ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }): Promise<any> {
 		try {
-			const result = await getAttributListMultiple(buildingId, referenceIds);
+      		const chunkedIds = lodash.chunk(referenceIds, 200);
+			  const promises = chunkedIds.map(ids => getAttributListMultiple(buildingId, ids));
+
+			  const promiseResults = await Promise.allSettled(promises);
+			  const result = promiseResults.reduce((acc, result) => {
+				  if (result.status === 'fulfilled') {
+					  acc.push(...result.value);
+				  }
+				  return acc;
+			  }, []);
+			// const result = await getAttributListMultiple(buildingId, referenceIds);
 			return result;
 		} catch (error) {
-			console.error('Erreur lors de la récupération des objets de référence:', error);
+			console.error('Erreur lors de la récupération attributs:', error);
 			throw error;
 		}
 	},
@@ -288,6 +299,27 @@ export const actions = {
 	},
 
 
+	async [ActionTypes.GET_EQUIPMENT_POSITION_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, equipmentIds }: any): Promise<IZoneItem[]> {
+		try {
+			const chunkedIds = lodash.chunk(equipmentIds, 200);
+			const promises = chunkedIds.map(ids => getEquipementPositions(buildingId, ids));
+
+			const promiseResults = await Promise.allSettled(promises);
+			const result = promiseResults.reduce((acc, result) => {
+				if (result.status === 'fulfilled') {
+					acc.push(...result.value);
+				}
+				return acc;
+			}, []);
+		  // const result = await getAttributListMultiple(buildingId, referenceIds);
+		  return result;
+	  } catch (error) {
+		  console.error('Erreur lors de la récupération des positions:', error);
+		  throw error;
+	  }
+	},
+
+
 	async [ActionTypes.GET_BUILDINGS]({ commit, state }: AugmentedActionContextAppData, { patrimoineId, forceUpdate }): Promise<IGetAllBuildingsRes[]> {
 		const spinalAPI = SpinalAPI.getInstance();
 		if (typeof ApiIteratorStore[ActionTypes.GET_BUILDINGS] === "undefined") {
@@ -301,6 +333,16 @@ export const actions = {
 		const buildings = await ApiIteratorStore[ActionTypes.GET_BUILDINGS][patrimoineId]!.next();
 		commit(MutationTypes.SET_BUILDINGS, buildings.value);
 		return buildings.value;
+	},
+	async [ActionTypes.GET_BOS_BUILDING]({ commit }: AugmentedActionContextAppData, { buildingId }: { buildingId: string; }): Promise<any> {
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getBuilding(buildingId);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
 	},
 
 	async [ActionTypes.GET_BUILDING_BY_ID]({ commit, state }: AugmentedActionContextAppData, { buildingId, forceUpdate }): Promise<IGetAllBuildingsRes> {
@@ -317,31 +359,6 @@ export const actions = {
 		return building.value;
 	},
 
-	async [ActionTypes.GET_BOS_BUILDING](
-		{ commit, state }: AugmentedActionContextAppData,
-		{ buildingId, forceUpdate }
-	  ): Promise<IGetAllBuildingsRes> {
-		const spinalAPI = SpinalAPI.getInstance();
-		if (
-		  typeof ApiIteratorStore[ActionTypes.GET_BOS_BUILDING] === "undefined"
-		) {
-		  ApiIteratorStore[ActionTypes.GET_BOS_BUILDING] = {};
-		}
-	
-		if (
-		  typeof ApiIteratorStore[ActionTypes.GET_BOS_BUILDING][buildingId] ===
-			"undefined" ||
-		  forceUpdate === true
-		) {
-		  ApiIteratorStore[ActionTypes.GET_BOS_BUILDING][buildingId] =
-			spinalAPI.createIteratorCall(getBuilding, buildingId);
-		}
-	
-		const building = await ApiIteratorStore[ActionTypes.GET_BOS_BUILDING][
-		  buildingId
-		]!.next();
-		return building.value;
-	  },
 
 	async [ActionTypes.GET_FLOORS]({ commit }: AugmentedActionContextAppData, { buildingId, patrimoineId, forceUpdate }): Promise<IZoneItem[]> {
 		const spinalAPI = SpinalAPI.getInstance();
@@ -774,5 +791,9 @@ export const actions = {
 
 	[ActionTypes.GET_VIEWER_OBJECT_PROPERTIES]({ commit, dispatch, state }, dbId: number) {
 		return ViewerManager.getInstance().getObjectProperties(dbId);
-	}
+	},
+
+	[ActionTypes.REMOVE_SPRITES_BY_GROUP]({ commit, dispatch, state }, group: string) {
+		return SpriteManager.getInstance().removeSpritesByGroup(group);
+	},
 };

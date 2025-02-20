@@ -199,13 +199,27 @@ class App extends Vue {
 
     });
 
+    const buildingId = localStorage.getItem("idBuilding");
+    const building = await this.$store.dispatch(
+      ActionTypes.GET_BOS_BUILDING,
+      {
+        buildingId: buildingId,
+      }
+    );
+    console.log('BUILDING', building);
+    this.$store.state.appDataStore.zoneSelected
+    this.$store.commit(MutationTypes.SET_BUILDING_INFO, building);
+    console.log('BUILDING INFO', this.$store.state.appDataStore.buildingInfo);
     const item = {
       buildingId: localStorage.getItem("idBuilding"),
-      dynamicId: 0,
+      dynamicId: building.dynamicId,
       parents : [],
       type: "building",
     }
+    
     this.onActionClick({ button: { onclickEvent: ActionTypes.OPEN_VIEWER }, item: item });
+
+    
 
     try {
       this.pageSate = PAGE_STATES.loading;
@@ -268,28 +282,53 @@ class App extends Vue {
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<IZoneItem[]> {
     switch (item?.type) {
       case undefined:
+
         const buildingId = localStorage.getItem("idBuilding");
-        const playload = {
-          config,
-          item: { buildingId, type: "building" },
-        };
+        if (buildingId) {
+          const playload = {
+            config,
+            item: { buildingId, type: "building" },
+          };
 
-        const promises = [
-          this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }),
-        ];
+          const promises = [
+            this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }),
+          ];
 
-        const [building, items] = await Promise.all(promises);
+          const [building, items] = await Promise.all(promises);
 
-        return [
-          {
-            name: building.name,
-            staticId: building.id,
-            categories: [],
-            color: "#35CAE5",
-            dynamicId: 0,
-            type: "building",
-          },
-        ];
+          const realBuilding = await this.$store.dispatch(
+            ActionTypes.GET_BOS_BUILDING,
+            { buildingId }
+          )
+          return [
+            {
+              name: realBuilding.name,
+              staticId: building.id,
+              categories: [],
+              color: realBuilding.color,
+              dynamicId: realBuilding.dynamicId,
+              type: 'building',
+            },
+          ];
+        } else {
+          const building = await this.$store.dispatch(
+            ActionTypes.GET_BOS_BUILDING,
+            {
+              buildingId: null,
+            }
+          );
+          console.log(building);
+          return [
+            {
+              name: building.name,
+              staticId: building.id,
+              categories: [],
+              color: '#35CAE5',
+              dynamicId: building.dynamicId,
+              type: 'building',
+            },
+          ];
+        }
       case "building":
         return await this.$store.dispatch(ActionTypes.GET_FLOORS, {
           buildingId: item.staticId,
@@ -380,7 +419,6 @@ class App extends Vue {
 
 
   onActionClick({ button, item }) {
-    // button.onclickEvent = "OPEN_VIEWER"
     
 
     const data = {

@@ -76,8 +76,8 @@ with this file. If not, see
         @fit-to-view="fitToView"
         @unselect-data-view="unselectDataView"
         @allFiltredData="putAllFiltredData"
-        @update:selectedItem="handleAttributeChange" @updateSuccess="retriveData"
-        @update:selectedAttribute="handleAttributeChange" :headers="[]" :id="0" :label="'test'" :reference="''"
+        @updateSuccess="retriveData"
+        :headers="[]" :id="0" :label="'test'" :reference="''"
         :unit="''" :contexts="tableData" :temporality="''" :ctx_list="$store.state.appDataStore.user_selection_list.ctx"
         :cat_list="$store.state.appDataStore.user_selection_list.cat"
         :grp_list="$store.state.appDataStore.user_selection_list.grp" 
@@ -105,8 +105,6 @@ import { State } from "vuex-class";
 import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import { mapState } from "vuex";
 import SpriteComponent from "./SpriteComponent.vue"
-import { WASI } from "wasi";
-import { get } from "http";
 
 @Component({
   components: {
@@ -199,15 +197,9 @@ class dataSideApp extends Vue {
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: payload.value.name });
       await this.getAndUpdateEquipmentList();
       await this.updateTableData();
-
-
-      if(!payload.value) {
-        // Load all equipments of category
-        await this.retriveData(true);
-        return;
-      }
     }
     await this.retriveData();
+    return;
   }
 
   async retriveData(getAllCategoryEquipments = false) {
@@ -417,51 +409,6 @@ class dataSideApp extends Vue {
     this.selectedItem2 = updatedValue;
   }
 
-  handleAttributeChange(emitedInfo) {
-    if (this.config.sprites)
-      this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-    if (this.isBuildingSelected) return;
-    const itemsToColor = this.tableData.map((el) => el.children || []).flat();
-    let originalArray = this.tableData;
-    let newArray = originalArray.map(item => {
-      // Trouver l'attribut 'Spatial'
-      let cate = item.categoryAttributes.find(cat => cat.name === emitedInfo.cate);
-      let spatial = item.categoryAttributes.find(cat => cat.name === "Spatial");
-      let position;
-      let attrpos
-      if (spatial) {
-        let xyz = spatial.attributs.find(attr => attr.label === "XYZ center");
-        if (xyz) {
-          let [x, y, z] = xyz.value.split(';').map(Number);
-          position = { x, y, z };
-        }
-      }
-      if (cate) {
-        attrpos = cate.attributs.find(attr => attr.label === emitedInfo.attr);
-      }
-
-      if (emitedInfo.item == attrpos.value) {
-        return { ...item, position: position || null, color: "red", displayValue: "-", toto: attrpos.value };
-      }
-      // Retourner le nouvel objet avec position et color
-      return { ...item, position: position || null, color: "#0074FF", displayValue: "-", toto: attrpos.value, attr: this.selected_attr };
-    });
-
-    if (this.config.sprites) {
-      this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-        items: newArray,
-        buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
-        component: SpriteComponent,
-      });
-      return;
-    }
-    this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
-      items: newArray,
-      buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
-    });
-
-
-  }
 
 
 
@@ -492,16 +439,20 @@ class dataSideApp extends Vue {
   }
 
   @Watch("selectedZone")
-  watchSelectedZone() {
-    if (this.selectedZone.type === "building") {
-      this.isBuildingSelected = true;
-      this.$store.commit(MutationTypes.SET_DATA, []);
+  async watchSelectedZone() {
+
+    // if (this.selectedZone.type === "building") {
+    //   this.isBuildingSelected = true;
+    //   this.$store.commit(MutationTypes.SET_DATA, []);
+    // }
+    // else {
+    //   this.isBuildingSelected = false;
+    // }
+    //this.retriveData(shouldGetAllEquipments);
+    if(this.$store.state.appDataStore.user_selected.grp){
+      await this.getAndUpdateEquipmentList();
     }
-    else {
-      this.isBuildingSelected = false;
-    }
-    const shouldGetAllEquipments = !this.$store.state.appDataStore.user_selected.grp;
-    this.retriveData(shouldGetAllEquipments);
+    await this.updateTableData();
   }
 
   @Watch('element_clicked', { immediate: true, deep: true })

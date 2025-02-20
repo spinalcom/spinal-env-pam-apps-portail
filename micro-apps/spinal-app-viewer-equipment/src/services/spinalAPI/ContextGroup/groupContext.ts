@@ -31,6 +31,7 @@ import { store } from '../../store/index';
 import { INodeItemTree } from "../../interfaces/INodeItem";
 import { MutationTypes } from '../../store/appDataStore/mutations';
 import { getNodeReadMultiple } from '../GeographicContext/geographicContext'
+import { getequipementList } from "../EquipementsGroup/equipementsGroup";
 
 import type {
     IEquipmentItem,
@@ -46,10 +47,6 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
     const matchedContext = resultCopy.find(context => context.name === store.state.appDataStore.user_selected.ctx);
     let type;
     let List: IZoneItem[] | null = null;
-
-
-
-
     // if user selected a context
     if (matchedContext) {
 
@@ -99,6 +96,7 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
     }
 
 }
+
 
 
 
@@ -252,6 +250,8 @@ export async function getRoomPositions(buildingId: string, roomIds: string[]): P
     }
 }
 
+
+
 export async function getEquipementPositions(buildingId: string, roomIds: string[]): Promise<IRoomPositionRes[]> {
     const spinalAPI = SpinalAPI.getInstance();
     const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/equipment/get_position_multiple');
@@ -264,16 +264,16 @@ export async function getEquipementPositions(buildingId: string, roomIds: string
     }
 }
 
-export async function getequipementList(patrimoineId: string, buildingId: string, contextDynId: number, categoryDynId: number, groupDynId: number): Promise<IZoneItem[]> {
-    const spinalAPI = SpinalAPI.getInstance();
-    const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipementsGroup/${contextDynId}/category/${categoryDynId}/group/${groupDynId}/equipementList`);
-    let result = await spinalAPI.get<IZoneItem[]>(url);
-    const res = result.data.map((obj) => {
-        Object.assign(obj, { patrimoineId, buildingId });
-        return obj;
-    });
-    return res;
-}
+// export async function getequipementList(patrimoineId: string, buildingId: string, contextDynId: number, categoryDynId: number, groupDynId: number): Promise<IZoneItem[]> {
+//     const spinalAPI = SpinalAPI.getInstance();
+//     const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipementsGroup/${contextDynId}/category/${categoryDynId}/group/${groupDynId}/equipementList`);
+//     let result = await spinalAPI.get<IZoneItem[]>(url);
+//     const res = result.data.map((obj) => {
+//         Object.assign(obj, { patrimoineId, buildingId });
+//         return obj;
+//     });
+//     return res;
+// }
 
 
 
@@ -323,3 +323,9 @@ export async function getGroupContextread(patrimoineId: string, buildingId: stri
     });
     return res;
 }
+
+
+
+// export async function getEnrichedEquipmentList(patrimoineId: string, buildingId: string, contextDynId: number, categoryDynId: number, groupDynId: number){
+
+// }

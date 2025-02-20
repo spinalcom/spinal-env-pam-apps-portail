@@ -47,6 +47,7 @@ export enum MutationTypes {
 	SET_DL_DATA_OPTION = "SET_DL_DATA_OPTION",
 	SET_USER_SELECTION = "SET_USER_SELECTION",
 	SET_USER_SELECTED = "SET_USER_SELECTED",
+	SET_BUILDING_INFO = "SET_BUILDING_INFO"
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -61,6 +62,7 @@ export type MutationsAppData<S = StateAppData> = {
 	[MutationTypes.SET_ITEM_SELECTED](state: StateAppData, item): void;
 	[MutationTypes.SET_DATA](state: StateAppData, data: INodeItemTree[]): void;
 	[MutationTypes.SET_DL_DATA_OPTION](state: StateAppData, data: boolean): void;
+	[MutationTypes.SET_BUILDING_INFO](state: StateAppData, item): void;
 };
 
 export const mutations: MutationTree<StateAppData> & MutationsAppData = {
@@ -125,6 +127,10 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 		if (typeof state.user_selected !== 'object') state.user_selected = {};
 		// Pour 'cat' et 'ctx' et 'grp', garder le comportement existant
 		state.user_selected = { ...state.user_selected, [payload.key]: payload.value };
-	}
+	},
+
+	[MutationTypes.SET_BUILDING_INFO](state: StateAppData, item): void {
+		state.buildingInfo = item;
+	},
 };
 

@@ -72,7 +72,6 @@ export async function getequipementList(patrimoineId: string, buildingId: string
         Object.assign(obj, { patrimoineId, buildingId, req: 'EquipementList' });
         return obj;
     });
-    // console.log('LES DONNÉES RECUPERE DANS L OBJET SONT :::',res);
-    
+    // console.log('LES DONNÉES RECUPERE DANS L OBJET SONT :::',res)
     return res;
 }

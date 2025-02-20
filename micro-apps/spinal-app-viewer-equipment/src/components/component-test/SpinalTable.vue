@@ -20,14 +20,18 @@
 
     
     <!-- Vselect + t_index selector -->
+
+    
     <div>
       <div class="title">
-        <div class="button" style="">
+        <div style="padding-top: 5px;">
           <v-select
+            outlined
             v-model="vSelectedTab"
             :items="vSelectDynamic"
-            label="Select"
-          ></v-select>
+            label="Onglet sélectionné"
+            
+        ></v-select>
         </div>
 
         <div
@@ -75,6 +79,7 @@
         mdi-arrow-left
       </v-icon>
       <DataTable
+        ref="dataTable"
         :selectedItemTab="selectedItemTab"
         :height="'74vh'"
         :items="filteredContexts"
@@ -793,6 +798,7 @@ export default {
       }
     },
     emitValue(listType, value) {
+      this.$refs.dataTable.resetDisplayedSprites();
       if (listType == 'item') {
         this.selected_id = null;
         this.selected_data_item_name = null;

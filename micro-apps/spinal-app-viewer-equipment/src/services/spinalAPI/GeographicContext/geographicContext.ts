@@ -79,11 +79,23 @@ export async function getNodeReadMultiple(buildingId: string, dynamicIds: number
   return result.data;
 }
 
-export async function getpositionEquipement(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
+export async function getpositionEquipement(buildingId: string, eqDynId: number): Promise<IZoneItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipment/${roomDynId}/get_position`);
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipment/${eqDynId}/get_position`);
   let result = await spinalAPI.get<IZoneItem[]>(url);
   return result.data;
+}
+
+export async function getEquipementPositions(buildingId: string, eqDynIds: string[]): Promise<IRoomPositionRes[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/equipment/get_position_multiple');
+  try {
+      const response = await spinalAPI.post<IRoomPositionRes[]>(url, eqDynIds); // Envoyer le tableau d'identifiants
+      return response.data;
+  } catch (error) {
+      console.error('Erreur lors de la récupération des positions des équipements:', error);
+      throw error;
+  }
 }
 
 export async function getpositionRoom(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
