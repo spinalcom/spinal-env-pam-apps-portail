@@ -55,9 +55,10 @@ import FloorOccupancyDetail from './FloorOccupancyDetail.vue';
 import { ISpaceSelectorItem } from './SpaceSelector/index';
 import { TemporalityModel } from '../models/Temporality.model';
 import { LegendModel } from '../models/Legend.model';
+import config from '../../config.js'; 
 import { defineComponent, ref } from 'vue';
 import { CalendarModel } from '../models/Calendar.model';
-import { getData, getTodaysData, getSolo, getTempoSuggestion, getGestionDesEspacesId, getTypologieCategoryId, getRoomIds, getMeetingRoomGroupId, getOccupancyDataByFloor } from '../services/index.js';
+import { getData, getTodaysData, getSolo, getTempoSuggestion, getContextId, getCategoryId, getRoomIds, getGroupId, getOccupancyDataByFloor } from '../services/index.js';
 import moment from 'moment';
 interface ChartData {
   label: string;
@@ -152,10 +153,10 @@ class App extends Vue {
   async spreadData() {
   try {
     let res;
-    const gestionDesEspacesId = await getGestionDesEspacesId();
-    const typologieCategoryId = await getTypologieCategoryId(gestionDesEspacesId);
-    const meetingRoomGroupId = await getMeetingRoomGroupId(gestionDesEspacesId, typologieCategoryId);
-    const roomIds = await getRoomIds(gestionDesEspacesId, typologieCategoryId, meetingRoomGroupId);
+    const contextId = await getContextId(config.contextNames.gestionDesEspaces);
+    const categoryId = await getCategoryId(contextId, config.categoryNames.typologie);
+    const groupId = await getGroupId(contextId, categoryId, config.groupNames.meetingRoom);
+    const roomIds = await getRoomIds(contextId, categoryId, groupId);
 
     console.log('Room IDs:', roomIds);
 
@@ -273,8 +274,7 @@ class App extends Vue {
       this.selectedFilter[i].value = newValue;
       this.selectedFilter[i].color = this.selectedFilter[i].color;
     }
-  }
-  if (this.temporality.name === 'Semaine') {
+  } else if (this.temporality.name === 'Semaine') {
     if (!this.defaultFilter.lock)
       this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'weeks').valueOf() };
     for (let i = 0; i < this.selectedFilter.length; i++) {
@@ -287,8 +287,7 @@ class App extends Vue {
       this.selectedFilter[i].value = newValue;
       this.selectedFilter[i].color = this.selectedFilter[i].color;
     }
-  }
-  if (this.temporality.name === 'Mois') {
+  } else if (this.temporality.name === 'Mois') {
     if (!this.defaultFilter.lock)
       this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'months').valueOf() };
     for (let i = 0; i < this.selectedFilter.length; i++) {
@@ -301,8 +300,7 @@ class App extends Vue {
       this.selectedFilter[i].value = newValue;
       this.selectedFilter[i].color = this.selectedFilter[i].color;
     }
-  }
-  if (this.temporality.name === 'Trimestre') {
+  } else if (this.temporality.name === 'Trimestre') {
     if (!this.defaultFilter.lock)
       this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload * 3, 'months').valueOf() };
     for (let i = 0; i < this.selectedFilter.length; i++) {
@@ -325,8 +323,7 @@ class App extends Vue {
       this.selectedFilter[i].value = `${T}/${date.format('YYYY')}`;
       this.selectedFilter[i].color = this.selectedFilter[i].color;
     }
-  }
-  if (this.temporality.name === 'Année') {
+  } else if (this.temporality.name === 'Année') {
     this.domain.name = '' + (+this.domain.name + payload);
     if (!this.defaultFilter.lock) {
       this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf() };
@@ -355,10 +352,10 @@ class App extends Vue {
   }
   await this.spreadData();
   if (this.$refs.floorOccupancyDetail) {
-    (this.$refs.floorOccupancyDetail as Vue & { fetchFloorData: (name: string) => void }).fetchFloorData(this.temporality.name);
+    (this.$refs.floorOccupancyDetail as Vue & { fetchFloorData: (name: string, timestamp: number) => void }).fetchFloorData(this.temporality.name, this.currentTimestamp.valueTime);
   }
   if (this.$refs.floorOccupancyDetail) {
-    (this.$refs.floorOccupancyDetail as Vue & { fetchSecondFloorData: () => void }).fetchSecondFloorData();
+    (this.$refs.floorOccupancyDetail as Vue & { fetchSecondFloorData: (timestamp: number) => void }).fetchSecondFloorData(this.currentTimestamp.valueTime);
   }
 }
   data() {

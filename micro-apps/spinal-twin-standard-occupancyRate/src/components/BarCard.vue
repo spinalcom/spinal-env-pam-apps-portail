@@ -11,11 +11,7 @@
         <br>
         <span class="desc">{{subtitle}}</span>
       </p>
-      <div class="d-flex align-center mln6" style="position: absolute; right: calc(50% - 55px)" v-if="isYear">
-        <v-icon  icon style="color: #0000008a !important" class="pr-3" size="default">mdi-poll</v-icon>
-        <v-switch @click="$emit('calendar', switchValue)" style="margin-top: 1px; padding: 0px;height: 24px;" v-model="switchValue" inset color="blue-grey" dense/>
-        <v-icon  icon style="color: #0000008a !important" size="default">mdi-calendar-month-outline</v-icon>
-      </div>
+      
       <div v-if="prev_next" style="height: 40px; align-self: flex-start; padding-top: 10px; padding-right: 10px;">
         <v-btn :disabled="false" @click="$emit('nav', -1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;"><v-icon style="color: #14202c !important" icon>mdi-chevron-left</v-icon>{{ prev }}</v-btn>
         <v-btn :disabled="false" @click="$emit('nav', +1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;">{{ next }}<v-icon style="color: #14202c !important" icon>mdi-chevron-right</v-icon></v-btn>

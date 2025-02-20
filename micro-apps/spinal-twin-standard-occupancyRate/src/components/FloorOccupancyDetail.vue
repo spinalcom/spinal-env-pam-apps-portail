@@ -38,7 +38,7 @@ import { HTTP } from '../services/http-constants';
 import config from '../../config';
 import moment from 'moment';
 
-import { getFloors, getOccupancyDataByFloor, getGestionDesEspacesId, getTypologieCategoryId, getMeetingRoomGroupId, getRoomIds, getTotalSurface2 } from '../services/index';
+import { getFloors, getOccupancyDataByFloor, getContextId, getCategoryId, getGroupId, getRoomIds, getTotalSurface2 } from '../services/index';
 Chart.register(...registerables);
 
 function extractDynamicIdFromResponse(response, endpointName, endpointType) {
@@ -85,84 +85,67 @@ export default defineComponent({
 }
 
     
-const fetchFloorData = async (period) => {
+const fetchFloorData = async (period, timestamp) => {
   try {
-    console.log(` Récupération des données des étages pour la période : ${period}`);
+    console.log(`Récupération des données des étages pour la période : ${period}`);
     
-    //  Récupérer les IDs d'occupation et les noms des étages
     const { dynamicIds, floorNames, floorOccupancyMapping } = await getFloorOccupancyDynamicIds();
-    console.log(' Dynamic IDs:', dynamicIds);
-    console.log(' Floor Names:', floorNames);
-    console.log(' Mapping Dynamic ID → Étages:', floorOccupancyMapping);
+
 
     if (dynamicIds.length === 0) {
-      throw new Error(' Aucun Dynamic ID trouvé pour les taux d\'occupation.');
+      throw new Error('Aucun Dynamic ID trouvé pour les taux d\'occupation.');
     }
 
-    //  Récupérer les taux d'occupation
-    const occupancyRates = await getFloorOccupancyRatesByPeriod(period, dynamicIds);
-    console.log(' Occupancy Rates:', occupancyRates);
+    const occupancyRates = await getFloorOccupancyRatesByPeriod(period, timestamp, dynamicIds);
+    console.log('Occupancy Rates:', occupancyRates);
 
-    //  Transformer les Dynamic IDs en noms d'étages
     floorData.value = occupancyRates.map(floor => {
-      const realFloorId = floorOccupancyMapping[floor.dynamicId]; // Associer au bon étage
+      const realFloorId = floorOccupancyMapping[floor.dynamicId]; 
       return {
-        floor: floorNames[realFloorId] || `Étage ${realFloorId}`, // Utiliser le vrai nom
-        occupancy: parseFloat(floor.occupancy),
-        area: typeof floor.area === 'number' ? floor.area : 0
+        floor: mapFloorDynamicId(realFloorId, floorNames),
+        occupancy: parseFloat(floor.occupancy), 
+        area: floor.area
       };
     });
 
-    console.log(' Étages après correction:', floorData.value.map(f => f.floor));
 
-    //  Mettre à jour la liste des étages pour le graphique
     allFloors.value = floorData.value.map(floor => floor.floor);
-    console.log(' Labels envoyés au graphique:', allFloors.value);
 
-    //  Rafraîchir les graphiques
     renderChart();
     renderSecondChart();
   } catch (error) {
-    console.error(" Erreur dans fetchFloorData :", error);
+    console.error("Erreur dans fetchFloorData :", error);
   }
 };
 
+const fetchSecondFloorData = async (timestamp) => {
+  try {
+    const space = { type: 'building' }; 
+    const tempo = props.temporality.name;
 
+ 
+    const contextId = await getContextId(config.contextNames.gestionDesEspaces);
+    const categoryId = await getCategoryId(contextId, config.categoryNames.typologie);
+    const groupId = await getGroupId(contextId, categoryId, config.groupNames.meetingRoom);
 
+    const roomIds = await getRoomIds(contextId, categoryId, groupId);
+    if (!roomIds || roomIds.length === 0) {
+      throw new Error('No room IDs found');
+    }
 
-    const fetchSecondFloorData = async () => {
-      try {
-        const space = { type: 'building' }; // ou 'floor' selon votre besoin
-        const tempo = props.temporality.name;
-        const currentTimestamp = new Date().getTime();
+    const [label, data, avg, total, averages, meter] = await getOccupancyDataByFloor(space, tempo, timestamp, roomIds);
 
-        // Récupérer les IDs nécessaires
-        const gestionDesEspacesId = await getGestionDesEspacesId();
-        const typologieCategoryId = await getTypologieCategoryId(gestionDesEspacesId);
-        const meetingRoomGroupId = await getMeetingRoomGroupId(gestionDesEspacesId, typologieCategoryId);
+    secondFloorData.value = averages.map(floor => ({
+      floor: floor.floor,
+      occupancy: floor.average,
+      area: 0 
+    }));
 
-        // Récupérer les IDs des salles de réunion
-        const roomIds = await getRoomIds(gestionDesEspacesId, typologieCategoryId, meetingRoomGroupId);
-        if (!roomIds || roomIds.length === 0) {
-          console.error('No Room IDs found. Aborting fetchSecondFloorData.');
-          return;
-        }
-
-        // Appeler getOccupancyDataByFloor avec les IDs des salles
-        const [label, data, avg, total, averages, meter] = await getOccupancyDataByFloor(space, tempo, currentTimestamp, roomIds);
-
-        // Mettre à jour les données pour le graphique
-        secondFloorData.value = averages.map(floor => ({
-          floor: floor.floor,
-          occupancy: floor.average,
-          area: 0 
-        }));
-
-        renderSecondChart();
-      } catch (error) {
-        console.error("Erreur lors de la récupération des données des étages pour le deuxième graphique:", error);
-      }
-    };
+    renderSecondChart();
+  } catch (error) {
+    console.error("Erreur lors de la récupération des données des étages pour le deuxième graphique:", error);
+  }
+};
 
     const fetchTotalSurface = async () => {
       try {
@@ -175,10 +158,10 @@ const fetchFloorData = async (period) => {
     };
     const fetchTotalSurface2 = async () => {
       try {
-        const gestionDesEspacesId = await getGestionDesEspacesId();
-        const typologieCategoryId = await getTypologieCategoryId(gestionDesEspacesId);
-        const meetingRoomGroupId = await getMeetingRoomGroupId(gestionDesEspacesId, typologieCategoryId);
-        const roomIds = await getRoomIds(gestionDesEspacesId, typologieCategoryId, meetingRoomGroupId);
+        const contextId = await getContextId(config.contextNames.gestionDesEspaces);
+        const categoryId = await getCategoryId(contextId,  config.categoryNames.typologie);
+        const groupId = await getGroupId(contextId, categoryId, config.groupNames.meetingRoom);
+        const roomIds = await getRoomIds(contextId, categoryId, groupId);
 
         if (!roomIds || roomIds.length === 0) {
           console.error('No Room IDs found. Aborting fetchTotalSurface2.');
@@ -195,58 +178,51 @@ const fetchFloorData = async (period) => {
     };
     const getFloorOccupancyDynamicIds = async () => {
   try {
-    console.log(' Récupération des noms et Dynamic IDs des étages...');
+    console.log('Récupération des noms et Dynamic IDs des étages...');
     
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error(' Building ID not found in localStorage');
+      console.error('Building ID not found in localStorage');
       return { dynamicIds: [], floorNames: {} };
     }
 
-    //  Récupérer la liste des étages
-    const floorsResponse = await HTTP.get(`building/${buildingId}/floor/list`);
+    const floorsResponse = await HTTP.get(config.apiEndpoints.floors.replace('{buildingId}', buildingId));
     const floors = floorsResponse.data;
 
     if (!floors || floors.length === 0) {
-      console.error(' Aucun étage trouvé pour ce bâtiment.');
+      console.error('Aucun étage trouvé pour ce bâtiment.');
       return { dynamicIds: [], floorNames: {} };
     }
-    console.log(' Étages récupérés :', floors);
+    console.log('Étages récupérés :', floors);
 
-    //  Construire l'objet associant `dynamicId` → `nom d'étage`
     const floorNames = {};
     const floorDynamicIds = floors.map(floor => {
-      floorNames[floor.dynamicId] = floor.name; // Associer l'ID dynamique au nom d'étage
-      return floor.dynamicId; // Retourner uniquement les IDs
+      floorNames[floor.dynamicId] = floor.name;
+      return floor.dynamicId; 
     });
 
-    console.log(' Correspondance ID → Nom des étages :', floorNames);
+    console.log('Correspondance ID → Nom des étages :', floorNames);
 
-    //  Récupérer les endpoints d'occupation associés aux étages
-    const response = await HTTP.post(
-      `building/${buildingId}/node/control_endpoint_list_multiple`,
-      floorDynamicIds
-    );
+    const response = await HTTP.post(config.apiEndpoints.controlEndpointListMultiple.replace('{buildingId}', buildingId), floorDynamicIds);
     const endpointsData = response.data;
 
     if (!endpointsData || endpointsData.length === 0) {
-      console.error(' Aucun endpoint trouvé pour les étages.');
+      console.error('Aucun endpoint trouvé pour les étages.');
       return { dynamicIds: [], floorNames: {} };
     }
-    console.log(' Endpoints récupérés :', endpointsData);
+    console.log('Endpoints récupérés :', endpointsData);
 
-    //  Extraire les Dynamic IDs des points de contrôle des taux d'occupation
     const dynamicIds = [];
-    const floorOccupancyMapping = {}; // Associe chaque Dynamic ID d'occupation à son étage
+    const floorOccupancyMapping = {}; 
 
     endpointsData.forEach(floorEndpointsList => {
-      const floorId = floorEndpointsList[0]?.dynamicId; // L'ID de l'étage
+      const floorId = floorEndpointsList[0]?.dynamicId;
 
       floorEndpointsList.forEach(profile => {
         profile.endpoints.forEach(endpoint => {
-          if (endpoint.name === "taux d'occupation" && endpoint.type === "Occupation") {
+          if (endpoint.name === config.endpointCriteria.name && endpoint.type === config.endpointCriteria.type) {
             dynamicIds.push(endpoint.dynamicId);
-            floorOccupancyMapping[endpoint.dynamicId] = floorId; // Associer l'ID d'occupation à l'étage
+            floorOccupancyMapping[endpoint.dynamicId] = floorId;
           }
         });
       });
@@ -256,19 +232,19 @@ const fetchFloorData = async (period) => {
       console.warn('⚠️ Aucun Dynamic ID trouvé pour les taux d\'occupation.');
     }
 
-    console.log(' Dynamic IDs des taux d\'occupation:', dynamicIds);
-    console.log(' Mapping Dynamic ID → Étages:', floorOccupancyMapping);
+    console.log('Dynamic IDs des taux d\'occupation:', dynamicIds);
+    console.log('Mapping Dynamic ID → Étages:', floorOccupancyMapping);
 
     return { dynamicIds, floorNames, floorOccupancyMapping };
   } catch (error) {
-    console.error(' Erreur dans getFloorOccupancyDynamicIds:', error);
+    console.error('Erreur dans getFloorOccupancyDynamicIds:', error);
     return { dynamicIds: [], floorNames: {}, floorOccupancyMapping: {} };
   }
 };
 
 
 
-const getFloorOccupancyRatesByPeriod = async (period, dynamicIds) => {
+const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => {
   try {
     console.log(`Fetching floor occupancy rates for period: ${period}`);
     const buildingId = localStorage.getItem('idBuilding');
@@ -277,18 +253,18 @@ const getFloorOccupancyRatesByPeriod = async (period, dynamicIds) => {
       return [];
     }
 
-    const periodArray = getPeriodArray(new Date(), period);
+    const periodArray = getPeriodArray(timestamp, period);
     console.log('Period array from detail:', periodArray);
 
     console.log('Start date from detail:', periodArray[1]);
-    console.log('End date from detail :', periodArray[2]);
+    console.log('End date from detail:', periodArray[2]);
     console.log('Dynamic IDs:', dynamicIds);
 
     const timeSeriesResponse = await HTTP.post(
-      `/building/${buildingId}/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`,
+      config.apiEndpoints.timeSeriesMultiple.replace('{buildingId}', buildingId).replace('{start}', periodArray[1]).replace('{end}', periodArray[2]),
       dynamicIds
     );
-    console.log('Time series responseresponseresponse:', timeSeriesResponse.data);
+    console.log('Time series response:', timeSeriesResponse.data);
 
     const timeSeriesData = timeSeriesResponse.data;
 
@@ -303,7 +279,7 @@ const getFloorOccupancyRatesByPeriod = async (period, dynamicIds) => {
           ? moment(point.date).format('HH')
           : moment(point.date).format('DD MMM');
         aggregatedData[dynamicIds[index]].push({
-          label: formattedLabel,
+          date: point.date,
           value: point.value
         });
       });

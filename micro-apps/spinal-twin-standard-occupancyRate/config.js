@@ -32,7 +32,6 @@ module.exports = {
     cards: ['total', 'average', 'today'],
     temporalities: ['Valeur Courante', 'Journée', 'Semaine', 'Mois', 'Trimestre', 'Année', 'Décennie'],
 
-    // New configurations for API endpoints and filters
     apiEndpoints: {
         building: 'building/{buildingId}/building/read',
         floors: 'building/{buildingId}/floor/list',
@@ -60,6 +59,12 @@ module.exports = {
         type: 'Occupation'
     },
     contextNames: {
-        gestionDesEspaces: 'Gestion des espaces', // Ajoutez cette ligne
+        gestionDesEspaces: 'Gestion des espaces', 
+    },
+    categoryNames: {
+        typologie: 'Typologie',
+    },
+    groupNames: {
+        meetingRoom: 'Salle de réunion',
     }
 };

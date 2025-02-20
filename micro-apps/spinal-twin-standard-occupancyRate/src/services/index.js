@@ -96,73 +96,72 @@ async function getArea(space) {
     return +area;
   }
 }
-
-//Récupère l'ID du contexte "Gestion des espaces" pour un bâtiment.
-export async function getGestionDesEspacesId() {
+//Récupère l'ID du contexte pour un bâtiment.
+export async function getContextId(contextName) {
   try {
-    console.log('getGestionDesEspacesId called');
+    console.log('getContextId called');
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
       console.error('idBuilding not found in localStorage');
       return null;
     }
 
-    console.log(`Fetching Gestion des Espaces ID for building: ${buildingId}`);
+    console.log(`Fetching context ID for context: ${contextName} in building: ${buildingId}`);
     const response = await HTTP.get(config.apiEndpoints.groupContextList.replace('{buildingId}', buildingId));
     console.log('Response data:', response.data);
 
-    const gestionDesEspaces = response.data.find(item => item.name === "Gestion des espaces");
-    console.log('Gestion des Espaces:', gestionDesEspaces);
+    const context = response.data.find(item => item.name === contextName);
+    console.log('Context:', context);
 
-    return gestionDesEspaces ? gestionDesEspaces.dynamicId : null;
+    return context ? context.dynamicId : null;
   } catch (error) {
-    console.error('Error in getGestionDesEspacesId:', error);
+    console.error('Error in getContextId:', error);
     return null;
   }
 }
-//Récupère l'ID de la catégorie "Typologie" pour un contexte donné.
-export async function getTypologieCategoryId(contextId) {
+//Récupère l'ID de la catégorie pour un contexte donné.
+export async function getCategoryId(contextId, categoryName) {
   try {
-    console.log('getTypologieCategoryId called');
+    console.log('getCategoryId called');
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
       console.error('idBuilding not found in localStorage');
       return null;
     }
 
-    console.log(`Fetching Typologie Category ID for context: ${contextId} in building: ${buildingId}`);
+    console.log(`Fetching Category ID for context: ${contextId} in building: ${buildingId}`);
     const response = await HTTP.get(config.apiEndpoints.categoryList.replace('{buildingId}', buildingId).replace('{contextId}', contextId));
     console.log('Response data:', response.data);
 
-    const typologieCategory = response.data.find(item => item.name === "Typologie");
-    console.log('Typologie Category:', typologieCategory);
+    const category = response.data.find(item => item.name === categoryName);
+    console.log('Category:', category);
 
-    return typologieCategory ? typologieCategory.dynamicId : null;
+    return category ? category.dynamicId : null;
   } catch (error) {
-    console.error('Error in getTypologieCategoryId:', error);
+    console.error('Error in getCategoryId:', error);
     return null;
   }
 }
-// Récupère l'ID du groupe "Salle de réunion" pour un contexte et une catégorie donnés.
-export async function getMeetingRoomGroupId(contextId, categoryId) {
+// Récupère l'ID du groupe pour un contexte et une catégorie donnés.
+export async function getGroupId(contextId, categoryId, groupName) {
   try {
-    console.log('getMeetingRoomGroupId called');
+    console.log('getGroupId called');
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
       console.error('idBuilding not found in localStorage');
       return null;
     }
 
-    console.log(`Fetching Meeting Room Group ID for context: ${contextId}, category: ${categoryId} in building: ${buildingId}`);
+    console.log(`Fetching Group ID for context: ${contextId}, category: ${categoryId} in building: ${buildingId}`);
     const response = await HTTP.get(config.apiEndpoints.groupList.replace('{buildingId}', buildingId).replace('{contextId}', contextId).replace('{categoryId}', categoryId));
     console.log('Response data:', response.data);
 
-    const meetingRoomGroup = response.data.find(item => item.name === "Salle de réunion");
-    console.log('Meeting Room Group:', meetingRoomGroup);
+    const group = response.data.find(item => item.name === groupName);
+    console.log('Group:', group);
 
-    return meetingRoomGroup ? meetingRoomGroup.dynamicId : null;
+    return group ? group.dynamicId : null;
   } catch (error) {
-    console.error('Error in getMeetingRoomGroupId:', error);
+    console.error('Error in getGroupId:', error);
     return null;
   }
 }
@@ -307,25 +306,20 @@ export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, ro
 
   try {
     console.log('Fetching floors for building:', buildingId);
-    // Récupérer tous les étages sans filtrage
     const floors = await getFloors([{ name: 'nom_du_cp' }]); 
     console.log('Floors fetched:', floors);
 
-    // Récupérer les positions des salles et les regrouper par étage
     const roomPositions = await getRoomPositions(roomIds);
     const roomsByFloor = groupRoomsByFloor(roomPositions);
     console.log('Rooms grouped by floor:', roomsByFloor);
 
-    // Récupérer les IDs dynamiques des points de contrôle de taux d'occupation par étage
     const dynamicIdsByFloor = await getOccupationDynamicIdsByFloor(roomIds, roomsByFloor);
     console.log('Dynamic IDs by floor:', dynamicIdsByFloor);
 
-    // Ajout des logs pour vérifier les périodes
-    console.log('Period array from index index:', periodArray); // Ajout de la console log pour voir les dates
+    console.log('Period array from index index:', periodArray);
     console.log('Start date from index index:', periodArray[1]); 
     console.log('End date from index index:', periodArray[2]); 
 
-    // Récupérer les données de séries temporelles pour chaque étage
     const aggregatedFloorData = {};
     for (const floor of floors) {
       const dynamicIds = dynamicIdsByFloor[floor.dynamicId];
@@ -338,7 +332,6 @@ export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, ro
         const timeSeriesData = timeSeriesResponse.data;
         console.log(`Time series data for floor ${floor.name}:`, timeSeriesData);
 
-        // Agrégation des données par période et par étage
         aggregatedFloorData[floor.name] = {};
         label.forEach(periodLabel => {
           aggregatedFloorData[floor.name][periodLabel] = [];
@@ -356,8 +349,6 @@ export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, ro
                 formattedLabel = moment(point.date).format('ddd');
                 break;
               case 'Mois':
-                formattedLabel = moment(point.date).format('DD MMM');
-                break;
               case 'Trimestre':
                 formattedLabel = moment(point.date).format('DD MMM');
                 break;
@@ -381,7 +372,6 @@ export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, ro
     }
     console.log('Aggregated floor data:', aggregatedFloorData);
 
-    // Moyenne des salles de réunion par étage
     const floorProcessedTimeSeries = label.map(periodLabel => {
       const floorData = {};
       floors.forEach(floor => {
@@ -393,7 +383,6 @@ export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, ro
     });
     console.log('Processed time series data for floors:', floorProcessedTimeSeries);
 
-    // Calculer la moyenne des taux d'occupation pour chaque étage
     const averages = floors.map(floor => {
       const values = Object.values(aggregatedFloorData[floor.name] || {}).flat();
       const sum = values.reduce((acc, val) => acc + val, 0);
@@ -405,7 +394,6 @@ export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, ro
     });
     console.log('Average occupancy rates for floors:', averages);
 
-    // Préparation des données pour l'affichage
     floors.forEach(floor => {
       data.push({
         label: `Taux d'occupation des salles de réunion - Étage ${floor.name}`,
@@ -418,19 +406,13 @@ export async function getOccupancyDataByFloor(space, tempo, currentTimestamp, ro
     });
     console.log('Final data prepared for display:', data);
 
-    // Afficher les taux d'occupation par étage
-    floors.forEach(floor => {
-      console.log(`Taux d'occupation des salles de réunion pour l'étage ${floor.name}:`, data.find(d => d.label.includes(floor.name)).data);
-    });
-
-    // Retourner les données finales
     return [label, data, avg, total, averages, meter];
 
   } catch (e) {
     console.error('Error fetching data:', e);
     return [null, null, null, null, [], []];
   }
-} 
+}
 
 // Calcule les taux d'occupation moyens par étage.
 export function calculateAverageOccupation(roomsByFloor, occupationByFloor) {
@@ -524,25 +506,25 @@ export async function executeFlow() {
     }
     console.log("Graph data retrieved:", graphData);
 
-    const gestionDesEspacesId = await getGestionDesEspacesId();
-    if (!gestionDesEspacesId) {
+    const contextId = await getContextId();
+    if (!contextId) {
       console.error('Gestion des Espaces ID not found. Aborting flow.');
       return;
     }
 
-    const typologieCategoryId = await getTypologieCategoryId(gestionDesEspacesId);
-    if (!typologieCategoryId) {
+    const categoryId = await getCategoryId(contextId);
+    if (!categoryId) {
       console.error('Typologie Category ID not found. Aborting flow.');
       return;
     }
 
-    const meetingRoomGroupId = await getMeetingRoomGroupId(gestionDesEspacesId, typologieCategoryId);
-    if (!meetingRoomGroupId) {
+    const groupId = await getGroupId(contextId, categoryId);
+    if (!groupId) {
       console.error('Meeting Room Group ID not found. Aborting flow.');
       return;
     }
 
-    const roomIds = await getRoomIds(gestionDesEspacesId, typologieCategoryId, meetingRoomGroupId);
+    const roomIds = await getRoomIds(contextId, categoryId, groupId);
     if (!roomIds || roomIds.length === 0) {
       console.error('No Room IDs found. Aborting flow.');
       return;
@@ -705,6 +687,11 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
         const value = occupancyRateData.find(elem => moment(elem.date).format('HH') === hour)?.value || 0;
         return parseFloat(value).toFixed(2);
       });
+    } else if (tempo === 'Année') {
+      processedTimeSeries = label.map(month => {
+        const value = occupancyRateData.find(elem => moment(elem.date).format('MMM') === month)?.value || 0;
+        return parseFloat(value).toFixed(2);
+      });
     } else {
       processedTimeSeries = calculateTimeWeightedAverage(occupancyRateData, label, tempo);
     }
@@ -757,6 +744,8 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
         roomData.timeseries.forEach(point => {
           let formattedLabel = tempo === 'Journée' || tempo === 'Valeur Courante'
             ? moment(point.date).format('HH')
+            : tempo === 'Année'
+            ? moment(point.date).format('MMM')
             : moment(point.date).format('DD MMM');
           if (aggregatedRoomData[formattedLabel]) {
             aggregatedRoomData[formattedLabel].push(point.value);
@@ -769,7 +758,7 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
         const values = aggregatedRoomData[periodLabel] || [];
         const sum = values.reduce((acc, val) => acc + val, 0);
         return values.length > 0 ? (sum / values.length).toFixed(2) : 0;
-      });
+      }).filter((_, index) => tempo === 'Valeur Courante' ? index <= moment(currentTimestamp).hour() : true);
 
       data.push({
         label: 'Taux d\'occupation des salles de réunion',
@@ -967,10 +956,10 @@ export async function prepareOccupancyData(space, tempo, currentTimestamp) {
       throw new Error('idBuilding not found in localStorage');
     }
 
-    const gestionDesEspacesId = await getGestionDesEspacesId();
-    const typologieCategoryId = await getTypologieCategoryId(gestionDesEspacesId);
-    const meetingRoomGroupId = await getMeetingRoomGroupId(gestionDesEspacesId, typologieCategoryId);
-    const roomIds = await getRoomIds(gestionDesEspacesId, typologieCategoryId, meetingRoomGroupId);
+    const contextId = await getContextId();
+    const categoryId = await getCategoryId(contextId, config.categoryNames.typologie);
+    const groupId = await getGroupId(contextId, categoryId,config.groupNames.meetingRoom);
+    const roomIds = await getRoomIds(contextId, categoryId, groupId);
 
     const roomPositions = await getRoomPositions(roomIds);
     const roomsByFloor = groupRoomsByFloor(roomPositions);
