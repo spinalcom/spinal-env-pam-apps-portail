@@ -184,6 +184,35 @@ class App extends Vue {
       });
     });
 
+    // const building = await this.$store.dispatch(
+    //   ActionTypes.GET_BUILDING_INFO,
+    //   {
+    //     buildingId: null,
+    //   }
+    // );
+    // console.log(building);
+
+    const buildingId = localStorage.getItem("idBuilding");
+    const building = await this.$store.dispatch(
+      ActionTypes.GET_BOS_BUILDING,
+      {
+        buildingId: buildingId,
+      }
+    );
+    console.log('BUILDING', building);
+    this.$store.state.appDataStore.zoneSelected
+    this.$store.commit(MutationTypes.SET_BUILDING_INFO, building);
+    console.log('BUILDING INFO', this.$store.state.appDataStore.buildingInfo);
+    const item = {
+      buildingId: localStorage.getItem("idBuilding"),
+      dynamicId: building.dynamicId,
+      parents : [],
+      type: "building",
+    }
+ 
+
+    this.onActionClick({ button: { onclickEvent: ActionTypes.OPEN_VIEWER }, item: item });
+
 
     if (window.innerWidth < 900) {
       this.isActive = true;
@@ -214,7 +243,7 @@ class App extends Vue {
 
   gotoView(data) {
     console.log('les data instance');
-    
+
     const buildingId = localStorage.getItem("idBuilding");
     this.query.spaceSelectedId = data.dynamicId
     this.query.name = data.name
@@ -291,7 +320,7 @@ class App extends Vue {
   }
 
   applyURLParam(query) {
-
+    
     this.query.mode = query.mode
     this.query.buildingId = query.buildingId
     this.query.spaceSelectedId = query.spaceSelectedId

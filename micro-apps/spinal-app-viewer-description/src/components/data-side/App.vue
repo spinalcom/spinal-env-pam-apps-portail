@@ -253,18 +253,27 @@
           </div>
         </div>
 
-
         <div v-if="selection == 'Liste'">
-
           <v-data-table :headers="headers" :items="formattedData" class="elevation-1" hide-default-footer
             :items-per-page="formattedData.length" dense>
+
+            <!-- Personnalisation de l'en-tête -->
+            <template v-slot:header.color="{ header }">
+              <th style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                {{ header.text }}
+                <v-icon v-if="!allColored" @click="colorAll">mdi-invert-colors</v-icon>
+                <v-icon v-else @click="descolorAll">mdi-invert-colors-off</v-icon>
+              </th>
+            </template>
+
+
             <template v-slot:item="{ item }">
               <tr>
-                <td style="padding-top: 15px ;padding-bottom:10px ;">{{ item.name }}</td>
-                <td style="padding-top: 15px ;padding-bottom:10px ;">{{ item.type }}</td>
-                <td style="padding-top: 15px ;padding-bottom:10px ;">{{ item.area }}</td>
+                <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.name }}</td>
+                <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.type }}</td>
+                <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.area }}</td>
 
-                <td style="padding-top: 15px ;padding-bottom:10px ;padding-left: 25px;">
+                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
                   <v-icon v-if="coloredElement && !coloredElement.includes(item.dynamicId)"
                     @click="colorselected(item)">mdi-invert-colors</v-icon>
                   <v-icon v-if="coloredElement && coloredElement.includes(item.dynamicId)"
@@ -273,20 +282,23 @@
                   </v-icon>
                 </td>
 
-                <td style="padding-top: 15px ;padding-bottom:10px ;padding-left: 25px;">
-                  <v-icon 
-                    @click="selectselected(item)">mdi-select-place</v-icon>
+                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
+                  <v-icon @click="selectselected(item)">mdi-select-place</v-icon>
                 </td>
 
-                <td style="padding-top: 15px ;padding-bottom:10px ;padding-left: 25px;">
-                  <v-icon 
-                    @click="gotoselected(item)">mdi-arrow-down-left-bold</v-icon>
+                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
+                  <v-icon @click="gotoselected(item)">mdi-arrow-down-left-bold</v-icon>
                 </td>
 
+                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
+                  <v-icon @click="zoomselected(item)">mdi-magnify-plus-outline</v-icon>
+                </td>
               </tr>
             </template>
           </v-data-table>
         </div>
+
+
 
 
         <!-- ONGLET attribut (attribut)-->
@@ -678,6 +690,7 @@ class dataSideApp extends Vue {
   ink: any = {};
   col: any = {};
   referencedId: any = 0;
+  stockedZone: any = 0;
   referencedType: any = 'building';
   cpIdToDraw: [];
   beginDate: any = null
@@ -705,6 +718,7 @@ class dataSideApp extends Vue {
   itemOverflowMenuAttr = null
   ShowFormDocAttrs = false
   ShowFormDocCat = false
+  allColored = false
   idEl = null
   itemOp = null
   selectedCategory = null
@@ -720,6 +734,7 @@ class dataSideApp extends Vue {
   interval: {}
   // iconColors: {}
   iconColors: Record<string, string> = {};
+  stockedData: any = []
 
 
   get dynamicItems(): string[] {
@@ -744,9 +759,8 @@ class dataSideApp extends Vue {
     return this.$store.state.appDataStore.temporalitySelected.name;
   }
 
-
   get formattedData() {
-    return this.dataListInfo[0].map(space => {
+    const data = (this.dataListInfo?.[0] || []).map(space => {
       let area = null;
 
       if (space.categories && Array.isArray(space.categories)) {
@@ -759,6 +773,9 @@ class dataSideApp extends Vue {
         });
       }
 
+      // Génération d'une couleur aléatoire
+      const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+
       // Vérification de bimFileId et dbid
       const bimData = space.bimFileId && space.dbid ? { bimFileId: space.bimFileId, dbid: space.dbid } : {};
 
@@ -767,22 +784,77 @@ class dataSideApp extends Vue {
         type: space.type,
         area: area || 'N/A',
         actions: space,
-        color: space.color,
+        color: randomColor,
         staticId: space.staticId,
         dynamicId: space.dynamicId,
-        ...bimData // Ajout conditionnel de bimFileId et dbid
+        ...bimData
       };
     });
+
+    // ➔ Met à jour stockedData en plus de retourner les données
+    this.stockedData = data;
+
+    return data;
   }
+
 
   headers = [
     { text: 'Nom', value: 'name' },
     { text: 'Type', value: 'type' },
     { text: 'Surface (m²)', value: 'area' },
-    { text: 'Color', value: 'Color', sortable: false },
+    { text: 'Color', value: 'color', sortable: false },
     { text: 'Select', value: 'Select', sortable: false },
-    { text: 'GOTO', value: 'GOTO', sortable: false },
+    { text: 'GoTo', value: 'GOTO', sortable: false },
+    { text: 'Zoom', value: 'Zoom', sortable: false },
   ];
+
+  async descolorAll() {
+    this.allColored = false
+
+    const buildingId = localStorage.getItem("idBuilding");
+
+    // Préparation de tous les éléments à décolorer
+    const itemsToDescolor = this.stockedData.map(item => ({
+      buildingId: buildingId,
+      dynamicId: item.dynamicId,
+      color: null, // Suppression de la couleur
+      floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId,
+    }));
+
+    // Dispatch pour désélectionner tous les éléments
+    await this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+      items: itemsToDescolor,
+      buildingId: buildingId,
+    });
+
+    // Nettoyage du tableau coloredElement
+    this.coloredElement = [];
+
+  }
+
+
+  colorAll() {
+    this.allColored = true
+
+    const buildingId = localStorage.getItem("idBuilding");
+
+    // Crée un tableau d'objets pour tous les éléments à colorer
+    const itemsToColor = this.stockedData.map(item => ({
+      buildingId: buildingId,
+      dynamicId: item.dynamicId,
+      color: item.color,
+      floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId,
+    }));
+
+    // Dispatch une seule fois avec tous les éléments
+    this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+      items: itemsToColor,
+      buildingId: buildingId,
+    });
+
+    // Ajoute tous les dynamicId à coloredElement
+    this.coloredElement.push(...this.stockedData.map(item => item.dynamicId));
+  }
 
   ShowDialog() {
     this.showFormTicket = !this.showFormTicket;
@@ -930,7 +1002,6 @@ class dataSideApp extends Vue {
 
   async UpdateAttribut(referenceId: number, cateId: number, name: string, item: object) {
 
-    console.warn(referenceId, cateId, name, item);
 
     const result = await this.$store.dispatch(ActionTypes.UPDATE_ATTRIBUT, {
       buildingId: localStorage.getItem("idBuilding"),
@@ -972,7 +1043,6 @@ class dataSideApp extends Vue {
   }
 
   handleValidated(updatedItem, el, dyn, item) {
-    console.warn('Objet reçu après validation :', item, el.dynamicId, dyn.label, updatedItem);
 
     const formattedItem = {
       attributeLabel: updatedItem.label,
@@ -989,7 +1059,6 @@ class dataSideApp extends Vue {
       "categoryName": item.name,
     };
 
-    console.warn('Objet reçu après validation :::::::', id, cateId, 'category', formattedItem);
     this.updateCateAttr(id, cateId, 'category', formattedItem)
   }
 
@@ -1092,57 +1161,109 @@ class dataSideApp extends Vue {
     this.$emit("gotoView", item);
   }
 
-  async selectselected(item) {
-    console.warn(item);
+  async zoomselected(item) {
     const buildingId = localStorage.getItem("idBuilding");
 
-    const itemsToColor = {
-      buildingId: buildingId,
-      dynamicId: item.dynamicId,
-      color: item.color,
-      floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
-      staticId: item.staticId,
-      type: item.type,
-      name: item.name
+    this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, [{ buildingId: buildingId, dynamicId: item.dynamicId }]);
+  }
+
+  async selectselected(item) {
+
+    const buildingId = localStorage.getItem("idBuilding");
+    const promises_node = [
+      this.$store.dispatch(ActionTypes.GET_NODE_READ, {
+        buildingId,
+        referenceIds: [item.dynamicId]
+      }),
+    ];
+
+
+    const node_read = await Promise.all(promises_node);
+
+    if (node_read[0].type == "geographicRoom") {
+
+      const referenceIds = [node_read[0].dynamicId]
+      const promises = [
+        this.$store.dispatch(ActionTypes.GET_REFERENCE_OBJECT_LIST_MULTIPLE, {
+          buildingId,
+          referenceIds
+        }),
+      ];
+      const result = await Promise.all(promises);
+      const solObjects = result[0][0].infoReferencesObjects.filter(refObj => refObj.name.includes("Sol"));
+
+      if (solObjects.length === 0) {
+        console.warn("Aucun objet contenant 'Sol' trouvé");
+        return;
+      }
+
+      // Prend le premier objet correspondant
+      const firstSol = solObjects[0];
+
+
+      // Création de l'objet pour le dispatch
+      const itemsToColor = {
+        buildingId: buildingId,
+        dynamicId: firstSol.dynamicId,  // Utilisation du dynamicId trouvé
+        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+        staticId: firstSol.staticId,    // Utilisation du staticId trouvé
+        type: item.type,
+        name: item.name
+      };
+
+      // Envoi via le store
+      await this.$store.dispatch(ActionTypes.SELECT_ITEMS, itemsToColor);
+
     }
+    else {
 
-    // this.$store.dispatch(ActionTypes.SELECT_ITEMS, {
-    //   items: itemsToColor,
-    //   buildingId: buildingId,
-    // });
-    console.warn('selected');
 
-    await this.$store.dispatch(ActionTypes.SELECT_ITEMS, itemsToColor);
-    // this.coloredElement.push(item.dynamicId);
 
+      const itemsToColor = {
+        buildingId: buildingId,
+        dynamicId: item.dynamicId,
+        color: item.color,
+        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+        staticId: item.staticId,
+        type: item.type,
+        name: item.name
+      }
+
+      // this.$store.dispatch(ActionTypes.SELECT_ITEMS, {
+      //   items: itemsToColor,
+      //   buildingId: buildingId,
+      // });
+
+      await this.$store.dispatch(ActionTypes.SELECT_ITEMS, itemsToColor);
+      // this.coloredElement.push(item.dynamicId);
+    }
   }
   async colorselected(item) {
-    console.warn(item);
     const buildingId = localStorage.getItem("idBuilding");
 
     const itemsToColor = [{
       buildingId: buildingId,
       dynamicId: item.dynamicId,
       color: item.color,
-      floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+      floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId,
     }]
 
     this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
       items: itemsToColor,
       buildingId: buildingId,
     });
+
     this.coloredElement.push(item.dynamicId);
 
   }
   async descolorselected(item) {
-    console.warn(item);
     const buildingId = localStorage.getItem("idBuilding");
 
     const itemsToColor = [{
       buildingId: buildingId,
       dynamicId: item.dynamicId,
       color: null,
-      floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+      floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId,
     }]
 
     this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
@@ -1646,7 +1767,7 @@ class dataSideApp extends Vue {
     const promises = [
       this.$store.dispatch(ActionTypes.GET_FLOOR_STATIC_DETAILS, {
         buildingId,
-        referenceIds: id
+        referenceIds: id || this.$store.state.appDataStore.zoneSelected.dynamicId
       }),
     ];
     const result = await Promise.all(promises);
@@ -1662,7 +1783,8 @@ class dataSideApp extends Vue {
   }
 
   async getListinfo(typeData, id) {
-
+    console.warn('il est call ??');
+    
 
     if (typeData == 'floor') {
       const buildingId = localStorage.getItem("idBuilding");
@@ -1672,11 +1794,11 @@ class dataSideApp extends Vue {
           buildingId,
           patrimoineId,
           floorId: this.selectedZone.staticId,
-          id: id,
+          id: id || this.$store.state.appDataStore.zoneSelected.dynamicId,
         }),
       ];
       const result = await Promise.all(promises);
-      console.warn(result, ' les rooms');
+      console.warn(result, ' je suis un floor');
       this.dataListInfo = result
     }
     else if (typeData == 'room') {
@@ -1691,7 +1813,7 @@ class dataSideApp extends Vue {
         }),
       ];
       const result = await Promise.all(promises);
-      console.warn(result, ' les equiements');
+      console.warn(result, ' je suis une room');
       this.dataListInfo = result
     }
     else if (typeData == 'building') {
@@ -1704,14 +1826,20 @@ class dataSideApp extends Vue {
         }),
       ];
       const result = await Promise.all(promises);
-      console.warn(result, ' les etages');
+      console.warn(result, ' je suis un building');
       this.dataListInfo = result
+    } else {
+      console.warn(' je suis un equipement');
+      this.dataListInfo = []
     }
 
 
   }
 
   async getroomstaticdetails(id) {
+
+   
+    
 
     const buildingId = localStorage.getItem("idBuilding");
     const promises_node = [
@@ -1723,6 +1851,8 @@ class dataSideApp extends Vue {
 
 
     const node_read = await Promise.all(promises_node);
+
+    console.warn('il se pose pour le batiement ici ?' , node_read[0].type);
 
     if (node_read[0].type == "geographicRoom") {
 
@@ -1768,9 +1898,11 @@ class dataSideApp extends Vue {
       this.filteredEndpoints('equipement')
       this.getDocumentation(result)
       this.getTicket(result)
+      this.getListinfo('equipement', id)
       this.filtredAttribut('equipement')
       this.$forceUpdate();
     } else {
+
       this.referencedType = 'etage'
       this.referencedId = id
 
@@ -2584,8 +2716,16 @@ class dataSideApp extends Vue {
     this.showDocvalue = newVal;
   }
   @Watch("changeData")
-  changeDataLoading(newVal) {
-    this.data_loading = 10;
+  changeDataLoading(oldval, newVal) {
+    console.log('this.$store.state.appDataStore.buildingInfo.dynamicId', this.$store.state.appDataStore.zoneSelected);
+
+    console.log(oldval, newVal, ' les val ', this.stockedZone, this.$store.state.appDataStore.zoneSelected.dynamicId);
+    if (this.stockedZone != this.$store.state.appDataStore.zoneSelected.dynamicId) {
+      this.stockedZone = this.$store.state.appDataStore.zoneSelected.dynamicId
+      this.data_loading = 10;
+      console.warn('reset');
+
+    }
   }
   @Watch("floorstaticDetails")
   async watchFloorstaticDetails(newVal, oldVal) {
