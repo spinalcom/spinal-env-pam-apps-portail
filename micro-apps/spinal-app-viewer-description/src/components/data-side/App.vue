@@ -391,7 +391,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                    }}
+                      }}
                     </li>
                   </div>
                 </div>
@@ -1783,8 +1783,6 @@ class dataSideApp extends Vue {
   }
 
   async getListinfo(typeData, id) {
-    console.warn('il est call ??');
-    
 
     if (typeData == 'floor') {
       const buildingId = localStorage.getItem("idBuilding");
@@ -1798,7 +1796,6 @@ class dataSideApp extends Vue {
         }),
       ];
       const result = await Promise.all(promises);
-      console.warn(result, ' je suis un floor');
       this.dataListInfo = result
     }
     else if (typeData == 'room') {
@@ -1813,7 +1810,6 @@ class dataSideApp extends Vue {
         }),
       ];
       const result = await Promise.all(promises);
-      console.warn(result, ' je suis une room');
       this.dataListInfo = result
     }
     else if (typeData == 'building') {
@@ -1826,10 +1822,8 @@ class dataSideApp extends Vue {
         }),
       ];
       const result = await Promise.all(promises);
-      console.warn(result, ' je suis un building');
       this.dataListInfo = result
     } else {
-      console.warn(' je suis un equipement');
       this.dataListInfo = []
     }
 
@@ -1838,8 +1832,8 @@ class dataSideApp extends Vue {
 
   async getroomstaticdetails(id) {
 
-   
-    
+
+
 
     const buildingId = localStorage.getItem("idBuilding");
     const promises_node = [
@@ -1852,9 +1846,10 @@ class dataSideApp extends Vue {
 
     const node_read = await Promise.all(promises_node);
 
-    console.warn('il se pose pour le batiement ici ?' , node_read[0].type);
-
-    if (node_read[0].type == "geographicRoom") {
+    if (node_read[0].type == 'geographicBuilding') {
+      this.getListinfo('building', id)
+    }
+    else if (node_read[0].type == "geographicRoom") {
 
       const promises = [
         this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
@@ -1865,9 +1860,6 @@ class dataSideApp extends Vue {
 
       this.referencedType = node_read[0].type
       this.referencedId = id
-
-      console.warn('le ref ID = ', this.referencedId);
-
 
       const result = await Promise.all(promises);
 
