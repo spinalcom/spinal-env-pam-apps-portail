@@ -254,18 +254,26 @@
         </div>
 
         <div v-if="selection == 'Liste'">
-          <v-data-table :headers="headers" :items="formattedData" class="elevation-1" hide-default-footer
-            :items-per-page="formattedData.length" dense>
 
-            <!-- Personnalisation de l'en-tête -->
+          <!-- <v-text-field v-model="searchName" label="Rechercher par nom" clearable></v-text-field> -->
+          <v-data-table :headers="headers" :items="formattedData" :search="searchName" class="elevation-1"
+            hide-default-footer :items-per-page="formattedData.length" dense>
             <template v-slot:header.color="{ header }">
               <th style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
                 {{ header.text }}
                 <v-icon v-if="!allColored" @click="colorAll">mdi-invert-colors</v-icon>
                 <v-icon v-else @click="descolorAll">mdi-invert-colors-off</v-icon>
               </th>
-            </template>
 
+            </template>
+            <template v-slot:header.name="{ header }">
+              <div style="display: flex; flex-direction: column;">
+                <!-- <span>{{ header.text }}</span> -->
+                <v-text-field v-model="searchName" placeholder="Nom" dense clearable hide-details solo
+                  prepend-inner-icon="mdi-magnify" style="margin-top: 5px;"></v-text-field>
+              </div>
+
+            </template>
 
             <template v-slot:item="{ item }">
               <tr>
@@ -296,6 +304,8 @@
               </tr>
             </template>
           </v-data-table>
+
+
         </div>
 
 
@@ -680,6 +690,7 @@ class dataSideApp extends Vue {
   buildingInfo: any;
   attributProfil: any = null;
   selection: string = 'Vue Globale';
+  searchName: string = '';;
   documentation: any;
   modefull = false;
   isSmallScreen: any;
@@ -799,7 +810,7 @@ class dataSideApp extends Vue {
 
 
   headers = [
-    { text: 'Nom', value: 'name' },
+    { text: 'Nom', value: 'name' , sortable: false },
     { text: 'Type', value: 'type' },
     { text: 'Surface (m²)', value: 'area' },
     { text: 'Color', value: 'color', sortable: false },
@@ -1860,6 +1871,8 @@ class dataSideApp extends Vue {
 
       this.referencedType = node_read[0].type
       this.referencedId = id
+
+
 
       const result = await Promise.all(promises);
 

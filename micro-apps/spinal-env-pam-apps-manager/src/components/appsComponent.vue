@@ -34,6 +34,7 @@ with this file. If not, see
         :category="categorySelected"
         @create="createApp"
         @upload="uploadApp"
+        @export="exportApp"
         @edit="editApp"
         @delete="deleteApp"
       />
@@ -67,6 +68,9 @@ class HomeView extends Vue {
 
   uploadApp() {
     this.$emit('upload');
+  }
+  exportApp() {
+    this.$emit('export');
   }
 
   editApp(app: IApp) {

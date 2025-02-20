@@ -26,32 +26,29 @@ with this file. If not, see
   <div class="_container">
     <div class="toolbar">
       <div class="left_side">
-        <div class="_title">{{title.toUpperCase() }}</div>
+        <div class="_title">{{ title.toUpperCase() }}</div>
         <div class="searchDiv">
-          <v-text-field class="textInput"
-                        solo
-                        prepend-inner-icon="mdi-magnify"
-                        flat
-                        dense
-                        label="rechercher"
-                        hide-details="auto"
-                        v-model.trim="searchQuery"></v-text-field>
+          <v-text-field class="textInput" solo prepend-inner-icon="mdi-magnify" flat dense label="rechercher"
+            hide-details="auto" v-model.trim="searchQuery"></v-text-field>
         </div>
       </div>
 
       <div class="right_side">
-        <v-btn class="button"
-               color="#14202c"
-               @click="uploadApps">
+        <v-btn class="button" color="#14202c" @click="exportApps">
+          <v-icon class="btnIcon">
+            mdi-file-export-outline
+          </v-icon>
+          exporter un fichier .xls
+        </v-btn>
+
+        <v-btn class="button" color="#14202c" @click="uploadApps">
           <v-icon class="btnIcon">
             mdi-file-upload-outline
           </v-icon>
           importer un fichier .xls
         </v-btn>
 
-        <v-btn class="button"
-               color="#14202c"
-               @click="addApp">
+        <v-btn class="button" color="#14202c" @click="addApp">
           <v-icon class="btnIcon">
             mdi-plus
           </v-icon>
@@ -64,14 +61,8 @@ with this file. If not, see
     </div>
 
     <div class="tableContent">
-      <v-data-table dense
-                    hide-default-header
-                    disable-pagination
-                    hide-default-footer
-                    id="table"
-                    :items="searchedApps"
-                    item-key="name"
-                    no-data-text="Aucune Application à afficher">
+      <v-data-table dense hide-default-header disable-pagination hide-default-footer id="table" :items="searchedApps"
+        item-key="name" no-data-text="Aucune Application à afficher">
 
         <!-- <template slot="no-data">
           <tr>
@@ -112,28 +103,22 @@ with this file. If not, see
           <tr class="itemRow">
             <td class="iconsCell">
               <v-timeline>
-                <v-timeline-item color="#fff"
-                                 fill-dot
-                                 small>
+                <v-timeline-item color="#fff" fill-dot small>
                   <template v-slot:icon>
-                    <v-icon>{{item.icon | formatIcon}}</v-icon>
+                    <v-icon>{{ item.icon | formatIcon }}</v-icon>
                   </template>
                 </v-timeline-item>
               </v-timeline>
             </td>
-            <td>{{item.name}}</td>
-            <td>{{item.tags | formatTags}}</td>
-            <td>{{item.categoryName + "/" + item.groupName}}</td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.tags | formatTags }}</td>
+            <td>{{ item.categoryName + "/" + item.groupName }}</td>
             <td class="actions">
-              <v-btn class="actionBtn dark"
-                     @click="editApp(item)">
+              <v-btn class="actionBtn dark" @click="editApp(item)">
                 <v-icon small>mdi-pencil</v-icon>
               </v-btn>
 
-              <v-btn class="actionBtn"
-                     color="error"
-                     outlined
-                     @click="deleteApp(item)">
+              <v-btn class="actionBtn" color="error" outlined @click="deleteApp(item)">
                 <v-icon small>mdi-close</v-icon>
               </v-btn>
             </td>
@@ -143,8 +128,8 @@ with this file. If not, see
     </div>
   </div>
 </template>
-  
-  <script lang="ts">
+
+<script lang="ts">
 import { IApp } from "../types/interfaces";
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 
@@ -216,6 +201,10 @@ class AppList extends Vue {
     this.$emit("upload");
   }
 
+  exportApps() {
+    this.$emit("export");
+  }
+
   editApp(item: IApp) {
     this.$emit("edit", item);
   }
@@ -232,8 +221,8 @@ class AppList extends Vue {
 
 export default AppList;
 </script>
-  
-  <style lang="scss">
+
+<style lang="scss">
 // .button {
 //   color: #fff;
 
@@ -268,6 +257,7 @@ export default AppList;
       .searchDiv {
         width: 100%;
         height: 65%;
+
         .textInput {
           // border: 1px solid;
         }
@@ -281,11 +271,13 @@ export default AppList;
       align-items: center;
       justify-content: flex-end;
       flex-wrap: wrap;
+
       .button {
         color: #fff;
         max-width: 290px;
         margin-right: 5px;
         font-size: 0.8em;
+
         .btnIcon {
           width: 30px;
           margin-right: 5px;
@@ -297,14 +289,17 @@ export default AppList;
   .tableContent {
     width: 100%;
     height: calc(100% - #{$toolbar-height});
+
     #table {
       background: transparent !important;
+
       .itemRow {
         td {
           vertical-align: middle !important;
         }
 
         .actions {
+
           // height: 70px;
           .actionBtn {
             min-width: unset;
@@ -312,6 +307,7 @@ export default AppList;
             height: 30px;
             margin-left: 10px;
           }
+
           .actionBtn.dark {
             background: #14202c;
             color: white;
@@ -347,4 +343,3 @@ export default AppList;
   }
 }
 </style>
-  

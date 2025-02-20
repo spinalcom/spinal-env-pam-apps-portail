@@ -23,24 +23,13 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="mainContent"
-               fluid>
-    <AppListComponent :categorySelected="categorySelected"
-                      :apps="apps"
-                      @select="selectCategory"
-                      @create="goToCreationPage"
-                      @upload="uploadApp"
-                      @edit="goToCreationPage"
-                      @delete="deleteApp"
-                      v-if="page === pages.list" />
+  <v-container class="mainContent" fluid>
+    <AppListComponent :categorySelected="categorySelected" :apps="apps" @select="selectCategory" @export="exportApp"
+      @create="goToCreationPage" @upload="uploadApp" @edit="goToCreationPage" @delete="deleteApp"
+      v-if="page === pages.list" />
 
-    <CreationComponent v-else-if="page === pages.creation"
-                       @create="createApp"
-                       @edit="editApp"
-                       @cancel="cancelCreation"
-                       :edit="edition"
-                       :title="title"
-                       :appSelected="appSelected" />
+    <CreationComponent v-else-if="page === pages.creation" @create="createApp" @edit="editApp" @cancel="cancelCreation"
+      :edit="edition" :title="title" :appSelected="appSelected" />
 
     <LoadingComponent v-else-if="page === pages.loading" />
   </v-container>
@@ -55,6 +44,7 @@ import CreationComponent from "../components/creation.vue";
 import categories from "../store/data";
 import { IApp } from "../types/interfaces";
 import { sendEventToParent } from "../event";
+import * as XLSX from 'xlsx';
 type updateFunc = ({
   id,
   newValue,
@@ -187,6 +177,34 @@ class HomeView extends Vue {
 
     this.alertNotification(isSuccess, message);
     sendEventToParent("reload_portofolio");
+  }
+
+  exportApp() {
+    console.log(this.categorySelected, 'aaasasasa');
+    let toto
+    if (this.categorySelected.name == 'Applications de Batiment') {
+      toto = this.buildingApps
+    }
+    else {
+      toto = this.portofolioApps
+    }
+
+
+    const data = toto.map(item => ({
+      name: item.name,
+      icon: item.icon || 'mdi-apps',
+      description: item.description,
+      tags: item.tags.join(', '),
+      categoryName: item.categoryName || 'Applications',
+      groupName: item.groupName || 'Applications',
+      packageName: item.packageName,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "PortofolioApps");
+    XLSX.writeFile(workbook, "portofolioApps.xlsx");
+
   }
 
   uploadApp() {
