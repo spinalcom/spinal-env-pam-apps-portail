@@ -644,62 +644,59 @@ export const actions = {
 	////////////////////////////////////////////////////////
 
 	async [ActionTypes.OPEN_VIEWER]({ commit, dispatch, state }: AugmentedActionContextAppData, playload: { onlyThisModel: boolean; config: IConfig; item: any }): Promise<void> {
-		try {
+        try {
 
-			if (playload.item.type === "building") {
+            if(playload.item.type ==="building"){
+                const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
+                  buildingId: playload.item.buildingId,
+                  forceUpdate: false,
+                })
+                const body = {
+                  dynamicId:[building.dynamicId],
+                  roomRef: false,
+                  floorRef: true,
+                  equipements: true,
+                  dbIdsToAdd: [],
+                }
+                // console.log('body to load -----> : ', body);
+                // console.log('playload item to load -----> : ', playload.item);
+                playload.item.dynamicId = building.dynamicId;
+                await ViewerManager.getInstance().loadInViewer(
+                  playload.item,
+                  playload.onlyThisModel,
+                  body
+                );
+                return;
 
-				const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
-					buildingId: playload.item.buildingId,
-					forceUpdate: false,
-				})
+            }
+            const viewerInfo = playload.config.viewerInfo;
+            const body = {
+                dynamicId: [playload.item.dynamicId],
+                roomRef: viewerInfo.roomRef,
+                floorRef: viewerInfo.floorRef,
+                equipements: false,
+                dbIdsToAdd: [],
+            };
 
-
-				if (window.parent.router.query.spaceSelectedId != building)
-					window.parent.router.query.spaceSelectedId = building
-
-				const body = {
-					//dynamicId: ids,
-					dynamicId: [building.dynamicId],
-					roomRef: false,
-					floorRef: true,
-					equipements: false,
-					dbIdsToAdd: [],
-				}
-				await ViewerManager.getInstance().loadInViewer(
-					playload.item,
-					playload.onlyThisModel,
-					body
-				);
-				return;
-
-			}
-			const viewerInfo = playload.config.viewerInfo;
-			const body = {
-				dynamicId: [playload.item.dynamicId],
-				roomRef: viewerInfo.roomRef,
-				floorRef: viewerInfo.floorRef,
-				equipements: false,
-				dbIdsToAdd: [],
-			};
-
-			if (viewerInfo.equipments === "all") {
-				body.equipements = true;
-				body.dbIdsToAdd = [];
-			} else if (viewerInfo.equipments === "groupItem") {
-				body.equipements = false;
-				const map = await dispatch(ActionTypes.GET_GROUPS_ITEMS, { config: playload.config, buildingId: playload.item.buildingId });
-				body.dbIdsToAdd = classifyItemByBimFileId(map, playload.item.dynamicId, playload.item.type);
-			}
-			await ViewerManager.getInstance().loadInViewer(playload.item, playload.onlyThisModel, body);
-
-			if (playload.onlyThisModel) state.viewerStartedList = {};
-
-			commit(MutationTypes.ADD_VIEWER_LOADED, { id: playload.item.dynamicId });
-		} catch (error) {
-			console.log("errror", error);
-		}
-	},
-
+            if (viewerInfo.equipments === "all") {
+                body.equipements = true;
+                body.dbIdsToAdd = [];
+            } else if (viewerInfo.equipments === "groupItem") {
+                body.equipements = false;
+                const map = await dispatch(ActionTypes.GET_GROUPS_ITEMS, { config: playload.config, buildingId: playload.item.buildingId });
+                console.log('Get group items : ', map);
+                body.dbIdsToAdd = classifyItemByBimFileId(map, playload.item.dynamicId, playload.item.type);
+            }
+            // console.log('body to load -----> : ', body);
+            // console.log('playload item to load -----> : ', playload.item);
+            //playload.item.dynamicId = -555;
+            await ViewerManager.getInstance().loadInViewer(playload.item, playload.onlyThisModel, body);
+            if (playload.onlyThisModel) state.viewerStartedList = {};
+            commit(MutationTypes.ADD_VIEWER_LOADED, { id: playload.item.dynamicId });
+        } catch (error) {
+            console.log("errror", error);
+        }
+    },
 	async [ActionTypes.GET_VIEWER_INFO]({ commit, state }: AugmentedActionContextAppData, playload): Promise<IViewInfoItemRes[]> {
 		return ViewerManager.getInstance().getViewerInfoMerged(playload);
 	},
@@ -737,6 +734,8 @@ export const actions = {
 	},
 
 	[ActionTypes.FIT_TO_VIEW_ITEMS]({ commit, dispatch, state }, playload: any) {
+		console.log(playload , 'playload');
+		
 		ViewerManager.getInstance().fitToView(playload);
 	},
 
