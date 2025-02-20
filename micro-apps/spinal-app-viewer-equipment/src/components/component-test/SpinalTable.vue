@@ -24,8 +24,9 @@
     
     <div>
       <div class="title">
-        <div style="padding-top: 5px;">
+        <div  style="margin-top: 10px;">
           <v-select
+           
             outlined
             v-model="vSelectedTab"
             :items="vSelectDynamic"
