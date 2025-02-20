@@ -69,7 +69,6 @@ with this file. If not, see
           @onActionClick="onActionClick" />
       </div>
     </div>
-
     <div class="dataBody">
       <viewerApp :class="{ 'active3D': isActive3D }" class="viewerContainer"></viewerApp>
       <dataSideApp :DActive="isActive3D" :ActiveData="isActive" :class="{ 'active': isActive, 'inactive': isActive3D }"

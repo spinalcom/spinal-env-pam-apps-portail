@@ -26,12 +26,10 @@
       <div class="title">
         <div  style="margin-top: 10px;">
           <v-select
-           
             outlined
             v-model="vSelectedTab"
             :items="vSelectDynamic"
             label="Onglet sélectionné"
-            
         ></v-select>
         </div>
 
@@ -1736,6 +1734,11 @@ export default {
 ::v-deep .v-breadcrumbs {
   padding: 2px !important;
 }
+
+/* ::v-deep .v-select__selections {
+     min-height: 3000px !important;
+     top: 500px !important;
+} */
 
 .animate {
   -webkit-animation: scale-in-ver-top 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)

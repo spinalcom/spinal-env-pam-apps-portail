@@ -711,9 +711,6 @@ export const actions = {
 				console.log('Get group items : ', map);
 				body.dbIdsToAdd = classifyItemByBimFileId(map, playload.item.dynamicId, playload.item.type);
 			}
-			// console.log('body to load -----> : ', body);
-			// console.log('playload item to load -----> : ', playload.item);
-			//playload.item.dynamicId = -555;
 			await ViewerManager.getInstance().loadInViewer(playload.item, playload.onlyThisModel, body);
 			if (playload.onlyThisModel) state.viewerStartedList = {};
 			commit(MutationTypes.ADD_VIEWER_LOADED, { id: playload.item.dynamicId });

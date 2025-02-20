@@ -34,7 +34,7 @@
   export class SpinalAPI {
     axiosInstance = axios.create({ baseURL: this.apiUrl });
     static #instanceParent: SpinalWindow = window;
-    api_mode = API_MODE.BOS_APP;
+    api_mode = API_MODE.PAM_APP;
     
     public static setHook(_window: SpinalWindow) {
       SpinalAPI.#instanceParent = _window;
