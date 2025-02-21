@@ -116,9 +116,10 @@
       </div>
 
       <div>
-        <div class="title">
+        <div class="title"> 
           <div class="button  adaptative" style="">
-            <v-select label="Onglet sélectionné" v-model="selection" :items="dynamicItems"></v-select>
+            <v-select label="Onglet sélectionné" v-model="selection" :items="dynamicItems" outlined
+            :menu-props="{ offsetY: true, nudgeTop: -3 }"></v-select>
           </div>
 
           <div v-if="ActiveData && selection == 'Indicateur' && labelsChart"
@@ -256,54 +257,58 @@
         <div v-if="selection == 'Liste'">
 
           <!-- <v-text-field v-model="searchName" label="Rechercher par nom" clearable></v-text-field> -->
-          <v-data-table :headers="headers" :items="formattedData" :search="searchName" class="elevation-1"
-            hide-default-footer :items-per-page="formattedData.length" dense>
-            <template v-slot:header.color="{ header }">
-              <th style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                {{ header.text }}
-                <v-icon v-if="!allColored" @click="colorAll">mdi-invert-colors</v-icon>
-                <v-icon v-else @click="descolorAll">mdi-invert-colors-off</v-icon>
-              </th>
+          <v-data-table :headers="dynamicHeaders" 
+              :items="formattedData" 
+              :search="searchName" 
+              class="elevation-1"
+              hide-default-footer 
+              :items-per-page="formattedData.length" 
+              dense>
+  <template v-slot:header.color="{ header }">
+    <th style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+      {{ header.text }}
+      <v-icon v-if="!allColored" @click="colorAll">mdi-invert-colors</v-icon>
+      <v-icon v-else @click="descolorAll">mdi-invert-colors-off</v-icon>
+    </th>
+  </template>
 
-            </template>
-            <template v-slot:header.name="{ header }">
-              <div style="display: flex; flex-direction: column;">
-                <!-- <span>{{ header.text }}</span> -->
-                <v-text-field v-model="searchName" placeholder="Nom" dense clearable hide-details solo
-                  prepend-inner-icon="mdi-magnify" style="margin-top: 5px;"></v-text-field>
-              </div>
+  <template v-slot:header.name="{ header }">
+    <div style="display: flex; flex-direction: column;">
+      <v-text-field v-model="searchName" placeholder="Nom" dense clearable hide-details solo
+                    prepend-inner-icon="mdi-magnify" style="margin-top: 5px;"></v-text-field>
+    </div>
+  </template>
 
-            </template>
+  <template v-slot:item="{ item }">
+    <tr>
+      <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.name }}</td>
+      <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.type }}</td>
+      <td v-if="item.area !== 'N/A'" style="padding-top: 15px; padding-bottom: 10px;">{{ item.area }}</td>
 
-            <template v-slot:item="{ item }">
-              <tr>
-                <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.name }}</td>
-                <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.type }}</td>
-                <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.area }}</td>
+      <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
+        <v-icon v-if="coloredElement && !coloredElement.includes(item.dynamicId)"
+                @click="colorselected(item)">mdi-invert-colors</v-icon>
+        <v-icon v-if="coloredElement && coloredElement.includes(item.dynamicId)"
+                @click="descolorselected(item)" :style="{ color: item.color }">
+          mdi-invert-colors-off
+        </v-icon>
+      </td>
 
-                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-                  <v-icon v-if="coloredElement && !coloredElement.includes(item.dynamicId)"
-                    @click="colorselected(item)">mdi-invert-colors</v-icon>
-                  <v-icon v-if="coloredElement && coloredElement.includes(item.dynamicId)"
-                    @click="descolorselected(item)" :style="{ color: item.color }">
-                    mdi-invert-colors-off
-                  </v-icon>
-                </td>
+      <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
+        <v-icon @click="selectselected(item)">mdi-select-place</v-icon>
+      </td>
 
-                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-                  <v-icon @click="selectselected(item)">mdi-select-place</v-icon>
-                </td>
+      <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
+        <v-icon @click="gotoselected(item)">mdi-arrow-down-left-bold</v-icon>
+      </td>
 
-                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-                  <v-icon @click="gotoselected(item)">mdi-arrow-down-left-bold</v-icon>
-                </td>
+      <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
+        <v-icon @click="zoomselected(item)">mdi-magnify-plus-outline</v-icon>
+      </td>
+    </tr>
+  </template>
+</v-data-table>
 
-                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-                  <v-icon @click="zoomselected(item)">mdi-magnify-plus-outline</v-icon>
-                </td>
-              </tr>
-            </template>
-          </v-data-table>
 
 
         </div>
@@ -401,7 +406,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                      }}
+                    }}
                     </li>
                   </div>
                 </div>
@@ -766,6 +771,18 @@ class dataSideApp extends Vue {
     return items;
   }
 
+  get dynamicHeaders() {
+  const hasAreaData = this.formattedData.some(item => item.area !== 'N/A' && item.area !== null);
+
+  return this.headers.filter(header => {
+    if (header.value === 'area') {
+      return hasAreaData; // Affiche la colonne seulement si des données sont présentes
+    }
+    return true; // Garde les autres colonnes
+  });
+}
+
+
   get temporality() {
     return this.$store.state.appDataStore.temporalitySelected.name;
   }
@@ -810,7 +827,7 @@ class dataSideApp extends Vue {
 
 
   headers = [
-    { text: 'Nom', value: 'name' , sortable: false },
+    { text: 'Nom', value: 'name', sortable: false },
     { text: 'Type', value: 'type' },
     { text: 'Surface (m²)', value: 'area' },
     { text: 'Color', value: 'color', sortable: false },
@@ -849,7 +866,6 @@ class dataSideApp extends Vue {
 
     const buildingId = localStorage.getItem("idBuilding");
 
-    // Crée un tableau d'objets pour tous les éléments à colorer
     const itemsToColor = this.stockedData.map(item => ({
       buildingId: buildingId,
       dynamicId: item.dynamicId,
@@ -857,7 +873,6 @@ class dataSideApp extends Vue {
       floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId,
     }));
 
-    // Dispatch une seule fois avec tous les éléments
     this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
       items: itemsToColor,
       buildingId: buildingId,
@@ -3107,7 +3122,7 @@ a {
   display: inline-block;
   padding: 5px;
   text-decoration: none;
-  height: 59px;
+  height: 62px;
   padding-left: 10px;
   padding-right: 10px;
   transition: 0.2s;
