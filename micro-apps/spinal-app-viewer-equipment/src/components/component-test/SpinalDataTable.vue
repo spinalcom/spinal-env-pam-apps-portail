@@ -567,6 +567,7 @@ export default {
       const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
       const matchingGroup = item;
       let equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+      console.log('viewerSelectItems TO select : ', equipmentList);
       this.$store.dispatch(ActionTypes.SELECT_ITEMS, equipmentList);
     },
   },

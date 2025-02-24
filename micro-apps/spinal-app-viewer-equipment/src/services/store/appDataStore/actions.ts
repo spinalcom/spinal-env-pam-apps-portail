@@ -70,15 +70,14 @@ export const actions = {
 	async [ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }): Promise<any> {
 		try {
       		const chunkedIds = lodash.chunk(referenceIds, 200);
-			  const promises = chunkedIds.map(ids => getAttributListMultiple(buildingId, ids));
-
-			  const promiseResults = await Promise.allSettled(promises);
-			  const result = promiseResults.reduce((acc, result) => {
-				  if (result.status === 'fulfilled') {
-					  acc.push(...result.value);
-				  }
-				  return acc;
-			  }, []);
+			const promises = chunkedIds.map(ids => getAttributListMultiple(buildingId, ids));
+			const promiseResults = await Promise.allSettled(promises);
+			const result = promiseResults.reduce((acc, result) => {
+				if (result.status === 'fulfilled') {
+					acc.push(...result.value);
+				}
+				return acc;
+			}, []);
 			// const result = await getAttributListMultiple(buildingId, referenceIds);
 			return result;
 		} catch (error) {
@@ -175,11 +174,20 @@ export const actions = {
 	},
 
 	async [ActionTypes.READ_NODE_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, nodeIds, includeChildrenRelations, includeParentRelations }: { buildingId: string; nodeIds: number []; includeChildrenRelations: boolean; includeParentRelations: boolean }): Promise<any> {
-		// console.log(buildingId , referenceIds , 'RR');
-		const spinalAPI = SpinalAPI.getInstance();
 		try {
-			const result = await getNodeReadMultiple(buildingId, nodeIds, includeChildrenRelations, includeParentRelations);
+			const chunkedIds = lodash.chunk(nodeIds, 200);
+			const promises = chunkedIds.map(ids => getNodeReadMultiple(buildingId, ids, includeChildrenRelations, includeParentRelations));
+			const promiseResults = await Promise.allSettled(promises);
+			const result = promiseResults.reduce((acc, result) => {
+				if (result.status === 'fulfilled') {
+					acc.push(...result.value);
+				}
+				return acc;
+			}, []);
+			// const result = await getAttributListMultiple(buildingId, referenceIds);
 			return result;
+			//const result = await getNodeReadMultiple(buildingId, nodeIds, includeChildrenRelations, includeParentRelations);
+			//return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des objets de référence:', error);
 			throw error;

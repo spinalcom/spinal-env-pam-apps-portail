@@ -26,10 +26,11 @@
       <div class="title">
         <div  style="margin-top: 10px;">
           <v-select
-            outlined
             v-model="vSelectedTab"
             :items="vSelectDynamic"
             label="Onglet sélectionné"
+            outlined
+            :menu-props="{ offsetY: true, nudgeTop: -3 }"
         ></v-select>
         </div>
 
@@ -80,7 +81,7 @@
       <DataTable
         ref="dataTable"
         :selectedItemTab="selectedItemTab"
-        :height="'74vh'"
+        :height="'69vh'"
         :items="filteredContexts"
         :headers="dynamicHeaders()"
         :contexts="contexts"
@@ -167,55 +168,52 @@
     </div>
 
     <!-- ONGLET Documentation -->
-    <div v-if="vSelectedTab == 'Documentation'" class="scrollable-content"
-    style="display: flex;flex-direction: row; flex-grow: 1;" >
+    <div v-if="vSelectedTab == 'Documentation'" class="scrollable-content" style="display: flex;flex-direction: row; flex-grow: 1;" >
+      <div style="flex-grow: 2;" v-show="showDocvalue" >
+          <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile"
+            @closeDialog="closeVueDoc" />
+      </div>
+      <div style="display: flex;flex-direction: column;flex-grow: 1;" >
+        <v-row style="padding: 20px;">
+          <AddBtn @open-dialog="ShowFormDoc" />
+        </v-row>
+        <FormDoc :isDialogOpen="show_formdoc" @close-dialog="ShowFormDoc" @add-doc="showAlert"
+                :referenceid="currentTargetItemId" />
 
-    <div style="flex-grow: 2;" v-show="showDocvalue" >
-        <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile"
-          @closeDialog="closeVueDoc" />
-    </div>
-      
-    <div style="display: flex;flex-direction: column;flex-grow: 1;" >
-      <v-row style="padding: 20px;">
-        <AddBtn @open-dialog="ShowFormDoc" />
-      </v-row>
-      <FormDoc :isDialogOpen="show_formdoc" @close-dialog="ShowFormDoc" @add-doc="showAlert"
-               :referenceid="currentTargetItemId" />
+        <div v-if="vSelectItemDocumentation && vSelectItemDocumentation.length > 0">
+          <div style="width: 100%; flex-direction: column; flex-grow: 1;">
+          <div class="blocInformation">
+            <div
+              v-for="(item, index) in vSelectItemDocumentation"
+              :key="index"
+              style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative;"  
+            >
+            <div class="inventory-item"
+                      style="width: 100%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
 
-      <div v-if="vSelectItemDocumentation && vSelectItemDocumentation.length > 0">
-        <div style="width: 100%; flex-direction: column; flex-grow: 1;">
-        <div class="blocInformation">
-          <div
-            v-for="(item, index) in vSelectItemDocumentation"
-            :key="index"
-            style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative;"  
-          >
-          <div class="inventory-item"
-                    style="width: 100%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
+                      <li style="list-style: none;">
+                        <v-icon :style="{ 'color': getIcon(item.Name).color }">{{ getIcon(item.Name).name }}</v-icon>
 
-                    <li style="list-style: none;">
-                      <v-icon :style="{ 'color': getIcon(item.Name).color }">{{ getIcon(item.Name).name }}</v-icon>
+                        {{ item.Name }}
 
-                      {{ item.Name }}
+                      </li>
+                      <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
+                        @showDoc="showDoc" @downloadFile="downloadFile"
+                        @DeleteFile="DeleteFile(item.dynamicId, currentTargetItemId, 'child')"
+                        @changeOverflowItemMenu="changeOverflowItemMenu">
+                      </OverMenu>
 
-                    </li>
-                    <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
-                      @showDoc="showDoc" @downloadFile="downloadFile"
-                      @DeleteFile="DeleteFile(item.dynamicId, currentTargetItemId, 'child')"
-                      @changeOverflowItemMenu="changeOverflowItemMenu">
-                    </OverMenu>
-
-                  </div>
-            
+                    </div>
+              
+            </div>
+          </div>
           </div>
         </div>
+        <div v-else>
+          <p>Aucune documentation disponible.</p>
         </div>
-      </div>
-      <div v-else>
-        <p>Aucune documentation disponible.</p>
-      </div>
 
-    </div>
+      </div>
     </div>
 
     <!-- ONGLET TICKETS -->
@@ -316,9 +314,7 @@
     <!-- ONGLET INDICATEUR (controleEndpoint) et Points de mesures -->
     <div v-if="vSelectedTab == 'Indicateur' || vSelectedTab =='Points de mesures'" style="display: flex">
       
-      <div v-if="ActiveData && labelsChart"
-        class="graphContainer"
-      >
+      <div v-if="ActiveData && labelsChart" class="graphContainer" >
       <!-- <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
             :step="labelsChart.length" :tooltipCallbacks="{
               title: (context) => { },
@@ -607,8 +603,6 @@ export default {
     selectedCategory : null,
     idCatEl : null,
     
-
-
     getIcon : getIcon,
     radarOptions: {
     responsive: true,
@@ -1720,6 +1714,7 @@ export default {
   background-color: red !important;
 }
 
+
 .blur-background {
   background-color: rgba(0, 0, 0, 0.528);
   top: 0;
@@ -1734,11 +1729,6 @@ export default {
 ::v-deep .v-breadcrumbs {
   padding: 2px !important;
 }
-
-/* ::v-deep .v-select__selections {
-     min-height: 3000px !important;
-     top: 500px !important;
-} */
 
 .animate {
   -webkit-animation: scale-in-ver-top 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)
