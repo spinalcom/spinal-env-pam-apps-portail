@@ -30,7 +30,9 @@
           { 'min-height': taskHeight + 'px' },
         ]"
         class="workflow">
-        <span class="ellipsis">
+
+        <span class="group-flex ellipsis">
+          <div class="rect"></div>
           {{ workflow.workflowName }}
         </span>
         <v-icon 
@@ -134,6 +136,7 @@ import { throttle } from 'lodash';
 import moment from 'moment';
 moment.locale('fr');
 import Status from './Status.vue';
+import { setStartEndLimits } from '../../services/tickets/dates';
 export default {
   name: 'SideBar',
   props: [
@@ -197,6 +200,7 @@ export default {
       this.$emit('taskListChanged', this.flattenedList(this.nestedList));
     },
     flattenedList(nestedList) {
+      setStartEndLimits(nestedList, this.selectedDateFields);
       const flatRes = nestedList.reduce((acc, workflow) => {
         acc.push(workflow);
         if (workflow.state === 'open') {
@@ -209,7 +213,7 @@ export default {
         }
         return acc;
       }, []);
-      console.log('FlatRes:', flatRes);
+      console.log('Flat res:', flatRes);
       return flatRes;
     },
     workflowHeight(workflow) {
@@ -277,8 +281,14 @@ export default {
       }
       return null;
     },
+    reEmitNestedList() {
+      this.$emit('taskListChanged', this.flattenedList(this.nestedList));
+    },
   },
   watch: {
+    selectedDateFields() {
+      this.flattenedList(this.nestedList);
+    }, 
     nestedList(value) {
       this.$emit('taskListChanged', this.flattenedList(value));
     },
@@ -435,6 +445,18 @@ export default {
 }
 .clickable-ticket:hover {
   color: #0033ce;
+}
+.group-flex {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  gap: 10px;
+}
+.rect {
+  width: 5px;
+  height: 9px;
+  background: green;
+  border-radius: 3px;
 }
 .goto-icon {
 }

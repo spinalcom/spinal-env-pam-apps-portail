@@ -1,10 +1,8 @@
 
 <template>
   <div class="main" v-if="loaded">
-    <MonthView v-if="temporality.name === 'Mois'" :ticketList="ticketList" />
-    <WeekView v-else-if="temporality.name === 'Semaine'" :ticketList="ticketList" />
     <DayView
-    v-else-if="temporality.name === 'Jour'"
+    v-if="temporality.name === 'Jour'"
     :ticketList="ticketList"
     :nestedList="nestedList"
     @resizeWholePeriod="resizeWholePeriod"
@@ -13,25 +11,18 @@
     @createTicket="createTicket"
     @startTicket="startTicket"
     />
-    <YearView v-else-if="temporality.name === 'Année'" :ticketList="ticketList" />
   </div>
 </template>
 
 <script>
 import tickets from '../services/tickets/index.js';
 import dates from '../services/tickets/dates.js';
-import MonthView from './month/Main';
-import WeekView from './week/Main';
 import DayView from './day/Main';
-import YearView from './year/Main';
 
 export default {
   name: 'MainComponent',
   components: {
-    MonthView,
-    WeekView,
     DayView,
-    YearView,
   },
   props: ['temporality', 'space'],
   computed: {},

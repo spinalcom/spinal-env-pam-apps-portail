@@ -26,7 +26,22 @@
       </v-icon>
     </div>
     <Period
-      v-if="task.state === 'ticket'"
+      v-if="task.type === 'ticket'"
+      :dayWidth="dayWidth"
+      :taskHeight="taskHeight"
+      :task="task"
+      :start="start"
+      :fontSize="fontSize"
+      :selectedDateFields="selectedDateFields"
+      :colorType="colorType"
+      @resizeWholePeriod="resizeWholePeriod"
+      @resizeStart="resizeStart"
+      @resizeEnd="resizeEnd"
+      @showTicketDetails="showTicketDetails"
+      @resetTaskDetails="$emit('resetTaskDetails')"
+    />
+    <GroupPeriod
+      v-else
       :dayWidth="dayWidth"
       :taskHeight="taskHeight"
       :task="task"
@@ -45,6 +60,7 @@
 
 <script>
 import Period from './TaskPeriod';
+import GroupPeriod from './GroupPeriod';
 
 export default {
   name: 'TaskItem',
@@ -60,6 +76,7 @@ export default {
   ],
   components: {
     Period,
+    GroupPeriod,
   },
   mounted() {
     // client width of the task container
@@ -145,6 +162,8 @@ export default {
     resizeEnd(task, estimatedEndDate) {
       this.$emit('resizeEnd', task, estimatedEndDate);
     },
+  },
+  watch: {
   },
 }
 </script>

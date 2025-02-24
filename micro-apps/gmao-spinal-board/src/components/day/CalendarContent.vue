@@ -12,7 +12,7 @@
       :height="markerHeight"
       :offset="markerOffset"/>
     <!-- Sidebar component -->
-    <SideBar class="side-bar"
+    <SideBar class="side-bar" ref="sideBar"
       :ticketList="ticketList"
       :nestedList="nestedList"
       :start="start"
@@ -162,6 +162,8 @@ export default {
     },
   },
   watch: {
+    nestedList(v1) {
+    },
     taskHeight(v1) {
       this.calculateHeight();
     },
