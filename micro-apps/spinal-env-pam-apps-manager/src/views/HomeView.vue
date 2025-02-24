@@ -180,17 +180,15 @@ class HomeView extends Vue {
   }
 
   exportApp() {
-    console.log(this.categorySelected, 'aaasasasa');
-    let toto
+    let appstatus
     if (this.categorySelected.name == 'Applications de Batiment') {
-      toto = this.buildingApps
+      appstatus = this.buildingApps
     }
     else {
-      toto = this.portofolioApps
+      appstatus = this.portofolioApps
     }
 
-
-    const data = toto.map(item => ({
+    const data = appstatus.map(item => ({
       name: item.name,
       icon: item.icon || 'mdi-apps',
       description: item.description,
