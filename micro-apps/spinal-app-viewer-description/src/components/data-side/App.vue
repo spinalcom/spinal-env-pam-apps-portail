@@ -276,33 +276,38 @@
             </template>
 
             <template v-slot:item="{ item }">
-              <tr>
-                <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.name }}</td>
-                <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.type }}</td>
-                <td v-if="item.area !== 'N/A'" style="padding-top: 15px; padding-bottom: 10px;">{{ item.area }}</td>
+  <tr>
+    <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.name }}</td>
+    <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.type }}</td>
 
-                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-                  <v-icon v-if="coloredElement && !coloredElement.includes(item.dynamicId)"
-                    @click="colorselected(item)">mdi-invert-colors</v-icon>
-                  <v-icon v-if="coloredElement && coloredElement.includes(item.dynamicId)"
-                    @click="descolorselected(item)" :style="{ color: item.color }">
-                    mdi-invert-colors-off
-                  </v-icon>
-                </td>
+    <!-- ✅ Affiche la colonne Surface SEULEMENT si elle est dans les headers -->
+    <td v-if="dynamicHeaders.some(h => h.value === 'area')" style="padding-top: 15px; padding-bottom: 10px;">
+      {{ item.area !== 'N/A' ? item.area : 'N/A' }}
+    </td>
 
-                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-                  <v-icon @click="selectselected(item)">mdi-select-place</v-icon>
-                </td>
+    <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
+      <v-icon v-if="coloredElement && !coloredElement.includes(item.dynamicId)"
+              @click="colorselected(item)">mdi-invert-colors</v-icon>
+      <v-icon v-if="coloredElement && coloredElement.includes(item.dynamicId)"
+              @click="descolorselected(item)" :style="{ color: item.color }">
+        mdi-invert-colors-off
+      </v-icon>
+    </td>
 
-                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-                  <v-icon @click="gotoselected(item)">mdi-arrow-down-left-bold</v-icon>
-                </td>
+    <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
+      <v-icon @click="selectselected(item)">mdi-select-place</v-icon>
+    </td>
 
-                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-                  <v-icon @click="zoomselected(item)">mdi-magnify-plus-outline</v-icon>
-                </td>
-              </tr>
-            </template>
+    <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
+      <v-icon @click="gotoselected(item)">mdi-arrow-down-left-bold</v-icon>
+    </td>
+
+    <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
+      <v-icon @click="zoomselected(item)">mdi-magnify-plus-outline</v-icon>
+    </td>
+  </tr>
+</template>
+
           </v-data-table>
 
 
@@ -402,7 +407,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                      }}
+                    }}
                     </li>
                   </div>
                 </div>
@@ -768,15 +773,17 @@ class dataSideApp extends Vue {
   }
 
   get dynamicHeaders() {
-    const hasAreaData = this.formattedData.some(item => item.area !== 'N/A' && item.area !== null);
+  // Vérifie si au moins une donnée a une valeur valide pour 'area'
+  const hasValidArea = this.formattedData.some(item => item.area !== 'N/A' && item.area !== null && item.area !== '');
 
-    return this.headers.filter(header => {
-      if (header.value === 'area') {
-        return hasAreaData; // Affiche la colonne seulement si des données sont présentes
-      }
-      return true; // Garde les autres colonnes
-    });
-  }
+  return this.headers.filter(header => {
+    if (header.value === 'area') {
+      return hasValidArea; // Affiche la colonne uniquement si au moins une donnée a une surface valide
+    }
+    return true; // Affiche les autres colonnes normalement
+  });
+}
+
 
 
   get temporality() {
@@ -2437,7 +2444,6 @@ class dataSideApp extends Vue {
 
   closeeyes(item, categoryName) {
     if (!this.eyes[categoryName]) {
-      // Utilisation de $set pour rendre la propriété réactive
       this.$set(this.eyes, categoryName, []);
     }
 
@@ -2452,7 +2458,6 @@ class dataSideApp extends Vue {
 
   closeink(item, categoryName) {
     if (!this.ink[categoryName]) {
-      // Utilisation de $set pour rendre la propriété réactive
       this.$set(this.ink, categoryName, []);
     }
 
@@ -2624,7 +2629,6 @@ class dataSideApp extends Vue {
                   inventoryDbids[categoryName][group.name][bimFileId] = [];
                 }
 
-                // Ajouter à la liste un objet contenant dbid et dynamicId
                 inventoryDbids[categoryName][group.name][bimFileId].push({
                   dbid: equipment.dbid,
                   dynamicId: equipment.dynamicId,
@@ -2692,7 +2696,6 @@ class dataSideApp extends Vue {
   @Watch('t_index')
   onTemporalDataChanged() {
     this.timeactuelle = this.getFormattedDateFromTemporalData();
-    //ajouter le nouvelle fonction qui va chercher les données 
     this.reloadNewChartData();
   }
 
@@ -2737,14 +2740,10 @@ class dataSideApp extends Vue {
   }
   @Watch("changeData")
   changeDataLoading(oldval, newVal) {
-    console.log('this.$store.state.appDataStore.buildingInfo.dynamicId', this.$store.state.appDataStore.zoneSelected);
-
     console.log(oldval, newVal, ' les val ', this.stockedZone, this.$store.state.appDataStore.zoneSelected.dynamicId);
     if (this.stockedZone != this.$store.state.appDataStore.zoneSelected.dynamicId) {
       this.stockedZone = this.$store.state.appDataStore.zoneSelected.dynamicId
       this.data_loading = 10;
-      console.warn('reset');
-
     }
   }
   @Watch("floorstaticDetails")
@@ -2779,8 +2778,6 @@ class dataSideApp extends Vue {
   watchData() {
     this.referencedId = this.selectedZone.dynamicId
     // this.referencedId = 0;
-
-
 
     if (this.selectedZone.type == undefined) {
       this.referencedType = "etage"

@@ -206,10 +206,10 @@ class App extends Vue {
     const item = {
       buildingId: localStorage.getItem("idBuilding"),
       dynamicId: building.dynamicId,
-      parents : [],
+      parents: [],
       type: "building",
     }
- 
+
 
     this.onActionClick({ button: { onclickEvent: ActionTypes.OPEN_VIEWER }, item: item });
 
@@ -320,7 +320,7 @@ class App extends Vue {
   }
 
   applyURLParam(query) {
-    
+
     this.query.mode = query.mode
     this.query.buildingId = query.buildingId
     this.query.spaceSelectedId = query.spaceSelectedId
@@ -603,6 +603,10 @@ class App extends Vue {
     emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
       this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
       if (result.navigate) {
+        if (localStorage.getItem("viewer_loaded") == 'unload'){
+          return
+        }
+
 
         this.query.spaceSelectedId = result.node.dynamicId
         this.query.name = result.node.name
