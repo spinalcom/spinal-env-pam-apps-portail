@@ -8,10 +8,10 @@
       { 'border': bgColor !== '#ffffff' ? '1px solid ' + bgColor : '1px solid #E2E2E2' },
       { 'color': textFit ? textColor : '#000000DE' },
       { 'font-weight': textFit && textColor !== '#000000DE' ? '700' : '400' },
-      { 'background': bgColor ? bgColor : '#ffffff' },
+      { 'background': bgColor },
       { 'font-size': fontSize.small + 'px' },
       { 'left': isResizingWhole ? (dayWidth * locate - diffLeft) + 'px' : dayWidth * locate + 'px' },
-      { 'height': (taskHeight - 8) + 'px' },
+      { 'height': (taskHeight - 15) + 'px' },
       { 'width': isResizingRight ? (taskWidth + diffRight) + 'px !important' : taskWidth + 'px !important' },
       { 'min-width': dayWidth + 'px !important' },
     ]"
@@ -51,7 +51,7 @@ import Status from './Status';
 import moment from 'moment';
 moment.locale('fr');
 export default {
-  name: 'TaskPeriod',
+  name: 'GroupPeriod',
   props: [
     'task',
     'start',
@@ -82,47 +82,17 @@ export default {
   }),
   computed: {
     bgColor() {
-      if (this.colorType === 'Priorité') {
-        if (this.task.priority === '') {
-          return '#ffffff';
-        }
-        return this.priorityColors[this.task.priority];
-      } else if (this.colorType === 'Etape' && this.task.stepColor) {
-        return this.task.stepColor + '73';
-      } else if (this.colorType === 'Processus' && this.task.processColor) {
-        return this.task.processColor + '73';
-      } else {
+      if (this.task.type === 'workflow') {
         return '#ffffff';
+      } else if (this.task.type === 'process') {
+        return this.task.processColor ? this.task.processColor + '73' : '#ffffff';
       }
     },
     estimatedStartDate() {
-      try {
-        const selectedStartDate = this.selectedDateFields.selectedStart;
-        const date = this.task.dates.find(date => date.name === selectedStartDate);
-        const value = date ? date.value : null;
-        if (value) {
-          return value;
-        } else {
-          const selectedEndDate = this.selectedDateFields.selectedEnd;
-          const endDate = this.task.dates.find(date => date.name === selectedEndDate);
-          const endValue = endDate ? endDate.value : null;
-          if (endValue) {
-            return moment(endValue).startOf('day').valueOf();
-          }
-        }
-        return null;
-      } catch (error) {
-        return null;
-      }
+      return this.task.dates.start;
     },
     estimatedEndDate() {
-      try {
-        const selectedEndDate = this.selectedDateFields.selectedEnd;
-        const d = this.task.dates.find(date => date.name === selectedEndDate);
-        return d ? d.value : null;
-      } catch (error) {
-        return null;
-      }
+      return this.task.dates.end;
     },
     locate() {
       const taskStart = moment(this.estimatedStartDate);
@@ -234,6 +204,7 @@ export default {
     resizeRight(event) {
       if (this.isResizingRight) {
         this.diffRight = event.clientX - this.startResizeRx;
+        console.log('Resizing right:', this.diffRight);
       }
     },
     stopResizeRight() {
@@ -254,7 +225,7 @@ export default {
         } else {
           newEndDate = +moment(this.setToStartOfDay(this.estimatedStartDate)).add(days, 'days').valueOf();
         }
-        this.$emit('resizeEnd', this.task, newEndDate);
+        this.$emit('allChildsResizeEnd', this.task, newEndDate);
       } else if (this.diffRight < 0) {
         days = Math.round(this.diffRight / this.dayWidth);
         if (this.estimatedEndDate) {
@@ -263,11 +234,11 @@ export default {
           const diff = (this.setToStartOfDay(newEndDate).diff(this.setToStartOfDay(this.estimatedStartDate), 'days') + 1);
           if (diff > 0) {
             // meaning the new end date is greater than the start date
-            this.$emit('resizeEnd', this.task, newEndDate);
+            this.$emit('allChildsResizeEnd', this.task, newEndDate);
           } else {
             // meaning the new end date is less than the start date
             const valueToEmit = moment(this.estimatedStartDate).clone().endOf('day').valueOf();
-            this.$emit('resizeEnd', this.task, valueToEmit);
+            this.$emit('allChildsResizeEnd', this.task, valueToEmit);
           }
         }
       }
@@ -362,7 +333,7 @@ export default {
   color: #474747;
   background: white;
   left: 400px;
-  border-radius: 5px;
+  border-radius: 10px;
   box-shadow: 4px 3px 5px 0px #A0A0A024;
   white-space: nowrap;
   transition: all 0.3s, width 0s, left 0s;

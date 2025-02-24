@@ -119,10 +119,42 @@ async function createAttribute(tid, attribute) {
   }
 }
 
+export function setStartEndLimits(nestedList, selected) {
+  nestedList.forEach(workflow => {
+    workflow.processes.forEach(process => {
+      process.dates = process.ticketList.reduce((acc, ticket) => {
+        const start = ticket.dates
+          .find(date => date.name === selected.selectedStart).value || null;
+        const end = ticket.dates
+          .find(date => date.name === selected.selectedEnd).value || null;
+        if (acc && (!acc.start || start < acc.start)) {
+          acc.start = start;
+        }
+        if (acc && (!acc.end || end > acc.end)) {
+          acc.end = end;
+        }
+        return acc;
+      }, { start: null, end: null });
+    });
+    workflow.dates = workflow.processes.reduce((acc, process) => {
+      if (acc && (!acc.start || process.dates.start < acc.start)) {
+        acc.start = process.dates.start;
+      }
+      if (acc && (!acc.end || process.dates.end > acc.end)) {
+        acc.end = process.dates.end;
+      }
+      return acc;
+    }, { start: null, end: null });
+  });
+
+  console.log('nestedList', nestedList);
+}
+
 const dates = {
   getAttributes,
   setEstimatedStart,
   setEstimatedEnd,
+  setStartEndLimits,
 };
 
 export default dates;

@@ -50,6 +50,7 @@ function constructTickets(ticketList, stepList) {
       description: ticket.description,
       priority: ticket.priority,
       processColor: stepList.find(step => step.processId === ticket.process.dynamicId).processColor,
+      type: 'ticket',
     }))
   );
 }

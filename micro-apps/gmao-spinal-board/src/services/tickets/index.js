@@ -16,11 +16,13 @@ async function getAll() {
     const processes = processList.filter(process => process.workflowId === workflow.workflowId);
     return {
       ...workflow,
+      type: 'workflow',
       state: 'open',
       processes: processes.map(process => {
         const steps = stepList.filter(step => step.processId === process.processId);
         return {
           ...process,
+          type: 'process',
           state: 'open',
           ticketList: ticketList.filter(ticket => steps.some(step => step.stepId === ticket.stepId)),
         };
