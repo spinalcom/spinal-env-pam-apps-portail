@@ -25,6 +25,7 @@ import moment, { min } from "moment";
 import { calculTypes } from "../../interfaces/IConfig";
 import { INodeItemTree } from "../../interfaces/INodeItem";
 import { getTimeSeriesAsync } from "../spinalAPI/endpoints/getEndpoints";
+import { getCurrentData } from "../websocket/Current";
 
 export async function calculItemsValue(
   data: INodeItemTree[],
@@ -43,7 +44,7 @@ export async function calculItemsValue(
       const value = calculateTotal(values, calculMode);
 
       item.displayValue = isFinite(value) ? value : "-";
-      console.log("data", item);
+     
       return item;
     })
   );

@@ -106,7 +106,6 @@ export default {
                 config.source.map((item) => {
                     details.controlEndpoint.map((control) => {
                         if(item.profileName == control.profileName) {
-                            console.log('item legend: ','name ->' , item.name ,  item.legend);
                             const endpoint = {
                                 name: item.name,
                                 endpoint: control.endpoints.filter((end) => end.name === item.name)
@@ -145,13 +144,11 @@ export default {
                         })                        
                     }
                    if(typeof value === 'boolean') {
-                        console.log('value is boolean : ', value);
                         value = value ? 1 : 0;
                     }
                     else
                     if(value == null) {
                         value = 'NaN';
-                        console.log('value : ', value);
                     }
                     this.indcateur = [...this.indcateur, {name: item.name, value: value, unit: unit, color: color ? color : '#00FF00'}]
                 })
@@ -161,16 +158,13 @@ export default {
                     ))
                 })
                 this.indcateur = uniqueEndpoints;
-                console.log('indicateur : ', this.indcateur);
             } catch (error) {
                 console.error('Error fetching details in CurrentCard -> ', error);
             }
         },
         onClick() {
-            console.log("onClick", this.on3D);
             if(this.on3D) {
                 store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-                console.log("onClick", "remove all sprites");
             }
             else 
             {

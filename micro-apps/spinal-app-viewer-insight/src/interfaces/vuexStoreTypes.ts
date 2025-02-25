@@ -57,6 +57,8 @@ export enum ActionTypes {
 	UPDATE_SELECTED_CHART_ITEMS = "UPDATE_SELECTED_CHART_ITEMS",
 	GET_BUILDING_INFO = "GET_BUILDING_INFO",
 	ADD_CURRENT_CARD = "ADD_CURRENT_CARD",
+	SET_ENDPOINT = "SET_ENDPOINT",
+	UPDATE_ENDPOINT = "UPDATE_ENDPOINT",
 }
 
 export type TFctViewerIteract = (stateContext: AugmentedActionContextAppData, payload: { buildingId: string; id: number | number[] }) => Promise<void>;

@@ -109,6 +109,35 @@ export async function getControlEndpointList(buildingId: string, dynamicId: numb
 
 // }
 
+export async function updateEndpoint(buildingId: string, endpointId: number, value: string, updateType: string) {
+  const spinalApi = SpinalAPI.getInstance();
+  const url = spinalApi.createUrlWithPlatformId(
+    buildingId, 
+    `/api/v1/endpoint/${endpointId}/update?updateType=${updateType}`
+  );
+  const res = await spinalApi.put(url,
+      {
+        'newValue': value
+      }
+   )
+   return res;
+}
+
+
+// Get control value
+
+export async function getControlValue(buildingId: string, endpointId: number) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    `/api/v1/endpoint/${endpointId}/attributsList`
+  );
+  const res = await spinalAPI.get(url).then((res) => res.data);
+  const controlValue = res[0].attributs.find((el) => el.label === "controlValue");
+  return controlValue;
+}
+
+
 export async function getTimeSeriesAsync(
   buildingId: string,
   endpointId: string,

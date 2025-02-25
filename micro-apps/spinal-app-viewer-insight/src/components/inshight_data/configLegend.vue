@@ -132,11 +132,11 @@ export default {
   methods: {
     maxDataValue(data) {
       const validValues = data.filter((el) => el.displayValue && !isNaN(el.displayValue));
-      return Math.max(...validValues.map((el) => el.displayValue));
+      return Math.max(...validValues.map((el) => el.displayValue)).toFixed(2);
     },
     minDataValue(data) {
       const validValues = data.filter((el) => el.displayValue && !isNaN(el.displayValue));
-      return Math.min(...validValues.map((el) => el.displayValue));
+      return Math.min(...validValues.map((el) => el.displayValue)).toFixed(2);
     },
     autoLengende(){
       if(!this.autoL) {
@@ -151,12 +151,12 @@ export default {
     selectConfig() {
       this.$emit("input", {
         min: {
-          value: parseFloat(this.minValue),
+          value: parseFloat(this.minValue).toFixed(2),
           color: this.minColor,
         },
         median: this.selectMedian ? { color: this.medianColor } : undefined,
         max: {
-          value: parseFloat(this.maxValue),
+          value: parseFloat(this.maxValue).toFixed(2),
           color: this.maxColor,
         },
       });

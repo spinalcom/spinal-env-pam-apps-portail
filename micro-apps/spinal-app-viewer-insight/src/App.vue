@@ -313,7 +313,7 @@ class App extends Vue {
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();
       this.pageSate = PAGE_STATES.loaded;
-
+      
       if (window.innerWidth < 900) {
         this.isMobileDisplay = true;
         this.mobileDisplayMode = 1;
@@ -323,7 +323,7 @@ class App extends Vue {
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
-
+    
     this.$nextTick(() => {
       const currentQuery = window.parent.routerFontion.apps[0]._route.query;
       this.applyURLParam(currentQuery);
@@ -597,8 +597,7 @@ class App extends Vue {
   }
 
   public get displayedData() {
-    console.log('store', this.$store.state.appDataStore.data);
-    return this.$store.state.appDataStore.data;
+      return this.$store.state.appDataStore.data;
   }
 
   public getDataFormatted() {

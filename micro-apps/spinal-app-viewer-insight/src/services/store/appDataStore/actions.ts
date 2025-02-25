@@ -29,6 +29,7 @@ import {
 import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
+import { subscribe} from '../../websocket/subscribe.js'
 import {
   getEquipments,
   getFloors,
@@ -60,19 +61,37 @@ import ViewerManager from "../../../../../../global-components/viewer/manager/vi
 // import SpriteManager from "../../../components/viewer/manager/spriteManager";
 // import ViewerManager from "../../../components/viewer/manager/viewerManager";
 import { IConfig } from "../../../interfaces/IConfig";
-import { getSourceValue } from "../../spinalAPI/endpoints/getEndpoints";
+import { getSourceValue, updateEndpoint } from "../../spinalAPI/endpoints/getEndpoints";
 import {
   getItemsToRegroup,
   regroupByGeographicItem,
   regroupByGeograhicGroup,
 } from "./utils/regroupement";
 import { classifyItemByBimFileId } from "./utils/openViewer";
+import connectSocket from "../../websocket";
+import { getContextId } from "../../websocket/Current";
 
 const ApiIteratorStore: ApiIteratorStoreType &
   ApiIteratorStoreRecordStringType &
   ApiIteratorStoreRecordNumberType = {};
 
 export const actions = {
+async [ActionTypes.UPDATE_ENDPOINT]({commit, state}: any, {buildingId, formData} : {buildingId: string, formData: FormData} ) {
+    const updateType = ['currentValue', 'controlValue'];
+  for (let [key, value] of formData.entries()) {
+    try {
+      const update = await updateEndpoint(buildingId, parseInt(key), value.toString(), updateType[1]);
+        return update
+    } catch (error) {
+        throw error;
+    }
+    
+  }
+
+},
+
+
+
   async [ActionTypes.GET_BUILDINGS](
     { commit, state }: AugmentedActionContextAppData,
     { patrimoineId, forceUpdate }
@@ -520,5 +539,12 @@ export const actions = {
       commit(MutationTypes.ADD_CHART_ITEM, item);
     }
   },
+
+  [ActionTypes.SET_ENDPOINT](
+    { commit, dispatch, state },
+    children: any[]
+  ) {
+    return commit(MutationTypes.SET_ENDPOINT, children);
+  }
 
 };

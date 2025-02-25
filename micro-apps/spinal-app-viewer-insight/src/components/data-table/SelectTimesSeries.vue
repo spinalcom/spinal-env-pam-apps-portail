@@ -338,7 +338,8 @@ export default {
 
 <style scoped>
 .content-wrapper {
-  width: max-content;
+  min-width: 220px !important;
+  max-width: 220px !important;
   height: max-content;
   display: flex !important;
   justify-content: center !important;
@@ -347,9 +348,9 @@ export default {
 }
 
 .content-wrapper .v-autocomplete {
-  width: 250px;
+  width: 220px;
   height: 50px;
-  padding: 5px;
+  padding: 2px;
   user-select: none !important;
   /* margin: auto; */
 }
