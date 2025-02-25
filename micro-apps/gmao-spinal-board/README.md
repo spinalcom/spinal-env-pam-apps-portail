@@ -281,3 +281,10 @@ const workflows = await workflow.list(buildingId);
 - [ ] Sort, by date - by field
 - [ ] Highlight delayed tickets
 - [ ] Show budgets when you highligh a period
+
+
+# App screens
+![Screenshot from 2025-02-25 10-14-40](https://github.com/user-attachments/assets/0a519d80-b333-47fd-9ab3-e085222f0bf7)
+![Screenshot from 2025-02-25 10-15-22](https://github.com/user-attachments/assets/daf41ddf-7353-42e0-98a6-3d4e1b38d835)
+![Screenshot from 2025-02-25 10-23-25](https://github.com/user-attachments/assets/72947b77-c7f5-4cba-8275-4d5223371e40)
+
