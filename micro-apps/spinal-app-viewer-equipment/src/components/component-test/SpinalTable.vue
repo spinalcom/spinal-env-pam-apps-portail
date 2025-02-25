@@ -28,7 +28,7 @@
           <v-select
             v-model="vSelectedTab"
             :items="vSelectDynamic"
-            label="Onglet sélectionné"
+            :label="vSelectLabel"
             outlined
             :menu-props="{ offsetY: true, nudgeTop: -3 }"
         ></v-select>
@@ -642,6 +642,23 @@ export default {
   },
   computed: {
     
+    vSelectLabel(){
+      let itemName = '';
+      if (this.selected_data_item_name) {
+        itemName = this.selected_data_item_name;
+      } else if (this.$store.state.appDataStore.user_selected.grp) {
+        itemName = this.$store.state.appDataStore.user_selected.grp;
+      } else if (this.$store.state.appDataStore.user_selected.cat) {
+        itemName = this.$store.state.appDataStore.user_selected.cat;
+      } else if (this.$store.state.appDataStore.user_selected.ctx) {
+        itemName = this.$store.state.appDataStore.user_selected.ctx;
+      }
+      if(itemName){
+        return "Onglet selectionné sur " + itemName;
+      }
+      return "Onglet selectionné"
+    },
+
     filteredContexts() {
       if (this.contexts) {
         this.$emit('allFiltredData', this.contexts); // will make sprites appear
