@@ -223,6 +223,8 @@ export default defineComponent({
   ,
   methods: {
     clearRoom() {
+      if (localStorage.getItem("viewer_loaded") == 'unload')
+        return
       this.piece = null;
       this.equipement = null;
 
@@ -235,6 +237,8 @@ export default defineComponent({
     },
 
     setPosition(id, position: string) {
+      if (localStorage.getItem("viewer_loaded") == 'unload')
+        return
       const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
       if (id == currentQuery.spaceSelectedId)
         return
