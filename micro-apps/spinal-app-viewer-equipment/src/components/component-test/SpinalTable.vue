@@ -73,11 +73,35 @@
       style="padding: 2px;"
       class="scrollable-table-container"
     >
-      <v-icon class="icon-rounded-square"
-      v-if="$store.state.appDataStore.user_selected.ctx"
-      @click="goBack()">
-        mdi-arrow-left
-      </v-icon>
+    
+      <div class="icons-global-actions">
+        <v-icon class="icon-rounded-square"
+          v-if="$store.state.appDataStore.user_selected.ctx"
+          @click="goBack()">
+          mdi-arrow-left
+        </v-icon>
+
+        <v-icon class="icon-rounded-square"
+          v-if="$store.state.appDataStore.user_selected.cat"
+          @click="globalFitToView()">
+          mdi-fit-to-screen
+        </v-icon>
+        
+        <v-icon class="icon-rounded-square"
+          v-if="$store.state.appDataStore.user_selected.cat"
+          @click="globalAddAllSprites()">
+          {{ globalSprite ? 'mdi-map-marker-off-outline' : 'mdi-map-marker-outline'  }}
+        </v-icon>
+
+        <v-icon class="icon-rounded-square"
+          v-if="$store.state.appDataStore.user_selected.cat"
+          @click="globalColorAllGroups()">
+          {{ globalColored ? 'mdi-invert-colors-off' : 'mdi-invert-colors' }}
+        </v-icon>
+
+
+      </div>
+
       <DataTable
         ref="dataTable"
         :selectedItemTab="selectedItemTab"
@@ -605,28 +629,32 @@ export default {
     
     getIcon : getIcon,
     radarOptions: {
-    responsive: true,
-    scales: {
-      r: {
-        angleLines: { display: true }, // Affiche les lignes des angles
-        suggestedMin: 0, // Valeur minimale
-        suggestedMax: 100, // Valeur maximale
+      responsive: true,
+      scales: {
+        r: {
+          angleLines: { display: true }, // Affiche les lignes des angles
+          suggestedMin: 0, // Valeur minimale
+          suggestedMax: 100, // Valeur maximale
+        },
       },
-    },
-    plugins: {
-      legend: {
-        position: 'top', // Position de la légende
-      },
-      tooltip: {
-        callbacks: {
-          label: function (context) {
-            return `${context.dataset.label}: ${context.raw}`;
+      plugins: {
+        legend: {
+          position: 'top', // Position de la légende
+        },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              return `${context.dataset.label}: ${context.raw}`;
+            },
           },
         },
       },
     },
-    },
-    }),
+
+    globalColored : false,
+    globalSprite: false,
+    }), // end of data
+
   mounted() {
     this.timeactuelle = this.getFormattedDateFromTemporalData();
     this.$nextTick(() => {
@@ -808,7 +836,7 @@ export default {
       }
     },
     emitValue(listType, value) {
-      this.$refs.dataTable.resetDisplayedSprites();
+      this.$refs.dataTable.clearAllSprites();
       if (listType == 'item') {
         this.selected_id = null;
         this.selected_data_item_name = null;
@@ -1244,31 +1272,31 @@ export default {
     },
 
     changeOverflowItemMenu(index) {
-    console.log('index: ', index);
-    const latItem = this.itemOverflowMenu
-    if (latItem === index) {
-      this.itemOverflowMenu = null
-    } else {
-      this.itemOverflowMenu = index
-      console.log('itemOverflowMenu: ', this.itemOverflowMenu);
-    }
+      console.log('index: ', index);
+      const latItem = this.itemOverflowMenu
+      if (latItem === index) {
+        this.itemOverflowMenu = null
+      } else {
+        this.itemOverflowMenu = index
+        console.log('itemOverflowMenu: ', this.itemOverflowMenu);
+      }
     },
 
     changeOverflowItemMenuAttr(index, item) {
-    console.log(`index: ${index} item: ${item}`);
-    const latItem = this.itemOverflowMenu
-    const itemCateg = item;
-    if(latItem === this.itemOverflowMenu && this.itemOverflowMenuAttr === itemCateg) {
-      this.itemOverflowMenuAttr = null
-    } else {
-      this.itemOverflowMenuAttr = itemCateg
-      this.itemOverflowMenu = index
-    }
+      console.log(`index: ${index} item: ${item}`);
+      const latItem = this.itemOverflowMenu
+      const itemCateg = item;
+      if(latItem === this.itemOverflowMenu && this.itemOverflowMenuAttr === itemCateg) {
+        this.itemOverflowMenuAttr = null
+      } else {
+        this.itemOverflowMenuAttr = itemCateg
+        this.itemOverflowMenu = index
+      }
     
-  },
+    },
 
     ShowDialog() {
-    this.showFormTicket = !this.showFormTicket;
+      this.showFormTicket = !this.showFormTicket;
     },
     ShowFormDoc() {
       this.show_formdoc = !this.show_formdoc;
@@ -1391,19 +1419,19 @@ export default {
     },
 
     closeOverMenu() {
-    this.itemOverflowMenu = null
+      this.itemOverflowMenu = null
     },
 
     handleValidated(updatedItem, el, dyn, item) {
-    console.warn('Objet reçu après validation :', item, el.dynamicId, dyn.label, updatedItem);
-    // console.log(updatedItem , el , dyn );
-    const formattedItem = {
-      attributeLabel: updatedItem.label,
-      attributeUnit: updatedItem.unit,
-      attributeValue: updatedItem.value,
-    };
+      console.warn('Objet reçu après validation :', item, el.dynamicId, dyn.label, updatedItem);
+      // console.log(updatedItem , el , dyn );
+      const formattedItem = {
+        attributeLabel: updatedItem.label,
+        attributeUnit: updatedItem.unit,
+        attributeValue: updatedItem.value,
+      };
 
-    this.UpdateAttribut(item, el.dynamicId, dyn.label, formattedItem)
+      this.UpdateAttribut(item, el.dynamicId, dyn.label, formattedItem)
     },
   
     handleValidatedCate(id, cateId, item) {
@@ -1418,15 +1446,15 @@ export default {
     },
 
     async showAlert(v) {
-    if (v.status === 'success') {
-      this.alert = true
-      this.alert_ind = v.message
-      this.type_alert = v.status
-    } else {
-      this.alert = true
-      this.alert_ind = v.message
-      this.type_alert = v.status
-    }
+      if (v.status === 'success') {
+        this.alert = true
+        this.alert_ind = v.message
+        this.type_alert = v.status
+      } else {
+        this.alert = true
+        this.alert_ind = v.message
+        this.type_alert = v.status
+      }
 
     },
 
@@ -1583,6 +1611,35 @@ export default {
         this.cpIdToDraw = tmpLst;
         this.vSelectItemEndpoints = endpoints;
     },
+  
+    globalFitToView(){
+      this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, {
+      dynamicId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId 
+      });
+    },
+
+    globalColorAllGroups(){
+      if(!this.globalColored){
+        this.$refs.dataTable.colorAllGroups();
+        this.globalColored = true;
+      } else {
+        this.$refs.dataTable.clearAllGroupColors();
+        this.globalColored = false;
+      }
+    },
+
+    globalAddAllSprites(){
+      if (!this.globalSprite){
+        this.$refs.dataTable.addSpriteAllGroups();
+        this.globalSprite = true;
+      }
+      else {
+        this.$refs.dataTable.clearAllSprites();
+        this.globalSprite = false;
+
+      }
+    },
+
 
     isLink(value) {
     return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
@@ -1645,6 +1702,7 @@ export default {
       }
     },
 
+    
 
 
     '$store.state.appDataStore.dl_data_option': {
@@ -1928,6 +1986,12 @@ export default {
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: adds a subtle shadow */
+}
+
+.icons-global-actions {
+  display: flex;
+  gap: 8px; /* Adjust spacing between icons */
+  align-items: center;
 }
 
 ::v-deep .scrollable-content {

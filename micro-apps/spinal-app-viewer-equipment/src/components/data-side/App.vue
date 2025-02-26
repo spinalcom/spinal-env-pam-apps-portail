@@ -461,53 +461,52 @@ class dataSideApp extends Vue {
   }
 
   async watchData(newVal, changedProperty) {
-    if(!this.$store.state.appDataStore.user_selected.ctx ||
-      !this.$store.state.appDataStore.user_selected.cat ||
-      !this.$store.state.appDataStore.user_selected.grp
-    ) return;
-    if (this.config.sprites)
-      this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-    //if (this.isBuildingSelected) return; // If building is selected don't add sprites
+    // if(!this.$store.state.appDataStore.user_selected.ctx ||
+    //   !this.$store.state.appDataStore.user_selected.cat ||
+    //   !this.$store.state.appDataStore.user_selected.grp
+    // ) return;
+    // if (this.config.sprites)
+    //   this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+    // //if (this.isBuildingSelected) return; // If building is selected don't add sprites
 
-    let itemsToColor, originalArray;
+    // let itemsToColor, originalArray;
 
-    if (changedProperty === 'AllFiltredData') {
-      originalArray = newVal;
-    } else {
-      originalArray = this.$store.state.appDataStore.data;
-    }
+    // if (changedProperty === 'AllFiltredData') {
+    //   originalArray = newVal;
+    // } else {
+    //   originalArray = this.$store.state.appDataStore.data;
+    // }
 
-    // originalArray = this.$store.state.appDataStore.data;
-    console.log('originalArray', originalArray);
+    // // originalArray = this.$store.state.appDataStore.data;
+    // console.log('originalArray', originalArray);
 
-    itemsToColor = originalArray.map((el) => el.children || []).flat();
-    let newArray = originalArray.map(item => {
-      // La logique reste la même
-      let spatial = item.categoryAttributes.find(cat => cat.name === "Spatial");
-      let position;
-      if (spatial) {
-        let xyz = spatial.attributs.find(attr => attr.label === "XYZ center");
-        if (xyz) {
-          let [x, y, z] = xyz.value.split(';').map(Number);
-          position = { x, y, z };
-        }
-      }
-      return { ...item, position: position || null, displayValue: "-", toto: position, attr: this.selected_attr };
-    });
-    if (this.config.sprites) {
-      this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-        items: newArray,
-        buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
-        component: SpriteComponent,
-      });
-      return;
-    }
-    // const buildingId = localStorage.getItem("idBuilding");
+    // itemsToColor = originalArray.map((el) => el.children || []).flat();
+    // let newArray = originalArray.map(item => {
+    //   // La logique reste la même
+    //   let spatial = item.categoryAttributes.find(cat => cat.name === "Spatial");
+    //   let position;
+    //   if (spatial) {
+    //     let xyz = spatial.attributs.find(attr => attr.label === "XYZ center");
+    //     if (xyz) {
+    //       let [x, y, z] = xyz.value.split(';').map(Number);
+    //       position = { x, y, z };
+    //     }
+    //   }
+    //   return { ...item, position: position || null, displayValue: "-", toto: position, attr: this.selected_attr };
+    // });
+    // if (this.config.sprites) {
+    //   this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+    //     items: newArray,
+    //     buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
+    //     component: SpriteComponent,
+    //   });
+    //   return;
+    // }
 
-    this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
-      items: newArray,
-      buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
-    });
+    // this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+    //   items: newArray,
+    //   buildingId: this.selectedZone.buildingId || this.selectedZone.staticId,
+    // });
   }
 }
 

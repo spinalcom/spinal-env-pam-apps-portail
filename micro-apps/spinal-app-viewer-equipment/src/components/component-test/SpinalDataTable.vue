@@ -120,9 +120,6 @@
         <v-icon small class="icon-rounded-square" @click.stop="fitToView(item)" title="Cadrer sur l'objet">
           mdi-fit-to-screen
         </v-icon>
-        <v-icon small class="icon-rounded-square" @click.stop="colorItem(item)" title="Colorier l'objet">
-          mdi-invert-colors
-        </v-icon>
         <v-icon small class="icon-rounded-square" @click.stop="viewerSelectItems(item)" title="Sélectionner l'équipement">
           mdi-select-place
         </v-icon>
@@ -347,15 +344,72 @@ export default {
       return this.displayedColors.some(it => it.dynamicId === item.dynamicId);
     },
 
-    resetDisplayedSprites(){
+    clearAllSprites(){
       this.displayedSprites = [];
       this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
     },
 
-    resetDisplayedColor(){
+    async clearAllGroupColors(){
+      const groups = this.items.filter(it => it.type === 'BIMObjectGroup');
       this.displayedColors = [];
-      let equipmentList = this.displayedColors.map(eq => {return {...eq, color: null}});
-      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {items: equipmentList,buildingId: localStorage.getItem("idBuilding")});
+      const itemsToColor = [];
+      const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
+      const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
+      
+      for (const matchingGroup of groups) {
+        let equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+        equipmentList = equipmentList.map((eq) => {
+          return {
+            ...eq,
+            color: null,
+            floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId
+          };
+        });
+        itemsToColor.push(...equipmentList);
+      }
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: localStorage.getItem("idBuilding")
+      });
+      return;
+    },
+
+    async colorAllGroups(){
+      const groups = this.items.filter(it => it.type === 'BIMObjectGroup');
+      const itemsToColor = [];
+
+      this.displayedColors= groups;
+
+      const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
+      const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
+      
+      for (const matchingGroup of groups) {
+        let equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+        equipmentList = equipmentList.map((eq) => {
+          return {
+            ...eq,
+            color: matchingGroup.color,
+            floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId
+          };
+        });
+        itemsToColor.push(...equipmentList);
+      }
+ 
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: localStorage.getItem("idBuilding")
+      });
+
+
+      return;
+    },
+
+    async addSpriteAllGroups(){
+      const groups = this.items.filter(it => it.type === 'BIMObjectGroup');
+      this.displayedSprites = [];
+      for(const group of groups){
+        await this.addOrRemoveSpriteGroup(group);
+      }
     },
 
     async removeColor(item){
