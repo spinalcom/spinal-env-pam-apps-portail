@@ -6,16 +6,16 @@
         <div class="chart-container">
           <div class="chart-title">Étage</div>
           <div class="charts">
-            <div class="occupancy-summary">
-              <span class="occupancy-percentage ">
-                <span class="percentage">{{ buildingOccupancyRate }}%</span> DU BÂTIMENT EST OCCUPÉ
-              </span>
-              <span class="total-surface">{{ totalSurface }} m² de surface totale</span>
-            </div>
-            <div class="chart-block">
+            <div v-if="displayBuildingOccupancyChart" class="chart-block">
+              <div class="occupancy-summary">
+                <span class="occupancy-percentage ">
+                  <span class="percentage">{{ buildingOccupancyRate }}%</span> DU BÂTIMENT EST OCCUPÉ
+                </span>
+                <span class="total-surface">{{ totalSurface }} m² de surface totale</span>
+              </div>
               <canvas ref="chartCanvas"></canvas>
             </div>
-            <div class="chart-block">
+            <div v-if="displayMeetingRoomChart" class="chart-block">
               <div class="occupancy-summary ">
                 <span class="occupancy-percentage">
                   <span class="percentage">{{ secondBuildingOccupancyRate }}%</span> DES SALLES DE RÉUNIONS SONT OCCUPÉES
@@ -24,35 +24,30 @@
               </div>
               <canvas ref="secondChartCanvas"></canvas>
             </div>
+            <div v-if="displayEquipmentChart" class="chart-block">
+              <div class="occupancy-summary">
+                <span class="occupancy-percentage">
+                  <span class="percentage">{{ equipmentOccupancyRate }}%</span> DES POSITIONS DE TRAVAIL SONT OCCUPÉES
+                </span>
+                <span class="total-surface">{{ equipmentTotalCount }} positions de travail</span>
+              </div>
+              <canvas ref="equipmentChartCanvas"></canvas>
+            </div>
           </div>
         </div>
       </v-card-text>
     </v-card>
   </div>
 </template>
-
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, watch } from 'vue';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { HTTP } from '../services/http-constants'; 
 import config from '../../config';
 import moment from 'moment';
-
-import { getFloors, getOccupancyDataByFloor, getContextId, getCategoryId, getGroupId, getRoomIds, getTotalSurface2 } from '../services/index';
+import { getFloors, getMeetingRoomOccupancyDataByFloor, getContextId, getCategoryId, getGroupId, getRoomIds, getTotalSurface2, getEquipmentCategoryId, getEquipmentContextId, getEquipmentGroupId, getEquipmentIds, getEquipmentOccupancyDataByFloor } from '../services/index';
 Chart.register(...registerables);
 
-function extractDynamicIdFromResponse(response, endpointName, endpointType) {
-  let dynamicId = null;
-  response.data.forEach((profile) => {
-    const endpoint = profile.endpoints.find(
-      (ep) => ep.name === endpointName && ep.type === endpointType
-    );
-    if (endpoint) {
-      dynamicId = endpoint.dynamicId;
-    }
-  });
-  return dynamicId;
-}
 
 
 export default defineComponent({
@@ -66,7 +61,7 @@ export default defineComponent({
     temporality: {
       type: Object,
       required: true
-    }
+    },
   },
   setup(props, { emit }) {
     const chartCanvas = ref<HTMLCanvasElement | null>(null);
@@ -78,6 +73,14 @@ export default defineComponent({
     const totalSurface = ref<number>(0);
     const totalSurface2 = ref<number>(0);
     const allFloors = ref<string[]>([]);
+    const equipmentChartCanvas = ref<HTMLCanvasElement | null>(null);
+    const equipmentOccupancyChart = ref<Chart | null>(null);
+    const equipmentFloorData = ref<{ floor: string; occupancy: number; area?: number }[]>([]);
+    const equipmentTotalCount = ref<number>(0);
+    const displayBuildingOccupancyChart = ref(config.displayBuildingOccupancyChart);
+    const displayEquipmentChart = ref(config.displayEquipmentChart);
+    const displayMeetingRoomChart = ref(config.displayMeetingRoomChart);
+
 
     function mapFloorDynamicId(floorDynamicId, floorNames) {
   const matchingKey = Object.keys(floorNames).find(key => floorDynamicId.toString().includes(key));
@@ -91,34 +94,34 @@ const fetchFloorData = async (period, timestamp) => {
     
     // Récupérer les IDs d'occupation et les noms des étages
     const { dynamicIds, floorNames, floorOccupancyMapping } = await getFloorOccupancyDynamicIds();
-    console.log('Dynamic IDs:', dynamicIds);
+/*     console.log('Dynamic IDs:', dynamicIds);
     console.log('Floor Names:', floorNames);
     console.log('Mapping Dynamic ID → Étages:', floorOccupancyMapping);
-
+ */
     if (dynamicIds.length === 0) {
       throw new Error('Aucun Dynamic ID trouvé pour les taux d\'occupation.');
     }
 
     // Récupérer les taux d'occupation
     const occupancyRates = await getFloorOccupancyRatesByPeriod(period, timestamp, dynamicIds);
-    console.log('Occupancy Rates:', occupancyRates);
+   // console.log('Occupancy Rates:', occupancyRates);
 
     // Transformer les Dynamic IDs en noms d'étages
     floorData.value = occupancyRates.map(floor => {
       const realFloorId = floorOccupancyMapping ? floorOccupancyMapping[floor.dynamicId] : null; // Associer au bon étage
       return {
         floor: mapFloorDynamicId(realFloorId, floorNames),
-        occupancy: parseFloat(floor.occupancy), // S'assurer que l'occupation est un nombre
+        occupancy: parseFloat(floor.occupancy), // pour s'assurer que l'occupation est un nombre
         area: floor.area
       };
     });
 
-    console.log('Étages après correction:', floorData.value.map(f => f.floor));
-
+/*     console.log('Étages après correction:', floorData.value.map(f => f.floor));
+ */
     // Mettre à jour la liste des étages pour le graphique
     allFloors.value = floorData.value.map(floor => floor.floor);
-    console.log('Labels envoyés au graphique:', allFloors.value);
-
+/*     console.log('Labels envoyés au graphique:', allFloors.value);
+ */
     // Rafraîchir les graphiques
     renderChart();
     renderSecondChart();
@@ -132,10 +135,15 @@ const fetchSecondFloorData = async (timestamp) => {
     const space = { type: 'building' }; // ou 'floor' selon votre besoin
     const tempo = props.temporality.name;
 
+    const entryPoint = config.entryPoints.find(ep => ep.context === 'Gestion des espaces' && ep.category === 'Typologie' && ep.group === 'Salle de réunion');
+    if (!entryPoint) {
+      throw new Error('Entry point not found');
+    }
+
     // Récupérer les IDs nécessaires
-    const contextId = await getContextId(config.contextNames.gestionDesEspaces);
-    const categoryId = await getCategoryId(contextId, config.categoryNames.typologie);
-    const groupId = await getGroupId(contextId, categoryId, config.groupNames.meetingRoom);
+    const contextId = await getContextId(entryPoint.context);
+    const categoryId = await getCategoryId(contextId, entryPoint.category);
+    const groupId = await getGroupId(contextId, categoryId, entryPoint.group);
 
     // Récupérer les IDs des salles de réunion
     const roomIds = await getRoomIds(contextId, categoryId, groupId);
@@ -143,8 +151,8 @@ const fetchSecondFloorData = async (timestamp) => {
       throw new Error('No room IDs found');
     }
 
-    // Appeler getOccupancyDataByFloor avec les IDs des salles
-    const [label, data, avg, total, averages, meter] = await getOccupancyDataByFloor(space, tempo, timestamp, roomIds);
+    // Appeler getMeetingRoomOccupancyDataByFloor avec les IDs des salles
+    const [label, data, avg, total, averages, meter] = await getMeetingRoomOccupancyDataByFloor(space, tempo, timestamp, roomIds);
 
     // Mettre à jour les données pour le graphique
     secondFloorData.value = averages.map(floor => ({
@@ -158,6 +166,72 @@ const fetchSecondFloorData = async (timestamp) => {
     console.error("Erreur lors de la récupération des données des étages pour le deuxième graphique:", error);
   }
 };
+const fetchEquipmentFloorData = async (timestamp) => {
+  try {
+    const tempo = props.temporality.name;
+
+    // Récupérer les informations sur les équipements
+    const entryPoint = config.entryPoints.find(ep =>
+      ep.context === 'Gestion des équipements' &&
+      ep.category === 'Typologie' &&
+      ep.group === 'Positions de travail'
+    );
+
+    if (!entryPoint) throw new Error('Entry point not found');
+
+    // Récupérer les IDs nécessaires en parallèle
+    const [contextId, categoryId, groupId] = await Promise.all([
+      getEquipmentContextId(entryPoint.context),
+      getEquipmentCategoryId(await getEquipmentContextId(entryPoint.context), entryPoint.category),
+      getEquipmentGroupId(await getEquipmentContextId(entryPoint.context), await getEquipmentCategoryId(await getEquipmentContextId(entryPoint.context), entryPoint.category), entryPoint.group)
+    ]);
+
+    // Récupérer les IDs des équipements
+    const equipmentIds = await getEquipmentIds(contextId, categoryId, groupId);
+    if (!equipmentIds?.length) throw new Error('No equipment IDs found');
+
+    // Récupérer les données d'occupation par étage
+    const [label, data, avg, total, averages] = await getEquipmentOccupancyDataByFloor(
+      { type: 'building' }, tempo, timestamp, equipmentIds
+    );
+
+    // Récupérer le mapping ID → Nom d'étage
+    const { floorNames } = await getFloorOccupancyDynamicIds();
+
+    // Mettre à jour les données pour le graphique
+    equipmentFloorData.value = averages.map(floor => ({
+      floor: floorNames[floor.floor] || ` ${floor.floor}`,
+      occupancy: floor.average,
+      area: 0 
+    }));
+// Vérifier si floorNames est déjà défini avant d'appeler la fonction
+if (!floorNames) {
+  const { floorNames: newFloorNames } = await getFloorOccupancyDynamicIds();
+  floorNames = newFloorNames;
+}
+
+// Ajouter tous les étages, même ceux sans positions de travail
+allFloors.value = Object.values(floorNames); 
+
+// Compléter les données d'occupation avec 0% pour les étages sans équipement
+equipmentFloorData.value = allFloors.value.map(floor => {
+  const existingData = equipmentFloorData.value.find(f => f.floor === floor);
+  return {
+    floor,
+    occupancy: existingData ? existingData.occupancy : 0, // Met 0 si pas d'équipement
+    area: 0
+  };
+});
+
+
+    // Mettre à jour le graphique
+    renderEquipmentChart();
+
+  } catch (error) {
+    console.error("Erreur lors de la récupération des données des équipements:", error);
+  }
+};
+
 
     const fetchTotalSurface = async () => {
       try {
@@ -169,26 +243,58 @@ const fetchSecondFloorData = async (timestamp) => {
       }
     };
     const fetchTotalSurface2 = async () => {
-      try {
-        const contextId = await getContextId(config.contextNames.gestionDesEspaces);
-        const categoryId = await getCategoryId(contextId,  config.categoryNames.typologie);
-        const groupId = await getGroupId(contextId, categoryId, config.groupNames.meetingRoom);
-        const roomIds = await getRoomIds(contextId, categoryId, groupId);
+  try {
+    // Utiliser les entryPoints définis dans config.js
+    const entryPoint = config.entryPoints.find(ep => ep.context === 'Gestion des espaces' && ep.category === 'Typologie' && ep.group === 'Salle de réunion');
+    if (!entryPoint) {
+      throw new Error('Entry point not found');
+    }
 
-        if (!roomIds || roomIds.length === 0) {
-          console.error('No Room IDs found. Aborting fetchTotalSurface2.');
-          return;
-        }
+    const contextId = await getContextId(entryPoint.context);
+    const categoryId = await getCategoryId(contextId, entryPoint.category);
+    const groupId = await getGroupId(contextId, categoryId, entryPoint.group);
+    const roomIds = await getRoomIds(contextId, categoryId, groupId);
 
-        const result = await getTotalSurface2(roomIds);
-        if (result !== null) {
-          totalSurface2.value = result;
-        }
-      } catch (error) {
-        console.error("Erreur lors de la récupération de la surface totale des salles de réunion :", error);
-      }
-    };
-    const getFloorOccupancyDynamicIds = async () => {
+    if (!roomIds || roomIds.length === 0) {
+      console.error('No Room IDs found. Aborting fetchTotalSurface2.');
+      return;
+    }
+
+    const result = await getTotalSurface2(roomIds);
+    if (result !== null) {
+      totalSurface2.value = result;
+    }
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la surface totale des salles de réunion :", error);
+  }
+};
+
+const fetchEquipmentTotalCount = async () => {
+  try {
+    const entryPoint = config.entryPoints.find(ep => ep.context === 'Gestion des équipements' && ep.category === 'Typologie' && ep.group === 'Positions de travail');
+    if (!entryPoint) {
+      throw new Error('Entry point not found');
+    }
+
+    const contextId = await getEquipmentContextId(entryPoint.context);
+    const categoryId = await getEquipmentCategoryId(contextId, entryPoint.category);
+    const groupId = await getEquipmentGroupId(contextId, categoryId, entryPoint.group);
+    const equipmentIds = await getEquipmentIds(contextId, categoryId, groupId);
+
+    if (!equipmentIds || equipmentIds.length === 0) {
+      console.error('No Equipment IDs found. Aborting fetchEquipmentTotalCount.');
+      return;
+    }
+
+    equipmentTotalCount.value = equipmentIds.length;
+    console.log('Total Equipment Count:', equipmentTotalCount.value);
+  } catch (error) {
+    console.error("Erreur lors de la récupération du nombre total d'équipements :", error);
+  }
+};
+
+
+const getFloorOccupancyDynamicIds = async () => {
   try {
     console.log('Récupération des noms et Dynamic IDs des étages...');
     
@@ -236,7 +342,9 @@ const fetchSecondFloorData = async (timestamp) => {
 
       floorEndpointsList.forEach(profile => {
         profile.endpoints.forEach(endpoint => {
-          if (endpoint.name === config.endpointCriteria.name && endpoint.type === config.endpointCriteria.type) {
+          /* console.log('Endpoint:', endpoint); */
+          if (            endpoint.name.trim().toLowerCase() === config.sources[0].name.trim().toLowerCase() &&
+          endpoint.type.trim().toLowerCase() === config.sources[0].type.trim().toLowerCase()) {
             dynamicIds.push(endpoint.dynamicId);
             floorOccupancyMapping[endpoint.dynamicId] = floorId;
           }
@@ -257,7 +365,6 @@ const fetchSecondFloorData = async (timestamp) => {
     return { dynamicIds: [], floorNames: {}, floorOccupancyMapping: {} };
   }
 };
-
 
 
 const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => {
@@ -333,6 +440,12 @@ const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => 
       return (totalOccupancy / secondFloorData.value.length).toFixed(0);
     });
 
+    const equipmentOccupancyRate = computed(() => {
+      if (equipmentFloorData.value.length === 0) return 0;
+      const totalOccupancy = equipmentFloorData.value.reduce((sum, floor) => sum + floor.occupancy, 0);
+      return (totalOccupancy / equipmentFloorData.value.length).toFixed(0);
+    });
+
     const renderChart = () => {
       if (chartCanvas.value) {
         const ctx = chartCanvas.value.getContext('2d');
@@ -354,8 +467,8 @@ const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => 
               datasets: [{
                 label: 'Occupation des étages',
                 data: occupancyData,
-                backgroundColor: '#1f2937',
-                barPercentage: 0.4,
+                backgroundColor: '#14202C',
+                barPercentage: 0.6,
                 categoryPercentage: 1,
                 borderRadius: 10,
               }]
@@ -380,6 +493,7 @@ const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => 
                   display: false,
                 },
                 x1: {
+                  display: true,
                   position: 'top',
                   ticks: {
                     font: { size: 15 }
@@ -420,7 +534,7 @@ const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => 
               datasets: [{
                 label: 'Occupation des salles de réunion',
                 data: occupancyData,
-                backgroundColor: '#A7001E',
+                backgroundColor: '#1C5791',
                 barPercentage: 0.4,
                 categoryPercentage: 1,
                 borderRadius: 10,
@@ -445,6 +559,13 @@ const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => 
                 y: {
                   display: false,
                 },
+                x1: {
+              display: false,
+              position: 'top',
+              ticks: {
+                font: { size: 15 }
+              }
+            },
               },
               layout: {
                 padding: {
@@ -461,36 +582,129 @@ const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => 
         console.warn("Aucune donnée d'étage disponible pour le graphique");
       }
     };
+    const renderEquipmentChart = () => {
+  if (equipmentChartCanvas.value) {
+    const ctx = equipmentChartCanvas.value.getContext('2d');
+    if (ctx) {
+      if (equipmentOccupancyChart.value) {
+        equipmentOccupancyChart.value.destroy();
+      }
 
-    watch(() => props.temporality, async (newTemporality) => {
+      // Inclure tous les étages dans les labels du graphique
+      const floorLabels = allFloors.value.map(id => {
+        const floor = equipmentFloorData.value.find(f => f.floor.toString() === id.toString());
+        return floor && floor.floor ? floor.floor : `Étage ${id}`;
+      });
+
+      const occupancyData = floorLabels.map(floor => {
+        const floorDataEntry = equipmentFloorData.value.find(f => f.floor === floor);
+        return floorDataEntry ? floorDataEntry.occupancy : 0;
+      });
+
+      // Logs pour vérifier les données
+      console.log('Labels envoyés au graphique des équipements:', floorLabels);
+      console.log('Données envoyées au graphique des équipements:', occupancyData);
+
+      const config: ChartConfiguration<'bar'> = {
+        type: 'bar',
+        data: {
+          labels: floorLabels,
+          datasets: [{
+            label: 'Taux d\'occupation des équipements',
+            data: occupancyData,
+            backgroundColor: '#41C5DD',
+            barPercentage: 0.4,
+            categoryPercentage: 1,
+            borderRadius: 10,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }, // Assurez-vous que la légende est activée
+            tooltip: { enabled: true }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: {
+                callback: (value, index) => `${occupancyData[index].toFixed(2)}%`,
+                stepSize: 10,
+                font: { size: 15 },
+              }
+            },
+            y: {
+              display: false,
+            },
+            x1: {
+              display: false,
+              position: 'top',
+              ticks: {
+                callback: (value, index) => `${floorLabels[index]}`,
+                font: { size: 15 }
+              }
+            },
+          },
+          layout: {
+            padding: {
+              top: 10,
+              bottom: 10
+            }
+          }
+        }
+      };
+
+      equipmentOccupancyChart.value = new Chart(ctx, config);
+    }
+  } else {
+    console.warn("Aucune donnée d'étage disponible pour le graphique des équipements");
+  }
+};
+
+watch(() => props.temporality, async (newTemporality) => {
   await fetchFloorData(newTemporality.name);
   await fetchSecondFloorData();
+  await fetchEquipmentFloorData(timestamp);
   await fetchTotalSurface();
-  await fetchTotalSurface2(); 
+  await fetchTotalSurface2();
+  await fetchEquipmentTotalCount(); // Ajoutez cet appel
 });
 
 onMounted(async () => {
   await fetchFloorData(props.temporality.name);
   await fetchSecondFloorData();
+  await fetchEquipmentFloorData();
   await fetchTotalSurface();
-  await fetchTotalSurface2(); 
+  await fetchTotalSurface2();
+  await fetchEquipmentTotalCount(); // Ajoutez cet appel
 });
 
-    return {
-      chartCanvas,
-      occupancyChart,
-      secondChartCanvas,
-      buildingOccupancyRate,
-      secondBuildingOccupancyRate,
-      secondOccupancyChart,
-      floorData,
-      secondFloorData,
-      totalSurface,
-      totalSurface2,
-      allFloors,
-      fetchFloorData, 
-      fetchSecondFloorData
-    };
+return {
+  chartCanvas,
+  occupancyChart,
+  secondChartCanvas,
+  buildingOccupancyRate,
+  secondBuildingOccupancyRate,
+  secondOccupancyChart,
+  floorData,
+  secondFloorData,
+  equipmentChartCanvas,
+  equipmentOccupancyChart,
+  equipmentFloorData,
+  totalSurface,
+  totalSurface2,
+  equipmentTotalCount,
+  equipmentOccupancyRate,
+  allFloors,
+  fetchFloorData, 
+  fetchSecondFloorData,
+  fetchEquipmentFloorData,
+  fetchEquipmentTotalCount,
+  displayBuildingOccupancyChart,
+  displayEquipmentChart,
+  displayMeetingRoomChart
+};
   }
 });
 

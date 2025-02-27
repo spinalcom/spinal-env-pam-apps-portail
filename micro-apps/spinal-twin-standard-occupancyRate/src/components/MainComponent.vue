@@ -1,8 +1,7 @@
 <template>
   <div class="RC" style="min-height: 480px">
     <div class="MC">
-      <div style="z-index: 1;" v-if="!calendarSwitchState || temporality.name !== 'Décennie'">
-        <!-- Dialog and other components -->
+      <div style="z-index: 1;" v-if="temporality.name !== 'Décennie'">
       </div>
       <LineChart 
         v-if="chart.label && chart.data && ['Journée', 'Trimestre', 'Valeur Courante'].includes(temporality.name)"
@@ -26,10 +25,8 @@
         :datasets="chart.data" 
         :prev_next="true"
         @nav="nav"
-        @calendar="calendarSwitch"
         :stacked="true"
         :isYear="temporality.name==='Année' || temporality.name==='Trimestre'"
-        :calendar="calendar"
         :next="temporality.name !== 'Valeur Courante' ? temporality.next : ''" 
         :prev="temporality.name !== 'Valeur Courante' ? temporality.prev : ''"
         :optional="barOptions"
@@ -56,9 +53,7 @@ import { ISpaceSelectorItem } from './SpaceSelector/index';
 import { TemporalityModel } from '../models/Temporality.model';
 import { LegendModel } from '../models/Legend.model';
 import config from '../../config.js'; 
-import { defineComponent, ref } from 'vue';
-import { CalendarModel } from '../models/Calendar.model';
-import { getData, getTodaysData, getSolo, getTempoSuggestion, getContextId, getCategoryId, getRoomIds, getGroupId, getOccupancyDataByFloor } from '../services/index.js';
+import { getData, getContextId, getCategoryId, getRoomIds, getGroupId, getMeetingRoomOccupancyDataByFloor, getEquipmentCategoryId, getEquipmentContextId, getEquipmentGroupId, getEquipmentIds, getEquipmentOccupancyDataByFloor } from '../services/index.js';
 import moment from 'moment';
 interface ChartData {
   label: string;
@@ -84,12 +79,9 @@ interface tempoFilter {
   },
 })
 class App extends Vue {
-  title = env.title;
-  subtitle = env.subtitle;
-  unit = env.unit;
-  controlEndpoints = env.controlEndpoints;
-  cards = env.cards;
-
+  title = config.title;
+  subtitle = config.subtitle;
+  controlEndpoints = config.controlEndpoints;
   chart:  {
             label: string[];
             data: ChartData[];
@@ -98,7 +90,6 @@ class App extends Vue {
                 data: [] as ChartData[],  
                           };
   currentTimestamp = {valueTime: 0};
-  todaysCard: any[] = [];
   barOptions = {unit: this.unit, footer: ''};
   checkbox1 = {label: '', value: true};
   checkbox2 = {label: '', value: true};
@@ -150,9 +141,14 @@ class App extends Vue {
   async spreadData() {
   try {
     let res;
-    const contextId = await getContextId(config.contextNames.gestionDesEspaces);
-    const categoryId = await getCategoryId(contextId, config.categoryNames.typologie);
-    const groupId = await getGroupId(contextId, categoryId, config.groupNames.meetingRoom);
+    const entryPoint = config.entryPoints.find(ep => ep.context === 'Gestion des espaces' && ep.category === 'Typologie' && ep.group === 'Salle de réunion');
+    if (!entryPoint) {
+      throw new Error('Entry point not found');
+    }
+
+    const contextId = await getContextId(entryPoint.context);
+    const categoryId = await getCategoryId(contextId, entryPoint.category);
+    const groupId = await getGroupId(contextId, categoryId, entryPoint.group);
     const roomIds = await getRoomIds(contextId, categoryId, groupId);
 
     console.log('Room IDs:', roomIds);
@@ -160,14 +156,13 @@ class App extends Vue {
     if (this.space.type === 'building') {
       res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds);
     } else if (this.space.type === 'floor') {
-      res = await getOccupancyDataByFloor(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds);
+      res = await getMeetingRoomOccupancyDataByFloor(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds);
     }
 
     if (res && res.length >= 6) {
       this.chart.label = res[0] || [];
       this.chart.data = res[1] || [];
       this.defaultFilter.name = res[1] && res[1][0] ? res[1][0].label : '';
-      this.calendarList = res[4] || [];
     } else {
       console.warn('Les données de getData sont manquantes ou mal formatées.');
     }
@@ -176,13 +171,13 @@ class App extends Vue {
   }
 }
 
-  async mounted() {
+async mounted() {
     this.selectedYear = moment().format('YYYY');
     this.defaultTimeChip = moment().format('MM/YYYY');
     this.defaultFilter = {
       name: moment().format('MMMM YYYY'),
       value: moment().format('MM/YYYY'),
-      color: env.controlEndpoints[0].color,
+      color: config.controlEndpoints[0].color,
       lock: false,
       star: true
     };
@@ -190,16 +185,16 @@ class App extends Vue {
       this.controlEndpointList.push({name: controlEndpoint.name, color: controlEndpoint.color});
     }
     this.interval();
-    this.domainList.push({name: this.selectedYear, color: env.controlEndpoints[0].color});
-    this.domain = {name: this.selectedYear, color: env.controlEndpoints[0].color};
+    this.domainList.push({name: this.selectedYear, color: config.controlEndpoints[0].color});
+    this.domain = {name: this.selectedYear, color: config.controlEndpoints[0].color};
   }
 
-  @Watch('space')
+ /*  @Watch('space')
   async spaceChange() {
     this.todaysCard = [];
     this.spreadData();
     this.todaysCard = await getTodaysData(this.space, this.controlEndpoints);
-  }
+  } */
 
   @Watch('temporality')
   async temporalityChange() {
@@ -210,10 +205,10 @@ class App extends Vue {
     this.interval();
   }
 
-  @Watch('selectedControlEndpoint')
+ /*  @Watch('selectedControlEndpoint')
   async selectedControlEndpointChange() {
     this.calendar = this.calendarList.find((e: CalendarModel) => e.n == this.selectedControlEndpoint.name)!;
-  }
+  } */
 
   @Watch('selectedYear')
   async selectedFilterChange(v) {
@@ -247,10 +242,10 @@ class App extends Vue {
     this.$emit('chart-sent', output);
   }
 
-  @Watch('domain')
+/*   @Watch('domain')
   domainChange(y) {    
     this.calendar = this.calendarList.find((e: CalendarModel) => e.y == y.name)!;    
-  }
+  } */
 
 
 
@@ -350,6 +345,9 @@ class App extends Vue {
   }
   if (this.$refs.floorOccupancyDetail) {
     (this.$refs.floorOccupancyDetail as Vue & { fetchSecondFloorData: (timestamp: number) => void }).fetchSecondFloorData(this.currentTimestamp.valueTime);
+  }
+  if (this.$refs.floorOccupancyDetail) {
+    (this.$refs.floorOccupancyDetail as Vue & { fetchEquipmentFloorData: (timestamp: number) => void }).fetchEquipmentFloorData(this.currentTimestamp.valueTime);
   }
 }
   

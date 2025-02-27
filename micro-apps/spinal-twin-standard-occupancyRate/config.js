@@ -2,12 +2,10 @@ module.exports = {
     title: "OCCUPATION EN TEMPS RÉEL",
     chart: '%',
     compareBy: 'date',
-
-    // Cards title and subtitle
-    averageCardTitle: 'Titre de la card consommation au m²',
-    averageCardSubtitle: 'Description de la consommation au m²',
-    totalCardTitle: 'Title de la card totale',
-    totalCardSubtitle: 'Description de la card totale',
+    subtitle:'',
+    displayBuildingOccupancyChart: true,
+    displayEquipmentChart: true,
+    displayMeetingRoomChart: true,
 
     controlEndpoints: [
         {
@@ -16,20 +14,15 @@ module.exports = {
             max: 100,
             name: 'taux d\'occupation',
             color: '#A7001E',
-            unit: '%',
             stackGroup: '1',
             title: 'Taux d\'occupation',
             subtitle: 'today',
             todayTitle: 'today',
             averageTitle: 'Taux d\'occupation moyen',
-            averageSubtitle: '',
             totalTitle: 'Taux d\'occupation total',
-            totalSubtitle: 'Par rapport à la période précédente',
             root: false,
         }
     ],
-    
-    cards: ['total', 'average', 'today'],
     temporalities: ['Valeur Courante', 'Journée', 'Semaine', 'Mois', 'Trimestre', 'Année', 'Décennie'],
 
     apiEndpoints: {
@@ -48,8 +41,39 @@ module.exports = {
         contextList: 'building/{buildingId}/context/list',
         contextTree: 'building/{buildingId}/context/{contextId}/tree/{numberOfLevel}/depth',
         floorAttributes: 'building/{buildingId}/node/{dynamicId}/attributsList',
+        // New API endpoints for equipment groups
+        equipmentContextList: 'building/{buildingId}/equipementsGroup/list',
+        equipmentCategoryList: 'building/{buildingId}/equipementsGroup/{contextId}/category_list',
+        equipmentGroupList: 'building/{buildingId}/equipementsGroup/{contextId}/category/{categoryId}/group_list',
+        equipmentList: 'building/{buildingId}/equipementsGroup/{contextId}/category/{categoryId}/group/{groupId}/equipementList',
+        equipmentPositions: 'building/{buildingId}/equipment/get_position_multiple',
     },
-    filters: {
+    
+    entryPoints: [
+        {
+            context: 'Gestion des espaces',
+            category: 'Typologie',
+            group: 'Salle de réunion',
+            type: 'geographicRoomGroup',
+        },
+        {
+            context: 'Gestion des équipements',
+            category: 'Typologie',
+            group: 'Positions de travail',
+            type: 'BIMObjectGroup',
+            
+        },
+    ],
+    sources: [
+        {
+            profileName: 'Occupation',
+            name: "Taux d'occupation",
+            type: 'Occupation', 
+        }
+    ]
+};
+
+/*     filters: {
         occupationRate: 'taux d\'occupation',
         floor: 'floor',
         room: 'room',
@@ -59,12 +83,16 @@ module.exports = {
         type: 'Occupation'
     },
     contextNames: {
-        gestionDesEspaces: 'Gestion des espaces', 
+        gestionDesEspaces: 'Gestion des espaces',
+        gestionDesEquipements: 'Gestion des équipements',
+
     },
     categoryNames: {
         typologie: 'Typologie',
     },
     groupNames: {
         meetingRoom: 'Salle de réunion',
-    }
-};
+        workPositions: 'Positions de travail',
+
+ 
+    },*/

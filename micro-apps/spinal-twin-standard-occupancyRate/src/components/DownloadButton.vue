@@ -17,8 +17,7 @@
           :class="{ inside: hover }"
           elevation="8"
         >
-          <v-icon :class="{ inside: hover }" style="color: #bfbfbf; padding: 3px"
-            >mdi-file-download</v-icon
+          <v-icon :class="{ inside: hover }" style="color: #bfbfbf; padding: 3px">mdi-file-download</v-icon
           >
         </v-card>
       </v-card>
@@ -79,7 +78,7 @@
           "data:text/csv;charset=utf-8," + encodeURIComponent(tableur.join(""));
         a.target = "_blank";
         // download indique que le lien est à télécharger. le nom une fois téléchargé est donné comme valeur
-        a.download = `li 7wak.csv`;
+        a.download = `your file.csv`;
         // déclenche l'événement onClick sur le lien
         a.click();
       },
