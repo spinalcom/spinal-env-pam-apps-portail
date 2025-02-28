@@ -1,13 +1,45 @@
 <template>
-      <div
-        v-if="dialog"
-        class="dialog"
-      >
-        <form ref="form"   @submit.prevent="updateEndpoint">
-            <div class="title">
-                <h3>Modification</h3>
-                <v-icon class="close" @click.stop="close()">mdi-close</v-icon>
+    <div
+    v-if="dialog"
+    class="dialog"
+    @click.stop=""
+    >
+    <div class="box-content">
+        <div class="title">
+            <h3>Modification</h3>
+            <v-icon class="close" @click.stop="close()">mdi-close</v-icon>
+        </div>
+        <div  v-if="!endpoint.name">
+            <div style="padding-left: 25px; display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" v-model="all" name="all" id="" style="accent-color: #14202C;">
+                <label for="all" style="font-size: 16px; color: #14202C; font-weight: 700">Tout le groupe</label>
             </div>
+            
+        </div>
+      <form v-if="all" ref="allEndpopint" @submit.prevent="updateEndpoint">
+        <div v-if="all" style="padding: 20px;">
+            <label for="allValue">
+                <span style="font-size: 16px; color: #14202C; font-weight: 700">Valeur pour tous les endpoints</span><br />
+                <span>{{ endpointName }}</span>
+            </label>
+                    <input type="text" name="allValue" id="allValue">
+        </div>
+        <div class="action">
+            <v-btn 
+            depressed
+            color="#d1d5db"                
+            class="ma-2" @click.stop="close()">Annuler</v-btn>
+            <v-btn 
+          dense
+          class="ma-2" 
+          color="#14202C"
+          type="submit"
+            @click.stop=""
+            style="color: #fff; font-weight: 600; font-size: 16px;">Confirmer</v-btn>
+        </div>
+      </form>
+        <form v-if="!all" ref="form"   @submit.prevent="updateEndpoint">
+            
                 <div class="edit_singleEndpoint" v-if="endpoint.name">
                     <label  :for="endpoint.endpoint.dynamicId">
                         <div style="display: flex; flex-direction: column; gap: 5px;">
@@ -20,6 +52,7 @@
                             {{ endpoint.endpoint.name}}
                         </span>
                         <input
+                        @click.stop=""
                         :name="endpoint.endpoint.dynamicId"
                         :id="endpoint.endpoint.dynamicId"
                         v-model="endpoint.endpoint.value"
@@ -28,7 +61,7 @@
                         />
                     </label>
                 </div>
-            <div class="content-form" v-if="endPointList.length > 0">
+                <div class="content-form" v-if="endPointList.length > 0 && !all">
                 <div class="grid" >
                     <label class="item" v-for="(item, idx) in endPointList" :for="item.endpoint.dynamicId">
                     <div style="display: flex; flex-direction: column; gap: 5px;">
@@ -41,6 +74,7 @@
                             {{ item.endpoint.name}}
                         </span>
                         <input
+                        @click.stop=""
                         :name="item.endpoint.dynamicId"
                         :id="item.endpoint.dynamicId"
                         v-model="item.endpoint.value"
@@ -55,20 +89,23 @@
                 <v-btn 
                 depressed
                 color="#d1d5db"                
-                class="ma-2" @click="close()">Annuler</v-btn>
+                class="ma-2" @click.stop="close()">Annuler</v-btn>
               <v-btn 
-                dense
+              dense
               class="ma-2" 
               color="#14202C"
               type="submit"
-               style="color: #fff; font-weight: 600; font-size: 16px;">Confirmer</v-btn>
+              @click.stop=""
+              style="color: #fff; font-weight: 600; font-size: 16px;">Confirmer</v-btn>
             </div>
         </form>
-      </div>
-  </template>
+    </div>
+    </div>
+</template>
 
 <script lang="ts">
 import { ActionTypes } from '../interfaces/vuexStoreTypes';
+import { MutationTypes } from '../services/store/appDataStore/mutations';
 
     export default  {
         name: "EditEndpoint",
@@ -89,6 +126,8 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
         isGroup: false,
         endPointList: [] as any,
         endpoint: {} as any,
+        endpointName: '',
+        all: false
       }
     },
 
@@ -96,6 +135,10 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
         _dialog : function (val) {
             this.dialog = val;
             this.loadData();
+            if(this.dialog) {
+                this.$store.commit(MutationTypes.SET_ENABLERELOAD, false);
+            }
+
         }
     },
     methods: {
@@ -113,14 +156,15 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
                     endpointList.push(endpointChild);
                 });
                 this.endPointList = endpointList;
+                this.endpointName = this.item.children[0].endpoint.name;
             } else {
-                const endpointValue = 
+                this.endpoint = 
                 {
                     color: this.item.color,
                     name : this.item.name,
                     endpoint: this.item.endpoint
                 }
-                this.endpoint = endpointValue;
+
 
 
             }
@@ -129,9 +173,11 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
 
         close (){
             this.dialog = false;
+            this.all = false;
             this.endPointList = [];
             this.endpoint = {};
             this.$emit('close');
+            this.$store.commit(MutationTypes.SET_ENABLERELOAD, true);
         },
         checkIfGroup(item: any) {
             const type = item.type;
@@ -140,10 +186,19 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
         
         updateEndpoint() {
             const buildingId = localStorage.getItem('idBuilding');
-            const formElement = this.$refs.form as HTMLFormElement; 
-            const formData = new FormData(formElement);
+           const formElement = this.all ? this.$refs.allEndpopint as HTMLFormElement : this.$refs.form as HTMLFormElement;
+           const formData = new FormData(formElement);
+           if(this.all) {
+            let dynamicIds: number[] = [];
+            this.endPointList.forEach((item: any) => {
+                dynamicIds.push(item.endpoint.dynamicId);
+            })
+            
+            formData.append('dynamicIds', JSON.stringify(dynamicIds));
+           }
+           
             this.$store.dispatch(ActionTypes.UPDATE_ENDPOINT, {buildingId, formData}).then((res) => {
-                if(res.status === 200) {
+                if(res.success) {
                     console.log('updated: ', res);
                     this.$emit('update',  {
                         status: 'success',
@@ -159,7 +214,7 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
                 this.$emit('update',  {
                     status: 'error',
                     statusCode: 500,
-                    text: 'Erreur lors de la synchronisation',
+                    text: 'Erreur lors du pilotage',
                     data: error
                 });
             });
@@ -191,9 +246,8 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
     visibility: visible;
     transform: scale(1);
 }
- 
- form {
-    width: 60%;
+.box-content  {
+    width: 70%;
     min-height: 200px;
     max-height: calc(100% - 20%);
     background-color: #ffffff;
@@ -205,17 +259,33 @@ import { ActionTypes } from '../interfaces/vuexStoreTypes';
     flex-direction: column;
     gap: 10px;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
- }
-form .title {       
+}
+ 
+ form {
     width: 100%;
-    padding: 20px;
+    min-height: 200px;
+    max-height: calc(100% - 20%);
+    background-color: #ffffff;
+    border-radius: 10px;
+    /* border: 1px solid #14202C; */
+    position: relative;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+ }
+.box-content .title {       
+    width: 100%;
+    height: max-content;
+    padding: 10px;
     background-color: #d3d3d3e6;
     color: #14202C;
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    border-radius: 5px;
+    border-radius: 7px;
     font-size: 20px;
+    font-weight: bold;
 }
 .close {
     position: absolute !important;
@@ -257,7 +327,7 @@ form .title {
     color: #14202C;
 }
 
- input {
+ input[type="text"] {
     width: 100%;
     height: 30px;
     border: 1px solid #14202C;

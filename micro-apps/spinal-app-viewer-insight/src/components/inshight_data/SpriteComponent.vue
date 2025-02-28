@@ -1,17 +1,17 @@
 <template>
-  <div class="sprite_container" ref="container" @click.stop="onClick">
+  <div class="sprite_container_insight" ref="container" @click.stop="onClick">
     <div
-      class="sprite_color"
+      class="sprite_color_insight"
       :style="{ background: data.color, ...dynamicStyle, zIndex: 1 }"
     ></div>
     <div
       v-if="roundedValue"
-      class="sprite_value_unit"
+      class="sprite_value_unit_insight"
       :style="{ ...dynamicStyle, zIndex: 0 }"
     >
       {{ roundedValue }}
     </div>
-    <CurrentCardOnSprite v-if="showCardcurrentValue" :data="currentData" :on3D="false" @close="closeCard" />
+    <CurrentCard v-if="showCardcurrentValue" :data="currentData" :on3D="false" @removeCard="closeCard" />
     
     <div class="card-menu" v-if="displayChart">
       <Loader  v-if="showLoader" />
@@ -173,10 +173,11 @@ import { getLabels, getValues } from "../../services/calcul/computeChart";
 import { ITemporality } from "../../interfaces/IConfig";
 import moment from "moment";
 import "moment/locale/fr";
-import CurrentCardOnSprite from "./CurrentCardOnSprite.vue";
+import CurrentCard from "./CurrentCard.vue";
 import {config} from '../../config';
 import { getControlEndpointList, getTimeSeriesAsync } from '../../services/spinalAPI/endpoints/getEndpoints';
 import Loader from './loader.vue'
+import CurrentCard from "./CurrentCard.vue";
 
 moment.locale("fr", {
   months: [
@@ -224,8 +225,8 @@ export default {
   name: "SpriteComponent",
   components: {
     LineChart,
-    CurrentCardOnSprite,
-    Loader
+    Loader,
+    CurrentCard
   },
   props: {
     data: {},
@@ -506,15 +507,15 @@ export default {
 </script>
 
 <style scoped>
-.color {
+.color_insight {
   width: 7px;
   height: 12px;
   margin-right: 4px;
   border-radius: 3px;
 }
 
-.sprite_container {
-  width: "fit-content";
+.sprite_container_insight {
+  width: fit-content;
   height: "fit-content";
   background: none;
   box-shadow: none;
@@ -522,21 +523,22 @@ export default {
   display: flex;
   flex-direction: row;
   align-items: center;
+  
 }
-.sprite_color {
+.sprite_color_insight {
   width: 20px;
   height: 20px;
-  border-radius: 100%;
-  z-index: 1;
+  border-radius: 50%;
+  z-index: 2;
 }
-.sprite_value_unit {
-  border-radius: 100px;
+.sprite_value_unit_insight {
+  border-radius: 15px !important;
   color: #14202c;
   margin-left: -15px;
   padding-left: 15px;
-  padding-right: 5px;
-  padding-bottom: 1px;
-  height: 20px;
+  padding-right: 2px;
+  padding-bottom: 0.5px;
+  height: max-content;
   font-size: 14px;
   background: #f9f9f9;
   z-index: 1;

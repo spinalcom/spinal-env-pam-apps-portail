@@ -56,36 +56,39 @@ export default {
 
     data() {
         return {
-            indcateur: []
+            indcateur: [],
+            endpointName: '',
+            endpointValue: '',
+            endpointUnit: '',
         }
     },
     computed: {
-        endpointName() {
-            return this.data.endpoint.name;
-        },
-        endpointValue() {
-        const value = this.data.endpoint.value;
-        if(typeof value === 'boolean') {
-            return value ? 1 : 0;
-        }
-        else if(value == null) {
-            return 'NaN';
-        }
-        else  {
-            return value;
-        }
-        },
-        endpointUnit() {
-            return this.data.endpoint.unit;
-        }
 
     },
     mounted() {
       this.getCurrentEndpoint();
+        this.endpointName = this.data.endpoint.name;
+        const value = this.data.endpoint.value;
+        if(typeof value === 'boolean') {
+            this.endpointValue = value ? 1 : 0;
+        }
+        else if(value == null) {
+            this.endpointValue = 'NaN';
+        }
+        else  {
+            this.endpointValue = this.fixedValue(value);
+        }
+        this.endpointUnit = this.data.endpoint.unit;
     },
     methods : {
         showCardCurrentValue() {
             this.showCardcurrentValue = true;
+        },
+        fixedValue(value) {
+            if(Number(value) === value && value % 1 !== 0) {
+                return value.toFixed(2);
+            }
+            return value;
         },
       
         hideCardCurrentValue() {

@@ -52,24 +52,18 @@ export async function calculItemsValue(
 
 export function getColor(item, legend, percent = false) {
   const value = item.displayValue;
-
   if (isNaN(value) || !isFinite(value)) return "#808080";
-
-  const { min, max } = percent
-    ? { min: 0, max: 100 }
-    : { min: legend.min.value, max: legend.max.value };
-
-  if (legend.median) {
-    const third = min + (max - min) / 3;
-    const two_third = min + ((max - min) * 2) / 3;
-
-    if (value <= third) return legend.min.color;
-    if (value <= two_third) return legend.median.color;
-    return legend.max.color;
+    const intervale  = ((legend.max.value - legend.min.value) / 3).toFixed(0);
+    if(value < legend.min.value + parseInt(intervale)) {
+      return legend.min.color
+    }
+    else if(value < legend.median.value + parseInt(intervale)) {
+      return legend.median.color
+    }
+  else {
+    return legend.max.color
   }
-
-  const mid = (min + max) / 2;
-  return value <= mid ? legend.min.color : legend.max.color;
+ 
 }
 
 async function getValue(

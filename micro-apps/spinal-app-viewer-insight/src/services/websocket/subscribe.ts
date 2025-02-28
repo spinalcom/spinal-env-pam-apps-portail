@@ -15,6 +15,7 @@ export const subscribe = (socket, elements: any [], options, firstCall?: Functio
 function getNewEvents(socket: Socket, firstCall?: Function): Promise<string[]> {
     return new Promise((resolve, reject) => {
         const queue = new Queue();
+        let alreadySubscribed = new Map();
 
         socket.on("subscribed", (result) => {
           if (!Array.isArray(result)) result = [result];
@@ -24,16 +25,20 @@ function getNewEvents(socket: Socket, firstCall?: Function): Promise<string[]> {
               console.error(error);
               return;
             }
-
+            
             for (const eventName of eventNames) {
-              console.log(`Subscribed to ${eventName}`);
+              if(alreadySubscribed.has(eventName)) return;
+              alreadySubscribed.set(eventName, true);
+            }
+            for(const eventName of alreadySubscribed.keys()) { 
               socket.once(eventName, (data) => {
                 if(firstCall && typeof firstCall === "function") firstCall(data);
               });
-            }
 
+            }
             queue.addToQueue(eventNames);
           });
+          // console.log("alreadySubscribed: ", alreadySubscribed); 
         })
 
         queue.on("end", () => {

@@ -110,7 +110,6 @@ export default {
 
   computed: {},
   async mounted()  {
-    console.log('donnée auto legend: ', this.data)
     const childrenAlt = this.data.map((el) => el.children);
     let endpointalt = []
     await childrenAlt.map((el) => {
@@ -135,7 +134,7 @@ export default {
       return Math.max(...validValues.map((el) => el.displayValue)).toFixed(2);
     },
     minDataValue(data) {
-      const validValues = data.filter((el) => el.displayValue && !isNaN(el.displayValue));
+      const validValues = data.filter((el) => !isNaN(el.displayValue));
       return Math.min(...validValues.map((el) => el.displayValue)).toFixed(2);
     },
     autoLengende(){
@@ -151,12 +150,15 @@ export default {
     selectConfig() {
       this.$emit("input", {
         min: {
-          value: parseFloat(this.minValue).toFixed(2),
+          value: parseInt(this.minValue).toFixed(2),
           color: this.minColor,
         },
-        median: this.selectMedian ? { color: this.medianColor } : undefined,
+        median: {
+          value: ( parseInt(this.maxValue) + parseInt(this.minValue)) / 2,
+          color: this.medianColor,
+        },
         max: {
-          value: parseFloat(this.maxValue).toFixed(2),
+          value: parseInt(this.maxValue).toFixed(2),
           color: this.maxColor,
         },
       });

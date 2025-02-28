@@ -55,6 +55,7 @@ export enum MutationTypes {
   SET_SOCKET = "SET_SOCKET",
   SET_SUBSCRIBED = "SET_SUBSCRIBED",
   SET_REAL_TIME_DATA = "SET_REAL_TIME_DATA",
+  SET_ENABLERELOAD = "SET_ENABLERELOAD",
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -90,6 +91,7 @@ export type MutationsAppData<S = StateAppData> = {
   [MutationTypes.SET_SOCKET](state: StateAppData, socket: any): void;
   [MutationTypes.SET_SUBSCRIBED](state: StateAppData, subscribed: boolean): void;
   [MutationTypes.SET_REAL_TIME_DATA](state: StateAppData, data: any[]): void;
+  [MutationTypes.SET_ENABLERELOAD](state: StateAppData, enablereload: boolean): void;
 };
 
 export const mutations: MutationTree<StateAppData> & MutationsAppData = {
@@ -168,7 +170,6 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
     state.t_index = index;
   },
   [MutationTypes.SET_DATA](state: StateAppData, data: INodeItemTree[]): void {
-    console.log("SET_DATA", state);
     state.data = data;
   },
 
@@ -186,6 +187,9 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
   },
   [MutationTypes.SET_REAL_TIME_DATA](state: StateAppData, data): void {
     state.realTimeData = data;
+  },
+  [MutationTypes.SET_ENABLERELOAD](state: StateAppData, enablereload: boolean): void {
+    state.enablereload = enablereload;
   },
  
 

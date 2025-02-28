@@ -150,14 +150,14 @@ with this file. If not, see
                 </v-btn>
               </div>
               <!-- rafraichissement des données -->
-              <div v-if="!realTime">
+              <div v-if="!realTime && !navigable && enablereloadValue">
                 <v-progress-circular :rotate="-90" :size="40" :width="2" color="purple" :value="reload_countdown"
                   @click="reload()">
                   <v-icon>mdi-reload</v-icon>
                 </v-progress-circular>
 
               </div>
-              <Checkbox @change="enableWebsocket" :label="'En temps réel'" />
+              <Checkbox @change="enableWebsocket" v-if="!navigable" :label="'Temps réel'" />
             </div>
 
             <!-- selection de la source et du regroupement -->
@@ -370,16 +370,18 @@ class InsightApp extends Vue {
   //Websocket
   socket: null | Socket = null;
   realTime: boolean = false;
+  enablereloadValue: boolean = this.$store.state.appDataStore.enablereload;
   buildingId = localStorage.getItem('idBuilding');
   requestOption = {
     subscribeChildren: true,
     subscribeChildScope: 'tree_in_context',
   }
 
+
   elementContext: string[] = [];
   async enableWebsocket(val) {
     this.realTime = val;
-    if (val) {
+    if (this.realTime) {
       //teste si le websocket est déja connecté
       if (!this.socket || !this.socket.connected) {
         // connexion au websocket
@@ -404,10 +406,9 @@ class InsightApp extends Vue {
             elementContext_alt.push(`${contextId}/${el.dynamicId}`);
           });
           this.elementContext = elementContext_alt;
-          console.log('element Context: ', this.elementContext);
         }
         const events = await subscribe(this.socket, this.elementContext, this.requestOption, (data) => {
-          console.log('websocket data first: ', data);
+          // this.myWebsocketCallBack(data)
         })
         // parcourir les events 
         this.listenEvents(events);
@@ -426,8 +427,6 @@ class InsightApp extends Vue {
     try {
       for (const eventName of events) {
         this.socket!.on(eventName.toString(), (data) => {
-          console.log('websocket data: ', data);
-
           this.myWebsocketCallBack(data)
         });
       }
@@ -437,44 +436,22 @@ class InsightApp extends Vue {
 
   }
 
-  myWebsocketCallBack(data) {
-    console.log('websocket data: ', data);
+  async myWebsocketCallBack(data) {
+    const value = {
+      dynamicId: data.data.node.dynamicId,
+      name: data.data.node.element.name,
+      value: data.data.node.element.currentValue,
+      unit: data.data.node.element.unit
+    }
+    const stateupdate = await this.$store.dispatch(ActionTypes.WEBSOCKET_CALLBACK, {data: value});
+
+    this.$store.commit(MutationTypes.SET_DATA, stateupdate);
+    this.regroupItemsAndCalculate(true)
+    this.updateDataOnTimeChanged();
+    
   }
 
-  //  async enableWebsocket(val: boolean) {
-  //     this.realTime = val;
-  //     if(this.$store.state.appDataStore.data.length > 0){
-  //      const children = this.$store.state.appDataStore.data[0].children;
-
-  //    this.socket.on('connect', () => {
-  //         console.log('websocket connected');
-  //     })
-  //     this.socket.on('disconnect', (reason) => { 
-  //         console.log('websocket disconnected', reason);
-  //     })
-
-  //     this.socket.on('connect_error', (error) => {
-  //         console.log('error', error);
-  //      })
-  //     const endpointList = children.map((el) => el.endpoint);
-  //     const context = await getContextId(this.buildingId);
-  //     //context ID
-  //     const contextId = context[0].dynamicId;
-  //     //request Options
-  //     const requestOptions = {
-  //         subscribeChildren: true,
-  //         subscribeChildScope: 'tree_in_context',   
-  //     }
-  //     endpointList.map(async (el: any) =>{
-  //          this.elementContext.push(`${contextId}/${el.dynamicId}`);
-  //      });
-
-  //     }
-  //     console.log('elementContext : ', this.elementContext);
-  //     subscribe(this.socket, this.elementContext, this.requestOption, (data: any) => {
-  //       console.log('websocket data: ', data);
-  //     })
-  //   }
+ 
 
   regroupItemsAndCalculateDebounced: any = lodash.debounce(
     this.regroupItemsAndCalculate.bind(this),
@@ -498,6 +475,7 @@ class InsightApp extends Vue {
   }
 
   public get medianValue() {
+    console.log('median : ', this.legend.median);
     return (
       this.legend.median?.value ||
       (this.legend.max.value + this.legend.min.value) / 2
@@ -753,15 +731,7 @@ class InsightApp extends Vue {
       case ITemporality.hour:
         if (!this.t_index) return 'Dernière heure';
         currentDay.add(this.t_index, 'hours');
-<<<<<<< HEAD
         end = moment(currentDay).add(this.t_index, 'hours');
-=======
-        end = moment(currentDay).add(1, 'hours');
-        // const hours = this.getHoursBetweenDates(currentDay.add(this.t_index, 'hours').format('YY-MM-DD'));
-        // const groups = this.groupHoursByDate(hours);
-        // this.listDisplayDate = groups;
-        // console.log('Hours: ', this.listDisplayDate);
->>>>>>> 981db31 (add websocket)
         return (
           currentDay.format('DD/MM/YY HH[h]') + ' - ' + end.format('HH[h]')
         );
@@ -1108,14 +1078,25 @@ class InsightApp extends Vue {
     // }
   }
 
+ 
+ /**
+  * Computed
+  */
+  
+  get enablereload() {
+    return this.$store.state.appDataStore.enablereload;
+  }
+
   /**
    * Watchers
    */
 
-  @Watch('realTime')
-  watchRealTime(val) {
-    // this.enableWebsocket(val);
-  }
+   @Watch('enablereload')
+    watchEnablereload(val) {
+      console.log('enablereload : ', val);
+      this.enablereloadValue = val;
+    } 
+  
 
 
   @Watch('pageSate')
@@ -1164,6 +1145,9 @@ class InsightApp extends Vue {
 
   @Watch('reload_countdown')
   watchReloadCountdown() {
+    if(this.realTime) return;
+    if(!this.enablereloadValue) return;
+    
     if (this.reload_countdown > 100 && !this.realTime) this.reload();
   }
 
@@ -1202,12 +1186,16 @@ class InsightApp extends Vue {
   async watchSource(newVal) {
     if (!newVal) return;
     this.legend = this.config.source.find((el) => el.name === newVal).legend;
-
+    
     if (this.isBuildingSelected) return;
-
+    
     await this.regroupItemsAndCalculate(true);
     await this.updateSprites();
     this.updateChartSprite();
+    if(this.realTime) {
+      this.socket?.disconnect();
+      this.enableWebsocket(true);
+    }
   }
 
   @Watch('regroupementSelected')
@@ -1249,6 +1237,9 @@ class InsightApp extends Vue {
   async watchLegend() {
     if (this.isBuildingSelected) return;
     await this.updateSprites();
+    console.log('legend changed: ', this.legend);
+    this.regroupItemsAndCalculate(true);
+    this.updateChartData();
   }
 
   @Watch('selectedChartItems', { deep: true })

@@ -1,13 +1,10 @@
 <template>
     <div v-show="show" class="alert-content">
         <div style="width: 100%; padding: 10px; display: flex; align-items: center; gap: 10px;">
-            <!-- <v-icon
-                :color="currentIcon.color"
-                :style="{ border: '1px solid ' + currentIcon.color, borderRadius: '50%' }"
-            >
-                mdi-check
-            </v-icon> -->
-            <div class="loader"></div>
+            <div v-if="type_alert == 'success'" class="loader"></div>
+            <div v-if="type_alert == 'error'">
+                <v-icon style="color: #FF5252;">mdi-alert-circle</v-icon>
+            </div>
             <span class="message">{{ text }}</span>
             <v-icon @click="hideAlert" style="cursor: pointer;">
                 mdi-close

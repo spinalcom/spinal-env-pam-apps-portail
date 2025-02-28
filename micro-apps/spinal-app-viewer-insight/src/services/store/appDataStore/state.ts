@@ -54,5 +54,6 @@ export const state = {
   socket: null as any,
   subscribed: false,
   realTimeData: [] as any[],
+  enablereload: true as boolean,
 
 };

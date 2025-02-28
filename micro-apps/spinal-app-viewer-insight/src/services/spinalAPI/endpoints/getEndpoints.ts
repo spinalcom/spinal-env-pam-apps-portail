@@ -109,7 +109,7 @@ export async function getControlEndpointList(buildingId: string, dynamicId: numb
 
 // }
 
-export async function updateEndpoint(buildingId: string, endpointId: number, value: string, updateType: string) {
+export async function updateEndpoint(buildingId: string, endpointId: number, value: any, updateType: string) {
   const spinalApi = SpinalAPI.getInstance();
   const url = spinalApi.createUrlWithPlatformId(
     buildingId, 

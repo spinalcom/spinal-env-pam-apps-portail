@@ -27,7 +27,7 @@ with this file. If not, see
   class="dataView"
   :id="item.dynamicId"
   :class="{ subItem: !isTitle, isSelected: isSelected() }"
-  @click="clickEvent"
+  @click.stop="clickEvent"
   >
   <alert :show="showAlert" :text="messageAlert" :type_alert="typeAlert" />
   <edit-endpoint :_dialog="dialog" :item="edit_item" @close="closeEdit" @update="updateEndpointValue" />
@@ -39,7 +39,7 @@ with this file. If not, see
       <div>{{ unit }}</div>
     </div>
     <div class="name">{{ item.name }}</div>
-    <v-icon size="20" v-if="is_controllable" style="padding-right: 5px;" @click.stop="EditEndpoint(item)" >mdi-pencil-box-multiple</v-icon>
+    <v-icon size="20" v-if="is_controllable" style="padding-right: 5px;" @click.stop="EditEndpoint(item)" >mdi-square-edit-outline</v-icon>
     <div v-if="isChartPossible">
       <v-btn
         icon
@@ -119,7 +119,6 @@ export default {
 
   watch: {
     showAlert(newVal) {
-      console.log('newVal', newVal)
       if (newVal) {
         setTimeout(() => {
           this.showAlert = false;
@@ -130,7 +129,6 @@ export default {
 
   methods: {
     updateEndpointValue(response) {
-      console.log('response: ', response)
       if (response.statusCode === 200) {
         this.messageAlert = response.text;
         this.typeAlert = response.status;

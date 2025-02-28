@@ -78,19 +78,92 @@ const ApiIteratorStore: ApiIteratorStoreType &
 export const actions = {
 async [ActionTypes.UPDATE_ENDPOINT]({commit, state}: any, {buildingId, formData} : {buildingId: string, formData: FormData} ) {
     const updateType = ['currentValue', 'controlValue'];
-  for (let [key, value] of formData.entries()) {
-    try {
-      const update = await updateEndpoint(buildingId, parseInt(key), value.toString(), updateType[1]);
-        return update
-    } catch (error) {
-        throw error;
-    }
-    
-  }
+      if(formData.has('allValue')) {
+        const value = formData.get('allValue');
+        const dynamicIdValue = formData.get('dynamicIds');
+        const dynamicIds = dynamicIdValue ? JSON.parse(dynamicIdValue as string) : [];
+        let updatePromise: any[]  = [];
+        dynamicIds.forEach(async (dynamicId: number) => {
+          try {
+            const res = await updateEndpoint(buildingId, dynamicId, value, updateType[1]);
+            if(res.status === 200) {
+              updatePromise.push(
+                 {
+                  success: true,
+                  endpoint: res.data
+                 }
+              )
+            }
+          } catch (error) {
+            updatePromise.push(
+              {
+                success: false,
+                endpoint: null
+              }
+            )
+          }
+        })
+        const result = await Promise.all(updatePromise);
+        const allSuccess = result.every((el) => el.success === true);
+        if(allSuccess){
+          return {success: true, data: result};
+        }
+        else {
+          return {success: false, data: result};
+        }
 
+      } else {
+        
+            let updatePromise: any[]  = [];
+            for (let [key, value] of formData.entries()) {
+              try {
+                const res = await updateEndpoint(buildingId, parseInt(key), value, updateType[1]);
+                if(res.status === 200) {
+                  updatePromise.push(
+                     {
+                      success: true,
+                      endpoint: res.data
+                     }
+                  )
+                }
+              } catch (error) {
+                updatePromise.push(
+                  {
+                    success: false,
+                    endpoint: null
+                  }
+                )
+                console.error(error);
+              }
+            }
+            const result = await Promise.all(updatePromise);
+            const allSuccess = result.every((el) => el.success === true);
+            if(allSuccess){
+              return {success: true, data: result};
+            }
+            else {
+              return {success: false, data: result};
+            }
+        
+      }
 },
 
+async [ActionTypes.WEBSOCKET_CALLBACK]({commit, state}: any, {data} : {data: any} ) {
 
+
+  // on parcours le state pour voir si on a des données qui correspondent à celles reçues afin de les mettre à jour
+  state.data.forEach((el: any) => {
+    el.children.forEach((child: any) => { 
+        if(child.endpoint.dynamicId === data.dynamicId) {
+          child.endpoint.value = data.value;
+          console.log('match found', child.endpoint.value);
+          
+        }
+        
+    })
+  })
+  return state;
+},
 
   async [ActionTypes.GET_BUILDINGS](
     { commit, state }: AugmentedActionContextAppData,
