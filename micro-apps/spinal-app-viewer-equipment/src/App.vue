@@ -399,7 +399,12 @@ class App extends Vue {
     if (!items) return;
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, null);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, []);
-    this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, items);
+    console.log('items', items);
+    console.log('selectedZone', this.selectedZone);
+    const obj = {
+      dynamicId: this.selectedZone.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId 
+    }
+    this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, obj);
   }
 
   async fitToView(item: TGeoItem | TGeoItem[]) {

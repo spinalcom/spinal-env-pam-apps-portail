@@ -119,8 +119,15 @@ async function processPositionType(position_type, buildingId, allLists) {
     }, []);
 
     
+    const readPromises = chunkedRoomIds.map(ids => getNodeReadMultiple(buildingId, ids, true, false));
+    const readResults = await Promise.allSettled(readPromises);
 
-    const nodeReads = await getNodeReadMultiple(buildingId, roomIds,true,false);
+    const nodeReads = readResults.reduce((acc, result) => {
+        if (result.status === 'fulfilled') {
+            acc.push(...result.value);
+        }
+        return acc;
+    }, []);
 
     const newLists = allLists.map(obj => {
         const correctNode = nodeReads.find(node => node.dynamicId === obj.dynamicId);

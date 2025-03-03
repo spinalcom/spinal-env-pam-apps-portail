@@ -15,7 +15,7 @@
         style="position: absolute; right: calc(50% - 55px)"
       >
 
-      <v-btn
+      <!-- <v-btn
           @click="resetZoom"
           style="
             font-size: 14px !important;
@@ -26,7 +26,7 @@
         >
           Reset zoom
           <v-icon icon>mdi-cancel</v-icon>
-        </v-btn>
+        </v-btn> -->
 
         <div v-if="switchEnabled" class="d-flex flex-row justify-space-between">
           <v-icon icon class="pr-3" size="default">{{
@@ -135,11 +135,12 @@
     </v-card-title>
     <div class="d-flex flex-column flex-grow-1 flex-shrink-1">
       <LineChart
-      ref="myChart"
-      :chart-data="chartData"
-      :chart-options="lineChartOptions"
-      class="bar-height"
-      @chart-mounted="storeChartInstance"
+        ref="myChart"
+        :data="chartData"
+        :chart-id="'2'"
+        :options="lineChartOptions"
+        class="bar-height"
+        @mounted="storeChartInstance"
       />
     </div>  
   </v-card>
@@ -148,9 +149,9 @@
 <script>
 import 'chartjs-adapter-date-fns';
 import zoomPlugin from 'chartjs-plugin-zoom';
-// import { Line as LineChart } from 'vue-chartjs';
+import { Line as LineChart } from 'vue-chartjs';
 import { customBackgroundPlugin } from '../plugins/canvasPlugins';
-import  LineChart  from './LineChart.vue'
+// import  LineChart  from './LineChart.vue'
 import {
   Chart as ChartJS,
   Title,

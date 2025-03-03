@@ -5,7 +5,7 @@
       @click.stop="showSelection = !showSelection"
       class="breadcrumbs"
     >
-      <a href="#selected_ctx" class="breadcrumbs__item">{{ $store.state.appDataStore.user_selected.ctx }}</a>
+      <a href="#selected_ctx" class="breadcrumbs__item">{{ $store.state.appDataStore.user_selected.ctx || 'Cliquez ici pour parcourir des contextes' }}</a>
       <a href="#selected_cat" class="breadcrumbs__item" v-if="$store.state.appDataStore.user_selected.cat">{{ $store.state.appDataStore.user_selected.cat }}</a>
       <a href="#selected_cat" class="breadcrumbs__item" v-if="$store.state.appDataStore.user_selected.grp">{{ $store.state.appDataStore.user_selected.grp }}</a>
       <div v-if="selected_item" href="#selected_item" class="breadcrumbs__item">
