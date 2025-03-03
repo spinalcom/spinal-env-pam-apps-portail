@@ -24,7 +24,6 @@ with this file. If not, see
 <template>
 
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
-
     <div class="selectors">
       <div class="DButton">
         <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()" />

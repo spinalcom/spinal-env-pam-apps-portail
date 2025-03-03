@@ -1,7 +1,7 @@
 <template>
   <div style="cursor: pointer;" ref="container" class="sprite_container">
 
-    <div class="sprite_color"  :style="{ background: this.data.color , border : '3px solid #F9F9F9'}"></div>
+    <div class="sprite_color" :style="{ background: this.data.color, border: '3px solid' , borderColor: borderColor }"></div>
     <div v-if="data.attr"
       style="border-radius: 10px;top: 2px;left: 5px;text-overflow: ellipsis;max-width: 140px;white-space: nowrap;overflow: hidden;position: absolute;border-radius: 10px !important;min-width: 20px;height: 12px;background-color: rgb(255, 255, 255);color: black;padding-bottom: 4px;padding-left: 15px;font-size: 12px;padding-right: 5px;z-index: -1;"
       :title="findValueByLabel()">
@@ -23,6 +23,7 @@ import {
 } from "spinal-viewer-event-manager";
 import { EventBus } from "../../../../../global-components/SpaceSelector/eventBus";
 import { error } from "console";
+import { EventBus } from '../../../../../global-components/SpaceSelector/eventBus';
 
 export default {
   props: {
@@ -50,11 +51,24 @@ export default {
     dynamicStyle: {
       border: "3px solid #F9F9F9",
       boxShadow: "none",
-      background:'blue'
+      background: 'blue'
     },
     isClicked: false,
+    borderColor: '#F9F9F9',
+    startingColor: ''
   }),
   mounted() {
+
+
+    EventBus.$on('closeComponent', async () => {
+      this.data.color = this.startingColor
+      this.isClicked = false;
+      this.borderColor = '#F9F9F9'
+     return
+    });
+
+
+    this.startingColor = this.data.color
     document.addEventListener("click", (evt) => {
       const flyoutEl = this.$refs.container;
       let targetEl = evt.target;
@@ -133,11 +147,25 @@ export default {
 
 
     onClick() {
+
+      this.isClicked = true;
+      const emitterHandler = EmitterViewerHandler.getInstance();
+      emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
+      if (this.isClicked)
+        this._isSelected();
+      else {
+
+        this._isNotSelected();
+      }
+
       EventBus.$emit('vignette', this.data);
 
     },
     _isSelected() {
-      this.data.color = 'cyan'
+      console.log('hihihihihihi');
+
+      // this.data.color = 'red'
+      this.borderColor = 'orange'
       this.isClicked = true;
       const enfant = this.$refs.container;
       if (enfant && enfant.parentElement) {
@@ -151,7 +179,7 @@ export default {
     },
     _isNotSelected() {
       this.showAttr = false;
-      this.data.color = 'blue'
+      this.data.color = this.startingColor
       this.isClicked = false;
       const enfant = this.$refs.container;
       if (enfant && enfant.parentElement) {
