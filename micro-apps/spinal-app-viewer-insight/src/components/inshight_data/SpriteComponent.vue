@@ -150,7 +150,7 @@
                   return this.toTooltipDate(context[0].raw.x);
                 },
                 label: (tooltipItem) => {
-                  return `${tooltipItem.parsed.y.toFixed(2)} ${data.unit}`;
+                  return `${tooltipItem.parsed.y.toFixed(2)} ${unit}`;
                 },
               },
             },
@@ -246,6 +246,7 @@ export default {
     endpoint: [],
     endpointName_selected: "",
     t_index: store.state.appDataStore.t_index,
+    unit: "",
     time: null,
     otherValues: [],
     switchChart: 'current',
@@ -312,12 +313,36 @@ export default {
       // Return the largest timestamp (the closest in the past)
       return pastTimestamps.reduce((prev, curr) => (curr > prev ? curr : prev));
   },
-    onClick() {
-      console.log('store: ', store.state.appDataStore.temporalitySelected)
+    async onClick() {
       if(store.state.appDataStore.temporalitySelected.name === "Valeur courante"){
         this.showCardcurrentValue = true;
       }
+      const idBuilding = localStorage.getItem("idBuilding");
+      this.endpointName_selected = this.data.endpoint.name;
+      this.unit = this.data.unit;
       this.currentData = this.data;
+      const endpoint = config.source;
+      console.log('room dynamicId: ', this.data);
+      const endpointList = await getControlEndpointList(idBuilding, this.data.dynamicId);
+      let controlPoints = [];
+      endpoint.forEach((item) => {
+        endpointList.forEach((el) => {
+          if (item.profileName === el.profileName) {
+            controlPoints.push(el);
+          }
+        });
+      });
+      let uniqueEndpoints = new Map();
+      endpoint.forEach((item) => {
+        controlPoints.forEach((el) => {
+          el.endpoints.forEach((end) => {
+            if (item.name === end.name) {
+              uniqueEndpoints.set(item.name, { name: item.name, dynamicId: end.dynamicId, unit: end.unit });
+            }
+          });
+        });
+      });
+      this.endpoint = Array.from(uniqueEndpoints.values());
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
       store.dispatch(ActionTypes.SELECT_SPRITES, [this.data.dynamicId]);
@@ -358,44 +383,43 @@ export default {
     },
     // Load chart data
     async loadEndpoint() {
-      this.endpointName_selected = this.data.endpoint.name;
-      const idBuilding = localStorage.getItem("idBuilding");
-      const endpoint = config.source;
-      const endpointList = await getControlEndpointList(idBuilding, this.data.dynamicId);
-      let controlPoints = [];
-      endpoint.forEach((item) => {
-        endpointList.forEach((el) => {
-          if (item.profileName === el.profileName) {
-            controlPoints.push(el);
-          }
-        });
-      });
-      let uniqueEndpoints = new Map();
-      endpoint.forEach((item) => {
-        controlPoints.forEach((el) => {
-          el.endpoints.forEach((end) => {
-            if (item.name === end.name) {
-              uniqueEndpoints.set(item.name, { name: item.name, dynamicId: end.dynamicId });
-            }
-          });
-        });
-      });
-      this.endpoint = Array.from(uniqueEndpoints.values());
+      // this.endpointName_selected = this.data.endpoint.name;
+      // const idBuilding = localStorage.getItem("idBuilding");
+      // const endpoint = config.source;
+      // const endpointList = await getControlEndpointList(idBuilding, this.data.dynamicId);
+      // let controlPoints = [];
+      // endpoint.forEach((item) => {
+      //   endpointList.forEach((el) => {
+      //     if (item.profileName === el.profileName) {
+      //       controlPoints.push(el);
+      //     }
+      //   });
+      // });
+      // let uniqueEndpoints = new Map();
+      // endpoint.forEach((item) => {
+      //   controlPoints.forEach((el) => {
+      //     el.endpoints.forEach((end) => {
+      //       if (item.name === end.name) {
+      //         uniqueEndpoints.set(item.name, { name: item.name, dynamicId: end.dynamicId });
+      //       }
+      //     });
+      //   });
+      // });
+      // this.endpoint = Array.from(uniqueEndpoints.values());
     },
     async changeChart(item) {
       this.showLoader = true;
+      this.unit = item.unit;
       this.endpointName_selected = item.name;
+      console.log('item selected: ', item);
       const dynamicId = item.dynamicId;
       this.t_index = store.state.appDataStore.t_index;
       this.updateDataOnTimeChanged();
       const {begin, end} = this.time;
       const buildingId = localStorage.getItem("idBuilding");
       const series = await getTimeSeriesAsync(buildingId ,dynamicId, begin, end);
-      console.log("series: ", series);
       const values = getValues(series);
-      console.log("values: ", values);
       const valuesTimestamps = Object.keys(values).map((key) => parseInt(key));
-      console.log("valuesTimestamps: ", valuesTimestamps);
       const data = this.labels.map((lab) => {
         // Find the closest past timestamp to the current label
         const closestTimestamp = this.findClosestPastTimestamp(lab, valuesTimestamps);
@@ -433,7 +457,7 @@ export default {
               moment(begin, "DD-MM-YYYY HH:mm:ss")
             )
           );
-          console.log(moment(end, "DD-MM-YYYY HH:mm:ss"), duration);
+          // console.log(moment(end, "DD-MM-YYYY HH:mm:ss"), duration);
           if (duration.asMonths() > 2) return moment(date).format("MMM");
           if (duration.asDays() > 1) return moment(date).format("D/M/YY");
           if (duration.asHours() > 1) return moment(date).format("HH[h]");
@@ -526,8 +550,8 @@ export default {
   
 }
 .sprite_color_insight {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   z-index: 2;
 }
@@ -536,8 +560,7 @@ export default {
   color: #14202c;
   margin-left: -15px;
   padding-left: 15px;
-  padding-right: 2px;
-  padding-bottom: 0.5px;
+  width: max-content !important;
   height: max-content;
   font-size: 14px;
   background: #f9f9f9;

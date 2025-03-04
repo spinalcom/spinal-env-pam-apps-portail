@@ -122,7 +122,7 @@ export default {
       if (newVal) {
         setTimeout(() => {
           this.showAlert = false;
-        }, 10000); // Notification disappears after 5 seconds
+        }, 7000); // Notification disappears after 5 seconds
       }
     },
   },
@@ -194,14 +194,14 @@ export default {
    const itemType = this.item.type;
     if(itemType.includes('Group')) {
       source = sources.find((el) => el.name === this.item.children[0].endpoint.name)
-     this.$store.state.appDataStore.temporalitySelected.name == "Valeur courante" ? this.is_controllable = source.controllable : this.is_controllable = false;
+     this.$store.state.appDataStore.temporalitySelected.name == "Valeur courante" ? this.is_controllable = source.controllable.on : this.is_controllable = false;
     }
     else {
        if(this.item.endpoint && this.item.endpoint.name) {
           source = sources.find((el) => el.name === this.item.endpoint.name);
        }
         if(source && source.controllable) {
-          this.$store.state.appDataStore.temporalitySelected.name == "Valeur courante" ?  this.is_controllable = source.controllable : this.is_controllable = false;
+          this.$store.state.appDataStore.temporalitySelected.name == "Valeur courante" ?  this.is_controllable = source.controllable.on : this.is_controllable = false;
         }
         else {
           this.is_controllable = false;

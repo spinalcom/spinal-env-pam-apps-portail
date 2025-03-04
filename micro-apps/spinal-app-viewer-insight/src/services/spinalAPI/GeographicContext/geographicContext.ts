@@ -74,6 +74,7 @@ export async function getRooms(
   floorDynId: number
 ): Promise<IZoneItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
+  console.log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
   const url = spinalAPI.createUrlWithPlatformId(
     buildingId,
     `api/v1/floor/${floorDynId}/room_list`

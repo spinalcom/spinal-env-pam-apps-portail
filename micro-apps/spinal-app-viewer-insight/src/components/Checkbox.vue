@@ -1,53 +1,76 @@
 <template>
-<div class="checkbox-wrapper-4">
-  <input class="inp-cbx" id="morning" v-model="checked" type="checkbox">
-  <label class="cbx" for="morning"><span>
-  <svg width="12px" height="10px">
-    
-  </svg></span><span class="label">{{label}}</span></label>
-  <svg class="inline-svg">
-    <symbol id="check-4" viewBox="0 0 12 10">
-      <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
-    </symbol>
-  </svg>
-</div>
+  <div class="checkbox-wrapper-4">
+    <input
+      :checked="checked_data"
+      @change="changeChecked" 
+      class="inp-cbx"
+      id="morning"
+      type="checkbox"
+    />
+    <label class="cbx" for="morning">
+      <span>
+        <svg width="12px" height="10px"></svg>
+      </span>
+      <span class="label">{{ label }}</span>
+    </label>
+    <svg class="inline-svg">
+      <symbol id="check-4" viewBox="0 0 12 10">
+        <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
+      </symbol>
+    </svg>
+  </div>
 </template>
 
 <script lang="ts">
-    export default {
-        name: 'Checkbox',
-        props: {
-            label : {
-                type: String,
-                required: true
-            }
-        },
-        data () {
-          return {
-            checked : false
-          }
-        },
-        watch: {
-            checked: {
-                immediate: true,
-                handler(val) {
-                    this.$emit('change', val);
-                }
-            }
-        }
+export default {
+  name: 'Checkbox',
+  props: {
+    label: {
+      type: String,
+      required: true
+    },
+    checkedValue: {
+      type: Boolean,
+      default: false
     }
+  },
+  data() {
+    return {
+      checked_data: this.checkedValue
+    }
+  },
+
+  watch: {
+    // Surveiller la prop checkedValue pour synchroniser checked_data
+    checkedValue(newVal) {
+      if (newVal !== this.checked_data) {
+        this.checked_data = newVal; // Assure que checked_data suit la prop
+      }
+    },
+    // Surveiller checked_data pour émettre l'événement 'change' lorsqu'il change
+    checked_data(newVal) {
+      this.$emit('change', newVal);
+    }
+  },
+
+  methods: {
+    changeChecked() {
+      // Mise à jour de checked_data à chaque fois que l'utilisateur change la case
+      this.checked_data = !this.checked_data; // Inverse la valeur de checked_data
+    }
+  }
+}
 </script>
 
-
 <style scoped>
-    .checkbox-wrapper-4 * {
+.checkbox-wrapper-4 * {
   box-sizing: border-box;
   color: white;
 }
 .label {
-    color: #14202C;
-    font-weight: 500;
-    font-size: 0.875em;
+  color: #14202C;
+  font-weight: 500;
+  font-size: 0.875em;
 }
 .checkbox-wrapper-4 .cbx {
   -webkit-user-select: none;
@@ -67,9 +90,11 @@
 .checkbox-wrapper-4 .cbx:hover {
   background: rgba(0, 255, 42, 0.06);
 }
+
 .checkbox-wrapper-4 .inp-cbx:checked + .cbx {
   background: rgba(0, 255, 42, 0.06);
 }
+
 .checkbox-wrapper-4 .cbx span {
   float: left;
   vertical-align: middle;

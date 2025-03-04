@@ -157,7 +157,7 @@ with this file. If not, see
                 </v-progress-circular>
 
               </div>
-              <Checkbox @change="enableWebsocket" v-if="!navigable" :label="'Temps réel'" />
+              <Checkbox @change="enableWebsocket" :checkedValue="socketisConnected" v-if="!navigable" :label="'Temps réel'" />
             </div>
 
             <!-- selection de la source et du regroupement -->
@@ -210,6 +210,12 @@ with this file. If not, see
                   <div class="value">{{ unit }}</div>
                   <div class="text">Pour l'étage {{ selectedZone.name }}</div>
                 </div>
+                <!-- Notif au pilotage de l'étage -->
+                <alert :show="showAlert" :text="messageAlert" :type_alert="typeAlert" />
+                <div>
+                  <v-icon size="20" style=" padding: 5px; cursor: pointer; background-color: #14202C; color: #ffff; border-radius: 5px;" @click.stop="controlFloor" >mdi-square-edit-outline</v-icon>
+                </div>
+                <EditEndpoint v-if="showEditForm" :item="itemGroup" @close="showEditForm = false" @update="updateEndpointValue" :allFloor="true" />
               </div>
             </div>
           </div>
@@ -298,6 +304,8 @@ import io, { Socket } from 'socket.io-client';
 import { subscribe } from '../../services/websocket/subscribe';
 import { getContextId } from '../../services/websocket/Current';
 import connectSocket from '../../services/websocket';
+import EditEndpoint from '../EditEndpoint.vue';
+import Alert from '../Alert.vue';
 moment.updateLocale('fr', {
   months: [
     'Janvier',
@@ -322,6 +330,8 @@ moment.updateLocale('fr', {
     CurrentCard,
     SelectTimesSeries,
     Checkbox,
+    EditEndpoint,
+    Alert
   },
   filters: {
     round(value) {
@@ -361,14 +371,22 @@ class InsightApp extends Vue {
   reload = function () { };
   ignoreViewerSelection: boolean = false;
   initiated: boolean = false;
-
+// Edit form variables
+  showEditForm: boolean = false;
+  itemGroup: any = null;
+  // End Edit form variables
   selectedItem: any = null;
   selectedItems: any[] = [];
-
+  //Notif values
+  showAlert: boolean = false;
+  messageAlert: string = '';
+  typeAlert: string = '';
+  //End Notif values
   intervalId: any;
   listDisplayDate: any[] = [{}];
   //Websocket
   socket: null | Socket = null;
+  socketisConnected: boolean = false;
   realTime: boolean = false;
   enablereloadValue: boolean = this.$store.state.appDataStore.enablereload;
   buildingId = localStorage.getItem('idBuilding');
@@ -389,21 +407,30 @@ class InsightApp extends Vue {
         this.socket?.on('connect', () => {
           console.log('websocket connected')
         })
-
+        this.socketisConnected = true;
 
 
 
 
         //Récupération des nodeId pour la souscription au websocket
+        let endpointList: any[] = [];
         if (this.$store.state.appDataStore.data.length > 0) {
-          const children = this.$store.state.appDataStore.data[0].children;
-          const endpointList = children.map((el) => el.endpoint);
+          const item = this.$store.state.appDataStore.data
+          console.log('item', item)
+          item.map((item: any) => {
+            item.children.map((el: any) => {
+              const value = el.endpoint.dynamicId
+              endpointList.push(value);
+            })
+          })
+          console.log('endpointList', endpointList);
+          
           const context = await getContextId(this.buildingId);
           //context ID
           const contextId = context[0].dynamicId;
           let elementContext_alt: any[] = [];
           endpointList.map(async (el: any) => {
-            elementContext_alt.push(`${contextId}/${el.dynamicId}`);
+            elementContext_alt.push(`${contextId}/${el}`);
           });
           this.elementContext = elementContext_alt;
         }
@@ -419,6 +446,14 @@ class InsightApp extends Vue {
           this.socket.disconnect();
           console.log('websocket disconnected');
         }
+      }
+    }
+    else {
+      //déconnexion du websocket
+      if (this.socket && this.socket.connected) {
+        this.socket.disconnect();
+        this.socketisConnected = false;
+        console.log('websocket disconnected');
       }
     }
   }
@@ -450,8 +485,42 @@ class InsightApp extends Vue {
     this.updateDataOnTimeChanged();
     
   }
+  async controlFloor() {
+    this.showEditForm = true;
+    const buildingId = localStorage.getItem('idBuilding');
+    let endpointList: any = [];
+    if(this.$store.state.appDataStore.data.length > 0) {
+      const item = this.$store.state.appDataStore.data
+      item.map((item: any) => {
+          item.children.map((el: any) => {
+            const value = {
+                dynamicId: el.dynamicId,
+                name: el.name,
+                displayValue: el.displayValue,
+                endpoint: el.endpoint,
+                type: el.type,
+            }
+            endpointList.push(value);
+          })
+      })
+      this.itemGroup = endpointList;
+    }
+  }
+  updateEndpointValue (response) {
+    if (response.statusCode === 200) {
+        this.messageAlert = response.text;
+        this.typeAlert = response.status;
+        this.showAlert = true;
+        
+      } else {
+        this.messageAlert = response.text;
+        this.typeAlert = response.status;
+        this.showAlert = true;
 
- 
+      }
+  }
+
+
 
   regroupItemsAndCalculateDebounced: any = lodash.debounce(
     this.regroupItemsAndCalculate.bind(this),
@@ -642,7 +711,10 @@ class InsightApp extends Vue {
     this.chartData = result;
   }
 
-  async mounted() {
+  async mounted() {    
+    if(this.socket) {
+      this.socket.disconnect();
+    }
     const lastDays = moment().subtract(1, 'days').format('YYYY-MM-DD');
     const hours = this.getHoursBetweenDates(lastDays);
     const groupedHours = this.groupHoursByDate(hours);
@@ -829,7 +901,7 @@ class InsightApp extends Vue {
           })
         );
       }
-
+      console.log('promises : ', promises);
       await Promise.all(promises);
       this.pageSate = PAGE_STATES.loaded;
     } catch (err) {
@@ -1086,10 +1158,23 @@ class InsightApp extends Vue {
   get enablereload() {
     return this.$store.state.appDataStore.enablereload;
   }
+ 
 
   /**
    * Watchers
    */
+
+
+
+
+   @Watch('showAlert')
+    watchShowAlert(val) {
+      if(val) {
+        setTimeout(() => {
+          this.showAlert = false;
+        }, 7000);
+      }
+    }
 
    @Watch('enablereload')
     watchEnablereload(val) {
@@ -1113,9 +1198,15 @@ class InsightApp extends Vue {
     this.updateSprites();
     this.updateChartSprite();
   }
+  @Watch('socketisConnected')
+  watchSocketisConnected(val) {
+    this.socketisConnected = val;
+  }
 
   @Watch('selectedZone')
   watchSelectedZone() {
+   this.enableWebsocket(false);
+    this.socketisConnected = false;
     if (this.selectedZone.type === 'building') {
       this.isBuildingSelected = true;
       this.$store.commit(MutationTypes.SET_DATA, []);
@@ -1186,7 +1277,6 @@ class InsightApp extends Vue {
   async watchSource(newVal) {
     if (!newVal) return;
     this.legend = this.config.source.find((el) => el.name === newVal).legend;
-    
     if (this.isBuildingSelected) return;
     
     await this.regroupItemsAndCalculate(true);
@@ -1207,6 +1297,7 @@ class InsightApp extends Vue {
 
   @Watch('selectedTime')
   async watchSelectedTime(newVal) {
+    console.log('selectedTime : ', newVal);
     if (this.isBuildingSelected) return;
     if (!this.t_index) await this.updateDataOnTimeChanged();
     // remise de la navigation temporelle à 0 au changement de temporalité
@@ -1485,6 +1576,7 @@ export default InsightApp;
       .calcul {
         width: 100%;
         display: flex;
+        justify-content: space-between;
 
         .select {
           width: 35%;

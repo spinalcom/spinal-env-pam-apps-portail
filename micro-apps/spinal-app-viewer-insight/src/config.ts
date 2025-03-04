@@ -61,7 +61,10 @@ export const config: IConfig = {
       type: "controlPoint",
       objectType: "rooms",
       unit: "%",
-      controllable: true,
+      controllable: {
+        on: true,
+        type: 'controlValue',
+      },
       legend: {
         min: { value: 0, color: "#24CBD9" },
         median: { value: 50, color: "#2077CE" },
@@ -74,7 +77,10 @@ export const config: IConfig = {
       type: "controlPoint",
       objectType: "rooms",
       unit: "",
-      controllable: false,
+      controllable: {
+        on: false,
+        valueControl: 'controlValue',
+      },
       legend: {
         min: { value: 0, color: "#00FF00" },
         median: { value: 0.5, color: "#FFFF00" },
@@ -87,7 +93,10 @@ export const config: IConfig = {
       type: "controlPoint",
       objectType: "rooms",
       unit: "",
-      controllable: false,
+      controllable: {
+        on: false,
+        valueControl: 'controValue',
+      },
       legend: {
         min: { value: 0, color: "#00FF00" },
         median: { value: 10, color: "#FFFF00" },

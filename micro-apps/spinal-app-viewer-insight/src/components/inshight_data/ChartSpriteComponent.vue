@@ -73,7 +73,7 @@
                   return this.toTooltipDate(context[0].raw.x);
                 },
                 label: (tooltipItem) => {
-                  return `${tooltipItem.parsed.y.toFixed(2)} ${data.unit}`;
+                  return `${tooltipItem.parsed.y.toFixed(2)} ${unit}`;
                 },
               },
             },
@@ -127,7 +127,7 @@
                   return this.toTooltipDate(context[0].raw.x);
                 },
                 label: (tooltipItem) => {
-                  return `${tooltipItem.parsed.y.toFixed(2)} ${data.unit}`;
+                  return `${tooltipItem.parsed.y.toFixed(2)} ${unit}`;
                 },
               },
             },
@@ -210,6 +210,7 @@ export default {
     },
     endpoint: [],
     endpointName_selected: "",
+    unit: "",
     t_index: store.state.appDataStore.t_index,
     time: null,
     otherValues: [],
@@ -302,6 +303,7 @@ export default {
     },
     async loadEndpoint() {
       this.endpointName_selected = this.data.endpoint.name;
+      this.unit = this.data.endpoint.unit;
       const idBuilding = localStorage.getItem("idBuilding");
       const endpoint = config.source;
       const endpointList = await getControlEndpointList(idBuilding, this.data.dynamicId);
@@ -318,7 +320,7 @@ export default {
         controlPoints.forEach((el) => {
           el.endpoints.forEach((end) => {
             if (item.name === end.name) {
-              uniqueEndpoints.set(item.name, { name: item.name, dynamicId: end.dynamicId });
+              uniqueEndpoints.set(item.name, { name: item.name, dynamicId: end.dynamicId, unit: item.unit });
             }
           });
         });
@@ -329,6 +331,7 @@ export default {
       this.showLoader = true;
       this.endpointName_selected = item.name;
       const dynamicId = item.dynamicId;
+      this.unit = item.unit;
       this.t_index = store.state.appDataStore.t_index;
       this.updateDataOnTimeChanged();
       const {begin, end} = this.time;
@@ -410,7 +413,6 @@ export default {
   }
   },
   async mounted() {
-    console.log("t index : ", store.state.appDataStore.t_index);
     await this.loadEndpoint();
   },
   async created() {

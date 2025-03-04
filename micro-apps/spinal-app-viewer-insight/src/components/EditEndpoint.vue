@@ -9,14 +9,37 @@
             <h3>Modification</h3>
             <v-icon class="close" @click.stop="close()">mdi-close</v-icon>
         </div>
-        <div  v-if="!endpoint.name">
+        <div  v-if="!endpoint.name && !allFloor">
             <div style="padding-left: 25px; display: flex; align-items: center; gap: 5px;">
-                <input type="checkbox" v-model="all" name="all" id="" style="accent-color: #14202C;">
+                <input type="checkbox" v-model="all" name="allValue" id="" style="accent-color: #14202C;">
                 <label for="all" style="font-size: 16px; color: #14202C; font-weight: 700">Tout le groupe</label>
             </div>
             
         </div>
-      <form v-if="all" ref="allEndpopint" @submit.prevent="updateEndpoint">
+        <form v-if="allFloor" ref="allFloor" @submit.prevent="updateAllFloor">
+        <div v-if="allFloor" style="padding: 20px;">
+            <label for="allValue">
+                <span style="font-size: 16px; color: #14202C; font-weight: 700">Valeur pour tous l'étage</span><br />
+                <span>{{ endpointName }}</span>
+            </label>
+                    <input type="text" name="allValue" id="allValue">
+        </div>
+        <div class="action">
+            <v-btn 
+            depressed
+            color="#d1d5db"                
+            class="ma-2" @click.stop="close()">Annuler</v-btn>
+            <v-btn 
+          dense
+          class="ma-2" 
+          color="#14202C"
+          type="submit"
+            @click.stop=""
+            style="color: #fff; font-weight: 600; font-size: 16px;">Confirmer</v-btn>
+        </div>
+      </form>
+        <!-- Formulaire pour modifier qu'un seul un endpoint -->
+      <form v-if="all && !allFloor" ref="allEndpopint" @submit.prevent="updateEndpoint">
         <div v-if="all" style="padding: 20px;">
             <label for="allValue">
                 <span style="font-size: 16px; color: #14202C; font-weight: 700">Valeur pour tous les endpoints</span><br />
@@ -38,7 +61,8 @@
             style="color: #fff; font-weight: 600; font-size: 16px;">Confirmer</v-btn>
         </div>
       </form>
-        <form v-if="!all" ref="form"   @submit.prevent="updateEndpoint">
+        <!-- Formulaire pour modifier plusieurs endpoints -->
+        <form v-if="!all && !allFloor" ref="form"   @submit.prevent="updateEndpoint">
             
                 <div class="edit_singleEndpoint" v-if="endpoint.name">
                     <label  :for="endpoint.endpoint.dynamicId">
@@ -106,6 +130,7 @@
 <script lang="ts">
 import { ActionTypes } from '../interfaces/vuexStoreTypes';
 import { MutationTypes } from '../services/store/appDataStore/mutations';
+import { config } from '../config'
 
     export default  {
         name: "EditEndpoint",
@@ -115,9 +140,14 @@ import { MutationTypes } from '../services/store/appDataStore/mutations';
                 default: true
             },
             item: {
-                type: Object,
-                default: () => {},
-            } ,
+                type: [Object, Array],
+                default: () => ({}),
+            },
+            allFloor: {
+                type: Boolean,
+                default: false,
+                required: false 
+            }
             
         },
         data () {
@@ -127,7 +157,7 @@ import { MutationTypes } from '../services/store/appDataStore/mutations';
         endPointList: [] as any,
         endpoint: {} as any,
         endpointName: '',
-        all: false
+        all: false,
       }
     },
 
@@ -144,6 +174,7 @@ import { MutationTypes } from '../services/store/appDataStore/mutations';
     methods: {
         loadData () {
             this.checkIfGroup(this.item);
+            console.log('item: ', this.item);
             if(this.isGroup) {
                 let endpointList : any[]  = [];
                 this.item.children.forEach((child: any) => {
@@ -183,9 +214,45 @@ import { MutationTypes } from '../services/store/appDataStore/mutations';
             const type = item.type;
             type.includes('Group') ? this.isGroup = true : this.isGroup = false;
         },
-        
-        updateEndpoint() {
+      async  updateAllFloor() {
             const buildingId = localStorage.getItem('idBuilding');
+            const formElement = this.$refs.allFloor as HTMLFormElement;
+            const updateType = this.$store.state.appDataStore.selectedSource.controllable.type;
+            const formData = new FormData(formElement);
+            const dynamicIds: number[] = [];
+            console.log('item: ', this.item);
+            this.item.forEach((child: any) => {
+                dynamicIds.push(child.endpoint.dynamicId);
+            });
+            formData.append('dynamicIds', JSON.stringify(dynamicIds));
+            
+            await this.$store.dispatch(ActionTypes.UPDATE_ENDPOINT, {buildingId, formData, updateType}).then((res) => {
+                if(res.success) {
+                    console.log('updated: ', res);
+                    this.$emit('update',  {
+                        status: 'success',
+                        statusCode: 200,
+                        text: 'Synchronisation...',
+                        data: res.data
+                    });
+                    this.close();
+                }
+            }).catch((error) => {
+                console.log('error: ', error);
+                // handle error
+                this.$emit('update',  {
+                    status: 'error',
+                    statusCode: 500,
+                    text: 'Erreur lors du pilotage',
+                    data: error
+                });
+            });
+        },
+        
+       async updateEndpoint() {
+            const buildingId = localStorage.getItem('idBuilding');
+            const updateType = this.$store.state.appDataStore.selectedSource.controllable.type;
+            
            const formElement = this.all ? this.$refs.allEndpopint as HTMLFormElement : this.$refs.form as HTMLFormElement;
            const formData = new FormData(formElement);
            if(this.all) {
@@ -197,7 +264,7 @@ import { MutationTypes } from '../services/store/appDataStore/mutations';
             formData.append('dynamicIds', JSON.stringify(dynamicIds));
            }
            
-            this.$store.dispatch(ActionTypes.UPDATE_ENDPOINT, {buildingId, formData}).then((res) => {
+          await  this.$store.dispatch(ActionTypes.UPDATE_ENDPOINT, {buildingId, formData, updateType}).then((res) => {
                 if(res.success) {
                     console.log('updated: ', res);
                     this.$emit('update',  {

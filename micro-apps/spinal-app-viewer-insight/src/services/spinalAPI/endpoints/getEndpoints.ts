@@ -30,7 +30,7 @@ import {config} from '../../../config'
 export async function getSourceValue(
   buildingId: string,
   items: any[],
-  source: ISource,
+  source: any,
   forceUpdate: boolean = false
 ) {
   const { dynamicIds, obj } = _formatValues(items, forceUpdate);
@@ -88,6 +88,11 @@ export async function getControlEndpointList(buildingId: string, dynamicId: numb
   return spinalAPI.get(url).then((res: any) => res.data);
 }
 
+export async function getControlEndpointListMultiple(buildingId: string, dynamicIds: any[]) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = `/api/v1/node/control_endpoint_list_multiple`;
+  return sendListMultipleRequest(buildingId, dynamicIds, url);
+ }
 
 // export async function getSourceValue(buildingId: string, items: any[], source: ISource, forceUpdate: boolean = false) {
 //    const { dynamicIds, obj } = _formatValues(items, forceUpdate);

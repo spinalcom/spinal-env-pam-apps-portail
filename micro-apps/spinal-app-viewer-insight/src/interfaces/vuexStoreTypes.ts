@@ -60,6 +60,8 @@ export enum ActionTypes {
 	SET_ENDPOINT = "SET_ENDPOINT",
 	UPDATE_ENDPOINT = "UPDATE_ENDPOINT",
 	WEBSOCKET_CALLBACK = "WEBSOCKET_CALLBACK",
+	GET_CONTROL_POINT_MULTIPLE = "GET_CONTROL_POINT_MULTIPLE",
+	ENABLE_SOCKET = "ENABLE_SOCKET",
 }
 
 export type TFctViewerIteract = (stateContext: AugmentedActionContextAppData, payload: { buildingId: string; id: number | number[] }) => Promise<void>;
