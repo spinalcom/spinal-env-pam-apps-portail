@@ -211,7 +211,7 @@ import { config } from '../config'
         },
         checkIfGroup(item: any) {
             const type = item.type;
-            type.includes('Group') ? this.isGroup = true : this.isGroup = false;
+            item.children ? this.isGroup = true : this.isGroup = false;
         },
       async  updateAllFloor() {
             const buildingId = localStorage.getItem('idBuilding');

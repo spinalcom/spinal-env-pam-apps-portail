@@ -103,7 +103,6 @@ export default {
   };
   this.selected = valueSelected;
   this.label = "Mois";
-  console.log("month selected: ", this.selected);
   const currentYear = moment().format('YYYY');
   if (currentYear === current.format('YYYY')) {
     const monthsLength = parseInt(moment().format('MM'));
@@ -187,7 +186,6 @@ export default {
       let current = moment();
       this.tIndex < 0  ? current = current.add(this.tIndex, 'week') : current = current.subtract(this.tIndex, 'week');
       const currentYear = current.format('YYYY');
-      console.log('currentYear : ', currentYear);
       const month = current.month() + 1;
      
       let startOfWeek = current.startOf('isoWeek').format('YYYY-MM-DD'); // Lundi
@@ -274,7 +272,6 @@ export default {
       currentDay.add(1, "day");
     }
 
-    console.log('days : ', days);
     this.timesSeries =  days;
   },
 
@@ -288,7 +285,6 @@ export default {
   let day = currentTime;
   let dayAlt = day.format('DD/MM/YYYY');
   
-  console.log('dayAlt : ', dayAlt);
   const label = `${dayAlt} ${currentTime.format('HH[h]')} - ${end.format('HH[h]')}`;
   const value = {
     label: label,
@@ -304,7 +300,6 @@ export default {
   this.selected = value;
   
   this.label = "Heure";
-  console.log('label : ', this.selected);
   
   let startOfDay = moment().startOf('day');
   let endOfDay = moment().endOf('day');

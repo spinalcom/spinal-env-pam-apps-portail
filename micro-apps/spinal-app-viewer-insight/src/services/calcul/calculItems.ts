@@ -44,7 +44,6 @@ export async function calculItemsValue(
       const value = calculateTotal(values, calculMode);
 
       item.displayValue = isFinite(value) ? value : "-";
-     
       return item;
     })
   );

@@ -44,7 +44,6 @@ export default {
     },
     computed: {
         currentIcon() {
-            console.log(this.type_alert);
             return this.icons[this.type_alert] || { color: '#000000' }; // Couleur par défaut (noir)
         }
     },

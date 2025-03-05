@@ -356,9 +356,15 @@ export default {
       this._isNotSelected();
     },
     _isSelected() {
+      
       if(store.state.appDataStore.temporalitySelected.name === "Valeur courante"){
-        this.showCardcurrentValue = true;
-        this.currentData = this.data;
+        const item = store.state.appDataStore.itemSelected;
+        if(!item.children) {
+          this.showCardcurrentValue = true;
+          this.currentData = this.data;
+        }
+
+     
       }
       this.dynamicStyle = {
         border: "3px solid #00A2FF",

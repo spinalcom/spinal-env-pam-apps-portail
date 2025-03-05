@@ -149,11 +149,12 @@ export default {
       this.$emit("onClick");
     },
 
-    isSelected() {
+    isSelected() {      
+      // console.log('isSelected: ', this.item.dynamicId, this.$store.state.appDataStore.itemSelected);
+      
       const itemSelected = this.$store.state.appDataStore.itemSelected;
       return itemSelected && itemSelected.dynamicId == this.item.dynamicId;
     },
-
     inDbids(data, to_search) {
       to_search = isArray(to_search) ? to_search : [to_search];
       for (const id of to_search) if (data.dbIds.includes(id)) return true;
@@ -191,8 +192,8 @@ export default {
     const vm = this;
    const sources = config.source;
    let source = {}
-   const itemType = this.item.type;
-    if(itemType.includes('Group')) {
+  //  const itemType = this.item.type;
+    if(this.item.children && this.item.children.length > 0) {
       source = sources.find((el) => el.name === this.item.children[0].endpoint.name)
      this.$store.state.appDataStore.temporalitySelected.name == "Valeur courante" ? this.is_controllable = source.controllable.on : this.is_controllable = false;
     }

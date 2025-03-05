@@ -416,14 +416,12 @@ class InsightApp extends Vue {
         let endpointList: any[] = [];
         if (this.$store.state.appDataStore.data.length > 0) {
           const item = this.$store.state.appDataStore.data
-          console.log('item', item)
           item.map((item: any) => {
             item.children.map((el: any) => {
               const value = el.endpoint.dynamicId
               endpointList.push(value);
             })
           })
-          console.log('endpointList', endpointList);
           
           const context = await getContextId(this.buildingId);
           //context ID
@@ -544,7 +542,6 @@ class InsightApp extends Vue {
   }
 
   public get medianValue() {
-    console.log('median : ', this.legend.median);
     return (
       this.legend.median?.value ||
       (this.legend.max.value + this.legend.min.value) / 2
@@ -662,7 +659,6 @@ class InsightApp extends Vue {
           };
         });
 
-        //console.log('data!!! : ', data);
         const color = '#ffffff';
         result.push({ label: item.name, data, color, tension: 0.3 });
       } else {
@@ -727,7 +723,6 @@ class InsightApp extends Vue {
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, async (data) => {
       if (this.ignoreViewerSelection) return;
       if (data && !data[0]) {
-        //console.log('viewer aggr selection : ',data)
         this.clearSelection();
         //this.selectedItem = null;
       }
@@ -738,7 +733,6 @@ class InsightApp extends Vue {
         for (const group of this.data) {
           let rooms = group.children;
           if (!rooms) continue;
-          //console.log('viewer_selected_items : ', viewer_selected_items);
           rooms = rooms.map((el) => {
             return { ...el, buildingId };
           });
@@ -755,7 +749,6 @@ class InsightApp extends Vue {
                 const matching_room = rooms.find(
                   (el) => el.dynamicId === viewer_info_room.dynamicId
                 );
-                // console.log('matching_room : ', matching_room);
 
                 this.selectedItem = matching_room;
                 this.$store.commit(
@@ -767,9 +760,7 @@ class InsightApp extends Vue {
                 ]);
               }
             }
-            // console.log('viewer_info_room : ', viewer_info_room);
-            // console.log('vselected_bimFileId : ', vselected_bimFileId);
-            // console.log('vselected_dbIds : ', vselected_dbIds);
+      
           }
         }
       }
@@ -901,7 +892,6 @@ class InsightApp extends Vue {
           })
         );
       }
-      console.log('promises : ', promises);
       await Promise.all(promises);
       this.pageSate = PAGE_STATES.loaded;
     } catch (err) {
@@ -948,7 +938,6 @@ class InsightApp extends Vue {
   }
 
   updateSelected(item) {
-    //console.log('----> selected item : ', item);
     // item.detail is the item clicked in the viewer (sprite), item is the item clicked in the data view
     this.selectedItem = item.detail || item;
   }
@@ -1178,7 +1167,6 @@ class InsightApp extends Vue {
 
    @Watch('enablereload')
     watchEnablereload(val) {
-      console.log('enablereload : ', val);
       this.enablereloadValue = val;
     } 
   
@@ -1297,7 +1285,6 @@ class InsightApp extends Vue {
 
   @Watch('selectedTime')
   async watchSelectedTime(newVal) {
-    console.log('selectedTime : ', newVal);
     if (this.isBuildingSelected) return;
     if (!this.t_index) await this.updateDataOnTimeChanged();
     // remise de la navigation temporelle à 0 au changement de temporalité
@@ -1328,7 +1315,6 @@ class InsightApp extends Vue {
   async watchLegend() {
     if (this.isBuildingSelected) return;
     await this.updateSprites();
-    console.log('legend changed: ', this.legend);
     this.regroupItemsAndCalculate(true);
     this.updateChartData();
   }

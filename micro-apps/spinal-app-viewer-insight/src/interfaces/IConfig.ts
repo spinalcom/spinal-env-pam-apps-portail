@@ -78,7 +78,10 @@ export interface ISource {
   objectType: "equipments" | "rooms";
   categoryName?: string;
   unit?: string;
-  controllable: {};
+  controllable: {
+    on: boolean;
+    type: "controlValue" | "currentValue";
+  };
   legend?: ILegend;
 }
 

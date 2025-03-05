@@ -121,7 +121,6 @@ export default {
                             endPointList.push(endpoint);
                         }
                     })
-                    console.log('endPointList: ', endPointList);
                     
                 })
                 endPointList = endPointList.filter((item) => item.name != this.data.endpoint.name);
