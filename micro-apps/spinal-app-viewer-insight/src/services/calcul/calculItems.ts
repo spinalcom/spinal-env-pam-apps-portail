@@ -53,16 +53,33 @@ export async function calculItemsValue(
 export function getColor(item, legend, percent = false) {
   const value = item.displayValue;
   if (isNaN(value) || !isFinite(value)) return "#808080";
-    const intervale  = ((legend.max.value - legend.min.value) / 3).toFixed(0);
-    if(value < legend.min.value + parseInt(intervale)) {
-      return legend.min.color
-    }
-    else if(value < legend.median.value + parseInt(intervale)) {
-      return legend.median.color
-    }
-  else {
-    return legend.max.color
-  }
+  const { min, max } = percent
+  ? { min: 0, max: 100 }
+  : { 
+      min: Number(legend.min.value).toFixed(2), 
+      max: Number(legend.max.value).toFixed(2) 
+    };
+
+// Vérifier si min et max sont bien des nombres après arrondi
+const minNum = parseFloat(min.toString());
+const maxNum = parseFloat(max.toString());
+
+if (minNum === maxNum) return legend.min.color;
+
+if (legend.median) {
+  const intervale = parseFloat(((maxNum - minNum) / 3).toFixed(2));
+  const third = parseFloat((minNum + intervale).toFixed(2));
+  const two_third = parseFloat((minNum + 2 * intervale).toFixed(2));
+
+  if (value <= third) return legend.min.color;
+  if (value <= two_third) return legend.median.color;
+  return legend.max.color;
+}
+
+// Cas sans median : séparation en deux
+const mid = parseFloat(((minNum + maxNum) / 2).toFixed(2));
+return value <= mid ? legend.min.color : legend.max.color;
+
  
 }
 

@@ -121,6 +121,8 @@ export default {
                             endPointList.push(endpoint);
                         }
                     })
+                    console.log('endPointList: ', endPointList);
+                    
                 })
                 endPointList = endPointList.filter((item) => item.name != this.data.endpoint.name);
                 endPointList.map((item) => {
@@ -153,7 +155,8 @@ export default {
                     if(value == null) {
                         value = 'NaN';
                     }
-                    this.indcateur = [...this.indcateur, {name: item.name, value: value, unit: unit, color: color ? color : '#00FF00'}]
+                    
+                    this.indcateur = [...this.indcateur, {name: item.name, value: value.toFixed(2), unit: unit, color: color ? color : '#00FF00'}]
                 })
                 const uniqueEndpoints = this.indcateur.filter((item, idx, self) => {
                     return idx === self.findIndex((t) => (

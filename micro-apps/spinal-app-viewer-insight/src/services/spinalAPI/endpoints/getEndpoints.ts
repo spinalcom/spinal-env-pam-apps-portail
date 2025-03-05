@@ -291,7 +291,7 @@ export function _getReadStaticDetails(buildingId, context ) {
   const spinalAPI = SpinalAPI.getInstance();
   const url = context.type == 'geographicRoom' ?
    spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/room/${context.dynamicId}/read_static_details`):
-    spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipment/${context.dynamicId}read_static_details`);
+    spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipment/${context.dynamicId}/read_static_details`);
   return spinalAPI.get(url).then((res: any) => res.data);
 }
 

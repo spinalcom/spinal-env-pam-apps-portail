@@ -174,7 +174,6 @@ import { config } from '../config'
     methods: {
         loadData () {
             this.checkIfGroup(this.item);
-            console.log('item: ', this.item);
             if(this.isGroup) {
                 let endpointList : any[]  = [];
                 this.item.children.forEach((child: any) => {
@@ -220,7 +219,6 @@ import { config } from '../config'
             const updateType = this.$store.state.appDataStore.selectedSource.controllable.type;
             const formData = new FormData(formElement);
             const dynamicIds: number[] = [];
-            console.log('item: ', this.item);
             this.item.forEach((child: any) => {
                 dynamicIds.push(child.endpoint.dynamicId);
             });
@@ -228,7 +226,6 @@ import { config } from '../config'
             
             await this.$store.dispatch(ActionTypes.UPDATE_ENDPOINT, {buildingId, formData, updateType}).then((res) => {
                 if(res.success) {
-                    console.log('updated: ', res);
                     this.$emit('update',  {
                         status: 'success',
                         statusCode: 200,
@@ -266,7 +263,6 @@ import { config } from '../config'
            
           await  this.$store.dispatch(ActionTypes.UPDATE_ENDPOINT, {buildingId, formData, updateType}).then((res) => {
                 if(res.success) {
-                    console.log('updated: ', res);
                     this.$emit('update',  {
                         status: 'success',
                         statusCode: 200,
@@ -285,9 +281,7 @@ import { config } from '../config'
                     data: error
                 });
             });
-            // for (const [key, value] of formData.entries()) {
-            //     console.log(`value: ${key}: ${value}`);
-            // }
+            
     }
     },
     mounted() {
