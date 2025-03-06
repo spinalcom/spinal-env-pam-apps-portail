@@ -23,7 +23,7 @@
  */
 
 import type { IEquipmentItem, IZoneItem } from "../../../../../../global-components/SpaceSelector";
-import type { IViewInfoItemRes } from "../../spinalAPI/GeographicContext/getViewInfo
+import type { IViewInfoItemRes } from "../../spinalAPI/GeographicContext/getViewInfo"
 import type { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { defaultTemporalitySelected, defaultZoneSelected } from "./utils/defaultZoneSelected";
 import { INodeItemTree } from "../../../interfaces/INodeItem";
@@ -43,4 +43,5 @@ export const state = {
 	data: undefined as any,
 	itemToHide : undefined as any,
 	itemToColor : undefined as any,
+	componentSelected : undefined as any,
 };

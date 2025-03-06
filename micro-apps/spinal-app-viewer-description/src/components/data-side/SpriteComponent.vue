@@ -70,7 +70,7 @@
         </div>
 
         <div v-if="data.data.type == 'BIMObject'"
-          style="background-color: white;color: black; border: 1px solid black; cursor: pointer;border-radius: 5px;text-align: center;align-self: auto ;     position: relative;
+          style="background-color: white;color: black; border: 1px solid black; cursor: pointer;border-radius: 5px;text-align: center;align-self: auto ;  position: relative;
     left: 50%;
     transform: translate(-50%, 0);
 "
@@ -107,6 +107,7 @@
 <script>
 
 import { log } from "console";
+import { EventBus } from '../../../../../global-components/SpaceSelector/eventBus';
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
@@ -236,6 +237,7 @@ export default {
 
     close() {
       this.isopen = false;
+      EventBus.$emit('closeComponent');
     },
     changeRoute(route) {
       const query = {}

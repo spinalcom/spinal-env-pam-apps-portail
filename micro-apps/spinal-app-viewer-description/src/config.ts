@@ -34,14 +34,28 @@ export const config: IConfig = {
 	idAppDescription: "eyJuYW1lIjoiRGVzY3JpcHRpb24iLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6IjBlZGQtNDI2Zi1hZDc2LTE5MzBiOTM3NmRlIiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTczMTA2Njc5MTA5OCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzMxMDY2MDMzODg2LCJpY29uIjoibWRpLWJsYWNrLW1lc2EiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOlsiVmlld2VyIl0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWFwcC12aWV3ZXItZGVzY3JpcHRpb24iLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsImRvY3VtZW50YXRpb25MaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ",
 
 	//DATASIDE vue globale
-	//catégorie d'inventaire cliblé
-	inventory: "Typologie",
 
+
+	//activer les inventaire sur la vue batiments
+	BuildingInventory: true,
+
+	//inventaire espace
+	spaceInventaire: [
+		{
+			ctx: 'Gestion des espaces',
+			cat: 'Typologie',
+			// grp: ['Bureaux']
+		}
+	],
+
+	
+	
+	//inventaire equipement
 	inventaire: [
 		{
 			ctx: 'Gestion des équipements',
 			cat: 'Typologie',
-			grp: ['Chaises']
+			// grp: ['Chaises']
 		},
 		{
 			ctx: 'Gestion des équipements',

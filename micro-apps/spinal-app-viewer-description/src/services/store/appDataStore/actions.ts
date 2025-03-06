@@ -26,8 +26,8 @@ import { getBuildings, getBuildingById } from "../../spinalAPI/GeographicContext
 import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
-import { getEquipments, getBuilding, getFloors, getRooms, getStaticDetails, getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails, postBIMObjectInfo, getBuildingInfo, getBuildingStaticDetails, getDocumentation, postDownloadFile, getParent, getAttributListMultiple, getTimeSeriesAsync, getNodeRead, getTicket, getpositionEquipement, getpositionRoom, getFile } from "../../spinalAPI/GeographicContext/geographicContext";
-import { getContextList, getContextCategoryList, getContextCategoryGroupList } from "../../spinalAPI/ContextGroup/groupContext";
+import { postFloorInventory, getEquipments, getBuilding, getFloors, getRooms, getStaticDetails, getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails, postBIMObjectInfo, getBuildingInfo, getBuildingStaticDetails, getDocumentation, postDownloadFile, getParent, getAttributListMultiple, getTimeSeriesAsync, getNodeRead, getTicket, getpositionEquipement, getpositionRoom, getFile } from "../../spinalAPI/GeographicContext/geographicContext";
+import { getContextList, getContextCategoryList, getContextCategoryGroupList, getroomList } from "../../spinalAPI/ContextGroup/groupContext";
 import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../../../../global-components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
 import { getMultipleReferenceObjects } from "../../spinalAPI/GeographicContext/getObjectList";
@@ -71,6 +71,26 @@ export const actions = {
 			throw error;
 		}
 	},
+
+	async [ActionTypes.GET_FLOOR_INVENTORY](
+		{ commit }: AugmentedActionContextAppData,
+		{ id, body, includePosition, includeArea, onlyDynamicId }: {
+			id: number;
+			body: { context: string; category: string };
+			includePosition?: boolean;
+			includeArea?: boolean;
+			onlyDynamicId?: boolean;
+		}
+	): Promise<any> {
+		try {
+			const result = await postFloorInventory(id, body, includePosition, includeArea, onlyDynamicId);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération de l’inventaire du floor:', error);
+			throw error;
+		}
+	},
+
 	async [ActionTypes.POST_DOWNLOAD_FILE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: any }): Promise<any> {
 
 		try {
@@ -353,8 +373,6 @@ export const actions = {
 
 
 	async [ActionTypes.UPDATE_CATE_ATTRIBUT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId, cateId, item }: { buildingId: string, referenceId: number, cateId: number, name: string, item: object }): Promise<any> {
-		console.warn('11111111111111111 :', referenceId);
-
 		try {
 			const result = await updateCategoryAttribut(buildingId, referenceId, cateId, item)
 			return result;
@@ -473,6 +491,17 @@ export const actions = {
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
 			const result = await getAttributListMultiple(buildingId, referenceIds);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_ROOM_LIST]({ commit }: AugmentedActionContextAppData, { patrimoineId, buildingId, contextDynId, categoryDynId, groupDynId }: { patrimoineId: string; buildingId: string; contextDynId: number; categoryDynId: number; groupDynId: number; }): Promise<any> {
+
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getroomList(patrimoineId, buildingId, contextDynId, categoryDynId, groupDynId);
 			return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des objets de référence:', error);
@@ -644,59 +673,59 @@ export const actions = {
 	////////////////////////////////////////////////////////
 
 	async [ActionTypes.OPEN_VIEWER]({ commit, dispatch, state }: AugmentedActionContextAppData, playload: { onlyThisModel: boolean; config: IConfig; item: any }): Promise<void> {
-        try {
+		try {
 
-            if(playload.item.type ==="building"){
-                const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
-                  buildingId: playload.item.buildingId,
-                  forceUpdate: false,
-                })
-                const body = {
-                  dynamicId:[building.dynamicId],
-                  roomRef: false,
-                  floorRef: true,
-                  equipements: true,
-                  dbIdsToAdd: [],
-                }
-                // console.log('body to load -----> : ', body);
-                // console.log('playload item to load -----> : ', playload.item);
-                playload.item.dynamicId = building.dynamicId;
-                await ViewerManager.getInstance().loadInViewer(
-                  playload.item,
-                  playload.onlyThisModel,
-                  body
-                );
-                return;
+			if (playload.item.type === "building") {
+				const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
+					buildingId: playload.item.buildingId,
+					forceUpdate: false,
+				})
+				const body = {
+					dynamicId: [building.dynamicId],
+					roomRef: false,
+					floorRef: true,
+					equipements: true,
+					dbIdsToAdd: [],
+				}
+				// console.log('body to load -----> : ', body);
+				// console.log('playload item to load -----> : ', playload.item);
+				playload.item.dynamicId = building.dynamicId;
+				await ViewerManager.getInstance().loadInViewer(
+					playload.item,
+					playload.onlyThisModel,
+					body
+				);
+				return;
 
-            }
-            const viewerInfo = playload.config.viewerInfo;
-            const body = {
-                dynamicId: [playload.item.dynamicId],
-                roomRef: viewerInfo.roomRef,
-                floorRef: viewerInfo.floorRef,
-                equipements: false,
-                dbIdsToAdd: [],
-            };
+			}
+			const viewerInfo = playload.config.viewerInfo;
+			const body = {
+				dynamicId: [playload.item.dynamicId],
+				roomRef: viewerInfo.roomRef,
+				floorRef: viewerInfo.floorRef,
+				equipements: false,
+				dbIdsToAdd: [],
+			};
 
-            if (viewerInfo.equipments === "all") {
-                body.equipements = true;
-                body.dbIdsToAdd = [];
-            } else if (viewerInfo.equipments === "groupItem") {
-                body.equipements = false;
-                const map = await dispatch(ActionTypes.GET_GROUPS_ITEMS, { config: playload.config, buildingId: playload.item.buildingId });
-                console.log('Get group items : ', map);
-                body.dbIdsToAdd = classifyItemByBimFileId(map, playload.item.dynamicId, playload.item.type);
-            }
-            // console.log('body to load -----> : ', body);
-            // console.log('playload item to load -----> : ', playload.item);
-            //playload.item.dynamicId = -555;
-            await ViewerManager.getInstance().loadInViewer(playload.item, playload.onlyThisModel, body);
-            if (playload.onlyThisModel) state.viewerStartedList = {};
-            commit(MutationTypes.ADD_VIEWER_LOADED, { id: playload.item.dynamicId });
-        } catch (error) {
-            console.log("errror", error);
-        }
-    },
+			if (viewerInfo.equipments === "all") {
+				body.equipements = true;
+				body.dbIdsToAdd = [];
+			} else if (viewerInfo.equipments === "groupItem") {
+				body.equipements = false;
+				const map = await dispatch(ActionTypes.GET_GROUPS_ITEMS, { config: playload.config, buildingId: playload.item.buildingId });
+				console.log('Get group items : ', map);
+				body.dbIdsToAdd = classifyItemByBimFileId(map, playload.item.dynamicId, playload.item.type);
+			}
+			// console.log('body to load -----> : ', body);
+			// console.log('playload item to load -----> : ', playload.item);
+			//playload.item.dynamicId = -555;
+			await ViewerManager.getInstance().loadInViewer(playload.item, playload.onlyThisModel, body);
+			if (playload.onlyThisModel) state.viewerStartedList = {};
+			commit(MutationTypes.ADD_VIEWER_LOADED, { id: playload.item.dynamicId });
+		} catch (error) {
+			console.log("errror", error);
+		}
+	},
 	async [ActionTypes.GET_VIEWER_INFO]({ commit, state }: AugmentedActionContextAppData, playload): Promise<IViewInfoItemRes[]> {
 		return ViewerManager.getInstance().getViewerInfoMerged(playload);
 	},
@@ -734,8 +763,8 @@ export const actions = {
 	},
 
 	[ActionTypes.FIT_TO_VIEW_ITEMS]({ commit, dispatch, state }, playload: any) {
-		console.log(playload , 'playload');
-		
+		console.log(playload, 'playload');
+
 		ViewerManager.getInstance().fitToView(playload);
 	},
 
@@ -758,8 +787,8 @@ export const actions = {
 	},
 
 	[ActionTypes.ADD_COMPONENT_AS_SPRITES]({ commit, dispatch, state }, { items, buildingId, component, group }: any) {
-		console.warn(group , ' aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
-		
+		console.warn(group, ' aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+
 		return ViewerManager.getInstance().addComponentAsSprites(items, buildingId, component, group);
 	},
 

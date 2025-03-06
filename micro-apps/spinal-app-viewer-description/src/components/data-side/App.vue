@@ -35,7 +35,6 @@
     </div>
     <div v-if="ActiveData && selection == 'Indicateur' && labelsChart" class="graphContainer">
 
-
       <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
         :step="labelsChart.length" :tooltipCallbacks="{
           title: (context) => { },
@@ -45,9 +44,7 @@
             )} `,
           footer: (data) => { },
         }"></LineCardComponent>
-      <!-- </sc-line-card> -->
     </div>
-    <!-- style="['height: calc(100vh - 160px); background-color: red', " -->
     <div
       style="max-height: 100%; display:flex; overflow: hidden ; overflow-y: auto; flex-direction: column; align-content:space-between;"
       :class="{ 'doc-content': showDocvalue, 'w-full': !showDocvalue }">
@@ -202,6 +199,51 @@
             </div>
           </div>
 
+          <div v-if="spaceInventoryData">
+            <div v-for="(categoryItem, categoryIndex) in spaceInventoryData" :key="categoryIndex"
+              class="blocInformation" style="margin-bottom: 20px;">
+
+              <span
+                style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold; display: block; margin-bottom: 10px;">
+                Inventaire des Espaces ({{ categoryItem.category }})
+              </span>
+
+              <div v-if="!categoryItem.groups || categoryItem.groups.length === 0"
+                style="text-align: center; font-style: italic; color: #888; margin: 10px 0;">
+                PAS DE DONNÉES DISPONIBLES
+              </div>
+
+              <div v-else class="inventory-container" style="display: flex; flex-wrap: wrap;">
+                <div v-for="(groupItem, groupIndex) in categoryItem.groups" :key="groupIndex" class="inventory-item"
+                  style="display: flex; align-items: center; width: 100%; border: 1px solid #ddd; padding: 14px 5px; border-radius: 5px;">
+
+                  <li style="flex: 1; font-size: 16px; font-family: Arial, Helvetica, sans-serif;">
+                    {{ groupItem.rooms.length }} {{ groupItem.groupName }} -
+                    <strong>{{ getTotalArea(groupItem.rooms) }} m²</strong>
+                  </li>
+
+                  <!-- Icône Couleur -->
+                  <v-icon
+                    v-if="!coloredRoom.some(item => item.category === categoryItem.category && item.groupIndex === groupIndex)"
+                    @click="() => { colorSpace(categoryItem.category, groupIndex); closecol(categoryItem.category, groupIndex) }"
+                    style="cursor: pointer; margin-left: 10px;">
+                    mdi-invert-colors
+                  </v-icon>
+
+                  <v-icon v-else
+                    @click="() => { descolorSpace(categoryItem.category, groupIndex); closecol(categoryItem.category, groupIndex) }"
+                    :style="{ cursor: 'pointer', marginLeft: '10px', color: getColorForGroup(categoryItem.category, groupIndex) }">
+                    mdi-invert-colors-off
+                  </v-icon>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+
           <div class="blocInformation">
             <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Liste des
               attributs</span>
@@ -257,7 +299,6 @@
 
         <div v-if="selection == 'Liste'">
 
-          <!-- <v-text-field v-model="searchName" label="Rechercher par nom" clearable></v-text-field> -->
           <v-data-table :headers="dynamicHeaders" :items="formattedData" :search="searchName" class="elevation-1"
             hide-default-footer :items-per-page="formattedData.length" dense>
             <template v-slot:header.color="{ header }">
@@ -276,48 +317,42 @@
             </template>
 
             <template v-slot:item="{ item }">
-  <tr>
-    <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.name }}</td>
-    <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.type }}</td>
+              <tr>
+                <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.name }}</td>
+                <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.type }}</td>
 
-    <!-- ✅ Affiche la colonne Surface SEULEMENT si elle est dans les headers -->
-    <td v-if="dynamicHeaders.some(h => h.value === 'area')" style="padding-top: 15px; padding-bottom: 10px;">
-      {{ item.area !== 'N/A' ? item.area : 'N/A' }}
-    </td>
+                <td v-if="dynamicHeaders.some(h => h.value === 'area')"
+                  style="padding-top: 15px; padding-bottom: 10px;">
+                  {{ item.area !== 'N/A' ? item.area : 'N/A' }}
+                </td>
 
-    <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-      <v-icon v-if="coloredElement && !coloredElement.includes(item.dynamicId)"
-              @click="colorselected(item)">mdi-invert-colors</v-icon>
-      <v-icon v-if="coloredElement && coloredElement.includes(item.dynamicId)"
-              @click="descolorselected(item)" :style="{ color: item.color }">
-        mdi-invert-colors-off
-      </v-icon>
-    </td>
+                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
+                  <v-icon v-if="coloredElement && !coloredElement.includes(item.dynamicId)"
+                    @click="colorselected(item)">mdi-invert-colors</v-icon>
+                  <v-icon v-if="coloredElement && coloredElement.includes(item.dynamicId)"
+                    @click="descolorselected(item)" :style="{ color: item.color }">
+                    mdi-invert-colors-off
+                  </v-icon>
+                </td>
 
-    <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-      <v-icon @click="selectselected(item)">mdi-select-place</v-icon>
-    </td>
+                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
+                  <v-icon @click="selectselected(item)">mdi-select-place</v-icon>
+                </td>
 
-    <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-      <v-icon @click="gotoselected(item)">mdi-arrow-down-left-bold</v-icon>
-    </td>
+                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
+                  <v-icon @click="gotoselected(item)">mdi-arrow-down-left-bold</v-icon>
+                </td>
 
-    <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-      <v-icon @click="zoomselected(item)">mdi-magnify-plus-outline</v-icon>
-    </td>
-  </tr>
-</template>
-
+                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
+                  <v-icon @click="zoomselected(item)">mdi-magnify-plus-outline</v-icon>
+                </td>
+              </tr>
+            </template>
           </v-data-table>
-
-
 
         </div>
 
 
-
-
-        <!-- ONGLET attribut (attribut)-->
         <div v-if="selection == 'Attribut'">
 
           <FormDocAttr :isDialogOpen="ShowFormDocAttrs == true" @close-dialog="ShowFormDocAttr"
@@ -381,12 +416,6 @@
                   </OverMenu>
                 </div>
               </div>
-
-
-
-
-
-
             </div>
           </div>
 
@@ -418,14 +447,11 @@
 
         <!-- ONGLET TICKETS -->
         <div v-if="selection == 'Tickets'">
-          <!-- Vérification si les tickets existent -->
           <AddTicketBtn @open-dialog="ShowDialog()" />
           <div v-if="ticketsList">
             <FormTicket :value="showFormTicket" @close-dialog="ShowDialog()" :selectedZone="selectedZone"
               @add-ticket="showAlert" />
-            <!-- Button d'ajout d'un ticket  -->
 
-            <!-- Boucle sur chaque ticket -->
             <div v-for="(ticket, index) in ticketsList" :key="index" class="blocInformation">
               <div class="">
                 <div>
@@ -445,15 +471,12 @@
             </div>
           </div>
 
-          <!-- Affichage lorsqu'il n'y a pas de tickets -->
           <div v-if="ticketsList && ticketsList.length === 0"
             style="width: 100%; height: 200px; font-size: 20px ; display: flex; justify-content: center; align-items: center">
             <p>Aucun ticket disponible.</p>
           </div>
         </div>
 
-
-        <!-- ONGLET POINT DE MESURE (endpoints)-->
         <div v-if="selection == 'Points de mesures'">
           <div v-for="(item, index) in floorstaticDetails[0].endpoints" :key="index" class="blocInformation">
             <div v-if="!floorstaticDetails[0].endpoints">
@@ -468,8 +491,6 @@
           </div>
         </div>
 
-
-        <!-- ONGLET INDICATEUR (controleEndpoint) indicateur -->
         <div style="display: flex">
 
           <div style="width: 100%;" v-if="selection == 'Indicateur'">
@@ -505,12 +526,9 @@
         </div>
 
 
-
-
         <!-- ONGLET DOCUMENTATION -->
         <div v-if="selection == 'Documentation'"
           style="display: flex; flex-direction: column; overflow: hidden !important; overflow-y: auto !important ;">
-          <!-- Box pour afficher le document -->
           <v-row style="padding: 20px;">
             <AddBtn @open-dialog="ShowFormDoc" name="Ajouter un document" icon="mdi-file-plus-outline" />
           </v-row>
@@ -544,7 +562,6 @@
               <div v-else style="width: 100%; text-align: center;">
                 <p>Aucun document</p>
               </div>
-              <!-- fin -->
             </div>
           </div>
 
@@ -646,6 +663,7 @@ import OverMenu from "./OverMenu.vue";
 import ConfirmDelete from "./ConfirmDelete.vue";
 import ProgressBar from "./ProgressBar.vue";
 import { EventBus } from '../../../../../global-components/SpaceSelector/eventBus';
+import { log } from "console";
 
 @Component({
   components: {
@@ -690,6 +708,7 @@ class dataSideApp extends Vue {
   appTab: any[] = [];
   dataListInfo: any[] = [];
   inventoyList: any = null;
+  spaceInventoryData: any = null;
   inventoryDbids: any = null;
   floorstaticDetails: any = [];
   endpointProfil: any = null;
@@ -742,14 +761,13 @@ class dataSideApp extends Vue {
   idCatEl = null
   activeChartData: any = []
   coloredElement: any = []
-  // variable for confirm delete
+  coloredRoom: any = []
   confirmIdReferenceDelete: number | null = null
   confirmIdFileDelete: number | null = null
   showConfirmDelete = false
   contextFile = ''
   data_loading = 0
   interval: {}
-  // iconColors: {}
   iconColors: Record<string, string> = {};
   stockedData: any = []
 
@@ -773,16 +791,15 @@ class dataSideApp extends Vue {
   }
 
   get dynamicHeaders() {
-  // Vérifie si au moins une donnée a une valeur valide pour 'area'
-  const hasValidArea = this.formattedData.some(item => item.area !== 'N/A' && item.area !== null && item.area !== '');
+    const hasValidArea = this.formattedData.some(item => item.area !== 'N/A' && item.area !== null && item.area !== '');
 
-  return this.headers.filter(header => {
-    if (header.value === 'area') {
-      return hasValidArea; // Affiche la colonne uniquement si au moins une donnée a une surface valide
-    }
-    return true; // Affiche les autres colonnes normalement
-  });
-}
+    return this.headers.filter(header => {
+      if (header.value === 'area') {
+        return hasValidArea;
+      }
+      return true;
+    });
+  }
 
 
 
@@ -804,10 +821,8 @@ class dataSideApp extends Vue {
         });
       }
 
-      // Génération d'une couleur aléatoire
       const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
 
-      // Vérification de bimFileId et dbid
       const bimData = space.bimFileId && space.dbid ? { bimFileId: space.bimFileId, dbid: space.dbid } : {};
 
       return {
@@ -822,12 +837,10 @@ class dataSideApp extends Vue {
       };
     });
 
-    // ➔ Met à jour stockedData en plus de retourner les données
     this.stockedData = data;
 
     return data;
   }
-
 
   headers = [
     { text: 'Nom', value: 'name', sortable: false },
@@ -844,23 +857,19 @@ class dataSideApp extends Vue {
 
     const buildingId = localStorage.getItem("idBuilding");
 
-    // Préparation de tous les éléments à décolorer
     const itemsToDescolor = this.stockedData.map(item => ({
       buildingId: buildingId,
       dynamicId: item.dynamicId,
-      color: null, // Suppression de la couleur
+      color: null,
       floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId,
     }));
 
-    // Dispatch pour désélectionner tous les éléments
     await this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
       items: itemsToDescolor,
       buildingId: buildingId,
     });
 
-    // Nettoyage du tableau coloredElement
     this.coloredElement = [];
-
   }
 
 
@@ -1226,16 +1235,13 @@ class dataSideApp extends Vue {
         return;
       }
 
-      // Prend le premier objet correspondant
       const firstSol = solObjects[0];
 
-
-      // Création de l'objet pour le dispatch
       const itemsToColor = {
         buildingId: buildingId,
-        dynamicId: firstSol.dynamicId,  // Utilisation du dynamicId trouvé
+        dynamicId: firstSol.dynamicId,
         floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
-        staticId: firstSol.staticId,    // Utilisation du staticId trouvé
+        staticId: firstSol.staticId,
         type: item.type,
         name: item.name
       };
@@ -1245,8 +1251,6 @@ class dataSideApp extends Vue {
 
     }
     else {
-
-
 
       const itemsToColor = {
         buildingId: buildingId,
@@ -1258,13 +1262,7 @@ class dataSideApp extends Vue {
         name: item.name
       }
 
-      // this.$store.dispatch(ActionTypes.SELECT_ITEMS, {
-      //   items: itemsToColor,
-      //   buildingId: buildingId,
-      // });
-
       await this.$store.dispatch(ActionTypes.SELECT_ITEMS, itemsToColor);
-      // this.coloredElement.push(item.dynamicId);
     }
   }
   async colorselected(item) {
@@ -1285,6 +1283,7 @@ class dataSideApp extends Vue {
     this.coloredElement.push(item.dynamicId);
 
   }
+
   async descolorselected(item) {
     const buildingId = localStorage.getItem("idBuilding");
 
@@ -1337,12 +1336,84 @@ class dataSideApp extends Vue {
     });
   }
 
-  async showIconElement(item, categoryName) {
+  getColorForGroup(category, groupIndex) {
+    const group = this.coloredRoom.find(item => item.category === category && item.groupIndex === groupIndex);
+    return group ? group.randomColor : "#000"; // Retourne la couleur stockée ou noir par défaut
+  }
 
-    // function getRandomColor() {
-    //   return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
-    // }
-    // const color = getRandomColor()
+  colorSpace(categoryName, groupIndex) {
+    const buildingId = localStorage.getItem("idBuilding");
+
+    console.log(this.$store.state.appDataStore.zoneSelected);
+
+
+    const category = this.spaceInventoryData.find(item => item.category === categoryName);
+    if (!category) return console.warn(`Catégorie "${categoryName}" non trouvée`);
+
+    const group = category.groups[groupIndex];
+    if (!group) return console.warn(`Groupe à l'index ${groupIndex} non trouvé dans "${categoryName}"`);
+
+    if (!group.rooms || group.rooms.length === 0) {
+      return console.warn(`Aucune room à colorer pour "${group.groupName}"`);
+    }
+
+    const floorId = this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId;
+
+    const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+
+    const itemsToColor = group.rooms.map(room => ({
+      buildingId: buildingId,
+      dynamicId: room.dynamicId,
+      color: room.color || randomColor,
+      floorId: floorId,
+    }));
+
+    this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+      items: itemsToColor,
+      buildingId: buildingId,
+    });
+
+    this.coloredRoom.push({ category: categoryName, groupIndex, randomColor });
+
+  }
+
+
+  descolorSpace(categoryName, groupIndex) {
+    const buildingId = localStorage.getItem("idBuilding");
+
+    const category = this.spaceInventoryData.find(item => item.category === categoryName);
+    if (!category) return console.warn(`Catégorie "${categoryName}" non trouvée`);
+
+    const group = category.groups[groupIndex];
+    if (!group) return console.warn(`Groupe à l'index ${groupIndex} non trouvé dans "${categoryName}"`);
+
+    if (!group.rooms || group.rooms.length === 0) {
+      return console.warn(`Aucune room à décolorer pour "${group.groupName}"`);
+    }
+
+    const floorId = this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId;
+
+    const itemsToDescolor = group.rooms.map(room => ({
+      buildingId: buildingId,
+      dynamicId: room.dynamicId,
+      color: null,
+      floorId: floorId,
+    }));
+
+    this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+      items: itemsToDescolor,
+      buildingId: buildingId,
+    });
+
+    this.coloredRoom = this.coloredRoom.filter(item =>
+      !(item.category === categoryName && item.groupIndex === groupIndex)
+    );
+
+  }
+
+
+
+  async showIconElement(item, categoryName) {
 
     const itemType = item.substring(item.indexOf(' ') + 1);
 
@@ -1415,8 +1486,6 @@ class dataSideApp extends Vue {
 
 
       const wrappedResult = [obj];
-      console.warn('aaaaaaaaaaaaaaaaaaaaaaaa', ref);
-
 
       this.$set(this.iconColors, `${categoryName}-${item}`, ref.color);
 
@@ -1431,13 +1500,10 @@ class dataSideApp extends Vue {
 
   hideelement(item, categoryName) {
 
-    // Réinitialiser les éléments à cacher
     this.$store.commit(MutationTypes.REMOVE_ITEM_TO_HIDE);
 
-    // Extraire le type d'élément à partir de la chaîne `item`
     const itemType = item.substring(item.indexOf(' ') + 1);
 
-    // Vérifier si la catégorie et le type existent dans `inventoryDbids`
     const categoryData = this.inventoryDbids[categoryName];
     if (!categoryData || !categoryData[itemType]) {
       console.warn(`Aucun élément trouvé pour "${item}" dans la catégorie "${categoryName}".`);
@@ -1446,20 +1512,16 @@ class dataSideApp extends Vue {
 
     const groupData = categoryData[itemType];
 
-    // Construire l'objet `itemToHide` avec uniquement les `dbid`
     const itemToHide = {};
     for (const [bimFileId, entries] of Object.entries(groupData)) {
-      // Extraire uniquement les `dbid` de chaque équipement dans le tableau d'objets
       itemToHide[bimFileId] = [...new Set(entries.map(equipment => equipment.dbid))];
     }
 
-    // Vérifier s'il y a des éléments à cacher
     if (Object.keys(itemToHide).length === 0) {
       console.warn(`Aucun élément trouvé à cacher pour "${item}" dans la catégorie "${categoryName}".`);
       return;
     }
 
-    // Construire les données à envoyer à l'action
     const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query };
     const data = {
       buildingId: this.selectedZone.staticId,
@@ -1467,10 +1529,8 @@ class dataSideApp extends Vue {
       itemToHIde: itemToHide,
     };
 
-    // Enregistrer les éléments à cacher dans le store
     this.$store.commit(MutationTypes.SET_ITEM_TO_HIDE, itemToHide);
 
-    // Lancer l'action pour cacher les éléments
     this.$store.dispatch(ActionTypes.HIDE_ITEMS, {
       items: data,
       buildingId: this.selectedZone.staticId,
@@ -1586,21 +1646,17 @@ class dataSideApp extends Vue {
         formattedDate = moment().add(t_index, 'days').startOf('day').format('DD-MM-YYYY');
         break;
       case ITemporality.week:
-        // Pour les semaines, afficher la semaine entière, ex: "15-11-2024 au 21-11-2024"
         const weekStart = moment().add(t_index, 'weeks').startOf('week').format('DD-MM-YYYY');
         const weekEnd = moment().add(t_index, 'weeks').endOf('week').format('DD-MM-YYYY');
         formattedDate = `${weekStart} au ${weekEnd}`;
         break;
       case ITemporality.month:
-        // Afficher le mois et l'année, ex: "Novembre 2023"
         formattedDate = moment().add(t_index, 'months').startOf('month').format('MMMM YYYY');
         break;
       case ITemporality.year:
-        // Afficher uniquement l'année, ex: "2024"
         formattedDate = moment().add(t_index, 'years').format('YYYY');
         break;
       default:
-        // Si la temporalité est inconnue, retourner la date du jour par défaut
         formattedDate = moment().add(t_index, 'days').startOf('day').format('DD-MM-YYYY');
         break;
     }
@@ -1856,13 +1912,9 @@ class dataSideApp extends Vue {
       this.dataListInfo = []
     }
 
-
   }
 
   async getroomstaticdetails(id) {
-
-
-
 
     const buildingId = localStorage.getItem("idBuilding");
     const promises_node = [
@@ -2095,12 +2147,6 @@ class dataSideApp extends Vue {
       z_index: 0
     }
 
-    // this.$store.dispatch(ActionTypes.REMOVE_SPRITES_BY_GROUP, {
-    //   group: 'toto'
-    // });
-
-
-
     const screenWidth = window.innerWidth;
     if (screenWidth <= 700) {
       this.displaySprite = false;
@@ -2134,7 +2180,6 @@ class dataSideApp extends Vue {
       group: 'card',
       z_index: 1
     }
-    // this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
 
     this.$store.dispatch(ActionTypes.REMOVE_SPRITES_BY_GROUP, 'card');
 
@@ -2154,6 +2199,11 @@ class dataSideApp extends Vue {
 
   handleClose() {
     this.displaySprite = false;
+  }
+
+  getTotalArea(rooms) {
+    if (!rooms || rooms.length === 0) return 0;
+    return rooms.reduce((total, room) => total + (room.area || 0), 0).toFixed(2);
   }
 
   extractUniqueInventoryNames() {
@@ -2186,8 +2236,6 @@ class dataSideApp extends Vue {
       ];
       const result = await Promise.all(promises);
       this.data_loading += 15
-      // console.log('1%');
-
 
       this.$store.commit(MutationTypes.SET_DATA, result[0]);
       this.pageSate = PAGE_STATES.loaded;
@@ -2197,7 +2245,6 @@ class dataSideApp extends Vue {
       this.pageSate = PAGE_STATES.error;
     }
     this.data_loading += 15
-    // console.log('2%');
 
   }
 
@@ -2236,6 +2283,7 @@ class dataSideApp extends Vue {
     const result = await Promise.all(promises);
     this.inventory = [...result];
     this.countInventoryTypes([...result]);
+    this.countSpaceInventory();
     this.data_loading += 15
     // console.log('15%');
 
@@ -2271,7 +2319,6 @@ class dataSideApp extends Vue {
 
   async addgraphInfoCp(dyn, name) {
 
-    // console.log('dyn: ', dyn);
     if (!this.cpIdToDraw.includes(dyn)) return;
 
     const { begintime, endtime } = this.getBeginAndEndTime();
@@ -2311,17 +2358,14 @@ class dataSideApp extends Vue {
       unit: "kwh",
       name: "le nom du graph",
     };
-    // console.log('data table: ', this.dataTable);
-    // console.log('actuelleTable: ', actuelleTable);
     this.dataTable = [...this.dataTable, actuelleTable];
     this.labelsChart = this.labels(begintime, endtime).map(this.toDate);
     this.chartData = this.chartDataObject(this.dataTable);
   }
 
-  //fonction pour retourner la date string ( beging et end )
   getBeginAndEndTime() {
     const temporality = this.$store.state.appDataStore.temporalitySelected.name;
-    const t_index = this.t_index || 0; // Assurer une valeur par défaut de 0 si t_index n'est pas défini
+    const t_index = this.t_index || 0;
     let begintime, endtime;
 
     switch (temporality) {
@@ -2486,6 +2530,242 @@ class dataSideApp extends Vue {
   }
 
 
+  // async countSpaceInventory(floors) {
+  //   const buildingId = localStorage.getItem("idBuilding");
+  //   const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
+
+  //   const dynamicIdMap = {};
+  //   const spaceInventoryMap = new Map();
+
+  //   for (const configItem of this.config.spaceInventaire) {
+  //     const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
+  //     const matchingContext = contextList.find((context) => context.name === configItem.ctx);
+
+  //     if (matchingContext) {
+  //       dynamicIdMap[configItem.ctx] = matchingContext.dynamicId;
+  //     } else {
+  //       console.warn(`Contexte "${configItem.ctx}" non trouvé.`);
+  //     }
+  //   }
+
+  //   const categoryPromises = Object.entries(dynamicIdMap).map(([ctx, contextId]) =>
+  //     this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_LIST, { buildingId, contextId })
+  //   );
+  //   const resultCategory = await Promise.all(categoryPromises);
+
+  //   for (const [ctx, contextId] of Object.entries(dynamicIdMap)) {
+  //     const configItems = this.config.spaceInventaire.filter((item) => item.ctx === ctx);
+
+  //     for (const configItem of configItems) {
+  //       const configCatName = configItem.cat;
+  //       const matchingCategory = resultCategory.flat().find((category) => category.name === configCatName);
+
+  //       if (!matchingCategory) {
+  //         console.warn(`Catégorie "${configCatName}" non trouvée pour le contexte "${ctx}".`);
+  //         continue;
+  //       }
+
+  //       const categoryDynId = matchingCategory.dynamicId;
+
+  //       const groupList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_GROUP_LIST, {
+  //         buildingId,
+  //         contextId,
+  //         categoryDynId,
+  //       });
+
+  //       let selectedGroups = [];
+
+  //       if (Array.isArray(configItem.grp)) {
+  //         selectedGroups = configItem.grp
+  //           .map((groupName) => groupList.find((group) => group.name === groupName))
+  //           .filter(Boolean);
+  //       } else {
+  //         selectedGroups = groupList;
+  //       }
+
+  //       const key = `${ctx}-${configCatName}`;
+  //       if (!spaceInventoryMap.has(key)) {
+  //         spaceInventoryMap.set(key, {
+  //           context: ctx,
+  //           category: configCatName,
+  //           groups: [],
+  //         });
+  //       }
+
+  //       const inventoryEntry = spaceInventoryMap.get(key);
+
+  //       for (const group of selectedGroups) {
+  //         const roomList = await this.$store.dispatch(ActionTypes.GET_ROOM_LIST, {
+  //           patrimoineId,
+  //           buildingId,
+  //           contextDynId: contextId,
+  //           categoryDynId,
+  //           groupDynId: group.dynamicId,
+  //         });
+
+  //         inventoryEntry.groups.push({
+  //           groupName: group.name,
+  //           rooms: roomList || [],
+  //         });
+  //       }
+  //     }
+  //   }
+
+  //   let spaceInventoryData = Array.from(spaceInventoryMap.values());
+
+  //   const firstFloorItem = Array.isArray(floors) ? floors[0][0] : floors[0];
+
+  //   if (firstFloorItem?.error) {
+  //     console.log('Erreur détectée, aucune filtration appliquée.');
+  //   } else if (firstFloorItem?.type === "geographicRoom") {
+  //     const floorRoomIds = new Set(floors[0].map((room) => room.dynamicId));
+  //     console.log(floorRoomIds, 'has rooms id');
+
+  //     spaceInventoryData.forEach((entry) => {
+  //       entry.groups.forEach((group) => {
+  //         group.rooms = group.rooms.filter((room) => floorRoomIds.has(room.dynamicId));
+  //       });
+
+  //       entry.groups = entry.groups.filter((group) => group.rooms.length > 0);
+  //     });
+
+  //     spaceInventoryData = spaceInventoryData.filter((entry) => entry.groups.length > 0);
+  //     console.log('Filtrage appliqué, seules les rooms présentes dans floors sont conservées.' , spaceInventoryData);
+  //   }
+
+
+  //   const promises_node = [
+  //     this.$store.dispatch(ActionTypes.GET_NODE_READ, {
+  //       buildingId,
+  //       referenceIds: [this.$store.state.appDataStore.zoneSelected.dynamicId]
+  //     }),
+  //   ];
+
+
+  //   const node_read = await Promise.all(promises_node);
+  //   console.log(node_read[0].type, ' aaaaaaaa');
+
+  //   if (node_read[0].type != 'geographicBuilding' && node_read[0].type != 'geographicFloor') {
+  //     console.log('le reead es as building ou geographicFLOOR', node_read[0].type);
+
+  //     this.spaceInventoryData = []
+  //     return
+  //   }
+
+
+
+
+
+
+  //   this.spaceInventoryData = spaceInventoryData
+  //   return spaceInventoryData;
+  // }
+  async countSpaceInventory() {
+    console.warn('11 on arrive dans la fonction count');
+    this.data_loading = 75
+    const buildingId = localStorage.getItem("idBuilding");
+    const contextId = this.$store.state.appDataStore.zoneSelected.dynamicId;
+
+    console.warn('11 b etage id ', contextId);
+    // Vérifier si on est bien sur un 'geographicFloor' ou 'geographicBuilding'
+    const nodeRead = await this.$store.dispatch(ActionTypes.GET_NODE_READ, {
+      buildingId,
+      referenceIds: [contextId],
+    });
+
+    if ((!nodeRead || nodeRead?.type !== "geographicFloor") && nodeRead?.type !== "geographicBuilding") {
+      this.spaceInventoryData = [];
+      return [];
+    }
+
+    let floorIds = [];
+    if (nodeRead?.type === "geographicBuilding") {
+      if (!this.config.BuildingInventory) return [];
+
+      console.warn('11 il faut faire un inventory de batiment');
+      const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
+      const result = await this.$store.dispatch(ActionTypes.GET_FLOORS, {
+        buildingId,
+        patrimoineId,
+      });
+
+      console.warn("11 Floors récupérés", result);
+      if (!Array.isArray(result)) return [];
+
+      floorIds = result.map(floor => floor.dynamicId);
+    } else {
+      floorIds = [contextId]; // Si c'est un floor, on garde son ID
+    }
+
+    const spaceInventoryMap = new Map();
+
+    // Itération sur chaque floor récupéré
+    for (const floorId of floorIds) {
+
+      for (const configItem of this.config.spaceInventaire) {
+        const categoryName = configItem.cat;
+
+        try {
+          const inventoryResponse = await this.$store.dispatch(ActionTypes.GET_FLOOR_INVENTORY, {
+            id: floorId,
+            body: { context: configItem.ctx, category: categoryName },
+            includeArea: true,
+            onlyDynamicId: true,
+          });
+
+          if (!inventoryResponse || !Array.isArray(inventoryResponse)) {
+            console.warn(`Aucun inventaire trouvé pour ${configItem.ctx} - ${categoryName} sur le floor ${floorId}.`);
+            continue;
+          }
+
+          const key = `${configItem.ctx}-${categoryName}`;
+
+          if (!spaceInventoryMap.has(key)) {
+            spaceInventoryMap.set(key, {
+              context: configItem.ctx,
+              category: categoryName,
+              groups: new Map(), // Utilisation d'une Map pour éviter les doublons de groupes
+            });
+          }
+
+          const inventoryEntry = spaceInventoryMap.get(key);
+
+          for (const inventoryItem of inventoryResponse) {
+            if (inventoryItem.groupItems && inventoryItem.groupItems.length > 0) {
+              // Vérifier si le groupe existe déjà
+              if (!inventoryEntry.groups.has(inventoryItem.name)) {
+                inventoryEntry.groups.set(inventoryItem.name, {
+                  groupName: inventoryItem.name,
+                  rooms: [],
+                });
+              }
+
+              // Ajouter les nouvelles rooms dans le groupe existant
+              inventoryEntry.groups.get(inventoryItem.name).rooms.push(...inventoryItem.groupItems.map(room => ({
+                dynamicId: room.dynamicId,
+                area: room.area,
+              })));
+            }
+          }
+        } catch (error) {
+          console.error(`Erreur lors de la récupération de l’inventaire pour ${configItem.ctx} - ${categoryName} sur le floor ${floorId}:`, error);
+        }
+      }
+    }
+
+    // Convertir les maps en tableaux
+    this.spaceInventoryData = Array.from(spaceInventoryMap.values()).map(entry => ({
+      context: entry.context,
+      category: entry.category,
+      groups: Array.from(entry.groups.values()),
+    }));
+
+    console.warn('Réponse finale ? :', this.spaceInventoryData);
+    this.data_loading = 100
+    return this.spaceInventoryData;
+  }
+
+
 
 
   async countInventoryTypes(floors) {
@@ -2501,7 +2781,7 @@ class dataSideApp extends Vue {
 
     const dynamicIdMap = {};
 
-    this.data_loading += 50
+    this.data_loading += 25
 
     for (const configItem of this.config.inventaire) {
       const matchingContext = contextList.find(
@@ -2649,7 +2929,7 @@ class dataSideApp extends Vue {
 
     });
 
-    this.data_loading += 100
+    this.data_loading += 80
 
     const results = {};
     for (const [categoryName, items] of Object.entries(categorizedResults)) {
@@ -2722,6 +3002,7 @@ class dataSideApp extends Vue {
     this.ink = {};
     this.col = {};
     this.coloredElement = [];
+    this.coloredRoom = [];
 
     this.itemOverflowMenu = null
     if (this.selectedZone.type === "building") {

@@ -184,6 +184,28 @@ export async function postBIMObjectInfo(buildingId: string, referenceIds: any): 
   }
 }
 
+export async function postFloorInventory(id: number, body: { context: string; category: string }, includePosition?: boolean, includeArea: boolean = true, onlyDynamicId: boolean = true): Promise<any> {
+  console.log('Arrivé dans la fonction postFloorInventory');
+  const spinalAPI = SpinalAPI.getInstance();
+  const buildingId = localStorage.getItem("idBuilding");
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/floor/${id}/inventory`);
+  console.warn('11 , Arrivé dans la fonction postFloorInventory');
+
+  const params = new URLSearchParams();
+  if (includePosition !== undefined) params.append("includePosition", String(includePosition));
+  if (includeArea !== undefined) params.append("includeArea", String(includeArea));
+  if (onlyDynamicId !== undefined) params.append("onlyDynamicId", String(onlyDynamicId));
+
+  try {
+    const response = await spinalAPI.post<any>(`${url}?${params.toString()}`, body);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l’inventaire du floor:', error);
+    throw error;
+  }
+}
+
+
 export async function postDownloadFile(buildingId: string, referenceIds: any): Promise<Blob> {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/node/${referenceIds}/download_file`);
