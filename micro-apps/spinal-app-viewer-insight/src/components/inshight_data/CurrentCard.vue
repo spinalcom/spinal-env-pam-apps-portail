@@ -197,7 +197,7 @@ export default {
         height: 150px;
         background-color: #fff;
         box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
-        z-index: 100000;
+        z-index: 100;
         display: flex;
         flex-direction: column;
         padding: 10px;

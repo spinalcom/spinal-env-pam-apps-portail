@@ -213,7 +213,7 @@ with this file. If not, see
                 <!-- Notif au pilotage de l'étage -->
                 <alert :show="showAlert" :text="messageAlert" :type_alert="typeAlert" />
                 <div>
-                  <v-icon size="20" style=" padding: 5px; cursor: pointer; background-color: #14202C; color: #ffff; border-radius: 5px;" @click.stop="controlFloor" >mdi-square-edit-outline</v-icon>
+                  <v-icon size="20" v-if="isControllable" style=" padding: 5px; cursor: pointer; background-color: #14202C; color: #ffff; border-radius: 5px;" @click.stop="controlFloor" >mdi-square-edit-outline</v-icon>
                 </div>
                 <EditEndpoint v-if="showEditForm" :item="itemGroup" @close="showEditForm = false" @update="updateEndpointValue" :allFloor="true" />
               </div>
@@ -306,6 +306,7 @@ import { getContextId } from '../../services/websocket/Current';
 import connectSocket from '../../services/websocket';
 import EditEndpoint from '../EditEndpoint.vue';
 import Alert from '../Alert.vue';
+import { log } from 'console';
 moment.updateLocale('fr', {
   months: [
     'Janvier',
@@ -372,6 +373,7 @@ class InsightApp extends Vue {
   ignoreViewerSelection: boolean = false;
   initiated: boolean = false;
 // Edit form variables
+  isControllable: boolean = false
   showEditForm: boolean = false;
   itemGroup: any = null;
   // End Edit form variables
@@ -521,6 +523,7 @@ class InsightApp extends Vue {
 
 
   regroupItemsAndCalculateDebounced: any = lodash.debounce(
+    
     this.regroupItemsAndCalculate.bind(this),
     500
   );
@@ -708,6 +711,8 @@ class InsightApp extends Vue {
   }
 
   async mounted() {    
+    
+    
     if(this.socket) {
       this.socket.disconnect();
     }
@@ -774,7 +779,11 @@ class InsightApp extends Vue {
       this.$store.commit(MutationTypes.SET_SOURCE, source);
     }
     await this.retriveData();
+    log('store: ', this.$store.state.appDataStore);
+  this.sourceSelected.controllable.on ? this.isControllable = true : this.isControllable = false
+    
   }
+  
 
   get navigable() {
     return ![ITemporality.currentValue, ITemporality.custom].includes(
@@ -902,6 +911,7 @@ class InsightApp extends Vue {
   }
 
   async regroupItemsAndCalculate(forceUpdate: boolean = false) {
+
     try {
       const config_copy = {
         ...this.config,
@@ -1195,7 +1205,10 @@ class InsightApp extends Vue {
   watchSelectedZone() {
    this.enableWebsocket(false);
     this.socketisConnected = false;
+    
     if (this.selectedZone.type === 'building') {
+      console.log('selectedZone: ', this.selectedZone);
+      
       this.isBuildingSelected = true;
       this.$store.commit(MutationTypes.SET_DATA, []);
       this.reload = function () { };
@@ -1212,7 +1225,7 @@ class InsightApp extends Vue {
     } else {
       clearInterval(this.intervalId);
     }
-
+    
     this.updateDataOnTimeChanged();
   }
 
@@ -1274,6 +1287,7 @@ class InsightApp extends Vue {
       this.socket?.disconnect();
       this.enableWebsocket(true);
     }
+    this.sourceSelected.controllable.on ? this.isControllable = true : this.isControllable = false
   }
 
   @Watch('regroupementSelected')

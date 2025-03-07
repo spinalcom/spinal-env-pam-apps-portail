@@ -79,8 +79,8 @@ export interface ISource {
   categoryName?: string;
   unit?: string;
   controllable: {
-    on: boolean;
-    type: "controlValue" | "currentValue";
+    on: boolean; // Pour activer ou non le contrôle de la source
+    type: "controlValue" | "currentValue"; // Type de valeur à contrôler
   };
   legend?: ILegend;
 }

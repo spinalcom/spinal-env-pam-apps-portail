@@ -309,6 +309,7 @@ class App extends Vue {
   }
 
   async mounted() {
+    
     try {
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();

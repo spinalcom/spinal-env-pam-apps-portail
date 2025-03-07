@@ -38,7 +38,6 @@ function getNewEvents(socket: Socket, firstCall?: Function): Promise<string[]> {
             }
             queue.addToQueue(eventNames);
           });
-          // console.log("alreadySubscribed: ", alreadySubscribed); 
         })
 
         queue.on("end", () => {

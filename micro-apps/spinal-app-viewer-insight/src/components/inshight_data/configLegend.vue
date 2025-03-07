@@ -150,11 +150,11 @@ export default {
     selectConfig() {
       this.$emit("input", {
         min: {
-          value: parseInt(this.minValue).toFixed(2),
+          value: parseFloat(this.minValue).toFixed(2),
           color: this.minColor,
         },
         median: {
-          value: ( parseInt(this.maxValue) + parseInt(this.minValue)) / 2,
+          value: ( parseFloat(this.maxValue) + parseInt(this.minValue)) / 2,
           color: this.medianColor,
         },
         max: {

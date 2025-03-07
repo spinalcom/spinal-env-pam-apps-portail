@@ -324,7 +324,6 @@ export default {
   this.timesSeries = hours;
 },
       TimeSeriesChange(value) {
-        console.log('value : ', value);
         this.$emit('selected', value);
       }
   }

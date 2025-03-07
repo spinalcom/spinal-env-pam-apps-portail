@@ -63,7 +63,7 @@ export const config: IConfig = {
       unit: "%",
       controllable: {
         on: true,
-        type: 'controlValue',
+        type: 'currentValue',
       },
       legend: {
         min: { value: 0, color: "#24CBD9" },
@@ -78,7 +78,7 @@ export const config: IConfig = {
       objectType: "rooms",
       unit: "",
       controllable: {
-        on: true,
+        on: false,
         type: 'controlValue',
       },
       legend: {

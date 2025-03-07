@@ -115,7 +115,6 @@
                         })
                     })
                     endPointList = endPointList.filter((item) => item.name != this.data.endpoint.name);
-                    console.log('endPointList : ', endPointList); 
                     endPointList.map((item) => {
                         let value = null;
                         let unit = null;
@@ -140,13 +139,11 @@
                             })                        
                         }
                         if(typeof value === 'boolean') {
-                        console.log('value is boolean : ', value);
                         value = value ? 1 : 0;
                     }
                     else
                     if(value == null) {
                         value = 'NaN';
-                        console.log('value : ', value);
                     }
                         this.indcateur = [...this.indcateur, {name: item.name, value: value, unit: unit, color: color ? color : '#00FF00'}]
                     })

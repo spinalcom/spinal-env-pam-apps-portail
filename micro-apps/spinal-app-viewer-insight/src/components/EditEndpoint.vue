@@ -9,17 +9,17 @@
             <h3>Modification</h3>
             <v-icon class="close" @click.stop="close()">mdi-close</v-icon>
         </div>
-        <div  v-if="!endpoint.name && !allFloor">
+        <div  v-if="!endpoint.name && !allFloor_alt">
             <div style="padding-left: 25px; display: flex; align-items: center; gap: 5px;">
                 <input type="checkbox" v-model="all" name="allValue" id="" style="accent-color: #14202C;">
                 <label for="all" style="font-size: 16px; color: #14202C; font-weight: 700">Tout le groupe</label>
             </div>
             
         </div>
-        <form v-if="allFloor" ref="allFloor" @submit.prevent="updateAllFloor">
-        <div v-if="allFloor" style="padding: 20px;">
+        <form v-if="allFloor_alt" ref="allFloor" @submit.prevent="updateAllFloor">
+        <div v-if="allFloor_alt" style="padding: 20px;">
             <label for="allValue">
-                <span style="font-size: 16px; color: #14202C; font-weight: 700">Valeur pour tous l'étage</span><br />
+                <span style="font-size: 16px; color: #14202C; font-weight: 700">Valeur pour tout l'étage</span><br />
                 <span>{{ endpointName }}</span>
             </label>
                     <input type="text" name="allValue" id="allValue">
@@ -39,7 +39,7 @@
         </div>
       </form>
         <!-- Formulaire pour modifier qu'un seul un endpoint -->
-      <form v-if="all && !allFloor" ref="allEndpopint" @submit.prevent="updateEndpoint">
+      <form v-if="all && !allFloor_alt" ref="allEndpopint" @submit.prevent="updateEndpoint">
         <div v-if="all" style="padding: 20px;">
             <label for="allValue">
                 <span style="font-size: 16px; color: #14202C; font-weight: 700">Valeur pour tous les endpoints</span><br />
@@ -62,7 +62,7 @@
         </div>
       </form>
         <!-- Formulaire pour modifier plusieurs endpoints -->
-        <form v-if="!all && !allFloor" ref="form"   @submit.prevent="updateEndpoint">
+        <form v-if="!all && !allFloor_alt" ref="form"   @submit.prevent="updateEndpoint">
             
                 <div class="edit_singleEndpoint" v-if="endpoint.name">
                     <label  :for="endpoint.endpoint.dynamicId">
@@ -158,6 +158,7 @@ import { config } from '../config'
         endpoint: {} as any,
         endpointName: '',
         all: false,
+        allFloor_alt: this.allFloor
       }
     },
 
@@ -168,8 +169,18 @@ import { config } from '../config'
             if(this.dialog) {
                 this.$store.commit(MutationTypes.SET_ENABLERELOAD, false);
             }
-
+        },
+        allFloor_alt: {
+            handler(val) {
+                if (val) {
+                    this.$store.commit(MutationTypes.SET_ENABLERELOAD, false);
+                    this.endpointName =  this.item[0].endpoint.name;
+                }
+                
+            },
+            immediate: true
         }
+
     },
     methods: {
         loadData () {
@@ -187,7 +198,9 @@ import { config } from '../config'
                 });
                 this.endPointList = endpointList;
                 this.endpointName = this.item.children[0].endpoint.name;
+                
             } else {
+
                 this.endpoint = 
                 {
                     color: this.item.color,
@@ -204,6 +217,7 @@ import { config } from '../config'
         close (){
             this.dialog = false;
             this.all = false;
+            this.allFloor_alt = false;
             this.endPointList = [];
             this.endpoint = {};
             this.$emit('close');

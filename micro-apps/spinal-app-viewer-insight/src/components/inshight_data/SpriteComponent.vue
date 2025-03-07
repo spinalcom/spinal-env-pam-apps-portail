@@ -322,7 +322,6 @@ export default {
       this.unit = this.data.unit;
       this.currentData = this.data;
       const endpoint = config.source;
-      console.log('room dynamicId: ', this.data);
       const endpointList = await getControlEndpointList(idBuilding, this.data.dynamicId);
       let controlPoints = [];
       endpoint.forEach((item) => {
@@ -360,8 +359,13 @@ export default {
       if(store.state.appDataStore.temporalitySelected.name === "Valeur courante"){
         const item = store.state.appDataStore.itemSelected;
         if(!item.children) {
+          
           this.showCardcurrentValue = true;
           this.currentData = this.data;
+        }
+        else {
+          this.showCardcurrentValue = false;
+          this.currentData = {};
         }
 
      
@@ -425,7 +429,6 @@ export default {
       this.showLoader = true;
       this.unit = item.unit;
       this.endpointName_selected = item.name;
-      console.log('item selected: ', item);
       const dynamicId = item.dynamicId;
       this.t_index = store.state.appDataStore.t_index;
       this.updateDataOnTimeChanged();
@@ -553,8 +556,7 @@ export default {
 }
 
 .sprite_container_insight {
-  width: fit-content;
-  height: "fit-content";
+  overflow: hidden;
   background: none;
   box-shadow: none;
   color: transparent;
@@ -564,19 +566,23 @@ export default {
   
 }
 .sprite_color_insight {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  z-index: 2;
+  width: 13px;
+  height: 13px;
+  border-radius: 100%;
+  z-index: 2 ;
+  transition: 0.2s
 }
 .sprite_value_unit_insight {
-  border-radius: 15px !important;
+  border-radius: 100px;
   color: #14202c;
-  margin-left: -15px;
-  padding-left: 15px;
-  width: max-content !important;
-  height: max-content;
-  font-size: 14px;
+  margin-left: -13px;
+  padding-left: 13px;
+  padding-right: 4px;
+  /* padding-bottom: 1px;
+  padding-top: 1px; */
+  height: 13px;
+  font-size: 12px;
+  font-weight: 500;
   background: #f9f9f9;
   z-index: 1;
 }

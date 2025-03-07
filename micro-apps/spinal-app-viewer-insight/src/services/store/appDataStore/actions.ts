@@ -82,7 +82,6 @@ async [ActionTypes.UPDATE_ENDPOINT]({commit, state}: any, {buildingId, formData,
         const value = formData.get('allValue');
         const dynamicIdValue = formData.get('dynamicIds');
         const dynamicIds = dynamicIdValue ? JSON.parse(dynamicIdValue as string) : [];
-        console.log('dynamicIds', dynamicIds);
         let updatePromise: any[]  = [];
         dynamicIds.forEach(async (dynamicId: number) => {
           try {

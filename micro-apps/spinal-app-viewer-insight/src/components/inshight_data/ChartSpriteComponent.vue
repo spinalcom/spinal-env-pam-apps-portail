@@ -337,11 +337,8 @@ export default {
       const {begin, end} = this.time;
       const buildingId = localStorage.getItem("idBuilding");
       const series = await getTimeSeriesAsync(buildingId ,dynamicId, begin, end);
-      console.log("series: ", series);
       const values = getValues(series);
-      console.log("values: ", values);
       const valuesTimestamps = Object.keys(values).map((key) => parseInt(key));
-      console.log("valuesTimestamps: ", valuesTimestamps);
       const data = this.labels.map((lab) => {
         // Find the closest past timestamp to the current label
         const closestTimestamp = this.findClosestPastTimestamp(lab, valuesTimestamps);
