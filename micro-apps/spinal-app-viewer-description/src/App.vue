@@ -50,6 +50,7 @@ with this file. If not, see
         @clickOnDataView="onDataViewClicked" @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D"
         @full3D="full3D()">
       </dataSideApp>
+
     </div>
   </v-app>
 
@@ -788,7 +789,7 @@ export default App;
       transition: 0.5s;
       position: absolute;
       margin-right: 6px;
-      height: 91%;
+      height: 93%;
       right: 0px;
     }
 
@@ -799,7 +800,7 @@ export default App;
       z-index: 7;
       right: 0px;
       margin-right: 6px;
-      height: 92%;
+      height: 93%;
     }
 
     @media (max-width: 960px) {

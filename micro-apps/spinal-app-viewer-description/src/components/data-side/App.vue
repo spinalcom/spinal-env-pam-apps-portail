@@ -26,6 +26,71 @@
 
   <div class="appli">
 
+    <div v-if="isapp" class="blocAppStyle">
+      <div
+        style="width: 100%;height: 50px;text-align: left;padding-left: 22px;padding-top: 22px;margin-bottom: 10px;font-family: Charlevoix Pro !important;font-size: 22px;font-weight: bold;display: flex;justify-content: space-between;padding-right: 20px;border-bottom: 1px solid gray;padding-bottom: 58px;">
+        LISTE DES APPLICATIONS
+        <div style="cursor: pointer;">
+          <v-icon @click="dialog3 = !dialog3" color="#14202c" size="40">mdi-help-box-outline</v-icon>
+        </div>
+      </div>
+      <v-dialog v-model="dialog3" max-width="580px">
+        <v-card>
+          <v-card-title style="white-space: normal;">
+            <span style="font-size: 17px; overflow-wrap: break-word; word-break: normal;">
+              Ce menu vous permet d’accéder aux différentes applications disponibles et vous redirige directement vers
+              la sélection en cours dans l’application choisie.
+            </span>
+          </v-card-title>
+
+          <v-card-actions>
+            <v-btn color="primary" text @click="dialog3 = false">
+              Close
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+      <div class="container_cards">
+        <div v-for="item in appTab" class="cardDescription">
+
+          <div class="iconCardAPp">
+            <div
+              style="background-color: white;border-radius: 2px;border: 1px solid #ebebeb; width: 50px; height: 50px;display: flex;justify-content: center;align-items: center;">
+              <v-icon color="#14202c" size="40">{{ item.icon }}</v-icon>
+              <!-- <v-card-text>
+                <v-btn color="primary" dark @click="dialog3 = !dialog3">
+                  Open Dialog 3
+                </v-btn>
+                <v-select :items="select" label="A Select List" item-value="text"></v-select>
+              </v-card-text> -->
+            </div>
+          </div>
+
+          <div @click="() => {
+            $emit('changeRoute', item.id);
+          }" style="width: 100%;">
+            <div style="margin-left: 10px;display: flex;justify-content: flex-start;" class="">
+              <div class="description_data_cardDescription">
+                {{ item.name }}
+              </div>
+            </div>
+            <div style="margin-left: 10px;width: 90%;">{{ item.description }}</div>
+
+            <!-- <div class="gotoApp">
+              <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" fill="#14202c" class="bi bi-chevron-right"
+                viewBox="0 0 16 16">
+                <path fill-rule="evenodd"
+                  d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708" />
+              </svg>
+            </div> -->
+          </div>
+        </div>
+      </div>
+      <!-- </div> -->
+
+    </div>
+
     <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
     <ConfirmDelete :show="showConfirmDelete" @delete-doc="showAlert" @close="updateCloseConfirmDelete"
       :idReference="confirmIdReferenceDelete" :idFile="confirmIdFileDelete" :contextFile="contextFile" />
@@ -113,11 +178,14 @@
       </div>
 
       <div>
-        <div class="title">
-          <div class="button  adaptative" style="">
-            <v-select label="Onglet sélectionné" v-model="selection" :items="dynamicItems" outlined
+        <div style="display: flex;justify-content: space-between;" class="title">
+
+          <div class="button  adaptative">
+            <v-select :attach="$refs.toto" label="Onglet sélectionné" v-model="selection" :items="dynamicItems" outlined
               :menu-props="{ offsetY: true, nudgeTop: -3 }"></v-select>
+
           </div>
+          <div ref="toto"></div>
 
           <div v-if="ActiveData && selection == 'Indicateur' && labelsChart"
             style="display: flex ; flex-wrap: nowrap ; align-items: center;margin-left: 15px; margin-right: 15px;">
@@ -235,7 +303,6 @@
                     :style="{ cursor: 'pointer', marginLeft: '10px', color: getColorForGroup(categoryItem.category, groupIndex) }">
                     mdi-invert-colors-off
                   </v-icon>
-
                 </div>
               </div>
             </div>
@@ -290,7 +357,6 @@
               <div
                 style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
                 class="inventory-item">
-
                 <div>Nombre de tickets : {{ ticketsList.length }} </div>
               </div>
             </div>
@@ -436,7 +502,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                    }}
+                      }}
                     </li>
                   </div>
                 </div>
@@ -448,14 +514,17 @@
         <!-- ONGLET TICKETS -->
         <div v-if="selection == 'Tickets'">
           <AddTicketBtn @open-dialog="ShowDialog()" />
-          <div v-if="ticketsList">
+          <TicketTable :data="ticketsList" :config="''" @locate="" @display="" />
+
+
+
+          <!-- <div v-if="ticketsList">
             <FormTicket :value="showFormTicket" @close-dialog="ShowDialog()" :selectedZone="selectedZone"
               @add-ticket="showAlert" />
 
             <div v-for="(ticket, index) in ticketsList" :key="index" class="blocInformation">
               <div class="">
                 <div>
-                  <!-- Affichage des informations principales du ticket -->
                   <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;"> {{
                     ticket.name }}</span>
                   <div class="back_blanc">
@@ -469,7 +538,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </div> -->
 
           <div v-if="ticketsList && ticketsList.length === 0"
             style="width: 100%; height: 200px; font-size: 20px ; display: flex; justify-content: center; align-items: center">
@@ -595,31 +664,33 @@
         </div>
       </div>
 
-      <div class="description">
-        <span
-          style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold; margin-left: 9px;">Accès
-          aux
-          applications</span>
+      <div @click="isapp = !isapp" :title="isapp ? 'Information du bâtiment' : 'Liste des applications'"
+        class="description">
+        <span class="color-span"
+          style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold; margin-left: 9px;">
+          <div class="color"
+            style="border: 3px dashed #dbdbdb; width: 71px; height: 71px; border-radius: 5px; display: flex; justify-content: center; align-items: center;">
+            <v-icon v-if="!isapp" style="transform: translate(0,1px);" size="58">mdi-apps</v-icon>
+            <v-icon v-else style="transform: translate(0,1px);" size="58">mdi-list-box</v-icon>
+          </div>
+        </span>
 
-        <div class="container_cards">
-          <div v-for="item in appTab" class="cardDescription">
-            <div @click="() => {
-              $emit('changeRoute', item.id);
-            }" class="data_cardDescription">
-              <div class="description_data_cardDescription">
-                {{ item.name }}
-              </div>
-            </div>
-            <div class="gotoApp">
-              <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" fill="#14202c" class="bi bi-chevron-right"
-                viewBox="0 0 16 16">
-                <path fill-rule="evenodd"
-                  d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708" />
-              </svg>
-            </div>
+        <!-- Empêche le clic de se propager vers le parent -->
+        <div v-if="filteredApp" class="app_access" @click.stop="handleClick">
+          <div class="app_access_fl">
+            <v-icon size="25">mdi-application-import</v-icon>
+          </div>
+          <div>
+            ACCÉDER À L'APPLICATION {{ filteredApp.name }}
           </div>
         </div>
+
       </div>
+
+
+
+
+
     </div>
   </div>
 </template>
@@ -647,7 +718,7 @@ import {
   EmitterViewerHandler,
   VIEWER_AGGREGATE_SELECTION_CHANGED,
 } from "spinal-viewer-event-manager";
-
+import TicketTable from "./DataTable.vue";
 import LineCardComponent from "./LineCardComponent.vue";
 import moment from 'moment';
 import FormTicket from "../FormTicket.vue";
@@ -683,7 +754,8 @@ import { log } from "console";
     OverMenu,
     FormDocCateAttr,
     ConfirmDelete,
-    ProgressBar
+    ProgressBar,
+    TicketTable
   },
   filters: {},
 })
@@ -698,6 +770,7 @@ class dataSideApp extends Vue {
   @Prop() changeData: boolean;
 
   showFormTicket: boolean = false;
+  isapp: boolean = false;
   showDocvalue: boolean = false;
   PAGE_STATES: typeof PAGE_STATES = PAGE_STATES;
   pageSate: PAGE_STATES = PAGE_STATES.loading;
@@ -724,6 +797,7 @@ class dataSideApp extends Vue {
   ticketsList: any = [];
   eyes: any = {};
   ink: any = {};
+  dialog3: boolean = false;
   col: any = {};
   referencedId: any = 0;
   stockedZone: any = 0;
@@ -801,7 +875,16 @@ class dataSideApp extends Vue {
     });
   }
 
+  get filteredApp(): { name: string; onglet: string; id: string } | null {
+    const app = this.appTab.find(app => app.onglet === this.selection);
+    return app ? { name: app.name, onglet: app.onglet, id: app.id } : null;
+  }
 
+  handleClick() {
+    if (this.filteredApp) {
+      this.$emit('changeRoute', this.filteredApp.id);
+    }
+  }
 
   get temporality() {
     return this.$store.state.appDataStore.temporalitySelected.name;
@@ -1336,21 +1419,23 @@ class dataSideApp extends Vue {
     });
   }
 
-  getColorForGroup(category, groupIndex) {
-    const group = this.coloredRoom.find(item => item.category === category && item.groupIndex === groupIndex);
-    return group ? group.randomColor : "#000"; // Retourne la couleur stockée ou noir par défaut
+  getColorForGroup(categoryName, groupIndex) {
+    const category = this.spaceInventoryData.find(item => item.category === categoryName);
+    return category.groups[groupIndex].color// Retourne la couleur stockée ou noir par défaut
   }
 
   colorSpace(categoryName, groupIndex) {
     const buildingId = localStorage.getItem("idBuilding");
 
-    console.log(this.$store.state.appDataStore.zoneSelected);
+    console.log(this.spaceInventoryData.find(item => item.category === categoryName));
 
 
     const category = this.spaceInventoryData.find(item => item.category === categoryName);
+    // const color = this.spaceInventoryData.find(item => item.category === categoryName).color;
     if (!category) return console.warn(`Catégorie "${categoryName}" non trouvée`);
 
     const group = category.groups[groupIndex];
+    const color = category.groups[groupIndex].color
     if (!group) return console.warn(`Groupe à l'index ${groupIndex} non trouvé dans "${categoryName}"`);
 
     if (!group.rooms || group.rooms.length === 0) {
@@ -1359,12 +1444,12 @@ class dataSideApp extends Vue {
 
     const floorId = this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId;
 
-    const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+    // const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
 
     const itemsToColor = group.rooms.map(room => ({
       buildingId: buildingId,
       dynamicId: room.dynamicId,
-      color: room.color || randomColor,
+      color: color,
       floorId: floorId,
     }));
 
@@ -1373,7 +1458,7 @@ class dataSideApp extends Vue {
       buildingId: buildingId,
     });
 
-    this.coloredRoom.push({ category: categoryName, groupIndex, randomColor });
+    this.coloredRoom.push({ category: categoryName, groupIndex, color });
 
   }
 
@@ -1549,6 +1634,17 @@ class dataSideApp extends Vue {
   }
 
   async mounted() {
+    document.querySelectorAll('.v-input__icon').forEach(el => {
+      el.style.width = '150%';
+      el.style.height = '50px';
+      el.style.position = 'absolute';
+      el.style.transform = 'translate(-51%, -28%)';
+    });
+
+    // document.querySelectorAll(".v-menu__content").forEach(el => {
+    //   el.style.marginLeft = '20px';
+    // });
+
 
     EventBus.$on('vignette', async (data) => {
       const buildingId = localStorage.getItem("idBuilding");
@@ -1601,6 +1697,7 @@ class dataSideApp extends Vue {
 
       const result = await this.getBuildingStaticDetails();
 
+      console.log('11 alors nous sommes ici peut etre');
 
       this.floorstaticDetails = result
       this.filteredEndpoints('building')
@@ -1609,6 +1706,8 @@ class dataSideApp extends Vue {
       this.getTicket(result)
       this.filtredAttribut('building')
       this.$forceUpdate();
+      //TODO
+      // this.countSpaceInventory()
     }
   }
 
@@ -1987,50 +2086,55 @@ class dataSideApp extends Vue {
   }
 
 
+  // createApp(tab) {
+  //   let objetApp = [];
+  //   if (!this.config || !this.config.application) {
+  //     return [];
+  //   }
+
+  //   this.config.application.forEach(application => {
+  //     const { name, id, type, targetValue, profileName, unit } = application;
+  //     let appObject = { name, id, value: null, unit: unit };
+
+  //     if (type === "controlEndpoint") {
+  //       const matchedProfile = tab[0].controlEndpoint.find(profile => profile.profileName === profileName);
+  //       if (matchedProfile) {
+  //         if (targetValue) {
+  //           const targetEndpoint = matchedProfile.endpoints.find(endpoint => endpoint.name === targetValue);
+  //           if (targetEndpoint) {
+  //             appObject.value = targetEndpoint.value;
+  //             if (targetEndpoint.unit) {
+  //               appObject.unit = targetEndpoint.unit;
+  //             }
+  //           } else {
+  //             console.warn("Aucun endpoint correspondant trouvé pour la targetValue donnée.");
+  //           }
+  //         } else {
+  //           appObject.value = matchedProfile.endpoints?.length || 5
+  //         }
+  //       } else {
+  //         console.warn('Pas de profil qui match');
+  //       }
+  //     } else if (type === "tickets") {
+  //       if (!targetValue) {
+
+  //         appObject.value = tab[0]?.tickets?.length;
+  //       } else {
+  //         console.warn('Pas de donnée disponible pour les tickets avec targetValue.');
+  //       }
+  //     } else {
+  //       console.warn('Type non supporté, valeur non définie');
+  //     }
+
+  //     objetApp.push(appObject);
+  //   });
+  //   this.appTab = [...objetApp];
+  //   return objetApp;
+  // }
   createApp(tab) {
-    let objetApp = [];
-    if (!this.config || !this.config.application) {
-      return [];
-    }
+    this.appTab = this.config.application
+    console.log('leS APPS DU PROJETS : ', this.appTab);
 
-    this.config.application.forEach(application => {
-      const { name, id, type, targetValue, profileName, unit } = application;
-      let appObject = { name, id, value: null, unit: unit };
-
-      if (type === "controlEndpoint") {
-        const matchedProfile = tab[0].controlEndpoint.find(profile => profile.profileName === profileName);
-        if (matchedProfile) {
-          if (targetValue) {
-            const targetEndpoint = matchedProfile.endpoints.find(endpoint => endpoint.name === targetValue);
-            if (targetEndpoint) {
-              appObject.value = targetEndpoint.value;
-              if (targetEndpoint.unit) {
-                appObject.unit = targetEndpoint.unit;
-              }
-            } else {
-              console.warn("Aucun endpoint correspondant trouvé pour la targetValue donnée.");
-            }
-          } else {
-            appObject.value = matchedProfile.endpoints?.length || 5
-          }
-        } else {
-          console.warn('Pas de profil qui match');
-        }
-      } else if (type === "tickets") {
-        if (!targetValue) {
-
-          appObject.value = tab[0]?.tickets?.length;
-        } else {
-          console.warn('Pas de donnée disponible pour les tickets avec targetValue.');
-        }
-      } else {
-        console.warn('Type non supporté, valeur non définie');
-      }
-
-      objetApp.push(appObject);
-    });
-    this.appTab = [...objetApp];
-    return objetApp;
   }
 
 
@@ -2661,109 +2765,152 @@ class dataSideApp extends Vue {
   //   return spaceInventoryData;
   // }
   async countSpaceInventory() {
-    console.warn('11 on arrive dans la fonction count');
-    this.data_loading = 75
+    console.log('[countSpaceInventory] Début de la fonction...');
+    this.data_loading = 75;
+
     const buildingId = localStorage.getItem("idBuilding");
     const contextId = this.$store.state.appDataStore.zoneSelected.dynamicId;
 
-    console.warn('11 b etage id ', contextId);
-    // Vérifier si on est bien sur un 'geographicFloor' ou 'geographicBuilding'
+    // Récupération des infos du node
     const nodeRead = await this.$store.dispatch(ActionTypes.GET_NODE_READ, {
       buildingId,
       referenceIds: [contextId],
     });
 
-    if ((!nodeRead || nodeRead?.type !== "geographicFloor") && nodeRead?.type !== "geographicBuilding") {
+    if (!nodeRead) {
+      console.warn('[countSpaceInventory] Aucune donnée trouvée pour nodeRead.');
+      // On initialise quand même spaceInventoryData, puis on sort
       this.spaceInventoryData = [];
-      return [];
+      this.data_loading = 100;
+      return this.spaceInventoryData;
     }
 
-    let floorIds = [];
-    if (nodeRead?.type === "geographicBuilding") {
-      if (!this.config.BuildingInventory) return [];
+    if (nodeRead.type !== "geographicFloor" && nodeRead.type !== "geographicBuilding") {
+      console.warn('[countSpaceInventory] Le node n\'est ni un floor ni un building.');
+      this.spaceInventoryData = [];
+      this.data_loading = 100;
+      return this.spaceInventoryData;
+    }
 
-      console.warn('11 il faut faire un inventory de batiment');
+    console.log('[countSpaceInventory] nodeRead:', nodeRead);
+
+    // Calcul des floorIds
+    let floorIds = [];
+    if (nodeRead.type === "geographicBuilding") {
+      // Vérifie qu'on est autorisé à récupérer l'inventaire côté building
+      if (!this.config.BuildingInventory) {
+        console.warn('[countSpaceInventory] BuildingInventory n\'est pas configuré. Inventaire vide.');
+        this.spaceInventoryData = [];
+        this.data_loading = 100;
+        return this.spaceInventoryData;
+      }
+
       const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
-      const result = await this.$store.dispatch(ActionTypes.GET_FLOORS, {
+      const floorsResult = await this.$store.dispatch(ActionTypes.GET_FLOORS, {
         buildingId,
         patrimoineId,
       });
 
-      console.warn("11 Floors récupérés", result);
-      if (!Array.isArray(result)) return [];
+      // Vérifie qu'on a bien un tableau de floors
+      if (!Array.isArray(floorsResult)) {
+        console.warn('[countSpaceInventory] GET_FLOORS n\'a pas renvoyé un tableau. Inventaire vide.');
+        this.spaceInventoryData = [];
+        this.data_loading = 100;
+        return this.spaceInventoryData;
+      }
 
-      floorIds = result.map(floor => floor.dynamicId);
+      floorIds = floorsResult.map(floor => floor.dynamicId);
+      console.log('[countSpaceInventory] FloorIds récupérés pour le bâtiment :', floorIds);
     } else {
-      floorIds = [contextId]; // Si c'est un floor, on garde son ID
+      // Dans le cas d'un floor, on récupère simplement son ID
+      floorIds = [contextId];
     }
 
+    // Prépare une Map pour accumuler les données d'inventaire
     const spaceInventoryMap = new Map();
 
-    // Itération sur chaque floor récupéré
-    for (const floorId of floorIds) {
+    // Vérifie qu'on a bien une config spaceInventaire
+    if (!Array.isArray(this.config.spaceInventaire)) {
+      console.warn('[countSpaceInventory] config.spaceInventaire n\'est pas un tableau ou est manquant.');
+      this.spaceInventoryData = [];
+      this.data_loading = 100;
+      return this.spaceInventoryData;
+    }
 
+    // Parcourt chaque floor pour constituer l'inventaire
+    for (const floorId of floorIds) {
       for (const configItem of this.config.spaceInventaire) {
         const categoryName = configItem.cat;
+        const contextName = configItem.ctx;
 
         try {
+          // Récupération de l’inventaire du floor courant
           const inventoryResponse = await this.$store.dispatch(ActionTypes.GET_FLOOR_INVENTORY, {
             id: floorId,
-            body: { context: configItem.ctx, category: categoryName },
+            body: { context: contextName, category: categoryName },
             includeArea: true,
-            onlyDynamicId: true,
+            onlyDynamicId: false,
           });
 
-          if (!inventoryResponse || !Array.isArray(inventoryResponse)) {
-            console.warn(`Aucun inventaire trouvé pour ${configItem.ctx} - ${categoryName} sur le floor ${floorId}.`);
+          // Si pas de réponse ou pas un tableau, on skip
+          if (!Array.isArray(inventoryResponse) || !inventoryResponse.length) {
+            console.warn(`[countSpaceInventory] Aucun inventaire pour ${contextName} - ${categoryName} (floor: ${floorId}).`);
             continue;
           }
+          console.warn('11 les resultes', inventoryResponse);
 
-          const key = `${configItem.ctx}-${categoryName}`;
-
-          if (!spaceInventoryMap.has(key)) {
-            spaceInventoryMap.set(key, {
-              context: configItem.ctx,
+          // Génère une clé unique pour regrouper
+          const mapKey = `${contextName}-${categoryName}`;
+          if (!spaceInventoryMap.has(mapKey)) {
+            spaceInventoryMap.set(mapKey, {
+              context: contextName,
               category: categoryName,
-              groups: new Map(), // Utilisation d'une Map pour éviter les doublons de groupes
+              groups: new Map(), // Évite les doublons de groupes
             });
           }
 
-          const inventoryEntry = spaceInventoryMap.get(key);
+          const inventoryEntry = spaceInventoryMap.get(mapKey);
 
+          // Boucle sur chaque élément de la réponse d’inventaire
           for (const inventoryItem of inventoryResponse) {
-            if (inventoryItem.groupItems && inventoryItem.groupItems.length > 0) {
-              // Vérifier si le groupe existe déjà
+            if (Array.isArray(inventoryItem.groupItems) && inventoryItem.groupItems.length > 0) {
+              // Vérifie si le groupe existe déjà, sinon on le crée
               if (!inventoryEntry.groups.has(inventoryItem.name)) {
                 inventoryEntry.groups.set(inventoryItem.name, {
                   groupName: inventoryItem.name,
+                  color: inventoryItem.color,
                   rooms: [],
                 });
               }
-
-              // Ajouter les nouvelles rooms dans le groupe existant
-              inventoryEntry.groups.get(inventoryItem.name).rooms.push(...inventoryItem.groupItems.map(room => ({
-                dynamicId: room.dynamicId,
-                area: room.area,
-              })));
+              // On ajoute les nouvelles rooms dans le groupe existant
+              inventoryEntry.groups.get(inventoryItem.name).rooms.push(
+                ...inventoryItem.groupItems.map(room => ({
+                  dynamicId: room.dynamicId,
+                  area: room.area,
+                }))
+              );
             }
           }
         } catch (error) {
-          console.error(`Erreur lors de la récupération de l’inventaire pour ${configItem.ctx} - ${categoryName} sur le floor ${floorId}:`, error);
+          console.error(`[countSpaceInventory] Erreur récupération inventaire pour ${contextName} - ${categoryName}, floor ${floorId} :`, error);
         }
       }
     }
 
-    // Convertir les maps en tableaux
+    console.warn('[countSpaceInventory] Inventaire brut terminé, conversion Map -> Array...');
+
+    // Conversion finale : Map -> Array
     this.spaceInventoryData = Array.from(spaceInventoryMap.values()).map(entry => ({
       context: entry.context,
       category: entry.category,
       groups: Array.from(entry.groups.values()),
     }));
 
-    console.warn('Réponse finale ? :', this.spaceInventoryData);
-    this.data_loading = 100
+    console.warn('[countSpaceInventory] Résultat final :', this.spaceInventoryData);
+    this.data_loading = 100;
     return this.spaceInventoryData;
   }
+
 
 
 
@@ -2929,7 +3076,7 @@ class dataSideApp extends Vue {
 
     });
 
-    this.data_loading += 80
+    this.data_loading += 60
 
     const results = {};
     for (const [categoryName, items] of Object.entries(categorizedResults)) {
@@ -2951,6 +3098,8 @@ class dataSideApp extends Vue {
     this.referencedId = 0;
     this.referencedType = ''
     if (this.selectedZone.type != "building") {
+      // console.log('la liste 11');
+
       if (this.data.length == 0) {
         this.getroomstaticdetails(this.selectedZone.dynamicId)
         this.getInventoryObject([this.selectedZone.dynamicId])
@@ -2961,6 +3110,8 @@ class dataSideApp extends Vue {
     }
     else {
       this.inventoyList = []
+
+
     }
 
   }
@@ -2999,6 +3150,8 @@ class dataSideApp extends Vue {
   }
   @Watch("selectedZone")
   watchSelectedZone() {
+
+
     this.ink = {};
     this.col = {};
     this.coloredElement = [];
@@ -3006,6 +3159,7 @@ class dataSideApp extends Vue {
 
     this.itemOverflowMenu = null
     if (this.selectedZone.type === "building") {
+
       this.loadBuildingInfo()
       this.isBuildingSelected = true;
       this.$store.commit(MutationTypes.SET_DATA, []);
@@ -3084,11 +3238,96 @@ class dataSideApp extends Vue {
 export { dataSideApp };
 export default dataSideApp;
 </script>
-
+<style>
+#app>div>div.dataBody>div.appli.appContainer>div.w-full>div:nth-child(4)>div>div:nth-child(2)>div {
+  margin-left: 20px;
+  margin-top: 10px;
+}
+</style>
 <style lang="scss" scoped>
 .v-select__selection--comma {
   font-size: 20px !important;
 }
+
+
+
+.v-menu__content {
+  margin-left: 500px !important;
+}
+
+.app_access_fl {
+  border-right: 1px solid #cecece;
+  height: 100%;
+  /* background: red; */
+  width: 45px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 15px;
+}
+
+.app_access {
+  position: relative;
+  width: 100%;
+  /* background: red; */
+  border: 1px solid #b8b8b8;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  /* justify-content: center; */
+  // padding-left: 15px;
+  font-size: 16px;
+  font-weight: bold;
+  transition: 0.3s;
+  user-select: none;
+}
+
+.blocAppStyle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 8;
+  background-color: white;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  // justify-content: center;
+  align-items: center;
+  -webkit-animation: tilt-in-fwd-tr 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  animation: tilt-in-fwd-tr 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+}
+
+@-webkit-keyframes tilt-in-fwd-tr {
+  0% {
+    -webkit-transform: rotateY(20deg) rotateX(35deg) translate(300px, -300px) skew(-35deg, 10deg);
+    transform: rotateY(20deg) rotateX(35deg) translate(300px, -300px) skew(-35deg, 10deg);
+    opacity: 0;
+  }
+
+  100% {
+    -webkit-transform: rotateY(0) rotateX(0deg) translate(0, 0) skew(0deg, 0deg);
+    transform: rotateY(0) rotateX(0deg) translate(0, 0) skew(0deg, 0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes tilt-in-fwd-tr {
+  0% {
+    -webkit-transform: rotateY(20deg) rotateX(35deg) translate(300px, -300px) skew(-35deg, 10deg);
+    transform: rotateY(20deg) rotateX(35deg) translate(300px, -300px) skew(-35deg, 10deg);
+    opacity: 0;
+  }
+
+  100% {
+    -webkit-transform: rotateY(0) rotateX(0deg) translate(0, 0) skew(0deg, 0deg);
+    transform: rotateY(0) rotateX(0deg) translate(0, 0) skew(0deg, 0deg);
+    opacity: 1;
+  }
+}
+
+
+
+
 
 .graphDataContainer {
   display: flex;
@@ -3210,11 +3449,10 @@ a {
   cursor: pointer;
 }
 
-// W-full
-.appli>div>div {
-  // height: calc(100% - 45%);
-  // background-color: rgb(57, 119, 45) !important;
 
+
+.v-input__icon {
+  background-color: red !important;
 }
 
 .attribut::before {
@@ -3406,11 +3644,13 @@ a {
   transition: 0.2s;
   white-space: nowrap;
   margin-left: 20px;
-  margin-top: 6px;
-  margin-bottom: 18px;
+  margin-top: 10px;
+  margin-bottom: 11px;
   font-size: xx-large;
   cursor: pointer;
   padding-left: 0px;
+  width: 100%;
+  position: relative;
 }
 
 .button:hover {
@@ -3453,7 +3693,8 @@ a {
   padding: 10px;
   height: calc(100% - 30%);
   overflow: auto;
-  overflow-x: hidden
+  overflow-x: hidden;
+  height: 100%;
 }
 
 .inventory:before {
@@ -3465,14 +3706,47 @@ a {
   width: 100%;
 }
 
+
+
 .description {
-  padding: 10px;
-  padding-top: 15px;
+  cursor: pointer;
+  flex-direction: row-reverse;
+  // padding: 10px;
+  padding-top: 10px;
   background-color: #fff;
   border-top: 2px solid rgb(201, 201, 201);
   overflow: hidden;
-  overflow-y: auto;
-  height: 30%;
+  // overflow-y: auto;
+  height: 9%;
+  bottom: 0;
+  display: flex;
+  z-index: 10;
+}
+
+.description .color-span .color {
+  border: 3px dashed #dbdbdb;
+  width: 71px;
+  height: 70px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.5s;
+  /* Transition fluide */
+}
+
+.app_access:hover {
+  background-color: rgb(228, 228, 228);
+}
+
+.app_access:hover .color .description .color-span {
+  background-color: white !important;
+}
+
+
+.color:hover {
+  background-color: rgb(218, 218, 218);
+  /* Changement de couleur au hover */
 }
 
 .container_cards {
@@ -3480,6 +3754,22 @@ a {
   flex-wrap: wrap;
   justify-content: space-between;
   margin-top: 10px;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  max-height: 100%;
+  overflow-y: auto;
+  padding-bottom: 100px;
+
+}
+
+.iconCardAPp {
+  border-right: 1px solid rgb(197, 197, 197);
+  width: 74px;
+  background-color: #f7f8f8;
+  display: flex;
+  justify-content: center;
+  padding-top: 5px;
 }
 
 .cardDescription {
@@ -3488,16 +3778,16 @@ a {
   user-select: none;
   background-color: #fff;
   border-radius: 5px;
-  width: 100%;
-  height: 50px;
+  width: 95%;
+  height: 150px;
   margin-top: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   transition: all .2s;
   display: flex;
   position: relative;
   overflow: hidden;
   box-shadow: 0 1px 2px #3c40434d, 0 1px 3px 1px #3c404326;
-  margin-left: 10px;
+  // margin-left: 10px;
 }
 
 @media (max-width: 970px) {
@@ -3522,7 +3812,7 @@ a {
 }
 
 .data_cardDescription {
-  border-right: 1px solid rgb(202, 202, 202);
+  // border-right: 1px solid rgb(202, 202, 202);
   // width: 87%;
   width: 100%;
   height: 100%;
@@ -3552,11 +3842,16 @@ a {
 
 .description_data_cardDescription {
   width: 90%;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   display: flex;
   color: #14202c;
   padding-right: 5px;
+  font-size: 18px;
+  font-weight: bold;
+  font-family: Charlevoix Pro !important;
+  padding-top: 10px;
+
 }
 
 .microinfo {

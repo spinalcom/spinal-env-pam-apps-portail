@@ -248,7 +248,8 @@
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
   width: 28px;
   height: 28px;
-  margin-right: 10px
+  margin-right: 10px;
+  margin-left: 5px;
 }
 
 .navPickerApp .navPickerApp-appMenu .navPickerApp-appMenu-button .navPickerApp-appMenu-title {
