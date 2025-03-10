@@ -25,6 +25,8 @@ opacity: 1;
 flex-direction: row !important;
 align-items:center !important;
 justify-content: space-between !important;
+margin-bottom: 8px;
+margin-left: 9px;
 }
 .button-add-ticket:hover {
     border: 1px solid #F7F8F8 !important;

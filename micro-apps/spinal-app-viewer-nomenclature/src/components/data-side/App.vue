@@ -78,9 +78,7 @@ with this file. If not, see
         :ctx_list="$store.state.appDataStore.user_selection_list.ctx"
         :cat_list="$store.state.appDataStore.user_selection_list.cat"
         :grp_list="$store.state.appDataStore.user_selection_list.grp" @itemSelected="handleItemSelected" />
-
     </div>
-
   </v-card>
 </template>
 
