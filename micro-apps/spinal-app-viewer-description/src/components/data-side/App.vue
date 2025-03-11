@@ -365,56 +365,57 @@
 
         <div v-if="selection == 'Liste'">
 
-          <v-data-table :headers="dynamicHeaders" :items="formattedData" :search="searchName" class="elevation-1"
-            hide-default-footer :items-per-page="formattedData.length" dense>
-            <template v-slot:header.color="{ header }">
-              <th style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                {{ header.text }}
-                <v-icon v-if="!allColored" @click="colorAll">mdi-invert-colors</v-icon>
-                <v-icon v-else @click="descolorAll">mdi-invert-colors-off</v-icon>
-              </th>
-            </template>
+          <div style="margin-left: 10px;" v-if="formattedData.length">
+            <!-- Header avec outil de recherche -->
+            <div class="inventory-header"
+              style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #ddd;">
+              <span v-if="formattedData[0].type == 'geographicRoom'" style="font-size: 19px; font-weight: bold;">Liste
+                des pièces </span>
+              <span v-else-if="formattedData[0].type == 'geographicFloor'"
+                style="font-size: 19px; font-weight: bold;">Liste des Étages</span>
+              <span v-else style="font-size: 19px; font-weight: bold;">Liste des Équipements </span>
+              <v-text-field v-model="searchName" placeholder="Rechercher un nom" dense clearable hide-details solo
+                prepend-inner-icon="mdi-magnify" style="max-width: 250px;"></v-text-field>
+            </div>
 
-            <template v-slot:header.name="{ header }">
-              <div style="display: flex; flex-direction: column;">
-                <v-text-field v-model="searchName" placeholder="Nom" dense clearable hide-details solo
-                  prepend-inner-icon="mdi-magnify" style="margin-top: 5px;"></v-text-field>
+            <div class="inventory-container">
+              <div v-for="item in filteredData" :key="item.dynamicId" class="inventory-item"
+                style="display: flex; align-items: center; width: 100%; border: 1px solid #ddd; padding: 14px 5px; border-radius: 5px;">
+
+                <li :title="item.name"
+                  style="flex: 1; font-size: 16px; font-family: Arial, Helvetica, sans-serif;max-width: auto;overflow: hidden;">
+                  {{ item.name }}
+                </li>
+
+                <!-- Icône Couleur -->
+                <v-icon v-if="coloredElement && !coloredElement.includes(item.dynamicId)" @click="colorselected(item)"
+                  style="cursor: pointer; margin-left: 10px;">
+                  mdi-invert-colors
+                </v-icon>
+
+                <v-icon v-if="coloredElement && coloredElement.includes(item.dynamicId)" @click="descolorselected(item)"
+                  :style="{ cursor: 'pointer', marginLeft: '10px', color: item.color }">
+                  mdi-invert-colors-off
+                </v-icon>
+
+                <!-- Icône Sélection -->
+                <v-icon @click="selectselected(item)" style="cursor: pointer; margin-left: 10px;">
+                  mdi-select-place
+                </v-icon>
+
+                <!-- Icône Aller À -->
+                <v-icon @click="gotoselected(item)" style="cursor: pointer; margin-left: 10px;">
+                  mdi-arrow-down-left-bold
+                </v-icon>
+
+                <!-- Icône Zoom -->
+                <v-icon @click="zoomselected(item)" style="cursor: pointer; margin-left: 10px;">
+                  mdi-magnify-plus-outline
+                </v-icon>
               </div>
-            </template>
+            </div>
+          </div>
 
-            <template v-slot:item="{ item }">
-              <tr>
-                <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.name }}</td>
-                <td style="padding-top: 15px; padding-bottom: 10px;">{{ item.type }}</td>
-
-                <td v-if="dynamicHeaders.some(h => h.value === 'area')"
-                  style="padding-top: 15px; padding-bottom: 10px;">
-                  {{ item.area !== 'N/A' ? item.area : 'N/A' }}
-                </td>
-
-                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-                  <v-icon v-if="coloredElement && !coloredElement.includes(item.dynamicId)"
-                    @click="colorselected(item)">mdi-invert-colors</v-icon>
-                  <v-icon v-if="coloredElement && coloredElement.includes(item.dynamicId)"
-                    @click="descolorselected(item)" :style="{ color: item.color }">
-                    mdi-invert-colors-off
-                  </v-icon>
-                </td>
-
-                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-                  <v-icon @click="selectselected(item)">mdi-select-place</v-icon>
-                </td>
-
-                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-                  <v-icon @click="gotoselected(item)">mdi-arrow-down-left-bold</v-icon>
-                </td>
-
-                <td style="padding-top: 15px; padding-bottom: 10px; padding-left: 25px;">
-                  <v-icon @click="zoomselected(item)">mdi-magnify-plus-outline</v-icon>
-                </td>
-              </tr>
-            </template>
-          </v-data-table>
 
         </div>
 
@@ -502,7 +503,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                      }}
+                    }}
                     </li>
                   </div>
                 </div>
@@ -675,7 +676,6 @@
           </div>
         </span>
 
-        <!-- Empêche le clic de se propager vers le parent -->
         <div v-if="filteredApp" class="app_access" @click.stop="handleClick">
           <div class="app_access_fl">
             <v-icon size="25">mdi-application-import</v-icon>
@@ -847,14 +847,16 @@ class dataSideApp extends Vue {
 
 
   get dynamicItems(): string[] {
-    let items = ['Vue Globale', 'Liste', 'Attribut', 'Documentation', 'Tickets'];
+    let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
 
     if (this.floorstaticDetails.some(detail =>
       detail?.controlEndpoint?.some(endpoint => endpoint?.endpoints?.length > 0)
     )) {
       items.push('Indicateur');
     }
-
+    if (this.formattedData.length) {
+      items.splice(1, 0, 'Liste');
+    }
     if (this.floorstaticDetails.some(detail =>
       detail?.endpoints && detail.endpoints.length > 0
     )) {
@@ -885,6 +887,15 @@ class dataSideApp extends Vue {
       this.$emit('changeRoute', this.filteredApp.id);
     }
   }
+
+  get filteredData() {
+    return this.searchName
+      ? this.formattedData.filter(item =>
+        item.name.toLowerCase().includes(this.searchName.toLowerCase())
+      )
+      : this.formattedData;
+  }
+
 
   get temporality() {
     return this.$store.state.appDataStore.temporalitySelected.name;
@@ -1634,7 +1645,7 @@ class dataSideApp extends Vue {
     // console.log('totototototoottoto windows query');
 
 
-    
+
     document.querySelectorAll('.v-input__icon').forEach(el => {
       el.style.width = '150%';
       el.style.height = '50px';
@@ -1707,6 +1718,7 @@ class dataSideApp extends Vue {
       this.getTicket(result)
       this.filtredAttribut('building')
       this.$forceUpdate();
+      this.createApp('')
       //TODO
       // this.countSpaceInventory()
     }
@@ -3210,6 +3222,15 @@ class dataSideApp extends Vue {
 
   }
 
+
+  @Watch("dynamicItems")
+  editSelection() {
+    if (!this.formattedData.length) {
+      this.selection = "Vue Globale";
+
+    }
+  }
+
   @Watch("data")
   watchData() {
     this.referencedId = this.selectedZone.dynamicId
@@ -3241,7 +3262,7 @@ export default dataSideApp;
 </script>
 <style>
 #app>div>div.dataBody>div.appli.appContainer>div.w-full>div:nth-child(4)>div>div:nth-child(2)>div {
-  margin-left: 20px;
+  margin-left: 10px;
   margin-top: 10px;
 }
 </style>
@@ -3718,8 +3739,8 @@ a {
   border-top: 2px solid rgb(201, 201, 201);
   overflow: hidden;
   // overflow-y: auto;
-  height: 120px;
-    bottom: 0;
+  height: 110px;
+  bottom: 0;
   display: flex;
   z-index: 10;
 }
