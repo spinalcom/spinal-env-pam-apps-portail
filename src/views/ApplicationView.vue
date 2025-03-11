@@ -76,7 +76,7 @@ class ApplicationView extends Vue {
   }
 
   async initApp() {
-    console.log("initApp");
+    // console.log("initApp");
     this.appSelected = this.getAppInfo();
     this.appPath = this.getAppPath();
 

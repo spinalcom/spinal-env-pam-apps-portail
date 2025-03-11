@@ -185,11 +185,9 @@ export async function postBIMObjectInfo(buildingId: string, referenceIds: any): 
 }
 
 export async function postFloorInventory(id: number, body: { context: string; category: string }, includePosition?: boolean, includeArea: boolean = true, onlyDynamicId: boolean = true): Promise<any> {
-  console.log('Arrivé dans la fonction postFloorInventory');
   const spinalAPI = SpinalAPI.getInstance();
   const buildingId = localStorage.getItem("idBuilding");
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/floor/${id}/inventory`);
-  console.warn('11 , Arrivé dans la fonction postFloorInventory');
 
   const params = new URLSearchParams();
   if (includePosition !== undefined) params.append("includePosition", String(includePosition));
