@@ -70,10 +70,19 @@ const router = new VueRouter({
 
 router.beforeEach(async (to, from, next) => {
   const auth = await isAuthenticate();
+  
+  if (window.parent) {
+    window.parent.router = window.parent.router || {};
+    window.parent.router.query = window.parent.router.query || {};
+    window.parent.router.query.app = to.query.app;
+  }
+
   if (to.name === 'Login' && auth) return next({ name: 'Home' });
   if (!auth && to.name !== 'Login') return next({ name: 'Login' });
+
   return next();
 });
+
 
 router.customPush = function(path, query) {
   this.push({ path, query });

@@ -602,7 +602,7 @@
             <AddBtn @open-dialog="ShowFormDoc" name="Ajouter un document" icon="mdi-file-plus-outline" />
           </v-row>
           <FormDoc :isDialogOpen="show_formdoc" @close-dialog="ShowFormDoc" @add-doc="showAlert"
-            :referenceid="this.selectedZone.dynamicId" />
+            :referenceid="selectedZone.dynamicId" />
           <div style="width: 100%; flex-direction: column;">
             <h3>{{ floorstaticDetails[0].name }}</h3>
             <div class="blocInformation">
@@ -1426,16 +1426,12 @@ class dataSideApp extends Vue {
 
   colorSpace(categoryName, groupIndex) {
     const buildingId = localStorage.getItem("idBuilding");
-
-    console.log(this.spaceInventoryData.find(item => item.category === categoryName));
-
-
+    //console.log(this.spaceInventoryData.find(item => item.category === categoryName));
     const category = this.spaceInventoryData.find(item => item.category === categoryName);
-    // const color = this.spaceInventoryData.find(item => item.category === categoryName).color;
     if (!category) return console.warn(`Catégorie "${categoryName}" non trouvée`);
 
     const group = category.groups[groupIndex];
-    const color = category.groups[groupIndex].color
+    const infocolor = category.groups[groupIndex].color
     if (!group) return console.warn(`Groupe à l'index ${groupIndex} non trouvé dans "${categoryName}"`);
 
     if (!group.rooms || group.rooms.length === 0) {
@@ -1443,13 +1439,11 @@ class dataSideApp extends Vue {
     }
 
     const floorId = this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId;
-
-    // const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
-
+    const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
     const itemsToColor = group.rooms.map(room => ({
       buildingId: buildingId,
       dynamicId: room.dynamicId,
-      color: color,
+      color: infocolor || randomColor,
       floorId: floorId,
     }));
 
@@ -1457,6 +1451,8 @@ class dataSideApp extends Vue {
       items: itemsToColor,
       buildingId: buildingId,
     });
+
+    const color = infocolor || randomColor
 
     this.coloredRoom.push({ category: categoryName, groupIndex, color });
 
@@ -1634,6 +1630,11 @@ class dataSideApp extends Vue {
   }
 
   async mounted() {
+    // window.parent.router.query.app = 'toto'
+    // console.log('totototototoottoto windows query');
+
+
+    
     document.querySelectorAll('.v-input__icon').forEach(el => {
       el.style.width = '150%';
       el.style.height = '50px';
