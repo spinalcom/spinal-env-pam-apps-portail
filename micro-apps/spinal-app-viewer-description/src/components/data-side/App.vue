@@ -1426,10 +1426,7 @@ class dataSideApp extends Vue {
 
   colorSpace(categoryName, groupIndex) {
     const buildingId = localStorage.getItem("idBuilding");
-
-    console.log(this.spaceInventoryData.find(item => item.category === categoryName));
-
-
+    //console.log(this.spaceInventoryData.find(item => item.category === categoryName));
     const category = this.spaceInventoryData.find(item => item.category === categoryName);
     if (!category) return console.warn(`Catégorie "${categoryName}" non trouvée`);
 
@@ -1442,9 +1439,7 @@ class dataSideApp extends Vue {
     }
 
     const floorId = this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId;
-
     const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
-
     const itemsToColor = group.rooms.map(room => ({
       buildingId: buildingId,
       dynamicId: room.dynamicId,
@@ -1635,6 +1630,11 @@ class dataSideApp extends Vue {
   }
 
   async mounted() {
+    // window.parent.router.query.app = 'toto'
+    // console.log('totototototoottoto windows query');
+
+
+    
     document.querySelectorAll('.v-input__icon').forEach(el => {
       el.style.width = '150%';
       el.style.height = '50px';
