@@ -603,7 +603,7 @@ class App extends Vue {
     emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
       this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
       if (result.navigate) {
-        if (localStorage.getItem("viewer_loaded") == 'unload'){
+        if (localStorage.getItem("viewer_loaded") == 'unload') {
           return
         }
 
@@ -783,25 +783,31 @@ export default App;
 
 
     .appContainer {
-      width: 40%;
+      margin-top: 75px;
+      top: 0px;
       z-index: 7;
       float: right;
-      transition: 0.5s;
-      position: absolute;
+      width: 40%;
+      /* height: 93%; */
+      height: 100% -80px;
+      height: calc(100vh - 80px);
       margin-right: 6px;
-      height: 93%;
-      right: 0px;
+      transition: all .5s;
+      position: absolute;
+      right: 0;
     }
 
     .active {
+      margin-top: 75px;
       width: 98.5%;
       // height: 100%;
       position: absolute;
+      top: 0;
       z-index: 7;
       right: 0px;
       margin-right: 6px;
-      height: 93%;
-    }
+      height: 100% -80px;
+        }
 
     @media (max-width: 960px) {
       .active {
