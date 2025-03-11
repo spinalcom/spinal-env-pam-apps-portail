@@ -199,10 +199,8 @@ class App extends Vue {
         buildingId: buildingId,
       }
     );
-    console.log('BUILDING', building);
     this.$store.state.appDataStore.zoneSelected
     this.$store.commit(MutationTypes.SET_BUILDING_INFO, building);
-    console.log('BUILDING INFO', this.$store.state.appDataStore.buildingInfo);
     const item = {
       buildingId: localStorage.getItem("idBuilding"),
       dynamicId: building.dynamicId,

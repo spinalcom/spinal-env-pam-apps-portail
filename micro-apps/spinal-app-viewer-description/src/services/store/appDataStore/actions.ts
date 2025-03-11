@@ -763,8 +763,6 @@ export const actions = {
 	},
 
 	[ActionTypes.FIT_TO_VIEW_ITEMS]({ commit, dispatch, state }, playload: any) {
-		console.log(playload, 'playload');
-
 		ViewerManager.getInstance().fitToView(playload);
 	},
 

@@ -1709,8 +1709,6 @@ class dataSideApp extends Vue {
 
       const result = await this.getBuildingStaticDetails();
 
-      console.log('11 alors nous sommes ici peut etre');
-
       this.floorstaticDetails = result
       this.filteredEndpoints('building')
       this.getDocumentation(result)
@@ -1718,9 +1716,8 @@ class dataSideApp extends Vue {
       this.getTicket(result)
       this.filtredAttribut('building')
       this.$forceUpdate();
-      this.createApp('')
-      //TODO
-      // this.countSpaceInventory()
+      this.createApp()
+     
     }
   }
 
@@ -1975,7 +1972,7 @@ class dataSideApp extends Vue {
     this.getDocumentation(result)
     this.filtredAttribut('floor')
     this.getTicket(result)
-    this.createApp(result)
+    this.createApp()
     this.$forceUpdate();
   }
 
@@ -2064,7 +2061,7 @@ class dataSideApp extends Vue {
       this.getListinfo('room', id)
       this.getTicket(result)
       this.filtredAttribut('room')
-      this.createApp(result)
+      this.createApp()
 
     } else if (node_read[0].type == 'BIMObject') {
 
@@ -2144,10 +2141,8 @@ class dataSideApp extends Vue {
   //   this.appTab = [...objetApp];
   //   return objetApp;
   // }
-  createApp(tab) {
+  createApp() {
     this.appTab = this.config.application
-    console.log('leS APPS DU PROJETS : ', this.appTab);
-
   }
 
 
@@ -2778,7 +2773,6 @@ class dataSideApp extends Vue {
   //   return spaceInventoryData;
   // }
   async countSpaceInventory() {
-    console.log('[countSpaceInventory] Début de la fonction...');
     this.data_loading = 75;
 
     const buildingId = localStorage.getItem("idBuilding");
@@ -2791,7 +2785,6 @@ class dataSideApp extends Vue {
     });
 
     if (!nodeRead) {
-      console.warn('[countSpaceInventory] Aucune donnée trouvée pour nodeRead.');
       // On initialise quand même spaceInventoryData, puis on sort
       this.spaceInventoryData = [];
       this.data_loading = 100;
@@ -2799,20 +2792,17 @@ class dataSideApp extends Vue {
     }
 
     if (nodeRead.type !== "geographicFloor" && nodeRead.type !== "geographicBuilding") {
-      console.warn('[countSpaceInventory] Le node n\'est ni un floor ni un building.');
       this.spaceInventoryData = [];
       this.data_loading = 100;
       return this.spaceInventoryData;
     }
 
-    console.log('[countSpaceInventory] nodeRead:', nodeRead);
 
     // Calcul des floorIds
     let floorIds = [];
     if (nodeRead.type === "geographicBuilding") {
       // Vérifie qu'on est autorisé à récupérer l'inventaire côté building
       if (!this.config.BuildingInventory) {
-        console.warn('[countSpaceInventory] BuildingInventory n\'est pas configuré. Inventaire vide.');
         this.spaceInventoryData = [];
         this.data_loading = 100;
         return this.spaceInventoryData;
@@ -2833,7 +2823,6 @@ class dataSideApp extends Vue {
       }
 
       floorIds = floorsResult.map(floor => floor.dynamicId);
-      console.log('[countSpaceInventory] FloorIds récupérés pour le bâtiment :', floorIds);
     } else {
       // Dans le cas d'un floor, on récupère simplement son ID
       floorIds = [contextId];
@@ -2844,7 +2833,6 @@ class dataSideApp extends Vue {
 
     // Vérifie qu'on a bien une config spaceInventaire
     if (!Array.isArray(this.config.spaceInventaire)) {
-      console.warn('[countSpaceInventory] config.spaceInventaire n\'est pas un tableau ou est manquant.');
       this.spaceInventoryData = [];
       this.data_loading = 100;
       return this.spaceInventoryData;
@@ -2867,10 +2855,9 @@ class dataSideApp extends Vue {
 
           // Si pas de réponse ou pas un tableau, on skip
           if (!Array.isArray(inventoryResponse) || !inventoryResponse.length) {
-            console.warn(`[countSpaceInventory] Aucun inventaire pour ${contextName} - ${categoryName} (floor: ${floorId}).`);
+            // console.warn(`[countSpaceInventory] Aucun inventaire pour ${contextName} - ${categoryName} (floor: ${floorId}).`);
             continue;
           }
-          console.warn('11 les resultes', inventoryResponse);
 
           // Génère une clé unique pour regrouper
           const mapKey = `${contextName}-${categoryName}`;
@@ -2910,7 +2897,6 @@ class dataSideApp extends Vue {
       }
     }
 
-    console.warn('[countSpaceInventory] Inventaire brut terminé, conversion Map -> Array...');
 
     // Conversion finale : Map -> Array
     this.spaceInventoryData = Array.from(spaceInventoryMap.values()).map(entry => ({
@@ -2919,7 +2905,6 @@ class dataSideApp extends Vue {
       groups: Array.from(entry.groups.values()),
     }));
 
-    console.warn('[countSpaceInventory] Résultat final :', this.spaceInventoryData);
     this.data_loading = 100;
     return this.spaceInventoryData;
   }
@@ -3082,9 +3067,10 @@ class dataSideApp extends Vue {
         }
 
 
-      } else {
-        console.warn(`Aucun inventaire trouvé pour cet étage :`, floor);
-      }
+      } 
+      // else {
+      //   console.warn(`Aucun inventaire trouvé pour cet étage :`, floor);
+      // }
 
 
     });
@@ -3188,7 +3174,6 @@ class dataSideApp extends Vue {
   }
   @Watch("changeData")
   changeDataLoading(oldval, newVal) {
-    console.log(oldval, newVal, ' les val ', this.stockedZone, this.$store.state.appDataStore.zoneSelected.dynamicId);
     if (this.stockedZone != this.$store.state.appDataStore.zoneSelected.dynamicId) {
       this.stockedZone = this.$store.state.appDataStore.zoneSelected.dynamicId
       this.data_loading = 10;
