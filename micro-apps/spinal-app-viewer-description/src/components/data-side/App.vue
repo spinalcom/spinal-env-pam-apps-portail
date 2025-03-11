@@ -3718,8 +3718,8 @@ a {
   border-top: 2px solid rgb(201, 201, 201);
   overflow: hidden;
   // overflow-y: auto;
-  height: 9%;
-  bottom: 0;
+  height: 120px;
+    bottom: 0;
   display: flex;
   z-index: 10;
 }
