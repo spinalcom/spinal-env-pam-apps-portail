@@ -1,56 +1,171 @@
 <template>
-  <div style="cursor: pointer;" @click="onClick" ref="container" class="sprite_container">
+  <div ref="container" class="equipmentApp_menu">
+    <div
+      class="equipmentApp_sprite_color"
+      @click="onClick"
+      style="cursor: pointer"
+      :style="{ ...dynamicStyle }"
+    ></div>
 
-    <div class="equipment_sprite_color" :style="{ ...dynamicStyle }"></div>
-    <div v-if="data.attr"
-      style="border-radius: 10px;top: 2px;left: 5px;text-overflow: ellipsis;max-width: 140px;white-space: nowrap;overflow: hidden;position: absolute;border-radius: 10px !important;min-width: 20px;height: 12px;background-color: rgb(255, 255, 255);color: black;padding-bottom: 4px;padding-left: 15px;font-size: 12px;padding-right: 5px;z-index: -1;"
-      :title="findValueByLabel()">
-      <template v-if="isUrl(findValueByLabel())">
-        <a :href="findValueByLabel()" target="_blank">{{ findValueByLabel() }}</a>
-      </template>
-      <template v-else>
-        {{ findValueByLabel() }}
-      </template>
-    </div>
-    <div class="card-menu" v-if="isClicked">
-      <p style="" href="" class="card">
-      <div @click="showAttr = !showAttr" v-if="showAttr"
-        style="background-color: white;position: absolute;right:0px;top: 50%;transform: translate(80%,-50%);width: 28px;display: flex;justify-content: center;align-items: center;border-radius: 30px;font-size: 18px;">
-        > </div>
-      <div style="display: flex;flex-direction: column;padding-right: 5px;" class="mt-4 ml-4">
-        <div @click.stop="onClose"
-          style="font-size:15px; color: rgb(0, 0, 0);position: absolute;right: 15px;top:12px; font-weight:bold;">X</div>
-
-        <span style="font-size: 16px;font-weight: bold;padding-bottom: 20px;">{{ data.name }}</span>
+    <div class="equipmentApp_sprite_container" v-if="isClicked">
+      <div
+        ref="closeButton"
+        @click="onClose"
+        style="
+          justify-content: center;
+          align-items: center;
+          display: flex;
+          background-color: white;
+          cursor: pointer;
+          border-radius: 25px;
+          width: 20px;
+          height: 20px;
+          position: absolute;
+          right: -35px;
+          font-size: 13px;
+          z-index: 99999;
+          top: 3px;
+          font-weight: bold;
+          border: 1px solid gray;
+          color: #14202c;
+        "
+      >
+        <span class="mdi mdi-close"></span>
       </div>
-      <div v-if="!showAttr" @click="showAttr = !showAttr"
-        style="color: rgb(47, 129, 14);width: 84px;position: absolute;left: 66%; bottom: 10px;border:1px solid rgb(72, 187, 27) ; padding-left : 5px ; border-radius : 4px ; cursor : pointer;">
-        Voir les attributs</div>
-      <div v-else @click="showAttr = !showAttr"
-        style="color: rgb(129, 14, 14);width: 105px;position: absolute;left: 59%; bottom: 10px;border:1px solid rgb(187, 27, 27) ; padding-left : 5px ; border-radius : 4px ; cursor : pointer">
-        Masquer les attributs</div>
-      </p>
-      <div class="dropleft" v-if="showAttr"
-        style="color: black;width: 300px;background-color: rgb(255, 255, 255);left: 340px;position: absolute;border-radius: 10px;padding-left: 7px;padding-right: 7px;padding-bottom: 7px;transform: translate(0, -100%) !important;">
-        <div v-for="category in data.categoryAttributes" :key="category.dynamicId" class="category">
-          <h3
-            style="background-color: rgb(220, 220, 220);border-top-right-radius: 3px;border-top-left-radius: 3px;padding-left: 3px;">
-            {{ category.name }}</h3>
-          <div v-for="attribute in category.attributs" :key="attribute.date" class="attribute">
-            <strong style="font-size: 14px;">{{ attribute.label }}:</strong> {{ attribute.value }}
+      <div class="equipmentApp_card">
+        <div class="top-section">
+          <div class="border"></div>
+          <div class="icons">
+            <div :title="data.name" class="logo">
+              {{ data.name }}
+            </div>
+            <div
+              ref="navigationButton"
+              style="
+                justify-content: center;
+                align-items: center;
+                display: flex;
+                background-color: #14202c;
+                cursor: pointer;
+                width: 16px;
+                height: 16px;
+                position: absolute;
+                right: 80px;
+                font-size: 17px;
+                transform: translateY(-3px);
+                margin-top: 10px;
+              "
+            >
+              &#x21AA;
+            </div>
+          </div>
+
+          <div
+            id="attr_id"
+            style="
+              display: flex;
+              flex-wrap: wrap;
+              overflow-y: scroll;
+              justify-content: center;
+              border-radius: 5px;
+            "
+          >
+            <div
+              v-for="attribut in [
+                { label: 'Tickets', value: data.nbr_tickets },
+                { label: 'Catégorie attributs', value: data.nbr_category_attributes },
+                { label: 'Profiles insight', value: data.nbr_cp },
+                { label: 'Points de mesures', value: data.nbr_ep },
+                { label: 'Possède des documents', value: data.nbr_files > 0 ? 'Oui' : 'Non' },
+                { label: 'Notes', value: data.nbr_notes },                
+              ]"
+              class="box-item"
+            >
+              <div
+                class="box-item-title"
+                style="
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  color: white;
+                  background: #14202c;
+                "
+              >
+                {{ attribut.label.toUpperCase() }}
+              </div>
+              <div
+                :title="attribut.value"
+                class="box-item-value"
+              >
+                {{ attribut.value }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            flex-direction: row;
+            width: 100%;
+            justify-content: center;
+            transform: translate(0, 10px);
+          "
+        >
+          <button
+            v-for="app in {
+              id: 'data.id',
+              value: 'Détails sur étage ou pièce',
+            }"
+            style="
+              background-color: #14202c;
+              color: white;
+              width: 50%;
+              font-weight: bold;
+              border-radius: 5px;
+              font-size: 12px;
+              margin: 4px;
+            "
+            @click.stop="changeRoute(app.id)"
+          >
+            {{ app.value }}
+          </button>
+        </div>
+
+        <div class="bottom-section">
+
+          <!-- <span v-if="true" class="title">Points de mesures</span> -->
+
+          <div v-if="true" class="row row1">
+            <div
+              v-for="(item, index) in [
+                { name: 'Etage', value: data.floor },
+                { name: 'Pièce', value: data.room },
+                { name: 'Groupe', value: data.group },
+              ]"
+              :key="index"
+              :style="{
+                borderRight: '1px solid rgb(215, 215, 215)',
+                borderTop: '1px solid rgb(215, 215, 215)',
+                backgroundColor: 'rgb(230, 230, 230)',
+                fontWeight: 'bold',
+              }"
+              class="item"
+            >
+              <span class="big-text">{{ item.name }}</span>
+              <span class="regular-text">{{ item.value }}</span>
+            </div>
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </template>
 <script>
-
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
-} from "spinal-viewer-event-manager";
+} from 'spinal-viewer-event-manager';
 
 export default {
   props: {
@@ -59,13 +174,13 @@ export default {
   filters: {
     round(value) {
       try {
-        if (typeof value === "string" && value.length === 0) return "";
+        if (typeof value === 'string' && value.length === 0) return '';
         var num = Number(value);
         var rounded = num.toFixed(2);
         return Number(rounded);
       } catch (error) {
         console.error(error);
-        return "";
+        return '';
       }
     },
   },
@@ -76,21 +191,26 @@ export default {
     message: false,
     hints: true,
     dynamicStyle: {
-      border: "3px solid #F9F9F9",
-      boxShadow: "none",
-      background: "#13a9e0"
+      border: '1px solid #F9F9F9',
+      boxShadow: 'none',
+      background: '#13a9e0',
     },
     isClicked: false,
   }),
   mounted() {
+    // console.log('data', this.data);
     this.dynamicStyle.background = this.data.color || '#13a9e0';
-    document.addEventListener("click", (evt) => {
+    document.addEventListener('click', (evt) => {
       const flyoutEl = this.$refs.container;
       let targetEl = evt.target;
       while (targetEl) {
         if (targetEl === flyoutEl) {
           return;
-        } else if (targetEl.classList && targetEl.classList.contains('sprite_container') && targetEl !== flyoutEl) {
+        } else if (
+          targetEl.classList &&
+          targetEl.classList.contains('equipmentApp_menu') &&
+          targetEl !== flyoutEl
+        ) {
           this._isNotSelected();
           return;
         }
@@ -101,15 +221,17 @@ export default {
     setTimeout(() => {
       const button = this.$refs.container;
       if (button) {
-        button.addEventListener('click', this.onClick);
+        //button.addEventListener('click', this.onClick);
       }
     }, 1);
-
   },
 
   methods: {
     isUrl(value) {
-      return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
+      return (
+        typeof value === 'string' &&
+        (value.startsWith('http://') || value.startsWith('https://'))
+      );
     },
     extrairePrefixe(str) {
       const dernierSlashIndex = str.lastIndexOf('/');
@@ -123,15 +245,13 @@ export default {
         for (const attribute of category.attributs) {
           if (attribute.label === this.extrairePrefixe(this.data.attr)) {
             return attribute.value;
-          }
-          else if (this.data.attr === "Nom") {
-            return this.data.name
+          } else if (this.data.attr === 'Nom') {
+            return this.data.name;
           }
         }
       }
       return undefined;
     },
-
 
     shouldDisplayAttribute(attr) {
       // Liste des labels à exclure
@@ -144,14 +264,11 @@ export default {
       this._isNotSelected();
     },
 
-
-
     onClick() {
       this.isClicked = true;
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
-      if (this.isClicked)
-        this._isSelected();
+      if (this.isClicked) this._isSelected();
       else {
         this._isNotSelected();
       }
@@ -161,18 +278,17 @@ export default {
       this.isClicked = true;
       const enfant = this.$refs.container;
       if (enfant && enfant.parentElement) {
-        enfant.parentElement.style.zIndex = '99';
+        enfant.parentElement.style.zIndex = '9999';
       }
 
       this.dynamicStyle = {
         background: this.data.color || '#13a9e0',
-        border: "3px solid #00A2FF",
-        boxShadow: "0px 0px 10px 2px #00A2FF",
+        border: '1px solid #00A2FF',
+        boxShadow: '0px 0px 10px 2px #00A2FF',
       };
     },
     _isNotSelected() {
       this.showAttr = false;
-      //this.data.color = 'blue'
       this.isClicked = false;
       const enfant = this.$refs.container;
       if (enfant && enfant.parentElement) {
@@ -180,37 +296,42 @@ export default {
       }
 
       this.dynamicStyle = {
-        border: "3px solid #F9F9F9",
-        boxShadow: "none",
+        border: '1px solid #F9F9F9',
+        boxShadow: 'none',
         background: this.data.color || '#13a9e0',
       };
     },
   },
 };
-
 </script>
 
-<style lang="scss">
-.category {
-  background-color: rgb(245, 245, 245);
-  margin-top: 8px;
-  overflow: hidden;
-  border-radius: 3px;
-  border: 1px solid rgb(220, 220, 220);
-
+<style scoped>
+#attr_id::-webkit-scrollbar {
+  width: 7px;
+  /* Width of the entire scrollbar */
 }
 
-.attribute {
-  font-size: 10px;
-  margin-left: 10px;
+#attr_id::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  /* Color of the track */
+  border-radius: 10px;
 }
 
-.dropleft {
-  position: absolute;
-  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
-  left: 200px;
-  -webkit-animation: scale-in-hor-left 0.2s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-  animation: scale-in-hor-left 0.2s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+#attr_id::-webkit-scrollbar-thumb {
+  background: #dadada;
+  /* Color of the scrollbar handle */
+  border-radius: 10px;
+  border: 1px solid gray;
+}
+
+#attr_id::-webkit-scrollbar-thumb:hover {
+  background: #c5c5c5;
+  /* Color of the scrollbar handle on hover */
+}
+
+#attr_id {
+  z-index: 5;
+  height: 220px;
 }
 
 @-webkit-keyframes scale-in-hor-left {
@@ -249,32 +370,6 @@ export default {
   }
 }
 
-.card-menu {
-  left: 50%;
-  top: 50%;
-  border-bottom-left-radius: 12px !important;
-  border-bottom-right-radius: 12px !important;
-  border-top-right-radius: 12px !important;
-  position: absolute;
-  background-color: white;
-  width: 310px;
-  min-height: 20px;
-  height: auto;
-  // -webkit-animation: scale-in-tl 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-  // animation: scale-in-tl 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-  z-index: 99999 !important;
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
-  color: black;
-  font-size: 10px;
-  overflow: visible;
-}
-
-
-
-
-
-
-
 @-webkit-keyframes scale-in-tl {
   0% {
     -webkit-transform: scale(0);
@@ -311,165 +406,222 @@ export default {
   }
 }
 
-
-
-// .card {
-//   width: 300px;
-//   height: 300px;
-//   overflow: hidden;
-//   z-index: 99999;
-// }
-
-.sprite_container {
-  overflow: hidden;
-  border-radius: 100%;
-  z-index: 2 !important;
+.equipmentApp_sprite_container {
+  /* overflow: hidden; */
+  margin-left: 7px;
+  width: 330px;
+  /* border-radius: 100%; */
+  z-index: 99999 !important;
 }
 
-.new-class {
-  width: 200px;
-  height: 200px;
-}
-
-.equipment_sprite_color {
-  width: 13px;
-  height: 13px;
+.equipmentApp_sprite_color {
+  /* background-color: #13A9E0; */
+  width: 11px;
+  height: 11px;
   border-radius: 100%;
   z-index: 0 !important;
-  transition: 0.2s
 }
 
-.sprite_color:hover {
-  transform: scale(1.5);
+.equipmentApp_menu {
+  position: absolute;
+  overflow: visible;
 }
 
-.sprite_value_unit {
-  border-radius: 100px;
-  color: #14202c;
-  margin-left: -15px;
-  padding-left: 15px;
+.equipmentApp_card {
+  border: 1px solid rgb(179, 179, 179);
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+  width: 350px;
+  border-bottom-left-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+  background: #f1f1f1;
+  padding-left: 5px;
   padding-right: 5px;
-  padding-bottom: 1px;
-  height: 15px;
-  font-size: 14px;
-  background: #f9f9f9;
-  z-index: 1;
-}
-
-
-.cards {
-  padding-left: 0 !important;
-}
-
-.card {
-  position: relative;
-  // display: block;
-  // height: 100%;
-  border-radius: calc(var(--curve) * 1px);
-  // background-color: white;
-  // overflow: hidden;
-  // text-decoration: none;
-
-}
-
-.card__image {
-  width: 100%;
-  height: auto;
-}
-
-.card__overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1;
-  border-radius: calc(var(--curve) * 1px);
-  background-color: var(--surface-color);
-  transform: translateY(100%);
-  transition: .2s ease-in-out;
-
-}
-
-.card__header {
-  position: relative;
-  left: 0px;
-  display: flex;
-  align-items: center;
-  gap: 2em;
-  padding: 2em;
-  border-radius: calc(var(--curve) * 1px) 0 0 0;
-  background-color: var(--surface-color);
-  transform: translateY(-100%);
-  transition: .2s ease-in-out;
-  background-color: rgb(244, 244, 244);
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
-  cursor: pointer;
-}
-
-.card__header:hover {
-  background-color: rgb(230, 230, 230);
-}
-
-.card__arc {
-  width: 80px;
-  height: 80px;
-  position: absolute;
-  bottom: 100%;
-  right: 0;
-  z-index: 1;
-
-}
-
-.card__arc path {
-  fill: var(--surface-color);
-  d: path("M 40 80 c 22 0 40 -22 40 -40 v 40 Z");
-}
-
-// .card:hover .card__header {
-//   transform: translateY(0);
-// }
-
-.card__thumb {
-  flex-shrink: 0;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-}
-
-.card__title {
-  font-size: 1.5em;
-  margin: 0 0 .3em;
-  color: #000000;
-}
-
-.card__tagline {
-  display: block;
-  margin: 1em 0;
-  font-family: "MockFlowFont";
-  font-size: .8em;
-  color: #D7BDCA;
-}
-
-.card__status {
-  font-size: .9em;
-  color: #616161;
-}
-
-.card__description {
-  padding: 0 2em 2em;
-  margin: 0;
-  color: #000000;
-  font-family: "MockFlowFont";
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  padding-top: 5px;
   overflow: hidden;
-  // background-color: rgb(138, 29, 29);
-  border-bottom-left-radius: 15px;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 20px 0px;
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative !important;
+}
+
+/* 
+  .card:hover {
+    transform: scale(1.05);
+  } */
+
+.equipmentApp_card .top-section {
+  height: 220px;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  /* background: linear-gradient(45deg, #8d8d8d 0%, rgb(156, 156, 156) 100%); */
+  position: relative;
+}
+
+.equipmentApp_card .top-section .border {
+  height: 51px;
+  /* width: 70%; */
+  background: #fff;
+  border-bottom-right-radius: 10px;
+  position: relative;
+  transform: skew(-40deg);
+  box-shadow: -2px -20px #fff;
+  left: -67px;
+  top: -5px;
+}
+
+.equipmentApp_card .top-section .border::before {
+  content: '';
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  top: 0;
+  right: -15px;
+  background: rgba(255, 255, 255, 0);
+  border-top-left-radius: 10px;
+  box-shadow: -5px -5px 0 2px #ffffff;
+}
+
+.equipmentApp_card .top-section::before {
+  content: '';
+  position: absolute;
+  top: 30px;
+  left: 0;
+  background: rgba(255, 255, 255, 0);
+  height: 15px;
+  width: 15px;
+  border-top-left-radius: 15px;
+  box-shadow: -5px -5px 0 2px #ffffff;
+}
+
+.equipmentApp_card .top-section .icons {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 30px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.equipmentApp_card .top-section .box-item {
+  border: 1px solid #14202c;
+  border-radius: 5px;
   font-size: 11px;
-  // background-color: rgb(244, 244, 244);
+  font-weight: bold;
+  width: calc(50% - 20px);
+  margin: 5px;
+  max-height: 100px;
+  flex-grow: 1;
+  flex-basis: calc(50% - 20px);
+}
+
+.equipmentApp_card .top-section .box-item-title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  background: #14202c;
+}
+
+.equipmentApp_card .top-section .box-item-value {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center; 
+  align-items: center; 
+  color: #14202c; 
+  font-size: 13px; 
+  /* background-color: white;  */
+  border-bottom-left-radius: 5px; 
+  border-bottom-right-radius: 5px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+
+
+
+.equipmentApp_card .top-section .icons .logo {
+  height: 100%;
+  aspect-ratio: 1;
+  /* padding:  */
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 15px;
+  color: #14202c;
+  font-weight: bold;
+  font-size: 15;
+  margin-top: 6px;
+  /* background-color: red; */
+
+  overflow: hidden;
+  width: 60%;
+}
+
+.equipmentApp_card .top-section .icons .logo .top-section {
+  height: 100%;
+}
+
+.equipmentApp_card .top-section .icons .social-media {
+  height: 100%;
+  padding: 8px 0px;
+  display: flex;
+  gap: 7px;
+  font-weight: bold;
+  color: #14202c;
+}
+
+.equipmentApp_card .top-section .icons .social-media .svg {
+  height: 100%;
+  fill: #1b233d;
+}
+
+.equipmentApp_card .top-section .icons .social-media .svg:hover {
+  fill: rgb(185, 185, 185);
+}
+
+.equipmentApp_card .bottom-section {
+  margin-top: 15px;
+  padding: 10px 5px;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.equipmentApp_card .bottom-section .title {
+  display: block;
+  font-size: 14px;
+  font-weight: bolder;
+  color: #14202c;
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+.equipmentApp_card .bottom-section .row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.equipmentApp_card .bottom-section .row .item {
+  flex: 30%;
+  text-align: center;
+  padding: 5px;
+  color: #14202c;
+}
+
+.equipmentApp_card .bottom-section .row .item .big-text {
+  font-size: 12px;
+  display: block;
+}
+
+.equipmentApp_card .bottom-section .row .item .regular-text {
+  font-size: 9px;
+}
+
+.equipmentApp_card .bottom-section .row .item:nth-child(2) {
+  border-left: 1px solid rgba(255, 255, 255, 0.126);
+  border-right: 1px solid rgba(255, 255, 255, 0.126);
 }
 </style>

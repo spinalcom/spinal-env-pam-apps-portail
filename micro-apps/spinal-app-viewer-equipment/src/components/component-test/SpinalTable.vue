@@ -12,6 +12,8 @@
     <!-- BREADCRUMBS -->
     <SpinalbreadCrumb
       @itemSelected="emitValue($event.listType, $event.value)"
+      @goBack="goBack"
+      @deselectItem="unselectDataView()"
       :ctx_list="ctx_list"
       :cat_list="cat_list"
       :grp_list="grp_list"
@@ -23,17 +25,7 @@
 
     
     <div>
-      <div class="title">
-        <div  style="margin-top: 10px;">
-          <v-select
-            v-model="vSelectedTab"
-            :items="vSelectDynamic"
-            :label="vSelectLabel"
-            outlined
-            :menu-props="{ offsetY: true, nudgeTop: -3 }"
-        ></v-select>
-        </div>
-
+      <div class="title" style="display: flex; justify-content: space-between;">
         <div
           v-if="ActiveData && labelsChart && [ 'Indicateur', 'Points de mesures'].includes(vSelectedTab)"
           style="
@@ -42,8 +34,7 @@
             align-items: center;
             margin-left: 15px;
             margin-right: 15px;
-          "
-        >
+          ">
           <v-btn
             style="margin: 10px"
             elevation="0"
@@ -64,43 +55,61 @@
             <v-icon>mdi-chevron-right</v-icon>
           </v-btn>
         </div>
+
+        <div  style="margin-top: 20px;display: flex; justify-content: space-between;">
+          <div>
+            <v-select
+              v-model="vSelectedTab"
+              :items="vSelectDynamic"
+              :label="vSelectLabel"
+              outlined
+              :menu-props="{ offsetY: true, nudgeTop: -3 }"
+            ></v-select>
+          </div>
+          <div>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-left: 10px; margin-top: 7px;">
+              <v-icon class="icon-rounded-square"
+              
+                title="Recadrer sur l'espace sélectionné"
+                v-if="$store.state.appDataStore.user_selected.cat"
+                @click="globalFitToView()">
+                mdi-fit-to-screen
+              </v-icon>
+              
+              <v-icon class="icon-rounded-square"
+                title="Ajouter tous les sprites"
+                :class="{ 'disabled-icon': loadingState }"
+                v-if="$store.state.appDataStore.user_selected.cat"
+                @click="globalAddAllSprites()">
+                {{ globalSprite ? 'mdi-map-marker-off-outline' : 'mdi-map-marker-outline'  }}
+              </v-icon>
+      
+              <v-icon class="icon-rounded-square"
+                title="Colorier tous les éléments"
+                v-if="$store.state.appDataStore.user_selected.cat"
+                @click="globalColorAllGroups()">
+                {{ globalColored ? 'mdi-invert-colors-off' : 'mdi-invert-colors' }}
+              </v-icon>
+
+            </div>
+          </div>
+
+        </div>
+
+        
       </div>
     </div>
 
     <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
+    <LoadingSpinner :loading="loadingState" :message="loadingText" :loadingCount="loadingCount" />
+
 
     <div v-show="vSelectedTab === 'Equipements'"
       style="padding: 2px;"
       class="scrollable-table-container"
     >
     
-      <div class="icons-global-actions">
-        <v-icon class="icon-rounded-square"
-          v-if="$store.state.appDataStore.user_selected.ctx"
-          @click="goBack()">
-          mdi-arrow-left
-        </v-icon>
-
-        <v-icon class="icon-rounded-square"
-          v-if="$store.state.appDataStore.user_selected.cat"
-          @click="globalFitToView()">
-          mdi-fit-to-screen
-        </v-icon>
-        
-        <v-icon class="icon-rounded-square"
-          v-if="$store.state.appDataStore.user_selected.cat"
-          @click="globalAddAllSprites()">
-          {{ globalSprite ? 'mdi-map-marker-off-outline' : 'mdi-map-marker-outline'  }}
-        </v-icon>
-
-        <v-icon class="icon-rounded-square"
-          v-if="$store.state.appDataStore.user_selected.cat"
-          @click="globalColorAllGroups()">
-          {{ globalColored ? 'mdi-invert-colors-off' : 'mdi-invert-colors' }}
-        </v-icon>
-
-
-      </div>
+      
 
       <DataTable
         ref="dataTable"
@@ -524,6 +533,7 @@ import { IConfig, ITemporality } from '../../interfaces/IConfig';
 import moment from 'moment';
 
 import Alert from './Alert.vue'
+import LoadingSpinner from './Loading.vue'
 import ShowDocumentation from './Documentation.vue'
 import FormDoc from "./FormDoc.vue";
 import AddBtn from './ButtonAdd.vue';
@@ -545,6 +555,7 @@ export default {
     DataTable,
     LineCardComponent,
     Alert,
+    LoadingSpinner,
     ShowDocumentation,
     FormDoc,
     FormDocAttr,
@@ -560,7 +571,6 @@ export default {
   },
   props: [
     'contexts',
-    'temporality',
     'unit',
     'label',
     'reference',
@@ -718,6 +728,18 @@ export default {
       return dynamicId;
     },
 
+    loadingState() {
+      return this.$store.state.appDataStore.loading;
+    },
+
+    loadingCount(){
+      return this.$store.state.appDataStore.loadingCount;
+    },
+
+    loadingText() {
+      return this.$store.state.appDataStore.loadingText;
+    },
+
     vSelectDynamic(){
       let vSelectTabs= [
       'Equipements',
@@ -729,6 +751,20 @@ export default {
       'Points de mesures',
       'Radar'
       ]
+
+      if(this.selectedEquipement){
+        if(this.selectedEquipement.nbr_cp==0) {
+          vSelectTabs = vSelectTabs.filter((tab) => tab !== 'Indicateur');
+        }
+        if (this.selectedEquipement.nbr_ep==0) {
+          vSelectTabs = vSelectTabs.filter((tab) => tab !== 'Points de mesures');
+        }
+        if(this.selectedEquipement.nbr_notes == 0){
+          vSelectTabs = vSelectTabs.filter((tab) => tab !== 'Notes');
+        }
+        
+      }
+
       if (this.selected_id) {
         return vSelectTabs.filter((tab) => tab !== 'Radar');
       } else if (this.$store.state.appDataStore.user_selected.grp) {
@@ -736,6 +772,8 @@ export default {
       } else if (this.$store.state.appDataStore.user_selected.cat) {
         return vSelectTabs;
       } 
+
+      
       return vSelectTabs
     },
 
@@ -766,7 +804,15 @@ export default {
           },
         ],
       };
-    }
+    },
+
+    temporality() {
+      return this.$store.state.appDataStore.temporalitySelected;
+    },
+
+    // t_index() {
+    //   return this.$store.state.appDataStore.t_index;
+    // },
 
 
   },
@@ -824,7 +870,6 @@ export default {
 
 
     goBack(){
-      console.warn('goBack');
       if(this.$store.state.appDataStore.user_selected.grp){
         const cat = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat)
         this.emitValue('cat', cat);
@@ -834,14 +879,16 @@ export default {
       } else if(this.$store.state.appDataStore.user_selected.ctx){
         this.emitValue('ctx',null);
       }
+      this.vSelectedTab = 'Equipements';
     },
     emitValue(listType, value) {
-      this.$refs.dataTable.clearAllSprites();
       if (listType == 'item') {
         this.selected_id = null;
-        this.selected_data_item_name = null;
+        this.selected_data_item_name  = null;
         return;
       }
+      this.$refs.dataTable.clearAllSprites();
+      this.globalSprite = false;
       if (listType == 'ctx' || listType == 'cat') {
         this.selected_grp = '';
       }
@@ -889,11 +936,18 @@ export default {
       this.selectedEquipement = item;
       this.$emit('item-selected', item);
     },
-    unselectDataView(items){
+
+    unselectDataView(){
+      this.$refs.dataTable.clearSelectedItem();
       this.selected_id = null;
       this.selected_data_item_name = null;
       this.selectedEquipement = null;
-      this.$emit('unselect-data-view', items);
+
+      this.$store.commit(MutationTypes.SET_ITEM_SELECTED, null);
+      this.$store.dispatch(ActionTypes.SELECT_SPRITES, []);
+      this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, {
+      dynamicId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId 
+      });
     },
 
     fitToView(item){
@@ -1459,9 +1513,12 @@ export default {
     },
 
     async updateAttributes(){
+      this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+      this.$store.commit(MutationTypes.SET_LOADING_TEXT, 'Chargement des attributs...');
       const buildingId = localStorage.getItem('idBuilding');
       const dynamicId = this.currentTargetItemId;
-      const attributs = await this.$store.dispatch(
+      try {
+        const attributs = await this.$store.dispatch(
           ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE,
           {
             buildingId,
@@ -1478,36 +1535,47 @@ export default {
           const properties = await this.$store.dispatch(
           ActionTypes.GET_VIEWER_OBJECT_PROPERTIES,this.selectedEquipement.dbid
         );
-
+  
           const newAttributs = properties.properties.map((prop) => {
             return {
               label: prop.displayName,
               value: prop.displayValue,
             };
           })
-
+  
           const revitCategory = {
             name: 'Revit-Autodesk properties',
             attributs: newAttributs
           }
         this.vSelectItemAttributes.push(revitCategory);
-    }
+        
+      }
+      } catch (error) {
+        console.error('Error fetching attributes');
+      } finally {
+        this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
+      }
     },
     async updateDocumentation(){
+      this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+      this.$store.commit(MutationTypes.SET_LOADING_TEXT, 'Chargement des documents...');
       const buildingId = localStorage.getItem('idBuilding');
       const dynamicId = this.currentTargetItemId;
-      const documentation = await this.$store.dispatch(
-          ActionTypes.GET_DOCUMENTATION,
-          {
-            buildingId: buildingId,
-            referenceIds: dynamicId,
-          }
-        );
+      try {
+        
+        const documentation = await this.$store.dispatch(
+            ActionTypes.GET_DOCUMENTATION,
+            {
+              buildingId: buildingId,
+              referenceIds: dynamicId,
+            }
+          );
+  
         this.vSelectItemDocumentation = await Promise.all(
           documentation.map(async (item) => {
             // Check for image file extensions
             const isImage = /\.(png|jpe?g|gif|bmp|webp|svg)$/i.test(item.Name);
-
+  
             if (isImage) {
               const fileBlob = await this.$store.dispatch(
                 ActionTypes.POST_DOWNLOAD_FILE,
@@ -1521,19 +1589,26 @@ export default {
                 fileUrl: URL.createObjectURL(fileBlob), // Attach fileUrl for image preview
               };
             }
-
+  
             // Return the item as-is for non-image files
             return item;
           })
         );
-      
+      } catch (error) {
+        console.error('Error fetching documentation');
+      } finally {
+        this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
+      }  
     },
     async updateNotes(){
+      this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+      this.$store.commit(MutationTypes.SET_LOADING_TEXT, 'Chargement des notes...');
       const buildingId = localStorage.getItem('idBuilding');
       const dynamicId = this.currentTargetItemId;
-      const notes = await this.$store.dispatch(ActionTypes.GET_NOTES, {
-          buildingId: buildingId,
-          referenceIds: dynamicId,
+      try{
+        const notes = await this.$store.dispatch(ActionTypes.GET_NOTES, {
+        buildingId: buildingId,
+        referenceIds: dynamicId,
         });
 
         const documentation = await this.$store.dispatch(
@@ -1565,51 +1640,82 @@ export default {
             return item;
           })
         );
+
+      } catch {
+        console.error('Error fetching notes');
+      } finally {
+        this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
+      }
+    
     },
     async updateTickets(){
+      this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+      this.$store.commit(MutationTypes.SET_LOADING_TEXT, 'Chargement des tickets...');
       const buildingId = localStorage.getItem('idBuilding');
       const dynamicId = this.currentTargetItemId;
-      const tickets = await this.$store.dispatch(ActionTypes.GET_TICKET, {
-          buildingId: buildingId,
-          referenceIds: dynamicId,
-        });
-        this.vSelectItemTickets = tickets;
-    },
-    async updateIndicateur(){
-      const buildingId = localStorage.getItem('idBuilding');
-      const dynamicId = this.currentTargetItemId;
-      const control_endpoints = await this.$store.dispatch(
-          ActionTypes.GET_NODE_CONTROL_ENDPOINT_LIST,
-          {
+      try{
+        const tickets = await this.$store.dispatch(ActionTypes.GET_TICKET, {
             buildingId: buildingId,
             referenceIds: dynamicId,
-          }
-        );
-        const tmpLst = [];
-        control_endpoints.map((profil) =>
-          profil.endpoints
-            .filter((ep) => ep.saveTimeSeries == 1)
-            .map((item) => tmpLst.push(item.dynamicId))
-        );
-        this.cpIdToDraw = tmpLst;
-        this.vSelectItemInsights = control_endpoints;
+          });
+        this.vSelectItemTickets = tickets;
+
+      } catch {
+        console.error('Error fetching tickets');
+      } finally {
+        this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
+      }
+    },
+    async updateIndicateur(){
+      this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+      this.$store.commit(MutationTypes.SET_LOADING_TEXT, 'Chargement des indicateurs...');
+      const buildingId = localStorage.getItem('idBuilding');
+      const dynamicId = this.currentTargetItemId;
+      try{
+        const control_endpoints = await this.$store.dispatch(
+            ActionTypes.GET_NODE_CONTROL_ENDPOINT_LIST,
+            {
+              buildingId: buildingId,
+              referenceIds: dynamicId,
+            }
+          );
+          const tmpLst = [];
+          control_endpoints.map((profil) =>
+            profil.endpoints
+              .filter((ep) => ep.saveTimeSeries == 1)
+              .map((item) => tmpLst.push(item.dynamicId))
+          );
+          this.cpIdToDraw = tmpLst;
+          this.vSelectItemInsights = control_endpoints;
+      } catch {
+        console.error('Error fetching control endpoints');
+      } finally {
+        this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
+      }
     },
 
     async updateEndpoints(){
+      this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+      this.$store.commit(MutationTypes.SET_LOADING_TEXT, 'Chargement des points de mesures...');
       const buildingId = localStorage.getItem('idBuilding');
       const dynamicId = this.currentTargetItemId;
-      const endpoints = await this.$store.dispatch(
+      try {
+        const endpoints = await this.$store.dispatch(
           ActionTypes.GET_NODE_ENDPOINT_LIST,
           {
             buildingId: buildingId,
             referenceIds: dynamicId,
           }
         );
-        
         const tmpLst = [];
         endpoints.filter((ep) => ep.saveTimeSeries == 1).map((item) => tmpLst.push(item.dynamicId));
         this.cpIdToDraw = tmpLst;
         this.vSelectItemEndpoints = endpoints;
+      } catch {
+        console.error('Error fetching endpoints');
+      } finally {
+        this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
+      }
     },
   
     globalFitToView(){
@@ -1676,7 +1782,7 @@ export default {
     },
 
     temporality(newVal, oldVal) {
-      
+      console.log('TEMPORALITY CHANGED !!!!')
       if(this.t_index!= 0) {
         this.t_index = 0;
         return;
@@ -1687,7 +1793,6 @@ export default {
     },
 
     t_index(newVal,oldVal) {
-      
       this.timeactuelle = this.getFormattedDateFromTemporalData();
       this.reloadNewChartData();
     },
@@ -1713,13 +1818,6 @@ export default {
       immediate: false,
     },
 
-    // selectedItemTab(newVal, oldVal) {
-    //   this.selected_id = newVal
-    //   if (this.$refs[`row-${newVal}`]) {
-    //     this.$refs[`row-${newVal}`].scrollIntoView({ behavior: 'smooth', block: 'center' });
-    //   }
-    // },
-
     selectedKeys(newVal, oldVal) {
       //this.extractData();
       const resultat = {};
@@ -1741,282 +1839,299 @@ export default {
 
 <style scoped>
 
-.graphContainer {
-  border-radius: 0px;
-  width: 160%;
-  height: 100%;
-  min-height: 700px;
-  display: flex;
-  padding: 10px;
-}
-
-.blue-background {
-  background-color: #14202c !important;
-  color: white !important;
-}
-
-.scrollable-content{
-  max-height: 74vh;
-  min-height: 74vh;
-  overflow-y: scroll;
-}
-
-.scrollable-table-container {
-  overflow-x: auto;
-  overflow-y: auto;
-  max-height: fit-content;
-}
-
-.red-background {
-  background-color: rgb(255, 255, 255) !important;
-  color: #14202c !important;
-  border: 1px solid #14202c !important;
-}
-
-::v-deep .theme--light.menuable__content__active {
-  background-color: red !important;
-  z-index: 99999999 !important;
-}
-
-::v-deep .v-chip {
-  height: 22px !important;
-  margin: 3px !important;
-  transform: translate(0, -10%);
-  overflow: visible;
-}
-
-::v-deep .v-breadcrumbs__divider {
-  background-color: red !important;
-}
-
-
-.blur-background {
-  background-color: rgba(0, 0, 0, 0.528);
-  top: 0;
-  left: 0;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  z-index: 99999;
-  content: '';
-}
-
-::v-deep .v-breadcrumbs {
-  padding: 2px !important;
-}
-
-.animate {
-  -webkit-animation: scale-in-ver-top 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)
-    both;
-  animation: scale-in-ver-top 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-}
-
-@-webkit-keyframes scale-in-ver-top {
-  0% {
-    -webkit-transform: scaleY(0);
-    transform: scaleY(0);
-    -webkit-transform-origin: 100% 0%;
-    transform-origin: 100% 0%;
-    opacity: 1;
-  }
-
-  100% {
-    -webkit-transform: scaleY(1);
-    transform: scaleY(1);
-    -webkit-transform-origin: 100% 0%;
-    transform-origin: 100% 0%;
-    opacity: 1;
-  }
-}
-
-@keyframes scale-in-ver-top {
-  0% {
-    -webkit-transform: scaleY(0);
-    transform: scaleY(0);
-    -webkit-transform-origin: 100% 0%;
-    transform-origin: 100% 0%;
-    opacity: 1;
-  }
-
-  100% {
-    -webkit-transform: scaleY(1);
-    transform: scaleY(1);
-    -webkit-transform-origin: 100% 0%;
-    transform-origin: 100% 0%;
-    opacity: 1;
-  }
-}
-
-.select-attr {
-  -webkit-animation: fade-in 1.2s cubic-bezier(0.39, 0.575, 0.565, 1) both;
-  animation: fade-in 1.2s cubic-bezier(0.39, 0.575, 0.565, 1) both;
-}
-
-@-webkit-keyframes fade-in {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-.line {
-  position: relative;
-  width: 0;
-  top: 16px;
-  height: 1px;
-  background-color: rgb(143, 143, 143);
-  animation: expandLine 0.5s forwards;
-}
-
-@keyframes expandLine {
-  to {
-    width: 46px;
-  }
-}
-
-.title {
-  letter-spacing: 1.1px;
-  color: #214353;
-  opacity: 1;
-  font-size: 20px !important;
-}
-
-.text {
-  font-size: 14px;
-  font-family: Charlevoix;
-  letter-spacing: 0.7px;
-  color: #214353;
-  opacity: 1;
-  font-size: 14px;
-}
-
-.blocInformation {
-  background-color: #f8f8f8d0;
-  border-radius: 2px;
-  margin-top: 10px;
-  margin-bottom: 20px;
-  margin-left: 11px;
-  padding: 5px;
-  box-shadow: 0 6px 24px #0000000d, 0 0 0 1px #00000014;
-  border: 2px dashed #dbdbdb;
-  border-radius: 6px;
-}
-.inventory-container {
+  .graphContainer {
+    border-radius: 0px;
+    width: 160%;
+    height: 100%;
+    min-height: 700px;
     display: flex;
-    flex-wrap: wrap;
-    height: calc(100% - 260px);
-    margin-top: 5px;
+    padding: 10px;
   }
 
-.inventory-item {
-    width: 48%;
-    margin: 5px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
+  .blue-background {
+    background-color: #14202c !important;
+    color: white !important;
+  }
+
+  .scrollable-content{
+    max-height: 74vh;
+    min-height: 74vh;
+    overflow-y: scroll;
+  }
+
+  .scrollable-table-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: fit-content;
+  }
+
+  .red-background {
+    background-color: rgb(255, 255, 255) !important;
+    color: #14202c !important;
+    border: 1px solid #14202c !important;
+  }
+
+  ::v-deep .theme--light.menuable__content__active {
+    background-color: red !important;
+    z-index: 99999999 !important;
+  }
+
+  ::v-deep .v-chip {
+    height: 22px !important;
+    margin: 3px !important;
+    transform: translate(0, -10%);
+    overflow: visible;
+  }
+
+  ::v-deep .v-breadcrumbs__divider {
+    background-color: red !important;
+  }
+
+
+  .blur-background {
+    background-color: rgba(0, 0, 0, 0.528);
+    top: 0;
+    left: 0;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 99999;
+    content: '';
+  }
+
+  ::v-deep .v-breadcrumbs {
+    padding: 2px !important;
+  }
+
+  .animate {
+    -webkit-animation: scale-in-ver-top 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+      both;
+    animation: scale-in-ver-top 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
+
+  @-webkit-keyframes scale-in-ver-top {
+    0% {
+      -webkit-transform: scaleY(0);
+      transform: scaleY(0);
+      -webkit-transform-origin: 100% 0%;
+      transform-origin: 100% 0%;
+      opacity: 1;
+    }
+
+    100% {
+      -webkit-transform: scaleY(1);
+      transform: scaleY(1);
+      -webkit-transform-origin: 100% 0%;
+      transform-origin: 100% 0%;
+      opacity: 1;
+    }
+  }
+
+  @keyframes scale-in-ver-top {
+    0% {
+      -webkit-transform: scaleY(0);
+      transform: scaleY(0);
+      -webkit-transform-origin: 100% 0%;
+      transform-origin: 100% 0%;
+      opacity: 1;
+    }
+
+    100% {
+      -webkit-transform: scaleY(1);
+      transform: scaleY(1);
+      -webkit-transform-origin: 100% 0%;
+      transform-origin: 100% 0%;
+      opacity: 1;
+    }
+  }
+
+  .select-attr {
+    -webkit-animation: fade-in 1.2s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+    animation: fade-in 1.2s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+  }
+
+  @-webkit-keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .line {
+    position: relative;
+    width: 0;
+    top: 16px;
+    height: 1px;
+    background-color: rgb(143, 143, 143);
+    animation: expandLine 0.5s forwards;
+  }
+
+  @keyframes expandLine {
+    to {
+      width: 46px;
+    }
+  }
+
+  .title {
+    letter-spacing: 1.1px;
+    color: #214353;
+    opacity: 1;
+    font-size: 20px !important;
+  }
+
+  .text {
+    font-size: 14px;
+    font-family: Charlevoix;
+    letter-spacing: 0.7px;
+    color: #214353;
+    opacity: 1;
+    font-size: 14px;
+  }
+
+  .blocInformation {
+    background-color: #f8f8f8d0;
+    border-radius: 2px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    margin-left: 11px;
+    padding: 5px;
+    box-shadow: 0 6px 24px #0000000d, 0 0 0 1px #00000014;
+    border: 2px dashed #dbdbdb;
+    border-radius: 6px;
+  }
+  .inventory-container {
+      display: flex;
+      flex-wrap: wrap;
+      height: calc(100% - 260px);
+      margin-top: 5px;
+    }
+
+  .inventory-item {
+      width: 48%;
+      margin: 5px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+      white-space: nowrap;
+      overflow: hidden;
+      justify-content: space-between;
+      background-color: white;
+    }
+
+  .button {
+    display: inline-block;
+    padding: 5px;
+    text-decoration: none;
+    height: 59px;
+    padding-left: 10px;
+    padding-right: 10px;
+    transition: 0.2s;
     white-space: nowrap;
-    overflow: hidden;
-    justify-content: space-between;
-    background-color: white;
+    margin-left: 20px;
+    margin-top: 6px;
+    margin-bottom: 18px;
+    font-size: xx-large;
+    cursor: pointer;
+    padding-left: 0px;
   }
 
-.button {
-  display: inline-block;
-  padding: 5px;
-  text-decoration: none;
-  height: 59px;
-  padding-left: 10px;
-  padding-right: 10px;
-  transition: 0.2s;
-  white-space: nowrap;
-  margin-left: 20px;
-  margin-top: 6px;
-  margin-bottom: 18px;
-  font-size: xx-large;
-  cursor: pointer;
-  padding-left: 0px;
+  .button:hover {
+    background-color: rgb(228, 228, 228);
+  }
+
+  .btn:hover {
+    background-color: rgb(199, 199, 199);
+  }
+
+  .title {
+    position: relative;
+    width: 100%;
+    display: flex;
+  }
+
+  .disabled-icon {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
-.button:hover {
-  background-color: rgb(228, 228, 228);
-}
+  .item-preview-image {
+    max-width: 100%;
+    max-height: 200px; /* Limit height for large images */
+    margin-top: 10px;
+    border-radius: 4px; /* Add a slight border radius for aesthetics */
+    object-fit: contain; /* Maintain aspect ratio */
+  }
 
-.btn:hover {
-  background-color: rgb(199, 199, 199);
-}
+  .icon-rounded-square {
+    margin-bottom: 5px;
+    margin-left: 5px;
+    background-color: #14202c;  /* Background color for the square */
+    color: #fff;                /* Makes the icon white */
+    border-radius: 8px;         /* Adjust for rounded corners */
+    padding: 8px;               /* Space between the icon and the square's border */
+    width: 40px;                /* Fixed width for the square */
+    height: 40px;               /* Fixed height for the square */
+    display: flex;              /* Center the icon horizontally and vertically */
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: adds a subtle shadow */
+  }
 
-.title {
-  position: relative;
-  width: 100%;
-  display: flex;
-}
+  .icons-global-actions {
+    display: flex;
+    gap: 8px; /* Adjust spacing between icons */
+    align-items: center;
+    width:100%;
+    flex-direction: row;
+    justify-content: space-between;
+  }
 
-.item-preview-image {
-  max-width: 100%;
-  max-height: 200px; /* Limit height for large images */
-  margin-top: 10px;
-  border-radius: 4px; /* Add a slight border radius for aesthetics */
-  object-fit: contain; /* Maintain aspect ratio */
-}
+  .sub-icons-global-actions {
+    display:flex;
+    gap :4px;
+    align-items: center;
+    width:max-content;
+    justify-content: center;
+  }
 
-.icon-rounded-square {
-  margin-bottom: 5px;
-  margin-left: 5px;
-  background-color: #14202c;  /* Background color for the square */
-  color: #fff;                /* Makes the icon white */
-  border-radius: 8px;         /* Adjust for rounded corners */
-  padding: 8px;               /* Space between the icon and the square's border */
-  width: 40px;                /* Fixed width for the square */
-  height: 40px;               /* Fixed height for the square */
-  display: flex;              /* Center the icon horizontally and vertically */
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: adds a subtle shadow */
-}
+  ::v-deep .scrollable-content {
+    padding-right: 5px; /* Adds space on the right to simulate a margin */
+  }
 
-.icons-global-actions {
-  display: flex;
-  gap: 8px; /* Adjust spacing between icons */
-  align-items: center;
-}
+  ::v-deep .scrollable-content::-webkit-scrollbar-thumb {
+    background: #e8e8e8;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border: 1px solid rgb(195, 195, 195);
+    transition: 1s;
+  }
 
-::v-deep .scrollable-content {
-  padding-right: 5px; /* Adds space on the right to simulate a margin */
-}
+  ::v-deep .scrollable-content::-webkit-scrollbar {
+    width: 10px;
+    margin-left: 10px;
+  }
 
-::v-deep .scrollable-content::-webkit-scrollbar-thumb {
-  background: #e8e8e8;
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-  border: 1px solid rgb(195, 195, 195);
-  transition: 1s;
-}
+  ::v-deep .scrollable-content::-webkit-scrollbar-track {
+    background: #ffffff;
 
-::v-deep .scrollable-content::-webkit-scrollbar {
-  width: 10px;
-  margin-left: 10px;
-}
+  }
 
-::v-deep .scrollable-content::-webkit-scrollbar-track {
-  background: #ffffff;
-
-}
-
-::v-deep .scrollable-content::-webkit-scrollbar-thumb:hover {
-  background: #dedede;
-}
+  ::v-deep .scrollable-content::-webkit-scrollbar-thumb:hover {
+    background: #dedede;
+  }
 </style>

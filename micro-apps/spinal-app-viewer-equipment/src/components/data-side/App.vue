@@ -74,11 +74,10 @@ with this file. If not, see
         :selectedItemTab="element_clicked"
         @item-selected="selectDataView"
         @fit-to-view="fitToView"
-        @unselect-data-view="unselectDataView"
         @allFiltredData="putAllFiltredData"
         @updateSuccess="retriveData"
         :headers="[]" :id="0" :label="'test'" :reference="''"
-        :unit="''" :contexts="tableData" :temporality="''" :ctx_list="$store.state.appDataStore.user_selection_list.ctx"
+        :unit="''" :contexts="tableData" :ctx_list="$store.state.appDataStore.user_selection_list.ctx"
         :cat_list="$store.state.appDataStore.user_selection_list.cat"
         :grp_list="$store.state.appDataStore.user_selection_list.grp" 
         :ActiveData="ActiveData" :DActive="DActive"
@@ -228,6 +227,8 @@ class dataSideApp extends Vue {
   
 
   async getAndUpdateEquipmentContexts(){
+    this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+    this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des contextes d'équipements...`);
     let dispatchObject = {
       buildingId: localStorage.getItem("idBuilding"),
       patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id
@@ -242,6 +243,8 @@ class dataSideApp extends Vue {
       console.log(err);
       this.retry = this.getAndUpdateEquipmentContexts;
       this.pageSate = PAGE_STATES.error;
+    } finally {
+      this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
     }
   }
 
@@ -261,7 +264,6 @@ class dataSideApp extends Vue {
         const hasCategoryRelation = read.children_relation_list.find(relation => relation.name === "hasCategory")
         return { ...ctx, nbr_categories: hasCategoryRelation.children_number }
       })
-      console.log('***updateTableData', result);
       this.$store.commit(MutationTypes.SET_DATA, futurData);
       return;
     }
@@ -281,7 +283,6 @@ class dataSideApp extends Vue {
         const hasGroupRelation = read.children_relation_list.find(relation => relation.name === "hasGroup")
         return { ...cat, nbr_groups: hasGroupRelation.children_number }
       })
-      console.log('***updateTableData', result);
       this.$store.commit(MutationTypes.SET_DATA, futurData);
       return;
     }
@@ -301,7 +302,6 @@ class dataSideApp extends Vue {
         const hasBimObjectRelation = read.children_relation_list.find(relation => relation.name === "groupHasBIMObject")
         return { ...grp, nbr_equipments: hasBimObjectRelation.children_number }
       })
-      console.log('***updateTableData', result);
       this.$store.commit(MutationTypes.SET_DATA, futurData);
       return;
     }
@@ -312,6 +312,8 @@ class dataSideApp extends Vue {
 
   async getAndUpdateEquipmentCategories(){
     const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
+    this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+    this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des catégories de ${matchingContext.name}...`);
     let actionType = ActionTypes.GET_CATEGORY_LIST
     let dispatchObject = {
       buildingId: localStorage.getItem("idBuilding"),
@@ -329,6 +331,8 @@ class dataSideApp extends Vue {
       console.log(err);
       this.retry = this.getAndUpdateEquipmentCategories;
       this.pageSate = PAGE_STATES.error;
+    } finally {
+      this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
     }
 
   }
@@ -336,6 +340,8 @@ class dataSideApp extends Vue {
   async getAndUpdateEquipmentGroups(){
     const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
     const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
+    this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+    this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des groupes de ${matchingCategory.name}...`);
     let actionType = ActionTypes.GET_GROUP_LIST
     let dispatchObject = {
       buildingId: localStorage.getItem("idBuilding"),
@@ -354,6 +360,8 @@ class dataSideApp extends Vue {
       console.log(err);
       this.retry = this.getAndUpdateEquipmentGroups;
       this.pageSate = PAGE_STATES.error;
+    } finally {
+      this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
     }
 
   }
@@ -362,6 +370,8 @@ class dataSideApp extends Vue {
     const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
     const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
     const matchingGroup = this.$store.state.appDataStore.user_selection_list.grp.find(grp => grp.name === this.$store.state.appDataStore.user_selected.grp);
+    this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+    this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des équipements de ${matchingGroup.name}...`);
     let actionType = ActionTypes.GET_EQUIPEMENT_LIST;
     let dispatchObject = {
       buildingId: localStorage.getItem("idBuilding"),
@@ -381,6 +391,8 @@ class dataSideApp extends Vue {
       console.log(err);
       this.retry = this.getAndUpdateEquipmentList;
       this.pageSate = PAGE_STATES.error;
+    } finally {
+      this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
     }
   }
 
@@ -396,9 +408,6 @@ class dataSideApp extends Vue {
 
   selectDataView(item) {
     this.$emit("clickOnDataView", item);
-  }
-  unselectDataView(items){
-    this.$emit("unselect-data-view",items);
   }
   fitToView(item){
     this.$emit("fit-to-view", item);

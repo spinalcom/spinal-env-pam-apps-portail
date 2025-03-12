@@ -59,13 +59,13 @@
           "
         >
           <v-icon
-            v-if="arrow == header.text"
+            v-if="header.sortable && arrow == header.text"
             @click="sort(header)"
             color="black"
             >mdi-arrow-up-thin</v-icon
           >
           <v-icon
-            v-if="arrow != header.text"
+            v-if="header.sortable && arrow != header.text"
             @click="sort(header)"
             color="black"
             >mdi-arrow-down-thin</v-icon
@@ -176,9 +176,7 @@
 
 import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 import { MutationTypes } from "../../services/store/appDataStore/mutations";
-import * as lodash from "lodash";
 import SpriteComponent from "../data-side/SpriteComponent.vue";
-import { get } from "http";
 
 export default {
   props: [
@@ -263,12 +261,15 @@ export default {
       this.$emit('fit-to-view', item);
     },
 
+    clearSelectedItem(){
+      this.selected_id = null;
+    },
     handleRightClick(item, event) {
       if(this.selected_id != item.dynamicId){
         return
       }
-      this.selected_id = null
-      this.$emit('unselect-data-view', this.items);
+      this.clearSelectedItem();
+      this.$emit('unselect-data-view');
     },
 
     handleTableClick() {
@@ -350,6 +351,21 @@ export default {
     },
 
     async clearAllGroupColors(){
+      if(this.$store.state.appDataStore.user_selected.grp){
+        const itemsToColor = this.items.map(it => {
+          return {
+            ...it,
+            color: null,
+            floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId
+          }
+        })
+        this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: localStorage.getItem("idBuilding")
+      });
+        return;
+      }
+
       const groups = this.items.filter(it => it.type === 'BIMObjectGroup');
       this.displayedColors = [];
       const itemsToColor = [];
@@ -374,7 +390,23 @@ export default {
       return;
     },
 
+    //used by global action color
     async colorAllGroups(){
+
+      if(this.$store.state.appDataStore.user_selected.grp){
+        const itemsToColor = this.items.map(it => {
+          return {
+            ...it,
+            floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId
+          }
+        })
+        this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: localStorage.getItem("idBuilding")
+      });
+        return;
+      }
+
       const groups = this.items.filter(it => it.type === 'BIMObjectGroup');
       const itemsToColor = [];
 
@@ -404,11 +436,26 @@ export default {
       return;
     },
 
+    // used by global action sprite
     async addSpriteAllGroups(){
+      if(this.$store.state.appDataStore.user_selected.grp){
+        const itemsToDisplay = this.items.map(it => {
+          return {
+            ...it,
+            position : this.getCoordinatesFromAttributes(it.categoryAttributes)
+          }
+        })
+        this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+        items: itemsToDisplay,
+        buildingId: localStorage.getItem("idBuilding"),
+        component: SpriteComponent,
+      });
+        return;
+      }
       const groups = this.items.filter(it => it.type === 'BIMObjectGroup');
       this.displayedSprites = [];
       for(const group of groups){
-        await this.addOrRemoveSpriteGroup(group);
+        this.addOrRemoveSpriteGroup(group);
       }
     },
 
@@ -430,7 +477,6 @@ export default {
     },
 
     async addColor(item){
-      console.log('ZONE SELECTED : ',this.$store.state.appDataStore.zoneSelected.dynamicId)
       this.displayedColors.push(item);
 
       const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
@@ -450,8 +496,6 @@ export default {
         items: equipmentList,
         buildingId: localStorage.getItem("idBuilding")
       });
-
-
       return;
 
 
@@ -464,7 +508,10 @@ export default {
         this.displayedSprites = this.displayedSprites.filter(str => !str.startsWith(`${item.name}-`));
         return;
       }
-      // console.log('addSpritesToGroupEquipments', item);
+      this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+      this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des sprites du groupe ${item.name} ...`);
+
+
       const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
       const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
       const matchingGroup = item;
@@ -525,6 +572,7 @@ export default {
       });
 
       this.displayedSprites.push(`${item.name}-${item.color}`)
+      this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
       return;
       
     },
@@ -543,6 +591,8 @@ export default {
     },
 
     async loadAndDisplayEquipments(item){
+      this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+      this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des équipements du groupe ${item.name} ...`);
       const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
       const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
       const matchingGroup = item;
@@ -590,12 +640,9 @@ export default {
       const groupIndex = this.$store.state.appDataStore.data.findIndex(it => it.dynamicId === item.dynamicId);
       let tmp = [...this.$store.state.appDataStore.data];
       tmp.splice(groupIndex + 1, 0, ...equipmentList);
-
-      console.log('TMP : ',tmp)
-    
-
       this.$store.commit(MutationTypes.SET_DATA, tmp);
       this.expandedGroups.push(item.dynamicId);
+      this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
       return;
     },
 
