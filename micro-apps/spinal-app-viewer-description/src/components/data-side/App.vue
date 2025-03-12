@@ -3246,9 +3246,10 @@ export { dataSideApp };
 export default dataSideApp;
 </script>
 <style>
-#app>div>div.dataBody>div.appli.appContainer>div.w-full>div:nth-child(4)>div>div:nth-child(2)>div {
-  margin-left: 10px;
-  margin-top: 10px;
+#app > div > div.dataBody > div.appli.appContainer > div.w-full > div:nth-child(3) > div > div:nth-child(2) > div
+{
+  margin-left: 20px;
+  margin-top: 15px;
 }
 </style>
 <style lang="scss" scoped>
