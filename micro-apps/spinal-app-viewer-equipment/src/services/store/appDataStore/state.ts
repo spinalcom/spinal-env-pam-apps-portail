@@ -49,6 +49,9 @@ export const state = {
 		cat: null,
 		ctx: null,
 		grp: null 
-	}
+	},
+	loading : false as boolean,
+	loadingCount : 0 as number,
+	loadingText : 'Chargement ...' as string
 
 };

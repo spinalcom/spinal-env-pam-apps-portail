@@ -47,7 +47,11 @@ export enum MutationTypes {
 	SET_DL_DATA_OPTION = "SET_DL_DATA_OPTION",
 	SET_USER_SELECTION = "SET_USER_SELECTION",
 	SET_USER_SELECTED = "SET_USER_SELECTED",
-	SET_BUILDING_INFO = "SET_BUILDING_INFO"
+	SET_BUILDING_INFO = "SET_BUILDING_INFO",
+	SET_LOADING = "SET_LOADING",
+	SET_LOADING_TEXT = "SET_LOADING_TEXT",
+	INCREMENT_LOADING_COUNT = "INCREMENT_LOADING_COUNT",
+	DECREMENT_LOADING_COUNT = "DECREMENT_LOADING_COUNT",
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -63,6 +67,12 @@ export type MutationsAppData<S = StateAppData> = {
 	[MutationTypes.SET_DATA](state: StateAppData, data: INodeItemTree[]): void;
 	[MutationTypes.SET_DL_DATA_OPTION](state: StateAppData, data: boolean): void;
 	[MutationTypes.SET_BUILDING_INFO](state: StateAppData, item): void;
+	[MutationTypes.SET_LOADING](state: StateAppData, payload: boolean): void;
+	[MutationTypes.SET_LOADING_TEXT](state: StateAppData, payload: string): void;
+	[MutationTypes.INCREMENT_LOADING_COUNT](state: StateAppData, payload: string): void;
+	[MutationTypes.DECREMENT_LOADING_COUNT](state: StateAppData, payload: string): void;
+	
+
 };
 
 export const mutations: MutationTree<StateAppData> & MutationsAppData = {
@@ -132,5 +142,29 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 	[MutationTypes.SET_BUILDING_INFO](state: StateAppData, item): void {
 		state.buildingInfo = item;
 	},
+
+	[MutationTypes.SET_LOADING](state: StateAppData, payload: boolean): void {
+		state.loading = payload;
+	},
+
+	[MutationTypes.SET_LOADING_TEXT](state: StateAppData, payload: string): void {
+		state.loadingText = payload;
+	},
+
+	[MutationTypes.INCREMENT_LOADING_COUNT](state: StateAppData): void {
+		state.loadingCount++;
+        state.loading = true;
+	},
+
+	[MutationTypes.DECREMENT_LOADING_COUNT](state: StateAppData): void {
+		if (state.loadingCount > 0) state.loadingCount--;
+        if (state.loadingCount === 0) state.loading = false;
+	},
+
+
+
+
+
+
 };
 

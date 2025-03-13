@@ -75,7 +75,6 @@ with this file. If not, see
         :selected_attr="$store.state.appDataStore.attr" class="appContainer" :element_clicked="el_clicked"
         :config="config" :selectedZone="selectedZone" :tableData="displayedData" 
         @clickOnDataView="onDataViewClicked"
-        @unselect-data-view="unselectDataView"
         @fit-to-view="fitToView"
         @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D">
       </dataSideApp>
@@ -394,17 +393,6 @@ class App extends Vue {
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
 
-  }
-  async unselectDataView(items) {
-    if (!items) return;
-    this.$store.commit(MutationTypes.SET_ITEM_SELECTED, null);
-    this.$store.dispatch(ActionTypes.SELECT_SPRITES, []);
-    console.log('items', items);
-    console.log('selectedZone', this.selectedZone);
-    const obj = {
-      dynamicId: this.selectedZone.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId 
-    }
-    this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, obj);
   }
 
   async fitToView(item: TGeoItem | TGeoItem[]) {

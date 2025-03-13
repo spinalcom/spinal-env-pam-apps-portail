@@ -1,35 +1,41 @@
 <template>
   <div>
-    <nav
-      title="Modifier la séléction"
-      @click.stop="showSelection = !showSelection"
-      class="breadcrumbs"
-    >
-      <a href="#selected_ctx" class="breadcrumbs__item">{{ $store.state.appDataStore.user_selected.ctx || 'Cliquez ici pour parcourir des contextes' }}</a>
-      <a href="#selected_cat" class="breadcrumbs__item" v-if="$store.state.appDataStore.user_selected.cat">{{ $store.state.appDataStore.user_selected.cat }}</a>
-      <a href="#selected_cat" class="breadcrumbs__item" v-if="$store.state.appDataStore.user_selected.grp">{{ $store.state.appDataStore.user_selected.grp }}</a>
-      <div v-if="selected_item" href="#selected_item" class="breadcrumbs__item">
-        <div
-            style="
-              top: 2px;
-              position: absolute;
-              background-color: white;
-              border-radius: 20px;
-              height: 15px;
-              width: 15px;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              border: 1px solid #14202c;
-              color: #14202c;
-            "
-          >
-            <v-icon style="margin-top: 1px" size="13px" @click.stop="deselectItem()"
-              >mdi-close</v-icon
-            >
-          </div>
-          {{ selected_item }}
-      </div>
+    <nav class="breadcrumbs">
+      <a
+        title="Revenir à la selection de contextes"
+        href="#selected_ctx"
+        @click.stop="goBackToContextSelection"
+        class="breadcrumbs__item"
+        >=></a>
+      <a
+        title="Revenir à la selection de catégories"
+        href="#selected_ctx"
+        @click.stop="goBackToContext"
+        class="breadcrumbs__item"
+        >{{
+          $store.state.appDataStore.user_selected.ctx ||
+            'Selectionnez un contexte'
+        }}</a
+      >
+      <a
+        title="Revenir à la selection de groupes"
+        href="#selected_cat"
+        @click.stop="goBackToCategory"
+        class="breadcrumbs__item"
+        v-if="$store.state.appDataStore.user_selected.cat"
+        >{{ $store.state.appDataStore.user_selected.cat }}</a
+      >
+      <a
+        title="Revenir à la selection d'équipements"
+        href="#selected_grp"
+        @click.stop="goBackToGroup"
+        class="breadcrumbs__item"
+        v-if="$store.state.appDataStore.user_selected.grp"
+        >{{ $store.state.appDataStore.user_selected.grp }}</a
+      >
+      <a v-if="selected_item" href="#selected_item" class="breadcrumbs__item">
+        {{ selected_item }}
+      </a>
     </nav>
 
     <div
@@ -56,8 +62,7 @@
           background-color: white;
           border-radius: 8px;
           height: 500px;
-        "
-      >
+        ">
         <div
           style="
             border-right: 2px solid rgb(166, 166, 166);
@@ -256,14 +261,42 @@ export default {
   mounted() {},
 
   methods: {
-    deselectItem(){
-        this.emitValue('item', '');
+    deselectItem() {
+      // this.emitValue('item', '');
+      this.$emit('deselectItem')
     },
     validate() {
       //this.emitValue('grp', this.selected_grp);
       this.showSelection = false;
     },
 
+    goBackToContextSelection(){
+      this.goBackToContext();
+      if(this.$store.state.appDataStore.user_selected.ctx){
+        this.$emit('goBack');
+      }
+    },
+
+    goBackToContext() {
+      this.goBackToCategory();
+      if(this.$store.state.appDataStore.user_selected.cat){
+        this.$emit('goBack');
+      }
+    },
+    goBackToCategory() {
+      console.log('goBackToCategory');
+      console.log('selected_grp', this.selected_grp);
+      if(this.selected_item){
+        this.deselectItem();
+      }
+      if(this.$store.state.appDataStore.user_selected.grp){
+        this.$emit('goBack');
+      }
+      
+    },
+    goBackToGroup() {
+      this.deselectItem();
+    },
 
 
     emitValue(listType, value) {
@@ -318,12 +351,12 @@ export default {
   background: #edf1f5;
 }
 
-.breadcrumbs__item:focus:after,
+/* .breadcrumbs__item:focus:after,
 .breadcrumbs__item:focus,
 .breadcrumbs__item.is-active:focus {
   background: #323f4a;
   color: #fff;
-}
+} */
 
 .breadcrumbs__item:after,
 .breadcrumbs__item:before {
@@ -345,8 +378,18 @@ export default {
 }
 
 .breadcrumbs__item:last-child {
-  border-right: none;
 }
+
+.breadcrumbs__item:first-child {
+  max-width: 10px;
+  min-width: 10px;
+  padding: 0.75em 0.75em 0.75em 0.75em;
+  background-color: rgb(252, 114, 114);
+}
+.breadcrumbs__item:first-child:after {
+  background-color: rgb(252, 114, 114);
+}
+
 
 .breadcrumbs__item.is-active {
   background: #edf1f5;
