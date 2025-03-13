@@ -408,6 +408,7 @@
                   mdi-arrow-down-left-bold
                 </v-icon>
 
+
                 <!-- Icône Zoom -->
                 <v-icon @click="zoomselected(item)" style="cursor: pointer; margin-left: 10px;">
                   mdi-magnify-plus-outline
@@ -514,32 +515,11 @@
 
         <!-- ONGLET TICKETS -->
         <div v-if="selection == 'Tickets'">
+
+          <FormTicket :value="showFormTicket" @close-dialog="ShowDialog()" :selectedZone="selectedZone"
+              @add-ticket="showAlert" />
           <AddTicketBtn @open-dialog="ShowDialog()" />
           <TicketTable :data="ticketsList" :config="''" @locate="" @display="" />
-
-
-
-          <!-- <div v-if="ticketsList">
-            <FormTicket :value="showFormTicket" @close-dialog="ShowDialog()" :selectedZone="selectedZone"
-              @add-ticket="showAlert" />
-
-            <div v-for="(ticket, index) in ticketsList" :key="index" class="blocInformation">
-              <div class="">
-                <div>
-                  <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;"> {{
-                    ticket.name }}</span>
-                  <div class="back_blanc">
-                    <li><strong>Description :</strong> {{ ticket.description }}</li>
-                    <li><strong>Date de création :</strong> {{ new Date(ticket.creationDate).toLocaleString() }}</li>
-                    <li><strong>Priorité :</strong> {{ ticket.priority }}</li>
-                    <li><strong>Étape actuelle :</strong> {{ ticket.step.name }}</li>
-                    <li><strong>Processus :</strong> {{ ticket.process.name }}</li>
-                    <li><strong>Nom du workflow :</strong> {{ ticket.workflowName }}</li>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div> -->
 
           <div v-if="ticketsList && ticketsList.length === 0"
             style="width: 100%; height: 200px; font-size: 20px ; display: flex; justify-content: center; align-items: center">
@@ -988,7 +968,10 @@ class dataSideApp extends Vue {
     this.coloredElement.push(...this.stockedData.map(item => item.dynamicId));
   }
 
+
   ShowDialog() {
+    console.log('hahahaha');
+    
     this.showFormTicket = !this.showFormTicket;
   }
   ShowFormDoc() {
@@ -1184,6 +1167,7 @@ class dataSideApp extends Vue {
 
     this.UpdateAttribut(item, el.dynamicId, dyn.label, formattedItem)
   }
+
   handleValidatedCate(id, cateId, item) {
 
 
@@ -1193,7 +1177,6 @@ class dataSideApp extends Vue {
 
     this.updateCateAttr(id, cateId, 'category', formattedItem)
   }
-
 
   showDoc(referencedId, nameFile) {
     if (!this.showDocvalue) {
@@ -1290,7 +1273,8 @@ class dataSideApp extends Vue {
   }
 
   async gotoselected(item) {
-    this.$emit("gotoView", item);
+    if (localStorage.getItem("viewer_loaded") != "unload")
+      this.$emit("gotoView", item);
   }
 
   async zoomselected(item) {
@@ -1717,7 +1701,7 @@ class dataSideApp extends Vue {
       this.filtredAttribut('building')
       this.$forceUpdate();
       this.createApp()
-     
+
     }
   }
 
@@ -3067,7 +3051,7 @@ class dataSideApp extends Vue {
         }
 
 
-      } 
+      }
       // else {
       //   console.warn(`Aucun inventaire trouvé pour cet étage :`, floor);
       // }
@@ -3181,7 +3165,6 @@ class dataSideApp extends Vue {
   }
   @Watch("floorstaticDetails")
   async watchFloorstaticDetails(newVal, oldVal) {
-
     const dynamicIds = newVal[0].controlEndpoint.flatMap(profile => profile.endpoints.map(endpoint => endpoint.dynamicId));
     const buildingId = localStorage.getItem("idBuilding");
     const parentDocPromise = [
@@ -3204,7 +3187,6 @@ class dataSideApp extends Vue {
     if (this.selectedZone.type == 'building') {
       this.data_loading += 100
     }
-
   }
 
 
@@ -3219,8 +3201,6 @@ class dataSideApp extends Vue {
   @Watch("data")
   watchData() {
     this.referencedId = this.selectedZone.dynamicId
-    // this.referencedId = 0;
-
     if (this.selectedZone.type == undefined) {
       this.referencedType = "etage"
     } else this.referencedType = this.selectedZone.type;
@@ -3246,8 +3226,7 @@ export { dataSideApp };
 export default dataSideApp;
 </script>
 <style>
-#app > div > div.dataBody > div.appli.appContainer > div.w-full > div:nth-child(3) > div > div:nth-child(2) > div
-{
+.v-menu__content {
   margin-left: 20px;
   margin-top: 15px;
 }
@@ -3256,8 +3235,6 @@ export default dataSideApp;
 .v-select__selection--comma {
   font-size: 20px !important;
 }
-
-
 
 .v-menu__content {
   margin-left: 500px !important;
