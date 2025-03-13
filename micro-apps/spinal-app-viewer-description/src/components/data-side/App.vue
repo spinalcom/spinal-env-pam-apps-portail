@@ -123,7 +123,7 @@
       <div class="hide" @click="() => {
         gestionBouton()
       }"
-        style="background-color: white;width: 50px;height: 50px;position: absolute;bottom: 20px;right: 20px;z-index: 9999;border-radius: 5px;border: 2px solid #14202c;justify-content: center;align-items: center;display: flex;">
+        style="background-color: white;width: 70px;height: 70px;position: absolute;bottom: 2px;right: 90px;z-index: 9999;border-radius: 5px;border: 2px solid #14202c;justify-content: center;align-items: center;display: flex;">
         <v-icon v-if="modefull && !displaySprite">mdi-text-box</v-icon>
         <v-icon v-else-if="!modefull && !displaySprite">mdi-video-3d</v-icon>
         <v-icon v-else>mdi-close-circle-outline</v-icon>
@@ -827,7 +827,7 @@ class dataSideApp extends Vue {
 
 
   get dynamicItems(): string[] {
-    let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
+    let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets' , 'Inventaire'];
 
     if (this.floorstaticDetails.some(detail =>
       detail?.controlEndpoint?.some(endpoint => endpoint?.endpoints?.length > 0)

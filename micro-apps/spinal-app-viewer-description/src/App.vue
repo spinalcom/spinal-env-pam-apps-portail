@@ -30,7 +30,7 @@ with this file. If not, see
       </div>
 
       <div class="temporality">
-        <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
+        <space-selector class="temp" :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
           :GetChildrenFct="onTemporalitySelectOpen" :maxDepth="0" v-model="temporalitySelected" label="TEMPORALITÉ" />
       </div>
 
@@ -734,6 +734,15 @@ export default App;
         display: none;
       }
 
+
+    }
+
+
+    @media screen and (max-width: 768px) {
+      .temp {
+        display: none;
+        visibility: hidden;
+      }
     }
 
 
@@ -805,7 +814,7 @@ export default App;
       right: 0px;
       margin-right: 6px;
       height: 100% -80px;
-        }
+    }
 
     @media (max-width: 960px) {
       .active {
