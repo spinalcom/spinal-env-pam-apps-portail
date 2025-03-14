@@ -517,7 +517,7 @@
         <div v-if="selection == 'Tickets'">
 
           <FormTicket :value="showFormTicket" @close-dialog="ShowDialog()" :selectedZone="selectedZone"
-              @add-ticket="showAlert" />
+            @add-ticket="showAlert" />
           <AddTicketBtn @open-dialog="ShowDialog()" />
           <TicketTable :data="ticketsList" :config="''" @locate="" @display="" />
 
@@ -542,9 +542,7 @@
         </div>
 
         <div style="display: flex">
-
           <div style="width: 100%;" v-if="selection == 'Indicateur'">
-
             <div v-for="(item, index) in floorstaticDetails[0].controlEndpoint" class="blocInformation">
               <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">{{
                 item.profileName }}</span>
@@ -573,6 +571,22 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- ONGLET INVENTAIRE -->
+        <div v-if="selection == 'Inventaire'"
+          style="display: flex; flex-direction: column; overflow: hidden !important; overflow-y: auto !important ;">
+          <div @click="showDialogInventory = !showDialogInventory" class="btn_inventory">
+            <v-icon color="white" size="35px">
+              mdi-plus
+            </v-icon>
+            <div style="margin-top: 3px;margin-left: 10px;">
+              Creer un inventaire
+            </div>
+          </div>
+
+          <FormInventaire :value="showDialogInventory" @close-dialog="ShowDialog()" :selectedZone="selectedZone"
+            @add-ticket="showAlert" />
         </div>
 
 
@@ -664,7 +678,6 @@
             ACCÉDER À L'APPLICATION {{ filteredApp.name }}
           </div>
         </div>
-
       </div>
 
 
@@ -702,6 +715,7 @@ import TicketTable from "./DataTable.vue";
 import LineCardComponent from "./LineCardComponent.vue";
 import moment from 'moment';
 import FormTicket from "../FormTicket.vue";
+import FormInventaire from "../FormInventaire.vue";
 import AddTicketBtn from "../ButtonAddticket.vue";
 import FormDoc from "../FormDoc.vue";
 import FormDocAttr from "../FormDocAttr.vue";
@@ -735,7 +749,8 @@ import { log } from "console";
     FormDocCateAttr,
     ConfirmDelete,
     ProgressBar,
-    TicketTable
+    TicketTable,
+    FormInventaire
   },
   filters: {},
 })
@@ -809,6 +824,7 @@ class dataSideApp extends Vue {
   ShowFormDocAttrs = false
   ShowFormDocCat = false
   allColored = false
+  showDialogInventory = false
   idEl = null
   itemOp = null
   selectedCategory = null
@@ -827,7 +843,7 @@ class dataSideApp extends Vue {
 
 
   get dynamicItems(): string[] {
-    let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets' , 'Inventaire'];
+    let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets', 'Inventaire'];
 
     if (this.floorstaticDetails.some(detail =>
       detail?.controlEndpoint?.some(endpoint => endpoint?.endpoints?.length > 0)
@@ -971,7 +987,7 @@ class dataSideApp extends Vue {
 
   ShowDialog() {
     console.log('hahahaha');
-    
+
     this.showFormTicket = !this.showFormTicket;
   }
   ShowFormDoc() {
@@ -2899,8 +2915,6 @@ class dataSideApp extends Vue {
 
   async countInventoryTypes(floors) {
 
-
-
     const inventoryCounts = {};
     const inventoryDbids = {};
 
@@ -3055,7 +3069,6 @@ class dataSideApp extends Vue {
       // else {
       //   console.warn(`Aucun inventaire trouvé pour cet étage :`, floor);
       // }
-
 
     });
 
@@ -3238,6 +3251,19 @@ export default dataSideApp;
 
 .v-menu__content {
   margin-left: 500px !important;
+}
+
+.btn_inventory {
+  border: 1px solid black;
+  background-color: #14202c;
+  cursor: pointer;
+  padding: 15px;
+  color: white;
+  border-radius: 5px;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  user-select: none;
 }
 
 .app_access_fl {

@@ -56,11 +56,6 @@ export const config: IConfig = {
 			cat: 'Typologie',
 			// grp: ['Chaises']
 		},
-		{
-			ctx: 'Gestion des équipements',
-			cat: 'Mobilier',
-			//   grp: ['Tableaux']
-		},
 	],
 
 
