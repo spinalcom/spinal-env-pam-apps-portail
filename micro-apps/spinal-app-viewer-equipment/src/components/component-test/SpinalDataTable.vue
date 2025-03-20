@@ -26,7 +26,7 @@
       v-slot:[`header.${header.value}`]="{ header }"
     >
       <div
-        @click="headershow(header)"
+        @click=""
         :class="{ 'selected-class': selected_header === header.text }"
         style="
           display: flex;
@@ -56,16 +56,15 @@
             display: flex;
             justify-content: center;
             align-items: center;
-          "
-        >
+          ">
           <v-icon
-            v-if="header.sortable && arrow == header.text"
+            v-if="header.sortable && arrow == header.text && hasSelectedGroup"
             @click="sort(header)"
             color="black"
             >mdi-arrow-up-thin</v-icon
           >
           <v-icon
-            v-if="header.sortable && arrow != header.text"
+            v-if="header.sortable && arrow != header.text && hasSelectedGroup"
             @click="sort(header)"
             color="black"
             >mdi-arrow-down-thin</v-icon
@@ -240,6 +239,10 @@ export default {
       return this.headers.filter(header => header.text !== 'Actions' && header.text !== 'Nom');
     },
 
+    hasSelectedGroup() {
+      return this.$store.state.appDataStore.user_selected.grp;
+    },
+
     
   },
   methods: {
@@ -252,6 +255,7 @@ export default {
     },
 
     selectDataView(item) {
+      console.log('TEST')
       if(item.type === 'BIMObjectGroupContext'){
         this.$emit('table-item-selected', { listType : 'ctx', value : item });
         return
@@ -622,27 +626,21 @@ export default {
         };
       });
       // equipmentList = await this.enrichItemsWithPositions(equipmentList);
-      const groupIndex = this.$store.state.appDataStore.data.findIndex(it => it.dynamicId === item.dynamicId);
-      let tmp = [...this.$store.state.appDataStore.data];
+
+      const groupIndex = this.items.findIndex(it => it.dynamicId === item.dynamicId);
+      console.log('GROUP INDEX : ', groupIndex);
+      let tmp = [...this.items];
       tmp.splice(groupIndex + 1, 0, ...equipmentList);
       this.$store.commit(MutationTypes.SET_DATA, tmp);
+      this.expandedGroups.push(item.dynamicId);
       this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
       return;
-    },
-
-    sortLoadedEquipmentsUnderGroups(){
-      const groupIndex = this.$store.state.appDataStore.data.findIndex(it => it.dynamicId === item.dynamicId);
-      let tmp = [...this.$store.state.appDataStore.data];
-      tmp.splice(groupIndex + 1, 0, ...equipmentList);
-      this.$store.commit(MutationTypes.SET_DATA, tmp);
-
     },
 
     async unloadEquipments(item){
       const res =  [...this.$store.state.appDataStore.data].filter(it => it.group !== item.name);
 
       this.$store.commit(MutationTypes.SET_DATA, res);
-      console.log('unloadEquipments',this.$store.state.appDataStore.data );
       this.expandedGroups = this.expandedGroups.filter(it => it !== item.dynamicId);
     },
 
