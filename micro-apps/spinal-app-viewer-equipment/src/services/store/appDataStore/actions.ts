@@ -26,7 +26,7 @@ import { getBuildings, getBuildingById } from "../../spinalAPI/GeographicContext
 import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
-import { getEquipments, getFloors, getRooms, getBuilding ,
+import { postRoomInventory,postFloorInventory,getEquipments, getFloors, getRooms, getBuilding ,
 	getAttributListMultiple, getDocumentation ,postDownloadFile ,getTicket,
 	getNotes, getNodeEndpointList, getNodeControlEndpointList ,getTimeSeriesAsync , getFile, getNodeReadMultiple, getEquipementPositions
 } from "../../spinalAPI/GeographicContext/geographicContext";
@@ -670,6 +670,45 @@ export const actions = {
 		// }
 	},
 
+	async [ActionTypes.GET_FLOOR_INVENTORY](
+			{ commit }: AugmentedActionContextAppData,
+			{ id, body, includePosition, includeArea, onlyDynamicId }: {
+				id: number;
+				body: { context: string; category: string };
+				includePosition?: boolean;
+				includeArea?: boolean;
+				onlyDynamicId?: boolean;
+			}
+	): Promise<any> {
+		try {
+			const result = await postFloorInventory(id, body, includePosition, includeArea, onlyDynamicId);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération de l’inventaire du floor:', error);
+			throw error;
+		}
+	},
+
+	async [ActionTypes.GET_ROOM_INVENTORY](
+		{ commit }: AugmentedActionContextAppData,
+		{ id, body, includePosition, onlyDynamicId }: {
+			id: number;
+			body: { context: string; category: string };
+			includePosition?: boolean;
+			onlyDynamicId?: boolean;
+		}
+		): Promise<any> {
+			try {
+				const result = await postRoomInventory(id, body, includePosition, onlyDynamicId);
+				return result;
+			} catch (error) {
+				console.error("Erreur lors de la récupération de l’inventaire du floor:", error);
+				throw error;
+			}
+	},
+
+
+
 
 	////////////////////////////////////////////////////////
 	//                VIEWER
@@ -732,6 +771,10 @@ export const actions = {
 	},
 	[ActionTypes.SELECT_ITEMS]({ commit, dispatch, state }, playload: any) {
 		ViewerManager.getInstance().select(playload);
+	},
+
+	[ActionTypes.HIDE_ITEMS]({ commit, dispatch, state }, playload: any) {
+		ViewerManager.getInstance().hide(playload);
 	},
 
 	[ActionTypes.ISOLATE_ITEMS]({ commit, dispatch, state }, playload: any) {
@@ -797,6 +840,8 @@ export const actions = {
 	[ActionTypes.GET_VIEWER_OBJECT_PROPERTIES]({ commit, dispatch, state }, dbId: number) {
 		return ViewerManager.getInstance().getObjectProperties(dbId);
 	},
+
+	
 
 	[ActionTypes.REMOVE_SPRITES_BY_GROUP]({ commit, dispatch, state }, group: string) {
 		return SpriteManager.getInstance().removeSpritesByGroup(group);

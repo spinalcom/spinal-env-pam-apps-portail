@@ -155,19 +155,19 @@ async function processPositionType(position_type, buildingId, allLists) {
     if (position_type.type === 'building') {
         roomsOnFloor = newLists.map(obj => {
             const pos = position.find(pos => pos.dynamicId === obj.dynamicId);
-            return { ...obj, floor: pos?.info?.floor?.name, room: pos?.info?.room?.name };
+            return { ...obj, floor: pos?.info?.floor, room: pos?.info?.room};
         });
     } else if (position_type.type === 'geographicFloor') {
         const List_floor = get_element_floor(position);
         roomsOnFloor = getRoomsByFloor(position_type.dynamicId, newLists, List_floor).map(obj => {
             const pos = position.find(pos => pos.dynamicId === obj.dynamicId);
-            return { ...obj, floor: pos?.info?.floor?.name, room: pos?.info?.room?.name };
+            return { ...obj, floor: pos?.info?.floor, room: pos?.info?.room };
         });
     } else if (position_type.type === 'geographicRoom') {
         const List_floor = get_element_floor(position);
         roomsOnFloor = getElByFloor(position_type.dynamicId, newLists, List_floor).map(obj => {
             const pos = position.find(pos => pos.dynamicId === obj.dynamicId);
-            return { ...obj, floor: pos?.info?.floor?.name, room: pos?.info?.room?.name };
+            return { ...obj, floor: pos?.info?.floor, room: pos?.info?.room };
         });
     } else {
         return newLists; // Fallback for unhandled types

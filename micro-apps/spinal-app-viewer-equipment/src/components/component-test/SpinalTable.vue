@@ -67,16 +67,17 @@
             ></v-select>
           </div>
           <div>
-            <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-left: 10px; margin-top: 7px;">
-              <v-icon class="icon-rounded-square"
-              
+            <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-left: 10px; margin-top: 10px;">
+              <v-icon
+                x-large
                 title="Recadrer sur l'espace sélectionné"
                 v-if="$store.state.appDataStore.user_selected.cat"
                 @click="globalFitToView()">
                 mdi-fit-to-screen
               </v-icon>
               
-              <v-icon class="icon-rounded-square"
+              <v-icon
+                x-large
                 title="Ajouter tous les sprites"
                 :class="{ 'disabled-icon': loadingState }"
                 v-if="$store.state.appDataStore.user_selected.cat"
@@ -84,19 +85,27 @@
                 {{ globalSprite ? 'mdi-map-marker-off-outline' : 'mdi-map-marker-outline'  }}
               </v-icon>
       
-              <v-icon class="icon-rounded-square"
+              <v-icon
+                x-large
                 title="Colorier tous les éléments"
                 v-if="$store.state.appDataStore.user_selected.cat"
                 @click="globalColorAllGroups()">
                 {{ globalColored ? 'mdi-invert-colors-off' : 'mdi-invert-colors' }}
               </v-icon>
 
+              <v-icon 
+                x-large
+                v-if="$store.state.appDataStore.user_selected.cat && !$store.state.appDataStore.user_selected.grp "
+                @click.stop="globalHideAllGroups()" 
+                :title="globalHidden ? 'Afficher tous les groupes dans la 3D' : 'Masquer tous les groupes dans la 3D'"
+              >
+                {{ globalHidden ? 'mdi-eye-off-outline' : 'mdi-eye-outline' }}
+              </v-icon>
+
             </div>
           </div>
 
         </div>
-
-        
       </div>
     </div>
 
@@ -108,8 +117,6 @@
       style="padding: 2px;"
       class="scrollable-table-container"
     >
-    
-      
 
       <DataTable
         ref="dataTable"
@@ -663,6 +670,7 @@ export default {
 
     globalColored : false,
     globalSprite: false,
+    globalHidden : false,
     }), // end of data
 
   mounted() {
@@ -865,6 +873,7 @@ export default {
         return aValue.localeCompare(bValue) * sortOrder;
       });
 
+      
       return dataArray;
     },
 
@@ -1746,6 +1755,15 @@ export default {
       }
     },
 
+    globalHideAllGroups(){
+      if(!this.globalHidden){
+        this.$refs.dataTable.hideAllGroups();
+        this.globalHidden = true;
+      } else {
+        this.$refs.dataTable.unHideAllGroups();
+        this.globalHidden = false;
+      }
+    },
 
     isLink(value) {
     return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
@@ -1854,8 +1872,8 @@ export default {
   }
 
   .scrollable-content{
-    max-height: 74vh;
-    min-height: 74vh;
+    max-height: 69vh;
+    min-height: 69vh;
     overflow-y: scroll;
   }
 

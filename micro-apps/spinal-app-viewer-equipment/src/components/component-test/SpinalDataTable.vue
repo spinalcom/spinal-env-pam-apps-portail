@@ -112,38 +112,47 @@
         }"
       ></span>
       {{ item.name }}
+
     </td>
 
     <!-- Second Column: Action Icons -->
     <td v-if="hasActions" :class="{ colortd: selected_id === item.dynamicId }">
       <div v-if="item.type==='BIMObject'" style="display:flex;  justify-content: center; gap:10px  ">
-        <v-icon small class="icon-rounded-square" @click.stop="fitToView(item)" title="Cadrer sur l'objet">
+        <v-icon  @click.stop="fitToView(item)" title="Cadrer sur l'objet">
           mdi-fit-to-screen
         </v-icon>
-        <v-icon small class="icon-rounded-square" @click.stop="viewerSelectItems(item)" title="Sélectionner l'équipement">
+        <v-icon  @click.stop="viewerSelectItems(item)" title="Sélectionner l'équipement">
           mdi-select-place
         </v-icon>
-        <v-icon small class="icon-rounded-square" @click.stop="goToDescriptionApp(item)" title="Basculer sur l'app description">
+        <v-icon  @click.stop="goToDescriptionApp(item)" title="Basculer sur l'app description">
           mdi-arrow-top-right-thick
         </v-icon>
       </div>
       <div v-else style="display:flex;  justify-content: center; gap:10px  ">
-        <v-icon v-if="expandedGroups.includes(item.dynamicId)" :color="item.color" small class="icon-rounded-square" @click.stop="unloadEquipments(item)" title="Décharger les équipements">
+        <v-icon v-if="expandedGroups.includes(item.dynamicId)" :color="item.color"  @click.stop="unloadEquipments(item)" title="Décharger les équipements">
           mdi-arrow-up-thick
         </v-icon>
-        <v-icon  v-else small class="icon-rounded-square" @click.stop="loadAndDisplayEquipments(item)" title="Charger et afficher les équipements">
+        <v-icon  v-else  @click.stop="loadAndDisplayEquipments(item)" title="Charger et afficher les équipements">
           mdi-arrow-down-thick
         </v-icon>
-        <v-icon :color="getDisplayedSpriteColor(item)" small class="icon-rounded-square" @click.stop="addOrRemoveSpriteGroup(item)" title="Afficher les sprites">
-          mdi-map-marker-circle
+        <v-icon :color="getDisplayedSpriteColor(item)" @click.stop="addOrRemoveSpriteGroup(item)" title="Afficher les sprites">
+          mdi-map-marker-outline
         </v-icon>
-        <v-icon v-if="isDisplayedColorIconColor(item)" :color="item.color" small class="icon-rounded-square" @click.stop="removeColor(item)" title="Colorier les équipements du groupe">
+        <v-icon v-if="isDisplayedColorIconColor(item)" :color="item.color" @click.stop="removeColor(item)" title="Colorier les équipements du groupe">
           mdi-invert-colors
         </v-icon>
-        <v-icon v-else small class="icon-rounded-square" @click.stop="addColor(item)" title="Colorier les équipements du groupe">
+        <v-icon v-else @click.stop="addColor(item)" title="Colorier les équipements du groupe">
           mdi-invert-colors
         </v-icon>
-        <v-icon small class="icon-rounded-square" @click.stop="viewerSelectItems(item)" title="Sélectionner les équipements du groupe">
+
+        <v-icon 
+          @click.stop="hideOrDisplayGroup(item)" 
+          :title="isHiddenGroup(item) ? 'Afficher les équipements du groupe' : 'Masquer les équipements du groupe'"
+        >
+          {{ isHiddenGroup(item) ? 'mdi-eye-off-outline' : 'mdi-eye-outline' }}
+        </v-icon>
+
+        <v-icon @click.stop="viewerSelectItems(item)" title="Sélectionner les équipements du groupe">
           mdi-select-place
         </v-icon>
 
@@ -199,6 +208,7 @@ export default {
       arrow: false,
       displayedSprites: [],
       displayedColors: [],
+      hiddenGroups: [],
       expandedGroups: [],
 
     };
@@ -228,7 +238,9 @@ export default {
 
     normalHeaders() {
       return this.headers.filter(header => header.text !== 'Actions' && header.text !== 'Nom');
-    }
+    },
+
+    
   },
   methods: {
     isUrl(value) {
@@ -294,17 +306,8 @@ export default {
       this.$emit('filter', header);
     },
     getAttributeValue(item, attrLabel) {
-      if (Array.isArray(item.categoryAttributes)) {
-        for (const category of item.categoryAttributes) {
-          const attribute = category.attributs.find(
-            (a) => a.label === attrLabel
-          );
-          if (attribute) {
-            return attribute.value;
-          }
-        }
-      } else {
-        return item[attrLabel];
+      if(typeof item[attrLabel] === 'object'){
+        return item[attrLabel].name ?? '';
       }
       return item[attrLabel] ?? '';
     },
@@ -329,7 +332,7 @@ export default {
         return entry.split('-')[1];
       }
       // Default icon color if not found in the list
-      return 'white';
+      return '';
     },
 
     getDisplayedColorIconColor(item){
@@ -352,11 +355,12 @@ export default {
 
     async clearAllGroupColors(){
       if(this.$store.state.appDataStore.user_selected.grp){
+        // si on a selectionné un groupe tous les éléments dans this.items sont des équipements
         const itemsToColor = this.items.map(it => {
           return {
             ...it,
             color: null,
-            floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId
+            floorId: this.$store.state.appDataStore.lastLoadedZone.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId
           }
         })
         this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
@@ -367,26 +371,9 @@ export default {
       }
 
       const groups = this.items.filter(it => it.type === 'BIMObjectGroup');
-      this.displayedColors = [];
-      const itemsToColor = [];
-      const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
-      const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
-      
-      for (const matchingGroup of groups) {
-        let equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
-        equipmentList = equipmentList.map((eq) => {
-          return {
-            ...eq,
-            color: null,
-            floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId
-          };
-        });
-        itemsToColor.push(...equipmentList);
+      for(const group of groups){
+        this.removeColor(group)
       }
-      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
-        items: itemsToColor,
-        buildingId: localStorage.getItem("idBuilding")
-      });
       return;
     },
 
@@ -397,7 +384,7 @@ export default {
         const itemsToColor = this.items.map(it => {
           return {
             ...it,
-            floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId
+            floorId: this.$store.state.appDataStore.lastLoadedZone.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId
           }
         })
         this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
@@ -408,37 +395,16 @@ export default {
       }
 
       const groups = this.items.filter(it => it.type === 'BIMObjectGroup');
-      const itemsToColor = [];
-
-      this.displayedColors= groups;
-
-      const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
-      const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
-      
-      for (const matchingGroup of groups) {
-        let equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
-        equipmentList = equipmentList.map((eq) => {
-          return {
-            ...eq,
-            color: matchingGroup.color,
-            floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId
-          };
-        });
-        itemsToColor.push(...equipmentList);
+      for(const group of groups){
+        this.addColor(group)
       }
- 
-      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
-        items: itemsToColor,
-        buildingId: localStorage.getItem("idBuilding")
-      });
-
-
       return;
     },
 
     // used by global action sprite
     async addSpriteAllGroups(){
       if(this.$store.state.appDataStore.user_selected.grp){
+        //TODO: in this case we should enrich the data with actual floor and room ids in the future
         const itemsToDisplay = this.items.map(it => {
           return {
             ...it,
@@ -459,39 +425,104 @@ export default {
       }
     },
 
+    async hideOrDisplayGroup(item){
+      const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
+      const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
+      const matchingGroup = item;
+      let equipmentList = await this.$store.dispatch(ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+      const itemsToHide = {};
+      for(const eq of equipmentList){
+        if (!itemsToHide[eq.bimFileId]){
+          itemsToHide[eq.bimFileId] = [];
+        }
+        itemsToHide[eq.bimFileId].push(eq.dbid);
+      }
+      this.$store.dispatch(ActionTypes.HIDE_ITEMS, {
+      items: {itemToHIde: itemsToHide},
+      buildingId: localStorage.getItem("idBuilding"),
+      });
+
+      if (this.hiddenGroups.includes(item.dynamicId)){
+        this.hiddenGroups = this.hiddenGroups.filter(it => it !== item.dynamicId);
+      }else {
+        this.hiddenGroups.push(item.dynamicId);
+      }
+
+    },
+
+    async hideAllGroups(){
+      const groups = this.items.filter(it => it.type === 'BIMObjectGroup');
+      for(const group of groups){
+        if(this.hiddenGroups.includes(group.dynamicId)){
+          continue;
+        }
+        this.hideOrDisplayGroup(group);
+      }
+    },
+
+    async unHideAllGroups(){
+      const groups = this.items.filter(it => it.type === 'BIMObjectGroup');
+      for(const group of groups){
+        if(!this.hiddenGroups.includes(group.dynamicId)){
+          continue;
+        }
+        this.hideOrDisplayGroup(group);
+      }
+    },
+
+    isHiddenGroup(item){      
+      return this.hiddenGroups.some(it => it === item.dynamicId);
+    },
+    
+
     async removeColor(item){
       this.displayedColors = this.displayedColors.filter(eq => eq.dynamicId !== item.dynamicId);
       const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
       const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
       const matchingGroup = item;
+      let equipmentList = [];
+      if(this.$store.state.appDataStore.zoneSelected.type === 'building'){
+        equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+      }
 
-      let equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+      else {
+        equipmentList = this.$store.state.appDataStore.inventory.find(it => it.dynamicId === matchingGroup.dynamicId).groupItems;
+      }
+
       equipmentList = equipmentList.map((eq) => {
-        return {
-          ...eq,
-          color: null,
-          floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId
-        };
+          return {
+            ...eq,
+            color: null,
+            floorId: this.$store.state.appDataStore.lastLoadedZone.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId
+          };
+        });      
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: equipmentList,
+        buildingId: localStorage.getItem("idBuilding")
       });
-      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {items: equipmentList,buildingId: localStorage.getItem("idBuilding")});
     },
 
     async addColor(item){
       this.displayedColors.push(item);
-
       const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
       const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
       const matchingGroup = item;
-      let equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+      let equipmentList = [];
+      if(this.$store.state.appDataStore.zoneSelected.type === 'building'){
+        equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+      }
+
+      else {
+        equipmentList = this.$store.state.appDataStore.inventory.find(it => it.dynamicId === matchingGroup.dynamicId).groupItems;
+      }
+
       equipmentList = equipmentList.map((eq) => {
-        return {
-          ...eq,
-          color: matchingGroup.color,
-          floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId
-        };
-      });
- 
-      
+          return {
+            ...eq,
+            color: matchingGroup.color,
+            floorId: this.$store.state.appDataStore.lastLoadedZone.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId
+          };
+        });      
       this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
         items: equipmentList,
         buildingId: localStorage.getItem("idBuilding")
@@ -501,69 +532,44 @@ export default {
 
     },
 
+    
     async addOrRemoveSpriteGroup(item){
+      // Remove the sprites if they are already displayed
       const entry = this.displayedSprites.find(str => str.startsWith(`${item.name}-`));
       if (entry) {
         this.$store.dispatch(ActionTypes.REMOVE_SPRITES_BY_GROUP, item.name);
         this.displayedSprites = this.displayedSprites.filter(str => !str.startsWith(`${item.name}-`));
         return;
       }
+
       this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
       this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des sprites du groupe ${item.name} ...`);
-
 
       const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
       const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
       const matchingGroup = item;
-      let equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
-
-      const equipmentIds = equipmentList.map(eq => eq.dynamicId);
-
-      const equipmentPositions = await this.$store.dispatch(ActionTypes.GET_EQUIPMENT_POSITION_MULTIPLE, {
-        buildingId: localStorage.getItem("idBuilding"),
-        equipmentIds: equipmentIds
-      });
-
-      equipmentList = equipmentList.map((eq) => {
-        const position = equipmentPositions.find((pos) => pos.dynamicId == eq.dynamicId);
-        if(!position || position.error){
-          return eq
-        }
-        else{
-          return {
-            ...eq,
-            room: position.info.room,
-            floor: position.info.floor,
-            color: matchingGroup.color,
-          };
-        }
-      });
       
-      const equipmentAttributes = await this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
-        buildingId: localStorage.getItem("idBuilding"),
-        referenceIds: equipmentIds
-      });
-      // enrich equipmentList with coordinates and color
+      let equipmentList = [];
+      if(this.$store.state.appDataStore.zoneSelected.type === 'building'){
+        equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+      }
+
+      else {
+        equipmentList = this.$store.state.appDataStore.inventory.find(it => it.dynamicId === matchingGroup.dynamicId).groupItems;
+      }
+
       equipmentList = equipmentList.map(eq => {
-        const matchingResult = equipmentAttributes.find( res => res.dynamicId === eq.dynamicId)
-        const coordinates = this.getCoordinatesFromAttributes(matchingResult.categoryAttributes)
         return {
           ...eq,
-          position : coordinates,
+          color: matchingGroup.color,
           group: matchingGroup.name
-        }
-        
-        })
 
-      // TODO filter out equipments that doesn't match with the selected zone.
-      if(this.$store.state.appDataStore.zoneSelected.type === 'geographicFloor'){
-        equipmentList = equipmentList.filter(eq => eq.floor && eq.floor.dynamicId === this.$store.state.appDataStore.zoneSelected.dynamicId)
-      }
+        };
+      });
 
-      if(this.$store.state.appDataStore.zoneSelected.type === 'geographicRoom'){
-        equipmentList = equipmentList.filter(eq => eq.room && eq.room.dynamicId === this.$store.state.appDataStore.zoneSelected.dynamicId)
-      }
- 
+      equipmentList = await this.enrichItemsWithChildrenReadings(equipmentList);
+      equipmentList = await this.enrichItemsWithPositions(equipmentList);
+      equipmentList = await this.enrichItemsWithCoordinates(equipmentList);
   
       this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
         items: equipmentList,
@@ -596,54 +602,40 @@ export default {
       const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
       const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
       const matchingGroup = item;
-      let equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+
+      let equipmentList = [];
+      if(this.$store.state.appDataStore.zoneSelected.type === 'building'){
+        equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+      }
+
+      else {
+        equipmentList = this.$store.state.appDataStore.inventory.find(it => it.dynamicId === matchingGroup.dynamicId).groupItems;
+      }
 
       equipmentList = equipmentList.map(eq => {
         return {
           ...eq,
           group: matchingGroup.name,
           color: matchingGroup.color,
+          buildingId: localStorage.getItem("idBuilding"), // without this , the fit to view and selection would not work
           expanded: true
         };
       });
-      const equipmentIds = equipmentList.map(eq => eq.dynamicId);
-
-      const equipmentPositions = await this.$store.dispatch(ActionTypes.GET_EQUIPMENT_POSITION_MULTIPLE, {
-        buildingId: localStorage.getItem("idBuilding"),
-        equipmentIds: equipmentIds
-      });
-
-      equipmentList = equipmentList.map((eq) => {
-        const position = equipmentPositions.find((pos) => pos.dynamicId == eq.dynamicId);
-        if(!position || position.error){
-          return eq
-        }
-        else{
-          return {
-            ...eq,
-            room: position.info.room,
-            floor: position.info.floor
-          };
-        }
-      });
-
-      // TODO filter out equipments that doesn't match with the selected zone.
-      if(this.$store.state.appDataStore.zoneSelected.type === 'geographicFloor'){
-        equipmentList = equipmentList.filter(eq => eq.floor && eq.floor.dynamicId === this.$store.state.appDataStore.zoneSelected.dynamicId)
-      }
-
-      if(this.$store.state.appDataStore.zoneSelected.type === 'geographicRoom'){
-        equipmentList = equipmentList.filter(eq => eq.room && eq.room.dynamicId === this.$store.state.appDataStore.zoneSelected.dynamicId)
-      }
-
-
+      // equipmentList = await this.enrichItemsWithPositions(equipmentList);
       const groupIndex = this.$store.state.appDataStore.data.findIndex(it => it.dynamicId === item.dynamicId);
       let tmp = [...this.$store.state.appDataStore.data];
       tmp.splice(groupIndex + 1, 0, ...equipmentList);
       this.$store.commit(MutationTypes.SET_DATA, tmp);
-      this.expandedGroups.push(item.dynamicId);
       this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
       return;
+    },
+
+    sortLoadedEquipmentsUnderGroups(){
+      const groupIndex = this.$store.state.appDataStore.data.findIndex(it => it.dynamicId === item.dynamicId);
+      let tmp = [...this.$store.state.appDataStore.data];
+      tmp.splice(groupIndex + 1, 0, ...equipmentList);
+      this.$store.commit(MutationTypes.SET_DATA, tmp);
+
     },
 
     async unloadEquipments(item){
@@ -671,6 +663,80 @@ export default {
       console.log('viewerSelectItems TO select : ', equipmentList);
       this.$store.dispatch(ActionTypes.SELECT_ITEMS, equipmentList);
     },
+
+    async enrichItemsWithChildrenReadings(items){
+      const readings = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, {
+      buildingId: localStorage.getItem("idBuilding"),
+      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+      nodeIds: items.map(eq => eq.dynamicId),
+      includeChildrenRelations : true,
+      includeParentRelations : false
+      });
+      
+
+      const enrichedItems = items.map(eq => {
+        const reading = readings.find(rd => rd.dynamicId === eq.dynamicId);
+        if(reading){
+          const response = reading.children_relation_list;
+          const relation_tickets = response.find(relation => relation.name === "SpinalSystemServiceTicketHasTicket")
+          const count_tickets = relation_tickets ? relation_tickets.children_number : 0;
+          const relation_ep = response.find(relation => relation.name === "hasEndPoint")
+          const count_ep = relation_ep ? relation_ep.children_number : 0;
+          const relation_cp = response.find(relation => relation.name === "hasControlPoints")
+          const count_cp = relation_cp ? relation_cp.children_number : 0;
+          const relation_notes = response.find(relation => relation.name === "hasNotes")
+          const count_notes = relation_notes ? relation_notes.children_number : 0;
+          const relation_category_attributes = response.find(relation => relation.name === "hasCategoryAttributes")
+          const count_category_attributes = relation_category_attributes ? relation_category_attributes.children_number : 0;
+          const relation_files = response.find(relation => relation.name === "hasFiles")
+          const count_files = relation_files ? relation_files.children_number : 0;
+          return {
+            ...eq,
+           nbr_tickets: count_tickets, nbr_ep: count_ep, nbr_cp: count_cp, nbr_notes: count_notes, nbr_category_attributes: count_category_attributes, nbr_files: count_files
+          }
+        }
+        return eq;
+      });
+      return enrichedItems;
+    },
+
+    async enrichItemsWithPositions(items){
+
+      const itemsPositions = await this.$store.dispatch(ActionTypes.GET_EQUIPMENT_POSITION_MULTIPLE, {
+        buildingId: localStorage.getItem("idBuilding"),
+        equipmentIds: items.map(eq => eq.dynamicId)
+      });
+
+      return items.map((eq) => {
+        const position = itemsPositions.find((pos) => pos.dynamicId == eq.dynamicId);
+        if(!position || position.error){
+          return eq
+        }
+        else{
+          return {
+            ...eq,
+            room: position.info.room,
+            floor: position.info.floor
+          };
+        }
+      });
+    },
+
+    async enrichItemsWithCoordinates(items){
+      const equipmentAttributes = await this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
+        buildingId: localStorage.getItem("idBuilding"),
+        referenceIds: items.map(eq => eq.dynamicId)
+      });
+      // enrich equipmentList with coordinates and color
+      return items.map(eq => {
+        const matchingResult = equipmentAttributes.find( res => res.dynamicId === eq.dynamicId)
+        const coordinates = this.getCoordinatesFromAttributes(matchingResult.categoryAttributes)
+        return {
+          ...eq,
+          position : coordinates
+        }
+        });
+    }
   },
   watch: {
     selectedItemTab(newVal, oldVal) {

@@ -214,7 +214,7 @@ class dataSideApp extends Vue {
     try {
       const result = await this.$store.dispatch(actionType, dispatchObject)
       this.$store.commit(MutationTypes.SET_DATA, result.data);
-      console.log(result.data)
+      console.log('Retrieve Data : ',result.data);
 
       this.pageSate = PAGE_STATES.loaded;
     } catch (err) {
@@ -257,7 +257,7 @@ class dataSideApp extends Vue {
       includeChildrenRelations : true,
       includeParentRelations : false
     } as any;
-    dispatchObject.forceUpdate = true;
+      dispatchObject.forceUpdate = true;
       const result = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, dispatchObject);
       const futurData = this.$store.state.appDataStore.user_selection_list.ctx.map(ctx => {
         const read = result.find((node) => node.dynamicId === ctx.dynamicId);
@@ -275,8 +275,8 @@ class dataSideApp extends Vue {
       nodeIds: this.$store.state.appDataStore.user_selection_list.cat.map(cat => cat.dynamicId),
       includeChildrenRelations : true,
       includeParentRelations : false
-    } as any;
-    dispatchObject.forceUpdate = true;
+      } as any;
+      dispatchObject.forceUpdate = true;
       const result = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, dispatchObject);
       const futurData = this.$store.state.appDataStore.user_selection_list.cat.map(cat => {
         const read = result.find((node) => node.dynamicId === cat.dynamicId);
@@ -288,22 +288,31 @@ class dataSideApp extends Vue {
     }
 
     if (!this.$store.state.appDataStore.user_selected.grp) {
-      let dispatchObject = {
-      buildingId: localStorage.getItem("idBuilding"),
-      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
-      nodeIds: this.$store.state.appDataStore.user_selection_list.grp.map(grp => grp.dynamicId),
-      includeChildrenRelations : true,
-      includeParentRelations : false
-    } as any;
-    dispatchObject.forceUpdate = true;
-      const result = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, dispatchObject);
-      const futurData = this.$store.state.appDataStore.user_selection_list.grp.map(grp => {
-        const read = result.find((node) => node.dynamicId === grp.dynamicId);
-        const hasBimObjectRelation = read.children_relation_list.find(relation => relation.name === "groupHasBIMObject")
-        return { ...grp, nbr_equipments: hasBimObjectRelation.children_number }
-      })
-      this.$store.commit(MutationTypes.SET_DATA, futurData);
-      return;
+      if(this.selectedZone.type === "building"){ // otherwise we would already have the info from calling inventory
+        let dispatchObject = {
+        buildingId: localStorage.getItem("idBuilding"),
+        patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+        nodeIds: this.$store.state.appDataStore.user_selection_list.grp.map(grp => grp.dynamicId),
+        includeChildrenRelations : true,
+        includeParentRelations : false
+        } as any;
+        dispatchObject.forceUpdate = true;
+        const result = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, dispatchObject);
+        const futurData = this.$store.state.appDataStore.user_selection_list.grp.map(grp => {
+          const read = result.find((node) => node.dynamicId === grp.dynamicId);
+          const hasBimObjectRelation = read.children_relation_list.find(relation => relation.name === "groupHasBIMObject")
+          return { ...grp, nbr_equipments: hasBimObjectRelation.children_number }
+        })
+        this.$store.commit(MutationTypes.SET_DATA, futurData);
+        console.log('UPDATE TABLE DATA WITH : ', this.$store.state.appDataStore.data);
+        return;
+      }
+      else {
+        this.$store.commit(MutationTypes.SET_DATA, this.$store.state.appDataStore.inventory);
+        console.log('UPDATE TABLE DATA WITH : ', this.$store.state.appDataStore.data);
+      }
+      
+
     }
 
     
@@ -338,30 +347,87 @@ class dataSideApp extends Vue {
   }
 
   async getAndUpdateEquipmentGroups(){
+    if(!this.$store.state.appDataStore.user_selected.ctx || !this.$store.state.appDataStore.user_selected.cat) return;
     const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
     const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
-    this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
-    this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des groupes de ${matchingCategory.name}...`);
-    let actionType = ActionTypes.GET_GROUP_LIST
-    let dispatchObject = {
-      buildingId: localStorage.getItem("idBuilding"),
-      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
-      contextDynId: matchingContext.dynamicId,
-      categoryDynId: matchingCategory.dynamicId
-    } as any;
-    dispatchObject.forceUpdate = true;
+    if(this.selectedZone.type === "building"){
+      this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+      this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des groupes de ${matchingCategory.name}...`);
+      let actionType = ActionTypes.GET_GROUP_LIST
+      let dispatchObject = {
+        buildingId: localStorage.getItem("idBuilding"),
+        patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+        contextDynId: matchingContext.dynamicId,
+        categoryDynId: matchingCategory.dynamicId
+      } as any;
+      dispatchObject.forceUpdate = true;
+  
+      try {
+        const result = await this.$store.dispatch(actionType, dispatchObject);
+        this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
+  
+        this.pageSate = PAGE_STATES.loaded;
+      } catch (err) {
+        console.log(err);
+        this.retry = this.getAndUpdateEquipmentGroups;
+        this.pageSate = PAGE_STATES.error;
+      } finally {
+        this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
 
-    try {
-      const result = await this.$store.dispatch(actionType, dispatchObject);
-      this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
+      }
+      return;
+    }
 
-      this.pageSate = PAGE_STATES.loaded;
-    } catch (err) {
-      console.log(err);
-      this.retry = this.getAndUpdateEquipmentGroups;
-      this.pageSate = PAGE_STATES.error;
-    } finally {
-      this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
+    if(this.selectedZone.type==="geographicFloor"){
+      let actionType = ActionTypes.GET_FLOOR_INVENTORY
+      let dispatchObject = {
+        id: this.selectedZone.dynamicId,
+        body : {
+          context: matchingContext.name,
+          category: matchingCategory.name
+        },
+        onlyDynamicId: false
+        
+      } as any;  
+      try {
+        const result = await this.$store.dispatch(actionType, dispatchObject);
+        result.forEach((grp) => {
+          grp.nbr_equipments =grp.groupItems?.length || 'NaN'
+        })
+        this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
+        this.$store.commit(MutationTypes.SET_INVENTORY_DATA, result); // Set the inventory data, will be enriched later
+        console.log('RESULT INVENTORY', this.$store.state.appDataStore.inventory);
+        
+        this.pageSate = PAGE_STATES.loaded;
+      } catch (err) {
+        console.log(err);
+        this.retry = this.getAndUpdateEquipmentGroups;
+        this.pageSate = PAGE_STATES.error;
+      }
+
+    }
+
+    if(this.selectedZone.type === 'geographicRoom'){
+      
+      try {
+        const result = await this.$store.dispatch(ActionTypes.GET_ROOM_INVENTORY, {
+                                                    id: this.selectedZone.dynamicId,
+                                                    body : {
+                                                      context: matchingContext.name,
+                                                      category: matchingCategory.name
+                                                    },
+                                                    onlyDynamicId: false
+                                                  }
+        );
+        result.forEach((grp) => {
+          grp.nbr_equipments =grp.groupItems?.length || 'NaN'
+        })
+        this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
+        this.$store.commit(MutationTypes.SET_INVENTORY_DATA, result);
+        console.log('RESULT INVENTORY', this.$store.state.appDataStore.inventory);
+      } catch (err) {
+        console.error(err);
+      }
     }
 
   }
@@ -450,17 +516,12 @@ class dataSideApp extends Vue {
   @Watch("selectedZone")
   async watchSelectedZone() {
 
-    // if (this.selectedZone.type === "building") {
-    //   this.isBuildingSelected = true;
-    //   this.$store.commit(MutationTypes.SET_DATA, []);
-    // }
-    // else {
-    //   this.isBuildingSelected = false;
-    // }
-    //this.retriveData(shouldGetAllEquipments);
-    if(this.$store.state.appDataStore.user_selected.grp){
-      await this.getAndUpdateEquipmentList();
+    if (this.selectedZone.level < 2 ){
+      this.$store.commit(MutationTypes.SET_LAST_LOADED_ZONE, this.selectedZone);
     }
+
+    console.log('SELECTED ZONE CHANGED TO : ', this.selectedZone);
+    await this.getAndUpdateEquipmentGroups();
     await this.updateTableData();
   }
 

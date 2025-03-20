@@ -314,3 +314,43 @@ export async function getFile(buildingId: string, referenceIds: any): Promise<Bl
     throw error;
   }
 }
+
+
+export async function postFloorInventory(id: number, body: { context: string; category: string }, includePosition?: boolean, includeArea: boolean = true, onlyDynamicId: boolean = true): Promise<any> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const buildingId = localStorage.getItem("idBuilding");
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/floor/${id}/inventory`);
+
+  const params = new URLSearchParams();
+  if (includePosition !== undefined) params.append("includePosition", String(includePosition));
+  if (includeArea !== undefined) params.append("includeArea", String(includeArea));
+  if (onlyDynamicId !== undefined) params.append("onlyDynamicId", String(onlyDynamicId));
+
+  try {
+    const response = await spinalAPI.post<any>(`${url}?${params.toString()}`, body);
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'inventaire du floor:", error);
+    throw error;
+  }
+}
+
+
+export async function postRoomInventory(id: number, body: { context: string; category: string }, includePosition?: boolean, onlyDynamicId: boolean = true): Promise<any> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const buildingId = localStorage.getItem("idBuilding") || '';
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/room/${id}/inventory`);
+
+  const params = new URLSearchParams();
+  if (includePosition !== undefined) params.append("includePosition", String(includePosition));
+  if (onlyDynamicId !== undefined) params.append("onlyDynamicId", String(onlyDynamicId));
+
+  try {
+    const response = await spinalAPI.post<any>(`${url}?${params.toString()}`, body);
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'inventaire de la room:", error);
+    throw error;
+  }
+}
+

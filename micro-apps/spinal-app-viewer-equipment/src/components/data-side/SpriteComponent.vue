@@ -139,8 +139,8 @@
           <div v-if="true" class="row row1">
             <div
               v-for="(item, index) in [
-                { name: 'Etage', value: data.floor },
-                { name: 'Pièce', value: data.room },
+                { name: 'Etage', value: data.floor.name },
+                { name: 'Pièce', value: data.room.name },
                 { name: 'Groupe', value: data.group },
               ]"
               :key="index"
@@ -198,7 +198,7 @@ export default {
     isClicked: false,
   }),
   mounted() {
-    // console.log('data', this.data);
+    // console.log('data sprite component :', this.data);
     this.dynamicStyle.background = this.data.color || '#13a9e0';
     document.addEventListener('click', (evt) => {
       const flyoutEl = this.$refs.container;

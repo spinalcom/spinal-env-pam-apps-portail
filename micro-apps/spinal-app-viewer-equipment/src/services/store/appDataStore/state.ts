@@ -32,6 +32,7 @@ export type StateAppData = typeof state;
 export const state = {
 	buildings: [] as IGetAllBuildingsRes[],
 	zoneSelected: defaultZoneSelected(),
+	lastLoadedZone: defaultZoneSelected(),
 	temporalitySelected: defaultTemporalitySelected(),
 	floors: {} as Record<string, IZoneItem[]>,
 	rooms: {} as Record<number, IZoneItem[]>,
@@ -52,6 +53,7 @@ export const state = {
 	},
 	loading : false as boolean,
 	loadingCount : 0 as number,
-	loadingText : 'Chargement ...' as string
+	loadingText : 'Chargement ...' as string,
+	inventory : [] as any
 
 };
