@@ -88,7 +88,7 @@ Les données sont récupérées via des **appels API** et affichées sous forme 
 
 ---
 
-## ** Autres Fonctions Utilisées**
+## **Autres Fonctions Utilisées**
 
 - `fetchTotalSurface()` → Récupère la **surface totale** du bâtiment.  
 - `fetchTotalSurface2()` → Récupère la **surface totale** des salles de réunion.  
@@ -96,7 +96,7 @@ Les données sont récupérées via des **appels API** et affichées sous forme 
 
 ---
 
-## ** Conclusion**
+## **Conclusion**
 
 Cette documentation décrit **les principales étapes et fonctions** utilisées pour **récupérer et afficher** les taux d'occupation en temps réel.  
 Les données sont traitées via **API**, puis affichées dans des **graphiques interactifs** pour une meilleure visualisation.

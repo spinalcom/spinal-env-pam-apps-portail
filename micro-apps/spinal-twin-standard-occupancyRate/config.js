@@ -34,6 +34,10 @@ module.exports = {
     
     entryPoints: [
         {
+            name: 'DEI',
+            type: 'geographicBuilding',
+        },
+        {
             context: 'Gestion des espaces',
             category: 'Typologie',
             group: 'Salle de réunion',
@@ -59,10 +63,7 @@ module.exports = {
                 }
             ]
         },
-        {
-            name: 'Bâtiment',
-            color: '#418FDD',
-        },
+        
     ],
       labels: {
         downloadFileName: "Taux d'occupation"

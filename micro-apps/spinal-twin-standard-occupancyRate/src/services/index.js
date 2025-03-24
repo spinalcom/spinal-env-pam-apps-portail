@@ -9,7 +9,6 @@ export async function getBuilding() {
   return result.data;
 }
 
-
 // Récupère la liste des étages d'un bâtiment.
 export async function getFloors() {
   const buildingId = localStorage.getItem('idBuilding');
