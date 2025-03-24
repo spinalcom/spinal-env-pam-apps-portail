@@ -34,7 +34,7 @@ import { addTicketDoc, createTicket, getProcess, getWorkFlowList, Ticket } from 
 
 import { deleteFile, uploadDoc, deleteAttribut, deleteCategoryAttribut, updateCategoryAttribut, updateAttribut } from "../../spinalAPI/UploadDoc/Doc";
 
-import { getGroupContext, getGroupContextCategoryList, getGroupContextGroupList, getGroupContextread } from "../../spinalAPI/ContextGroup/groupContext";
+import { getGroupContextCategoryList, getGroupContextGroupList, getGroupContextread } from "../../spinalAPI/ContextGroup/groupContext";
 
 import { createAttribut, createCategory, getCategoriesList } from "../../spinalAPI/NodeAttributs/nodeAttributs";
 
@@ -226,24 +226,6 @@ export const actions = {
 		// commit(MutationTypes.SET_DATA, { id: id, items: floors.value });
 		return floors.value;
 	},
-
-	async [ActionTypes.GET_GROUP_CONTEXT]({ commit }: AugmentedActionContextAppData, { buildingId, patrimoineId, position_type, getAllCategoryEquipments, id, forceUpdate }: any): Promise<any[]> {
-
-		const spinalAPI = SpinalAPI.getInstance();
-		if (typeof ApiIteratorStore[ActionTypes.GET_GROUP_CONTEXT] === "undefined") {
-			ApiIteratorStore[ActionTypes.GET_GROUP_CONTEXT] = {};
-		}
-		const floorObjStore = ApiIteratorStore[ActionTypes.GET_GROUP_CONTEXT]!;
-
-		if (typeof floorObjStore[id] === "undefined" || forceUpdate === true) {
-			floorObjStore[id] = spinalAPI.createIteratorCall( getGroupContext, patrimoineId, buildingId, position_type, getAllCategoryEquipments);
-		}
-		const floors = await floorObjStore[id].next();
-
-		// commit(MutationTypes.SET_DATA, { id: id, items: floors.value });
-		return floors.value;
-	},
-
 
 	async [ActionTypes.GET_EQUIPMENTS_GROUP]({ commit }: AugmentedActionContextAppData, { buildingId, patrimoineId, floorId, id, forceUpdate }: any): Promise<IZoneItem[]> {
 

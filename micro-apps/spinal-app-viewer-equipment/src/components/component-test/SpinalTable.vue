@@ -89,7 +89,7 @@
               "
             >
               <v-icon
-                x-large
+                large
                 title="Recadrer sur l'espace sélectionné"
                 v-if="$store.state.appDataStore.user_selected.cat"
                 @click="globalFitToView()"
@@ -98,7 +98,7 @@
               </v-icon>
 
               <v-icon
-                x-large
+                large
                 title="Ajouter tous les sprites"
                 :class="{ 'disabled-icon': loadingState }"
                 v-if="$store.state.appDataStore.user_selected.cat"
@@ -112,7 +112,7 @@
               </v-icon>
 
               <v-icon
-                x-large
+                large
                 title="Colorier tous les éléments"
                 v-if="$store.state.appDataStore.user_selected.cat"
                 @click="globalColorAllGroups()"
@@ -123,7 +123,7 @@
               </v-icon>
 
               <v-icon
-                x-large
+                large
                 v-if="
                   $store.state.appDataStore.user_selected.cat &&
                   !$store.state.appDataStore.user_selected.grp
@@ -1015,14 +1015,23 @@ export default {
 
     radarData() {
       console.log('selection', this.filteredContexts);
+      const groupCounts = {};
+      for(const group of this.filteredContexts){
+        // if(!Object.keys(groupCounts).includes(group.name)){
+        if(!groupCounts[group.name]){
+          groupCounts[group.name]= group.nbr_equipments || group.groupItems.length || 0;
+        } else {
+          console.warn('group already exists, weird occurance, please investigate');
+        }
+      }
 
-      // Récupérer les groupes uniques et compter les équipements par groupe
-      const groupCounts = this.filteredContexts.reduce((acc, item) => {
-        acc[item.group] = (acc[item.group] || 0) + 1;
-        return acc;
-      }, {});
+      // // Récupérer les groupes uniques et compter les équipements par groupe
+      // const groupCounts = this.filteredContexts.reduce((acc, item) => {
+      //   acc[item.group] = (acc[item.group] || 0) + 1;
+      //   return acc;
+      // }, {});
 
-      // Extraire les groupes (labels) et les valeurs (counts)
+      // // Extraire les groupes (labels) et les valeurs (counts)
       const labels = Object.keys(groupCounts); // Les noms des groupes
       const data = Object.values(groupCounts); // Le nombre d'équipements par groupe
 

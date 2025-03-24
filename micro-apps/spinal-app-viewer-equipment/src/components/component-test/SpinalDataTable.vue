@@ -408,15 +408,8 @@ export default {
     // used by global action sprite
     async addSpriteAllGroups(){
       if(this.$store.state.appDataStore.user_selected.grp){
-        //TODO: in this case we should enrich the data with actual floor and room ids in the future
-        const itemsToDisplay = this.items.map(it => {
-          return {
-            ...it,
-            position : this.getCoordinatesFromAttributes(it.categoryAttributes)
-          }
-        })
         this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-        items: itemsToDisplay,
+        items: this.items,
         buildingId: localStorage.getItem("idBuilding"),
         component: SpriteComponent,
       });
