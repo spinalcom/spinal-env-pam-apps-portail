@@ -26,7 +26,7 @@ import { getBuildings, getBuildingById } from "../../spinalAPI/GeographicContext
 import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
-import { postFloorInventory, getEquipments, getBuilding, getFloors, getRooms, getStaticDetails, getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails, postBIMObjectInfo, getBuildingInfo, getBuildingStaticDetails, getDocumentation, postDownloadFile, getParent, getAttributListMultiple, getTimeSeriesAsync, getNodeRead, getTicket, getpositionEquipement, getpositionRoom, getFile } from "../../spinalAPI/GeographicContext/geographicContext";
+import { postFloorInventory, postRoomInventory, getEquipments, getBuilding, getFloors, getRooms, getStaticDetails, getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails, postBIMObjectInfo, getBuildingInfo, getBuildingStaticDetails, getDocumentation, postDownloadFile, getParent, getAttributListMultiple, getTimeSeriesAsync, getNodeRead, getTicket, getpositionEquipement, getpositionRoom, getFile } from "../../spinalAPI/GeographicContext/geographicContext";
 import { getContextList, getContextCategoryList, getContextCategoryGroupList, getroomList } from "../../spinalAPI/ContextGroup/groupContext";
 import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../../../../global-components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
@@ -84,6 +84,23 @@ export const actions = {
 	): Promise<any> {
 		try {
 			const result = await postFloorInventory(id, body, includePosition, includeArea, onlyDynamicId);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération de l’inventaire du floor:', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_ROOM_INVENTORY](
+		{ commit }: AugmentedActionContextAppData,
+		{ id, body, includePosition, onlyDynamicId }: {
+			id: number;
+			body: { context: string; category: string };
+			includePosition?: boolean;
+			onlyDynamicId?: boolean;
+		}
+	): Promise<any> {
+		try {
+			const result = await postRoomInventory(id, body, includePosition, onlyDynamicId);
 			return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération de l’inventaire du floor:', error);

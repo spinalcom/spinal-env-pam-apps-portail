@@ -46,11 +46,14 @@ export enum MutationTypes {
 	REMOVE_ITEM_TO_HIDE = "REMOVE_ITEM_TO_HIDE",
 	SET_ITEM_TO_COLOR = "SET_ITEM_TO_COLOR",
 	REMOVE_ITEM_TO_COLOR = "REMOVE_ITEM_TO_COLOR",
-	SET_BUILDING_INFO = "SET_BUILDING_INFO"
+	SET_BUILDING_INFO = "SET_BUILDING_INFO",
+	SET_COMPONENT_SELECTED = "SET_COMPONENT_SELECTED",
+	SET_LAST_LOADED_ZONE = "SET_LAST_LOADED_ZONE",
 }
 
 export type MutationsAppData<S = StateAppData> = {
 	[MutationTypes.SET_BUILDINGS](state: S, payload: IGetAllBuildingsRes[]): void;
+	[MutationTypes.SET_LAST_LOADED_ZONE](state: StateAppData, payload: ISpaceSelectorItem): void
 	[MutationTypes.SET_SELECTED_ZONE](state: S, payload: ISpaceSelectorItem): void;
 	[MutationTypes.SET_FLOORS](state: S, payload: { id: string; items: IZoneItem[] }): void;
 	[MutationTypes.SET_ROOMS](state: S, payload: { id: number; items: IZoneItem[] }): void;
@@ -65,7 +68,9 @@ export type MutationsAppData<S = StateAppData> = {
 	[MutationTypes.SET_ITEM_TO_COLOR](state: StateAppData, data: any): void;
 	[MutationTypes.REMOVE_ITEM_TO_COLOR](state: StateAppData): void;
 	[MutationTypes.SET_BUILDING_INFO](state: StateAppData, item): void;
-};
+	[MutationTypes.SET_COMPONENT_SELECTED](state: StateAppData, item): void;
+       
+    }
 
 export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 	[MutationTypes.SET_BUILDINGS](state: StateAppData, payload: IGetAllBuildingsRes[]): void {
@@ -116,7 +121,9 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 	[MutationTypes.SET_ITEM_TO_HIDE](state: StateAppData, data: any): void {
 		state.itemToHide = data;
 	},
-
+	[MutationTypes.SET_COMPONENT_SELECTED](state: StateAppData, data: any): void {
+		state.componentSelected = data;
+	},
 	[MutationTypes.REMOVE_ITEM_TO_HIDE](state: StateAppData): void {
 		state.itemToHide = null; // ou [] ou {} en fonction de la structure attendue
 	},
@@ -126,10 +133,12 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 	},
 
 	[MutationTypes.REMOVE_ITEM_TO_COLOR](state: StateAppData): void {
-		state.itemToColor = null; // ou [] ou {} en fonction de la structure attendue
+		state.itemToColor = null;
 	},
 	[MutationTypes.SET_BUILDING_INFO](state: StateAppData, item): void {
 		state.buildingInfo = item;
 	},
-
+	[MutationTypes.SET_LAST_LOADED_ZONE](state: StateAppData, payload: ISpaceSelectorItem): void {
+        state.lastLoadedZone = payload;
+    },
 };

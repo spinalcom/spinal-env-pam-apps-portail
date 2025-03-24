@@ -134,7 +134,7 @@
           $emit('buttonClicked', '');
           resize();
         }
-          " style="
+        " style="
           position: absolute;
           top: 47.5%;
           left: -20px;
@@ -157,7 +157,7 @@
           $emit('buttonClicked3D', '');
           resize();
         }
-          " style="
+        " style="
           position: absolute;
           top: 52.5%;
           background-color: white;
@@ -576,16 +576,73 @@
         <!-- ONGLET INVENTAIRE -->
         <div v-if="selection == 'Inventaire'"
           style="display: flex; flex-direction: column; overflow: hidden !important; overflow-y: auto !important ;">
-          <div @click="showDialogInventory = !showDialogInventory" class="btn_inventory">
+          <div @click="fshowDialogInventory()" class="btn_inventory">
             <v-icon color="white" size="35px">
               mdi-plus
             </v-icon>
             <div style="margin-top: 3px;margin-left: 10px;">
-              Creer un inventaire
+              Séléctionner un inventaire
+            </div>
+          </div>
+          <div v-if="formattedInventory">
+            <div v-for="category in formattedInventory" :key="category.name" class="blocInformation"
+              style="margin-bottom: 20px;">
+              <span
+                style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold; display: block; margin-bottom: 10px;">
+                Inventaire des {{ category.name }}
+              </span>
+
+              <div v-if="!category.groupItems || category.groupItems.length === 0"
+                style="text-align: center; font-style: italic; color: #888; margin: 10px 0;">
+                PAS DE DONNÉES DISPONIBLES
+              </div>
+
+              <div v-else class="inventory-container" style="display: flex; flex-wrap: wrap;">
+                <div v-for="item in category.groupItems" :key="item.dynamicId" class="inventory-item"
+                  style="display: flex; align-items: center; width: 100%; border: 1px solid #ddd; padding: 14px 5px; border-radius: 5px;">
+                  <li style="flex: 1; font-size: 16px; font-family: Arial, Helvetica, sans-serif;">
+                    {{ item.name }}
+                  </li>
+
+                  <v-icon v-if="!eyes[category.name] || eyes[category.name].indexOf(item.dynamicId) === -1"
+                    @click="() => { hideelement(item.dynamicId, category.name); closeeyes(item.dynamicId, category.name) }"
+                    style="cursor: pointer; margin-left: 10px;">
+                    mdi-eye-outline
+                  </v-icon>
+                  <v-icon v-else
+                    @click="() => { hideelement(item.dynamicId, category.name); closeeyes(item.dynamicId, category.name) }"
+                    style="cursor: pointer; margin-left: 10px;">
+                    mdi-eye-off-outline
+                  </v-icon>
+
+                  <v-icon v-if="!ink[category.name] || ink[category.name].indexOf(item.dynamicId) === -1"
+                    @click="() => { showIconElement(item.dynamicId, category.name); closeink(item.dynamicId, category.name) }"
+                    style="cursor: pointer; margin-left: 10px;">
+                    mdi-map-marker-circle
+                  </v-icon>
+                  <v-icon v-else
+                    @click="() => { deleteIconElement(item.dynamicId, category.name); closeink(item.dynamicId, category.name) }"
+                    :style="{ cursor: 'pointer', marginLeft: '10px', color: iconColors[`${category.name}-${item.dynamicId}`] || '#000' }">
+                    mdi-map-marker-remove-variant
+                  </v-icon>
+
+                  <v-icon v-if="!col[category.name] || col[category.name].indexOf(item.dynamicId) === -1"
+                    @click="() => { colorElement(item.dynamicId, category.name); closecol(item.dynamicId, category.name) }"
+                    style="cursor: pointer; margin-left: 10px;">
+                    mdi-invert-colors
+                  </v-icon>
+                  <v-icon v-else
+                    @click="() => { descolorElement(item.dynamicId, category.name); closecol(item.dynamicId, category.name) }"
+                    :style="{ cursor: 'pointer', marginLeft: '10px', color: iconColors[`${category.name}-${item.dynamicId}`] || '#000' }">
+                    mdi-invert-colors-off
+                  </v-icon>
+                </div>
+              </div>
             </div>
           </div>
 
-          <FormInventaire :value="showDialogInventory" @close-dialog="ShowDialog()" :selectedZone="selectedZone"
+          <FormInventaire @inventory-loaded="handleInventory" :selectedId="stockedZone" :config="config"
+            :typedata="typdata" :value="showDialogInventory" @close-dialog="ShowDialog()" :selectedZone="selectedZone"
             @add-ticket="showAlert" />
         </div>
 
@@ -782,6 +839,7 @@ class dataSideApp extends Vue {
   endpointProfil: any = null;
   buildingInfo: any;
   attributProfil: any = null;
+  formattedInventory: any[] = [];
   selection: string = 'Vue Globale';
   searchName: string = '';;
   documentation: any;
@@ -838,9 +896,11 @@ class dataSideApp extends Vue {
   contextFile = ''
   data_loading = 0
   interval: {}
-  iconColors: Record<string, string> = {};
+  formattedInventoryiconColors: Record<string, string> = {};
   stockedData: any = []
-
+  typdata = 'building'
+  currentId = 0;
+  
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets', 'Inventaire'];
@@ -962,6 +1022,10 @@ class dataSideApp extends Vue {
     this.coloredElement = [];
   }
 
+  handleInventory(inventory) {
+    console.log('Inventaire reçu du composant enfant :', inventory);
+    this.formattedInventory = inventory;
+  }
 
   colorAll() {
     this.allColored = true
@@ -984,6 +1048,10 @@ class dataSideApp extends Vue {
     this.coloredElement.push(...this.stockedData.map(item => item.dynamicId));
   }
 
+  fshowDialogInventory() {
+    this.showDialogInventory = !this.showDialogInventory
+    this.currentId = this.$store.state.appDataStore.zoneSelected.dynamicId
+  }
 
   ShowDialog() {
     console.log('hahahaha');
@@ -1255,6 +1323,8 @@ class dataSideApp extends Vue {
   }
 
   async colorElement(item, categoryName) {
+    const element = Object.keys(this.$store.state.appDataStore.rooms)
+    const secondKey = element[this.$store.state.appDataStore.zoneSelected.parent - 1];
 
     const itemType = item.substring(item.indexOf(' ') + 1);
 
@@ -1276,11 +1346,11 @@ class dataSideApp extends Vue {
           dbid: equipment.dbid,
           bimFileId,
           color: equipment.color,
-          floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+          floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || secondKey,
         });
       });
     }
-
+    // console.log(itemsToColor , ' jemaaa');
 
     this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
       items: itemsToColor,
@@ -1703,7 +1773,7 @@ class dataSideApp extends Vue {
 
   async loadBuildingInfo() {
     await this.getBuildingInfo();
-
+    this.typdata = 'building'
 
     if (this.buildingInfo[0].dynamicId) {
 
@@ -1966,7 +2036,7 @@ class dataSideApp extends Vue {
     ];
     const result = await Promise.all(promises);
     this.floorstaticDetails = result
-
+    this.typdata = 'floor'
     this.filteredEndpoints('floor')
     this.getListinfo('floor', id)
     this.getDocumentation(result)
@@ -2054,7 +2124,7 @@ class dataSideApp extends Vue {
 
 
       const result = await Promise.all(promises);
-
+      this.typdata = 'room'
       this.floorstaticDetails = result
       this.filteredEndpoints('room')
       this.getDocumentation(result)
@@ -2062,6 +2132,7 @@ class dataSideApp extends Vue {
       this.getTicket(result)
       this.filtredAttribut('room')
       this.createApp()
+
 
     } else if (node_read[0].type == 'BIMObject') {
 
@@ -2077,7 +2148,7 @@ class dataSideApp extends Vue {
       ];
 
       const result = await Promise.all(promises);
-
+      this.typdata = 'equipement'
       this.floorstaticDetails = result
       this.filteredEndpoints('equipement')
       this.getDocumentation(result)
@@ -3147,7 +3218,6 @@ class dataSideApp extends Vue {
   @Watch("selectedZone")
   watchSelectedZone() {
 
-
     this.ink = {};
     this.col = {};
     this.coloredElement = [];
@@ -3176,6 +3246,8 @@ class dataSideApp extends Vue {
       this.data_loading = 10;
     }
   }
+
+
   @Watch("floorstaticDetails")
   async watchFloorstaticDetails(newVal, oldVal) {
     const dynamicIds = newVal[0].controlEndpoint.flatMap(profile => profile.endpoints.map(endpoint => endpoint.dynamicId));
@@ -3239,7 +3311,7 @@ export { dataSideApp };
 export default dataSideApp;
 </script>
 <style>
-.v-menu__content {
+.title div .v-menu__content {
   margin-left: 20px;
   margin-top: 15px;
 }

@@ -89,7 +89,8 @@ export enum ActionTypes {
 	GET_CONTEXT_CATEGORY_LIST = 'GET_CONTEXT_CATEGORY_LIST',
 	GET_CONTEXT_CATEGORY_GROUP_LIST = 'GET_CONTEXT_CATEGORY_GROUP_LIST',
 	GET_ROOM_LIST = 'GET_ROOM_LIST',
-	GET_FLOOR_INVENTORY = 'GET_FLOOR_INVENTORY'
+	GET_FLOOR_INVENTORY = 'GET_FLOOR_INVENTORY',
+	GET_ROOM_INVENTORY = 'GET_ROOM_INVENTORY'
 }
 
 export type TFctViewerIteract = (stateContext: AugmentedActionContextAppData, payload: { buildingId: string; id: number | number[] }) => Promise<void>;

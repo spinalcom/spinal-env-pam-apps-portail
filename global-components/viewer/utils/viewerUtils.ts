@@ -325,26 +325,37 @@ export class ViewerUtils {
   }
 
 
-	public async hideElementsByDbIds(viewer: Autodesk.Viewing.Viewer3D, dbIdObject: any) {
-		await this._waitModelIsLoading();
-	
-		const models = viewer.getVisibleModels();
-		
-		models.forEach((model) => {
+  public async hideElementsByDbIds(viewer: Autodesk.Viewing.Viewer3D, dbIdObject: any) {
+	await this._waitModelIsLoading();
+
+	const models = viewer.getVisibleModels();
+
+	models.forEach((model) => {
+		try {
 			const bimFileId = model.bimFileId;
-	
-			if (dbIdObject[bimFileId]) {
-				const dbIds = dbIdObject[bimFileId];
-				dbIds.forEach((dbId) => {
+
+			if (!bimFileId || !dbIdObject[bimFileId]) return;
+
+			const dbIds = dbIdObject[bimFileId];
+			if (!Array.isArray(dbIds)) return;
+
+			dbIds.forEach((dbId) => {
+				try {
 					if (viewer.isNodeVisible(dbId, model)) {
 						viewer.hide(dbId, model);
 					} else {
 						viewer.show(dbId, model);
 					}
-				});
-			}
-		});
-	}
+				} catch (innerErr) {
+					console.warn(`Erreur lors du hide/show du dbId ${dbId} dans le modèle ${bimFileId}:`, innerErr);
+				}
+			});
+		} catch (err) {
+			console.warn(`Erreur lors du traitement du modèle:`, err);
+		}
+	});
+}
+
 	
 	public async getObjectProperties(viewer: Autodesk.Viewing.Viewer3D, dbId: number) {
 		try {
