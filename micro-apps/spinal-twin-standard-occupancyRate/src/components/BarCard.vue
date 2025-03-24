@@ -11,7 +11,6 @@
         <br>
         <span class="desc">{{subtitle}}</span>
       </p>
-      
       <div v-if="prev_next" style="height: 40px; align-self: flex-start; padding-top: 10px; padding-right: 10px;">
         <v-btn :disabled="false" @click="$emit('nav', -1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;"><v-icon style="color: #14202c !important" icon>mdi-chevron-left</v-icon>{{ prev }}</v-btn>
         <v-btn :disabled="false" @click="$emit('nav', +1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;">{{ next }}<v-icon style="color: #14202c !important" icon>mdi-chevron-right</v-icon></v-btn>
@@ -20,7 +19,6 @@
     <div class="d-flex flex-column flex-grow-1">
       <slot name="extras" v-if="switchValue && isYear"></slot>
       <div class="flex-grow-1" style="height: 0;" v-if="switchValue && isYear">
-        <CalendarAndStripe :results="calendar" :unit="optional.unit" v-if="calendar && calendar.d && calendar.d.length>0"/>
       </div>
       <div class="flex-grow-1" style="height: 0;" v-else>
        <Bar v-if="load" :data="barChartData" :chart-id="'1'" :options="barChartOptions" ref="barChart"/>
@@ -60,7 +58,6 @@ ChartJS.register(
   customLegendPlugin
 );
 
-import CalendarAndStripe from './CalendarAndStripe.vue';
 export default {
   name: "bar-card",
   props: {
@@ -99,10 +96,6 @@ export default {
       type: Boolean,
       required: false,
     },
-    calendar: {
-      
-      required: false
-    },
     optional: {
       type: Object,
       default: () => {return {unit: '', footer: 'Total'}},
@@ -119,102 +112,20 @@ export default {
     load: true,
     isD: false,
     switchValue: false,
-    results: {
-      y: '2025',
-      d: [
-        [
-          182, 400, 200, 201, 201, 170,
-          187, 282, 258, 171, 275, 183,
-          267, 294, 288, 194, 258, 228,
-          204, 236, 244, 172, 274, 290,
-          206, 274, 293, 185, 261, 247,
-          210
-        ] ,
-        [
-          225, 140, 139, 166, 179, 205,
-          159, 134, 210, 137, 163, 227,
-          185, 197, 174, 226, 215, 147,
-          144, 216, 145, 206, 206, 159,
-          223, 169, 206, 207
-        ] ,
-        [
-          125, 156,  92, 120, 131, 113, 157,
-          133, 155, 134, 153, 137, 114, 127,
-          110, 113, 146, 107, 120, 169, 142,
-          146, 167, 165, 125, 144, 119, 153,
-          123, 144,  95
-        ] ,
-        [
-          101,  91, 139, 154, 100, 127, 157,
-          90, 141, 119, 146, 102, 137, 125,
-          118, 146,  96, 117, 106, 165, 102,
-          118,  94, 140,  95, 131,  93, 163,
-          92, 102
-        ] ,
-        [
-          86, 104, 126, 139, 116, 168, 109,
-          56, 132, 113,  55, 150, 109, 123,
-          64,  85, 129, 100,  67,  91, 137,
-          104, 157,  96, 141, 163,  89,  53,
-          119, 126, 130
-        ] ,
-        [
-          81, 32, 23,  15, 116, 57, 21, 73,  0,
-          77, 84, 76, 101, 116, 30, 79, 81, 59,
-          25, 24, 47,   3,  20, 35, 39, 29, 80,
-          64, 83, 98
-        ] ,
-        [
-          129,   1, 63, 28, 50, 106,  3, 104, 21,
-          34, 105, 48, 93,  0,  80, 36,  25, 48,
-          95,  23, 98, 25, 78,  56, 71,  40, 43,
-          86, 109, 34, 86
-        ] ,
-        [
-          32, 59, 56, 23, 94, 20, 38, 83, 41,
-          81, 64, 52, 84, 99, 97, 40, 46, 22,
-          98, 31, 94, 13, 30, 30, 37,  9, 62,
-          9,  6, 18, 16
-        ] ,
-        [
-          96, 17, 27, 94, 11, 58, 63, 34, 39,
-          74, 52, 82, 96, 80, 39,  7, 41, 32,
-          43, 89, 75, 80, 67, 70, 69, 63, 77,
-          23, 68, 12
-        ] ,
-        [
-          128, 124, 144,  87, 128, 132, 168,
-          129, 154, 158, 150,  79, 138, 101,
-          123,  74, 167, 160,  86, 162, 162,
-          116,  72, 160, 108,  71,  81, 112,
-          127,  74,  78
-        ] ,
-        [
-          252, 259, 193, 263, 285, 204,
-          232, 210, 224, 196, 198, 282,
-          240, 282, 193, 289, 245, 255,
-          178, 225, 248, 297, 228, 234,
-          280, 197, 207, 203, 282, 237
-        ] ,
-        [
-        280, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
-        ] ,
-      ],
-    }
   }),
 
   components: {
     Bar,
-    CalendarAndStripe
   },
 
   computed: {
     barChartData() {
       return {
         labels: this.labels,
-        datasets: [
-          ...this.datasets,  
-        ],
+        datasets: this.datasets.map(dataset => ({
+          ...dataset,
+          barThickness: 15, 
+        })),
       };
     },
 
@@ -239,6 +150,7 @@ export default {
     },
     scales: {
       y: {
+        
         border: {
           display: false,
         },
@@ -289,8 +201,8 @@ export default {
           },
           useBorderRadius: true,
           borderRadius: 5,
-          boxWidth: 9,
-          boxHeight: 21,
+          boxWidth: 10,
+          boxHeight: 25,
         },
       },
       datalabels: { display: false },
@@ -315,7 +227,7 @@ export default {
 
   created() {
   if (this.datasets && Array.isArray(this.datasets)) {
-    const borderRadius = { topLeft: 5, topRight: 5, bottomLeft: 5, bottomRight: 5 };
+    const borderRadius = { topLeft: 20, topRight: 20, bottomLeft: 20, bottomRight: 20 };
     this.datasets.forEach((set) => {
       set.borderSkipped = false;
       set.borderRadius = borderRadius;

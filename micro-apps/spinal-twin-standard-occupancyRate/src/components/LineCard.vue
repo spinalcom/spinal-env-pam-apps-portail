@@ -11,11 +11,6 @@
         <br>
         <span class="desc">{{ subtitle }}</span>
       </p>
-      <!-- <div class="d-flex align-center mln6" style="position: absolute; right: calc(50% - 55px)">
-        <v-icon  icon class="pr-3" size="default">mdi-chart-line</v-icon>
-        <v-switch @click="$emit('stack', switchValue)" style="margin-top: 1px; padding: 0px;height: 24px;" v-model="switchValue" inset color="blue-grey" dense/>
-        <v-icon  icon size="default">mdi-layers-triple</v-icon>
-      </div> -->
       <div v-if="next && prev" style="height: 40px; align-self: flex-start; padding-top: 10px; padding-right: 10px;">
         <v-btn @click="$emit('nav', -1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none;"><v-icon style="color: #14202c !important" icon>mdi-chevron-left</v-icon> {{ prev }}</v-btn>
         <v-btn @click="$emit('nav', +1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none;">{{ next }}<v-icon style="color: #14202c !important" icon>mdi-chevron-right</v-icon></v-btn>

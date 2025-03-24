@@ -1,17 +1,6 @@
 <template>
   <v-app class="spinal-font">
     <div class="selectors">
-      <div class="Hx1">
-        <space-selector
-          v-if="defaultSelected.name && defaultSelected.name != '' && defaultSelected.dynamicId && defaultSelected.dynamicId !== 0"
-          ref="space-selector"
-          :open.sync="openSpaceSelector"
-          :maxDepth="1"
-          :GetChildrenFct="onSpaceSelectOpen"
-          v-model="defaultSelected"
-          label="ESPACE"
-        />
-      </div>
       <div class="Hx2">
         <space-selector
           :edge="false"
@@ -25,8 +14,7 @@
         />
       </div>
       <div class="DB">
-        <DownloadButton :fileName="'Taux d\'occupation'" :data="table"/>
-      </div>
+        <DownloadButton :fileName="config.labels.downloadFileName" :data="table"/>      </div>
     </div>
     <MicroApp @chart-sent="handleChart" :temporality="selectedTime" :space="defaultSelected" v-if="defaultSelected.dynamicId !== 0"/>
   </v-app>
@@ -42,7 +30,7 @@ import { Vue } from 'vue-property-decorator';
 import Component from 'vue-class-component';
 import MicroApp from './components/MainComponent.vue';
 import DownloadButton from './components/DownloadButton.vue';
-import { getBuilding, getFloors } from './services/index.js';
+import { getBuilding } from './services/index.js';
 
 @Component({
   components: {
@@ -52,14 +40,14 @@ import { getBuilding, getFloors } from './services/index.js';
   },
 })
 class App extends Vue {
+  config = env;
   table = [];
-  controlEndpoints = env.controlEndpoints;
-  time = { name: "JOURNÉE", value: 'day' }
-  selectedFloor = '';
+   time = { name: "JOURNÉE", value: 'day' }
+/*   selectedFloor = '';*/ 
   openSpaceSelector = false;
   openTimeSelector = false;
   $refs!: { spaceSelector: any };
-  timedata = { name: 'JOURNÉE', value: 'day' };
+/*   timedata = { name: 'JOURNÉE', value: 'day' }; */
   defaultSelected = {
     platformId: '',
     name: '',
@@ -102,7 +90,7 @@ class App extends Vue {
   };
 
   async mounted() {
-    let building = await getBuilding(this.controlEndpoints);
+    let building = await getBuilding();
     this.defaultSelected.area = building.area;
     this.defaultSelected.cp = building.cp;
     this.defaultSelected.dynamicId = building.dynamicId;
@@ -240,56 +228,6 @@ class App extends Vue {
       return timeOptions;
   }
 
-  async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<any> {
-    console.log('il select ??',item );
-    
-    var floorList: any[] = [];
-    switch (item?.type) {
-      case undefined:
-        const building = await getBuilding(this.controlEndpoints);
-        console.log('case undefined ??');
-        return[{
-              name: building.name,
-              staticId: building.staticId,
-              dynamicId: building.dynamicId,
-              type: 'building',
-              level: 0,
-              isOpen: true,
-              loading: false,
-              patrimoineId: 'patrimoineId',
-              parents: [],
-              isLastInGrp: true,
-              drawLink: [],
-              haveChildren: false,
-              area: building.area,
-              cp: '',
-            }];
-      case 'building':
-        const floors = await getFloors(this.controlEndpoints);
-        console.log('case building ??');
-        for (let floor of floors) {
-          floorList.push({
-              name: floor.name,
-              staticId: floor.staticId, 
-              dynamicId: floor.dynamicId,
-              type: 'floor',
-              level: 0,
-              isOpen: true,
-              loading: false,
-              patrimoineId: 'patrimoineId',
-              parents: [],
-              isLastInGrp: true,
-              drawLink: [],
-              haveChildren: false,
-              area: floor.area,
-              cp: floor.cp
-            })
-        }        
-        return floorList;
-      default:
-        return [];
-    }
-  }
 
   handleChart(chart) {
     this.table = chart;
@@ -301,13 +239,7 @@ export default App;
 
 <style>
 @import './assets/css/styles.css';
-.Hx1 {
-  position: absolute;
-  width: 66%;
-  right: 0px;
-  top: -1px;
-  height: 60px;
-}
+
 .Hx2 {
   position: absolute;
   width: 34%;

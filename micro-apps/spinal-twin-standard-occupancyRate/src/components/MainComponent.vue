@@ -1,43 +1,44 @@
 <template>
   <div class="RC" style="min-height: 480px">
     <div class="MC">
-      <div style="z-index: 1;" v-if="temporality.name !== 'Décennie'">
-      </div>
-      <LineChart 
-        v-if="chart.label && chart.data && ['Journée', 'Trimestre', 'Valeur Courante'].includes(temporality.name)"
-        :title="title"
-        :subtitle="subtitle"
-        :labels="chart.label" 
-        :datasets="chart.data" 
-        :optional="barOptions" 
-        :next="temporality.name !== 'Valeur Courante' ? temporality.next : ''" 
-        :prev="temporality.name !== 'Valeur Courante' ? temporality.prev : ''" 
-        @nav="nav"
-        :stacked="false" 
-        style="max-height: 530px;"
-        class="BR"
-      />
-      <BarChart
-        v-else-if="chart.label && chart.data"
-        :title="title"
-        :subtitle="subtitle"
-        :labels="chart.label" 
-        :datasets="chart.data" 
-        :prev_next="true"
-        @nav="nav"
-        :stacked="true"
-        :isYear="temporality.name==='Année' || temporality.name==='Trimestre'"
-        :next="temporality.name !== 'Valeur Courante' ? temporality.next : ''" 
-        :prev="temporality.name !== 'Valeur Courante' ? temporality.prev : ''"
-        :optional="barOptions"
-        style="max-height: 530px;"
-        class="BR">
-        <template v-slot:extras>
+      <LoadingPage v-if="isLoading"/>
+      <div class="content">
+        <div style="z-index: 1;" v-if="temporality.name !== 'Décennie'">
+        </div>
+        <LineChart 
+          v-if="chart.label && chart.data && ['Journée', 'Trimestre', 'Valeur Courante'].includes(temporality.name)"
+          :title="title"
+          :subtitle="subtitle"
+          :labels="chart.label" 
+          :datasets="chart.data" 
+          :next="temporality.name !== 'Valeur Courante' ? temporality.next : ''" 
+          :prev="temporality.name !== 'Valeur Courante' ? temporality.prev : ''" 
+          @nav="nav"
+          :stacked="false" 
+          style="max-height: 530px;"
+          class="BR"
+        />
+        <BarChart
+          v-else-if="chart.label && chart.data"
+          :title="title"
+          :subtitle="subtitle"
+          :labels="chart.label" 
+          :datasets="chart.data" 
+          :prev_next="true"
+          @nav="nav"
+          :stacked="true"
+          :isYear="temporality.name==='Année' || temporality.name==='Trimestre'"
+          :next="temporality.name !== 'Valeur Courante' ? temporality.next : ''" 
+          :prev="temporality.name !== 'Valeur Courante' ? temporality.prev : ''"
+          style="max-height: 530px;"
+          class="BR">
+          <template v-slot:extras>
 
-        </template>
-      </BarChart>
-      
-      <FloorOccupancyDetail ref="floorOccupancyDetail" :space="space" :temporality="temporality"/>
+          </template>
+        </BarChart>
+        
+        <FloorOccupancyDetail ref="floorOccupancyDetail" :space="space" :temporality="temporality"/>
+      </div>
     </div>
   </div>
 </template>
@@ -46,42 +47,29 @@
 import LineChart from './LineCard.vue';
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
-import env from '../../config';
 import BarChart from './BarCard.vue';
+import LoadingPage from './LoadingPage.vue'; 
 import FloorOccupancyDetail from './FloorOccupancyDetail.vue';
 import { ISpaceSelectorItem } from './SpaceSelector/index';
 import { TemporalityModel } from '../models/Temporality.model';
 import { LegendModel } from '../models/Legend.model';
 import config from '../../config.js'; 
-import { getData, getContextId, getCategoryId, getRoomIds, getGroupId, getMeetingRoomOccupancyDataByFloor, getEquipmentCategoryId, getEquipmentContextId, getEquipmentGroupId, getEquipmentIds, getEquipmentOccupancyDataByFloor } from '../services/index.js';
+import { ChartData, tempoFilter } from '../interfaces/types';
+import { getData, getContextId, getCategoryId, getRoomIds, getGroupId, getSecondChartOccupancyDataByFloor } from '../services/index.js';
 import moment from 'moment';
-interface ChartData {
-  label: string;
-  backgroundColor: string;
-  data: number[];
-  stack: string;
-  tooltipDate: string[];
-}
 
-interface tempoFilter {
-  name: string,
-  value: string,
-  color: string,
-  lock: boolean,
-  star: boolean,
-}
 
 @Component({
   components: {
     BarChart,
     LineChart,
     FloorOccupancyDetail,
+    LoadingPage,
   },
 })
 class App extends Vue {
   title = config.title;
   subtitle = config.subtitle;
-  controlEndpoints = config.controlEndpoints;
   chart:  {
             label: string[];
             data: ChartData[];
@@ -90,19 +78,9 @@ class App extends Vue {
                 data: [] as ChartData[],  
                           };
   currentTimestamp = {valueTime: 0};
-  barOptions = {unit: this.unit, footer: ''};
-  checkbox1 = {label: '', value: true};
-  checkbox2 = {label: '', value: true};
-  checkbox3 = {label: '', value: true};
-  selectedControlEndpoint: LegendModel = {name: this.controlEndpoints[0].name, color: this.controlEndpoints[0].color};
   controlEndpointList: LegendModel[] = [];
 
-  selectedDay = '';
-  selectedWeek = '';
-  selectedMonth = '';
-  selectedTrimester = '';
-  selectedYear = '';
-  selectedColor = '';
+
 
   defaultTimeChip = '';
 
@@ -114,7 +92,7 @@ class App extends Vue {
   years = ['2025', '2024','2023', '2022', '2021'];
   selectedFilter: tempoFilter[] = [];
 
-  defaultFilter: tempoFilter = {name: '', color: env.controlEndpoints[0].color, value: '', lock: false, star: true};
+  defaultFilter: tempoFilter = {name: '', color: '#00000', value: '', lock: false, star: true};
   selectedReference: number = 0;
   colors =  [ '#FF4A3B', '#93876E', '#74BDCB', '#EFE7BC', '#FFA384', '#E7F2F8',
               '#ECF87F', '#B99095', '#93B9B8', '#FDA649', '#5050C8', '#0D698B',
@@ -126,6 +104,7 @@ class App extends Vue {
   selectedDomain = -1;
   domain: any = {name: '', color: ''};
   domainList: any[] = [];
+  isLoading = true;
 
   @Prop({ type: Object as () => ISpaceSelectorItem, required: true })
   space!: ISpaceSelectorItem;
@@ -140,12 +119,9 @@ class App extends Vue {
 
   async spreadData() {
   try {
+    this.isLoading = true; 
     let res;
-    const entryPoint = config.entryPoints.find(ep => ep.context === 'Gestion des espaces' && ep.category === 'Typologie' && ep.group === 'Salle de réunion');
-    if (!entryPoint) {
-      throw new Error('Entry point not found');
-    }
-
+    const entryPoint = config.entryPoints[0]; 
     const contextId = await getContextId(entryPoint.context);
     const categoryId = await getCategoryId(contextId, entryPoint.category);
     const groupId = await getGroupId(contextId, categoryId, entryPoint.group);
@@ -156,10 +132,10 @@ class App extends Vue {
     if (this.space.type === 'building') {
       res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds);
     } else if (this.space.type === 'floor') {
-      res = await getMeetingRoomOccupancyDataByFloor(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds);
+      res = await getSecondChartOccupancyDataByFloor(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds);
     }
 
-    if (res && res.length >= 6) {
+    if (res && res.length >= 3) {
       this.chart.label = res[0] || [];
       this.chart.data = res[1] || [];
       this.defaultFilter.name = res[1] && res[1][0] ? res[1][0].label : '';
@@ -168,6 +144,8 @@ class App extends Vue {
     }
   } catch (error) {
     console.error("Erreur lors de l'exécution de spreadData:", error);
+  } finally {
+    this.isLoading = false; 
   }
 }
 
@@ -177,24 +155,14 @@ async mounted() {
     this.defaultFilter = {
       name: moment().format('MMMM YYYY'),
       value: moment().format('MM/YYYY'),
-      color: config.controlEndpoints[0].color,
+      color: '#000000', 
       lock: false,
       star: true
     };
-    for (const controlEndpoint of this.controlEndpoints) {
-      this.controlEndpointList.push({name: controlEndpoint.name, color: controlEndpoint.color});
-    }
     this.interval();
-    this.domainList.push({name: this.selectedYear, color: config.controlEndpoints[0].color});
-    this.domain = {name: this.selectedYear, color: config.controlEndpoints[0].color};
+    this.domainList.push({name: this.selectedYear, color: '#000000'});
+    this.domain = {name: this.selectedYear, color: '#000000'};
   }
-
- /*  @Watch('space')
-  async spaceChange() {
-    this.todaysCard = [];
-    this.spreadData();
-    this.todaysCard = await getTodaysData(this.space, this.controlEndpoints);
-  } */
 
   @Watch('temporality')
   async temporalityChange() {
@@ -205,10 +173,7 @@ async mounted() {
     this.interval();
   }
 
- /*  @Watch('selectedControlEndpoint')
-  async selectedControlEndpointChange() {
-    this.calendar = this.calendarList.find((e: CalendarModel) => e.n == this.selectedControlEndpoint.name)!;
-  } */
+
 
   @Watch('selectedYear')
   async selectedFilterChange(v) {
@@ -242,10 +207,7 @@ async mounted() {
     this.$emit('chart-sent', output);
   }
 
-/*   @Watch('domain')
-  domainChange(y) {    
-    this.calendar = this.calendarList.find((e: CalendarModel) => e.y == y.name)!;    
-  } */
+
 
 
 
@@ -347,7 +309,7 @@ async mounted() {
     (this.$refs.floorOccupancyDetail as Vue & { fetchSecondFloorData: (timestamp: number) => void }).fetchSecondFloorData(this.currentTimestamp.valueTime);
   }
   if (this.$refs.floorOccupancyDetail) {
-    (this.$refs.floorOccupancyDetail as Vue & { fetchEquipmentFloorData: (timestamp: number) => void }).fetchEquipmentFloorData(this.currentTimestamp.valueTime);
+    (this.$refs.floorOccupancyDetail as Vue & { fetchThirdChartFloorData: (timestamp: number) => void }).fetchThirdChartFloorData(this.currentTimestamp.valueTime);
   }
 }
   
@@ -368,7 +330,7 @@ export default App;
   width: 100%;
   background: linear-gradient(111.34deg, #F8FAFA 0%, #D6E2E6 100%);
 }
-/* main container */
+
 .MC {
   display: flex;
   flex-direction: column;
@@ -381,6 +343,12 @@ export default App;
   align-self: stretch;
   flex-grow: 0;
   overflow-y: auto;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
 .BR {

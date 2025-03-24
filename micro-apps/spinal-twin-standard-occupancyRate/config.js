@@ -1,28 +1,11 @@
 module.exports = {
     title: "OCCUPATION EN TEMPS RÉEL",
     chart: '%',
-    compareBy: 'date',
     subtitle:'',
     displayBuildingOccupancyChart: true,
-    displayEquipmentChart: true,
-    displayMeetingRoomChart: true,
+    displaySecondChart: true,
+    displayThirdChart: true,
 
-    controlEndpoints: [
-        {
-            label: 'Taux d\'occupation',
-            min: 0,
-            max: 100,
-            name: 'taux d\'occupation',
-            color: '#A7001E',
-            stackGroup: '1',
-            title: 'Taux d\'occupation',
-            subtitle: 'today',
-            todayTitle: 'today',
-            averageTitle: 'Taux d\'occupation moyen',
-            totalTitle: 'Taux d\'occupation total',
-            root: false,
-        }
-    ],
     temporalities: ['Valeur Courante', 'Journée', 'Semaine', 'Mois', 'Trimestre', 'Année', 'Décennie'],
 
     apiEndpoints: {
@@ -46,7 +29,7 @@ module.exports = {
         equipmentCategoryList: 'building/{buildingId}/equipementsGroup/{contextId}/category_list',
         equipmentGroupList: 'building/{buildingId}/equipementsGroup/{contextId}/category/{categoryId}/group_list',
         equipmentList: 'building/{buildingId}/equipementsGroup/{contextId}/category/{categoryId}/group/{groupId}/equipementList',
-        equipmentPositions: 'building/{buildingId}/equipment/get_position_multiple',
+        thirdChartPositions: 'building/{buildingId}/equipment/get_position_multiple',
     },
     
     entryPoints: [
@@ -55,44 +38,48 @@ module.exports = {
             category: 'Typologie',
             group: 'Salle de réunion',
             type: 'geographicRoomGroup',
+            source: [
+                {
+                    profileName: 'Occupation',
+                    name: "Taux d'occupation",
+                    type: 'Occupation', 
+                }
+            ]
         },
         {
             context: 'Gestion des équipements',
             category: 'Typologie',
             group: 'Positions de travail',
             type: 'BIMObjectGroup',
-            
+            source: [
+                {
+                    profileName: 'Occupation',
+                    name: "Taux d'occupation",
+                    type: 'Occupation', 
+                }
+            ]
+        },
+        {
+            name: 'Bâtiment',
+            color: '#418FDD',
         },
     ],
-    sources: [
-        {
-            profileName: 'Occupation',
-            name: "Taux d'occupation",
-            type: 'Occupation', 
+      labels: {
+        downloadFileName: "Taux d'occupation"
+    },
+    charts: {
+        firstChart: {
+            label: "Taux d'occupation du bâtiment",
+            backgroundColor: '#14202C',
+            borderColor: '#14202C',
+        },
+        secondChart: {
+            label: "Taux d'occupation des salles de réunion",
+            backgroundColor: '#1C5791',
+        },
+        thirdChart: {
+            label: "Taux d'occupation des positions de travail",
+            backgroundColor: '#418FDD',
         }
-    ]
+    }
 };
-
-/*     filters: {
-        occupationRate: 'taux d\'occupation',
-        floor: 'floor',
-        room: 'room',
-    },
-    endpointCriteria: {
-        name: 'taux d\'occupation',
-        type: 'Occupation'
-    },
-    contextNames: {
-        gestionDesEspaces: 'Gestion des espaces',
-        gestionDesEquipements: 'Gestion des équipements',
-
-    },
-    categoryNames: {
-        typologie: 'Typologie',
-    },
-    groupNames: {
-        meetingRoom: 'Salle de réunion',
-        workPositions: 'Positions de travail',
-
- 
-    },*/

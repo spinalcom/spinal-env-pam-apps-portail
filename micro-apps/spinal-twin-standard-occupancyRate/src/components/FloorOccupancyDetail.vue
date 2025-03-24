@@ -15,7 +15,7 @@
               </div>
               <canvas ref="chartCanvas"></canvas>
             </div>
-            <div v-if="displayMeetingRoomChart" class="chart-block">
+            <div v-if="displaySecondChart" class="chart-block">
               <div class="occupancy-summary ">
                 <span class="occupancy-percentage">
                   <span class="percentage">{{ secondBuildingOccupancyRate }}%</span> DES SALLES DE RÉUNIONS SONT OCCUPÉES
@@ -24,14 +24,14 @@
               </div>
               <canvas ref="secondChartCanvas"></canvas>
             </div>
-            <div v-if="displayEquipmentChart" class="chart-block">
+            <div v-if="displayThirdChart" class="chart-block">
               <div class="occupancy-summary">
                 <span class="occupancy-percentage">
-                  <span class="percentage">{{ equipmentOccupancyRate }}%</span> DES POSITIONS DE TRAVAIL SONT OCCUPÉES
+                  <span class="percentage">{{ thirdChartOccupancyRate }}%</span> DES POSITIONS DE TRAVAIL SONT OCCUPÉES
                 </span>
-                <span class="total-surface">{{ equipmentTotalCount }} positions de travail</span>
+                <span class="total-surface">{{ thirdChartTotalCount }} positions de travail</span>
               </div>
-              <canvas ref="equipmentChartCanvas"></canvas>
+              <canvas ref="thirdChartCanvas"></canvas>
             </div>
           </div>
         </div>
@@ -45,10 +45,8 @@ import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { HTTP } from '../services/http-constants'; 
 import config from '../../config';
 import moment from 'moment';
-import { getFloors, getMeetingRoomOccupancyDataByFloor, getContextId, getCategoryId, getGroupId, getRoomIds, getTotalSurface2, getEquipmentCategoryId, getEquipmentContextId, getEquipmentGroupId, getEquipmentIds, getEquipmentOccupancyDataByFloor } from '../services/index';
+import { getSecondChartOccupancyDataByFloor, getContextId, getCategoryId, getGroupId, getRoomIds, getTotalSurface2, getThirdChartCategoryId, getThirdChartContextId, getThirdChartGroupId, getThirdChartIds, getThirdChartOccupancyDataByFloor, getPeriodArray } from '../services/index'; 
 Chart.register(...registerables);
-
-
 
 export default defineComponent({
   name: 'FloorOccupancyDetail',
@@ -73,13 +71,13 @@ export default defineComponent({
     const totalSurface = ref<number>(0);
     const totalSurface2 = ref<number>(0);
     const allFloors = ref<string[]>([]);
-    const equipmentChartCanvas = ref<HTMLCanvasElement | null>(null);
-    const equipmentOccupancyChart = ref<Chart | null>(null);
-    const equipmentFloorData = ref<{ floor: string; occupancy: number; area?: number }[]>([]);
-    const equipmentTotalCount = ref<number>(0);
+    const thirdChartCanvas = ref<HTMLCanvasElement | null>(null);
+    const thirdChartOccupancyChart = ref<Chart | null>(null);
+    const thirdChartFloorData = ref<{ floor: string; occupancy: number; area?: number }[]>([]);
+    const thirdChartTotalCount = ref<number>(0);
     const displayBuildingOccupancyChart = ref(config.displayBuildingOccupancyChart);
-    const displayEquipmentChart = ref(config.displayEquipmentChart);
-    const displayMeetingRoomChart = ref(config.displayMeetingRoomChart);
+    const displayThirdChart = ref(config.displayThirdChart);
+    const displaySecondChart = ref(config.displaySecondChart);
 
 
     function mapFloorDynamicId(floorDynamicId, floorNames) {
@@ -90,25 +88,20 @@ export default defineComponent({
     
 const fetchFloorData = async (period, timestamp) => {
   try {
-    console.log(`Récupération des données des étages pour la période : ${period}`);
     
     // Récupérer les IDs d'occupation et les noms des étages
     const { dynamicIds, floorNames, floorOccupancyMapping } = await getFloorOccupancyDynamicIds();
-/*     console.log('Dynamic IDs:', dynamicIds);
-    console.log('Floor Names:', floorNames);
-    console.log('Mapping Dynamic ID → Étages:', floorOccupancyMapping);
- */
+
     if (dynamicIds.length === 0) {
       throw new Error('Aucun Dynamic ID trouvé pour les taux d\'occupation.');
     }
 
     // Récupérer les taux d'occupation
     const occupancyRates = await getFloorOccupancyRatesByPeriod(period, timestamp, dynamicIds);
-   // console.log('Occupancy Rates:', occupancyRates);
 
     // Transformer les Dynamic IDs en noms d'étages
     floorData.value = occupancyRates.map(floor => {
-      const realFloorId = floorOccupancyMapping ? floorOccupancyMapping[floor.dynamicId] : null; // Associer au bon étage
+      const realFloorId = floorOccupancyMapping ? floorOccupancyMapping[floor.dynamicId] : null; 
       return {
         floor: mapFloorDynamicId(realFloorId, floorNames),
         occupancy: parseFloat(floor.occupancy), // pour s'assurer que l'occupation est un nombre
@@ -116,12 +109,9 @@ const fetchFloorData = async (period, timestamp) => {
       };
     });
 
-/*     console.log('Étages après correction:', floorData.value.map(f => f.floor));
- */
+
     // Mettre à jour la liste des étages pour le graphique
     allFloors.value = floorData.value.map(floor => floor.floor);
-/*     console.log('Labels envoyés au graphique:', allFloors.value);
- */
     // Rafraîchir les graphiques
     renderChart();
     renderSecondChart();
@@ -132,105 +122,92 @@ const fetchFloorData = async (period, timestamp) => {
 
 const fetchSecondFloorData = async (timestamp) => {
   try {
-    const space = { type: 'building' }; // ou 'floor' selon votre besoin
     const tempo = props.temporality.name;
 
-    const entryPoint = config.entryPoints.find(ep => ep.context === 'Gestion des espaces' && ep.category === 'Typologie' && ep.group === 'Salle de réunion');
-    if (!entryPoint) {
-      throw new Error('Entry point not found');
-    }
+    const entryPoint = config.entryPoints[0]; 
 
-    // Récupérer les IDs nécessaires
-    const contextId = await getContextId(entryPoint.context);
-    const categoryId = await getCategoryId(contextId, entryPoint.category);
-    const groupId = await getGroupId(contextId, categoryId, entryPoint.group);
-
-    // Récupérer les IDs des salles de réunion
-    const roomIds = await getRoomIds(contextId, categoryId, groupId);
-    if (!roomIds || roomIds.length === 0) {
-      throw new Error('No room IDs found');
-    }
-
-    // Appeler getMeetingRoomOccupancyDataByFloor avec les IDs des salles
-    const [label, data, avg, total, averages, meter] = await getMeetingRoomOccupancyDataByFloor(space, tempo, timestamp, roomIds);
-
-    // Mettre à jour les données pour le graphique
-    secondFloorData.value = averages.map(floor => ({
-      floor: floor.floor,
-      occupancy: floor.average,
-      area: 0 
-    }));
-
-    renderSecondChart();
-  } catch (error) {
-    console.error("Erreur lors de la récupération des données des étages pour le deuxième graphique:", error);
-  }
-};
-const fetchEquipmentFloorData = async (timestamp) => {
-  try {
-    const tempo = props.temporality.name;
-
-    // Récupérer les informations sur les équipements
-    const entryPoint = config.entryPoints.find(ep =>
-      ep.context === 'Gestion des équipements' &&
-      ep.category === 'Typologie' &&
-      ep.group === 'Positions de travail'
-    );
-
-    if (!entryPoint) throw new Error('Entry point not found');
-
-    // Récupérer les IDs nécessaires en parallèle
     const [contextId, categoryId, groupId] = await Promise.all([
-      getEquipmentContextId(entryPoint.context),
-      getEquipmentCategoryId(await getEquipmentContextId(entryPoint.context), entryPoint.category),
-      getEquipmentGroupId(await getEquipmentContextId(entryPoint.context), await getEquipmentCategoryId(await getEquipmentContextId(entryPoint.context), entryPoint.category), entryPoint.group)
+      getContextId(entryPoint.context),
+      getCategoryId(await getContextId(entryPoint.context), entryPoint.category),
+      getGroupId(await getContextId(entryPoint.context), await getCategoryId(await getContextId(entryPoint.context), entryPoint.category), entryPoint.group)
     ]);
 
-    // Récupérer les IDs des équipements
-    const equipmentIds = await getEquipmentIds(contextId, categoryId, groupId);
-    if (!equipmentIds?.length) throw new Error('No equipment IDs found');
+    const roomIds = await getRoomIds(contextId, categoryId, groupId);
+    if (!roomIds?.length) throw new Error('No room IDs found');
 
-    // Récupérer les données d'occupation par étage
-    const [label, data, avg, total, averages] = await getEquipmentOccupancyDataByFloor(
-      { type: 'building' }, tempo, timestamp, equipmentIds
+    const [label, data, averages] = await getSecondChartOccupancyDataByFloor(
+      { type: 'building' }, tempo, timestamp, roomIds
     );
 
-    // Récupérer le mapping ID → Nom d'étage
     const { floorNames } = await getFloorOccupancyDynamicIds();
 
-    // Mettre à jour les données pour le graphique
-    equipmentFloorData.value = averages.map(floor => ({
-      floor: floorNames[floor.floor] || ` ${floor.floor}`,
-      occupancy: floor.average,
+    secondFloorData.value = averages.map(floor => ({
+      floor: floorNames[floor.floor] || `${floor.floor}`,
+      occupancy: floor.average !== null ? floor.average : 0,
       area: 0 
     }));
-// Vérifier si floorNames est déjà défini avant d'appeler la fonction
-if (!floorNames) {
-  const { floorNames: newFloorNames } = await getFloorOccupancyDynamicIds();
-  floorNames = newFloorNames;
-}
 
-// Ajouter tous les étages, même ceux sans positions de travail
-allFloors.value = Object.values(floorNames); 
+    allFloors.value = Object.values(floorNames);
 
-// Compléter les données d'occupation avec 0% pour les étages sans équipement
-equipmentFloorData.value = allFloors.value.map(floor => {
-  const existingData = equipmentFloorData.value.find(f => f.floor === floor);
-  return {
-    floor,
-    occupancy: existingData ? existingData.occupancy : 0, // Met 0 si pas d'équipement
-    area: 0
-  };
-});
+    secondFloorData.value = allFloors.value.map(floor => {
+      const existingData = secondFloorData.value.find(f => f.floor === floor);
+      return existingData || { floor, occupancy: null, area: 0 }; 
+    });
 
-
-    // Mettre à jour le graphique
-    renderEquipmentChart();
+    renderSecondChart();
 
   } catch (error) {
-    console.error("Erreur lors de la récupération des données des équipements:", error);
+    console.error("Erreur lors de la récupération des données des salles de réunion:", error);
   }
 };
+const fetchThirdChartFloorData = async (timestamp) => {
+      try {
+        const tempo = props.temporality.name;
+
+        const entryPoint = config.entryPoints[1]; // Accéder directement au deuxième élément
+
+        // Récupérer les IDs nécessaires en parallèle
+        const [contextId, categoryId, groupId] = await Promise.all([
+        getThirdChartContextId(entryPoint.context),
+        getThirdChartCategoryId(await getThirdChartContextId(entryPoint.context), entryPoint.category),
+        getThirdChartGroupId(await getThirdChartContextId(entryPoint.context), await getThirdChartCategoryId(await getThirdChartContextId(entryPoint.context), entryPoint.category), entryPoint.group)
+        ]);
+
+        // Récupérer les IDs des équipements
+        const thirdChartIds = await getThirdChartIds(contextId, categoryId, groupId);
+        if (!thirdChartIds?.length) throw new Error('No equipment IDs found');
+
+        // Récupérer les données d'occupation par étage
+        const [label, data, averages] = await getThirdChartOccupancyDataByFloor(
+          { type: 'building' }, tempo, timestamp, thirdChartIds
+        );
+
+        // Récupérer le mapping ID → Nom d'étage
+        const { floorNames } = await getFloorOccupancyDynamicIds();
+
+        // Mettre à jour les données pour le graphique
+        thirdChartFloorData.value = averages.map(floor => ({
+          floor: floorNames[floor.floor] || ` ${floor.floor}`,
+          occupancy: floor.average,
+          area: 0 
+        }));
+
+        // Ajouter tous les étages, même ceux sans positions de travail
+        allFloors.value = Object.values(floorNames); 
+
+        // Compléter les données d'occupation avec null pour les étages sans équipement
+        thirdChartFloorData.value = allFloors.value.map(floor => {
+        const existingData = thirdChartFloorData.value.find(f => f.floor === floor);
+        return existingData || { floor, occupancy: null, area: 0 }; 
+        });
+
+        // Mettre à jour le graphique
+        renderThirdChart();
+
+      } catch (error) {
+        console.error("Erreur lors de la récupération des données des équipements:", error);
+      }
+    };
 
 
     const fetchTotalSurface = async () => {
@@ -243,60 +220,48 @@ equipmentFloorData.value = allFloors.value.map(floor => {
       }
     };
     const fetchTotalSurface2 = async () => {
-  try {
-    // Utiliser les entryPoints définis dans config.js
-    const entryPoint = config.entryPoints.find(ep => ep.context === 'Gestion des espaces' && ep.category === 'Typologie' && ep.group === 'Salle de réunion');
-    if (!entryPoint) {
-      throw new Error('Entry point not found');
-    }
+      try {
+        const entryPoint = config.entryPoints[0]; // Accéder directement au premier élément
+        const contextId = await getContextId(entryPoint.context);
+        const categoryId = await getCategoryId(contextId, entryPoint.category);
+        const groupId = await getGroupId(contextId, categoryId, entryPoint.group);
+        const roomIds = await getRoomIds(contextId, categoryId, groupId);
 
-    const contextId = await getContextId(entryPoint.context);
-    const categoryId = await getCategoryId(contextId, entryPoint.category);
-    const groupId = await getGroupId(contextId, categoryId, entryPoint.group);
-    const roomIds = await getRoomIds(contextId, categoryId, groupId);
+        if (!roomIds || roomIds.length === 0) {
+          throw new Error('No room IDs found');
+        }
 
-    if (!roomIds || roomIds.length === 0) {
-      console.error('No Room IDs found. Aborting fetchTotalSurface2.');
-      return;
-    }
+        const result = await getTotalSurface2(roomIds);
+        if (result !== null) {
+          totalSurface2.value = result;
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération de la surface totale des salles de réunion :", error);
+      }
+    };
 
-    const result = await getTotalSurface2(roomIds);
-    if (result !== null) {
-      totalSurface2.value = result;
-    }
-  } catch (error) {
-    console.error("Erreur lors de la récupération de la surface totale des salles de réunion :", error);
-  }
-};
+const fetchThirdChartTotalCount = async () => {
+      try {
+        const entryPoint = config.entryPoints[1]; // Accéder directement au deuxième élément
+        const contextId = await getThirdChartContextId(entryPoint.context);
+        const categoryId = await getThirdChartCategoryId(contextId, entryPoint.category);
+        const groupId = await getThirdChartGroupId(contextId, categoryId, entryPoint.group);
+        const thirdChartIds = await getThirdChartIds(contextId, categoryId, groupId);
 
-const fetchEquipmentTotalCount = async () => {
-  try {
-    const entryPoint = config.entryPoints.find(ep => ep.context === 'Gestion des équipements' && ep.category === 'Typologie' && ep.group === 'Positions de travail');
-    if (!entryPoint) {
-      throw new Error('Entry point not found');
-    }
+        if (!thirdChartIds || thirdChartIds.length === 0) {
+          throw new Error('No equipment IDs found');
+        }
 
-    const contextId = await getEquipmentContextId(entryPoint.context);
-    const categoryId = await getEquipmentCategoryId(contextId, entryPoint.category);
-    const groupId = await getEquipmentGroupId(contextId, categoryId, entryPoint.group);
-    const equipmentIds = await getEquipmentIds(contextId, categoryId, groupId);
-
-    if (!equipmentIds || equipmentIds.length === 0) {
-      console.error('No Equipment IDs found. Aborting fetchEquipmentTotalCount.');
-      return;
-    }
-
-    equipmentTotalCount.value = equipmentIds.length;
-    console.log('Total Equipment Count:', equipmentTotalCount.value);
-  } catch (error) {
-    console.error("Erreur lors de la récupération du nombre total d'équipements :", error);
-  }
-};
+        thirdChartTotalCount.value = thirdChartIds.length;
+        console.log('Total Equipment Count:', thirdChartTotalCount.value);
+      } catch (error) {
+        console.error("Erreur lors de la récupération du nombre total d'équipements :", error);
+      }
+    };
 
 
 const getFloorOccupancyDynamicIds = async () => {
   try {
-    console.log('Récupération des noms et Dynamic IDs des étages...');
     
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
@@ -314,37 +279,44 @@ const getFloorOccupancyDynamicIds = async () => {
     }
     console.log('Étages récupérés :', floors);
 
-    // Construire l'objet associant `dynamicId` → `nom d'étage`
+    
     const floorNames = {};
     const floorDynamicIds = floors.map(floor => {
-      floorNames[floor.dynamicId] = floor.name; // Associer l'ID dynamique au nom d'étage
-      return floor.dynamicId; // Retourner uniquement les IDs
+      floorNames[floor.dynamicId] = floor.name; 
+      return floor.dynamicId; 
     });
 
     console.log('Correspondance ID → Nom des étages :', floorNames);
 
-    // Récupérer les endpoints d'occupation associés aux étages
-    const response = await HTTP.post(config.apiEndpoints.controlEndpointListMultiple.replace('{buildingId}', buildingId), floorDynamicIds);
-    const endpointsData = response.data;
+    const batchSize = 50;
+    const batchedPromises = [];
 
-    if (!endpointsData || endpointsData.length === 0) {
-      console.error('Aucun endpoint trouvé pour les étages.');
-      return { dynamicIds: [], floorNames: {} };
+    for (let i = 0; i < floorDynamicIds.length; i += batchSize) {
+      const batch = floorDynamicIds.slice(i, i + batchSize);
+      console.log(batch, 'batch');
+
+      batchedPromises.push(
+        HTTP.post(config.apiEndpoints.controlEndpointListMultiple.replace('{buildingId}', buildingId), batch)
+      );
     }
-    console.log('Endpoints récupérés :', endpointsData);
 
-    // Extraire les Dynamic IDs des points de contrôle des taux d'occupation
+    const results = await Promise.all(batchedPromises);
+
+    const combinedResults = results.flatMap(result => result.data);
+    console.log('Combined endpoints response:', combinedResults);
+
     const dynamicIds = [];
-    const floorOccupancyMapping = {}; // Associe chaque Dynamic ID d'occupation à son étage
+    const floorOccupancyMapping = {}; 
 
-    endpointsData.forEach(floorEndpointsList => {
-      const floorId = floorEndpointsList[0]?.dynamicId; // L'ID de l'étage
+    combinedResults.forEach(floorEndpointsList => {
+      const floorId = floorEndpointsList[0]?.dynamicId;
 
       floorEndpointsList.forEach(profile => {
         profile.endpoints.forEach(endpoint => {
-          /* console.log('Endpoint:', endpoint); */
-          if (            endpoint.name.trim().toLowerCase() === config.sources[0].name.trim().toLowerCase() &&
-          endpoint.type.trim().toLowerCase() === config.sources[0].type.trim().toLowerCase()) {
+          if (
+            endpoint.name.trim().toLowerCase() === config.entryPoints[0].source[0].name.trim().toLowerCase() &&
+            endpoint.type.trim().toLowerCase() === config.entryPoints[0].source[0].type.trim().toLowerCase()
+          ) {
             dynamicIds.push(endpoint.dynamicId);
             floorOccupancyMapping[endpoint.dynamicId] = floorId;
           }
@@ -369,7 +341,6 @@ const getFloorOccupancyDynamicIds = async () => {
 
 const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => {
   try {
-    console.log(`Fetching floor occupancy rates for period: ${period}`);
     const buildingId = localStorage.getItem('idBuilding');
     if (!buildingId) {
       console.error('No building ID found in localStorage');
@@ -377,26 +348,33 @@ const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => 
     }
 
     const periodArray = getPeriodArray(timestamp, period);
-    console.log('Period array from detail:', periodArray);
 
-    console.log('Start date from detail:', periodArray[1]);
-    console.log('End date from detail:', periodArray[2]);
-    console.log('Dynamic IDs:', dynamicIds);
+    const batchSize = 50;
+    const batchedPromises = [];
 
-    const timeSeriesResponse = await HTTP.post(
-      config.apiEndpoints.timeSeriesMultiple.replace('{buildingId}', buildingId).replace('{start}', periodArray[1]).replace('{end}', periodArray[2]),
-      dynamicIds
-    );
-    console.log('Time series response:', timeSeriesResponse.data);
+    for (let i = 0; i < dynamicIds.length; i += batchSize) {
+      const batch = dynamicIds.slice(i, i + batchSize);
+      console.log(batch, 'batch');
 
-    const timeSeriesData = timeSeriesResponse.data;
+      batchedPromises.push(
+        HTTP.post(
+          config.apiEndpoints.timeSeriesMultiple.replace('{buildingId}', buildingId).replace('{start}', periodArray[1]).replace('{end}', periodArray[2]),
+          batch
+        )
+      );
+    }
+
+    const results = await Promise.all(batchedPromises);
+
+    const combinedResults = results.flatMap(result => result.data);
+    console.log('Combined time series response:', combinedResults);
 
     const aggregatedData = {};
     dynamicIds.forEach(dynamicId => {
       aggregatedData[dynamicId] = [];
     });
 
-    timeSeriesData.forEach((series, index) => {
+    combinedResults.forEach((series, index) => {
       series.timeseries.forEach(point => {
         const formattedLabel = period === 'Journée' || period === 'Valeur Courante'
           ? moment(point.date).format('HH')
@@ -420,7 +398,6 @@ const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => 
       };
     });
 
-    console.log('Floor data:', floorData);
     return floorData;
   } catch (error) {
     console.error("Erreur lors de la récupération des taux d'occupation des étages :", error);
@@ -440,179 +417,37 @@ const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => 
       return (totalOccupancy / secondFloorData.value.length).toFixed(0);
     });
 
-    const equipmentOccupancyRate = computed(() => {
-      if (equipmentFloorData.value.length === 0) return 0;
-      const totalOccupancy = equipmentFloorData.value.reduce((sum, floor) => sum + floor.occupancy, 0);
-      return (totalOccupancy / equipmentFloorData.value.length).toFixed(0);
+    const thirdChartOccupancyRate = computed(() => {
+      if (thirdChartFloorData.value.length === 0) return 0;
+      const totalOccupancy = thirdChartFloorData.value.reduce((sum, floor) => sum + floor.occupancy, 0);
+      return (totalOccupancy / thirdChartFloorData.value.length).toFixed(0);
     });
 
+
     const renderChart = () => {
-      if (chartCanvas.value) {
-        const ctx = chartCanvas.value.getContext('2d');
-        if (ctx) {
-          if (occupancyChart.value) {
-            occupancyChart.value.destroy();
-          }
-
-          const floorLabels = floorData.value.map(floor => floor.floor);
-          const occupancyData = floorLabels.map(floor => {
-            const floorDataEntry = floorData.value.find(f => f.floor === floor);
-            return floorDataEntry ? floorDataEntry.occupancy : 0;
-          });
-
-          const config: ChartConfiguration<'bar'> = {
-            type: 'bar',
-            data: {
-              labels: floorLabels,
-              datasets: [{
-                label: 'Occupation des étages',
-                data: occupancyData,
-                backgroundColor: '#14202C',
-                barPercentage: 0.6,
-                categoryPercentage: 1,
-                borderRadius: 10,
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { display: false },
-                tooltip: { enabled: true }
-              },
-              scales: {
-                x: {
-                  beginAtZero: true,
-                  ticks: {
-                    callback: (value, index) => `${occupancyData[index].toFixed(2)}%`,
-                    stepSize: 10,
-                    font: { size: 15 },
-                  }
-                },
-                y: {
-                  display: false,
-                },
-                x1: {
-                  display: true,
-                  position: 'top',
-                  ticks: {
-                    font: { size: 15 }
-                  }
-                },
-              },
-              layout: {
-                padding: {
-                  top: 10,
-                  bottom: 10
-                }
-              }
-            }
-          };
-
-          occupancyChart.value = new Chart(ctx, config);
-        }
-      } else {
-        console.warn("Aucune donnée d'étage disponible pour le graphique");
-      }
-    };
-
-    const renderSecondChart = () => {
-      if (secondChartCanvas.value) {
-        const ctx = secondChartCanvas.value.getContext('2d');
-        if (ctx) {
-          if (secondOccupancyChart.value) {
-            secondOccupancyChart.value.destroy();
-          }
-
-          const floorLabels = secondFloorData.value.map(floor => floor.floor);
-          const occupancyData = secondFloorData.value.map(floor => floor.occupancy);
-
-          const config: ChartConfiguration<'bar'> = {
-            type: 'bar',
-            data: {
-              labels: floorLabels,
-              datasets: [{
-                label: 'Occupation des salles de réunion',
-                data: occupancyData,
-                backgroundColor: '#1C5791',
-                barPercentage: 0.4,
-                categoryPercentage: 1,
-                borderRadius: 10,
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { display: false },
-                tooltip: { enabled: true }
-              },
-              scales: {
-                x: {
-                  beginAtZero: true,
-                  ticks: {
-                    callback: (value, index) => `${occupancyData[index].toFixed(2)}%`,
-                    stepSize: 10,
-                    font: { size: 15 }
-                  }
-                },
-                y: {
-                  display: false,
-                },
-                x1: {
-              display: false,
-              position: 'top',
-              ticks: {
-                font: { size: 15 }
-              }
-            },
-              },
-              layout: {
-                padding: {
-                  top: 10,
-                  bottom: 10
-                }
-              }
-            }
-          };
-
-          secondOccupancyChart.value = new Chart(ctx, config);
-        }
-      } else {
-        console.warn("Aucune donnée d'étage disponible pour le graphique");
-      }
-    };
-    const renderEquipmentChart = () => {
-  if (equipmentChartCanvas.value) {
-    const ctx = equipmentChartCanvas.value.getContext('2d');
+  if (chartCanvas.value) {
+    const ctx = chartCanvas.value.getContext('2d');
     if (ctx) {
-      if (equipmentOccupancyChart.value) {
-        equipmentOccupancyChart.value.destroy();
+      if (occupancyChart.value) {
+        occupancyChart.value.destroy();
       }
 
-      // Inclure tous les étages dans les labels du graphique
-      const floorLabels = allFloors.value.map(id => {
-        const floor = equipmentFloorData.value.find(f => f.floor.toString() === id.toString());
-        return floor && floor.floor ? floor.floor : `Étage ${id}`;
-      });
-
+      const floorLabels = floorData.value.map(floor => floor.floor);
       const occupancyData = floorLabels.map(floor => {
-        const floorDataEntry = equipmentFloorData.value.find(f => f.floor === floor);
+        const floorDataEntry = floorData.value.find(f => f.floor === floor);
         return floorDataEntry ? floorDataEntry.occupancy : 0;
       });
 
-      // Logs pour vérifier les données
-      console.log('Labels envoyés au graphique des équipements:', floorLabels);
-      console.log('Données envoyées au graphique des équipements:', occupancyData);
+      const chartConfig = config.charts.firstChart;
 
-      const config: ChartConfiguration<'bar'> = {
+      const chartConfiguration: ChartConfiguration<'bar'> = {
         type: 'bar',
         data: {
           labels: floorLabels,
           datasets: [{
-            label: 'Taux d\'occupation des équipements',
+            label: chartConfig.label,
             data: occupancyData,
-            backgroundColor: '#41C5DD',
+            backgroundColor: chartConfig.backgroundColor,
             barPercentage: 0.4,
             categoryPercentage: 1,
             borderRadius: 10,
@@ -622,7 +457,7 @@ const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => 
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false }, // Assurez-vous que la légende est activée
+            legend: { display: false },
             tooltip: { enabled: true }
           },
           scales: {
@@ -638,10 +473,9 @@ const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => 
               display: false,
             },
             x1: {
-              display: false,
+              display: true,
               position: 'top',
               ticks: {
-                callback: (value, index) => `${floorLabels[index]}`,
                 font: { size: 15 }
               }
             },
@@ -655,29 +489,181 @@ const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => 
         }
       };
 
-      equipmentOccupancyChart.value = new Chart(ctx, config);
+      occupancyChart.value = new Chart(ctx, chartConfiguration);
     }
   } else {
-    console.warn("Aucune donnée d'étage disponible pour le graphique des équipements");
+    console.warn("Aucune donnée d'étage disponible pour le graphique");
+  }
+};
+
+const renderSecondChart = () => {
+  if (secondChartCanvas.value) {
+    const ctx = secondChartCanvas.value.getContext('2d');
+    if (ctx) {
+      if (secondOccupancyChart.value) {
+        secondOccupancyChart.value.destroy();
+      }
+
+      const floorLabels = allFloors.value;
+      const occupancyData = floorLabels.map(floor => {
+        const floorDataEntry = secondFloorData.value.find(f => f.floor === floor);
+        return floorDataEntry ? floorDataEntry.occupancy : null;
+      });
+
+      const chartConfig = config.charts.secondChart;
+
+      const chartConfiguration: ChartConfiguration<'bar'> = {
+        type: 'bar',  
+        data: {
+          labels: floorLabels,
+          datasets: [{
+            label: chartConfig.label,
+            data: occupancyData,
+            backgroundColor: occupancyData.map(value => value === null ? '#d3d3d3' : chartConfig.backgroundColor),
+            barPercentage: 0.4,
+            categoryPercentage: 1,
+            borderRadius: 10,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              enabled: true,
+              callbacks: {
+                label: function(context) {
+                  const value = context.raw;
+                  return value === null ? 'Aucune donnée' : `${config.charts.secondChart.label}: ${value.toFixed(2)}%`; 
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: {
+                callback: (value, index) => {
+                  const dataValue = occupancyData[index];
+                  return dataValue === null ? 'Aucune donnée' : `${dataValue.toFixed(2)}%`;
+                },
+                stepSize: 10,
+                font: { size: 15 },
+              }
+            },
+            y: {
+              display: false,
+            },
+            x1: {
+              display: false,
+              position: 'top',
+              ticks: {
+                callback: (value, index) => `${floorLabels[index]}`,
+                font: { size: 15 }
+              }
+            }
+          }
+        }
+      };
+
+      secondOccupancyChart.value = new Chart(ctx, chartConfiguration);
+    }
+  }
+};
+
+const renderThirdChart = () => {
+  if (thirdChartCanvas.value) {
+    const ctx = thirdChartCanvas.value.getContext('2d');
+    if (ctx) {
+      if (thirdChartOccupancyChart.value) {
+        thirdChartOccupancyChart.value.destroy();
+      }
+
+      const floorLabels = allFloors.value;
+      const occupancyData = floorLabels.map(floor => {
+        const floorDataEntry = thirdChartFloorData.value.find(f => f.floor === floor);
+        return floorDataEntry ? floorDataEntry.occupancy : null;
+      });
+
+      const chartConfig = config.charts.thirdChart;
+
+      const chartConfiguration: ChartConfiguration<'bar'> = {
+        type: 'bar',
+        data: {
+          labels: floorLabels,
+          datasets: [{
+            label: chartConfig.label,
+            data: occupancyData,
+            backgroundColor: occupancyData.map(value => value === null ? '#d3d3d3' : chartConfig.backgroundColor),
+            barPercentage: 0.4,
+            categoryPercentage: 1,
+            borderRadius: 10,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              enabled: true,
+              callbacks: {
+                label: function(context) {
+                  const value = context.raw;
+                    return value === null ? 'Aucune donnée' : `${config.charts.thirdChart.label}: ${value.toFixed(2)}%`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: {
+                callback: (value, index) => {
+                  const dataValue = occupancyData[index];
+                  return dataValue === null ? 'Aucune donnée' : `${dataValue.toFixed(2)}%`;
+                },
+                stepSize: 10,
+                font: { size: 15 },
+              }
+            },
+            y: {
+              display: false,
+            },
+            x1: {
+              display: false,
+              position: 'top',
+              ticks: {
+                callback: (value, index) => `${floorLabels[index]}`,
+                font: { size: 15 }
+              }
+            }
+          }
+        }
+      };
+
+      thirdChartOccupancyChart.value = new Chart(ctx, chartConfiguration);
+    }
   }
 };
 
 watch(() => props.temporality, async (newTemporality) => {
   await fetchFloorData(newTemporality.name);
   await fetchSecondFloorData();
-  await fetchEquipmentFloorData(timestamp);
+  await fetchThirdChartFloorData(timestamp);
   await fetchTotalSurface();
   await fetchTotalSurface2();
-  await fetchEquipmentTotalCount(); // Ajoutez cet appel
+  await fetchThirdChartTotalCount();
 });
 
 onMounted(async () => {
   await fetchFloorData(props.temporality.name);
   await fetchSecondFloorData();
-  await fetchEquipmentFloorData();
+  await fetchThirdChartFloorData();
   await fetchTotalSurface();
   await fetchTotalSurface2();
-  await fetchEquipmentTotalCount(); // Ajoutez cet appel
+  await fetchThirdChartTotalCount();
 });
 
 return {
@@ -689,175 +675,24 @@ return {
   secondOccupancyChart,
   floorData,
   secondFloorData,
-  equipmentChartCanvas,
-  equipmentOccupancyChart,
-  equipmentFloorData,
+  thirdChartCanvas,
+  thirdChartOccupancyChart,
+  thirdChartFloorData,
   totalSurface,
   totalSurface2,
-  equipmentTotalCount,
-  equipmentOccupancyRate,
+  thirdChartTotalCount,
+  thirdChartOccupancyRate,
   allFloors,
   fetchFloorData, 
   fetchSecondFloorData,
-  fetchEquipmentFloorData,
-  fetchEquipmentTotalCount,
+  fetchThirdChartFloorData,
+  fetchThirdChartTotalCount,
   displayBuildingOccupancyChart,
-  displayEquipmentChart,
-  displayMeetingRoomChart
+  displaySecondChart,
+  displayThirdChart
 };
   }
 });
-
-
-function getPeriodArray(timestamp, period) {
-  if (period === 'Journée' || period === 'Valeur Courante') {
-    var startOfDay = moment(timestamp).startOf('day');
-    var endOfDay = moment(timestamp).endOf('day');
-    var hoursInDay = [];
-    var tooltipDate = [];
-    var currentHour = moment(startOfDay);
-    while (currentHour.isSameOrBefore(endOfDay)) {
-      hoursInDay.push(currentHour.format('HH'));
-      tooltipDate.push(moment(currentHour).format('ddd DD/MM/YYYY HH:mm').slice(0, 1).toUpperCase() + moment(currentHour).format('ddd DD/MM/YYYY HH:mm').slice(1));
-      currentHour.add(1, 'hour');
-    }
-    
-    return [hoursInDay,
-      moment(timestamp).startOf('day').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).endOf('day').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'day').startOf('day').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'day').endOf('day').format('DD-MM-yyyy HH:mm:ss'),
-      tooltipDate
-    ];
-  } else if (period === 'Semaine') {
-    var startOfWeek = moment(timestamp).startOf('week');
-    var endOfWeek = moment(timestamp).endOf('week');
-    var daysInMonth = [];
-    var abstractDaysInMonth = [];
-    var tooltipDate = [];
-    var currentDay = moment(startOfWeek);
-    while (currentDay.isSameOrBefore(endOfWeek)) {
-      daysInMonth.push(currentDay.format('DD MMM'));
-      abstractDaysInMonth.push(currentDay.format('dddd').slice(0, 1).toUpperCase() + currentDay.format('dddd').slice(1));
-      tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
-      currentDay.add(1, 'day');
-    }
-    return [daysInMonth,
-      moment(timestamp).startOf('week').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).endOf('week').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'weeks').startOf('week').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'weeks').endOf('week').format('DD-MM-yyyy HH:mm:ss'),
-      tooltipDate,
-      abstractDaysInMonth
-    ];
-  } else if (period === 'Mois') {
-    var startOfMonth = moment(timestamp).startOf('month');
-    var endOfMonth = moment(timestamp).endOf('month');
-    var daysInMonth = [];
-    var abstractDaysInMonth = [];
-    var tooltipDate = [];
-    var currentDay = moment(startOfMonth);
-    while (currentDay.isSameOrBefore(endOfMonth)) {
-      abstractDaysInMonth.push(currentDay.format('DD'));
-      daysInMonth.push(currentDay.format('DD MMM'));
-      tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
-      currentDay.add(1, 'day');
-    }
-    return [daysInMonth,
-      moment(timestamp).startOf('month').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'months').endOf('month').format('DD-MM-yyyy HH:mm:ss'),
-      tooltipDate,
-      abstractDaysInMonth
-    ];
-  } else if (period === 'Année') {
-    var monthsInYear = [];
-    var tooltipDate = [];
-    for (var i = 0; i < 12; i++) {
-      var currentMonth = moment(timestamp).month(i);
-      monthsInYear.push(currentMonth.format('MMM'));
-      tooltipDate.push(moment(currentMonth).format('MMMM/YYYY').slice(0, 1).toUpperCase() + moment(currentMonth).format('MMMM/YYYY').slice(1));
-    }
-    return [monthsInYear,
-      moment(timestamp).startOf('year').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'years').startOf('year').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'years').endOf('year').format('DD-MM-yyyy HH:mm:ss'),
-      tooltipDate
-    ];
-  } else if (period === 'Décennie') {
-    var yearsInDecade = [];
-    var tooltipDate = [];
-    for (var i = -9; i <= 0; i++) {
-      var currentYear = moment(timestamp).add(i, 'years');
-      yearsInDecade.push(currentYear.format('YYYY'));
-      tooltipDate.push(moment(currentYear).format('YYYY').slice(0, 1).toUpperCase() + moment(currentYear).format('YYYY').slice(1));
-    }
-    return [yearsInDecade,
-      moment(timestamp).add(-10, 'years').startOf('year').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss'), '', '', tooltipDate];
-  } else if (period === 'Trimestre') {
-    let currentMM = moment(timestamp).format('MM');
-    let T = 'T'+Math.ceil(currentMM / 3);
-    var startOfTrimester;
-    var endOfTrimester;
-    var currentDay;
-    var endDay;
-    switch (T) {
-        case 'T1':
-            startOfTrimester = moment(`01/01/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
-            endOfTrimester = moment(`31/03/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
-            currentDay = moment(`01/01/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            endDay = moment(`31/03/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            break;
-
-        case 'T2':
-            startOfTrimester = moment(`01/04/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
-            endOfTrimester = moment(`30/06/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
-            currentDay = moment(`01/04/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            endDay = moment(`30/06/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            break;
-    
-        case 'T3':
-            startOfTrimester = moment(`01/07/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
-            endOfTrimester = moment(`30/09/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
-            currentDay = moment(`01/07/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            endDay = moment(`30/09/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            break;
-    
-        case 'T4':
-            startOfTrimester = moment(`01/10/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
-            endOfTrimester = moment(`31/12/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
-            currentDay = moment(`01/10/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            endDay = moment(`31/12/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            break;
-    }
-
-    var daysIn3Months = [];
-    var abstractDaysIn3Months = [];
-    var tooltipDate = [];
-    while (currentDay.isSameOrBefore(endDay)) {
-      daysIn3Months.push(currentDay.format('DD MMM'));
-      abstractDaysIn3Months.push(currentDay.format('DD'));
-      tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
-      currentDay.add(1, 'day');
-    }
-
-    
-    return [daysIn3Months,
-      startOfTrimester,
-      endOfTrimester,
-      moment(timestamp).add(-5, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-3, 'months').endOf('month').format('DD-MM-yyyy HH:mm:ss'),
-      tooltipDate,
-      T,
-      abstractDaysIn3Months
-    ];
-  } else {
-    return [];
-  }
-}
 </script>
 
 <style scoped>
