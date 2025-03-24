@@ -27,7 +27,7 @@ import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
 import { postRoomInventory,postFloorInventory,getEquipments, getFloors, getRooms, getBuilding ,
-	getAttributListMultiple, getDocumentation ,postDownloadFile ,getTicket,
+	getAttributListMultiple, getDocumentation ,postDownloadFile ,getTicket, getParent,
 	getNotes, getNodeEndpointList, getNodeControlEndpointList ,getTimeSeriesAsync , getFile, getNodeReadMultiple, getEquipementPositions
 } from "../../spinalAPI/GeographicContext/geographicContext";
 import { addTicketDoc, createTicket, getProcess, getWorkFlowList, Ticket } from "../../spinalAPI/CreateTicket";
@@ -538,6 +538,17 @@ export const actions = {
 			return result;
 		} catch (error) {
 			console.error('Erreur lors de la suppression du fichier');
+			throw error;
+		}
+	},
+
+	async [ActionTypes.GET_PARENT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getParent(buildingId, referenceIds);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
 			throw error;
 		}
 	},

@@ -628,7 +628,6 @@ export default {
       // equipmentList = await this.enrichItemsWithPositions(equipmentList);
 
       const groupIndex = this.items.findIndex(it => it.dynamicId === item.dynamicId);
-      console.log('GROUP INDEX : ', groupIndex);
       let tmp = [...this.items];
       tmp.splice(groupIndex + 1, 0, ...equipmentList);
       this.$store.commit(MutationTypes.SET_DATA, tmp);
