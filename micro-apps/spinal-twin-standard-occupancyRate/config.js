@@ -33,10 +33,7 @@ module.exports = {
     },
     
     entryPoints: [
-        {
-            name: 'DEI',
-            type: 'geographicBuilding',
-        },
+        
         {
             context: 'Gestion des espaces',
             category: 'Typologie',
@@ -62,6 +59,10 @@ module.exports = {
                     type: 'Occupation', 
                 }
             ]
+        },
+        {
+            name: 'DEI',
+            type: 'geographicBuilding',
         },
         
     ],
