@@ -73,7 +73,7 @@ methods: {
          const value = stripe?.value;    
       
         if (type === "regex") {
-          const regex : RegExp= stripLegend.setup.config[0].value as RegExp;
+          const regex : RegExp= stripLegend.setup.value as RegExp;
           // Vérifie si la regex existe et fonctionne correctement
           
           
@@ -95,7 +95,7 @@ methods: {
           }          
     }
     if(seen.size > 0) { 
-      const success_naming = stripLegend.setup.config.find((config) => config.type === "success");
+      const success_naming = stripLegend.setup.legend?.find((config) => config.type === "success");
       const item = {
         name: success_naming?.name || "Success",
         color: success_naming?.color || "#00ff00",
@@ -106,7 +106,7 @@ methods: {
     }
     
     if(warning.length > 0) {
-      const warning_naming = stripLegend.setup.config.find((config) => config.type === "warning");
+      const warning_naming = stripLegend.setup.legend?.find((config) => config.type === "warning");
       if (warning_naming) {
         const item = {
           name: warning_naming?.name || "Warning",
@@ -117,7 +117,7 @@ methods: {
       }
     }
     if(missing.length > 0) {
-      const missing_naming = stripLegend.setup.config.find((config) => config.type === "missing");
+      const missing_naming = stripLegend.setup.legend?.find((config) => config.type === "missing");
       if (missing_naming) {
         const item = {
           name: missing_naming?.name || "Missing",
@@ -129,7 +129,7 @@ methods: {
     }
 
     if (duplicate.length > 0) {
-      const duplicate_naming = stripLegend.setup.config.find((config) => config.type === "dual");
+      const duplicate_naming = stripLegend.setup.legend?.find((config) => config.type === "dual");
       if(duplicate_naming) { 
         const item = {
         name: duplicate_naming?.name || "Duplicate",

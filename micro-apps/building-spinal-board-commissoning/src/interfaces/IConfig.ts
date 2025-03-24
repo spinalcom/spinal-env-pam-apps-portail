@@ -38,7 +38,7 @@ export interface IConfig {
   sources: ISource[];
   bilan : {
     timeline: Istatistique,
-    dotsGrid: Istatistique
+    dotsGrid?: Istatistique
 
   }
 }
@@ -64,7 +64,7 @@ export interface IRegroupement {
   category: string;
 }
 
-export type EntryPoint = { context: string; group?: string; category?: string; type: string };
+export type EntryPoint = { context: string; group?: string; category?: string; type: 'equipement' | 'room' };
 
 export const enum calculTypes {
   Maximum = "Maximum",
@@ -96,15 +96,15 @@ export interface ISource {
 interface Istatistique {
   sourceId: number;
   setup : {
-    type: string;
-    config: ILegendStatistique[];
+    type: string | 'regex';
+    value: string | number | RegExp;
+    legend?: ILegendStatistique[];
   }
 }
 
 
 interface ILegendStatistique {
   name: string;
-  value : number | string | RegExp | IValue;
   color: string;
   label: string;
   type: string;

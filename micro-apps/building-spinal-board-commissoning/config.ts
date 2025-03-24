@@ -88,11 +88,12 @@ export const  config: IConfig = {
             sourceId: 1,
             setup:{
                 type: "regex",
-                config: [
-                    { name: 'correspond', value:  /^AUT-\d{3}-MCA-\d{3}$/, color: '#14202C', label: "Convention de nommage" , type: "success"},
-                    { name: 'incorrect', value:  /^AUT-\d{3}-MCA-\d{3}$/, color: '#FF000B', label: "Convention de nommage", type: "warning" },
-                    { name: 'non défini', value:  /^AUT-\d{3}-MCA-\d{3}$/, color: '#9830F2', label: "Convention de nommage", type: "missing" },
-                    { name: 'double', value:  /^AUT-\d{3}-MCA-\d{3}$/, color: '#EF8BC5', label: "Convention de nommage", type: "dual" },
+                value: /^AUT-\d{3}-MCA-\d{3}$/,
+                legend: [
+                    { name: 'correspond', color: '#14202C', label: "Convention de nommage" , type: "success"},
+                    { name: 'incorrect',  color: '#FF000B', label: "Convention de nommage", type: "warning" },
+                    { name: 'non défini', color: '#9830F2', label: "Convention de nommage", type: "missing" },
+                    { name: 'doublons', color: '#EF8BC5', label: "Convention de nommage", type: "dual" },
 
 
 
@@ -103,9 +104,7 @@ export const  config: IConfig = {
             sourceId: 4,
             setup:{
                 type: "threshold_below",
-                config: [
-                    {name: 'max', value: 70, color: "#24CBD9", label: "Taux de données exploitables", type: '' },
-                ] // tu isoles ceux undefined et ceux <70
+                value: 70,
             }
         }
 

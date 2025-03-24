@@ -15,12 +15,13 @@
         </div>
 
         <div class="main">
-          <div class="left-box"></div>
-          <div class="right-box">
+          <div class="left-box" v-if="showLeftBox">
+            <DotsGrid :dotsList="equipements" />
+          </div>
+          <div class="right-box" :style="showLeftBox ? 'width: 70%' : 'width: 100%'">
             <div class="header-left">
               <span>Détails</span>
             </div>
-
             <div class="stripe">
               <Stripe :stripeList="stripeData" />
             </div>
@@ -40,15 +41,17 @@ import { Prop, Vue, Watch } from 'vue-property-decorator';
 import SmallLegend from './SmallLegend.vue';
 import SpinalTable from './SpinalTable.vue';
 import { ActionTypes } from '../interfaces/vuexStoreTypes';
-import Stripe from './Stripe.vue'
-import {config} from '../../config';
+import Stripe from './Stripe.vue';
+import DotsGrid from './DotsGrid.vue';
+import { config } from '../../config';
 import { MutationTypes } from '../services/store/appDataStore/mutations';
 
 @Component({
   components: {
     SmallLegend,
     SpinalTable,
-    Stripe
+    Stripe,
+    DotsGrid
   }
 })
 class App extends Vue {
@@ -58,9 +61,10 @@ class App extends Vue {
  formateditems: any[] = []
  dynamicHeaders: any[] = []
  stripeData: any[] = []
-  
+  showLeftBox: boolean = true
   async mounted (){
     this.selectedZone = this.$store.state.appDataStore.zoneSelected;
+    config.bilan.dotsGrid ? this.showLeftBox = true : this.showLeftBox = false;
     const buildingId = localStorage.getItem('idBuilding')
     if(this.selectedZone.type === 'building') {
       await this.getBuildingEquipements();
@@ -275,7 +279,7 @@ padding-top: 10px;
 }
 .main > .right-box {
   box-sizing: border-box;
-  max-width: 70%;
+  width: 70%;
   min-width: 400px;
   display: flex;
   flex-direction: column;

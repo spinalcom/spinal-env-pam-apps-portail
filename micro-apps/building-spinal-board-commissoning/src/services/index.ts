@@ -55,10 +55,7 @@ export async function getGroupEquipement(buildingId: string, floor: any) {
     const attr = attributeList.attribut;
     const endpointList = await getControlpointList(buildingId, equipement);
     endpointList.map((el :any) => {
-      if(el.endpoints.length === 0) {
-        console.log("No endpoints found for:", el);
-      }
-    
+     el.endpoints ? el.endpoints : el.endpoints = [];
       const attr = attributeList.attribut.find((attr) => attr.dynamicId === el.dynamicId);
       if(attr) {
         const value : any = {
