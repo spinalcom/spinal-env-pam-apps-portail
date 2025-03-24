@@ -170,6 +170,8 @@
         @filter="filtercolumn($event)"
       />
     </div>
+
+    
     <!-- ONGLET attribut (attribut)-->
     <div v-if="vSelectedTab == 'Attributs'" class="scrollable-content">
       <FormDocAttr
@@ -1024,12 +1026,6 @@ export default {
           console.warn('group already exists, weird occurance, please investigate');
         }
       }
-
-      // // Récupérer les groupes uniques et compter les équipements par groupe
-      // const groupCounts = this.filteredContexts.reduce((acc, item) => {
-      //   acc[item.group] = (acc[item.group] || 0) + 1;
-      //   return acc;
-      // }, {});
 
       // // Extraire les groupes (labels) et les valeurs (counts)
       const labels = Object.keys(groupCounts); // Les noms des groupes

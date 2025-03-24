@@ -120,10 +120,10 @@
         <v-icon  @click.stop="fitToView(item)" title="Cadrer sur l'objet">
           mdi-fit-to-screen
         </v-icon>
-        <v-icon  @click.stop="viewerSelectItems(item)" title="Sélectionner l'équipement">
+        <v-icon  @click.stop="viewerSelectItems(item)" title="Sélectionner l'équipement dans le viewer 3D">
           mdi-select-place
         </v-icon>
-        <v-icon  @click.stop="goToDescriptionApp(item)" title="Basculer sur l'app description">
+        <v-icon :color="getTargetColor(item)"  @click.stop="selectItem(item)" title="Sélectionner l'équipement">
           mdi-arrow-top-right-thick
         </v-icon>
       </div>
@@ -254,6 +254,16 @@ export default {
       );
     },
 
+    getTargetColor(item){
+      if(this.$store.state.appDataStore.itemSelected && this.$store.state.appDataStore.itemSelected?.dynamicId == item.dynamicId){
+        console.log('TARGET MATCH !')
+        return this.$store.state.appDataStore.itemSelected.color;
+      } else {
+        return '';
+      }
+
+    },
+
     selectDataView(item) {
       console.log('TEST')
       if(item.type === 'BIMObjectGroupContext'){
@@ -270,8 +280,11 @@ export default {
       }
       this.selected_id = item.dynamicId;
       console.log('selectDataView', item);
-      this.$emit('item-selected', item);
+      // this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
+      this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
+      //this.$emit('item-selected', item);
     },
+
 
     fitToView(item){
       this.$emit('fit-to-view', item);
@@ -294,7 +307,9 @@ export default {
 
     selectItem(item) {
       console.log('selectItem', item);
+      this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
       this.$emit('item-selected', item);
+      
     },
 
     headershow(header) {
@@ -311,7 +326,7 @@ export default {
     },
     getAttributeValue(item, attrLabel) {
       if(typeof item[attrLabel] === 'object'){
-        return item[attrLabel].name ?? '';
+        return item[attrLabel]?.name ?? '';
       }
       return item[attrLabel] ?? '';
     },
@@ -412,7 +427,8 @@ export default {
         items: this.items,
         buildingId: localStorage.getItem("idBuilding"),
         component: SpriteComponent,
-      });
+        });
+
         return;
       }
       const groups = this.items.filter(it => it.type === 'BIMObjectGroup');

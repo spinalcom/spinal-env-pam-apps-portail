@@ -412,13 +412,14 @@ class dataSideApp extends Vue {
     const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
     const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
     const matchingGroup = this.$store.state.appDataStore.user_selection_list.grp.find(grp => grp.name === this.$store.state.appDataStore.user_selected.grp);
+    
     this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
     this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des équipements de ${matchingGroup.name}...`);
     
     try {
       let result: any[] = [];
       if(this.$store.state.appDataStore.zoneSelected.type === 'building'){
-        result = await this.$store.dispatch(ActionTypes.GET_EQUIPEMENT_LIST, { buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId});
+        result = await this.$store.dispatch(ActionTypes.GET_EQUIPEMENT_LIST, { buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId, forceUpdate: true });
       }
       else {
         result = this.$store.state.appDataStore.inventory.find(it => it.dynamicId === matchingGroup.dynamicId).groupItems;
@@ -432,6 +433,7 @@ class dataSideApp extends Vue {
 
         };
       });
+      // all of these 3 are important
       result = await this.enrichItemsWithChildrenReadings(result);
       result = await this.enrichItemsWithPositions(result);
       result = await this.enrichItemsWithCoordinates(result);
