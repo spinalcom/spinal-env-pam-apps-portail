@@ -26,15 +26,15 @@ import { getBuildings, getBuildingById } from "../../spinalAPI/GeographicContext
 import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
-import { getEquipments, getFloors, getRooms, getBuilding ,
-	getAttributListMultiple, getDocumentation ,postDownloadFile ,getTicket,
+import { postRoomInventory,postFloorInventory,getEquipments, getFloors, getRooms, getBuilding ,
+	getAttributListMultiple, getDocumentation ,postDownloadFile ,getTicket, getParent,
 	getNotes, getNodeEndpointList, getNodeControlEndpointList ,getTimeSeriesAsync , getFile, getNodeReadMultiple, getEquipementPositions
 } from "../../spinalAPI/GeographicContext/geographicContext";
 import { addTicketDoc, createTicket, getProcess, getWorkFlowList, Ticket } from "../../spinalAPI/CreateTicket";
 
 import { deleteFile, uploadDoc, deleteAttribut, deleteCategoryAttribut, updateCategoryAttribut, updateAttribut } from "../../spinalAPI/UploadDoc/Doc";
 
-import { getGroupContext, getGroupContextCategoryList, getGroupContextGroupList, getGroupContextread } from "../../spinalAPI/ContextGroup/groupContext";
+import { getGroupContextCategoryList, getGroupContextGroupList, getGroupContextread } from "../../spinalAPI/ContextGroup/groupContext";
 
 import { createAttribut, createCategory, getCategoriesList } from "../../spinalAPI/NodeAttributs/nodeAttributs";
 
@@ -226,24 +226,6 @@ export const actions = {
 		// commit(MutationTypes.SET_DATA, { id: id, items: floors.value });
 		return floors.value;
 	},
-
-	async [ActionTypes.GET_GROUP_CONTEXT]({ commit }: AugmentedActionContextAppData, { buildingId, patrimoineId, position_type, getAllCategoryEquipments, id, forceUpdate }: any): Promise<any[]> {
-
-		const spinalAPI = SpinalAPI.getInstance();
-		if (typeof ApiIteratorStore[ActionTypes.GET_GROUP_CONTEXT] === "undefined") {
-			ApiIteratorStore[ActionTypes.GET_GROUP_CONTEXT] = {};
-		}
-		const floorObjStore = ApiIteratorStore[ActionTypes.GET_GROUP_CONTEXT]!;
-
-		if (typeof floorObjStore[id] === "undefined" || forceUpdate === true) {
-			floorObjStore[id] = spinalAPI.createIteratorCall( getGroupContext, patrimoineId, buildingId, position_type, getAllCategoryEquipments);
-		}
-		const floors = await floorObjStore[id].next();
-
-		// commit(MutationTypes.SET_DATA, { id: id, items: floors.value });
-		return floors.value;
-	},
-
 
 	async [ActionTypes.GET_EQUIPMENTS_GROUP]({ commit }: AugmentedActionContextAppData, { buildingId, patrimoineId, floorId, id, forceUpdate }: any): Promise<IZoneItem[]> {
 
@@ -542,6 +524,17 @@ export const actions = {
 		}
 	},
 
+	async [ActionTypes.GET_PARENT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getParent(buildingId, referenceIds);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
 
 
 	async [ActionTypes.DELETE_CATE_ATTRIBUT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId, cateId }: { buildingId: string, referenceId: number, cateId: number, name: string }): Promise<any> {
@@ -670,6 +663,45 @@ export const actions = {
 		// }
 	},
 
+	async [ActionTypes.GET_FLOOR_INVENTORY](
+			{ commit }: AugmentedActionContextAppData,
+			{ id, body, includePosition, includeArea, onlyDynamicId }: {
+				id: number;
+				body: { context: string; category: string };
+				includePosition?: boolean;
+				includeArea?: boolean;
+				onlyDynamicId?: boolean;
+			}
+	): Promise<any> {
+		try {
+			const result = await postFloorInventory(id, body, includePosition, includeArea, onlyDynamicId);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération de l’inventaire du floor:', error);
+			throw error;
+		}
+	},
+
+	async [ActionTypes.GET_ROOM_INVENTORY](
+		{ commit }: AugmentedActionContextAppData,
+		{ id, body, includePosition, onlyDynamicId }: {
+			id: number;
+			body: { context: string; category: string };
+			includePosition?: boolean;
+			onlyDynamicId?: boolean;
+		}
+		): Promise<any> {
+			try {
+				const result = await postRoomInventory(id, body, includePosition, onlyDynamicId);
+				return result;
+			} catch (error) {
+				console.error("Erreur lors de la récupération de l’inventaire du floor:", error);
+				throw error;
+			}
+	},
+
+
+
 
 	////////////////////////////////////////////////////////
 	//                VIEWER
@@ -732,6 +764,10 @@ export const actions = {
 	},
 	[ActionTypes.SELECT_ITEMS]({ commit, dispatch, state }, playload: any) {
 		ViewerManager.getInstance().select(playload);
+	},
+
+	[ActionTypes.HIDE_ITEMS]({ commit, dispatch, state }, playload: any) {
+		ViewerManager.getInstance().hide(playload);
 	},
 
 	[ActionTypes.ISOLATE_ITEMS]({ commit, dispatch, state }, playload: any) {
@@ -797,6 +833,8 @@ export const actions = {
 	[ActionTypes.GET_VIEWER_OBJECT_PROPERTIES]({ commit, dispatch, state }, dbId: number) {
 		return ViewerManager.getInstance().getObjectProperties(dbId);
 	},
+
+	
 
 	[ActionTypes.REMOVE_SPRITES_BY_GROUP]({ commit, dispatch, state }, group: string) {
 		return SpriteManager.getInstance().removeSpritesByGroup(group);

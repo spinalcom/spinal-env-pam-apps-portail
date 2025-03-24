@@ -594,7 +594,6 @@ export class ViewerUtils {
 	private _getModel(modelId: string | number, bimFileId: string): Autodesk.Viewing.Model | void {
 		const models = ModelManager.getInstance().getModelById(modelId.toString());
 		if (!models) return;
-
 		return models.find((model) => (model as any).bimFileId === bimFileId);
 	}
 

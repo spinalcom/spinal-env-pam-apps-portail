@@ -75,7 +75,6 @@ with this file. If not, see
         @item-selected="selectDataView"
         @fit-to-view="fitToView"
         @allFiltredData="putAllFiltredData"
-        @updateSuccess="retriveData"
         :headers="[]" :id="0" :label="'test'" :reference="''"
         :unit="''" :contexts="tableData" :ctx_list="$store.state.appDataStore.user_selection_list.ctx"
         :cat_list="$store.state.appDataStore.user_selection_list.cat"
@@ -147,7 +146,6 @@ class dataSideApp extends Vue {
 
   async mounted() {
     localStorage.setItem("viewer_loaded", 'initialize');
-    //await this.retriveData();
     // -> update contexts
     await this.getAndUpdateEquipmentContexts();
     await this.updateTableData();
@@ -197,32 +195,10 @@ class dataSideApp extends Vue {
       await this.getAndUpdateEquipmentList();
       await this.updateTableData();
     }
-    await this.retriveData();
     return;
   }
 
-  async retriveData(getAllCategoryEquipments = false) {
-    let actionType = ActionTypes.GET_GROUP_CONTEXT
-    let dispatchObject = {
-      buildingId: localStorage.getItem("idBuilding"),
-      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
-      position_type: this.selectedZone,
-      getAllCategoryEquipments : getAllCategoryEquipments
-    } as any;
-    dispatchObject.forceUpdate = true;
-
-    try {
-      const result = await this.$store.dispatch(actionType, dispatchObject)
-      this.$store.commit(MutationTypes.SET_DATA, result.data);
-      console.log(result.data)
-
-      this.pageSate = PAGE_STATES.loaded;
-    } catch (err) {
-      console.log(err);
-      this.retry = this.retriveData;
-      this.pageSate = PAGE_STATES.error;
-    }
-  }
+  
 
   
 
@@ -257,7 +233,7 @@ class dataSideApp extends Vue {
       includeChildrenRelations : true,
       includeParentRelations : false
     } as any;
-    dispatchObject.forceUpdate = true;
+      dispatchObject.forceUpdate = true;
       const result = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, dispatchObject);
       const futurData = this.$store.state.appDataStore.user_selection_list.ctx.map(ctx => {
         const read = result.find((node) => node.dynamicId === ctx.dynamicId);
@@ -275,8 +251,8 @@ class dataSideApp extends Vue {
       nodeIds: this.$store.state.appDataStore.user_selection_list.cat.map(cat => cat.dynamicId),
       includeChildrenRelations : true,
       includeParentRelations : false
-    } as any;
-    dispatchObject.forceUpdate = true;
+      } as any;
+      dispatchObject.forceUpdate = true;
       const result = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, dispatchObject);
       const futurData = this.$store.state.appDataStore.user_selection_list.cat.map(cat => {
         const read = result.find((node) => node.dynamicId === cat.dynamicId);
@@ -288,22 +264,31 @@ class dataSideApp extends Vue {
     }
 
     if (!this.$store.state.appDataStore.user_selected.grp) {
-      let dispatchObject = {
-      buildingId: localStorage.getItem("idBuilding"),
-      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
-      nodeIds: this.$store.state.appDataStore.user_selection_list.grp.map(grp => grp.dynamicId),
-      includeChildrenRelations : true,
-      includeParentRelations : false
-    } as any;
-    dispatchObject.forceUpdate = true;
-      const result = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, dispatchObject);
-      const futurData = this.$store.state.appDataStore.user_selection_list.grp.map(grp => {
-        const read = result.find((node) => node.dynamicId === grp.dynamicId);
-        const hasBimObjectRelation = read.children_relation_list.find(relation => relation.name === "groupHasBIMObject")
-        return { ...grp, nbr_equipments: hasBimObjectRelation.children_number }
-      })
-      this.$store.commit(MutationTypes.SET_DATA, futurData);
-      return;
+      if(this.selectedZone.type === "building"){ // otherwise we would already have the info from calling inventory
+        let dispatchObject = {
+        buildingId: localStorage.getItem("idBuilding"),
+        patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+        nodeIds: this.$store.state.appDataStore.user_selection_list.grp.map(grp => grp.dynamicId),
+        includeChildrenRelations : true,
+        includeParentRelations : false
+        } as any;
+        dispatchObject.forceUpdate = true;
+        const result = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, dispatchObject);
+        const futurData = this.$store.state.appDataStore.user_selection_list.grp.map(grp => {
+          const read = result.find((node) => node.dynamicId === grp.dynamicId);
+          const hasBimObjectRelation = read.children_relation_list.find(relation => relation.name === "groupHasBIMObject")
+          return { ...grp, nbr_equipments: hasBimObjectRelation.children_number }
+        })
+        this.$store.commit(MutationTypes.SET_DATA, futurData);
+        console.log('UPDATE TABLE DATA WITH : ', this.$store.state.appDataStore.data);
+        return;
+      }
+      else {
+        this.$store.commit(MutationTypes.SET_DATA, this.$store.state.appDataStore.inventory);
+        console.log('UPDATE TABLE DATA WITH : ', this.$store.state.appDataStore.data);
+      }
+      
+
     }
 
     
@@ -338,30 +323,87 @@ class dataSideApp extends Vue {
   }
 
   async getAndUpdateEquipmentGroups(){
+    if(!this.$store.state.appDataStore.user_selected.ctx || !this.$store.state.appDataStore.user_selected.cat) return;
     const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
     const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
-    this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
-    this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des groupes de ${matchingCategory.name}...`);
-    let actionType = ActionTypes.GET_GROUP_LIST
-    let dispatchObject = {
-      buildingId: localStorage.getItem("idBuilding"),
-      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
-      contextDynId: matchingContext.dynamicId,
-      categoryDynId: matchingCategory.dynamicId
-    } as any;
-    dispatchObject.forceUpdate = true;
+    if(this.selectedZone.type === "building"){
+      this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+      this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des groupes de ${matchingCategory.name}...`);
+      let actionType = ActionTypes.GET_GROUP_LIST
+      let dispatchObject = {
+        buildingId: localStorage.getItem("idBuilding"),
+        patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+        contextDynId: matchingContext.dynamicId,
+        categoryDynId: matchingCategory.dynamicId
+      } as any;
+      dispatchObject.forceUpdate = true;
+  
+      try {
+        const result = await this.$store.dispatch(actionType, dispatchObject);
+        this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
+  
+        this.pageSate = PAGE_STATES.loaded;
+      } catch (err) {
+        console.log(err);
+        this.retry = this.getAndUpdateEquipmentGroups;
+        this.pageSate = PAGE_STATES.error;
+      } finally {
+        this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
 
-    try {
-      const result = await this.$store.dispatch(actionType, dispatchObject);
-      this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
+      }
+      return;
+    }
 
-      this.pageSate = PAGE_STATES.loaded;
-    } catch (err) {
-      console.log(err);
-      this.retry = this.getAndUpdateEquipmentGroups;
-      this.pageSate = PAGE_STATES.error;
-    } finally {
-      this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
+    if(this.selectedZone.type==="geographicFloor"){
+      let actionType = ActionTypes.GET_FLOOR_INVENTORY
+      let dispatchObject = {
+        id: this.selectedZone.dynamicId,
+        body : {
+          context: matchingContext.name,
+          category: matchingCategory.name
+        },
+        onlyDynamicId: false
+        
+      } as any;  
+      try {
+        const result = await this.$store.dispatch(actionType, dispatchObject);
+        result.forEach((grp) => {
+          grp.nbr_equipments =grp.groupItems?.length || 'NaN'
+        })
+        this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
+        this.$store.commit(MutationTypes.SET_INVENTORY_DATA, result); // Set the inventory data, will be enriched later
+        console.log('RESULT INVENTORY', this.$store.state.appDataStore.inventory);
+        
+        this.pageSate = PAGE_STATES.loaded;
+      } catch (err) {
+        console.log(err);
+        this.retry = this.getAndUpdateEquipmentGroups;
+        this.pageSate = PAGE_STATES.error;
+      }
+
+    }
+
+    if(this.selectedZone.type === 'geographicRoom'){
+      
+      try {
+        const result = await this.$store.dispatch(ActionTypes.GET_ROOM_INVENTORY, {
+                                                    id: this.selectedZone.dynamicId,
+                                                    body : {
+                                                      context: matchingContext.name,
+                                                      category: matchingCategory.name
+                                                    },
+                                                    onlyDynamicId: false
+                                                  }
+        );
+        result.forEach((grp) => {
+          grp.nbr_equipments =grp.groupItems?.length || 'NaN'
+        })
+        this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
+        this.$store.commit(MutationTypes.SET_INVENTORY_DATA, result);
+        console.log('RESULT INVENTORY', this.$store.state.appDataStore.inventory);
+      } catch (err) {
+        console.error(err);
+      }
     }
 
   }
@@ -370,21 +412,32 @@ class dataSideApp extends Vue {
     const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
     const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
     const matchingGroup = this.$store.state.appDataStore.user_selection_list.grp.find(grp => grp.name === this.$store.state.appDataStore.user_selected.grp);
+    
     this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
     this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des équipements de ${matchingGroup.name}...`);
-    let actionType = ActionTypes.GET_EQUIPEMENT_LIST;
-    let dispatchObject = {
-      buildingId: localStorage.getItem("idBuilding"),
-      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
-      contextDynId: matchingContext.dynamicId,
-      categoryDynId: matchingCategory.dynamicId,
-      groupDynId: matchingGroup.dynamicId
-
-    } as any;
-    dispatchObject.forceUpdate = true;
-
+    
     try {
-      const result = await this.$store.dispatch(actionType, dispatchObject);
+      let result: any[] = [];
+      if(this.$store.state.appDataStore.zoneSelected.type === 'building'){
+        result = await this.$store.dispatch(ActionTypes.GET_EQUIPEMENT_LIST, { buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId, forceUpdate: true });
+      }
+      else {
+        result = this.$store.state.appDataStore.inventory.find(it => it.dynamicId === matchingGroup.dynamicId).groupItems;
+      }
+
+      result = result.map(eq => {
+        return {
+          ...eq,
+          color: matchingGroup.color,
+          group: matchingGroup.name
+
+        };
+      });
+      // all of these 3 are important
+      result = await this.enrichItemsWithChildrenReadings(result);
+      result = await this.enrichItemsWithPositions(result);
+      result = await this.enrichItemsWithCoordinates(result);
+      
       this.$store.commit(MutationTypes.SET_DATA, result);
       this.pageSate = PAGE_STATES.loaded;
     } catch (err) {
@@ -396,6 +449,92 @@ class dataSideApp extends Vue {
     }
   }
 
+  async enrichItemsWithChildrenReadings(items){
+    const readings = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, {
+    buildingId: localStorage.getItem("idBuilding"),
+    patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+    nodeIds: items.map(eq => eq.dynamicId),
+    includeChildrenRelations : true,
+    includeParentRelations : false
+    });
+    
+
+    const enrichedItems = items.map(eq => {
+      const reading = readings.find(rd => rd.dynamicId === eq.dynamicId);
+      if(reading){
+        const response = reading.children_relation_list;
+        const relation_tickets = response.find(relation => relation.name === "SpinalSystemServiceTicketHasTicket")
+        const count_tickets = relation_tickets ? relation_tickets.children_number : 0;
+        const relation_ep = response.find(relation => relation.name === "hasEndPoint")
+        const count_ep = relation_ep ? relation_ep.children_number : 0;
+        const relation_cp = response.find(relation => relation.name === "hasControlPoints")
+        const count_cp = relation_cp ? relation_cp.children_number : 0;
+        const relation_notes = response.find(relation => relation.name === "hasNotes")
+        const count_notes = relation_notes ? relation_notes.children_number : 0;
+        const relation_category_attributes = response.find(relation => relation.name === "hasCategoryAttributes")
+        const count_category_attributes = relation_category_attributes ? relation_category_attributes.children_number : 0;
+        const relation_files = response.find(relation => relation.name === "hasFiles")
+        const count_files = relation_files ? relation_files.children_number : 0;
+        return {
+          ...eq,
+          nbr_tickets: count_tickets, nbr_ep: count_ep, nbr_cp: count_cp, nbr_notes: count_notes, nbr_category_attributes: count_category_attributes, nbr_files: count_files
+        }
+      }
+      return eq;
+    });
+    return enrichedItems;
+  }
+
+  async enrichItemsWithPositions(items){
+
+    const itemsPositions = await this.$store.dispatch(ActionTypes.GET_EQUIPMENT_POSITION_MULTIPLE, {
+      buildingId: localStorage.getItem("idBuilding"),
+      equipmentIds: items.map(eq => eq.dynamicId)
+    });
+
+    return items.map((eq) => {
+      const position = itemsPositions.find((pos) => pos.dynamicId == eq.dynamicId);
+      if(!position || position.error){
+        return eq
+      }
+      else{
+        return {
+          ...eq,
+          room: position.info.room,
+          floor: position.info.floor
+        };
+      }
+    });
+  }
+
+  async enrichItemsWithCoordinates(items){
+    const equipmentAttributes = await this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceIds: items.map(eq => eq.dynamicId)
+    });
+    // enrich equipmentList with coordinates and color
+    return items.map(eq => {
+      const matchingResult = equipmentAttributes.find( res => res.dynamicId === eq.dynamicId)
+      const coordinates = this.getCoordinatesFromAttributes(matchingResult.categoryAttributes)
+      return {
+        ...eq,
+        position : coordinates
+      }
+      });
+  }
+
+  getCoordinatesFromAttributes(attributes){
+    let spatial = attributes.find(cat => cat.name === "Spatial");
+    let position;
+    if (spatial) {
+      let xyz = spatial.attributs.find(attr => attr.label === "XYZ center");
+      if (xyz) {
+        let [x, y, z] = xyz.value.split(';').map(Number);
+        position = { x, y, z };
+      }
+    }
+    return position;
+  }
 
   async putAllFiltredData(allFilteredData) {
     this.allFilteredData = allFilteredData
@@ -450,17 +589,12 @@ class dataSideApp extends Vue {
   @Watch("selectedZone")
   async watchSelectedZone() {
 
-    // if (this.selectedZone.type === "building") {
-    //   this.isBuildingSelected = true;
-    //   this.$store.commit(MutationTypes.SET_DATA, []);
-    // }
-    // else {
-    //   this.isBuildingSelected = false;
-    // }
-    //this.retriveData(shouldGetAllEquipments);
-    if(this.$store.state.appDataStore.user_selected.grp){
-      await this.getAndUpdateEquipmentList();
+    if (this.selectedZone.level < 2 ){
+      this.$store.commit(MutationTypes.SET_LAST_LOADED_ZONE, this.selectedZone);
     }
+
+    console.log('SELECTED ZONE CHANGED TO : ', this.selectedZone);
+    await this.getAndUpdateEquipmentGroups();
     await this.updateTableData();
   }
 

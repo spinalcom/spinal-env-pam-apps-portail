@@ -42,66 +42,6 @@ import type {
 } from '../../../../../../global-components/SpaceSelector/interfaces/IBuildingItem';
 
 
-export async function getGroupContext(patrimoineId: string, buildingId: string, position_type: any, getAllCategoryEquipments = true): Promise<any | null> { 
-    let resultCopy = store.state.appDataStore.user_selection_list.ctx;
-    const matchedContext = resultCopy.find(context => context.name === store.state.appDataStore.user_selected.ctx);
-    let type;
-    let List: IZoneItem[] | null = null;
-    // if user selected a context
-    if (matchedContext) {
-
-        let tree = await getGroupContextCategoryList(patrimoineId, buildingId, matchedContext.dynamicId);
-        store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy , "cat": tree });
-        const matchedCategory = tree.find(context => context.name === store.state.appDataStore.user_selected.cat);
-        // if user selected a category
-        if (matchedCategory) {
-
-            let grpList = await getGroupContextGroupList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId);
-            // console.log('grpList', grpList);
-            store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy, "cat": tree, "grp": grpList });
-
-            let allLists = [];
-            if(!getAllCategoryEquipments){
-                // refacto, now we only have 1 group selected ( no longer a list)
-                if(store.state.appDataStore.user_selected.grp){
-                    const matchedGrpList = grpList.find(context => context.name === store.state.appDataStore.user_selected.grp);
-                    if (matchedGrpList) {
-                        let list;
-                        list = await getequipementList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, matchedGrpList.dynamicId);
-                        list = list.map((obj) => {return {...obj,color:matchedGrpList.color, group:matchedGrpList.name}});
-                        if (list) {
-                            allLists.push(...list);
-                        }
-                    }
-                }
-            }
-            else {
-                // get all equipments of all groups
-                for (const selectedGroupName of grpList) {
-                    let list;
-                    type = selectedGroupName.type;
-                    if (selectedGroupName.type === "BIMObjectGroup") {
-                        list = await getequipementList(patrimoineId, buildingId, matchedContext.dynamicId, matchedCategory.dynamicId, selectedGroupName.dynamicId);
-                        list = list.map((obj) => {return {...obj,color:selectedGroupName.color, group:selectedGroupName.name}});
-                    }
-                    if (list) {
-                        allLists.push(...list);
-                    }
-                }
-            }
-
-            const result = await processPositionType(position_type, buildingId, allLists);
-            return result;
-        }
-    }
-
-}
-
-
-
-
-
-
 async function processPositionType(position_type, buildingId, allLists) {
     
     const roomIds = allLists.map(room => room.dynamicId.toString());
@@ -155,19 +95,19 @@ async function processPositionType(position_type, buildingId, allLists) {
     if (position_type.type === 'building') {
         roomsOnFloor = newLists.map(obj => {
             const pos = position.find(pos => pos.dynamicId === obj.dynamicId);
-            return { ...obj, floor: pos?.info?.floor?.name, room: pos?.info?.room?.name };
+            return { ...obj, floor: pos?.info?.floor, room: pos?.info?.room};
         });
     } else if (position_type.type === 'geographicFloor') {
         const List_floor = get_element_floor(position);
         roomsOnFloor = getRoomsByFloor(position_type.dynamicId, newLists, List_floor).map(obj => {
             const pos = position.find(pos => pos.dynamicId === obj.dynamicId);
-            return { ...obj, floor: pos?.info?.floor?.name, room: pos?.info?.room?.name };
+            return { ...obj, floor: pos?.info?.floor, room: pos?.info?.room };
         });
     } else if (position_type.type === 'geographicRoom') {
         const List_floor = get_element_floor(position);
         roomsOnFloor = getElByFloor(position_type.dynamicId, newLists, List_floor).map(obj => {
             const pos = position.find(pos => pos.dynamicId === obj.dynamicId);
-            return { ...obj, floor: pos?.info?.floor?.name, room: pos?.info?.room?.name };
+            return { ...obj, floor: pos?.info?.floor, room: pos?.info?.room };
         });
     } else {
         return newLists; // Fallback for unhandled types

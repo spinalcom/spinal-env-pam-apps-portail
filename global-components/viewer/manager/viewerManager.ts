@@ -205,7 +205,6 @@ export class ViewerManager {
 	}
 
 
-
 	public isolate(item: IPlayload) {
 		this.hide(item) //TODO A BASCULER SUR UNE AUTRE ACTION ..
 		return this._fctViewerIteract(VIEWER_OBJ_ISOLATE, item.item, item.config);

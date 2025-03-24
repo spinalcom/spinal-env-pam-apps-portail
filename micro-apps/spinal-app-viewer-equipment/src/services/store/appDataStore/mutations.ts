@@ -33,6 +33,7 @@ import { INodeItemTree } from "../../../interfaces/INodeItem";
 export enum MutationTypes {
 	SET_BUILDINGS = "SET_BUILDINGS",
 	SET_SELECTED_ZONE = "SET_SELECTED_ZONE",
+	SET_LAST_LOADED_ZONE = "SET_LAST_LOADED_ZONE",
 	SET_FLOORS = "SET_FLOORS",
 	SET_ROOMS = "SET_ROOMS",
 	SET_EQUIPMENTS = "SET_EQUIPMENTS",
@@ -52,6 +53,7 @@ export enum MutationTypes {
 	SET_LOADING_TEXT = "SET_LOADING_TEXT",
 	INCREMENT_LOADING_COUNT = "INCREMENT_LOADING_COUNT",
 	DECREMENT_LOADING_COUNT = "DECREMENT_LOADING_COUNT",
+	SET_INVENTORY_DATA = "SET_INVENTORY_DATA"
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -71,6 +73,7 @@ export type MutationsAppData<S = StateAppData> = {
 	[MutationTypes.SET_LOADING_TEXT](state: StateAppData, payload: string): void;
 	[MutationTypes.INCREMENT_LOADING_COUNT](state: StateAppData, payload: string): void;
 	[MutationTypes.DECREMENT_LOADING_COUNT](state: StateAppData, payload: string): void;
+	[MutationTypes.SET_INVENTORY_DATA](state: StateAppData, payload: string): void;
 	
 
 };
@@ -81,6 +84,9 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 	},
 	[MutationTypes.SET_SELECTED_ZONE](state: StateAppData, payload: ISpaceSelectorItem): void {
 		state.zoneSelected = payload;
+	},
+	[MutationTypes.SET_LAST_LOADED_ZONE](state: StateAppData, payload: ISpaceSelectorItem): void {
+		state.lastLoadedZone = payload;
 	},
 	[MutationTypes.SET_FLOORS](state: StateAppData, { id, items }: { id: string; items: IZoneItem[] }): void {
 		state.floors[id] = items;
@@ -161,6 +167,9 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
         if (state.loadingCount === 0) state.loading = false;
 	},
 
+	[MutationTypes.SET_INVENTORY_DATA](state: StateAppData, payload: string): void {
+		state.inventory = payload;
+	},
 
 
 

@@ -260,6 +260,13 @@ export default {
 
   mounted() {},
 
+  computed:{
+    selectedZone(){
+      return this.$store.state.appDataStore.zoneSelected;
+    }
+  },
+
+
   methods: {
     deselectItem() {
       // this.emitValue('item', '');
@@ -310,7 +317,11 @@ export default {
     },
   },
 
-  watch: {},
+  watch: {
+    selectedZone(newVal, oldVal) {
+      this.goBackToCategory();
+    }
+  },
 };
 </script>
 <style scoped>
