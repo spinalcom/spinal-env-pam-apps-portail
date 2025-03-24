@@ -104,7 +104,7 @@ export const  config: IConfig = {
             setup:{
                 type: "threshold_below",
                 config: [
-                    {name: 'min', value: 70, color: "#24CBD9", label: "Taux de données exploitables" },
+                    {name: 'max', value: 70, color: "#24CBD9", label: "Taux de données exploitables", type: '' },
                 ] // tu isoles ceux undefined et ceux <70
             }
         }

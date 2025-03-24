@@ -59,7 +59,7 @@ methods: {
       }
     },
     async getStripeData() {
-      const stripLegend = config.bilan.timeline;
+    const stripLegend = config.bilan.timeline;
     const source = config.sources.find((src) => src.id === stripLegend.sourceId);
     const configL = stripLegend.setup.config;
     const type = stripLegend.setup.type;
@@ -67,6 +67,7 @@ methods: {
     let duplicate: any = [];
     let warning: any = [];
     let missing: any = [];
+    this.configLegend = [];
     if(this.stripeList) {      
       for (const stripe of this.stripeList) {
          const value = stripe?.value;    
