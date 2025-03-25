@@ -374,8 +374,15 @@
               <span v-else-if="formattedData[0].type == 'geographicFloor'"
                 style="font-size: 19px; font-weight: bold;">Liste des Étages</span>
               <span v-else style="font-size: 19px; font-weight: bold;">Liste des Équipements </span>
-              <v-text-field v-model="searchName" placeholder="Rechercher un nom" dense clearable hide-details solo
-                prepend-inner-icon="mdi-magnify" style="max-width: 250px;"></v-text-field>
+              <div style="display: flex;">
+                <v-text-field v-model="searchName" placeholder="Rechercher un nom" dense clearable hide-details solo
+                  prepend-inner-icon="mdi-magnify" style="max-width: 250px;"></v-text-field>
+                <div style="display: flex; align-items: center; gap: 5px; cursor: pointer;margin-left: 10px;">
+
+                  <v-icon v-if="!allColored" @click="colorAll">mdi-invert-colors</v-icon>
+                  <v-icon v-else @click="descolorAll">mdi-invert-colors-off</v-icon>
+                </div>
+              </div>
             </div>
 
             <div class="inventory-container">
@@ -580,11 +587,15 @@
             <v-icon color="white" size="35px">
               mdi-plus
             </v-icon>
-            <div style="margin-top: 3px;margin-left: 10px;">
+            <div v-if="formattedInventory.length < 1" style="margin-top: 3px;margin-left: 10px;">
               Séléctionner un inventaire
             </div>
+            <div v-else style="margin-top: 3px;margin-left: 10px;">
+              Modifier l'inventaire
+            </div>
           </div>
-          <div v-if="formattedInventory">
+          <div v-if="formattedInventory.length > 1 && formattedInventory">
+            
             <div v-for="category in formattedInventory" :key="category.name" class="blocInformation"
               style="margin-bottom: 20px;">
               <span
@@ -604,7 +615,7 @@
                     {{ item.name }}
                   </li>
 
-                  <v-icon v-if="!eyes[category.name] || eyes[category.name].indexOf(item.dynamicId) === -1"
+                  <!-- <v-icon v-if="!eyes[category.name] || eyes[category.name].indexOf(item.dynamicId) === -1"
                     @click="() => { hideelement(item.dynamicId, category.name); closeeyes(item.dynamicId, category.name) }"
                     style="cursor: pointer; margin-left: 10px;">
                     mdi-eye-outline
@@ -635,10 +646,13 @@
                     @click="() => { descolorElement(item.dynamicId, category.name); closecol(item.dynamicId, category.name) }"
                     :style="{ cursor: 'pointer', marginLeft: '10px', color: iconColors[`${category.name}-${item.dynamicId}`] || '#000' }">
                     mdi-invert-colors-off
-                  </v-icon>
+                  </v-icon> -->
                 </div>
               </div>
             </div>
+          </div>
+          <div  class="blocInformation" v-else>
+            PAS DE DONNÉES DISPONIBLES
           </div>
 
           <FormInventaire @inventory-loaded="handleInventory" :selectedId="stockedZone" :config="config"
@@ -900,7 +914,7 @@ class dataSideApp extends Vue {
   stockedData: any = []
   typdata = 'building'
   currentId = 0;
-  
+
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets', 'Inventaire'];
@@ -1022,9 +1036,20 @@ class dataSideApp extends Vue {
     this.coloredElement = [];
   }
 
-  handleInventory(inventory) {
-    console.log('Inventaire reçu du composant enfant :', inventory);
-    this.formattedInventory = inventory;
+  handleInventory(data) {
+    if (Array.isArray(data) && data[0]?.inventory) {
+      // cas building : on fusionne les inventories avec le floorId comme préfixe
+      this.formattedInventory = data.flatMap(d =>
+        d.inventory.map(cat => ({
+          ...cat,
+          name: `étages (${d.floorName}) : ${cat.name}`,
+        }))
+      );
+    } else if (Array.isArray(data)) {
+      this.formattedInventory = data;
+    } else {
+      this.formattedInventory = [data];
+    }
   }
 
   colorAll() {
@@ -1714,7 +1739,10 @@ class dataSideApp extends Vue {
     // window.parent.router.query.app = 'toto'
     // console.log('totototototoottoto windows query');
 
+    
 
+    
+    
 
     document.querySelectorAll('.v-input__icon').forEach(el => {
       el.style.width = '150%';
@@ -1773,6 +1801,7 @@ class dataSideApp extends Vue {
 
   async loadBuildingInfo() {
     await this.getBuildingInfo();
+
     this.typdata = 'building'
 
     if (this.buildingInfo[0].dynamicId) {
@@ -3285,6 +3314,11 @@ class dataSideApp extends Vue {
 
   @Watch("data")
   watchData() {
+    if(this.selectedZone.dynamicId ==   this.$store.state.appDataStore.buildingInfo.dynamicId){
+      console.warn('building enfin ?');
+      this.typdata = 'building'
+    }
+    
     this.referencedId = this.selectedZone.dynamicId
     if (this.selectedZone.type == undefined) {
       this.referencedType = "etage"
@@ -3336,6 +3370,9 @@ export default dataSideApp;
   font-weight: bold;
   display: flex;
   user-select: none;
+  margin-left:8px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .app_access_fl {
