@@ -27,7 +27,7 @@
             </div>
 
             <div class="table">
-              <SpinalTable :item="formateditems" :headers="dynamicHeaders" />
+              <SpinalTable :item="formateditems" :attributeList="stripeData" :headers="dynamicHeaders" />
             </div>
           </div>
         </div>
@@ -147,7 +147,6 @@ async getFloorEquipements() {
     const baseHeaders = [
     { text: 'Etage', value: 'floorName', align: 'start' },
       { text: 'Nom', value: 'name', align: 'start' },
-      // {text: 'convention de nommage', value: 'valueAttribute', align: 'start', isConvention: true}, 
   ];
 
   // Ajouter les headers pour les endpoints
@@ -169,9 +168,14 @@ async getFloorEquipements() {
         const key = endpoint.name.toLowerCase().replace(/ /g, "-");
         const type = typeof endpoint.currentValue;
    
+        if(type === 'number') {
+          formated[key] = endpoint.currentValue.toFixed(2);
+        }
+        else {
+          formated[key] = `${endpoint.currentValue}`;
+
+        }
         
-        if (type === 'number') formated[key] = endpoint.currentValue.toFixed(2) ;
-        else formated[key] = `${endpoint.currentValue}`;
       });
       return formated;
     });

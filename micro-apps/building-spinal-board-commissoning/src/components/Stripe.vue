@@ -61,40 +61,53 @@ methods: {
     async getStripeData() {
     const stripLegend = config.bilan.timeline;
     const source = config.sources.find((src) => src.id === stripLegend.sourceId);
-    const configL = stripLegend.setup.config;
+    const configL = stripLegend.setup.legend;
     const type = stripLegend.setup.type;
-    let seen = new Set();
+    let seen = new Map();
     let duplicate: any = [];
     let warning: any = [];
     let missing: any = [];
     this.configLegend = [];
-    if(this.stripeList) {      
+    if (this.stripeList) {
       for (const stripe of this.stripeList) {
-         const value = stripe?.value;    
-      
+        const value = stripe?.value;
+
         if (type === "regex") {
-          const regex : RegExp= stripLegend.setup.value as RegExp;
+          const regex: RegExp = stripLegend.setup.value as RegExp;
           // Vérifie si la regex existe et fonctionne correctement
-          
-          
+
           if (!value) {
             missing.push(value);
-            
           } else {
-                if (regex.test(value)) {
-                    
-                    if(seen.has(value)) {
-                      duplicate.push(value);
-                    } else {
-                      seen.add(value);
-                    }
-                  } else {
-                    warning.push(value);
-                  }
+            if (regex.test(value)) {
+              if (seen.has(value)) {
+                const count = seen.get(value);
+                seen.set(value, count + 1);
+               
+              } else {
+                seen.set(value, 1);
+              }
+            } else {
+              warning.push(value);
             }
-          }          
+          }
+        }
+      }
     }
-    if(seen.size > 0) { 
+
+    // Retirer les éléments du Set seen qui sont présents dans le tableau duplicate
+    
+   seen.forEach((value, key) => {
+      if(value > 1) {
+        seen.delete(key);
+        duplicate.push(value);
+       console.log('duplicate', key, 'value: ', value);
+      }
+   })
+   const duplicatesum = duplicate.reduce((a: any, b: any) => a + b, 0);
+   console.log('duplicate', duplicatesum);
+
+    if (seen.size > 0) {
       const success_naming = stripLegend.setup.legend?.find((config) => config.type === "success");
       const item = {
         name: success_naming?.name || "Success",
@@ -102,10 +115,9 @@ methods: {
         value: seen.size
       };
       this.configLegend.push({ name: item.name, color: item.color, value: item.value });
-
     }
-    
-    if(warning.length > 0) {
+
+    if (warning.length > 0) {
       const warning_naming = stripLegend.setup.legend?.find((config) => config.type === "warning");
       if (warning_naming) {
         const item = {
@@ -116,7 +128,7 @@ methods: {
         this.configLegend.push({ name: item.name, color: item.color, value: item.value });
       }
     }
-    if(missing.length > 0) {
+    if (missing.length > 0) {
       const missing_naming = stripLegend.setup.legend?.find((config) => config.type === "missing");
       if (missing_naming) {
         const item = {
@@ -130,20 +142,20 @@ methods: {
 
     if (duplicate.length > 0) {
       const duplicate_naming = stripLegend.setup.legend?.find((config) => config.type === "dual");
-      if(duplicate_naming) { 
+      if (duplicate_naming) {
         const item = {
-        name: duplicate_naming?.name || "Duplicate",
-        color: duplicate_naming?.color || "#ff0000",
-        value: duplicate.length
-      };
+          name: duplicate_naming?.name || "Duplicate",
+          color: duplicate_naming?.color || "#ff0000",
+          value: duplicatesum
+        };
         this.configLegend.push({ name: item.name, color: item.color, value: item.value });
       }
-    };
-   
+    }
+
     console.log('configLegend', this.configLegend);
   }
     }
-  }
+  
 };
 </script>
 

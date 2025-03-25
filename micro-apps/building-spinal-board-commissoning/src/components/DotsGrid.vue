@@ -11,8 +11,7 @@
 </template>
 
 <script lang="ts">
-import { dot } from 'node:test/reporters';
-
+import { config } from '../../config';
 export default {
     name: "DotsGrid",
     props: {
@@ -24,6 +23,7 @@ export default {
     data() {
         return {
             dotData: this.dotsList,
+            endpointList: [],
         }
     },
 
@@ -38,6 +38,7 @@ export default {
         dotsList: {
             handler: function (value) {
                this.dotData = value;
+               this.getEndpoint(this.dotData);
             },
             deep: true,
         },
@@ -55,7 +56,13 @@ export default {
             else if(typeof value === 'boolean') {
 
             }
-        }
+        },
+
+     getEndpoint(data){
+       const sourceIdselect = config.bilan.dotsGrid?.sourceId;
+
+
+     }
     }
 }
 

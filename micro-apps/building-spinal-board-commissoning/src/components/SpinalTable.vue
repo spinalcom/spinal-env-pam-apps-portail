@@ -13,14 +13,10 @@
     'items-per-page-all-text': 'Toutes'
   }"
   >
-  <!-- <template v-slot:[`item.floorName`]="{ item }">
-    <div class="font-table">{{item.floor}}</div>
-  </template>
-  <template v-slot:[`item.name`]="{ item }">
-    <div class="font-table">{{item.name}}</div>
-  </template> -->
+ 
    <template  v-for="header in headers"  v-slot:[`item.${header.value}`]="{value}" >
         <template v-if="header.isEndpoint">
+            <div :style="{width: 20 + 'px', height: 20 + 'px', borderRadius: 7 + 'px', backgroundColor: item.color,}" style="background-color: blue;"></div>
             <SmallLegend class="ml-3" :size="11" :color="getColor(value)" :text="`${value}`"/>
         </template>
         <template v-else-if="header.isConvention">
@@ -40,7 +36,8 @@
 
 <script lang="ts">
 import SmallLegend from './SmallLegend.vue';
-import {config} from '../../config'
+import { config } from '../../config';
+import { get } from 'http';
 export default {
     name: 'SpinalTable',
     components: {
@@ -51,6 +48,10 @@ export default {
             type: [] as any[],
             required: true
         },
+        attributeList: {
+          type: [] as any[],
+          required: false
+        },
         headers: {
             type: [] as any[],
             required: true
@@ -58,35 +59,104 @@ export default {
     },
     data() {
         return {
+          attrbutes: this.attributeList,
+          duplicate: [] as any[],
+          warning: [] as any[],
+          missing: [] as any[],
+          seen: new Set()
+
         };
         },
-        
-    methods: { 
-        getColor(currentValue: number): string {
-            if (currentValue < 50) {
-            return '#FF000B'; // Rouge pour les valeurs inférieures à 50
-            } else if (currentValue >= 50 && currentValue < 80) {
-            return '#EF8BC5'; // Rose pour les valeurs entre 50 et 80
-            } else {
-            return '#14202C'; // Bleu foncé pour les valeurs supérieures ou égales à 80
-            }
-        },
-        // checkConvention(value: string) {
-        //     if(config.bilan.timeline.setup.config){
-        //         return {
-        //             backgroundColor: 'transparent',
-        //             color: '#14202C'
-        //         };
-        //     }
-        //     else {
-        //         return {
-        //           backgroundColor: '#9830F2',
-        //           color: '#ffffff'
-        //         };
-        //     }
-        // }
 
+
+   watch: {
+    attributeList: {
+      handler(newData) {
+        if (Array.isArray(newData) && newData.length > 0) {
+          this.attrbutes = newData;
+          this.getStripeData();
+
+        }
+      },
+      deep: true,
+      immediate: true
     }
+   },
+        
+    methods: {
+      
+      async getStripeData() {
+    const stripLegend = config.bilan.timeline;
+    const source = config.sources.find((src) => src.id === stripLegend.sourceId);
+    const configL = stripLegend.setup.legend;
+    const type = stripLegend.setup.type;
+     this.seen = new Set();
+     this.duplicate = [];
+     this.warning = [];
+     this.missing = [];
+    if(this.attrbutes) {
+      for (const stripe of this.attrbutes) {
+         const value = stripe?.value;    
+      
+        if (type === "regex") {
+          const regex : RegExp= stripLegend.setup.value as RegExp;
+          // Vérifie si la regex existe et fonctionne correctement
+          
+          
+          if (!value) {
+            this.missing.push(value);
+            
+          } else {
+                if (regex.test(value)) {
+                    
+                    if(this.seen.has(value)) {
+                      this.duplicate.push(value);
+                    } else {
+                      this.seen.add(value);
+                    }
+                  } else {
+                    this.warning.push(value);
+                  }
+            }
+          }          
+    }
+  }
+},
+ 
+getColor(currentValue: any) {
+    // Vérifier si currentValue est un nombre
+    const numericValue = parseFloat(currentValue);
+  
+
+    if (!isNaN(numericValue)) {
+      // currentValue est un nombre
+      if (numericValue < 50) {
+        return '#FF000B'; // Rouge pour les valeurs inférieures à 50
+      } else if (numericValue >= 50 && numericValue < 80) {
+        return '#EF8BC5'; // Rose pour les valeurs entre 50 et 80
+      } else {
+        return '#14202C'; // Bleu foncé pour les valeurs supérieures ou égales à 80
+      }
+    } else if (typeof currentValue === 'string') {
+      // currentValue est une chaîne de caractères
+      if (this.duplicate.includes(currentValue)) {
+        const src = config.bilan.timeline.setup.legend?.find((config) => config.type === "dual");
+        return src?.color; // Rouge pour les valeurs en double
+      } else if (this.warning.includes(currentValue)) {
+        const src = config.bilan.timeline.setup.legend?.find((config) => config.type === "warning");
+        return src?.color;
+      } else if (currentValue === 'undefined' || currentValue === 'null') {
+        const src = config.bilan.timeline.setup.legend?.find((config) => config.type === "missing");
+        return src?.color;
+      } else {
+        return '#14202C'; // Bleu foncé pour les autres valeurs
+      }
+    } else {
+      // currentValue n'est ni un nombre ni une chaîne de caractères
+      return '#000000'; // Noir par défaut
+    }
+  }
+  }
 }
 
 
