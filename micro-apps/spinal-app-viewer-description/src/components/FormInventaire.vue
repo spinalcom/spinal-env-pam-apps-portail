@@ -1,13 +1,30 @@
 <template>
   <v-dialog v-model="isDialogOpen" persistent max-width="65%"
     style="display: flex !important;gap: 20px !important; font-size: 12px !important; overflow: hidden; background: white !important;   border-radius: 20px !important;">
-    <form @submit.prevent="createTicket" class="content">
+    <div class="content">
+
+
+      <div v-if="loadingStatus === 'loading'"
+        style="display : flex ; text-align: center; margin-top: 20px; position: absolute; width: 100%;height: 100%;z-index: 99;justify-content: center;align-items: center;backdrop-filter: blur(3px);">
+        <v-progress-circular indeterminate color="primary" />
+        <div>Chargement des inventaires...</div>
+      </div>
+
+      <div v-if="loadingStatus === 'end'"
+        style="position: absolute;width: 100%;height: 100%;z-index: 99;display: flex;justify-content: center;align-items: center;">
+        <div class="popup_loaded">
+          <v-icon color="green" size="87">mdi-check-circle</v-icon>
+          <div style="margin-left: 35px; font-size: 27px;">Inventaires chargés</div>
+        </div>
+      </div>
+
+
       <div style="padding: 10px; align-items: center;" class="w-full flex justify-between border-bottom">
         <span class="headline">Creer un inventaire</span>
         <div style="display: flex; gap: 10px;">
-          <button type="submit" class="save-btn">
+          <!-- <button type="submit" class="save-btn">
             <v-icon style="color: white;">mdi-content-save</v-icon>
-            Enregistrer</button>
+            Enregistrer</button> -->
           <button type="reset" class="cancel-btn" @click="closeDialog">Fermer</button>
         </div>
 
@@ -15,7 +32,7 @@
       <v-card elevation="0"
         style="overflow-y: auto !important; width: 100% !important; height: 100%; padding-top: 10px;">
         <div class="w-full h-full overflow-hidden overflow-y-auto">
-          <div style="width: 100%; padding: 20px;">
+          <div style="width: 100%; padding: 25px;">
             <v-card-text style="min-height: 50px;">
               <div class="col">
                 <v-row v-if="showalert"
@@ -24,8 +41,9 @@
                   <span class="text-alert">Veuillez remplir tous les champs</span>
                 </v-row>
                 <v-row class="flex justify-center items-center" style="padding: 10px">
-                  <span style="text-align: center; font-weight: 800; font-size: 16px;">Type d'inventaire: </span>
-                  <span :class="['cursor-pointer chip', { 'checked': item.checked }]" v-for="(item, index) in prioritie"
+                  <span style="text-align: center; font-weight: 800; font-size: 16px;">Selectionez un type d'inventaire:
+                  </span>
+                  <span style="width: 150px; height: 38px;" :class="['cursor-pointer chip', { 'checked': item.checked }]" v-for="(item, index) in prioritie"
                     @click="checkPrioritie(index)">
                     <span class="icon-check" v-if="item.checked">&#10003;</span>
                     <span style="font-weight: 700; text-transform: capitalize;"> {{ item.name }}</span>
@@ -47,7 +65,7 @@
           </div>
         </div>
       </v-card>
-    </form>
+    </div>
   </v-dialog>
 </template>
 
@@ -84,6 +102,7 @@ export default {
   data() {
     return {
       showalert: false,
+      loadingStatus: 'idle',
       workflowId: 0,
       processId: 0,
       ticketname: '',
@@ -114,20 +133,34 @@ export default {
       categories: [],
       getIcon: getIcon,
       selectedCtx: null,
-      selectedCat: null
+      selectedCat: null,
+      currentType: ''
     };
 
   },
   async mounted() {
-    console.log('HIHIHIHI');
-    
+
+    this.$emit('inventory-loaded', []);
+    const buildingId = localStorage.getItem("idBuilding");
+
+    const promises_node = [
+      this.$store.dispatch(ActionTypes.GET_NODE_READ, {
+        buildingId,
+        referenceIds: [this.selectedId]
+      }),
+    ];
+
+    const results = await Promise.all(promises_node);
+
+    this.currentType = results[0].type
+
     if (this.typedata == "room") {
       this.prioritie = [
         {
           name: 'equipement',
           color: 'green',
           value: 0,
-          checked: false,
+          checked: true,
         },
       ]
     }
@@ -137,7 +170,7 @@ export default {
           name: 'equipement',
           color: 'green',
           value: 0,
-          checked: false,
+          checked: true,
         },
         {
           name: 'espace',
@@ -163,6 +196,14 @@ export default {
         }, 500);
       }
     },
+    loadingStatus(newVal) {
+      console.warn('la new val ', newVal);
+      if (newVal === 'end') {
+        setTimeout(() => {
+          this.loadingStatus = 'idle';
+        }, 1500); // 2000ms = 2 secondes
+      }
+    },
     prioritie: {
       handler(newVal) {
         this.Toto()
@@ -171,6 +212,7 @@ export default {
       deep: true
     },
     typedata(newVal, oldVal) {
+
       if (newVal == "room") {
         this.prioritie = [
           {
@@ -257,40 +299,87 @@ export default {
         { buildingId, contextId }
       );
       this.categories = resultCategory
-      console.log("Résultat des catégories pour :", this.typedata, resultCategory);
 
     },
 
     async GetInventory() {
-      console.warn('je met ajour le truc');
+      this.loadingStatus = 'loading'; 
+      console.warn('l inventaire charche 1 ' ,  this.currentType ,this.typedata);
       
+      try {
+        if (this.typedata === 'equipement' || this.currentType == "BIMObject") {
+          this.loadingStatus = 'end';
+          return;
+        }
 
-      if (this.typedata == 'equipement')
-        return
-      else if (this.typedata == 'room') {
-        const inventoryResponse = await this.$store.dispatch(ActionTypes.GET_ROOM_INVENTORY, {
-          id: this.selectedId,
-          body: { context: this.selectedCtx, category: this.selectedCat },
-          includeArea: true,
-          onlyDynamicId: false,
-        });
-        this.$emit('inventory-loaded', inventoryResponse); // <-- ici
+        if (this.typedata === 'room' || this.currentType == "geographicRoom") {
+          const inventoryResponse = await this.$store.dispatch(ActionTypes.GET_ROOM_INVENTORY, {
+            id: this.selectedId,
+            body: { context: this.selectedCtx, category: this.selectedCat },
+            includeArea: true,
+            onlyDynamicId: false,
+          });
 
-      } else if (this.typedata == 'floor') {
-        const inventoryResponse = await this.$store.dispatch(ActionTypes.GET_FLOOR_INVENTORY, {
-          id: this.selectedId,
-          body: { context: this.selectedCtx, category: this.selectedCat },
-          onlyDynamicId: false,
-        });
-        this.$emit('inventory-loaded', inventoryResponse); // <-- ici
-      } else {
-        console.log('faire inventaira du building');
+          this.$emit('inventory-loaded', inventoryResponse);
+        
+          this.loadingStatus = 'end'; 
+        }
 
+        else if (this.typedata === 'floor' || this.currentType == "geographicFloor" ) {
+          console.warn('l inventaire charche 2 , floor ');
+
+          const inventoryResponse = await this.$store.dispatch(ActionTypes.GET_FLOOR_INVENTORY, {
+            id: this.selectedId,
+            body: { context: this.selectedCtx, category: this.selectedCat },
+            onlyDynamicId: false,
+          });
+
+          this.$emit('inventory-loaded', inventoryResponse);
+
+          this.loadingStatus = 'end'; // ⬅️ Chargement terminé
+        }
+
+        else {
+          const buildingId = localStorage.getItem("idBuilding");
+          const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
+          const floorsResult = await this.$store.dispatch(ActionTypes.GET_FLOORS, {
+            buildingId,
+            patrimoineId,
+          });
+
+          const floorIds = floorsResult.map(floor => floor.dynamicId);
+          const allInventories = [];
+
+          for (const floorId of floorIds) {
+            try {
+              const inventoryResponse = await this.$store.dispatch(ActionTypes.GET_FLOOR_INVENTORY, {
+                id: floorId,
+                body: { context: this.selectedCtx, category: this.selectedCat },
+                includeArea: true,
+                onlyDynamicId: false,
+              });
+
+              const floorName = floorsResult.find(f => f.dynamicId === floorId)?.name || `Étage ${floorId}`;
+
+              allInventories.push({
+                floorId,
+                floorName,
+                inventory: inventoryResponse,
+              });
+            } catch (error) {
+              console.error(`[GetInventory] Erreur récupération inventaire pour ${this.selectedCtx} - ${this.selectedCat}, floor ${floorId} :`, error);
+            }
+          }
+
+          this.$emit('inventory-loaded', allInventories);
+          this.loadingStatus = 'end'; 
+        }
+      } catch (err) {
+        console.error("Erreur GetInventory globale :", err);
+        this.loadingStatus = 'error'; 
       }
-
-    },
-
-
+    }
+    ,
 
 
     resetForm() {
@@ -355,18 +444,28 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  border: 1px solid rgb(206, 206, 206);
+  margin: 10px;
+  border-radius: 5px;
+  background-color: rgb(243, 243, 243);
+  max-height: 80%;
+  /* height: 80%; */
+  overflow-y: auto;
+  padding: 10px;
 }
 
 .category-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid black;
+  border: 1px solid rgb(104, 104, 104);
   border-radius: 5px;
   cursor: pointer;
   transition: 0.5s;
   padding: 5px;
   margin-top: 5px;
+  height: 60px;
+  background-color: white;
 }
 
 .category-item:hover {
@@ -375,6 +474,56 @@ export default {
 
 .material-icons {
   font-size: 20px;
+}
+
+
+.popup_loaded {
+  position: absolute;
+  width: 500px;
+  height: 117px;
+  /* top: 50%; */
+  background-color: white;
+  border: 1px solid gray;
+  border-radius: 15px;
+  z-index: 99;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  justify-content: space-around;
+  align-self: flex-end;
+  -webkit-animation: slide-in-bottom 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  animation: slide-in-bottom 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  margin-bottom: 100px;
+  /* font-weight: bold; */
+}
+
+@-webkit-keyframes slide-in-bottom {
+  0% {
+    -webkit-transform: translateY(1000px);
+    transform: translateY(1000px);
+    opacity: 0;
+  }
+
+  100% {
+    -webkit-transform: translateY(0);
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-bottom {
+  0% {
+    -webkit-transform: translateY(1000px);
+    transform: translateY(1000px);
+    opacity: 0;
+  }
+
+  100% {
+    -webkit-transform: translateY(0);
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 </style>
 
