@@ -46,6 +46,8 @@ import { HTTP } from '../services/http-constants';
 import config from '../../config';
 import moment from 'moment';
 import { getSecondChartOccupancyDataByFloor, getContextId, getCategoryId, getGroupId, getRoomIds, getTotalSurface2, getThirdChartCategoryId, getThirdChartContextId, getThirdChartGroupId, getThirdChartIds, getThirdChartOccupancyDataByFloor, getPeriodArray } from '../services/index'; 
+import { getFloorOccupancyDynamicIds, getFloorOccupancyRatesByPeriod } from '../services/index';
+
 Chart.register(...registerables);
 
 export default defineComponent({
@@ -88,7 +90,6 @@ export default defineComponent({
     
 const fetchFloorData = async (period, timestamp) => {
   try {
-    
     // Récupérer les IDs d'occupation et les noms des étages
     const { dynamicIds, floorNames, floorOccupancyMapping } = await getFloorOccupancyDynamicIds();
 
@@ -101,14 +102,13 @@ const fetchFloorData = async (period, timestamp) => {
 
     // Transformer les Dynamic IDs en noms d'étages
     floorData.value = occupancyRates.map(floor => {
-      const realFloorId = floorOccupancyMapping ? floorOccupancyMapping[floor.dynamicId] : null; 
+      const realFloorId = floorOccupancyMapping ? floorOccupancyMapping[floor.dynamicId] : null;
       return {
         floor: mapFloorDynamicId(realFloorId, floorNames),
         occupancy: parseFloat(floor.occupancy), // pour s'assurer que l'occupation est un nombre
         area: floor.area
       };
     });
-
 
     // Mettre à jour la liste des étages pour le graphique
     allFloors.value = floorData.value.map(floor => floor.floor);
@@ -240,170 +240,24 @@ const fetchThirdChartFloorData = async (timestamp) => {
       }
     };
 
-const fetchThirdChartTotalCount = async () => {
-      try {
-        const entryPoint = config.entryPoints[1]; // Accéder directement au deuxième élément
-        const contextId = await getThirdChartContextId(entryPoint.context);
-        const categoryId = await getThirdChartCategoryId(contextId, entryPoint.category);
-        const groupId = await getThirdChartGroupId(contextId, categoryId, entryPoint.group);
-        const thirdChartIds = await getThirdChartIds(contextId, categoryId, groupId);
+    const fetchThirdChartTotalCount = async () => {
+          try {
+            const entryPoint = config.entryPoints[1]; // Accéder directement au deuxième élément
+            const contextId = await getThirdChartContextId(entryPoint.context);
+            const categoryId = await getThirdChartCategoryId(contextId, entryPoint.category);
+            const groupId = await getThirdChartGroupId(contextId, categoryId, entryPoint.group);
+            const thirdChartIds = await getThirdChartIds(contextId, categoryId, groupId);
 
-        if (!thirdChartIds || thirdChartIds.length === 0) {
-          throw new Error('No equipment IDs found');
-        }
+            if (!thirdChartIds || thirdChartIds.length === 0) {
+              throw new Error('No equipment IDs found');
+            }
 
-        thirdChartTotalCount.value = thirdChartIds.length;
-        console.log('Total Equipment Count:', thirdChartTotalCount.value);
-      } catch (error) {
-        console.error("Erreur lors de la récupération du nombre total d'équipements :", error);
-      }
-    };
-
-
-const getFloorOccupancyDynamicIds = async () => {
-  try {
-    
-    const buildingId = localStorage.getItem("idBuilding");
-    if (!buildingId) {
-      console.error('Building ID not found in localStorage');
-      return { dynamicIds: [], floorNames: {} };
-    }
-
-    // Récupérer la liste des étages
-    const floorsResponse = await HTTP.get(config.apiEndpoints.floors.replace('{buildingId}', buildingId));
-    const floors = floorsResponse.data;
-
-    if (!floors || floors.length === 0) {
-      console.error('Aucun étage trouvé pour ce bâtiment.');
-      return { dynamicIds: [], floorNames: {} };
-    }
-    console.log('Étages récupérés :', floors);
-
-    
-    const floorNames = {};
-    const floorDynamicIds = floors.map(floor => {
-      floorNames[floor.dynamicId] = floor.name; 
-      return floor.dynamicId; 
-    });
-
-    console.log('Correspondance ID → Nom des étages :', floorNames);
-
-    const batchSize = 50;
-    const batchedPromises = [];
-
-    for (let i = 0; i < floorDynamicIds.length; i += batchSize) {
-      const batch = floorDynamicIds.slice(i, i + batchSize);
-      console.log(batch, 'batch');
-
-      batchedPromises.push(
-        HTTP.post(config.apiEndpoints.controlEndpointListMultiple.replace('{buildingId}', buildingId), batch)
-      );
-    }
-
-    const results = await Promise.all(batchedPromises);
-
-    const combinedResults = results.flatMap(result => result.data);
-    console.log('Combined endpoints response:', combinedResults);
-
-    const dynamicIds = [];
-    const floorOccupancyMapping = {}; 
-
-    combinedResults.forEach(floorEndpointsList => {
-      const floorId = floorEndpointsList[0]?.dynamicId;
-
-      floorEndpointsList.forEach(profile => {
-        profile.endpoints.forEach(endpoint => {
-          if (
-            endpoint.name.trim().toLowerCase() === config.entryPoints[0].source[0].name.trim().toLowerCase() &&
-            endpoint.type.trim().toLowerCase() === config.entryPoints[0].source[0].type.trim().toLowerCase()
-          ) {
-            dynamicIds.push(endpoint.dynamicId);
-            floorOccupancyMapping[endpoint.dynamicId] = floorId;
+            thirdChartTotalCount.value = thirdChartIds.length;
+            console.log('Total Equipment Count:', thirdChartTotalCount.value);
+          } catch (error) {
+            console.error("Erreur lors de la récupération du nombre total d'équipements :", error);
           }
-        });
-      });
-    });
-
-    if (dynamicIds.length === 0) {
-      console.warn('⚠️ Aucun Dynamic ID trouvé pour les taux d\'occupation.');
-    }
-
-    console.log('Dynamic IDs des taux d\'occupation:', dynamicIds);
-    console.log('Mapping Dynamic ID → Étages:', floorOccupancyMapping);
-
-    return { dynamicIds, floorNames, floorOccupancyMapping };
-  } catch (error) {
-    console.error('Erreur dans getFloorOccupancyDynamicIds:', error);
-    return { dynamicIds: [], floorNames: {}, floorOccupancyMapping: {} };
-  }
-};
-
-
-const getFloorOccupancyRatesByPeriod = async (period, timestamp, dynamicIds) => {
-  try {
-    const buildingId = localStorage.getItem('idBuilding');
-    if (!buildingId) {
-      console.error('No building ID found in localStorage');
-      return [];
-    }
-
-    const periodArray = getPeriodArray(timestamp, period);
-
-    const batchSize = 50;
-    const batchedPromises = [];
-
-    for (let i = 0; i < dynamicIds.length; i += batchSize) {
-      const batch = dynamicIds.slice(i, i + batchSize);
-      console.log(batch, 'batch');
-
-      batchedPromises.push(
-        HTTP.post(
-          config.apiEndpoints.timeSeriesMultiple.replace('{buildingId}', buildingId).replace('{start}', periodArray[1]).replace('{end}', periodArray[2]),
-          batch
-        )
-      );
-    }
-
-    const results = await Promise.all(batchedPromises);
-
-    const combinedResults = results.flatMap(result => result.data);
-    console.log('Combined time series response:', combinedResults);
-
-    const aggregatedData = {};
-    dynamicIds.forEach(dynamicId => {
-      aggregatedData[dynamicId] = [];
-    });
-
-    combinedResults.forEach((series, index) => {
-      series.timeseries.forEach(point => {
-        const formattedLabel = period === 'Journée' || period === 'Valeur Courante'
-          ? moment(point.date).format('HH')
-          : moment(point.date).format('DD MMM');
-        aggregatedData[dynamicIds[index]].push({
-          date: point.date,
-          value: point.value
-        });
-      });
-    });
-
-    console.log('Aggregated data:', aggregatedData);
-
-    const floorData = dynamicIds.map(dynamicId => {
-      const floorSeries = aggregatedData[dynamicId];
-      const totalValue = floorSeries.reduce((sum, point) => sum + point.value, 0);
-      const averageValue = floorSeries.length > 0 ? (totalValue / floorSeries.length).toFixed(2) : 0;
-      return {
-        dynamicId,
-        occupancy: averageValue
-      };
-    });
-
-    return floorData;
-  } catch (error) {
-    console.error("Erreur lors de la récupération des taux d'occupation des étages :", error);
-    return [];
-  }
-};
+        };
 
     const buildingOccupancyRate = computed(() => {
       if (floorData.value.length === 0) return 0;
@@ -649,8 +503,9 @@ const renderThirdChart = () => {
 };
 
 watch(() => props.temporality, async (newTemporality) => {
-  await fetchFloorData(newTemporality.name);
-  await fetchSecondFloorData();
+  const timestamp = moment().valueOf();
+  await fetchFloorData(newTemporality.name, timestamp);
+  await fetchSecondFloorData(timestamp);
   await fetchThirdChartFloorData(timestamp);
   await fetchTotalSurface();
   await fetchTotalSurface2();
@@ -658,14 +513,14 @@ watch(() => props.temporality, async (newTemporality) => {
 });
 
 onMounted(async () => {
-  await fetchFloorData(props.temporality.name);
-  await fetchSecondFloorData();
-  await fetchThirdChartFloorData();
+  const timestamp = moment().valueOf(); 
+  await fetchFloorData(props.temporality.name, timestamp);
+  await fetchSecondFloorData(timestamp);
+  await fetchThirdChartFloorData(timestamp);
   await fetchTotalSurface();
   await fetchTotalSurface2();
   await fetchThirdChartTotalCount();
 });
-
 return {
   chartCanvas,
   occupancyChart,

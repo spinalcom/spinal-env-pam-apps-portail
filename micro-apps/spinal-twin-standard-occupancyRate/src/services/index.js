@@ -184,25 +184,82 @@ export async function getRoomPositions(roomIds) {
     return null;
   }
 }
-//Récupère les IDs dynamiques d'occupation pour les salles données.
-export async function fetchSecondChartOccupationDynamicIds(roomIds) {
-  try {
-    console.log('fetchSecondChartOccupationDynamicIds called');
-    console.log('Input Room IDs:', roomIds);
 
+function extractDynamicIds(combinedResults, configEntryPoint, processEndpoint, ...extraParams) {
+  const dynamicIds = [];
+  combinedResults.forEach((endpointsList) => {
+    if (endpointsList && Array.isArray(endpointsList)) {
+      endpointsList.forEach(item => {
+        if (item.endpoints && Array.isArray(item.endpoints)) {
+          item.endpoints.forEach(endpoint => {
+            if (
+              endpoint.name.trim().toLowerCase() === configEntryPoint.source[0].name.trim().toLowerCase() &&
+              endpoint.type.trim().toLowerCase() === configEntryPoint.source[0].type.trim().toLowerCase()
+            ) {
+              processEndpoint(endpoint, item, dynamicIds, ...extraParams);
+            }
+          });
+        }
+      });
+    }
+  });
+  return dynamicIds;
+}
+function processBuildingEndpoint(endpoint, floor, dynamicIds, floorOccupancyMapping) {
+  dynamicIds.push(endpoint.dynamicId);
+  floorOccupancyMapping[endpoint.dynamicId] = floor.dynamicId;
+}
+
+function processRoomEndpoint(endpoint, room, dynamicIds) {
+  dynamicIds.push(endpoint.dynamicId);
+}
+
+function processEquipmentEndpoint(endpoint, equipment, dynamicIds) {
+  dynamicIds.push(endpoint.dynamicId);
+}
+
+function processRoomEndpointByFloor(endpoint, room, dynamicIdsByFloor, roomsByFloor) {
+  const floorId = Object.keys(roomsByFloor).find(floorId => roomsByFloor[floorId].rooms.includes(room.dynamicId));
+  if (floorId) {
+    if (!dynamicIdsByFloor[floorId]) {
+      dynamicIdsByFloor[floorId] = [];
+    }
+    dynamicIdsByFloor[floorId].push(endpoint.dynamicId);
+  }
+}
+
+// Récupère les IDs dynamiques d'occupation pour les étages
+export async function getFloorOccupancyDynamicIds() {
+  try {
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error('No building ID found in localStorage');
-      return [];
+      console.error('Building ID not found in localStorage');
+      return { dynamicIds: [], floorNames: {} };
     }
 
-    console.log('Building ID:', buildingId);
+    // Récupérer la liste des étages
+    const floorsResponse = await HTTP.get(config.apiEndpoints.floors.replace('{buildingId}', buildingId));
+    const floors = floorsResponse.data;
+
+    if (!floors || floors.length === 0) {
+      console.error('Aucun étage trouvé pour ce bâtiment.');
+      return { dynamicIds: [], floorNames: {} };
+    }
+    console.log('Étages récupérés :', floors);
+
+    const floorNames = {};
+    const floorDynamicIds = floors.map(floor => {
+      floorNames[floor.dynamicId] = floor.name;
+      return floor.dynamicId;
+    });
+
+    console.log('Correspondance ID → Nom des étages :', floorNames);
 
     const batchSize = 50;
     const batchedPromises = [];
 
-    for (let i = 0; i < roomIds.length; i += batchSize) {
-      const batch = roomIds.slice(i, i + batchSize);
+    for (let i = 0; i < floorDynamicIds.length; i += batchSize) {
+      const batch = floorDynamicIds.slice(i, i + batchSize);
       console.log(batch, 'batch');
 
       batchedPromises.push(
@@ -210,34 +267,119 @@ export async function fetchSecondChartOccupationDynamicIds(roomIds) {
       );
     }
 
-    // Exécuter les requêtes en parallèle
     const results = await Promise.all(batchedPromises);
 
-    // Combiner les résultats des lots
     const combinedResults = results.flatMap(result => result.data);
     console.log('Combined endpoints response:', combinedResults);
 
-    const dynamicIds = [];
+    const floorOccupancyMapping = {};
+    const dynamicIds = extractDynamicIds(combinedResults, config.entryPoints[0], processBuildingEndpoint, floorOccupancyMapping);
 
-    // Parcourir chaque sous-liste dans combinedResults
-    combinedResults.forEach((roomEndpointsList, index) => {
-      if (roomEndpointsList && Array.isArray(roomEndpointsList)) {
-        roomEndpointsList.forEach(room => {
-          if (room.endpoints && Array.isArray(room.endpoints)) {
-            room.endpoints.forEach(endpoint => {
-              if (
-                endpoint.name === config.entryPoints[0].source[0].name &&
-                endpoint.type === config.entryPoints[0].source[0].type
-              ) {
-                dynamicIds.push(endpoint.dynamicId);
-              }
-            });
-          }
-        });
-      }
+    if (dynamicIds.length === 0) {
+      console.warn('⚠️ Aucun Dynamic ID trouvé pour les taux d\'occupation.');
+    }
+
+    console.log('Dynamic IDs des taux d\'occupation:', dynamicIds);
+    console.log('Mapping Dynamic ID → Étages:', floorOccupancyMapping);
+
+    return { dynamicIds, floorNames, floorOccupancyMapping };
+  } catch (error) {
+    console.error('Erreur dans getFloorOccupancyDynamicIds:', error);
+    return { dynamicIds: [], floorNames: {}, floorOccupancyMapping: {} };
+  }
+}
+
+// Récupère les taux d'occupation des étages par période
+export async function getFloorOccupancyRatesByPeriod(period, timestamp, dynamicIds) {
+  try {
+    const buildingId = localStorage.getItem('idBuilding');
+    if (!buildingId) {
+      console.error('No building ID found in localStorage');
+      return [];
+    }
+
+    const periodArray = getPeriodArray(timestamp, period);
+
+    const batchSize = 50;
+    const batchedPromises = [];
+
+    for (let i = 0; i < dynamicIds.length; i += batchSize) {
+      const batch = dynamicIds.slice(i, i + batchSize);
+      console.log(batch, 'batch');
+
+      batchedPromises.push(
+        HTTP.post(
+          config.apiEndpoints.timeSeriesMultiple.replace('{buildingId}', buildingId).replace('{start}', periodArray[1]).replace('{end}', periodArray[2]),
+          batch
+        )
+      );
+    }
+
+    const results = await Promise.all(batchedPromises);
+
+    const combinedResults = results.flatMap(result => result.data);
+    console.log('Combined time series response:', combinedResults);
+
+    const aggregatedData = {};
+    dynamicIds.forEach(dynamicId => {
+      aggregatedData[dynamicId] = [];
     });
 
-    console.log('Dynamic IDs collected:', dynamicIds);
+    combinedResults.forEach((series, index) => {
+      series.timeseries.forEach(point => {
+        const formattedLabel = period === 'Journée' || period === 'Valeur Courante'
+          ? moment(point.date).format('HH')
+          : moment(point.date).format('DD MMM');
+        aggregatedData[dynamicIds[index]].push({
+          date: point.date,
+          value: point.value
+        });
+      });
+    });
+
+    console.log('Aggregated data:', aggregatedData);
+
+    const floorData = dynamicIds.map(dynamicId => {
+      const floorSeries = aggregatedData[dynamicId];
+      const totalValue = floorSeries.reduce((sum, point) => sum + point.value, 0);
+      const averageValue = floorSeries.length > 0 ? (totalValue / floorSeries.length).toFixed(2) : 0;
+      return {
+        dynamicId,
+        occupancy: averageValue
+      };
+    });
+
+    return floorData;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des taux d'occupation des étages :", error);
+    return [];
+          }
+          }
+
+
+//Récupère les IDs dynamiques d'occupation pour les salles données.
+export async function fetchSecondChartOccupationDynamicIds(roomIds) {
+  try {
+    const buildingId = localStorage.getItem("idBuilding");
+    if (!buildingId) {
+      console.error('No building ID found in localStorage');
+      return [];
+    }
+
+    const batchSize = 50;
+    const batchedPromises = [];
+    for (let i = 0; i < roomIds.length; i += batchSize) {
+      const batch = roomIds.slice(i, i + batchSize);
+      batchedPromises.push(
+        HTTP.post(config.apiEndpoints.controlEndpointListMultiple.replace('{buildingId}', buildingId), batch)
+      );
+    }
+
+    const results = await Promise.all(batchedPromises);
+    const combinedResults = results.flatMap(result => result.data);
+
+    const dynamicIds = extractDynamicIds(combinedResults, config.entryPoints[1], processRoomEndpoint);
+
     return dynamicIds;
   } catch (error) {
     console.error('Error in fetchSecondChartOccupationDynamicIds:', error);
@@ -272,7 +414,6 @@ export function groupSecondChartsByFloor(roomPositions) {
 // Fonction pour récupérer les IDs dynamiques d'occupation des salles de réunion par étage
 export async function getFloorSecondChartOccupationDynamicIds(roomIds, roomsByFloor) {
   try {
-    console.log('Fetching occupation dynamic IDs for rooms by floor');
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
       console.error('No building ID found in localStorage');
@@ -281,50 +422,22 @@ export async function getFloorSecondChartOccupationDynamicIds(roomIds, roomsByFl
 
     const batchSize = 50;
     const batchedPromises = [];
-
     for (let i = 0; i < roomIds.length; i += batchSize) {
       const batch = roomIds.slice(i, i + batchSize);
-      console.log(batch, 'batch');
-
       batchedPromises.push(
         HTTP.post(config.apiEndpoints.controlEndpointListMultiple.replace('{buildingId}', buildingId), batch)
       );
     }
 
     const results = await Promise.all(batchedPromises);
-
     const combinedResults = results.flatMap(result => result.data);
-    console.log('Combined endpoints response:', combinedResults);
 
     const dynamicIdsByFloor = {};
+    extractDynamicIds(combinedResults, config.entryPoints[1], (endpoint, room) => processRoomEndpointByFloor(endpoint, room, dynamicIdsByFloor, roomsByFloor));
 
-    combinedResults.forEach((roomEndpointsList) => {
-      if (roomEndpointsList && Array.isArray(roomEndpointsList)) {
-        roomEndpointsList.forEach(room => {
-          if (room.endpoints && Array.isArray(room.endpoints)) {
-            room.endpoints.forEach(endpoint => {
-              if (
-                endpoint.name === config.entryPoints[0].source[0].name &&
-                endpoint.type === config.entryPoints[0].source[0].type
-              ) {
-                const floorId = Object.keys(roomsByFloor).find(floorId => roomsByFloor[floorId].rooms.includes(room.dynamicId));
-                if (floorId) {
-                  if (!dynamicIdsByFloor[floorId]) {
-                    dynamicIdsByFloor[floorId] = [];
-                  }
-                  dynamicIdsByFloor[floorId].push(endpoint.dynamicId);
-                }
-              }
-            });
-          }
-        });
-      }
-    });
-
-    console.log('Dynamic IDs by floor:', dynamicIdsByFloor);
     return dynamicIdsByFloor;
   } catch (error) {
-    console.error('Error fetching occupation dynamic IDs by floor:', error);
+    console.error('Error in getFloorSecondChartOccupationDynamicIds:', error);
     return {};
   }
 }
@@ -619,56 +732,26 @@ export async function getThirdChartPositions(thirdChartIds) {
 // Récupère les IDs dynamiques d'occupation pour les équipements donnés.
 export async function fetchThirdChartOccupationDynamicIds(thirdChartIds) {
   try {
-    console.log('fetchThirdChartOccupationDynamicIds called');
-    console.log('Input Equipment IDs:', thirdChartIds);
-
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
       console.error('No building ID found in localStorage');
       return [];
     }
 
-    console.log('Building ID:', buildingId);
-
     const batchSize = 50;
     const batchedPromises = [];
-
     for (let i = 0; i < thirdChartIds.length; i += batchSize) {
       const batch = thirdChartIds.slice(i, i + batchSize);
-      console.log(batch, 'batch');
-
       batchedPromises.push(
         HTTP.post(config.apiEndpoints.controlEndpointListMultiple.replace('{buildingId}', buildingId), batch)
       );
     }
 
     const results = await Promise.all(batchedPromises);
-
     const combinedResults = results.flatMap(result => result.data);
-    console.log('Combined endpoints response:', combinedResults);
 
-    const dynamicIds = [];
+    const dynamicIds = extractDynamicIds(combinedResults, config.entryPoints[2], processEquipmentEndpoint);
 
-    combinedResults.forEach((equipmentEndpointsList, index) => {
-      if (equipmentEndpointsList && Array.isArray(equipmentEndpointsList)) {
-        equipmentEndpointsList.forEach(equipment => {
-          if (equipment.endpoints && Array.isArray(equipment.endpoints)) {
-            equipment.endpoints.forEach(endpoint => {
-              const endpointName = config.entryPoints[0].source[0].name.trim().toLowerCase();
-              const endpointType = config.entryPoints[0].source[0].type.trim().toLowerCase();
-              if (
-                endpoint.name.trim().toLowerCase() === endpointName &&
-                endpoint.type.trim().toLowerCase() === endpointType
-              ) {
-                dynamicIds.push(endpoint.dynamicId);
-              }
-            });
-          }
-        });
-      }
-    });
-
-    console.log('Dynamic IDs collected:', dynamicIds);
     return dynamicIds;
   } catch (error) {
     console.error('Error in fetchThirdChartOccupationDynamicIds:', error);
@@ -738,8 +821,8 @@ export async function getThirdChartOccupationDynamicIdsByFloor(thirdChartIds, eq
           if (equipment.endpoints && Array.isArray(equipment.endpoints)) {
             equipment.endpoints.forEach(endpoint => {
               if (
-                endpoint.name.trim().toLowerCase() === config.entryPoints[0].source[0].name.trim().toLowerCase() &&
-                endpoint.type.trim().toLowerCase() === config.entryPoints[0].source[0].type.trim().toLowerCase()
+                endpoint.name.trim().toLowerCase() === config.entryPoints[2].source[0].name.trim().toLowerCase() &&
+                endpoint.type.trim().toLowerCase() === config.entryPoints[2].source[0].type.trim().toLowerCase()
               ) {
                 const floorId = Object.keys(equipmentsByFloor).find(floorId => equipmentsByFloor[floorId].equipments.includes(equipment.dynamicId));
                 if (floorId) {
@@ -815,33 +898,35 @@ export async function getThirdChartOccupancyDataByFloor(space, tempo, currentTim
         });
 
         timeSeriesData.forEach(equipmentData => {
-          equipmentData.timeseries.forEach(point => {
-            let formattedLabel;
-            switch (tempo) {
-              case 'Journée':
-              case 'Valeur Courante':
-                formattedLabel = moment(point.date).format('HH');
-                break;
-              case 'Semaine':
-                formattedLabel = moment(point.date).format('DD MMM');
-                break;
-              case 'Mois':
-              case 'Trimestre':
-                formattedLabel = moment(point.date).format('DD MMM');
-                break;
-              case 'Année':
-                formattedLabel = moment(point.date).format('MMM');
-                break;
-              case 'Décennie':
-                formattedLabel = moment(point.date).format('YYYY');
-                break;
-              default:
-                formattedLabel = moment(point.date).format('DD MMM');
-            }
-            if (aggregatedFloorData[floor][formattedLabel]) {
-              aggregatedFloorData[floor][formattedLabel].push(point.value);
-            }
-          });
+          if (equipmentData.timeseries) {
+            equipmentData.timeseries.forEach(point => {
+              let formattedLabel;
+              switch (tempo) {
+                case 'Journée':
+                case 'Valeur Courante':
+                  formattedLabel = moment(point.date).format('HH');
+                  break;
+                case 'Semaine':
+                  formattedLabel = moment(point.date).format('DD MMM');
+                  break;
+                case 'Mois':
+                case 'Trimestre':
+                  formattedLabel = moment(point.date).format('DD MMM');
+                  break;
+                case 'Année':
+                  formattedLabel = moment(point.date).format('MMM');
+                  break;
+                case 'Décennie':
+                  formattedLabel = moment(point.date).format('YYYY');
+                  break;
+                default:
+                  formattedLabel = moment(point.date).format('DD MMM');
+              }
+              if (aggregatedFloorData[floor][formattedLabel]) {
+                aggregatedFloorData[floor][formattedLabel].push(point.value);
+              }
+            });
+          }
         });
       }
     }
@@ -890,8 +975,8 @@ export async function getGraphData() {
     console.log('Control endpoint response data:', controlEndpointResponse.data);
 
     let occupancyEndpoint = null;
-    const endpointName = config.entryPoints[0].source[0].name.toLowerCase();
-    const endpointType = config.entryPoints[0].source[0].type;
+    const endpointName = config.entryPoints[2].source[0].name;
+    const endpointType = config.entryPoints[2].source[0].type;
 
     console.log('Endpoint name from config:', endpointName);
     console.log('Endpoint type from config:', endpointType);
@@ -963,7 +1048,7 @@ function calculateTimeWeightedAverage(timeSeriesData, labels, tempo) {
 }
 
 
-export async function getData(space, tempo, currentTimestamp, roomIds) {
+export async function getData(space, tempo, currentTimestamp, roomIds, startTime = null, endTime = null) {
   const buildingId = localStorage.getItem("idBuilding");
   const spaceArea = await getArea(space); 
   let periodArray = getPeriodArray(currentTimestamp, tempo);
@@ -984,8 +1069,18 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
     timeSeries = await HTTP.get(
       config.apiEndpoints.timeSeries.replace('{buildingId}', buildingId).replace('{dynamicId}', occupancyDynamicId).replace('{start}', periodArray[1]).replace('{end}', periodArray[2])
     );
-    const occupancyRateData = timeSeries.data;
+    let occupancyRateData = timeSeries.data;
     console.log('Occupancy rate data:', occupancyRateData);
+
+    // Filtrer les données en fonction des heures spécifiques pour toutes les temporalités sauf "Journée" et "Valeur Courante"
+    if (startTime && endTime && tempo !== 'Journée' && tempo !== 'Valeur Courante') {
+      const start = moment(startTime, 'HH:mm');
+      const end = moment(endTime, 'HH:mm');
+      occupancyRateData = occupancyRateData.filter(point => {
+        const pointTime = moment(point.date).format('HH:mm');
+        return moment(pointTime, 'HH:mm').isBetween(start, end, null, '[]');
+      });
+    }
 
     let processedTimeSeries = [];
 
@@ -1033,6 +1128,9 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
       fill: false,
     });
 
+    // Stocker les données non filtrées
+    localStorage.setItem('unfilteredData', JSON.stringify(data));
+
     // 2. Taux d'occupation des salles de réunion
     console.log('Fetching dynamic IDs using fetchSecondChartOccupationDynamicIds');
     const dynamicIds = await fetchSecondChartOccupationDynamicIds(roomIds);
@@ -1058,8 +1156,18 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
 
       const results = await Promise.all(batchedPromises);
 
-      const timeSeriesData = results.flatMap(result => result.data);
+      let timeSeriesData = results.map(result => result.data).flat();
       console.log('Time series data for meeting rooms:', timeSeriesData);
+
+      // Filtrer les données en fonction des heures spécifiques pour toutes les temporalités sauf "Journée" et "Valeur Courante"
+      if (startTime && endTime && tempo !== 'Journée' && tempo !== 'Valeur Courante') {
+        const start = moment(startTime, 'HH:mm');
+        const end = moment(endTime, 'HH:mm');
+        timeSeriesData = timeSeriesData.filter(point => {
+          const pointTime = moment(point.date).format('HH:mm');
+          return moment(pointTime, 'HH:mm').isBetween(start, end, null, '[]');
+        });
+      }
 
       let aggregatedRoomData = {};
       label.forEach(periodLabel => {
@@ -1067,14 +1175,16 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
       });
 
       timeSeriesData.forEach(roomData => {
-        roomData.timeseries.forEach(point => {
-          let formattedLabel = tempo === 'Journée' || tempo === 'Valeur Courante'
-            ? moment(point.date).format('HH')
-            : moment(point.date).format('DD MMM');
-          if (aggregatedRoomData[formattedLabel]) {
-            aggregatedRoomData[formattedLabel].push(point.value);
-          }
-        });
+        if (roomData.timeseries) { 
+          roomData.timeseries.forEach(point => {
+            let formattedLabel = tempo === 'Journée' || tempo === 'Valeur Courante'
+              ? moment(point.date).format('HH')
+              : moment(point.date).format('DD MMM');
+            if (aggregatedRoomData[formattedLabel]) {
+              aggregatedRoomData[formattedLabel].push(point.value);
+            }
+          });
+        }
       });
 
       // Moyenne des salles de réunion
@@ -1123,10 +1233,18 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
         );
       }
 
-      const results = await Promise.all(batchedPromises);
-
-      const equipmentTimeSeriesData = results.flatMap(result => result.data);
+      let equipmentTimeSeriesData = await Promise.all(batchedPromises).then(results => results.map(result => result.data).flat());
       console.log('Time series data for equipment:', equipmentTimeSeriesData);
+
+      // Filtrer les données en fonction des heures spécifiques pour toutes les temporalités sauf "Journée" et "Valeur Courante"
+      if (startTime && endTime && tempo !== 'Journée' && tempo !== 'Valeur Courante') {
+        const start = moment(startTime, 'HH:mm');
+        const end = moment(endTime, 'HH:mm');
+        equipmentTimeSeriesData = equipmentTimeSeriesData.filter(point => {
+          const pointTime = moment(point.date).format('HH:mm');
+          return moment(pointTime, 'HH:mm').isBetween(start, end, null, '[]');
+        });
+      }
 
       let aggregatedEquipmentData = {};
       label.forEach(periodLabel => {
@@ -1134,14 +1252,16 @@ export async function getData(space, tempo, currentTimestamp, roomIds) {
       });
 
       equipmentTimeSeriesData.forEach(equipmentData => {
-        equipmentData.timeseries.forEach(point => {
-          let formattedLabel = tempo === 'Journée' || tempo === 'Valeur Courante'
-            ? moment(point.date).format('HH')
-            : moment(point.date).format('DD MMM');
-          if (aggregatedEquipmentData[formattedLabel]) {
-            aggregatedEquipmentData[formattedLabel].push(point.value);
-          }
-        });
+        if (equipmentData.timeseries) { // Ajout de cette vérification
+          equipmentData.timeseries.forEach(point => {
+            let formattedLabel = tempo === 'Journée' || tempo === 'Valeur Courante'
+              ? moment(point.date).format('HH')
+              : moment(point.date).format('DD MMM');
+            if (aggregatedEquipmentData[formattedLabel]) {
+              aggregatedEquipmentData[formattedLabel].push(point.value);
+            }
+          });
+        }
       });
 
       // Moyenne des équipements

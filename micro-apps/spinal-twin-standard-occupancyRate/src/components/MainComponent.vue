@@ -31,18 +31,12 @@
           :next="temporality.name !== 'Valeur Courante' ? temporality.next : ''" 
           :prev="temporality.name !== 'Valeur Courante' ? temporality.prev : ''"
           style="max-height: 530px;"
-          class="BR">
-          <template v-slot:extras>
-
-          </template>
-        </BarChart>
-        
+        />
         <FloorOccupancyDetail ref="floorOccupancyDetail" :space="space" :temporality="temporality"/>
       </div>
     </div>
   </div>
 </template>
-
 <script lang="ts">
 import LineChart from './LineCard.vue';
 import Component from 'vue-class-component';
@@ -57,7 +51,6 @@ import config from '../../config.js';
 import { ChartData, tempoFilter } from '../interfaces/types';
 import { getData, getContextId, getCategoryId, getRoomIds, getGroupId, getSecondChartOccupancyDataByFloor } from '../services/index.js';
 import moment from 'moment';
-
 
 @Component({
   components: {
@@ -173,8 +166,6 @@ async mounted() {
     this.interval();
   }
 
-
-
   @Watch('selectedYear')
   async selectedFilterChange(v) {
     this.weeks = [];
@@ -206,10 +197,6 @@ async mounted() {
     }
     this.$emit('chart-sent', output);
   }
-
-
-
-
 
   async nav(payload: number): Promise<void> {
   if (this.temporality.name === 'Journée' || this.temporality.name === 'Valeur Courante') {
@@ -317,7 +304,6 @@ async mounted() {
 
 export default App;
 </script>
-
 <style scoped>
 .RC {
   font-family: Charlevoix;
