@@ -55,7 +55,7 @@
             type: 'BIMObjectGroup',
             source: [
                 {
-                    profileName: 'Occupation',
+                    profileName: 'hassan',
                     name: "Taux d'occupation",
                     type: 'Occupation', 
                 }

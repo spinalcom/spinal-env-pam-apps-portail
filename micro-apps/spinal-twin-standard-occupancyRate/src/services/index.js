@@ -194,7 +194,7 @@ function extractDynamicIds(combinedResults, configEntryPoint, processEndpoint, .
           item.endpoints.forEach(endpoint => {
             if (
               endpoint.name.trim().toLowerCase() === configEntryPoint.source[0].name.trim().toLowerCase() &&
-              endpoint.type.trim().toLowerCase() === configEntryPoint.source[0].type.trim().toLowerCase()
+              item.profileName.trim().toLowerCase() === configEntryPoint.source[0].profileName.trim().toLowerCase()
             ) {
               processEndpoint(endpoint, item, dynamicIds, ...extraParams);
             }
@@ -227,7 +227,6 @@ function processRoomEndpointByFloor(endpoint, room, dynamicIdsByFloor, roomsByFl
     dynamicIdsByFloor[floorId].push(endpoint.dynamicId);
   }
 }
-
 // Récupère les IDs dynamiques d'occupation pour les étages
 export async function getFloorOccupancyDynamicIds() {
   try {
@@ -237,7 +236,6 @@ export async function getFloorOccupancyDynamicIds() {
       return { dynamicIds: [], floorNames: {} };
     }
 
-    // Récupérer la liste des étages
     const floorsResponse = await HTTP.get(config.apiEndpoints.floors.replace('{buildingId}', buildingId));
     const floors = floorsResponse.data;
 
@@ -273,7 +271,7 @@ export async function getFloorOccupancyDynamicIds() {
     console.log('Combined endpoints response:', combinedResults);
 
     const floorOccupancyMapping = {};
-    const dynamicIds = extractDynamicIds(combinedResults, config.entryPoints[0], processBuildingEndpoint, floorOccupancyMapping);
+    const dynamicIds = extractDynamicIds(combinedResults, config.entryPoints[2], processBuildingEndpoint, floorOccupancyMapping);
 
     if (dynamicIds.length === 0) {
       console.warn('⚠️ Aucun Dynamic ID trouvé pour les taux d\'occupation.');
@@ -378,7 +376,7 @@ export async function fetchSecondChartOccupationDynamicIds(roomIds) {
     const results = await Promise.all(batchedPromises);
     const combinedResults = results.flatMap(result => result.data);
 
-    const dynamicIds = extractDynamicIds(combinedResults, config.entryPoints[1], processRoomEndpoint);
+    const dynamicIds = extractDynamicIds(combinedResults, config.entryPoints[0], processRoomEndpoint);
 
     return dynamicIds;
   } catch (error) {
@@ -433,7 +431,7 @@ export async function getFloorSecondChartOccupationDynamicIds(roomIds, roomsByFl
     const combinedResults = results.flatMap(result => result.data);
 
     const dynamicIdsByFloor = {};
-    extractDynamicIds(combinedResults, config.entryPoints[1], (endpoint, room) => processRoomEndpointByFloor(endpoint, room, dynamicIdsByFloor, roomsByFloor));
+    extractDynamicIds(combinedResults, config.entryPoints[0], (endpoint, room) => processRoomEndpointByFloor(endpoint, room, dynamicIdsByFloor, roomsByFloor));
 
     return dynamicIdsByFloor;
   } catch (error) {
@@ -750,7 +748,7 @@ export async function fetchThirdChartOccupationDynamicIds(thirdChartIds) {
     const results = await Promise.all(batchedPromises);
     const combinedResults = results.flatMap(result => result.data);
 
-    const dynamicIds = extractDynamicIds(combinedResults, config.entryPoints[2], processEquipmentEndpoint);
+    const dynamicIds = extractDynamicIds(combinedResults, config.entryPoints[1], processEquipmentEndpoint);
 
     return dynamicIds;
   } catch (error) {
@@ -758,7 +756,6 @@ export async function fetchThirdChartOccupationDynamicIds(thirdChartIds) {
     return [];
   }
 }
-
 // Regroupe les équipements par étage.
 export function groupThirdChartsByFloor(thirdChartPositions) {
   try {
@@ -815,27 +812,18 @@ export async function getThirdChartOccupationDynamicIdsByFloor(thirdChartIds, eq
 
     const dynamicIdsByFloor = {};
 
-    combinedResults.forEach((equipmentEndpointsList) => {
-      if (equipmentEndpointsList && Array.isArray(equipmentEndpointsList)) {
-        equipmentEndpointsList.forEach(equipment => {
-          if (equipment.endpoints && Array.isArray(equipment.endpoints)) {
-            equipment.endpoints.forEach(endpoint => {
-              if (
-                endpoint.name.trim().toLowerCase() === config.entryPoints[2].source[0].name.trim().toLowerCase() &&
-                endpoint.type.trim().toLowerCase() === config.entryPoints[2].source[0].type.trim().toLowerCase()
-              ) {
-                const floorId = Object.keys(equipmentsByFloor).find(floorId => equipmentsByFloor[floorId].equipments.includes(equipment.dynamicId));
-                if (floorId) {
-                  if (!dynamicIdsByFloor[floorId]) {
-                    dynamicIdsByFloor[floorId] = [];
-                  }
-                  dynamicIdsByFloor[floorId].push(endpoint.dynamicId);
-                }
-              }
-            });
-          }
-        });
+    const processEquipmentEndpointByFloor = (endpoint, equipment, dynamicIdsByFloor, equipmentsByFloor) => {
+      const floorId = Object.keys(equipmentsByFloor).find(floorId => equipmentsByFloor[floorId].equipments.includes(equipment.dynamicId));
+      if (floorId) {
+        if (!dynamicIdsByFloor[floorId]) {
+          dynamicIdsByFloor[floorId] = [];
+        }
+        dynamicIdsByFloor[floorId].push(endpoint.dynamicId);
       }
+    };
+
+    extractDynamicIds(combinedResults, config.entryPoints[1], (endpoint, equipment, dynamicIds, ...extraParams) => {
+      processEquipmentEndpointByFloor(endpoint, equipment, dynamicIdsByFloor, equipmentsByFloor);
     });
 
     console.log('Dynamic IDs by floor:', dynamicIdsByFloor);
@@ -851,7 +839,7 @@ export async function getThirdChartOccupancyDataByFloor(space, tempo, currentTim
   const buildingId = localStorage.getItem("idBuilding");
   const spaceArea = await getArea(space); 
   let periodArray = getPeriodArray(currentTimestamp, tempo);
-  let label = periodArray[0];
+  let label = periodArray[0]; 
   let tooltipDate = periodArray[5];
   let data = [];
   let averages = [];
@@ -976,14 +964,15 @@ export async function getGraphData() {
 
     let occupancyEndpoint = null;
     const endpointName = config.entryPoints[2].source[0].name;
-    const endpointType = config.entryPoints[2].source[0].type;
+    const profileName = config.entryPoints[2].source[0].profileName;
 
     console.log('Endpoint name from config:', endpointName);
-    console.log('Endpoint type from config:', endpointType);
+    console.log('Profile name from config:', profileName);
 
     controlEndpointResponse.data.forEach((profile) => {
       const endpoint = profile.endpoints.find(
-        (ep) => ep.name.toLowerCase() === endpointName && ep.type === endpointType
+        (ep) => ep.name.toLowerCase() === endpointName.toLowerCase() &&
+                profile.profileName.toLowerCase() === profileName.toLowerCase()
       );
       if (endpoint) {
         occupancyEndpoint = endpoint;
@@ -991,7 +980,7 @@ export async function getGraphData() {
     });
 
     if (!occupancyEndpoint) {
-      console.error(`No control endpoint found for "${endpointName}"`);
+      console.error(`No control endpoint found for "${endpointName}" with profile name "${profileName}"`);
       return null;
     }
 
