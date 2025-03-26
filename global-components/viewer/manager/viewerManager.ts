@@ -110,26 +110,60 @@ export class ViewerManager {
 		});
 	}
 
-	public async getViewerInfoMerged(argItem: IPlayload | IPlayload[], body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }): Promise<IViewInfoItemRes[]> {
-
-		const datas = await this.getViewerInfo(argItem, undefined, body);
-		const res = [];
-
-		for (const _item of datas) {
+	public async getViewerInfoMerged(
+		argItem: IPlayload | IPlayload[],
+		body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }
+	  ): Promise<IViewInfoItemRes[]> {
+	  
+		const items = Array.isArray(argItem) ? argItem : [argItem];
+	  
+		// If argItem already has bimFileId and dbid, no need for the expensive call
+		const canSkipApiCall = items.every(item => item.bimFileId && item.dbid);
+	  
+		const res: IViewInfoTmpRes[] = [];
+	  
+		if (canSkipApiCall) {
+		  items.forEach(item => {
+			mergeIViewInfo(res, [{ bimFileId: item.bimFileId, dbIds: [item.dbid] }]);
+		  });
+		} else {
+		  const datas = await this.getViewerInfo(argItem, undefined, body);
+	  
+		  for (const _item of datas) {
 			mergeIViewInfo(res, _item.data);
+		  }
 		}
-
+	  
+		// Merge additional dbIds if provided
 		mergeIViewInfo(res, body?.dbIdsToAdd || []);
-
-		return res.map((it: IViewInfoTmpRes): IViewInfoItemRes => {
-			return { bimFileId: it.bimFileId, dbIds: Array.from(it.dbIds) };
-		});
+	  
+		return res.map((it: IViewInfoTmpRes): IViewInfoItemRes => ({
+		  bimFileId: it.bimFileId,
+		  dbIds: Array.from(it.dbIds)
+		}));
 	}
 
+	// public async getViewerInfoMerged(argItem: IPlayload | IPlayload[], body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }): Promise<IViewInfoItemRes[]> {
+	// 	const datas = await this.getViewerInfo(argItem, undefined, body);
+	// 	const res = [];
+
+	// 	for (const _item of datas) {
+	// 		mergeIViewInfo(res, _item.data);
+	// 	}
+
+	// 	mergeIViewInfo(res, body?.dbIdsToAdd || []);
+
+	// 	return res.map((it: IViewInfoTmpRes): IViewInfoItemRes => {
+	// 		return { bimFileId: it.bimFileId, dbIds: Array.from(it.dbIds) };
+	// 	});
+	// }
+
 	public async getViewerInfo(argItem: IPlayload | IPlayload[], argBuildingId?: string, body?: IViewInfoBody): Promise<any[]> {
+		// console.log("getViewerInfo called with arg ", argItem);
 		if (typeof this._viewerStores["GET_VIEWER_INFO"] === "undefined") {
 			this._viewerStores["GET_VIEWER_INFO"] = {};
 		}
+
 		const items = Array.isArray(argItem) ? argItem : [argItem];
 		const buildingId = argBuildingId || items[0]?.buildingId;
 		const ids = items.map((el) => el.dynamicId);
@@ -137,39 +171,20 @@ export class ViewerManager {
 		const nodeTofetech: number[] = [];
 		
 		for (let dynId of ids) {
-			if (this._viewerStores["GET_VIEWER_INFO"][dynId]) {
+			if (this._viewerStores["GET_VIEWER_INFO"][dynId]) { // si on a déjà enregistré le view info pour ce dynamicId
 				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;
 				if (itemData) res.push(itemData);
-			} else {
+			} else { 
 				if(!dynId){
 					dynId = body?.dynamicId
 				}
+				
 				this._viewerStores["GET_VIEWER_INFO"][dynId] = generator(dynId, body?.floorRef!, body?.roomRef!, body?.equipements!);
 				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;
+				// console.log("itemData received from calling view info", itemData);
 				if (itemData) res.push(itemData);
 			}
 		}
-		// const itemstacked = this._viewerIdStocked;
-
-		// if (nodeTofetech.length > 0) {
-		// 	if (!body) body = { dynamicId: nodeTofetech, floorRef: true, roomRef: true, equipements: true };
-		// 	const dynIds = Array.isArray(body.dynamicId) ? body.dynamicId : [body.dynamicId];
-		// 	// const datas = await getViewInfo(buildingId, body);
-
-		// 	for (const dnyid of dynIds) {
-		// 		this._viewerStores["GET_VIEWER_INFO"][dnyid] = generator(dnyid, body.floorRef!, body.roomRef!, body.equipements!);
-		// 		// res.push(dnyid);
-		// 		const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dnyid].next())?.value;
-		// 		if (itemData) res.push(itemData);
-		// 	}
-		// }
-		// const idsToAdd = ids.filter(id => !itemstacked.includes(id));
-
-
-		// if (idsToAdd.length > 0) {
-		// 	itemstacked.push(...idsToAdd);
-		// }
-		// console.log(itemstacked, 'stacked ');
 
 		return res;
 
@@ -307,6 +322,7 @@ export class ViewerManager {
 
 
 		let data: IViewInfoItemRes[];
+		
 		if (isolateConfig) {
 
 			const body = {
@@ -317,6 +333,7 @@ export class ViewerManager {
 			};
 			data = await this.getViewerInfoMerged(playload as IPlayload, body);
 		} else {
+
 			data = await this.getViewerInfoMerged(playload as IPlayload);
 		}
 

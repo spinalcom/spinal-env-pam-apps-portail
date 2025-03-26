@@ -123,7 +123,7 @@
         <v-icon  @click.stop="viewerSelectItems(item)" title="Sélectionner l'équipement dans le viewer 3D">
           mdi-select-place
         </v-icon>
-        <v-icon :color="getTargetColor(item)"  @click.stop="selectItem(item)" title="Sélectionner l'équipement">
+        <v-icon :color="getTargetColor(item)"  @click.stop="handleArrowSelectionClick(item)" title="Sélectionner l'équipement">
           mdi-arrow-top-right-thick
         </v-icon>
       </div>
@@ -256,7 +256,6 @@ export default {
 
     getTargetColor(item){
       if(this.$store.state.appDataStore.itemSelected && this.$store.state.appDataStore.itemSelected?.dynamicId == item.dynamicId){
-        console.log('TARGET MATCH !')
         return this.$store.state.appDataStore.itemSelected.color;
       } else {
         return '';
@@ -264,7 +263,7 @@ export default {
 
     },
 
-    selectDataView(item) {
+    selectDataView(item) { // when clicking dataView row , progress in path, when equipment we just trigger sprite selection
       console.log('TEST')
       if(item.type === 'BIMObjectGroupContext'){
         this.$emit('table-item-selected', { listType : 'ctx', value : item });
@@ -305,7 +304,17 @@ export default {
       this.$emit('table-click');
     },
 
-    selectItem(item) {
+    handleArrowSelectionClick(item){
+      if(this.$store.state.appDataStore.itemSelected && this.$store.state.appDataStore.itemSelected?.dynamicId == item.dynamicId){
+        this.clearSelectedItem();
+        this.$emit('unselect-data-view');
+      }
+      else {
+        this.selectItem(item);
+      }
+    },
+
+    selectItem(item) { // when clicking on the arrow icon we select the equipment
       console.log('selectItem', item);
       this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
       this.$emit('item-selected', item);

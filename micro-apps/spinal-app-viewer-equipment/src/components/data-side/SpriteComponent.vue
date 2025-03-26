@@ -41,6 +41,7 @@
             </div>
             <div
               ref="navigationButton"
+              @click="onArrowClick"
               style="
                 justify-content: center;
                 align-items: center;
@@ -267,11 +268,19 @@ export default {
     onClick() {
       this.isClicked = true;
       const emitterHandler = EmitterViewerHandler.getInstance();
-      emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
+      emitterHandler.emit(VIEWER_SPRITE_CLICK, {action:'dataViewSelect',  node: this.data });
       if (this.isClicked) this._isSelected();
       else {
         this._isNotSelected();
       }
+    },
+
+    onArrowClick(){
+      this.isClicked = true;
+      const emitterHandler = EmitterViewerHandler.getInstance();
+      emitterHandler.emit(VIEWER_SPRITE_CLICK, {action:'itemSelection',  node: this.data });
+
+
     },
     _isSelected() {
       //this.data.color = 'cyan'
