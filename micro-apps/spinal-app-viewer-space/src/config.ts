@@ -22,12 +22,17 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import {type IConfig, ITemporality} from './interfaces/IConfig';
+import { IConfig, ITemporality } from "./interfaces/IConfig";
 
 export const config: IConfig = {
-
-	viewButtons: 'base',
+	// entryPoint: { context: "Espace Cardiweb", category: "isMeetingRoom", group: "Yes" },
+	// entryPoint: {
+	// 	context: "Gestion des espaces",
+	// 	category: "Typologie",
+	// 	group: "Bureaux",
+	// },
+	viewButtons: "base",
 	sprites: true,
-	viewerInfo: {roomRef: true, floorRef: true, equipments: 'none'},
-	temporality: [ITemporality.currentValue, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
+	viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },
+	temporality: [ITemporality.currentValue, ITemporality.hour, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
 };

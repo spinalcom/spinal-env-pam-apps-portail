@@ -410,16 +410,16 @@
     <!-- ONGLET Documentation -->
     <div v-if="vSelectedTab == 'Documentation'"
       class="scrollable-content"
-      style="display: flex; flex-direction: row; flex-grow: 1"
+      :style="{ display: showDocvalue ? 'flex' : '', flexDirection: showDocvalue ? 'row' : '' }"
     >
-      <div style="flex-grow: 2" v-show="showDocvalue">
+      <div style="flex-grow: 1" v-show="showDocvalue">
         <ShowDocumentation
           :referenceId="idDoc"
           :file_prop="nameFile"
           @closeDialog="closeVueDoc"
         />
       </div>
-      <div style="display: flex; flex-direction: column; flex-grow: 1">
+      <div>
         <v-row style="padding: 20px">
           <AddBtn @open-dialog="ShowFormDoc" />
         </v-row>
@@ -433,7 +433,7 @@
         <div
           v-if="vSelectItemDocumentation && vSelectItemDocumentation.length > 0"
         >
-          <div style="width: 100%; flex-direction: column; flex-grow: 1">
+
             <div class="blocInformation">
               <div
                 v-for="(item, index) in vSelectItemDocumentation"
@@ -448,18 +448,7 @@
               >
                 <div
                   class="inventory-item"
-                  style="
-                    width: 100%;
-                    overflow: hidden;
-                    color: #14202c;
-                    padding: 16px;
-                    border-radius: 5px;
-                    padding-left: 6px;
-                    background-color: #f9f9f9;
-                    box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px,
-                      rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
-                  "
-                >
+                  style="max-width: 100%; width: 99%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                   <li style="list-style: none">
                     <v-icon :style="{ color: getIcon(item.Name).color }">{{
                       getIcon(item.Name).name
@@ -482,7 +471,7 @@
                 </div>
               </div>
             </div>
-          </div>
+        
         </div>
         <div v-else>
           <p>Aucune documentation disponible.</p>

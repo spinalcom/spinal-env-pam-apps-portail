@@ -276,8 +276,12 @@ class dataSideApp extends Vue {
         const result = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, dispatchObject);
         const futurData = this.$store.state.appDataStore.user_selection_list.grp.map(grp => {
           const read = result.find((node) => node.dynamicId === grp.dynamicId);
-          const hasBimObjectRelation = read.children_relation_list.find(relation => relation.name === "groupHasBIMObject")
-          return { ...grp, nbr_equipments: hasBimObjectRelation.children_number }
+          const hasBimObjectRelation = read.children_relation_list.filter(relation => relation.name === "groupHasBIMObject")
+          let nbrObEquipments = 0;
+          hasBimObjectRelation.forEach(relation => {
+            nbrObEquipments += relation.children_number;
+          })
+          return { ...grp, nbr_equipments: nbrObEquipments }
         })
         this.$store.commit(MutationTypes.SET_DATA, futurData);
         console.log('UPDATE TABLE DATA WITH : ', this.$store.state.appDataStore.data);

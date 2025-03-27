@@ -23,185 +23,103 @@ with this file. If not, see
 -->
 <template>
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
-    <NomenclatureModale
-      ref="nomenclatureModale"
-      v-if="showNomenclatureModale"
-      :showModal="showNomenclatureModale"
-      v-on:close="closeModaleNomenclature"
-    ></NomenclatureModale>
-    <ModaleEditGroup
-      ref="editGroupModale"
-      v-if="showModalEditGroup"
-      @activateSpaceAssignation="activateSpaceAssignation"
-      @activateNomenclatureModale="activateNomenclatureModale"
-      v-on:close="closeModaleEditGroup"
-      :showModal="showModalEditGroup"
-    >
-    </ModaleEditGroup>
-    <v-overlay
-      :value="showModalEditGroup || showNomenclatureModale"
-    ></v-overlay>
     <div class="selectors">
-      <!-- <div class="DButton">
-        <ScDownloadButton
-          :fileName="'insight_data'"
-          :csv="true"
-          :data="getDataFormatted()"
-        />
+      <!-- <div class="mr-2">
+        <div @click.prevent="showDlOption = !showDlOption"
+          style="width: 59px;height: 59px;position: absolute;z-index: 1;">
+        </div>
+        <ScDownloadButton ref="ThedownloadButton" :fileName="'insight_data'" :xls="true" :data="getDataFormatted()" />
       </div> -->
-      <div class="space">
-        <space-selector
-          ref="space-selector"
-          :open.sync="openSpaceSelector"
-          :maxDepth="2"
-          :GetChildrenFct="onSpaceSelectOpen"
-          v-model="selectedZone"
-          label="ESPACE"
-          :spaceSelectorItemButtons="spaceSelectorButtons"
-          :viewButtonsType="config.viewButtons"
-          @onActionClick="onActionClick"
-        />
-      </div>
-    </div>
+      <!-- <div @click="showDlOption = !showDlOption" DButton
+        style="z-index: 9999;display: flex;justify-content: center;align-items: center;position: fixed;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.156);top: 0;left:0"
+        v-if="showDlOption">
 
-    <div class="dataBody">
-      <viewerApp
-        :class="{ active3D: isActive3D }"
-        class="viewerContainer"
-      ></viewerApp>
+        <div class="Dlmenu" style="" @click.stop>
+          <span class="titleDl">Type de données</span>
+          <div class="">
+            <v-radio-group class="ml-4" v-model="dataFromTab">
+              <v-radio label="Télécharger les données du tableau, sans appliquer les filtres d'attributs."
+                value="all"></v-radio>
+              <v-radio class="mb-1" label="Télécharger les données du tableau en appliquant les filtres d'attributs."
+                value="tab"></v-radio>
+            </v-radio-group>
 
-      <div class="bottom-container">
-        <div class="legend-wrapper">
-          <LegendVue
-            v-if="!isActive && displayLegend"
-            :listItem="legendSpaceAssignation"
-            v-show="!isActive"
-          ></LegendVue>
+          </div>
+
+          <span class="titleDl">Choisir une extension</span>
+          <v-radio-group class="ml-4" v-model="DownloadCsv">
+            <v-radio label="XLSX" value="XLS"></v-radio>
+            <v-radio class="mb-2 ml-8" label="CSV" value="CSV"></v-radio>
+          </v-radio-group>
+
+          <button class="validateBtn" @click="downloadData">Téléchager</button>
         </div>
 
-        <!-- <div class="menu-wrapper">
-          <MenuV1
-            v-if="currentExpansionMode !== 'full'"
-            @clickFirstCell="openModaleEditGroup"
-            @clickSecondCell="openNomenclatureModale"
-            @clickMainCell="toggleHomeMode"
-          >
-          </MenuV1>
-        </div> -->
+      </div> -->
 
-        <dataSideApp
-          class="appContainer"
-          ref="dataSideApp"
-          :class="{ active: isActive, inactive: isActive3D }"
-          :config="config"
-          :selectedZone="selectedZone"
-          :data="displayedData"
-          @clickOnDataView="onDataViewClicked"
-          @buttonClicked3D="toggleActive3D"
-          @buttonClicked="toggleActive"
-          :selectedEntities="selectedEntities"
-          :selectEntity="selectRoom"
-          :DActive="isActive3D"
-          :ActiveData="isActive"
-        >
-          <template #body>
-            <RoomsGroupTable ref="roomsGroupTable"
-              :selectedZone="selectedZone"
-              @clickGroupManager="openModaleEditGroup"
-              @clickNomenclature="openNomenclatureModale"
-              @clickDisplayLegend="toggleDisplayLegend"
-              > 
-            </RoomsGroupTable>
-          </template>
-        </dataSideApp>
+      <div class="temporality">
+        <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
+          :GetChildrenFct="onTemporalitySelectOpen" :maxDepth="0" v-model="temporalitySelected" label="TEMPORALITÉ" />
       </div>
+
+      <div class="space">
+        <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"
+          :GetChildrenFct="onSpaceSelectOpen" v-model="selectedZone" label="ESPACE"
+          :spaceSelectorItemButtons="spaceSelectorButtons" :viewButtonsType="config.viewButtons"
+          @onActionClick="onActionClick" />
+      </div>
+    </div>
+    <div class="dataBody">
+      <viewerApp :class="{ 'active3D': isActive3D }" class="viewerContainer"></viewerApp>
+      <dataSideApp :DActive="isActive3D" :ActiveData="isActive" :class="{ 'active': isActive, 'inactive': isActive3D }"
+        :selected_attr="$store.state.appDataStore.attr" class="appContainer" :element_clicked="el_clicked"
+        :config="config" :selectedZone="selectedZone" :tableData="displayedData" 
+        @clickOnDataView="onDataViewClicked"
+        @fit-to-view="fitToView"
+        @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D">
+      </dataSideApp>
     </div>
   </v-app>
 
-  <v-container
-    class="loading"
-    v-else-if="pageSate === PAGE_STATES.loading"
-    fluid
-  >
-    <v-progress-circular
-      :size="70"
-      :width="3"
-      color="purple"
-      indeterminate
-    ></v-progress-circular>
+  <v-container class="loading" v-else-if="pageSate === PAGE_STATES.loading" fluid>
+    <v-progress-circular :size="70" :width="3" color="purple" indeterminate></v-progress-circular>
   </v-container>
 </template>
 
 <script lang="ts">
-/**
- * * Controllers
- */
-import { GroupRoomWithChildrenController } from './controllers';
-
-/**
- * * Components
- */
 
 import {
   ISpaceSelectorItem,
   SpaceSelector,
-} from '../../../global-components/SpaceSelector/index';
-import ScDownloadButton from 'spinal-components/src/components/DownloadButton.vue';
-import { ViewerButtons } from '../../../global-components/SpaceSelector/spaceSelectorButtons';
-import viewerApp from '../../../global-components/viewer/viewer.vue';
-import dataSideApp from './components/data-side/App.vue';
-import ModaleEditGroup from './components/data-side/Modales/EditGroupModale.vue';
-import LegendVue from './components/data-side/Legend.vue';
-//import Expansion from "./components/data-side/Expansion/Expansion.vue";
-import MenuV1 from './components/data-side/Menu/MenuV1.vue';
-import NomenclatureModale from './components/data-side/Modales/NomenclatureModale.vue';
-import RoomsGroupTable from './components/data-side/RoomsGroup/RoomsGroupTable.vue';
-
-/**
- * * Factory
- */
-
-//import { iLegendFactory } from "./interfaces/GroupWithChildren";
-
-/**
- * * Interfaces
- */
-import { ActionTypes } from './interfaces/vuexStoreTypes';
-import { IConfig } from './interfaces/IConfig';
-import { PAGE_STATES } from './interfaces/pageStates';
-import { ExpansionMode, IItemV1 } from './interfaces';
-/**
- * * Other
- */
-import { config } from './config';
-import { Vue } from 'vue-property-decorator';
-import Component from 'vue-class-component';
-import 'spinal-components/dist/spinal-components.css';
+} from "../../../global-components/SpaceSelector/index";
+import { Vue, Watch } from "vue-property-decorator";
+import { ActionTypes } from "./interfaces/vuexStoreTypes";
+import Component from "vue-class-component";
+import type { Store } from "./services/store";
+import { MutationTypes } from "./services/store/appDataStore/mutations";
+import type {
+  IButton,
+  IZoneItem,
+  TGeoItem,
+} from "../../../global-components/SpaceSelector/interfaces/IBuildingItem";
+import viewerApp from "../../../global-components/viewer/viewer.vue";
+import ScDownloadButton from "spinal-components/src/components/DownloadButton.vue";
+import { ViewerButtons } from "../../../global-components/SpaceSelector/spaceSelectorButtons";
+import { EventBus } from '../../../global-components/SpaceSelector/eventBus';
+import { config } from "./config";
+import { IConfig } from "./interfaces/IConfig";
+import { PAGE_STATES } from "./interfaces/pageStates";
+import myImage from '@/assets/spinalcore.png';
 import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
-  VIEWER_OBJ_SELECT,
-  VIEWER_AGGREGATE_SELECTION_CHANGED,
-} from 'spinal-viewer-event-manager';
-import { RoomManager } from './services/RoomsManager';
-import { INodeItem, IRoom } from './interfaces';
-import { ViewerManager } from '../../../global-components/viewer';
+} from "spinal-viewer-event-manager";
 
-/**
- * * Services
- */
-import { RoomsGroupAPI } from './services/spinalAPI';
+import "spinal-components/dist/spinal-components.css";
 
-/**
- * * Stores
- */
-import type { Store } from './services/store';
-import { MutationTypes } from './services/store/appDataStore/mutations';
+import dataSideApp from "./components/data-side/App.vue";
+// import test from "node:test";
 
-/**
- * * Types
- */
-import { Legend } from './interfaces/GroupWithChildren';
 
 interface IItemData {
   platformId: string;
@@ -213,17 +131,13 @@ interface IItemDatatmp {
   id: Set<number>;
 }
 
+
 @Component({
   components: {
     SpaceSelector,
     viewerApp,
     ScDownloadButton,
-    dataSideApp,
-    ModaleEditGroup,
-    RoomsGroupTable,
-    LegendVue,
-    MenuV1,
-    NomenclatureModale,
+    dataSideApp
   },
 })
 class App extends Vue {
@@ -232,42 +146,82 @@ class App extends Vue {
   $store: Store;
   openSpaceSelector: boolean = false;
   openTemporalitySelector: boolean = false;
-  displayLegend: boolean = false;
   config: IConfig = config;
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
-  emitterHandler: EmitterViewerHandler | undefined = undefined;
-  roomManager: RoomManager | undefined;
-  roomsGroupApi: RoomsGroupAPI | undefined;
-  viewerManager: ViewerManager | undefined = undefined;
   dataTable: IZoneItem[] = [];
-  dataSideFullscreen: boolean = false;
-  $refs: {
-    spaceSelector;
-    dataSideApp;
-    roomsGroupTable;
-    nomenclatureModale;
-    editGroupModale;
-  };
-  showModalEditGroup: boolean = false;
-  showNomenclatureModale: boolean = false;
-  selectedRoom: IRoom[];
-  legendSpaceAssignation: Legend[] =
-    GroupRoomWithChildrenController.legendSpaceAssignation;
-  currentExpansionMode: ExpansionMode = 'split';
-  expsEventAttached: boolean = false;
+  $refs: { spaceSelector };
+  el_clicked: any = "toto";
+  showDlOption: boolean = false;
+  dataFromTab: string = 'all';
   isActive: boolean = false;
   isActive3D: boolean = false;
+  DownloadCsv: string = "XLS";
 
   async mounted() {
+    localStorage.setItem("viewer_loaded", 'initialize');
+    
+    EventBus.$on('colorRoom', (dynamicId) => {
+      const buildingId = localStorage.getItem("idBuilding");
+      const itemsToColor = [{
+        buildingId: buildingId,
+        color: "#24CBD9",
+        dynamicId: dynamicId,
+        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+      }]
+
+      const statviewer = localStorage.getItem("viewer_loaded");
+      if (statviewer == "loaded") {
+        this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+          items: itemsToColor,
+          buildingId: buildingId,
+        });
+      }
+
+    });
+
+
+    EventBus.$on('descolorRoom', (dynamicId) => {
+      const buildingId = localStorage.getItem("idBuilding");
+
+      const itemsToColor = [{
+        buildingId: buildingId,
+        color: null,
+        dynamicId: dynamicId,
+        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
+      }]
+
+      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+        items: itemsToColor,
+        buildingId: buildingId,
+      });
+
+    });
+
+    const buildingId = localStorage.getItem("idBuilding");
+    const building = await this.$store.dispatch(
+      ActionTypes.GET_BOS_BUILDING,
+      {
+        buildingId: buildingId,
+      }
+    );
+    console.log('BUILDING', building);
+    this.$store.state.appDataStore.zoneSelected
+    this.$store.commit(MutationTypes.SET_BUILDING_INFO, building);
+    console.log('BUILDING INFO', this.$store.state.appDataStore.buildingInfo);
+    const item = {
+      buildingId: localStorage.getItem("idBuilding"),
+      dynamicId: building.dynamicId,
+      parents : [],
+      type: "building",
+    }
+    
+    this.onActionClick({ button: { onclickEvent: ActionTypes.OPEN_VIEWER }, item: item });
+
+    
+
     try {
-      this.emitterHandler = EmitterViewerHandler.getInstance();
-      this.viewerManager = ViewerManager.getInstance();
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();
-      this.listenSelectEvent();
-      this.selectedRoom = [];
-      this.roomsGroupApi = new RoomsGroupAPI();
-      this.listenExpansionEvent();
       // const buildingId = localStorage.getItem("idBuilding");
       // await this.$store.dispatch(ActionTypes.GET_GROUPS_ITEMS, { config, buildingId });
       this.pageSate = PAGE_STATES.loaded;
@@ -276,45 +230,12 @@ class App extends Vue {
     }
   }
 
-  activateSpaceAssignation(item: IItemV1) {
-    // Show Dataside
-    this.showModalEditGroup = false;
-    this.currentExpansionMode = 'one-tier';
-    if (this.$refs.roomsGroupTable) {
-      this.$refs.roomsGroupTable.loadData(item.id);
-    }
-  }
-
-  activateNomenclatureModale() {
-    this.showModalEditGroup = false;
-    this.showNomenclatureModale = true;
-    if (this.$refs.nomenclatureModale) {
-      this.$refs.nomenclatureModale.loadData();
-    }
-  }
-  // resize() {
-  //   setTimeout(() => {
-  //     window.dispatchEvent(new Event('resize'));
-  //   }, 1);
-
-  // }
-  listenExpansionEvent() {
-    if (this.$refs.dataSideApp && !this.expsEventAttached) {
-      this.$refs.dataSideApp.$el.addEventListener('transitionend', () => {
-        console.log('Transition ended');
-        this.expsEventAttached = true;
-        this.viewerManager.resize();
-        console.log(this.$refs.roomsGroupTable);
-      });
-    }
-  }
-
-  closeModaleEditGroup() {
-    this.showModalEditGroup = false;
-  }
-
-  closeModaleNomenclature() {
-    this.showNomenclatureModale = false;
+  downloadData() {
+    // console.log(this.$refs.ThedownloadButton);
+    if (this.DownloadCsv == "CSV") {
+      this.$refs.ThedownloadButton.downloadCSV();
+    } else
+      this.$refs.ThedownloadButton.download()
   }
 
   public get selectedZone(): ISpaceSelectorItem {
@@ -323,6 +244,9 @@ class App extends Vue {
 
   public set selectedZone(v: ISpaceSelectorItem) {
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
+    // if (v.type.includes("geographic")) {
+    //   this.$store.dispatch(ActionTypes.OPEN_VIEWER, v);
+    // }
   }
 
   public get temporalitySelected(): ISpaceSelectorItem {
@@ -333,85 +257,82 @@ class App extends Vue {
     this.$store.commit(MutationTypes.SET_TEMPORALITY, v);
   }
 
-  public get classDataSide() {
-    switch (this.currentExpansionMode) {
-      case 'zero':
-        return 'app-container-zero';
-      case 'one-tier':
-        return '';
-      case 'half':
-        return 'app-container-halfscreen';
-      case 'full':
-        return 'app-container-fullscreen';
-      default:
+  toggleActive(value) {
+    if (this.isActive3D)
+      this.isActive3D = false
+    this.isActive = !this.isActive;
+    if (value === 'vueDoc') {
+      this.isActive = true
+      this.isActive3D = false
+    } else if (value === 'vueDocClose') {
+      this.isActive = false
+      this.isActive3D = false
     }
   }
 
-  public get classViewerContainer() {
-    switch (this.currentExpansionMode) {
-      case 'zero':
-        return 'viewerContainer-zero';
-      case 'one-tier':
-        return '';
-      case 'half':
-        return 'viewerContainer-half';
-      case 'full':
-        return 'viewerContainer-invisible';
-      default:
-    }
-  }
 
-  public toggleModaleEditGroup() {
-    this.showModalEditGroup = !this.showModalEditGroup;
-  }
-
-  public openModaleEditGroup() {
-    this.showModalEditGroup = true;
-  }
-
-  public openNomenclatureModale() {
-    if (this.$refs.nomenclatureModale) {
-      this.$refs.nomenclatureModale.loadData();
-    }
-    this.showNomenclatureModale = true;
-  }
-
-  public toggleDisplayLegend(){
-    this.displayLegend = !this.displayLegend;
+  toggleActive3D() {
+    if (this.isActive)
+      this.isActive = false
+    this.isActive3D = !this.isActive3D;
   }
 
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<IZoneItem[]> {
     switch (item?.type) {
       case undefined:
-        const buildingId = localStorage.getItem('idBuilding');
-        const playload = {
-          config,
-          item: { buildingId, type: 'building' },
-        };
 
-        const promises = [
-          this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }),
-        ];
+        const buildingId = localStorage.getItem("idBuilding");
+        if (buildingId) {
+          const playload = {
+            config,
+            item: { buildingId, type: "building" },
+          };
 
-        const [building, items] = await Promise.all(promises);
+          const promises = [
+            this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }),
+          ];
 
-        return [
-          {
-            name: building.name,
-            staticId: building.id,
-            categories: [],
-            color: '#35CAE5',
-            dynamicId: 0,
-            type: 'building',
-          },
-        ];
-      case 'building':
+          const [building, items] = await Promise.all(promises);
+
+          const realBuilding = await this.$store.dispatch(
+            ActionTypes.GET_BOS_BUILDING,
+            { buildingId }
+          )
+          return [
+            {
+              name: realBuilding.name,
+              staticId: building.id,
+              categories: [],
+              color: realBuilding.color,
+              dynamicId: realBuilding.dynamicId,
+              type: 'building',
+            },
+          ];
+        } else {
+          const building = await this.$store.dispatch(
+            ActionTypes.GET_BOS_BUILDING,
+            {
+              buildingId: null,
+            }
+          );
+          console.log(building);
+          return [
+            {
+              name: building.name,
+              staticId: building.id,
+              categories: [],
+              color: '#35CAE5',
+              dynamicId: building.dynamicId,
+              type: 'building',
+            },
+          ];
+        }
+      case "building":
         return await this.$store.dispatch(ActionTypes.GET_FLOORS, {
           buildingId: item.staticId,
           patrimoineId: item.patrimoineId,
         });
-      case 'geographicFloor':
-        //@ts-ignore
+      case "geographicFloor":
         return await this.$store.dispatch(ActionTypes.GET_ROOMS, {
           floorId: item.dynamicId,
           buildingId: item.buildingId,
@@ -436,48 +357,18 @@ class App extends Vue {
           parents: [],
           drawLink: [],
           haveChildren: false,
-          type: 'time',
+          type: "time",
         }));
 
       default:
         return [];
     }
-  }
 
-  updateExpansion() {
-    let newExpansionMode: ExpansionMode = 'split';
-    if (this.isActive3D) newExpansionMode = 'zero';
-    if (this.isActive) newExpansionMode = 'full';
-    console.log('New Expansion = ', newExpansionMode);
-    this.currentExpansionMode = newExpansionMode;
-    console.log('Refs = ', this.$refs);
-    this.listenExpansionEvent();
-    this.$refs.roomsGroupTable.setViewModeByExpansion(
-      this.currentExpansionMode
-    );
   }
 
   onGoBack() {
-    const parent = this.$refs['space-selector'].getParentOfSelected();
+    const parent = this.$refs["space-selector"].getParentOfSelected();
     if (parent) this.selectedZone = parent;
-  }
-
-  toggleActive3D() {
-    if (this.isActive) this.isActive = false;
-    this.isActive3D = !this.isActive3D;
-    this.updateExpansion();
-    console.log('isActive3D', this.isActive3D, ' | isActive :', this.isActive);
-    //this.handleRouteChange();
-  }
-
-  toggleActive() {
-    if (this.isActive3D) {
-      this.isActive3D = false;
-    }
-    this.isActive = !this.isActive;
-    this.updateExpansion();
-    console.log('isActive3D', this.isActive3D, ' | isActive :', this.isActive);
-    //this.handleRouteChange();
   }
 
   private getItemData(item: TGeoItem | TGeoItem[]): IItemData {
@@ -495,30 +386,44 @@ class App extends Vue {
     };
   }
 
-  toggleFullscreen() {
-    this.dataSideFullscreen = !this.dataSideFullscreen;
-  }
 
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
     if (!item) return;
-    this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
+
+    // this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
+
   }
+
+  async fitToView(item: TGeoItem | TGeoItem[]) {
+    if (!item) return;
+    console.log('fitToView', item);
+    this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
+  }
+
+
 
   async onColor(item: TGeoItem | TGeoItem[]) {
     // TBD
   }
 
+
+
+
   onActionClick({ button, item }) {
+    
+
     const data = {
-      buildingId: item.buildingId,
-      staticId: item.staticId,
-      id: item.dynamicId,
-      dynamicId: item.dynamicId,
-      floorId: item.floorId,
-      roomId: item.roomId,
-      type: item.type,
+      buildingId: item.buildingId, //important viewer
+      // staticId: item.staticId,//can
+      // id: item.dynamicId,
+      dynamicId: item.dynamicId,//important viewer
+      parents: item.parents,
+      // floorId: item.floorId,//can
+      // roomId: item.roomId,//can
+      type: item.type,//can
     };
+    console.log('onActionClick data', data);
 
     switch (button.onclickEvent) {
       case ActionTypes.OPEN_VIEWER:
@@ -528,7 +433,14 @@ class App extends Vue {
           item: data,
         });
         break;
-      case 'OPEN_VIEWER_PLUS':
+      case ActionTypes.ISOLATE_ITEMS:
+        this.$store.dispatch(button.onclickEvent, {
+          onlyThisModel: true,
+          config: this.config,
+          item: data,
+        });
+        break;
+      case "OPEN_VIEWER_PLUS":
         this.$store.dispatch(ActionTypes.OPEN_VIEWER, {
           onlyThisModel: false,
           config: this.config,
@@ -542,71 +454,40 @@ class App extends Vue {
   }
 
   listenSpritesEvent() {
-    this.emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
-      this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
-      if (result.node.dynamicId) {
-        const a = document.createElement('a');
-        a.setAttribute('href', `#${result.node.dynamicId}`);
-        a.click();
+    const emitterHandler = EmitterViewerHandler.getInstance();
+    emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
+      if(result.action === 'dataViewSelect') {
+        this.el_clicked = result.node.dynamicId;
+        // this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
+        if (result.node.dynamicId) {
+          const a = document.createElement("a");
+          a.setAttribute("href", `#${result.node.dynamicId}`);
+          a.click();
+        }
+      }
+      if(result.action === 'itemSelection'){
+        this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
       }
     });
-  }
-
-  // TODO Mettre l'init du roomManager dans sur un autre eventEmitter
-  // TODO Rechercher l'instant precis ou this.displayedData est fill
-  // Code tenporaire
-  async listenSelectEvent() {
-    // this.emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, async (res: any) => {
-    //   if (!this.roomManager) {
-    //     this.roomManager = new RoomManager()
-    //     await this.roomManager.loadData(this.$store.state.appDataStore.data)
-    //   }
-    //   //const selected = res.at(0).dbIds.at(0)
-    //   const selected = res.map((el: any) => {
-    //     const names = el.dbIds.map((dbId: number) => this.roomManager?.getRoomByDbId(dbId.toString()))
-    //     return names
-    //   })
-    //   this.roomsGroupApi?.getRoomsGroupList().then((el: INodeItem[]) => {
-    //     console.log('[GET] Rooms Group List')
-    //     console.log(el)
-    //   })
-    //   console.log()
-    //   this.selectedRoom = selected.length > 0 ? [...selected.at(0)] : [] // Trigger reactivity
-    //   this.$store.commit(MutationTypes.SET_SELECTED_ROOMS, this.selectedRoom)
-    // })
-  }
-
-  // Temporaire
-  public selectRoom(room: any) {
-    const roomRef = this.roomManager?.getRoomByDynamicId(room?.dynamicId);
   }
 
   public get displayedData() {
     return this.$store.state.appDataStore.data;
   }
 
-  public get selectedEntities() {
-    return this.$store.state.appDataStore.selectedRooms;
-  }
-
   public getDataFormatted() {
-    // color displayedValue name staticId type
-    const d = [this._getHeader(), ...this._getRows(this.displayedData)];
-    return d;
-  }
+    const d = [this._getHeader(), ...this._getRows(this.$store.state.appDataStore.dlData)];
+    return this.$store.state.appDataStore.dlData || [];
 
-  toggleHomeMode() {
-    this.showModalEditGroup = false;
-    this.currentExpansionMode = 'zero';
-    this.$refs.expansion.resetToZero();
+
   }
 
   private _getHeader() {
     return {
-      id: 'id',
-      name: 'name',
-      type: 'type',
-      value: 'value',
+      id: "id",
+      name: "name",
+      type: "type",
+      value: "value",
     };
   }
 
@@ -620,17 +501,67 @@ class App extends Vue {
       id: staticId,
     }));
   }
+
+
+  @Watch("dataFromTab")
+  watchSelecteddataFromTab() {
+    let value = true;
+    if (this.dataFromTab == 'tab') {
+      value = false
+    } else
+      value = true
+    this.$store.commit(MutationTypes.SET_DL_DATA_OPTION, value);
+  }
+
+  // @Watch('isActive3D')
+  // resizeCanvas() {
+
+  //   window.dispatchEvent(new Event('resize'));
+  //   console.log('Redimensionnement déclenché');
+  // }
 }
+
 
 export default App;
 </script>
 
 <style scoped lang="scss">
+.v-application {
+  font-family: Charlevoix Pro !important;
+}
+
+// LES MODIFICATION POUR LE CANVAS FULL SCREEN
+// #app > div > div.dataBody > div > div > div.canvas-wrap > canvas{
+// width: 100% !important;
+// height: 100% !important;
+// background-color: red !important;
+// }
+
+
+// #app > div > div.dataBody > div{
+//   width: 100%;
+//   height: 100%;
+// }
+
+
+// .dataBody{
+//   width: 100%;
+//   height: 100%;
+// }
+
+
+
+// ::v-deep .v-input--radio-group--column .v-input--radio-group__input 
+
+::v-deep>div>div.selectors>div:nth-child(2)>div>div.v-input.ml-4.v-input--is-label-active.v-input--is-dirty.theme--light.v-input--selection-controls.v-input--radio-group.v-input--radio-group--column>div>div.v-input__slot>div {
+  flex-direction: row;
+}
+
+
 .app {
-  --app-container-width: 40%;
   width: 100%;
   height: 100%;
-
+  overflow: hidden;
   $selectorHeight: 60px;
 
   .selectors {
@@ -641,9 +572,8 @@ export default App;
     right: 5px;
     height: $selectorHeight;
     width: 100%;
-    border: 1px solid #f5f5f5;
+    border: 1px solid #f5f5f500;
     border-radius: 12px;
-    z-index: 82;
 
     .DButton {
       width: 60px;
@@ -660,11 +590,48 @@ export default App;
       position: relative;
       width: 40%;
       height: $selectorHeight;
+      z-index: 99;
     }
+
+    .Dlmenu {
+      border-radius: 5px;
+      background-color: white;
+      width: 25%;
+      // height: 25%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .titleDl {
+      padding-left: 10px;
+      width: 100%;
+      height: 35px;
+      background-color: rgb(230, 230, 230);
+      border-bottom: 1px solid rgb(212, 212, 212);
+      margin-bottom: 0px;
+      padding-top: 5px;
+
+    }
+
+    .validateBtn {
+      position: relative;
+      background-color: #14202c;
+      color: white;
+      width: 100px;
+      height: 30px;
+      border-radius: 5px;
+      transform: translate(0, -10px);
+      // bottom: ;
+      right: 10px;
+      align-self: flex-end;
+    }
+
   }
+
 
   .dataBody {
     height: calc(100% - #{$selectorHeight + 30px});
+    max-height: calc(100% - #{$selectorHeight + 30px});
     margin: 80px 8px 0 8px;
 
     .viewerContainer {
@@ -673,6 +640,8 @@ export default App;
       float: left;
     }
 
+
+
     .appContainer {
       width: 40%;
       z-index: 7;
@@ -680,7 +649,7 @@ export default App;
       transition: 0.5s;
       position: absolute;
       margin-right: 6px;
-      height: 92%;
+      height: 91%;
       right: 0px;
     }
 
@@ -691,14 +660,14 @@ export default App;
       z-index: 7;
       right: 0px;
       margin-right: 6px;
-      height: 92%;
+      height: 91%;
     }
 
     .inactive {
       // display: none;
       position: absolute;
       width: 0%;
-      height: 92%;
+      height: 91%;
       right: 0px;
       transition: 0.1;
     }
@@ -709,7 +678,17 @@ export default App;
       float: left;
       position: absolute;
     }
+
   }
+}
+
+.DButton {
+  display: flex;
+}
+
+::v-deep .card-colored {
+  background-color: #14202c !important;
+  border-radius: 8px !important;
 }
 
 .loading {
@@ -731,6 +710,25 @@ export default App;
   width: 100%;
 }
 
+.forge-spinner {
+  /* background-color: rgba(146, 70, 70, 0.63) !important; */
+  width: 800px;
+}
+
+.forge-spinner img {
+  display: none;
+}
+
+#app>div>div.dataBody>div.viewer-div-container.viewerContainer>div>div.forge-spinner {
+  width: 800px !important;
+}
+
+.forge-spinner {
+  background: url('./assets/spinalcore.png') center/contain no-repeat;
+  width: 1500px;
+  height: 800px;
+}
+
 html {
   overflow-y: hidden !important;
   background: transparent;
@@ -743,6 +741,7 @@ body {
   overflow-y: hidden;
   background: transparent;
 }
+
 
 .app-content {
   width: calc(100% - 16px);
@@ -777,34 +776,7 @@ body {
   border-radius: 5px;
 }
 
-.appContainer
-  .dataContainer
-  .calcul_content
-  .calcul
-  .select
-  .v-text-field.v-text-field--solo
-  .v-input__control {
+.appContainer .dataContainer .calcul_content .calcul .select .v-text-field.v-text-field--solo .v-input__control {
   min-height: unset !important;
-}
-
-.legend-wrapper {
-}
-
-.menu-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.bottom-container {
-  position: absolute;
-  bottom: 0em;
-  left: 0em;
-  padding: 1em;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  height: 100%;
 }
 </style>

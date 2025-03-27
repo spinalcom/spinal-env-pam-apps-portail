@@ -22,8 +22,6 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-
-
 export function defaultZoneSelected(): ISpaceSelectorItem {
   return {
     buildingId: '',
