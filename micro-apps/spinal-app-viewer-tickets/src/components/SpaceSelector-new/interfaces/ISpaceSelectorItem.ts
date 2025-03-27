@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 SpinalCom - www.spinalcom.com
+ * Copyright 2022 SpinalCom - www.spinalcom.com
  *
  * This file is part of SpinalCore.
  *
@@ -22,32 +22,15 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { ActionTypes } from "./vuexStoreTypes";
-
-export enum ProfilType {
-  Admin = "Admin",
-  Controller = "Controller",
-  Agent = "Agent",
-}
-
-export interface IConfig {
-  viewButtons: "base" | "advanced";
-  viewerInfo: {
-    roomRef: boolean;
-    floorRef: boolean;
-    equipments: "all" | "groupItem" | "ticket" | "none";
-  };
-  sprites: boolean;
-  reloadInterval?: number;
-  temporality: ITemporality[];
-  workflowList: String[];
-  profilType: ProfilType;
-}
-
-export const enum ITemporality {
-  currentValue = "Valeur courante",
-  day = "journée",
-  week = "Semaine",
-  month = "Mois",
-  year = "Année",
+import { IZoneItem } from './IBuildingItem';
+export interface ISpaceSelectorItem extends IZoneItem {
+  level: number;
+  isOpen: boolean;
+  loading?: boolean;
+  buildingId: string;
+  patrimoineId: string;
+  parents: any[];
+  isLastInGrp: boolean;
+  drawLink: number[];
+  haveChildren: boolean;
 }

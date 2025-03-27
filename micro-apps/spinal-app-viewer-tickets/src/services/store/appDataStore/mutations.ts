@@ -46,6 +46,7 @@ export enum MutationTypes {
   SET_ITEM_SELECTED = "SET_ITEM_SELECTED",
   SET_DATA = "SET_DATA",
   SET_SELECTED_TICKETS = "SET_SELECTED_TICKETS",
+  // SET_BUILDING_REF_OBJS = "SET_BUILDING_REF_OBJS",
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -54,6 +55,10 @@ export type MutationsAppData<S = StateAppData> = {
     state: S,
     payload: ISpaceSelectorItem
   ): void;
+  // [MutationTypes.SET_BUILDING_REF_OBJS](
+  //   state: S,
+  //   payload: { id: string; items: IZoneItem[] }
+  // ): void;
   [MutationTypes.SET_FLOORS](
     state: S,
     payload: { id: string; items: IZoneItem[] }
@@ -93,6 +98,12 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
   ): void {
     state.zoneSelected = payload;
   },
+  // [MutationTypes.SET_BUILDING_REF_OBJS](
+  //   state: StateAppData,
+  //   { id, items }: { id: string; items: IZoneItem[] }
+  // ): void {
+  //   state.ref_objs[id] = items;
+  // },
   [MutationTypes.SET_FLOORS](
     state: StateAppData,
     { id, items }: { id: string; items: IZoneItem[] }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 SpinalCom - www.spinalcom.com
+ * Copyright 2022 SpinalCom - www.spinalcom.com
  *
  * This file is part of SpinalCore.
  *
@@ -22,32 +22,10 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { ActionTypes } from "./vuexStoreTypes";
+export * from './interfaces/ISpaceSelectorItem';
+export * from './interfaces/IBuildingItem';
+export * from './convertZonesToISpaceSelectorItems';
 
-export enum ProfilType {
-  Admin = "Admin",
-  Controller = "Controller",
-  Agent = "Agent",
-}
+import SpaceSelector from './SpaceSelector.vue';
 
-export interface IConfig {
-  viewButtons: "base" | "advanced";
-  viewerInfo: {
-    roomRef: boolean;
-    floorRef: boolean;
-    equipments: "all" | "groupItem" | "ticket" | "none";
-  };
-  sprites: boolean;
-  reloadInterval?: number;
-  temporality: ITemporality[];
-  workflowList: String[];
-  profilType: ProfilType;
-}
-
-export const enum ITemporality {
-  currentValue = "Valeur courante",
-  day = "journée",
-  week = "Semaine",
-  month = "Mois",
-  year = "Année",
-}
+export { SpaceSelector };

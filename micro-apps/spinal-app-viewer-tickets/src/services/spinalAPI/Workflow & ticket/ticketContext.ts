@@ -76,3 +76,61 @@ export async function getTicketDetails(ticketId: number) {
   const result = await spinalAPI.get(url);
   return { ...result.data, buildingName: "Bâtiment" };
 }
+
+// export async function addTicket(ticketId: any) {
+//   const platformId = localStorage.getItem("idBuilding") || "";
+//   const spinalAPI = SpinalAPI.getInstance();
+//   const url = spinalAPI.createUrlWithPlatformId(
+//     platformId,
+//     `api/v1/ticket/${ticketId}/read_details`
+//   );
+//   const result = await spinalAPI.get(url);
+//   return { ...result.data, buildingName: "Bâtiment" };
+// }
+
+export interface Ticket {
+  workflow: String;
+  process: String;
+  nodeDynamicId: number;
+  name: String;
+  priority: number;
+  description: String;
+}
+
+export async function createTicket(building: string, data: Ticket) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    building,
+    "api/v1/ticket/create_ticket"
+  );
+  const res = await spinalAPI.post(url, data);
+  return res.data;
+}
+
+export async function addTicketDoc(
+  building: string,
+  ticketId: number,
+  file: FormData
+) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    building,
+    `api/v1/ticket/${ticketId}/add_doc`
+  );
+  const res = await spinalAPI.post(url, file);
+  return res.data;
+}
+
+export async function archiveTicket(
+  building: string,
+  ticketId: string,
+  data: { workflowDynamicId: number; processDynamicId: number }
+) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    building,
+    `api/v1/ticket/${ticketId}/archive`
+  );
+  const res = await spinalAPI.post(url, data);
+  return res.data;
+}
