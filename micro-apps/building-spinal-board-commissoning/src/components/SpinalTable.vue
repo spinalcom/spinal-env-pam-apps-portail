@@ -4,7 +4,7 @@
     style="height: 100% !important; overflow: hidden; overflow-y: auto;"
     mobile-breakpoint="0"
     :headers="headers"
-    :items="item"
+    :items="itemData"
     :items-per-page="10"
     fixed-header
     :footer-props="{
@@ -13,16 +13,39 @@
     'items-per-page-all-text': 'Toutes'
   }"
   >
- 
-   <template  v-for="header in headers"  v-slot:[`item.${header.value}`]="{value}" >
-        <template v-if="header.isEndpoint">
-            <div :style="{width: 20 + 'px', height: 20 + 'px', borderRadius: 7 + 'px', backgroundColor: item.color,}" style="background-color: blue;"></div>
-            <SmallLegend class="ml-3" :size="11" :color="getColor(value)" :text="`${value}`"/>
+    
+  <template v-for="header in headers" v-slot:[`header.${header.value}`]="{ header }">
+      <div @click="headershow(header)" :class="{ 'selected-class': selected_header === header.text }"
+        style="display: flex;flex-direction: row;justify-content: space-between; align-items: center ; height: 40px;">
+        <span title="Cliquez pour afficher les éléments dans la 3D" id="headerName">{{ header.text }}</span>
+        <div style="width: 39px;  transform: translate(-14px,3px); ">
+          <v-select v-model="selections['filter']" :menu-props="{ offsetY: true }" :label="''" multiple
+            append-icon="mdi-chevron-down" color="#14202C" item-color="#14202C" class=" d-inline-block"
+            style="width:20px;min-width: 20px;font-size: 14px !important;transform: translate(15%,10%); border: none;"
+            @change="filtredData(selections)"
+            v-if="header.filterable" :items="getUniqueColumnValues(stripeData)">
+            <template v-slot:selection="{ item, index }">
+              <div v-if="index == 0"
+                style="position: absolute;background-color: #14202c;color: white;border-radius: 10px;width: 14px;height: 14px;font-size: 11px;display: flex;justify-content: center;align-items: center;transform: translate(15px,-8px);">
+                {{ selections['filter'].length }} </div>
+            </template>
+          </v-select>
+        </div>
+        <div  title="Cliquez pour ordonner" style=" width: 30px;display: flex;justify-content: center;align-items: center;">
+        </div>
+        <div
+          style="height: 100%;background-color: white;position: absolute;transform: translate(-16px);">
+        </div>
+      </div>
+    </template>
+
+
+   <template  v-for="header in headers"  v-slot:[`item.${header.value}`]="{value }" >
+        <template v-if="header.isEndpoint && header.filterable">
+            <SmallLegend class="ml-3" :size="11" :color="getColor(value, header)" :text="`${value}`"/>
         </template>
-        <template v-else-if="header.isConvention">
-            <div
-            style="text-align: center; border-radius: 5px;"
-              class="font-table">{{ value }}</div>
+        <template v-else-if="header.isEndpoint">
+            <SmallLegend class="ml-3" :size="11" :color="getColor(value, header)" :text="`${value}%`"/>
         </template>
         <template v-else>
             <div class="font-table
@@ -38,6 +61,8 @@
 import SmallLegend from './SmallLegend.vue';
 import { config } from '../../config';
 import { get } from 'http';
+import { MutationTypes } from '../services/store/appDataStore/mutations';
+import { parseRegex } from '../services';
 export default {
     name: 'SpinalTable',
     components: {
@@ -48,10 +73,6 @@ export default {
             type: [] as any[],
             required: true
         },
-        attributeList: {
-          type: [] as any[],
-          required: false
-        },
         headers: {
             type: [] as any[],
             required: true
@@ -59,60 +80,87 @@ export default {
     },
     data() {
         return {
-          attrbutes: this.attributeList,
+          itemData: this.item,
+          stripeData: [] as  any[],
           duplicate: [] as any[],
           warning: [] as any[],
           missing: [] as any[],
-          seen: new Set()
+          seen: new Map(),
+          selected_id: null,
+          selected_header: null,
+          arrow: false, 
+          selections: {} as any
 
         };
         },
 
 
    watch: {
-    attributeList: {
-      handler(newData) {
-        if (Array.isArray(newData) && newData.length > 0) {
-          this.attrbutes = newData;
-          this.getStripeData();
-
+      item: {
+        handler(newData) {
+          this.itemData = newData;
+          const stripLegend = config.bilan.timeline;
+          const source = config.sources.find((src) => src.id === stripLegend.sourceId);
+          const data = this.item.map((el) => {
+            if(el.sources) {
+              const stripe = el.sources.find((st) => st.name.toLowerCase() === source?.name?.toLowerCase());
+              return stripe || null;
+            }
+            return null;
+          }).filter(Boolean);
+          
+            this.getStripeData(data);
         }
       },
-      deep: true,
-      immediate: true
-    }
-   },
+      selections : {
+        handler(newData) {
+          this.selections = newData;
+        }
+      }
+    },
         
+   
     methods: {
       
-      async getStripeData() {
+      async getStripeData(data: any) {
     const stripLegend = config.bilan.timeline;
     const source = config.sources.find((src) => src.id === stripLegend.sourceId);
+    this.stripeData = this.item.map((el) => {
+      if (el.sources) {
+        const stripe = el.sources.find(
+          (st) => st.name.toLowerCase() === source?.name?.toLowerCase()
+        );
+        return stripe || null; // Return stripe or null instead of unnecessary array
+      }
+      return null; // Ensure all cases return a value
+    }).filter(Boolean); // Remove null values
+    this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.stripeData);
     const configL = stripLegend.setup.legend;
     const type = stripLegend.setup.type;
-     this.seen = new Set();
+     this.seen = new Map();
      this.duplicate = [];
      this.warning = [];
      this.missing = [];
-    if(this.attrbutes) {
-      for (const stripe of this.attrbutes) {
+    if(data.length > 0) {
+      for (const stripe of data) {
          const value = stripe?.value;    
       
         if (type === "regex") {
-          const regex : RegExp= stripLegend.setup.value as RegExp;
+          const regex = parseRegex(stripLegend.setup.value);
+          
           // Vérifie si la regex existe et fonctionne correctement
           
           
-          if (!value) {
+          if (value === 'undefined' || value === "") {
             this.missing.push(value);
             
           } else {
                 if (regex.test(value)) {
-                    
                     if(this.seen.has(value)) {
-                      this.duplicate.push(value);
+                      const count = this.seen.get(value);
+                      this.seen.set(value, count + 1);
                     } else {
-                      this.seen.add(value);
+                      this.seen.set(value, 1);
                     }
                   } else {
                     this.warning.push(value);
@@ -120,44 +168,148 @@ export default {
             }
           }          
     }
+    this.seen.forEach((value, key) => {
+      if(value > 1) {
+        this.seen.delete(key);
+        this.duplicate.push(key);
+      }
+    })
   }
 },
  
-getColor(currentValue: any) {
-    // Vérifier si currentValue est un nombre
-    const numericValue = parseFloat(currentValue);
-  
-
+getColor(value: any, header: any) {
+    // Vérifier si value est un nombre
+    const numericValue = Number(value);
     if (!isNaN(numericValue)) {
-      // currentValue est un nombre
-      if (numericValue < 50) {
-        return '#FF000B'; // Rouge pour les valeurs inférieures à 50
-      } else if (numericValue >= 50 && numericValue < 80) {
-        return '#EF8BC5'; // Rose pour les valeurs entre 50 et 80
-      } else {
-        return '#14202C'; // Bleu foncé pour les valeurs supérieures ou égales à 80
+      const src = config.sources.find((el) => el.name === header.text);
+      if(src?.legend) {
+        const {max, min, median} = src.legend;
+
+        if(numericValue >= max.value) {
+          return max.color
+        }
+         if(numericValue <= min.value) {
+          return min.color;
+        }
+        if (numericValue >= median?.value) {
+            return median?.color; // Entre médian et max
+        }
+        return "#14202C"; // Bleu foncé pour les autres valeurs
       }
-    } else if (typeof currentValue === 'string') {
-      // currentValue est une chaîne de caractères
-      if (this.duplicate.includes(currentValue)) {
+
+        
+
+  } else if (typeof value === 'string') {
+      // value est une chaîne de caractères
+      if (this.duplicate.includes(value)) {
         const src = config.bilan.timeline.setup.legend?.find((config) => config.type === "dual");
         return src?.color; // Rouge pour les valeurs en double
-      } else if (this.warning.includes(currentValue)) {
+      } else if (this.warning.includes(value)) {
         const src = config.bilan.timeline.setup.legend?.find((config) => config.type === "warning");
         return src?.color;
-      } else if (currentValue === 'undefined' || currentValue === 'null') {
+      } else if (value === 'undefined' || value === 'null') {
         const src = config.bilan.timeline.setup.legend?.find((config) => config.type === "missing");
         return src?.color;
       } else {
         return '#14202C'; // Bleu foncé pour les autres valeurs
       }
     } else {
-      // currentValue n'est ni un nombre ni une chaîne de caractères
+      // value n'est ni un nombre ni une chaîne de caractères
       return '#000000'; // Noir par défaut
     }
+  },
+  getUniqueColumnValues(data: any[]) {
+     const warning = {
+      text: config.bilan.timeline.setup.legend?.find((src) => src.type === "warning")?.name,
+      value: this.warning,
+     }
+      const duplicate = {
+        text: config.bilan.timeline.setup.legend?.find((src) => src.type === "dual")?.name,
+        value: this.duplicate,
+      }
+      const missing = {
+        text: config.bilan.timeline.setup.legend?.find((src) => src.type === "missing")?.name,
+        value: this.missing,
+      }
+      this.seen.forEach((value, key) => {
+        // console.log(`Key: ${key}, Value: ${value}`);
+      });
+      const correct = {
+        text: config.bilan.timeline.setup.legend?.find((src) => src.type === "success")?.name,
+        value: Array.from(this.seen.keys()),
+      }
+
+      return [correct ,warning, duplicate, missing];
+    },
+
+  headershow(header) {
+      this.selected_header = header.text
+    },
+
+    filtredData(val: { filter?: any[] }) {
+      let result: any[] = [];
+
+    if (val.filter && Array.isArray(val.filter)) {
+        const filter = val.filter;
+
+        this.stripeData.forEach((data: any) => {
+            if (!filter.some(el => el.includes(data.value))) {
+                if (!result.includes(data)) {
+                    result.push(data);
+                }
+            }
+        });
+      }
+
+     const sourceData = this.item.map((el) => {
+      if(el.sources) {
+        const value = {
+          dynamicId: el.dynamicId,
+          sources: el.sources
+        }
+        return value;
+      }
+      return null;
+    }).filter(Boolean);
+
+    let replaceSource : any[] = []; 
+    sourceData.forEach((el: any) => {
+      const sources = el.sources;
+      sources.map((src: any)=> {
+        const macth = result.find((item: any) => item.name === src.name && item.dynamicId === src.dynamicId);
+        if(macth) {
+          const value = {
+           dynamicId: el.dynamicId,
+           sources: el.sources 
+          }
+          replaceSource.push(value);
+        }
+      })
+    })
+
+      this.itemData = this.updateData(replaceSource);
+      
+    this.$store.commit(MutationTypes.SET_STRIPE_DATA, result);
+ 
+ 
+},
+  updateData(update: any[]){   
+    if(update.length === this.item.length) {
+      return this.item;
+    } 
+    else {
+      return this.item.map((item: any) => {
+        const data = update.find((el: any) => el.dynamicId === item.dynamicId);
+        return data ? {...item, sources: [...data.sources]} : null;
+      }).filter(Boolean);
+    }
+   
+
   }
-  }
+
 }
+}
+
 
 
 </script>

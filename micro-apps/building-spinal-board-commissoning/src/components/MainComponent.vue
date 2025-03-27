@@ -16,18 +16,76 @@
 
         <div class="main">
           <div class="left-box" v-if="showLeftBox">
-            <DotsGrid :dotsList="equipements" />
+            <DotsGrid :dotsList="ItemList" />
           </div>
           <div class="right-box" :style="showLeftBox ? 'width: 70%' : 'width: 100%'">
             <div class="header-left">
-              <span>Détails</span>
+              <span>Analyse par {{ statisticTimeline.setup.type }} sur {{ statisticSource.name }} </span> :
+              <span style="background-color: #f2f2f2 ; padding: 4px; color: #14202C; font-weight: 700; border-radius: 5px;" class="ml-2">
+                <span>{{ statisticTimeline.setup.value }}</span>
+              </span>
+              <template>
+  <v-row class="ml-2">
+    <v-dialog
+      v-model="editedregex"
+      persistent
+      max-width="290"
+    >
+      <template v-slot:activator="{ on, attrs }">
+       <v-icon v-bind="attrs" v-on="on">mdi-pencil-box</v-icon>
+      </template>
+      <v-card>
+        <v-card-title>
+          <span class="headline">Modifier la Regex</span>
+        </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col cols="12">
+              <v-select
+                v-model="statisticSource.name"
+                :items="sources.map((src) => src.name)"
+                label="Colonne"
+                text-value="id"
+                outlined
+                dense
+              ></v-select>
+              <v-text-field
+                v-model="statisticTimeline.setup.value"
+                label="Regex"
+                outlined
+                dense
+              ></v-text-field>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="blue darken-1"
+            text
+            @click="editedregex = false"
+          >
+            Annuler
+          </v-btn>
+          <v-btn
+            color="blue darken-1"
+            text
+            @click="changeRegex"
+          >
+            Valider
+          </v-btn>
+        </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </v-row>
+  </template>
             </div>
             <div class="stripe">
               <Stripe :stripeList="stripeData" />
             </div>
 
             <div class="table">
-              <SpinalTable :item="formateditems" :attributeList="stripeData" :headers="dynamicHeaders" />
+              <SpinalTable :item="formateditems" :headers="dynamicHeaders" />
             </div>
           </div>
         </div>
@@ -45,6 +103,7 @@ import Stripe from './Stripe.vue';
 import DotsGrid from './DotsGrid.vue';
 import { config } from '../../config';
 import { MutationTypes } from '../services/store/appDataStore/mutations';
+import { getData, getDataInContextSpatial } from '../services';
 
 @Component({
   components: {
@@ -56,68 +115,96 @@ import { MutationTypes } from '../services/store/appDataStore/mutations';
 })
 class App extends Vue {
 
+  @Prop({type: Array, default: [], required: true}) items: any[];
+
  selectedZone: any = {}
- equipements: any[] = []
+ ItemList: any[] = []
  formateditems: any[] = []
  dynamicHeaders: any[] = []
  stripeData: any[] = []
-  showLeftBox: boolean = true
+ showLeftBox: boolean = true
+ editedregex: boolean = false
+  statisticTimeline = config.bilan.timeline;
+  sources = config.sources;
+  statisticSource = config.sources.find((src) => src.id === config.bilan.timeline.sourceId);
+
+
   async mounted (){
+    const buildingId: string = localStorage.getItem('idBuilding') as string;
     this.selectedZone = this.$store.state.appDataStore.zoneSelected;
-    config.bilan.dotsGrid ? this.showLeftBox = true : this.showLeftBox = false;
-    const buildingId = localStorage.getItem('idBuilding')
-    if(this.selectedZone.type === 'building') {
-      await this.getBuildingEquipements();
-    }
-    else {
-      await this.getFloorEquipements();
-    }
+    this.showLeftBox = config.bilan.dotsGrid ? true : false;
   }
 
 // Methods
 
-async getBuildingEquipements() {
-  const buildingId = localStorage.getItem('idBuilding');
-  const floors = await this.$store.dispatch(ActionTypes.GET_FLOORS, {
-        buildingId: buildingId,
-        patrimoineId: this.selectedZone.staticId
-      })
+async getDataItem(newVal: any = this.items) {
+  const buildingId: string = localStorage.getItem('idBuilding') as string;
+  this.ItemList = newVal;
+    const baseHeaders = [
+    { text: 'Etage', value: 'info.floor.name', align: 'start' },
+      { text: 'Nom', value: 'name', align: 'start' },
+  ];
+  if(this.ItemList.length > 0) {
+    const endpoints = this.ItemList[0].sources || [];
+    const sourceFiltered = config.sources.find((src) => src.id === this.statisticTimeline.sourceId);
+    const endpointHeaders = endpoints.map((endpoint: any) => ({
+      text: endpoint.name,
+      value: endpoint.name.toLowerCase().replace(/ /g, "-"),
+      align: 'start',
+      isEndpoint: true,
+      filterable: endpoint.name.toLowerCase() === sourceFiltered?.name.toLocaleLowerCase() ? true: false
+    }));
+    this.dynamicHeaders = [...baseHeaders, ...endpointHeaders];
+  } else {
+    this.dynamicHeaders = baseHeaders;
+  }
 
-      const equipement = await this.$store.dispatch(ActionTypes.GET_BUILDING_EQUIPMENTS, {
-        buildingId: buildingId,
-        floors: floors
-      })
-          
-      // const res = await this.$store.dispatch(ActionTypes.GET_CONTROL_POINT_MULTIPLE, {
-      //   buildingId: buildingId,
-      //   item: equipement
-      // })
-      this.equipements = equipement;
-      this.stripeData = await this.equipements.map((item) => {
-          return item.attribute
-      })
+  // Ajouter les headers pour les endpoints
+  // const endpointHeaders = this.ItemList.sources.map((endpoint: any) => ({
+  //   text: endpoint.name,
+  //   value: endpoint.name.toLowerCase().replace(/ /g, "-"),
+  //   align: 'start',
+  //   isEndpoint: true
+  // }));
+
+  // this.dynamicHeaders = [...baseHeaders, ...endpointHeaders];
+
+
+  if (newVal.length > 0) {
+    this.formateditems = newVal.map((item) => {
+      const formated = { ...item };
+      // Vérifier si endpoints existe avant de boucler
+      (item.sources || []).forEach((endpoint: any) => {
+        const key = endpoint.name.toLowerCase().replace(/ /g, "-");
+        const type = typeof endpoint.value;
+   
+        if(type === 'number') {
+          formated[key] = endpoint.value.toFixed(2);
+        }
+        else {
+          formated[key] = `${endpoint.value}`;
+
+        }
+        
+      });
+      return formated;
+    });
+  } else {
+    this.formateditems = [];
+  }
+
       this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.stripeData);
-      this.$store.commit(MutationTypes.SET_DATA, this.equipements);
       
 }
 
 
-async getFloorEquipements() {
-  const buildingId = localStorage.getItem('idBuilding');
-      const floor = this.selectedZone;
-      const equipement = await  this.$store.dispatch(ActionTypes.GET_FLOOR_EQUIPMENTS, {
-        buildingId: buildingId,
-        floor: floor
-      });
-      this.equipements = equipement;
-      this.$store.commit(MutationTypes.SET_DATA, this.equipements);
-      this.stripeData = await this.equipements.map((item) => {
-          return item.attribute
-      })
-      this.$store.commit('SET_STRIPE_DATA', this.stripeData);
+
+changeRegex() {
+  this.editedregex = false;
+
+  
+  this.getDataItem();
 }
-
-
 
 
 
@@ -132,56 +219,13 @@ async getFloorEquipements() {
   @Watch('zoneSelected')
   async onZoneSelectedChange() {
     this.selectedZone = this.zoneSelected;
-
-    if(this.selectedZone.type === 'building') {
-      await this.getBuildingEquipements();
-    }
-    else {
-      await this.getFloorEquipements();
-    }
+    await this.getDataItem();
   }
 
-  @Watch('equipements')
+  @Watch('items')
   onEquipementsChange(newVal: any[]) {
     // Headers dynamiques
-    const baseHeaders = [
-    { text: 'Etage', value: 'floorName', align: 'start' },
-      { text: 'Nom', value: 'name', align: 'start' },
-  ];
-
-  // Ajouter les headers pour les endpoints
-  const endpointHeaders = this.equipements[0].endpoints.map((endpoint: any) => ({
-    text: endpoint.name,
-    value: endpoint.name.toLowerCase().replace(/ /g, "-"),
-    align: 'start',
-    isEndpoint: true
-  }));
-
-  this.dynamicHeaders = [...baseHeaders, ...endpointHeaders];
-
-
-  if (newVal.length > 0) {
-    this.formateditems = newVal.map((item) => {
-      const formated = { ...item };
-      // Vérifier si endpoints existe avant de boucler
-      (item.endpoints || []).forEach((endpoint: any) => {
-        const key = endpoint.name.toLowerCase().replace(/ /g, "-");
-        const type = typeof endpoint.currentValue;
-   
-        if(type === 'number') {
-          formated[key] = endpoint.currentValue.toFixed(2);
-        }
-        else {
-          formated[key] = `${endpoint.currentValue}`;
-
-        }
-        
-      });
-      return formated;
-    });
-  } else {
-    this.formateditems = [];
-  }
+    this.getDataItem(newVal);
 }
 
 }

@@ -28,7 +28,6 @@ import { IConfig } from "../../../../interfaces/IConfig";
 
 export function getItemsToRegroup(map: Map<string, any>, item: ISpaceSelectorItem) {
    const type = item.type;
-   console.log("type", type);
    let obj: any = []
    let data: any = []
    if(type === 'building')  {

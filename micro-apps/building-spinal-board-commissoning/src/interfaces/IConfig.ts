@@ -106,7 +106,7 @@ interface Istatistique {
 interface ILegendStatistique {
   name: string;
   color: string;
-  label: string;
+  label?: string;
   type: string;
   
 }

@@ -46,3 +46,76 @@ interface ILocation {
 interface IDetails {
   area: number;
 }
+
+
+export interface IContext {
+  dynamicId: number;
+  staticId: string;
+  name: string;
+  type: string;
+}
+
+export  interface ICategory {
+  dynamicId: number;
+  staticId: string;
+  name: string;
+  type: string;
+  icon: string;
+}
+
+export interface IGroup{
+  dynamicId: number;
+  staticId: string;
+  name: string;
+  type: string;
+  icon: string;
+  color: string;
+
+}
+
+
+export interface ItemInGroup {
+  dynamicId: number;
+  staticId: string;
+  name: string;
+  type: string;
+  bimFileId: string;
+  dbid: number;
+}
+
+
+export interface ItemPositon {
+  
+    dynamicId: 0;
+    staticId: string;
+    name: string;
+    type: string;
+    info: {
+      context: {
+        dynamicId: 0;
+        staticId: string;
+        name: string;
+        type: string
+      },
+      building: {
+        dynamicId: 0;
+        staticId: string;
+        name: string;
+        type: string;
+        adress: string;
+        area: 0
+      },
+      floor: {
+        dynamicId: 0;
+        staticId: string;
+        name: string;
+        type: string;
+      },
+      room: {
+        dynamicId: 0;
+        staticId: string;
+        name: string;
+        type: string
+      }
+    }
+  }

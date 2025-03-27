@@ -12,7 +12,7 @@
         />
       </div>
     </div>
-    <MicroApp :temporality="selectedTime" :space="selectedZone" v-if="selectedZone.dynamicId !== 0"/>
+    <MicroApp :temporality="selectedTime" :items="dataStore" :space="selectedZone" v-if="selectedZone.dynamicId !== 0"/>
   </v-app>
 </template>
 
@@ -24,9 +24,9 @@ import {
 import { Vue } from 'vue-property-decorator';
 import Component from 'vue-class-component';
 import MicroApp from './components/MainComponent.vue';
-import { getBuilding } from './services/spinalAPI/GeographicContext/geographicContext';
 import { ActionTypes } from './interfaces/vuexStoreTypes';
 import { MutationTypes } from './services/store/appDataStore/mutations';
+import { getDataInContextSpatial } from './services';
 interface IItemData {
   platformId: string;
   id: number | number[];
@@ -88,6 +88,12 @@ class App extends Vue {
       haveChildren: false,
     };
 
+    get dataStore() {
+      return this.$store.state.appDataStore.data;
+    }
+
+
+
   async mounted() {
     const buildingId = localStorage.getItem('idBuilding');
     const realBuilding = await this.$store.dispatch(ActionTypes.GET_BOS_BUILDING, {buildingId})
@@ -97,103 +103,24 @@ class App extends Vue {
       isOpen: false,
       loading: false,
       name: realBuilding.name,
-      type: 'building',
+      type: 'geographicBuilding',
     }
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, item);
+    getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type)
     // this.defaultSelected = item;
     // let building = await getBuilding();
     // this.defaultSelected.name = building.name;
     // this.defaultSelected.dynamicId = building.dynamicId;
   }
-  onTimeSelectOpen(item?: any): { name: string; staticId: string; dynamicId: number; level: number; isOpen: boolean; loading: boolean; patrimoineId: string; parents: never[]; isLastInGrp: boolean; drawLink: never[]; haveChildren: boolean; }[] {
-    if (item) {
-      if (item.name == 'Semaine') {
-        this.selectedTime.next = 'Semaine suivante';
-        this.selectedTime.prev = 'Semaine précédente';
-      }
-      if (item.name == 'Mois') {
-        this.selectedTime.next = 'Mois suivant';
-        this.selectedTime.prev = 'Mois précédent';
-      }
-      else if (item.name == '3 mois') {
-        this.selectedTime.next = '3 mois suivants';
-        this.selectedTime.prev = '3 mois précédents';
-      }
-      else if (item.name == 'Année') {
-        this.selectedTime.next = 'Année suivante';
-        this.selectedTime.prev = 'Année précédente';
-      }
-      return [];
-    }
-    let timeOptions: any[] = [];
-    timeOptions.push({
-      name: 'Semaine',
-      next: 'Semaine suivante',
-      prev: 'Semaine précédente',
-      staticId: 'Semaine',
-      dynamicId: 2,
-      level: 0,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'Semaine',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    });
-    timeOptions.push({
-      name: 'Mois',
-      next: 'Mois suivant',
-      prev: 'Mois précédent',
-      staticId: 'Mois',
-      dynamicId: 1,
-      level: 1,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'Mois',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    });
-    timeOptions.push({
-      name: 'Année',
-      next: 'Année suivante',
-      prev: 'Année précédente',
-      staticId: 'Annee',
-      dynamicId: 3,
-      level: 0,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'Annee',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    });
-    timeOptions.push({
-      name: 'Décennie',
-      staticId: 'Decennie',
-      dynamicId: 4,
-      level: 0,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'Decennie',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    });
-      return timeOptions;
-  }
+  
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<any> {
     var floorList: any[] = [];
+    const buildingId = localStorage.getItem('idBuilding');
     switch (item?.type) {
       case undefined:
-      const buildingId = localStorage.getItem('idBuilding');
       if(buildingId) {
         const payload = {
-          item: { buildingId, type: "building" },
+          item: { buildingId, type: "geographicBuilding" },
 
         }
         const promises = [
@@ -211,7 +138,7 @@ class App extends Vue {
               categories: [],
               color: realBuilding.color,
               dynamicId: realBuilding.dynamicId,
-              type: 'building',
+              type: 'geographicBuilding',
             },
           ];
       }
@@ -229,11 +156,11 @@ class App extends Vue {
               categories: [],
               color: '#35CAE5',
               dynamicId: building.dynamicId,
-              type: 'building',
+              type: 'geographicBuilding',
             },
           ];
       }
-      case 'building':
+      case 'geographicBuilding':
       return await this.$store.dispatch(ActionTypes.GET_FLOORS, {
           buildingId: item.staticId,
           patrimoineId: item.patrimoineId,
@@ -249,7 +176,9 @@ class App extends Vue {
   public set selectedZone(v: ISpaceSelectorItem) {
     // if (v.type == "geographicFloor")
     //   this.floor = this.query.spaceSelectedId
+    const buildingId = localStorage.getItem('idBuilding');
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
+   getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type)
   }
 
 

@@ -1,12 +1,12 @@
 <template>
   <div class="main-stripe">
-    <div v-for="(item, idx) in configLegend" :key="item.name" :style="{width: item.value + '%', height: '100%', zIndex: idx }">    
+    <div v-for="(item, idx) in configLegend" :key="item.name" :style="{width: item.percent + '%', height: '100%', zIndex: idx}">    
       <span>{{ item.name }}</span>
       <v-tooltip top :color="item.color" >
         <template v-slot:activator="{ on, attrs}">
           <div v-bind="attrs" v-on="on" style="width:100%; height: 100%; border-radius: 5px;" :style="{backgroundColor: item.color}"></div>
         </template>
-        <span>{{ item.name }} : {{ item.value }}</span>
+        <span>{{ item.name }} : {{ item.value }} ({{ item.percent }}%)</span>
       </v-tooltip>
     </div>
 
@@ -15,39 +15,30 @@
 
 <script lang="ts">
 import { config } from "../../config";
-import { MutationTypes } from "../services/store/appDataStore/mutations";
+import { parseRegex } from "../services";
 
 export default {
   name: "Stripe",
   data() {
     return {
       stripeList: [] as any[],
-      configLegend: [] as { name: string; color: string; value: number }[], // Utilisation d'un tableau
+      configLegend: [] as { name: string; color: string; value: number, percent?: number }[], // Utilisation d'un tableau
     };
   },
   computed: {
-    StripeData() {
-      return this.$store.state.appDataStore.StripeDataList;
-    },
     data() {
-      return this.$store.state.appDataStore.data;
+      return this.$store.state.appDataStore.StripeDataList;
     }
   },
-  async mounted() {
-    console.log("stripe data: ", this.stripeList);
-},
+
 
 watch: {
-  StripeData: {
-    handler(newData) {
-      if (Array.isArray(newData) && newData.length > 0) {
-        this.stripeList = newData; // Met à jour stripeList
-        this.getStripeData(); // Traite les données après mise à jour
-      }
-    },
-    deep: true,
-    immediate: true // Exécuter au montage si les données existent déjà
+ data: {
+  handler(newData) {
+    this.stripeList = newData;
+    this.getStripeData();
   }
+ }
 },
 
 
@@ -73,10 +64,10 @@ methods: {
         const value = stripe?.value;
 
         if (type === "regex") {
-          const regex: RegExp = stripLegend.setup.value as RegExp;
+          const regex = parseRegex(stripLegend.setup.value);
           // Vérifie si la regex existe et fonctionne correctement
 
-          if (!value) {
+          if (value === "undefined" || value === "") {
             missing.push(value);
           } else {
             if (regex.test(value)) {
@@ -101,11 +92,9 @@ methods: {
       if(value > 1) {
         seen.delete(key);
         duplicate.push(value);
-       console.log('duplicate', key, 'value: ', value);
       }
    })
    const duplicatesum = duplicate.reduce((a: any, b: any) => a + b, 0);
-   console.log('duplicate', duplicatesum);
 
     if (seen.size > 0) {
       const success_naming = stripLegend.setup.legend?.find((config) => config.type === "success");
@@ -152,10 +141,18 @@ methods: {
       }
     }
 
-    console.log('configLegend', this.configLegend);
+    if(this.configLegend.length > 0) {
+      const total = this.configLegend.reduce((sum, item) => sum + item.value, 0);
+      this.configLegend = this.configLegend.map((item) => {
+        return {
+          ...item,
+          percent: ((item.value / total) * 100).toFixed(2)
+        };
+      });
   }
-    }
+ }
   
+}
 };
 </script>
 
@@ -175,6 +172,7 @@ methods: {
   font-family: Charlevoix;
   font-size: 14px;
   overflow: auto;
+  gap: 1px;
 }
 
 .main-stripe div {

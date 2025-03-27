@@ -54,7 +54,7 @@ export const  config: IConfig = {
             unit: "%",
             legend: {
                 min: { value: 0, color: "#24CBD9" },
-                median: { value: 50, color: "#2077CE" },
+                median: { value: 50, color: "#2077CE"},
                 max: { value: 100, color: "#112C9D" },
             },
         },
@@ -88,25 +88,25 @@ export const  config: IConfig = {
             sourceId: 1,
             setup:{
                 type: "regex",
-                value: /^AUT-\d{3}-MCA-\d{3}$/,
+                value: "/^AUT-\\d{3}-MCA-\\d{3}$/",
                 legend: [
-                    { name: 'correspond', color: '#14202C', label: "Convention de nommage" , type: "success"},
-                    { name: 'incorrect',  color: '#FF000B', label: "Convention de nommage", type: "warning" },
-                    { name: 'non défini', color: '#9830F2', label: "Convention de nommage", type: "missing" },
-                    { name: 'doublons', color: '#EF8BC5', label: "Convention de nommage", type: "dual" },
+                    { name: 'correspond', color: '#14202C',   type: "success"},
+                    { name: 'incorrect',  color: '#FF000B', type: "warning" },
+                    { name: 'non défini', color: '#9830F2', type: "missing" },
+                    { name: 'doublons', color: '#EF8BC5',  type: "dual" },
 
 
 
                 ]
             }
         },
-        dotsGrid: {
-            sourceId: 4,
-            setup:{
-                type: "threshold_below",
-                value: 70,
-            }
-        }
+        // dotsGrid: {
+        //     sourceId: 4,
+        //     setup:{
+        //         type: "threshold_below",
+        //         value: 70,
+        //     }
+        // }
 
     }
 }

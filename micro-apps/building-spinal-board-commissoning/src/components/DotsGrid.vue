@@ -29,7 +29,6 @@ export default {
 
 
      mounted() {
-        console.log('dotsData', this.dotData);    
     },
 
 
