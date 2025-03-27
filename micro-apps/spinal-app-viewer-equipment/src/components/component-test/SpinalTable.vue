@@ -23,7 +23,7 @@
     <!-- Vselect + t_index selector -->
 
     <div>
-      <div class="title" style="display: flex; justify-content: space-between">
+      <div class="equipment-title" style="display: flex; justify-content: space-between">
         <div
           v-if="
             ActiveData &&
@@ -73,7 +73,7 @@
               :label="vSelectLabel"
               outlined
               :attach="$refs.toto"
-              :menu-props="{ offsetY: true, nudgeTop: -3 }"
+              :menu-props="{ offsetY: true, nudgeTop: -20 }"
             ></v-select>
             <div ref="toto"></div>
           </div>
@@ -408,8 +408,7 @@
     </div>
 
     <!-- ONGLET Documentation -->
-    <div
-      v-if="vSelectedTab == 'Documentation'"
+    <div v-if="vSelectedTab == 'Documentation'"
       class="scrollable-content"
       style="display: flex; flex-direction: row; flex-grow: 1"
     >
@@ -488,6 +487,40 @@
         <div v-else>
           <p>Aucune documentation disponible.</p>
         </div>
+
+
+        
+        <h3 style="border-bottom: 1px solid #d7d7d7; margin-top: 48px">Documents des Parents</h3>
+          <br>
+          <div v-for="(parent, index) in parentDocumentation.parents" :key="index">
+            <div v-if="parent.documentation && parent.documentation.length > 0">
+              <h3>{{ parent.name }}</h3>
+              <div class="blocInformation">
+                <div style="display: flex; position: relative; align-items: center "
+                  v-for="(item, index2) in parent.documentation" :key="index2">
+                  <div class="inventory-item"
+                    style="max-width: 100%; width: 99%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
+                    <li style="list-style: none;">
+                      <v-icon :style="{ 'color': getIcon(item.Name).color }">{{ getIcon(item.Name).name }}</v-icon>
+                      {{ item.Name }}
+                    </li>
+                  </div>
+
+                  <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
+                    @showDoc="showDoc" @downloadFile="downloadFile"
+                    @DeleteFile="DeleteFile(item.dynamicId, parent.dynamicId, 'parent')"
+                    @changeOverflowItemMenu="changeOverflowItemMenu">
+                  </OverMenu>
+
+                </div>
+                <!-- <Loader :showLoader="showLoader_in_parent" /> -->
+              </div>
+            </div>
+          </div>
+
+
+
+
       </div>
     </div>
 
@@ -587,21 +620,9 @@
       </div>
 
       <!-- ONGLET INDICATEUR -->
-      <div style="width: 100%" v-if="vSelectedTab == 'Indicateur'">
-        <div
-          v-for="(item, index) in vSelectItemInsights"
-          class="blocInformation"
-        >
-          <span
-            style="
-              font-size: 19px;
-              font-family: Arial, Helvetica, sans-serif;
-              font-weight: bold;
-            "
-            >{{ item.profileName }}</span
-          >
-          <div
-            v-if="vSelectItemInsights == null"
+      <div style="width: 100%" v-if="vSelectedTab == 'Indicateur'" class="scrollable-content">
+        <!-- <div
+            v-if="vSelectItemInsights.length === 0"
             style="
               justify-content: center;
               align-items: center;
@@ -616,8 +637,24 @@
               color="primary"
               indeterminate
             ></v-progress-circular>
-          </div>
-          <div v-else>
+          </div> -->
+        
+        <div v-if="vSelectItemInsights.length === 0">
+          <p>Aucun indicateur disponible.</p>
+        </div>
+        <div
+          v-for="(item, index) in vSelectItemInsights"
+          class="blocInformation"
+        >
+          <span
+            style="
+              font-size: 19px;
+              font-family: Arial, Helvetica, sans-serif;
+              font-weight: bold;
+            "
+            >{{ item.profileName }}</span
+          >
+          <div>
             <div
               v-for="(item, index2) in vSelectItemInsights[index].endpoints"
               class="inventory-container"
@@ -669,7 +706,10 @@
       </div>
 
       <!-- ONGLET POINT DE MESURE (endpoints)-->
-      <div style="width: 100%" v-if="vSelectedTab == 'Points de mesures'">
+      <div style="width: 100%" v-if="vSelectedTab == 'Points de mesures'" class="scrollable-content">
+        <div v-if="vSelectItemEndpoints.length === 0">
+          <p>Aucun point de mesure disponible.</p>
+        </div>
         <div
           v-for="(item, index) in vSelectItemEndpoints"
           :key="index"
@@ -901,6 +941,8 @@ export default {
     globalSprite: false,
     globalHidden: false,
     parentAttribut: [],
+    parentDocumentation: [],
+
   }), // end of data
 
   mounted() {
@@ -1048,6 +1090,10 @@ export default {
     temporality() {
       return this.$store.state.appDataStore.temporalitySelected;
     },
+
+    storeItemSelected(){
+      return this.$store.state.appDataStore.itemSelected;
+    }
 
     // t_index() {
     //   return this.$store.state.appDataStore.t_index;
@@ -1863,6 +1909,40 @@ export default {
       };
     },
 
+    async updateParentDocumentation(){
+      const buildingId = localStorage.getItem('idBuilding');
+      const elementDynamicId = this.currentTargetItemId;
+
+      const parentPromise = [
+        this.$store.dispatch(ActionTypes.GET_PARENT, {
+          buildingId: buildingId,
+          referenceIds: elementDynamicId,
+        }),
+      ];
+
+      const resultParent = await Promise.all(parentPromise);
+      const parents = resultParent[0];
+
+      let parentDocumentation = {};
+      for (let parent of parents) {
+        const parentDocPromise = [
+          this.$store.dispatch(ActionTypes.GET_DOCUMENTATION, {
+            buildingId: buildingId,
+            referenceIds: parent.dynamicId,
+          }),
+        ];
+        const parentDocResult = await Promise.all(parentDocPromise);
+        parentDocumentation[parent.dynamicId] = {
+          name: parent.name,
+          dynamicId: parent.dynamicId,
+          documentation: parentDocResult[0]
+        };
+      }
+      this.parentDocumentation = {
+        parents: parentDocumentation,
+      };
+    },
+
     async showAlert(v) {
       if (v.status === 'success') {
         this.alert = true;
@@ -1940,6 +2020,7 @@ export default {
             referenceIds: dynamicId,
           }
         );
+        await this.updateParentDocumentation();
 
         this.vSelectItemDocumentation = await Promise.all(
           documentation.map(async (item) => {
@@ -2199,6 +2280,11 @@ export default {
         }, 5000);
       }
     },
+    storeItemSelected(newVal,oldVal){
+      this.selected_id = newVal.dynamicId;
+      this.selected_data_item_name = newVal.name;
+      this.selectedEquipement = newVal;
+    },
 
     '$store.state.appDataStore.dl_data_option': {
       handler(newValue, oldValue) {
@@ -2373,13 +2459,6 @@ export default {
   }
 }
 
-.title {
-  letter-spacing: 1.1px;
-  color: #214353;
-  opacity: 1;
-  font-size: 20px !important;
-}
-
 .text {
   font-size: 14px;
   font-family: Charlevoix;
@@ -2445,10 +2524,14 @@ export default {
   background-color: rgb(199, 199, 199);
 }
 
-.title {
+.equipment-title {
   position: relative;
   width: 100%;
   display: flex;
+  letter-spacing: 1.1px;
+  color: #214353;
+  opacity: 1;
+  font-size: 20px !important;
 }
 
 .disabled-icon {

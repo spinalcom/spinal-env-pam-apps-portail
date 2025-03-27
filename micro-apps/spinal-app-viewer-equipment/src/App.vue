@@ -390,7 +390,7 @@ class App extends Vue {
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
     if (!item) return;
 
-    this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
+    // this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
 
   }
@@ -456,12 +456,17 @@ class App extends Vue {
   listenSpritesEvent() {
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
-      this.el_clicked = result.node.dynamicId;
-      this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
-      if (result.node.dynamicId) {
-        const a = document.createElement("a");
-        a.setAttribute("href", `#${result.node.dynamicId}`);
-        a.click();
+      if(result.action === 'dataViewSelect') {
+        this.el_clicked = result.node.dynamicId;
+        // this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
+        if (result.node.dynamicId) {
+          const a = document.createElement("a");
+          a.setAttribute("href", `#${result.node.dynamicId}`);
+          a.click();
+        }
+      }
+      if(result.action === 'itemSelection'){
+        this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
       }
     });
   }
