@@ -167,8 +167,8 @@ export default defineComponent({
             this.equipement = null;
             this.building = resultParent.info.building.name;
 
-          } else if (this.type === 'building') {
-
+          } else if (this.type === 'building' && newSpaceSelectedId) {
+            
 
             const resultParent = await this.$store.dispatch(ActionTypes.GET_NODE_READ, {
               buildingId,
@@ -229,7 +229,7 @@ export default defineComponent({
       this.equipement = null;
 
     },
-    clearFLoor() {
+    clearFLoor() {  
       this.piece = null;
       this.equipement = null;
       this.show = false;

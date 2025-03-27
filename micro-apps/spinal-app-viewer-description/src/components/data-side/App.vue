@@ -511,7 +511,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                    }}
+                      }}
                     </li>
                   </div>
                 </div>
@@ -595,7 +595,7 @@
             </div>
           </div>
           <div v-if="formattedInventory.length > 1 && formattedInventory">
-            
+
             <div v-for="category in formattedInventory" :key="category.name" class="blocInformation"
               style="margin-bottom: 20px;">
               <span
@@ -651,7 +651,7 @@
               </div>
             </div>
           </div>
-          <div  class="blocInformation" v-else>
+          <div class="blocInformation" v-else>
             PAS DE DONNÉES DISPONIBLES
           </div>
 
@@ -911,7 +911,7 @@ class dataSideApp extends Vue {
   data_loading = 0
   interval: {}
   formattedInventoryiconColors: Record<string, string> = {};
-    iconColors: Record<string, string> = {};
+  iconColors: Record<string, string> = {};
   stockedData: any = []
   typdata = 'building'
   currentId = 0;
@@ -1739,11 +1739,12 @@ class dataSideApp extends Vue {
   async mounted() {
     // window.parent.router.query.app = 'toto'
     // console.log('totototototoottoto windows query');
+    console.warn('aaaaaaaaaaaaaaaaaaaaaa');
+    this.countSpaceInventory()
 
-    
 
-    
-    
+
+
 
     document.querySelectorAll('.v-input__icon').forEach(el => {
       el.style.width = '150%';
@@ -2871,14 +2872,19 @@ class dataSideApp extends Vue {
 
 
   //   this.spaceInventoryData = spaceInventoryData
-  //   return spaceInventoryData;
+  //   return spaceInventoryData; 
   // }
   async countSpaceInventory() {
+
+
     this.data_loading = 75;
 
     const buildingId = localStorage.getItem("idBuilding");
-    const contextId = this.$store.state.appDataStore.zoneSelected.dynamicId;
+    let contextId = this.$store.state.appDataStore.zoneSelected.dynamicId;
 
+    if (contextId === 0) {
+      contextId = this.$store.state.appDataStore.buildingInfo.dynamicId
+    }
     // Récupération des infos du node
     const nodeRead = await this.$store.dispatch(ActionTypes.GET_NODE_READ, {
       buildingId,
@@ -3256,6 +3262,8 @@ class dataSideApp extends Vue {
     this.itemOverflowMenu = null
     if (this.selectedZone.type === "building") {
 
+
+      // this.countSpaceInventory()
       this.loadBuildingInfo()
       this.isBuildingSelected = true;
       this.$store.commit(MutationTypes.SET_DATA, []);
@@ -3315,11 +3323,12 @@ class dataSideApp extends Vue {
 
   @Watch("data")
   watchData() {
-    if(this.selectedZone.dynamicId ==   this.$store.state.appDataStore.buildingInfo.dynamicId){
+
+    if (this.selectedZone.dynamicId == this.$store.state.appDataStore.buildingInfo.dynamicId) {
       console.warn('building enfin ?');
       this.typdata = 'building'
     }
-    
+
     this.referencedId = this.selectedZone.dynamicId
     if (this.selectedZone.type == undefined) {
       this.referencedType = "etage"
@@ -3371,7 +3380,7 @@ export default dataSideApp;
   font-weight: bold;
   display: flex;
   user-select: none;
-  margin-left:8px;
+  margin-left: 8px;
   margin-top: 5px;
   margin-bottom: 5px;
 }
