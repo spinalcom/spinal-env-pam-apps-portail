@@ -283,7 +283,7 @@ export { TicketForm };
 export default TicketForm;
 </script>
 
-<style>
+<style scoped>
 .ticket-form {
     /* max-width: 400px; */
     width: 100%;
