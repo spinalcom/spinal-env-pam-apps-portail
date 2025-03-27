@@ -23,12 +23,19 @@
 
             <div class="social-media">
               <div v-if="useFullDAta && useFullDAta.attributsList">
-                <div v-for="attribut in useFullDAta.attributsList">
-                  <div style="margin-top: 2px;" v-if="attribut.label === 'area'">
-                    {{ parseFloat(attribut.value).toFixed(1) }}m²
-                  </div>
-                </div>
-              </div>
+  <div
+    v-for="(attribut, index) in useFullDAta.attributsList"
+    :key="index"
+  >
+    <div
+      v-if="attribut.label === 'area' && !useFullDAta.attributsList.slice(0, index).some(a => a.label === 'area')"
+      style="margin-top: 2px;"
+    >
+      {{ parseFloat(attribut.value).toFixed(1) }}m²
+    </div>
+  </div>
+</div>
+
             </div>
           </div>
 

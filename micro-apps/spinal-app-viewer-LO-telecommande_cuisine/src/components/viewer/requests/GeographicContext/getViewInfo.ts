@@ -85,8 +85,7 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   const DynamicIdContext = resultlistEquipmentgroup.data.find(group => group.name === config.equipementContext)?.dynamicId;
   // console.log(DynamicIdContext, 'lost'); // dynamicId de 'Synchronisation équipements GMAO'
 
-
-
+  
   const categoryEquipementGroup = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/${DynamicIdContext}/category_list`);
   let resultcategoryEquipementGroup = await spinalAPI.get<{ [key: string]: any[] }>(categoryEquipementGroup);
 
