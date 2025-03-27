@@ -25,6 +25,7 @@
 import { ActionTypes } from "./vuexStoreTypes";
 
 export interface IConfig {
+	entryPoint: EntryPoint;
 	viewButtons: "base" | "advanced";
 	viewerInfo: { roomRef: boolean; floorRef: boolean; equipments: "all" | "groupItem" | "none" };
 	sprites: boolean;
@@ -33,8 +34,10 @@ export interface IConfig {
 
 export const enum ITemporality {
 	currentValue = "Valeur courante",
-	day = "journée",
+	hour = "Heure",
+	day = "Journée",
 	week = "Semaine",
 	month = "Mois",
 	year = "Année",
 }
+export type EntryPoint = { context: string; group?: string; category?: string };

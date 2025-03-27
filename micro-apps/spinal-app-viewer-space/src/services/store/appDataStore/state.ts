@@ -22,6 +22,7 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
+import type { IEquipmentItem, IZoneItem } from "../../../../../../global-components/SpaceSelector";
 import type { IViewInfoItemRes } from "../../spinalAPI/GeographicContext/getViewInfo";
 import type { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { defaultTemporalitySelected, defaultZoneSelected } from "./utils/defaultZoneSelected";
@@ -31,6 +32,7 @@ export type StateAppData = typeof state;
 export const state = {
 	buildings: [] as IGetAllBuildingsRes[],
 	zoneSelected: defaultZoneSelected(),
+	lastLoadedZone: defaultZoneSelected(),
 	temporalitySelected: defaultTemporalitySelected(),
 	floors: {} as Record<string, IZoneItem[]>,
 	rooms: {} as Record<number, IZoneItem[]>,
@@ -40,5 +42,18 @@ export const state = {
 	itemSelected: undefined,
 	dataVizExtn: undefined,
 	data: undefined as any,
-	selectedRooms: Array<any>,
+	dlData: undefined as any,
+	attr: undefined as any,
+	dl_data_option: true as boolean,
+	user_selection_list: {} as any,
+	user_selected: {
+		cat: null,
+		ctx: null,
+		grp: null 
+	},
+	loading : false as boolean,
+	loadingCount : 0 as number,
+	loadingText : 'Chargement ...' as string,
+	inventory : [] as any
+
 };

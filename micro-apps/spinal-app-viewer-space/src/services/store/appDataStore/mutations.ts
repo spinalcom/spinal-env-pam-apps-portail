@@ -22,6 +22,7 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
+import type { IEquipmentItem, IZoneItem, ISpaceSelectorItem } from "../../../../../../global-components/SpaceSelector";
 import type { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { IViewInfoItemRes } from "../../spinalAPI/GeographicContext/getViewInfo";
 import type { MutationTree } from "vuex";
@@ -32,7 +33,7 @@ import { INodeItemTree } from "../../../interfaces/INodeItem";
 export enum MutationTypes {
 	SET_BUILDINGS = "SET_BUILDINGS",
 	SET_SELECTED_ZONE = "SET_SELECTED_ZONE",
-	SET_SELECTED_ROOMS = "SET_SELECTED_ROOMS",
+	SET_LAST_LOADED_ZONE = "SET_LAST_LOADED_ZONE",
 	SET_FLOORS = "SET_FLOORS",
 	SET_ROOMS = "SET_ROOMS",
 	SET_EQUIPMENTS = "SET_EQUIPMENTS",
@@ -42,6 +43,17 @@ export enum MutationTypes {
 	REMOVE_VIEWER_LOADED = "REMOVE_VIEWER_LOADED",
 	SET_ITEM_SELECTED = "SET_ITEM_SELECTED",
 	SET_DATA = "SET_DATA",
+	SET_DLDATA = "SET_DLDATA",
+	SET_ATTR = "SET_ATTR",
+	SET_DL_DATA_OPTION = "SET_DL_DATA_OPTION",
+	SET_USER_SELECTION = "SET_USER_SELECTION",
+	SET_USER_SELECTED = "SET_USER_SELECTED",
+	SET_BUILDING_INFO = "SET_BUILDING_INFO",
+	SET_LOADING = "SET_LOADING",
+	SET_LOADING_TEXT = "SET_LOADING_TEXT",
+	INCREMENT_LOADING_COUNT = "INCREMENT_LOADING_COUNT",
+	DECREMENT_LOADING_COUNT = "DECREMENT_LOADING_COUNT",
+	SET_INVENTORY_DATA = "SET_INVENTORY_DATA"
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -55,7 +67,15 @@ export type MutationsAppData<S = StateAppData> = {
 	[MutationTypes.REMOVE_VIEWER_LOADED](state: StateAppData, payload: { id: string }): void;
 	[MutationTypes.SET_ITEM_SELECTED](state: StateAppData, item): void;
 	[MutationTypes.SET_DATA](state: StateAppData, data: INodeItemTree[]): void;
-	[MutationTypes.SET_SELECTED_ROOMS](state: StateAppData, data: Array<any>): void;
+	[MutationTypes.SET_DL_DATA_OPTION](state: StateAppData, data: boolean): void;
+	[MutationTypes.SET_BUILDING_INFO](state: StateAppData, item): void;
+	[MutationTypes.SET_LOADING](state: StateAppData, payload: boolean): void;
+	[MutationTypes.SET_LOADING_TEXT](state: StateAppData, payload: string): void;
+	[MutationTypes.INCREMENT_LOADING_COUNT](state: StateAppData, payload: string): void;
+	[MutationTypes.DECREMENT_LOADING_COUNT](state: StateAppData, payload: string): void;
+	[MutationTypes.SET_INVENTORY_DATA](state: StateAppData, payload: string): void;
+	
+
 };
 
 export const mutations: MutationTree<StateAppData> & MutationsAppData = {
@@ -64,6 +84,9 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 	},
 	[MutationTypes.SET_SELECTED_ZONE](state: StateAppData, payload: ISpaceSelectorItem): void {
 		state.zoneSelected = payload;
+	},
+	[MutationTypes.SET_LAST_LOADED_ZONE](state: StateAppData, payload: ISpaceSelectorItem): void {
+		state.lastLoadedZone = payload;
 	},
 	[MutationTypes.SET_FLOORS](state: StateAppData, { id, items }: { id: string; items: IZoneItem[] }): void {
 		state.floors[id] = items;
@@ -104,7 +127,53 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 		state.data = data;
 	},
 
-	[MutationTypes.SET_SELECTED_ROOMS](state: StateAppData, data: any[]): void {
-		state.selectedRooms = data as Array<any>;
+	[MutationTypes.SET_DLDATA](state: StateAppData, data: INodeItemTree[]): void {
+		state.dlData = data;
 	},
+	[MutationTypes.SET_ATTR](state: StateAppData, data: INodeItemTree[]): void {
+		state.attr = data;
+	},
+	[MutationTypes.SET_DL_DATA_OPTION](state: StateAppData, data: boolean): void {
+		state.dl_data_option = data;
+	},
+	[MutationTypes.SET_USER_SELECTION](state: StateAppData, data: INodeItemTree[]): void {
+		state.user_selection_list = data;
+	},
+	[MutationTypes.SET_USER_SELECTED](state: StateAppData, payload: { key: 'cat' | 'grp' | 'ctx'; value: any }): void {
+		if (typeof state.user_selected !== 'object') state.user_selected = {};
+		// Pour 'cat' et 'ctx' et 'grp', garder le comportement existant
+		state.user_selected = { ...state.user_selected, [payload.key]: payload.value };
+	},
+
+	[MutationTypes.SET_BUILDING_INFO](state: StateAppData, item): void {
+		state.buildingInfo = item;
+	},
+
+	[MutationTypes.SET_LOADING](state: StateAppData, payload: boolean): void {
+		state.loading = payload;
+	},
+
+	[MutationTypes.SET_LOADING_TEXT](state: StateAppData, payload: string): void {
+		state.loadingText = payload;
+	},
+
+	[MutationTypes.INCREMENT_LOADING_COUNT](state: StateAppData): void {
+		state.loadingCount++;
+        state.loading = true;
+	},
+
+	[MutationTypes.DECREMENT_LOADING_COUNT](state: StateAppData): void {
+		if (state.loadingCount > 0) state.loadingCount--;
+        if (state.loadingCount === 0) state.loading = false;
+	},
+
+	[MutationTypes.SET_INVENTORY_DATA](state: StateAppData, payload: string): void {
+		state.inventory = payload;
+	},
+
+
+
+
+
 };
+
