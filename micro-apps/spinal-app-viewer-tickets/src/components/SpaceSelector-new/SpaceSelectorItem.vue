@@ -22,12 +22,10 @@ with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
 <template>
-  <v-list-item class="space-selector-list-item card-hover" :class="{
-    ['space-selector-list-item-level-' + item.level]: true,
-    'space-selector-list-item-isopen': item.isOpen && item.haveChildren,
-    'space-selector-list-item-isSelected': isSelected,
-  }" :style="{ 'margin-left': '' + ((item.level - 1) * 20 + 30) + 'px' }" @click.stop="onSelect"
-    @mouseenter="onMouseEnter" @mouseleave="onMouseLeave">
+  <v-list-item tabindex="-1" class="space-selector-list-item card-hover fade"
+    :class="{ ['space-selector-list-item-level-' + item.level]: true, 'space-selector-list-item-isopen': item.isOpen && item.haveChildren, 'space-selector-list-item-isSelected': isSelected }"
+    :style="{ 'margin-left': '' + ((item.level - 1) * 20 + 30) + 'px', }" @click.stop="onSelect"
+    :disabled="!loading_viewer" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave">
     <!-- link to parent template -->
     <template v-if="item.level > 0">
       <div class="space-selector-list-item-angle"></div>
@@ -38,31 +36,22 @@ with this file. If not, see
 
     <div class="color-square" :style="{ 'background-color': color }"></div>
     <v-list-item-content style="margin-left: 21px">
-      <v-list-item-title v-tooltip="item.name">
-        <div class="d-flex flex-row justify-space-between">
-          <div class="d-flex justify-center align-center">{{ item.name }}</div>
-          <div class="d-flex">
-            <div v-for="(count, i) in item.counts" :key="i" style="width: 40px; height: 40px; border: 1px solid white"
-              class="ml-2 d-flex align-center justify-center rounded" :style="{
-                borderColor: `${count.color}${count.value ? '' : 77}`,
-                color: `${count.color}${count.value ? '' : 77}`,
-              }">
-              {{ count.value }}
-            </div>
-          </div>
-        </div>
+      <v-list-item-title v-tooltip="item.name">{{ item.name }}
       </v-list-item-title>
     </v-list-item-content>
 
     <v-list-item-action class="actionsDiv">
-      <v-btn v-if="viewButtonsType === 'advanced'" v-for="(button, index) in spaceSelectorItemButtons" :key="index"
-        x-small elevation="0" fab icon style="color: #bfbfbf" dark :loading="item.loading" :title="button.title"
-        @click.stop="onActionClick(button)" v-show="display(button)" :disabled="disableBtn(button)">
+      <v-progress-circular v-if="!loading_viewer" :size="25" color="white" indeterminate></v-progress-circular>
+
+      <v-btn tabindex="-1" v-if="viewButtonsType === 'advanced'" v-for="(button, index) in spaceSelectorItemButtons"
+        :key="index" x-small elevation="0" fab icon style="color: #bfbfbf" dark :loading="item.loading"
+        :title="button.title" @click.stop="onActionClick(button)" v-show="display(button)"
+        :disabled="disableBtn(button)">
         <v-icon>{{ button.icon }}</v-icon>
       </v-btn>
 
-      <v-btn elevation="0" fab icon style="color: #bfbfbf" dark :loading="item.loading" :disabled="item.loading"
-        @click.stop="onOpenClose" v-show="item.level != maxDepth">
+      <v-btn tabindex="-1" elevation="0" fab icon style="color: #bfbfbf" dark :loading="item.loading"
+        :disabled="item.loading" @click.stop="onOpenClose" v-show="item.level != maxDepth">
         <v-icon dark> {{ icon }} </v-icon>
       </v-btn>
     </v-list-item-action>
@@ -71,46 +60,60 @@ with this file. If not, see
 
 <script lang="ts">
 import { ActionTypes } from "../../interfaces/vuexStoreTypes";
-import { Vue, Component, Prop } from "vue-property-decorator";
-import { IButton } from "./interfaces/IBuildingItem";
-import { ISpaceSelectorItem } from "./interfaces/ISpaceSelectorItem";
+import { Vue, Component, Prop } from 'vue-property-decorator';
+import { IButton } from './interfaces/IBuildingItem';
+import { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
 import { EventBus } from './eventBus';
 
 @Component
 class SpaceSelectorItem extends Vue {
   @Prop({ type: Object, required: true }) item: ISpaceSelectorItem;
   @Prop({ type: Number, required: true }) maxDepth: number;
+  @Prop({ type: Boolean, required: true, default: false }) loading_viewer!: boolean;
   @Prop({ type: Object, required: true }) selected: ISpaceSelectorItem;
-  @Prop({ type: Array<IButton>, required: false, default: () => [] })
-  spaceSelectorItemButtons!: IButton[];
+  @Prop({ type: Array<IButton>, required: false, default: () => [] }) spaceSelectorItemButtons!: IButton[];
   @Prop({ type: String, required: false }) viewButtonsType!: string;
   @Prop({ type: String, required: false }) label: string;
-
-
   public get isSelected(): boolean {
-    return this.item.dynamicId === this.selected.dynamicId;
+    return (
+      this.item.patrimoineId === this.selected.patrimoineId &&
+      this.item.platformId === this.selected.platformId && (this.item.staticId === this.selected?.staticId ||
+        this.selected?.parents?.includes(this.item.staticId))
+    );
   }
+
 
   public get color(): string {
-    if (this.item.type === "geographicFloor" && this.isLoaded(this.item))
-      return "#008000";
+    if (this.item.type === "geographicFloor" && this.isLoaded(this.item)) return "#008000";
 
-    return this.item.color as string;
+    return this.item.color as string
   }
+  onSelect
 
   public get icon(): string {
-    return this.item?.isOpen ? "mdi-chevron-down" : "mdi-chevron-up";
+    return this.item?.isOpen ? 'mdi-chevron-down' : 'mdi-chevron-up';
   }
 
   public isLoaded(item: ISpaceSelectorItem): boolean {
-    const id =
-      item.type === "geographicFloor" ? item.dynamicId : (item as any).floorId;
-    return !id
-      ? false
-      : this.$store.state.appDataStore.viewerStartedList[id]
-        ? true
-        : false;
+    const id = item.type === "geographicFloor" ? item.dynamicId : (item as any).floorId;
+    return !id ? false : this.$store.state.appDataStore.viewerStartedList[id] ? true : false;
   }
+
+  public mounted() {
+    // this.checkViewerStatus();
+    // // setInterval(this.shouldDisable, 500);
+    // window.addEventListener("storage", this.checkViewerStatus);
+  }
+
+  // public clicable: boolean ;
+
+  // shouldDisable() {
+  //   const loading = localStorage.getItem('viewer_loaded')
+  //   this.clicable = loading == 'loaded' && ['geographicRoom', 'geographicFloor'].includes(this.item.type)
+  //   console.log(this.clicable , 'aaa');
+  //   return (loading == 'loaded' && ['geographicRoom', 'geographicFloor'].includes(this.item.type))
+  // }
+
   onSelect() {
     this.onMouseLeave()
     if (this.viewButtonsType === 'base') {
@@ -134,23 +137,24 @@ class SpaceSelectorItem extends Vue {
     }
   }
 
+
   onActionClick(button: IButton) {
     this.$emit("onActionClick", { button, item: this.item });
   }
 
   display(button: IButton) {
-    return (
-      !button.isShownTypes || button.isShownTypes.indexOf(this.item.type) !== -1
-    );
+    return !button.isShownTypes || button.isShownTypes.indexOf(this.item.type) !== -1
   }
 
   onOpenClose() {
-    this.$emit("onOpenClose");
+    this.$emit('onOpenClose');
   }
 
   drawParentLink(depth: number) {
     return !this.item.drawLink.includes(depth);
   }
+
+
 
   disableBtn(button: IButton) {
     switch (button.onclickEvent) {
@@ -169,16 +173,18 @@ class SpaceSelectorItem extends Vue {
   }
 
   getButton() {
-    if (this.item.type === "building") return;
+    if (this.item.type === "building") {
+      // return;
+      return this.spaceSelectorItemButtons.find(el => el.onclickEvent === "OPEN_VIEWER");
+      //!! Add logic to load building
+    }
+
+
 
     if (this.item.type === "geographicFloor")
-      return this.spaceSelectorItemButtons.find(
-        (el) => el.onclickEvent === ActionTypes.OPEN_VIEWER
-      );
+      return this.spaceSelectorItemButtons.find(el => el.onclickEvent === "OPEN_VIEWER");
 
-    return this.spaceSelectorItemButtons.find(
-      (el) => el.onclickEvent === ActionTypes.ISOLATE_ITEMS
-    );
+    return this.spaceSelectorItemButtons.find(el => el.onclickEvent === ActionTypes.ISOLATE_ITEMS);
   }
 }
 export default SpaceSelectorItem;

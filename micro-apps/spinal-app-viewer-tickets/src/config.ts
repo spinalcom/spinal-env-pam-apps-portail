@@ -22,7 +22,7 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { IConfig, ITemporality } from "./interfaces/IConfig";
+import { IConfig, ITemporality, ProfilType } from "./interfaces/IConfig";
 
 export const ticketConfig = {
   buildingName: "Patrimoine DEI",
@@ -35,6 +35,9 @@ export const ticketConfig = {
 export const config: IConfig = {
   viewButtons: "base",
   sprites: true,
+  reloadInterval: 600000,
+  // profilType: "Admin",
+  profilType: ProfilType.Admin,
   viewerInfo: { roomRef: true, floorRef: true, equipments: "ticket" },
   temporality: [
     ITemporality.currentValue,

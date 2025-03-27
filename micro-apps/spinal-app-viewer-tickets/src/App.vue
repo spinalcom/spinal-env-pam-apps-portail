@@ -33,19 +33,31 @@ with this file. If not, see
       </div>
     </div>
 
+
     <div class="dataBody">
       <viewerApp :class="{ 'active3D': isActive3D }" class="viewerContainer"></viewerApp>
-      <dataSideApp class="appContainer" :DActive="isActive3D" :ActiveData="isActive" :config="config"
-        :selectedZone="selectedZone" :data="displayedData" :selectedId="selectedId" @clickOnDataView="onDataViewClicked"
-        @display="showDetails" @download="downloadList" @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D"
-        @full3D="full3D()" :class="{ 'active': isActive, 'inactive': isActive3D }" @floorData="updateSpriteData">
+      <dataSideApp class="appContainer" :DActive="isActive3D" :ActiveData="isActive" :refrech="refrech" :config="config"
+        :baseURL="baseUrl" :token="token" :selectedZone="selectedZone" :data="displayedData" @changeRoute="changeApp"
+        @updateBuildingTickets="updateBuildingTicketNumber" :selectedId="selectedId" :buildingInfo="buildingInfo"
+        @clickOnDataView="onDataViewClicked" @display="showDetails" @download="downloadList"
+        @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D" @full3D="full3D()"
+        :class="{ 'active': isActive, 'inactive': isActive3D }" @floorData="updateSpriteData"
+        style="z-index: 10!important;">
       </dataSideApp>
     </div>
 
-    <sprite-component v-if="selectedZone && selectedZone.type === 'geographicFloor'" :data="spriteData" style="
+    <sprite-component v-if="selectedZone && selectedZone.type === 'geographicFloor'" :data="spriteData"
+      type="geographicFloor" style="
         position: absolute;
         z-index: 9;
-        left: calc(60% - 99px);
+        left: calc(55%);
+        top: 50%;
+        width: 35px;
+      "></sprite-component>
+    <sprite-component v-else :data="spriteData" type="geographicBuilding" style="
+        position: absolute;
+        z-index: 9;
+        left: calc(55%);
         top: 50%;
         width: 35px;
       "></sprite-component>
@@ -64,7 +76,8 @@ import {
   ISpaceSelectorItem,
   SpaceSelector,
 } from "./components/SpaceSelector/index";
-import { Vue } from "vue-property-decorator";
+// import { ISpaceSelectorItem, SpaceSelector } from "../../../global-components/SpaceSelector/index";
+import { Vue, Watch } from "vue-property-decorator";
 import { ActionTypes } from "./interfaces/vuexStoreTypes";
 import Component from "vue-class-component";
 import type { Store } from "./services/store";
@@ -83,13 +96,16 @@ import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
 } from "spinal-viewer-event-manager";
+import { Legend } from "./interfaces/ILegend";
 
 import dataSideApp from "./components/data-side/App.vue";
 import ticketDetails from "./components/data-side/TicketDetails.vue";
+import LegendVue from "./components/data-side/components/LegendVue.vue";
 import SpriteComponent from "./components/data-side/FloorSpriteComponent.vue";
 import { SpinalAPI } from "./services/spinalAPI/SpinalAPI";
 import { log } from "console";
 import { EventBus } from './components/SpaceSelector/eventBus';
+import { convertZonesToISpaceSelectorItems } from './components/SpaceSelector/convertZonesToISpaceSelectorItems';
 const COLORS = ["#FF0000", "#FFA500", "#008000"];
 const buildingId = localStorage.getItem("idBuilding") || "";
 const token = localStorage.getItem("token") || "";
@@ -100,7 +116,8 @@ const token = localStorage.getItem("token") || "";
     viewerApp,
     dataSideApp,
     SpriteComponent,
-    ticketDetails
+    ticketDetails,
+    LegendVue,
   },
 })
 class App extends Vue {
@@ -109,9 +126,11 @@ class App extends Vue {
   $store: Store;
   openSpaceSelector: boolean = false;
   openTemporalitySelector: boolean = false;
+  buildingInfo: any = {};
+  buildingTicketNumber: number = 0;
   config: IConfig = config;
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
-
+  reloadInterval: number;
   dataTable: IZoneItem[] = [];
   $refs: { spaceSelector };
   isActive: boolean = false;
@@ -122,38 +141,66 @@ class App extends Vue {
   baseUrl: String = "";
   spriteData: any = {};
   to_download = <any[]>[];
-  query: { app: string; mode: string; name: string; spaceSelectedId: string; buildingId: string } = {
+  query: { app: string; mode: string; name: string; spaceSelectedId: string; buildingId: string; type: string } = {
     app: '',
     mode: 'null',
     name: '',
     spaceSelectedId: '',
-    buildingId: ''
+    buildingId: '',
+    type: ''
   };
-
-
+  floor: any = null;
+  refrech: boolean = false;
+  fullBuildingData: any[] = [];
 
   showDetails(ticket) {
-    console.log(ticket);
-
     this.detailedTicket = ticket;
     this.showDialog = true;
   }
+  changeSpaceSelectorValue(ValueItem) {
+    const itemToSelect = {
+      "isOpen": false,
+      "loading": false,
+      "dynamicId": ValueItem.dynamicId,
+      "name": ValueItem.floorName,
+      "buildingId": ValueItem.buildingId,
+      "type": "geographicFloor",
+    }
+
+    if (this.$refs['space-selector']) {
+      this.$refs['space-selector'].select(itemToSelect);
+    }
+    this.onActionClick({ button: { onclickEvent: ActionTypes.OPEN_VIEWER }, item: ValueItem });
+  }
 
   async mounted() {
+    const promises = [
+      this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId })
+    ];
+
+    const [building] = await Promise.all(promises);
+
+
+    if (building) {
+      const { name, type, id } = building;
+      this.buildingInfo = { name, type, buildingId, patrimoineId: 0 };
+    }
+    console.log(this.buildingInfo);
+    await this.fetchFullBuildingData();
     localStorage.setItem("viewer_loaded", 'initialize');
     if (window.innerWidth < 900) {
-      console.log(window.innerWidth);
 
       this.isActive = true;
       this.isActive3D = false;
     }
+    EventBus.$on("show-modal-ticket-details", this.showDetails);
+    EventBus.$on("change-space-selecor-value", this.changeSpaceSelectorValue);
 
-
-    EventBus.$on('colorRoom', (dynamicId) => {
+    EventBus.$on('colorRoom', (dynamicId, color) => {
       const buildingId = localStorage.getItem("idBuilding");
       const itemsToColor = [{
         buildingId: buildingId,
-        color: "#24CBD9",
+        color: color || "#24CBD9",
         dynamicId: dynamicId,
         floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
       }]
@@ -186,6 +233,22 @@ class App extends Vue {
 
     });
 
+    const item = {
+      buildingId: localStorage.getItem("idBuilding"),
+      dynamicId: 0,
+      parents: [],
+      type: "building",
+      patrimoineId: "0",
+    }
+    const newitem = await this.$store.dispatch(ActionTypes.GET_BUILDING_REFERENCE_OBJECTS, {
+      buildingId: buildingId,
+      patrimoineId: 0,
+    })
+    newitem.buildingId = item.buildingId;
+    newitem.type = item.type;
+    this.onActionClick({ button: { onclickEvent: ActionTypes.OPEN_VIEWER }, item: newitem });
+
+    // this.setSelectedZoneBuilding();
 
     try {
       this.pageSate = PAGE_STATES.loading;
@@ -198,26 +261,40 @@ class App extends Vue {
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
-
     this.$nextTick(() => {
-      const currentQuery = window.parent.routerFontion.apps[0]._route.query
+      // this.query.app = "eyJuYW1lIjoiVGlja2V0cyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiYmE5YS0wYzY4LTIzNmUtMTk0ODk4NjMwMTgiLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzM3NDc0MDcyNjQ0LCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3Mzc0NzQwNjAzMTIsImljb24iOiJtZGktdGlja2V0IiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtYXBwLXZpZXdlci10aWNrZXRzIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJkb2N1bWVudGF0aW9uTGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiMzdkZS0wMmI4LWUxOGItMTg1MDY0M2I2OGEiLCJidWlsZGluZ0lkIjoiMzU4My0zNWQzLWEzM2QtMTkyMWYwZDRiNGIifX0"
+      // window.parent.router.query.app = this.query.app
+      const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
       this.applyURLParam(currentQuery);
     });
 
   }
+  beforeDestroy() {
+    EventBus.$off("show-modal-ticket-details", this.showDetails);
+    EventBus.$off("change-space-selecor-value", this.changeSpaceSelectorValue);
+  }
+  updateBuildingTicketNumber(count) {
+    this.buildingTicketNumber = count;
+  }
+
+  changeApp(e) {
+    this.query.app = e
+    this.changeRoute();
+  }
 
   applyURLParam(query) {
+    this.refrech = true;
     this.query.mode = query.mode
     this.query.buildingId = query.buildingId
     this.query.spaceSelectedId = query.spaceSelectedId
     this.query.name = query.name
     this.query.app = query.app
-
-    // if (query.mode == "3d") {
-    //   this.isActive3D = true
-    // } else if (query.mode == "data") {
-    //   this.isActive = true
-    // }
+    this.query.type = query.type
+    if (query.mode == "3d") {
+      this.isActive3D = true
+    } else if (query.mode == "data") {
+      this.isActive = true
+    }
 
     if (query.spaceSelectedId) {
 
@@ -230,33 +307,59 @@ class App extends Vue {
         "icon": "mdi-video-3d",
         "onclickEvent": "OPEN_VIEWER",
         "isShownTypes": [
-          "geographicFloor"
+          query.type
         ]
       }
       this.onActionClick({ button, item })
 
 
       const itemToSelect = {
-        "isOpen": false,
-        "loading": false,
-        "dynamicId": parseInt(query.spaceSelectedId),
-        "name": query.name,
-        "buildingId": query.buildingId,
-        "parents": [
-          "5932-6086-9e1a-18506478460"
-        ],
-        "type": "geographicFloor",
-        "staticId": "SpinalNode-6cd64ff8-a126-1aa3-80b7-f9d4fc5690bf-186df7cd2a5"//nan
-
-      }
-
+        isOpen: false,
+        loading: false,
+        dynamicId: parseInt(query.spaceSelectedId),
+        name: query.name,
+        buildingId: query.buildingId,
+        type: query.type,
+      };
 
       if (this.$refs['space-selector']) {
         this.$refs['space-selector'].select(itemToSelect);
       }
     }
+    this.openSpaceSelector = false;
 
   }
+  changeRoute() {
+    window.parent.routerFontion.customPush(
+      window.parent.router.path,
+      this.query
+    );
+  }
+  replaceRoute() {
+    window.parent.routerFontion.customReplace(
+      window.parent.router.path,
+      this.query
+    );
+  }
+  // handleRouteChange(route) {
+  //   this.query.spaceSelectedId = route.dynamicId
+  //   this.query.name = route.name
+  //   this.changeRoute()
+  // }
+  handleRouteChange() {
+    if (this.isActive3D && !this.isActive) {
+      this.query.mode = "3d";
+    } else if (!this.isActive3D && this.isActive) {
+      this.query.mode = "data";
+    } else {
+      this.query.mode = "none";
+    }
+    this.replaceRoute();
+  }
+
+  // changeRoute() {
+  //   window.parent.routerFontion.customPush(window.parent.router.path, this.query);
+  // }
 
   public get selectedId(): number {
     return this.$store.state.appDataStore.itemSelected?.dynamicId || 0;
@@ -267,8 +370,19 @@ class App extends Vue {
   }
 
   public set selectedZone(v: ISpaceSelectorItem) {
+    if (this.query.spaceSelectedId != v.dynamicId.toString()) {
+      this.query.name = v.name;
+      this.query.buildingId = v.buildingId;
+      this.query.spaceSelectedId = v.dynamicId.toString();
+      this.query.type = v.type;
+      this.replaceRoute();
+    }
+
+    if (v.type == "geographicFloor") this.floor = this.query.spaceSelectedId;
+
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
   }
+
 
 
   toggleActive() {
@@ -276,7 +390,7 @@ class App extends Vue {
       this.isActive3D = false
     }
     this.isActive = !this.isActive;
-    // this.handleRouteChange();
+    this.handleRouteChange();
   }
 
 
@@ -284,7 +398,7 @@ class App extends Vue {
     if (this.isActive)
       this.isActive = false
     this.isActive3D = !this.isActive3D;
-    // this.handleRouteChange();
+    this.handleRouteChange();
   }
 
   full3D() {
@@ -297,20 +411,11 @@ class App extends Vue {
     }
 
 
-    // this.handleRouteChange();
+    this.handleRouteChange();
   }
 
 
-  handleRouteChange(route) {
-    this.query.spaceSelectedId = route.dynamicId
-    this.query.name = route.name
-    this.query.app = "eyJuYW1lIjoiRGVzY3JpcHRpb24iLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6IjBlZGQtNDI2Zi1hZDc2LTE5MzBiOTM3NmRlIiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTczMTA2Njc5MTA5OCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzMxMDY2MDMzODg2LCJpY29uIjoibWRpLWJsYWNrLW1lc2EiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOlsiVmlld2VyIl0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWFwcC12aWV3ZXItZGVzY3JpcHRpb24iLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsImRvY3VtZW50YXRpb25MaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
-    this.changeRoute()
-  }
 
-  changeRoute() {
-    window.parent.routerFontion.customPush(window.parent.router.path, this.query);
-  }
 
 
   downloadList(tickets) {
@@ -330,15 +435,31 @@ class App extends Vue {
     });
   }
 
+  async fetchFullBuildingData() {
+    try {
+      const buildingId = localStorage.getItem("idBuilding");
+      const result = await this.$store.dispatch(ActionTypes.LOAD_TICKETS, {
+        buildingId,
+        config: this.config,
+      });
+      this.fullBuildingData = result; // Store the full dataset
+    } catch (error) {
+      console.error("Error fetching full building data:", error);
+    }
+  }
+
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<IZoneItem[]> {
-    const data = this.$store.state.appDataStore.data || [];
+    const data = this.fullBuildingData || [];
+
     switch (item?.type) {
       case undefined:
         const buildingId = localStorage.getItem("idBuilding");
-        const building = await this.$store.dispatch(
-          ActionTypes.GET_BUILDING_BY_ID,
-          { buildingId }
-        );
+
+        const promises = [
+          this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId })
+        ];
+
+        const [building] = await Promise.all(promises);
 
         return [
           {
@@ -350,73 +471,89 @@ class App extends Vue {
             type: "building",
           },
         ];
+
       case "building":
-        return (
-          await this.$store.dispatch(ActionTypes.GET_FLOORS, {
-            buildingId: item.staticId,
-            patrimoineId: item.patrimoineId,
-          })
-        )
-          .map((floor) => {
-            const ticket = data.filter(
-              (t) =>
-                t.elementSelected.position.floor.dynamicId === floor.dynamicId
-            );
-            return {
-              ...floor,
-              counts: ticket.length
-                ? [0, 1, 2].map((c) => {
-                  return {
-                    color: COLORS[c],
-                    value: ticket.filter((t) => t.priority == c).length,
-                  };
-                })
-                : [],
-            };
-          })
-          .filter((r) => r.counts.length);
+
+        const floors = await this.$store.dispatch(ActionTypes.GET_FLOORS, {
+          buildingId: item.staticId,
+          patrimoineId: item.patrimoineId,
+        });
+
+        return floors.map((floor) => {
+          const ticket = data.filter((t) => {
+            if (!t.elementSelected?.position?.floor) {
+              return false;
+            }
+            return t.elementSelected.position.floor.dynamicId === floor.dynamicId;
+          });
+
+          const counts = ticket.length
+            ? [0, 1, 2].map((c) => {
+              const filtered = ticket.filter((t) => t.priority == c);
+              return {
+                color: COLORS[c],
+                value: filtered.length,
+              };
+            })
+            : [];
+
+          return {
+            ...floor,
+            counts,
+          };
+        }).filter((r) => r.counts.length);
+
       case "geographicFloor":
-        return (
-          await this.$store.dispatch(ActionTypes.GET_ROOMS, {
-            floorId: item.dynamicId,
-            buildingId: item.buildingId,
-            patrimoineId: item.patrimoineId,
-            id: item.dynamicId,
-          })
-        )
-          .map((room) => {
-            const ticket = data.filter(
-              (t) =>
-                t.elementSelected.dynamicId === room.dynamicId ||
-                t.elementSelected.position?.room?.dynamicId === room.dynamicId
-            );
-            return {
-              ...room,
-              counts: ticket.length
-                ? [0, 1, 2].map((c) => {
-                  return {
-                    color: COLORS[c],
-                    value: ticket.filter((t) => t.priority == c).length,
-                  };
-                })
-                : [],
-            };
-          })
-          .filter((r) => r.counts.length);
+
+        const rooms = await this.$store.dispatch(ActionTypes.GET_ROOMS, {
+          floorId: item.dynamicId,
+          buildingId: item.buildingId,
+          patrimoineId: item.patrimoineId,
+          id: item.dynamicId,
+        });
+
+        return rooms.map((room) => {
+
+          const ticket = data.filter(
+            (t) => t.elementSelected.dynamicId === room.dynamicId ||
+              t.elementSelected.position?.room?.dynamicId === room.dynamicId
+          );
+
+          const counts = ticket.length
+            ? [0, 1, 2].map((c) => {
+              const filtered = ticket.filter((t) => t.priority == c);
+              return {
+                color: COLORS[c],
+                value: filtered.length,
+              };
+            })
+            : [];
+
+          return {
+            ...room,
+            counts,
+          };
+        }).filter((r) => r.counts.length);
+
       default:
         return [];
     }
   }
+
 
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
     if (!item) return;
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
   }
+  // const item = {
+  //     buildingId: localStorage.getItem("idBuilding"),
+  //     dynamicId: 0,
+  //     parents : [],
+  //     type: "building",
+  //   }
 
   onActionClick({ button, item }) {
-    console.log('pioupiou', button, item);
-
     const data = {
       buildingId: item.buildingId, //important viewer
       // staticId: item.staticId,//can
@@ -426,6 +563,16 @@ class App extends Vue {
       // roomId: item.roomId,//can
       // type: item.type,//can
     };
+    // const data = {
+    //   buildingId: item.buildingId, //important viewer
+    //   // staticId: item.staticId,//can
+    //   // id: item.dynamicId,
+    //   dynamicId: item.dynamicId,//important viewer
+    //   parents: item.parents,
+    //   // floorId: item.floorId,//can
+    //   // roomId: item.roomId,//can
+    //   type: item.type,//can
+    // };
 
     switch (button.onclickEvent) {
       case ActionTypes.OPEN_VIEWER:
@@ -475,6 +622,7 @@ class App extends Vue {
     this.spriteData = {
       buildingId: this.selectedZone.buildingId,
       dynamicId: this.selectedZone.dynamicId,
+      buildingTicketNumber: this.buildingTicketNumber,
       data: data.filter(
         (d) => d.elementSelected.dynamicId === this.selectedZone.dynamicId
       ),
@@ -504,6 +652,33 @@ class App extends Vue {
       value: Number.parseFloat(displayValue).toFixed(2),
       id: staticId,
     }));
+  }
+  private async setSelectedZoneBuilding() {
+    const buildingId = localStorage.getItem("idBuilding");
+    const item = {
+      buildingId: localStorage.getItem("idBuilding"),
+      dynamicId: 0,
+      parents: [],
+      type: "building",
+      patrimoineId: "0",
+    }
+    const newitem = await this.$store.dispatch(ActionTypes.GET_BUILDING_REFERENCE_OBJECTS, {
+      buildingId: buildingId,
+      patrimoineId: 0,
+    })
+    newitem.buildingId = item.buildingId;
+    newitem.type = item.type;
+    this.onActionClick({ button: { onclickEvent: ActionTypes.OPEN_VIEWER }, item: newitem });
+  }
+  @Watch("selectedZone")
+  async watchSelectedZone() {
+
+    if (this.selectedZone.type === "geographicFloor") {
+    }
+    else {
+      this.setSelectedZoneBuilding();
+    }
+
   }
 }
 
@@ -581,7 +756,7 @@ export default App;
 
   .dataBody {
     height: calc(100% - #{$selectorHeight + 30px});
-    margin: 80px 8px 0 8px;
+    margin: 75px 8px 0 8px;
 
     .viewerContainer {
       width: 60%;
@@ -598,7 +773,7 @@ export default App;
       transition: 0.5s;
       position: absolute;
       margin-right: 6px;
-      height: 91%;
+      height: 90%;
       right: 0px;
     }
 

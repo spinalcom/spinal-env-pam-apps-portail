@@ -1,20 +1,17 @@
 <template>
-  <div id="floor-sprite" class="sprite_container_ticket pa-1" :class="{ pentagon: type === 'geographicBuilding' }"
-    :style="{
-      background: `conic-gradient(green ${gradient.firstStep}deg, orange ${gradient.firstStep}deg ${gradient.lastStep}deg, red ${gradient.lastStep}deg)`,
-    }" @click.stop="onClick" @clickExteriorSprite="_isNotSelected()">
-    <div :class="{ pentagon: type === 'geographicBuilding' }"
-      class="sprite_color_ticket_ticket d-flex flex-grow-1 align-center justify-center" :style="{
-        background: '#14202C',
-        color: '#FFFFFF',
-        'text-align': 'center',
-        ...dynamicStyle,
-      }">
-      {{ data.buildingTicketNumber !== 0 ? data.buildingTicketNumber : floorValue }}
+  <div class="sprite_container_ticket pa-1" :style="{
+    background: `conic-gradient(green ${gradient.firstStep}deg, orange ${gradient.firstStep}deg ${gradient.lastStep}deg, red ${gradient.lastStep}deg)`,
+  }" @click.stop="onClick()">
+    <div class="sprite_color_ticket d-flex align-center justify-center" :style="{
+      background: '#14202C',
+      color: '#FFFFFF',
+      'text-align': 'center',
+      ...dynamicStyle,
+    }">
+      {{ data.data.length }}
     </div>
   </div>
 </template>
-
 <script>
 import {
   EmitterViewerHandler,
@@ -28,10 +25,6 @@ import { EventBus } from "../SpaceSelector/eventBus";
 export default {
   props: {
     data: {},
-    type: {
-      type: String,
-      default: "geographicFloor" // Default to floor shape
-    },
   },
   filters: {
     round(value) {
@@ -57,13 +50,21 @@ export default {
   }),
 
   computed: {
-    floorValue() {
-      return this.data?.data?.length || 0;
-    },
     gradient() {
-      const len = this.data?.data?.length || 1;
-      const low = this.data?.data?.filter((d) => d.priority == 2)?.length || 0;
-      const mid = this.data?.data?.filter((d) => d.priority == 1)?.length || 0;
+      const len = this.data.data.length;
+      const low = this.data.data.filter((d) => d.priority == 2).length;
+      const mid = this.data.data.filter((d) => d.priority == 1).length;
+      const first = Math.round(360 * (low / len));
+      const last = first + Math.round(360 * (mid / len));
+      return {
+        firstStep: first,
+        lastStep: last,
+      };
+    },
+    gradient2() {
+      const len = this.data.data.length;
+      const low = this.data.data.filter((d) => d.priority == 2).length;
+      const mid = this.data.data.filter((d) => d.priority == 1).length;
       const first = Math.round(360 * (low / len));
       const last = first + Math.round(360 * (mid / len));
       return {
@@ -72,62 +73,67 @@ export default {
       };
     },
   },
+
   mounted() {
   },
-
-
   methods: {
     onClick() {
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
-      this._isSelected();
-      store.dispatch(ActionTypes.SELECT_SPRITES, []);
+      store.dispatch(ActionTypes.SELECT_SPRITES, [this.data.dynamicId]);
       store.commit(
         MutationTypes.SET_SELECTED_TICKETS,
         this.data.data.map((d) => d.dynamicId)
       );
-      EventBus.$emit("move-tickets-top", [...this.data.data]);
+      const floor = document.querySelector("#floor-sprite");
+      floor.dispatchEvent(new Event("clickExteriorSprite"));
+      EventBus.$emit("showRecapCard", this.data.dynamicId);
     },
     _isSelected() {
       this.dynamicStyle = {
         boxShadow: "0px 0px 10px 2px #00A2FF",
       };
+      this.isSelected = true
     },
     _isNotSelected() {
       this.dynamicStyle = {
         boxShadow: "none",
       };
+      this.isSelected = false;
     },
   },
 };
 </script>
 
 <style scoped>
-.sprite_container_ticket {
-  aspect-ratio: 1/1;
-  box-shadow: none;
-  color: transparent;
+.p1 {
+  width: 55px;
+  height: 55px;
   display: flex;
-  flex-direction: row;
+  justify-content: center;
   align-items: center;
 }
 
-/* Hexagon for Buildings */
-.pentagon {
-  clip-path: polygon(50% 0%,
-      /* Top Middle */
-      100% 35%,
-      /* Top Right */
-      85% 100%,
-      /* Bottom Right */
-      15% 100%,
-      /* Bottom Left */
-      0% 35%
-      /* Top Left */
-    );
+
+
+.sprite_container_ticket {
+  width: "fit-content";
+  height: "fit-content";
+  box-shadow: none;
+  color: transparent;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  /* border-radius: 100%; */
+  position: relative;
+  cursor: pointer;
+  z-index: 2;
 }
 
 .sprite_color_ticket {
-  aspect-ratio: 1/1;
+  width: 20px;
+  height: 20px;
+  /* border-radius: 100%; */
 }
 </style>

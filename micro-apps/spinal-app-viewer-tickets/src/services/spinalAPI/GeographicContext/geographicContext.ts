@@ -23,6 +23,7 @@
  */
 
 import { SpinalAPI } from "../SpinalAPI";
+import lodash from "lodash";
 import type {
   IBuildingItem,
   IZoneItem,
@@ -38,6 +39,23 @@ export async function getBuilding(platformId: string) {
   );
   let result = await spinalAPI.get<IBuildingItem>(url);
   Object.assign(result.data, { color: "#2693ff" });
+  return result.data;
+}
+
+export async function getBuildingReferenceObecjts(
+  patrimoineId: string,
+  buildingId: string
+): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    "api/v1/building/reference_object_list"
+  );
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  // const res = result.data.map((obj) => {
+  //   Object.assign(obj, { buildingId, patrimoineId, color: "#D138DE" });
+  //   return obj;
+  // });
   return result.data;
 }
 
@@ -129,35 +147,77 @@ export async function getRoomsRef(
   return result.data.infoReferencesObjects;
 }
 
-export async function equipment_get_position_multiple(dynamicIds: number[]) {
+// export async function equipment_get_position_multiple(dynamicIds: number[]) {
+//   const platformId = localStorage.getItem("idBuilding") || "";
+//   const spinalAPI = SpinalAPI.getInstance();
+//   const url = spinalAPI.createUrlWithPlatformId(
+//     platformId,
+//     `api/v1/equipment/get_position_multiple`
+//   );
+//   let result = await spinalAPI.post(url, dynamicIds);
+//   return result.data;
+// }
+
+// export async function equipment_read_details_multiple(dynamicIds: number[]) {
+//   const platformId = localStorage.getItem("idBuilding") || "";
+//   const spinalAPI = SpinalAPI.getInstance();
+//   const url = spinalAPI.createUrlWithPlatformId(
+//     platformId,
+//     `api/v1/equipment/read_static_details_multiple`
+//   );
+//   let result = await spinalAPI.post(url, dynamicIds);
+//   return result.data;
+// }
+
+// export async function room_get_position_multiple(dynamicIds: number[]) {
+//   const platformId = localStorage.getItem("idBuilding") || "";
+//   const spinalAPI = SpinalAPI.getInstance();
+//   const url = spinalAPI.createUrlWithPlatformId(
+//     platformId,
+//     `api/v1/room/get_position_multiple`
+//   );
+//   let result = await spinalAPI.post(url, dynamicIds);
+//   return result.data;
+// }
+
+export async function fetchDataInChunks(
+  dynamicIds: number[],
+  endpoint: string
+) {
   const platformId = localStorage.getItem("idBuilding") || "";
   const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrlWithPlatformId(
-    platformId,
+  const url = spinalAPI.createUrlWithPlatformId(platformId, endpoint);
+
+  const promises = lodash.chunk(dynamicIds, 200).map(async (chunk) => {
+    return spinalAPI.post(url, chunk);
+  });
+
+  return Promise.allSettled(promises).then((results) => {
+    return results.reduce((list, { status, value }) => {
+      if (status === "fulfilled") list.push(...value.data);
+      return list;
+    }, []);
+  });
+}
+
+export async function Attribute_list_multiple(dynamicIds: number[]) {
+  return fetchDataInChunks(dynamicIds, `api/v1/node/attribute_list_multiple`);
+}
+
+export async function equipment_get_position_multiple(dynamicIds: number[]) {
+  return fetchDataInChunks(
+    dynamicIds,
     `api/v1/equipment/get_position_multiple`
   );
-  let result = await spinalAPI.post(url, dynamicIds);
-  return result.data;
 }
 
 export async function equipment_read_details_multiple(dynamicIds: number[]) {
-  const platformId = localStorage.getItem("idBuilding") || "";
-  const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrlWithPlatformId(
-    platformId,
+  return fetchDataInChunks(
+    dynamicIds,
     `api/v1/equipment/read_static_details_multiple`
   );
-  let result = await spinalAPI.post(url, dynamicIds);
-  return result.data;
 }
 
 export async function room_get_position_multiple(dynamicIds: number[]) {
-  const platformId = localStorage.getItem("idBuilding") || "";
-  const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrlWithPlatformId(
-    platformId,
-    `api/v1/room/get_position_multiple`
-  );
-  let result = await spinalAPI.post(url, dynamicIds);
-  return result.data;
+  return fetchDataInChunks(dynamicIds, `api/v1/room/get_position_multiple`);
 }

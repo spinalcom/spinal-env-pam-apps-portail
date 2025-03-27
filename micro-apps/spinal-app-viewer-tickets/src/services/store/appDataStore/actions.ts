@@ -34,7 +34,13 @@ import {
   getEquipments,
   getFloors,
   getRooms,
+  getBuildingReferenceObecjts,
 } from "../../spinalAPI/GeographicContext/geographicContext";
+import {
+  addTicketDoc,
+  createTicket,
+  archiveTicket,
+} from "../../spinalAPI/Workflow & ticket/ticketContext";
 import type {
   IEquipmentItem,
   ISpaceSelectorItem,
@@ -57,6 +63,8 @@ import {
   getAllCategoriesTree,
 } from "../../spinalAPI/GeographicContext/groupsItems";
 import {
+  getWorkflowList,
+  getProcessList,
   loadTickets,
   filterTicketsOnPosition,
 } from "../../store/appDataStore/utils/ticketUtils";
@@ -119,6 +127,35 @@ export const actions = {
       buildingId
     ]!.next();
     return building.value;
+  },
+  async [ActionTypes.GET_BUILDING_REFERENCE_OBJECTS](
+    { commit }: AugmentedActionContextAppData,
+    { buildingId, patrimoineId, forceUpdate }
+  ): Promise<IZoneItem[]> {
+    const spinalAPI = SpinalAPI.getInstance();
+    if (
+      typeof ApiIteratorStore[ActionTypes.GET_BUILDING_REFERENCE_OBJECTS] ===
+      "undefined"
+    ) {
+      ApiIteratorStore[ActionTypes.GET_BUILDING_REFERENCE_OBJECTS] = {};
+    }
+
+    const buildingRefObjs =
+      ApiIteratorStore[ActionTypes.GET_BUILDING_REFERENCE_OBJECTS]!;
+    if (
+      typeof buildingRefObjs[buildingId] === "undefined" ||
+      forceUpdate === true
+    ) {
+      buildingRefObjs[buildingId] = spinalAPI.createIteratorCall(
+        getBuildingReferenceObecjts,
+        patrimoineId,
+        buildingId
+      );
+    }
+
+    const RefObjs = await buildingRefObjs[buildingId].next();
+    // commit(MutationTypes.SET_BUILDING_REF_OBJS, { id: buildingId, items: floors.value });
+    return RefObjs.value;
   },
 
   async [ActionTypes.GET_FLOORS](
@@ -255,6 +292,48 @@ export const actions = {
   //					TICKET
   ////////////////////////////////////////////////////////
 
+  async [ActionTypes.LOAD_WORKFLOWS](
+    { commit, dispatch, state }: AugmentedActionContextAppData,
+    { buildingId, config }
+  ): Promise<{ [key: string]: INodeItem }> {
+    const spinalAPI = SpinalAPI.getInstance();
+
+    if (typeof ApiIteratorStore[ActionTypes.LOAD_WORKFLOWS] === "undefined") {
+      ApiIteratorStore[ActionTypes.LOAD_WORKFLOWS] = {};
+    }
+
+    // if (
+    //   typeof ApiIteratorStore[ActionTypes.LOAD_TICKETS][buildingId] ===
+    //   "undefined"
+    // ) {
+    ApiIteratorStore[ActionTypes.LOAD_WORKFLOWS][buildingId] =
+      spinalAPI.createIteratorCall(getWorkflowList);
+    // }
+
+    const items = await ApiIteratorStore[ActionTypes.LOAD_WORKFLOWS][
+      buildingId
+    ].next();
+    return items?.value;
+  },
+
+  async [ActionTypes.LOAD_PROCESS](
+    { commit, dispatch, state }: AugmentedActionContextAppData,
+    { buildingId, config, workflowlist }
+  ): Promise<{ [key: string]: INodeItem }> {
+    const spinalAPI = SpinalAPI.getInstance();
+    if (typeof ApiIteratorStore[ActionTypes.LOAD_PROCESS] === "undefined") {
+      ApiIteratorStore[ActionTypes.LOAD_PROCESS] = {};
+    }
+
+    ApiIteratorStore[ActionTypes.LOAD_PROCESS][buildingId] =
+      spinalAPI.createIteratorCall(getProcessList, workflowlist);
+
+    const items = await ApiIteratorStore[ActionTypes.LOAD_PROCESS][
+      buildingId
+    ].next();
+    return items?.value;
+  },
+
   async [ActionTypes.LOAD_TICKETS](
     { commit, dispatch, state }: AugmentedActionContextAppData,
     { buildingId, config }
@@ -265,13 +344,13 @@ export const actions = {
       ApiIteratorStore[ActionTypes.LOAD_TICKETS] = {};
     }
 
-    if (
-      typeof ApiIteratorStore[ActionTypes.LOAD_TICKETS][buildingId] ===
-      "undefined"
-    ) {
-      ApiIteratorStore[ActionTypes.LOAD_TICKETS][buildingId] =
-        spinalAPI.createIteratorCall(loadTickets, buildingId, config);
-    }
+    // if (
+    //   typeof ApiIteratorStore[ActionTypes.LOAD_TICKETS][buildingId] ===
+    //   "undefined"
+    // ) {
+    ApiIteratorStore[ActionTypes.LOAD_TICKETS][buildingId] =
+      spinalAPI.createIteratorCall(loadTickets, buildingId, config);
+    // }
 
     const items = await ApiIteratorStore[ActionTypes.LOAD_TICKETS][
       buildingId
@@ -288,6 +367,46 @@ export const actions = {
     });
     return filterTicketsOnPosition(ticketsToFilter, buildingId, dynamicId);
   },
+
+  async [ActionTypes.ADD_TICKET](
+    { commit }: AugmentedActionContextAppData,
+    { buildingId, data, file }: { buildingId: string; data: any; file: any[] }
+  ): Promise<any> {
+    const spinalAPI = SpinalAPI.getInstance();
+    try {
+      const result = await createTicket(buildingId, data);
+      if (!file || file.length === 0) return result;
+      file.forEach(async (element) => {
+        const file = new FormData();
+        file.append("file", element);
+        const adddoc = await addTicketDoc(buildingId, result.dynamicId, file);
+      });
+      return result;
+    } catch (error) {
+      console.error("Erreur lors de la création du ticket:", error);
+      throw error;
+    }
+  },
+
+  async [ActionTypes.ARCHIVE_TICKET](
+    { commit }: AugmentedActionContextAppData,
+    {
+      buildingId,
+      ticketId,
+      data,
+    }: { buildingId: string; ticketId: any; data: any }
+  ): Promise<any> {
+    const spinalAPI = SpinalAPI.getInstance();
+    try {
+      const result = await archiveTicket(buildingId, ticketId, data);
+
+      return result;
+    } catch (error) {
+      console.error("Erreur lors de la création du ticket:", error);
+      throw error;
+    }
+  },
+  // Viewer////////////////////////////:
 
   async [ActionTypes.OPEN_VIEWER](
     { commit, dispatch, state }: AugmentedActionContextAppData,
@@ -386,10 +505,15 @@ export const actions = {
     }
   },
 
-	[ActionTypes.COLOR_ITEMS]({ commit, dispatch, state }, { items, buildingId }: any) {
-    console.warn(items);
-		return ViewerManager.getInstance().colorItems(items, buildingId);
-	},
+  // [ActionTypes.COLOR_ITEMS](
+  //   { commit, dispatch, state },
+  //   { items, buildingId }: any
+  // ) {
+  //   return ViewerManager.getInstance().colorItems(items, buildingId);
+  // },
+  [ActionTypes.COLOR_ITEMS](context, payload) {
+    return ViewerManager.getInstance().colorItems(payload, payload.buildingId);
+  },
 
   [ActionTypes.ADD_SPRITES](
     { commit, dispatch, state },
@@ -408,6 +532,19 @@ export const actions = {
       component
     );
   },
+  [ActionTypes.ADD_CARD_COMPONENT](
+    { commit, dispatch, state },
+    { items, buildingId, component }: any
+  ) {
+    return ViewerManager.getInstance().addCardomponent(
+      items,
+      buildingId,
+      component
+    );
+  },
+  [ActionTypes.REMOVE_CARDS]({ commit, dispatch, state }) {
+    return SpriteManager.getInstance().removeCards();
+  },
 
   [ActionTypes.REMOVE_ALL_SPRITES]({ commit, dispatch, state }) {
     return SpriteManager.getInstance().removeSprites();
@@ -417,5 +554,22 @@ export const actions = {
     dynamicIds: Array<number>
   ) {
     return SpriteManager.getInstance().selectSprites(dynamicIds);
+  },
+  async [ActionTypes.RESET_API_ITERATOR_STORE](
+    { commit }: AugmentedActionContextAppData,
+    { buildingId }: any
+  ): Promise<void> {
+    // List of ActionTypes keys to check and reset
+    const keysToReset = [ActionTypes.ADD_COMPONENT_AS_SPRITES];
+
+    // Iterate through each key and delete the buildingId entry if it exists
+    keysToReset.forEach((key) => {
+      if (
+        typeof ApiIteratorStore[key] !== "undefined" &&
+        typeof ApiIteratorStore[key][buildingId] !== "undefined"
+      ) {
+        delete ApiIteratorStore[key][buildingId];
+      }
+    });
   },
 };
