@@ -60,54 +60,51 @@ export interface IViewInfoTmpRes {
 
 export async function fetchAdditionalData(config: IConfig, buildingId: string): Promise<Map<string, any>> {
 
-
+  //récupérer le tablette Id dans la route 
   let tabletteId = window.parent.router.query.spaceSelectedId
 
+  //si il n'y a pas d'id va chercher dans la config
   if (tabletteId == undefined)
     tabletteId = config.tabletteId
 
   const spinalAPI = SpinalAPI.getInstance();
-  console.log('la tablette ??', tabletteId);
-  
+
+  // récuperer la position de la tablette room floor
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipment/${tabletteId}/get_position`);
   let result = await spinalAPI.get<{ [key: string]: any[] }>(url);
 
   localStorage.setItem('room_tablette', result.data.info.room.dynamicId);
   localStorage.setItem('room_tablette_dbid', result.data.info.room.dbId);
- 
+
   localStorage.setItem('floor_tablette_id', result.data.info.floor.dynamicId);
   localStorage.setItem('floor_tablette_name', result.data.info.floor.name);
 
 
+  //récuperer les context d'equipement group
   const listEquipmentgroup = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/list`);
   let resultlistEquipmentgroup = await spinalAPI.get<{ [key: string]: any[] }>(listEquipmentgroup);
 
+  //croiser avec le context voulu dans la config
   const DynamicIdContext = resultlistEquipmentgroup.data.find(group => group.name === config.equipementContext)?.dynamicId;
-  // console.log(DynamicIdContext, 'lost'); // dynamicId de 'Synchronisation équipements GMAO'
 
-  
+  // réucpéré la categories d'equipement voulu dans la config
   const categoryEquipementGroup = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/${DynamicIdContext}/category_list`);
   let resultcategoryEquipementGroup = await spinalAPI.get<{ [key: string]: any[] }>(categoryEquipementGroup);
-
   const DynamicIdCategory = resultcategoryEquipementGroup.data.find(group => group.name === config.equipementCat)?.dynamicId;
-  // console.log(DynamicIdCategory, 'toto'); // dynamicId de 'Mobilier '
 
-
+  //récupéréer le groupe voulu dans la config
   const GroupList = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/${DynamicIdContext}/category/${DynamicIdCategory}/group_list`);
   let resultcGroupList = await spinalAPI.get<{ [key: string]: any[] }>(GroupList);
 
-
+  //zone a supprimer : apres l'edit passer sur tout les equipements , 
   const IdgrpList = resultcGroupList.data.find(group => group.name === config.equipementsGroup)?.dynamicId;
-  // console.log(IdgrpList, 'id de position de travail'); // dynamicId de 'Mobilier '
-
+  //recuperation de la liste d'equipement
   const Equipement = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/${DynamicIdContext}/category/${DynamicIdCategory}/group/${IdgrpList}/equipementList`);
   let resultEquipement = await spinalAPI.get<{ [key: string]: any[] }>(Equipement);
-
 
   // console.log(resultEquipement, 'les position de travail');
 
   //liste des equipements position de travail :resultEquipement 
-
 
   //partie group context , recuperation des groupes pui comparer 
 
@@ -128,11 +125,6 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   const grpList = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/groupeContext/${Idcommand}/category/${contextGroup}/group_list`);
   let resultgrpList = await spinalAPI.get<{ [key: string]: any[] }>(grpList);
 
-  // console.log(resultgrpList.data, 'resultgrpList'); // dynamicId de 'Mobilier '
-
-  // console.log(resultgrpList, '8888');
-
-
 
   const roomListPromises = resultgrpList.data.map(async (group) => {
     const roomListUrl = spinalAPI.createUrlWithPlatformId(
@@ -144,7 +136,6 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
 
   let allRoomLists = await Promise.all(roomListPromises);
 
-  console.log(allRoomLists, 'les roomes list');
 
   const parentDynamicId = result.data.info.room.dynamicId; // Dynamic ID de l'open space
 
@@ -156,8 +147,8 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
     return found;
   });
 
-  
-  localStorage.setItem('room_tablette_name', resultgrpList.data[matchingGroupIndex].name );
+
+  localStorage.setItem('room_tablette_name', resultgrpList.data[matchingGroupIndex].name);
 
   let filteredOpenSpaces;
   if (matchingGroup) {
@@ -172,7 +163,6 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
     };
   }
 
-  // console.log(filteredOpenSpaces, 'filtred openspace');
 
   const roomDetailsPromises = filteredOpenSpaces.rooms.map(async (room: any) => {
     const roomDetailsUrl = spinalAPI.createUrlWithPlatformId(
@@ -184,9 +174,6 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
 
   let allRoomDetails = await Promise.all(roomDetailsPromises);
 
-  // console.log(allRoomDetails, 'les objets des rooms');
-  // console.log(resultEquipement.data, 'les position de travail');
-
 
   let allWorkPositions = allRoomDetails.flatMap((roomDetail: any) =>
     roomDetail.data.filter((equipment: any) =>
@@ -196,20 +183,10 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
     )
   );
 
-  // console.log(allWorkPositions, 'les equipement ');
-
-
-
   const equipementDynamicIds = allWorkPositions.map(equipement => equipement.dynamicId);
-
-  // console.log(equipementDynamicIds, 'le tableau');
-
 
   const static_details_multiple = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/equipment/read_static_details_multiple');
   let result_static_details = await spinalAPI.post(static_details_multiple, equipementDynamicIds);
-
-
-  //fin
 
 
   //nouvelle methode de recherche
@@ -225,7 +202,6 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
     group.dbIds.push(item.dbid);
     // }
   });
-
 
   return groupedByBimFileIds
 

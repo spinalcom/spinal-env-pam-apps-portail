@@ -36,7 +36,7 @@ export const config: IConfig = {
 
 	equipementContext: "Synchronisation équipements GMAO",
 	equipementCat: "Mobilier",
-	equipementsGroup: "Position de travail",
+	equipementsGroup: "Position de travail", //a supprimer
 
 	groupContext:"Gestion des espaces",
 	groupContextCat:"Télécommande de confort"
