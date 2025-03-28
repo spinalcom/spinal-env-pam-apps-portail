@@ -158,7 +158,7 @@
       <DataTable
         ref="dataTable"
         :selectedItemTab="selectedItemTab"
-        :height="'69vh'"
+        :height="'64vh'"
         :items="filteredContexts"
         :headers="dynamicHeaders()"
         :contexts="contexts"

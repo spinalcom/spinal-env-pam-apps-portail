@@ -8,7 +8,7 @@
       box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px,
         rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
       overflow: auto;
-      max-height: 75vh;
+      max-height: 65vh;
       background: transparent !important;
       overflow: hidden;
     "
@@ -217,18 +217,6 @@ export default {
       if (this.contexts) {
         return this.contexts[0]?.data;
       }
-    },
-    computedStyle() {
-      return {
-        boxShadow: this.shadow
-          ? 'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px'
-          : '',
-        marginTop: '65px',
-        overflow: 'auto',
-        maxHeight: '75vh',
-        background: 'transparent',
-        overflowX: 'hidden',
-      };
     },
 
     hasActions() {
@@ -881,7 +869,7 @@ td {
 }
 
 .fixed-first-column table {
-  position: relative;
+  /* position: relative; */
 }
 
 ::v-deep .v-data-footer {

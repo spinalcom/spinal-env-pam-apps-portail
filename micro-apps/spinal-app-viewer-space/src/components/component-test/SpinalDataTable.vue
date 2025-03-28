@@ -117,41 +117,41 @@
     <!-- Second Column: Action Icons -->
     <td v-if="hasActions" :class="{ colortd: selected_id === item.dynamicId }">
       <div v-if="item.type==='geographicRoom'" style="display:flex;  justify-content: center; gap:10px  ">
-        <v-icon  @click.stop="fitToView(item)" title="Cadrer sur l'objet">
+        <v-icon  @click.stop="fitToView(item)" title="Cadrer sur l'espaces">
           mdi-fit-to-screen
         </v-icon>
-        <v-icon  @click.stop="viewerSelectItems(item)" title="Sélectionner l'équipement dans le viewer 3D">
+        <v-icon  @click.stop="viewerSelectItems(item)" title="Sélectionner l'espaces dans le viewer 3D">
           mdi-select-place
         </v-icon>
-        <v-icon :color="getTargetColor(item)"  @click.stop="handleArrowSelectionClick(item)" title="Sélectionner l'équipement">
+        <v-icon :color="getTargetColor(item)"  @click.stop="handleArrowSelectionClick(item)" title="Sélectionner l'espaces">
           mdi-arrow-top-right-thick
         </v-icon>
       </div>
       <div v-else style="display:flex;  justify-content: center; gap:10px  ">
-        <v-icon v-if="expandedGroups.includes(item.dynamicId)" :color="item.color"  @click.stop="unloadEquipments(item)" title="Décharger les équipements">
+        <v-icon v-if="expandedGroups.includes(item.dynamicId)" :color="item.color"  @click.stop="unloadEquipments(item)" title="Décharger les espaces">
           mdi-arrow-up-thick
         </v-icon>
-        <v-icon  v-else  @click.stop="loadAndDisplayEquipments(item)" title="Charger et afficher les équipements">
+        <v-icon  v-else  @click.stop="loadAndDisplayEquipments(item)" title="Charger et afficher les espaces">
           mdi-arrow-down-thick
         </v-icon>
         <v-icon :color="getDisplayedSpriteColor(item)" @click.stop="addOrRemoveSpriteGroup(item)" title="Afficher les sprites">
           mdi-map-marker-outline
         </v-icon>
-        <v-icon v-if="isDisplayedColorIconColor(item)" :color="item.color" @click.stop="removeColor(item)" title="Colorier les équipements du groupe">
+        <v-icon v-if="isDisplayedColorIconColor(item)" :color="item.color" @click.stop="removeColor(item)" title="Colorier les espaces du groupe">
           mdi-invert-colors
         </v-icon>
-        <v-icon v-else @click.stop="addColor(item)" title="Colorier les équipements du groupe">
+        <v-icon v-else @click.stop="addColor(item)" title="Colorier les espaces du groupe">
           mdi-invert-colors
         </v-icon>
 
-        <v-icon 
+        <!-- <v-icon 
           @click.stop="hideOrDisplayGroup(item)" 
           :title="isHiddenGroup(item) ? 'Afficher les équipements du groupe' : 'Masquer les équipements du groupe'"
         >
           {{ isHiddenGroup(item) ? 'mdi-eye-off-outline' : 'mdi-eye-outline' }}
-        </v-icon>
+        </v-icon> -->
 
-        <v-icon @click.stop="viewerSelectItems(item)" title="Sélectionner les équipements du groupe">
+        <v-icon @click.stop="viewerSelectItems(item)" title="Sélectionner les espaces du groupe">
           mdi-select-place
         </v-icon>
 
@@ -618,6 +618,18 @@ export default {
       return position;
     },
 
+    getAreaFromAttributes(attributes){
+    let spatial = attributes.find(cat => cat.name === "Spatial");
+    let area;
+    if (spatial) {
+      let areaAttr = spatial.attributs.find(attr => attr.label === "area");
+      if (areaAttr) {
+        area = areaAttr.value?.toFixed(2);
+      }
+    }
+    return area;
+  },
+
     async loadAndDisplayEquipments(item){
       this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
       this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des équipements du groupe ${item.name} ...`);
@@ -744,10 +756,11 @@ export default {
       // enrich equipmentList with coordinates and color
       return items.map(eq => {
         const matchingResult = equipmentAttributes.find( res => res.dynamicId === eq.dynamicId)
-        const coordinates = this.getCoordinatesFromAttributes(matchingResult.categoryAttributes)
+        
         return {
           ...eq,
-          position : coordinates
+          position : this.getCoordinatesFromAttributes(matchingResult.categoryAttributes),
+          area : this.getAreaFromAttributes(matchingResult.categoryAttributes)
         }
         });
     }

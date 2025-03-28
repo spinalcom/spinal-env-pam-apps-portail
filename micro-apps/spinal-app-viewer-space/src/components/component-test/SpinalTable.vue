@@ -122,7 +122,7 @@
                 }}
               </v-icon>
 
-              <v-icon
+              <!-- <v-icon
                 large
                 v-if="
                   $store.state.appDataStore.user_selected.cat &&
@@ -136,7 +136,7 @@
                 "
               >
                 {{ globalHidden ? 'mdi-eye-off-outline' : 'mdi-eye-outline' }}
-              </v-icon>
+              </v-icon> -->
             </div>
           </div>
         </div>
@@ -158,7 +158,7 @@
       <DataTable
         ref="dataTable"
         :selectedItemTab="selectedItemTab"
-        :height="'69vh'"
+        :height="'65vh'"
         :items="filteredContexts"
         :headers="dynamicHeaders()"
         :contexts="contexts"
@@ -1274,6 +1274,7 @@ export default {
       return [
         { text: 'Nom', value: 'name', sortable: true },
         { text: 'Actions', value: 'actions', sortable: false },
+        { text: 'Area (m²)', value: 'area', sortable: false },
         { text: 'Etage', value: 'floor', sortable: true },
         { text: 'Nombre de tickets', value: 'nbr_tickets', sortable: true },
         { text: 'Nombre de notes', value: 'nbr_notes', sortable: true },

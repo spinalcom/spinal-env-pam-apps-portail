@@ -510,6 +510,7 @@ class dataSideApp extends Vue {
     });
   }
 
+  //also enrich with area
   async enrichItemsWithCoordinates(items){
     const equipmentAttributes = await this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
       buildingId: localStorage.getItem("idBuilding"),
@@ -518,10 +519,10 @@ class dataSideApp extends Vue {
     // enrich equipmentList with coordinates and color
     return items.map(eq => {
       const matchingResult = equipmentAttributes.find( res => res.dynamicId === eq.dynamicId)
-      const coordinates = this.getCoordinatesFromAttributes(matchingResult.categoryAttributes)
       return {
         ...eq,
-        position : coordinates
+        position : this.getCoordinatesFromAttributes(matchingResult.categoryAttributes),
+        area: this.getAreaFromAttributes(matchingResult.categoryAttributes)
       }
       });
   }
@@ -537,6 +538,18 @@ class dataSideApp extends Vue {
       }
     }
     return position;
+  }
+
+  getAreaFromAttributes(attributes){
+    let spatial = attributes.find(cat => cat.name === "Spatial");
+    let area;
+    if (spatial) {
+      let areaAttr = spatial.attributs.find(attr => attr.label === "area");
+      if (areaAttr) {
+        area = areaAttr.value?.toFixed(2);
+      }
+    }
+    return area;
   }
 
   async putAllFiltredData(allFilteredData) {
