@@ -16,6 +16,10 @@
         <v-btn @click="$emit('nav', +1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none;">{{ next }}<v-icon style="color: #14202c !important" icon>mdi-chevron-right</v-icon></v-btn>
       </div>
     </v-card-title>
+    <!--  Intégration du TimeFilter -->
+       <div class="time-filter-container">
+        <TimeFilter @time-change="handleTimeChange"/>
+      </div> 
       <div class="d-flex flex-column flex-grow-1 flex-shrink-1" style="height:0">
           <LineChart
             :data="lineChartData"
@@ -29,6 +33,7 @@
 
 <script>
 import { Line as LineChart } from "vue-chartjs";
+import TimeFilter from './TimeFilter.vue';
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, LinearScale, CategoryScale, PointElement, Filler } from 'chart.js';
 ChartJS.register( Title, Tooltip, Legend, LineElement, LinearScale, CategoryScale, PointElement, Filler );
 export default {
@@ -72,6 +77,7 @@ export default {
   },
   components: {
     LineChart,
+     TimeFilter 
   },
   computed: {
     lineChartData() {
@@ -185,9 +191,16 @@ export default {
   },
   data() {
   return {
-    switchValue: this.stacked
+    switchValue: this.stacked,
+    /* startTime: '00:00',
+    endTime: '23:59', */
   }
-}
+},
+  methods: {
+    handleTimeChange({ startTime, endTime }) {
+      this.$emit('time-change', { startTime, endTime });
+    },
+  },
 };
 </script>
 
@@ -232,4 +245,22 @@ height: 100%;
 ::v-deep .theme--light.v-input--switch .v-input--switch__thumb, .theme--light.v-input--switch .v-input--switch__track {
 color: #607d8b !important;
 }
+/* Ajustements pour le TimeFilter intégré */
+/* ::v-deep .time-filter-card {
+  box-shadow: none;
+  margin-bottom: 0;
+  background: transparent;
+}
+
+::v-deep .time-chip {
+  font-size: 12px;
+}
+
+::v-deep .custom-time-pickers {
+  margin-top: 8px;
+}
+
+::v-deep .time-picker {
+  max-width: 200px;
+} */
 </style>

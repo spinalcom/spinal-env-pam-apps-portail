@@ -4,6 +4,14 @@
       <LoadingPage v-if="isLoading"/>
       <div class="content">
         <div style="z-index: 1;" v-if="temporality.name !== 'Décennie'">
+          <!-- <TimeFilter 
+          v-if="temporality.name !== 'Décennie'"
+          @time-change="handleTimeChange"
+          :start-time="startTime"
+          :end-time="endTime"
+        /> -->
+        <!--   <v-time-picker v-model="startTime" format="24hr" label="Heure de début" @change="onTimeChange"></v-time-picker>
+          <v-time-picker v-model="endTime" format="24hr" label="Heure de fin" @change="onTimeChange"></v-time-picker> -->
         </div>
         <LineChart 
           v-if="chart.label && chart.data && ['Journée', 'Trimestre', 'Valeur Courante'].includes(temporality.name)"
@@ -14,6 +22,7 @@
           :next="temporality.name !== 'Valeur Courante' ? temporality.next : ''" 
           :prev="temporality.name !== 'Valeur Courante' ? temporality.prev : ''" 
           @nav="nav"
+          @time-change="handleTimeChange"
           :stacked="false" 
           style="max-height: 530px;"
           class="BR"
@@ -26,17 +35,24 @@
           :datasets="chart.data" 
           :prev_next="true"
           @nav="nav"
+          @time-change="handleTimeChange"
           :stacked="true"
           :isYear="temporality.name==='Année' || temporality.name==='Trimestre'"
           :next="temporality.name !== 'Valeur Courante' ? temporality.next : ''" 
           :prev="temporality.name !== 'Valeur Courante' ? temporality.prev : ''"
           style="max-height: 530px;"
         />
-        <FloorOccupancyDetail ref="floorOccupancyDetail" :space="space" :temporality="temporality"/>
-      </div>
+                <FloorOccupancyDetail 
+          ref="floorOccupancyDetail" 
+          :space="space" 
+          :temporality="temporality" 
+          @time-change="handleTimeChange"
+        />
+        </div>
     </div>
   </div>
 </template>
+
 <script lang="ts">
 import LineChart from './LineCard.vue';
 import Component from 'vue-class-component';
@@ -49,6 +65,7 @@ import { TemporalityModel } from '../models/Temporality.model';
 import { LegendModel } from '../models/Legend.model';
 import config from '../../config.js'; 
 import { ChartData, tempoFilter } from '../interfaces/types';
+import TimeFilter from './TimeFilter.vue';
 import { getData, getContextId, getCategoryId, getRoomIds, getGroupId, getSecondChartOccupancyDataByFloor } from '../services/index.js';
 import moment from 'moment';
 
@@ -58,6 +75,7 @@ import moment from 'moment';
     LineChart,
     FloorOccupancyDetail,
     LoadingPage,
+    TimeFilter,
   },
 })
 class App extends Vue {
@@ -72,8 +90,8 @@ class App extends Vue {
                           };
   currentTimestamp = {valueTime: 0};
   controlEndpointList: LegendModel[] = [];
-
-
+  startTime = '00:00';
+  endTime = '23:59';
 
   defaultTimeChip = '';
 
@@ -123,9 +141,9 @@ class App extends Vue {
     console.log('Room IDs:', roomIds);
 
     if (this.space.type === 'building') {
-      res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds);
+      res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds, this.startTime, this.endTime);
     } else if (this.space.type === 'floor') {
-      res = await getSecondChartOccupancyDataByFloor(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds);
+      res = await getSecondChartOccupancyDataByFloor(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds, this.startTime, this.endTime);
     }
 
     if (res && res.length >= 3) {
@@ -141,6 +159,48 @@ class App extends Vue {
     this.isLoading = false; 
   }
 }
+
+onTimeChange() {
+  // Validation de la plage horaire
+  if (this.startTime && this.endTime) {
+    const start = moment(this.startTime, 'HH:mm');
+    const end = moment(this.endTime, 'HH:mm');
+    
+    if (start.isAfter(end)) {
+      alert('L\'heure de début doit être inférieure à l\'heure de fin');
+      return;
+    }
+  }
+  this.spreadData();
+}
+
+handleTimeChange({ startTime, endTime }) {
+  this.startTime = startTime;
+  this.endTime = endTime;
+  this.onTimeChange();
+
+
+  const timestamp = moment().valueOf();
+
+  // Rafraîchir les données du composant FloorOccupancyDetail
+  if (this.$refs.floorOccupancyDetail) {
+    const floorOccupancyDetail = this.$refs.floorOccupancyDetail as Vue & {
+      fetchFloorData: (period: string, timestamp: number, startTime: string, endTime: string) => void;
+      fetchSecondFloorData: (timestamp: number, startTime: string, endTime: string) => void;
+      fetchThirdChartFloorData: (timestamp: number, startTime: string, endTime: string) => void;
+    };
+
+    // Mettre à jour les données pour le first chart
+    floorOccupancyDetail.fetchFloorData(this.temporality.name, timestamp, startTime, endTime);
+
+    // Mettre à jour les données pour le second chart
+    floorOccupancyDetail.fetchSecondFloorData(timestamp, startTime, endTime);
+
+    // Mettre à jour les données pour le third chart
+    floorOccupancyDetail.fetchThirdChartFloorData(timestamp, startTime, endTime);
+  }
+}
+  
 
 async mounted() {
     this.selectedYear = moment().format('YYYY');
@@ -172,7 +232,7 @@ async mounted() {
     for (var week = 1; week <= 52; week++) {
       var startDate = moment().year(+this.selectedYear).isoWeek(week).startOf('isoWeek').format('DD/MM/YYYY');
       var endDate = moment().year(+this.selectedYear).isoWeek(week).endOf('isoWeek').format('DD/MM/YYYY');
-      var weekString = 'S' + week + ' (' + startDate + ' - ' + endDate + ')';
+      var weekString = 'S' + week + ' (' + startDate + ' - 'endDate + ')';
       this.weeks.push(weekString);
     }
   }

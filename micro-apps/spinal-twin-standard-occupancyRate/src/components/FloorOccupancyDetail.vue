@@ -3,7 +3,8 @@
     <v-card class="chart-card">
       <h2>DÉTAIL DE L'OCCUPATION PAR GROUPE EN TEMPS RÉEL</h2>
       <v-card-text>
-        <div class="chart-container">
+<!--         <TimeFilter @time-change="handleTimeChange" />
+ -->        <div class="chart-container">
           <div class="chart-title">Étage</div>
           <div class="charts">
             <div v-if="displayBuildingOccupancyChart" class="chart-block">
@@ -45,13 +46,17 @@ import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { HTTP } from '../services/http-constants'; 
 import config from '../../config';
 import moment from 'moment';
-import { getSecondChartOccupancyDataByFloor, getContextId, getCategoryId, getGroupId, getRoomIds, getTotalSurface2, getThirdChartCategoryId, getThirdChartContextId, getThirdChartGroupId, getThirdChartIds, getThirdChartOccupancyDataByFloor, getPeriodArray } from '../services/index'; 
+/* import TimeFilter from './TimeFilter.vue';
+ */import { getSecondChartOccupancyDataByFloor, getContextId, getCategoryId, getGroupId, getRoomIds, getTotalSurface2, getThirdChartCategoryId, getThirdChartContextId, getThirdChartGroupId, getThirdChartIds, getThirdChartOccupancyDataByFloor, getPeriodArray } from '../services/index'; 
 import { getFloorOccupancyDynamicIds, getFloorOccupancyRatesByPeriod } from '../services/index';
 
 Chart.register(...registerables);
 
 export default defineComponent({
   name: 'FloorOccupancyDetail',
+  components: {
+    /* TimeFilter */
+  },
   
   props: {
     buildingOccupancyRate: {
@@ -86,128 +91,148 @@ export default defineComponent({
   const matchingKey = Object.keys(floorNames).find(key => floorDynamicId.toString().includes(key));
   return matchingKey ? floorNames[matchingKey] : `Étage ${floorDynamicId}`;
 }
-
-    
-const fetchFloorData = async (period, timestamp) => {
+const handleTimeChange = async ({ startTime, endTime }) => {
   try {
-    // Récupérer les IDs d'occupation et les noms des étages
+    console.log("Time changed:", startTime, endTime);
+    const timestamp = moment().valueOf();
+
+    // Mettre à jour les données pour le premier graphique
+    await fetchFloorData(props.temporality.name, timestamp, startTime, endTime);
+    renderChart();
+
+    // Mettre à jour les données pour le deuxième graphique
+    await fetchSecondFloorData(timestamp, startTime, endTime);
+    renderSecondChart();
+
+    // Mettre à jour les données pour le troisième graphique
+    await fetchThirdChartFloorData(timestamp, startTime, endTime);
+    renderThirdChart();
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour des graphiques :", error);
+  }
+};
+    
+const fetchFloorData = async (period, timestamp, startTime, endTime) => {
+  try {
     const { dynamicIds, floorNames, floorOccupancyMapping } = await getFloorOccupancyDynamicIds();
 
     if (dynamicIds.length === 0) {
       throw new Error('Aucun Dynamic ID trouvé pour les taux d\'occupation.');
     }
 
-    // Récupérer les taux d'occupation
-    const occupancyRates = await getFloorOccupancyRatesByPeriod(period, timestamp, dynamicIds);
+    // Passez startTime et endTime à getFloorOccupancyRatesByPeriod
+    const occupancyRates = await getFloorOccupancyRatesByPeriod(period, timestamp, dynamicIds, startTime, endTime);
 
-    // Transformer les Dynamic IDs en noms d'étages
     floorData.value = occupancyRates.map(floor => {
       const realFloorId = floorOccupancyMapping ? floorOccupancyMapping[floor.dynamicId] : null;
       return {
         floor: mapFloorDynamicId(realFloorId, floorNames),
-        occupancy: parseFloat(floor.occupancy), // pour s'assurer que l'occupation est un nombre
+        occupancy: parseFloat(floor.occupancy),
         area: floor.area
       };
     });
 
-    // Mettre à jour la liste des étages pour le graphique
     allFloors.value = floorData.value.map(floor => floor.floor);
-    // Rafraîchir les graphiques
+
+    // Ajoutez cet appel pour afficher le graphique
     renderChart();
-    renderSecondChart();
   } catch (error) {
     console.error("Erreur dans fetchFloorData :", error);
   }
 };
 
-const fetchSecondFloorData = async (timestamp) => {
+const fetchSecondFloorData = async (timestamp, startTime, endTime) => {
   try {
     const tempo = props.temporality.name;
 
-    const entryPoint = config.entryPoints[0]; 
+    const entryPoint = config.entryPoints[0];
 
     const [contextId, categoryId, groupId] = await Promise.all([
       getContextId(entryPoint.context),
       getCategoryId(await getContextId(entryPoint.context), entryPoint.category),
-      getGroupId(await getContextId(entryPoint.context), await getCategoryId(await getContextId(entryPoint.context), entryPoint.category), entryPoint.group)
+      getGroupId(await getContextId(entryPoint.context), await getCategoryId(await getContextId(entryPoint.context), entryPoint.category), entryPoint.group),
     ]);
 
     const roomIds = await getRoomIds(contextId, categoryId, groupId);
-    if (!roomIds?.length) throw new Error('No room IDs found');
+    if (!roomIds?.length) throw new Error("No room IDs found");
 
     const [label, data, averages] = await getSecondChartOccupancyDataByFloor(
-      { type: 'building' }, tempo, timestamp, roomIds
+      { type: "building" },
+      tempo,
+      timestamp,
+      roomIds,
+      startTime,
+      endTime
     );
 
     const { floorNames } = await getFloorOccupancyDynamicIds();
 
-    secondFloorData.value = averages.map(floor => ({
+    secondFloorData.value = averages.map((floor) => ({
       floor: floorNames[floor.floor] || `${floor.floor}`,
       occupancy: floor.average !== null ? floor.average : 0,
-      area: 0 
+      area: 0,
     }));
 
     allFloors.value = Object.values(floorNames);
 
-    secondFloorData.value = allFloors.value.map(floor => {
-      const existingData = secondFloorData.value.find(f => f.floor === floor);
-      return existingData || { floor, occupancy: null, area: 0 }; 
+    secondFloorData.value = allFloors.value.map((floor) => {
+      const existingData = secondFloorData.value.find((f) => f.floor === floor);
+      return existingData || { floor, occupancy: null, area: 0 };
     });
 
     renderSecondChart();
-
   } catch (error) {
-    console.error("Erreur lors de la récupération des données des salles de réunion:", error);
+    console.error("Erreur lors de la récupération des données des salles de réunion :", error);
   }
 };
-const fetchThirdChartFloorData = async (timestamp) => {
-      try {
-        const tempo = props.temporality.name;
+const fetchThirdChartFloorData = async (timestamp, startTime, endTime) => {
+  try {
+    const tempo = props.temporality.name;
 
-        const entryPoint = config.entryPoints[1]; // Accéder directement au deuxième élément
+    const entryPoint = config.entryPoints[1]; // Accéder directement au deuxième élément
 
-        // Récupérer les IDs nécessaires en parallèle
-        const [contextId, categoryId, groupId] = await Promise.all([
-        getThirdChartContextId(entryPoint.context),
-        getThirdChartCategoryId(await getThirdChartContextId(entryPoint.context), entryPoint.category),
-        getThirdChartGroupId(await getThirdChartContextId(entryPoint.context), await getThirdChartCategoryId(await getThirdChartContextId(entryPoint.context), entryPoint.category), entryPoint.group)
-        ]);
+    // Récupérer les IDs nécessaires en parallèle
+    const [contextId, categoryId, groupId] = await Promise.all([
+      getThirdChartContextId(entryPoint.context),
+      getThirdChartCategoryId(await getThirdChartContextId(entryPoint.context), entryPoint.category),
+      getThirdChartGroupId(await getThirdChartContextId(entryPoint.context), await getThirdChartCategoryId(await getThirdChartContextId(entryPoint.context), entryPoint.category), entryPoint.group)
+    ]);
 
-        // Récupérer les IDs des équipements
-        const thirdChartIds = await getThirdChartIds(contextId, categoryId, groupId);
-        if (!thirdChartIds?.length) throw new Error('No equipment IDs found');
+    // Récupérer les IDs des équipements
+    const thirdChartIds = await getThirdChartIds(contextId, categoryId, groupId);
+    if (!thirdChartIds?.length) throw new Error('No equipment IDs found');
 
-        // Récupérer les données d'occupation par étage
-        const [label, data, averages] = await getThirdChartOccupancyDataByFloor(
-          { type: 'building' }, tempo, timestamp, thirdChartIds
-        );
+    // Récupérer les données d'occupation par étage
+    const [label, data, averages] = await getThirdChartOccupancyDataByFloor(
+      { type: 'building' }, tempo, timestamp, thirdChartIds, startTime, endTime
+    );
 
-        // Récupérer le mapping ID → Nom d'étage
-        const { floorNames } = await getFloorOccupancyDynamicIds();
+    // Récupérer le mapping ID → Nom d'étage
+    const { floorNames } = await getFloorOccupancyDynamicIds();
 
-        // Mettre à jour les données pour le graphique
-        thirdChartFloorData.value = averages.map(floor => ({
-          floor: floorNames[floor.floor] || ` ${floor.floor}`,
-          occupancy: floor.average,
-          area: 0 
-        }));
+    // Mettre à jour les données pour le graphique
+    thirdChartFloorData.value = averages.map(floor => ({
+      floor: floorNames[floor.floor] || ` ${floor.floor}`,
+      occupancy: floor.average,
+      area: 0 
+    }));
 
-        // Ajouter tous les étages, même ceux sans positions de travail
-        allFloors.value = Object.values(floorNames); 
+    // Ajouter tous les étages, même ceux sans positions de travail
+    allFloors.value = Object.values(floorNames); 
 
-        // Compléter les données d'occupation avec null pour les étages sans équipement
-        thirdChartFloorData.value = allFloors.value.map(floor => {
-        const existingData = thirdChartFloorData.value.find(f => f.floor === floor);
-        return existingData || { floor, occupancy: null, area: 0 }; 
-        });
+    // Compléter les données d'occupation avec null pour les étages sans équipement
+    thirdChartFloorData.value = allFloors.value.map(floor => {
+      const existingData = thirdChartFloorData.value.find(f => f.floor === floor);
+      return existingData || { floor, occupancy: null, area: 0 }; 
+    });
 
-        // Mettre à jour le graphique
-        renderThirdChart();
+    // Mettre à jour le graphique
+    renderThirdChart();
 
-      } catch (error) {
-        console.error("Erreur lors de la récupération des données des équipements:", error);
-      }
-    };
+  } catch (error) {
+    console.error("Erreur lors de la récupération des données des équipements:", error);
+  }
+};
 
 
     const fetchTotalSurface = async () => {
@@ -544,7 +569,8 @@ return {
   fetchThirdChartTotalCount,
   displayBuildingOccupancyChart,
   displaySecondChart,
-  displayThirdChart
+  displayThirdChart,
+  handleTimeChange
 };
   }
 });

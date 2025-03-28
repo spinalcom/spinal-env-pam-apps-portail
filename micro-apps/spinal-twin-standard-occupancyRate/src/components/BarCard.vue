@@ -16,6 +16,10 @@
         <v-btn :disabled="false" @click="$emit('nav', +1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;">{{ next }}<v-icon style="color: #14202c !important" icon>mdi-chevron-right</v-icon></v-btn>
       </div>
     </v-card-title>
+    <!--  Intégration du TimeFilter -->
+       <div class="time-filter-container">
+      <TimeFilter @time-change="handleTimeChange" />
+    </div> 
     <div class="d-flex flex-column flex-grow-1">
       <slot name="extras" v-if="switchValue && isYear"></slot>
       <div class="flex-grow-1" style="height: 0;" v-if="switchValue && isYear">
@@ -33,6 +37,7 @@
 
 <script>
 import { Bar } from "vue-chartjs";
+import TimeFilter from './TimeFilter.vue';
 import {
   customBackgroundPlugin,
   customLegendPlugin,
@@ -108,14 +113,21 @@ export default {
     },
   },
 
-  data: () => ({
+   data: () => ({
     load: true,
     isD: false,
     switchValue: false,
-  }),
-
+  }), 
+  /* data() {
+  return {
+    switchValue: this.stacked,
+     startTime: '00:00',
+    endTime: '23:59', 
+  }
+}, */
   components: {
     Bar,
+    TimeFilter,
   },
 
   computed: {
@@ -241,8 +253,11 @@ export default {
 
   
   methods: {
-
+    handleTimeChange({ startTime, endTime }) {
+      this.$emit('time-change', { startTime, endTime });
+    },
   },
+  
   mounted() {
 
   },
@@ -322,5 +337,22 @@ color: #607d8b !important;
 }
 
 @font-face{font-family:'Charlevoix Pro';src:url('../assets/font/CharlevoixPro-Regular.woff2') format('woff2'),url('../assets/font/CharlevoixPro-Regular.woff') format('woff'),url('../assets/font/CharlevoixPro-Regular.ttf') format('truetype');font-weight:normal;font-style:normal}
+/* Ajustements pour le TimeFilter intégré */
+/* ::v-deep .time-filter-card {
+  box-shadow: none;
+  margin-bottom: 0;
+  background: transparent;
+}
 
+::v-deep .time-chip {
+  font-size: 12px;
+}
+
+::v-deep .custom-time-pickers {
+  margin-top: 8px;
+}
+
+::v-deep .time-picker {
+  max-width: 200px;
+} */
 </style>
