@@ -3,8 +3,7 @@
     <v-card class="chart-card">
       <h2>DÉTAIL DE L'OCCUPATION PAR GROUPE EN TEMPS RÉEL</h2>
       <v-card-text>
-<!--         <TimeFilter @time-change="handleTimeChange" />
- -->        <div class="chart-container">
+       <div class="chart-container">
           <div class="chart-title">Étage</div>
           <div class="charts">
             <div v-if="displayBuildingOccupancyChart" class="chart-block">
@@ -46,17 +45,14 @@ import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { HTTP } from '../services/http-constants'; 
 import config from '../../config';
 import moment from 'moment';
-/* import TimeFilter from './TimeFilter.vue';
- */import { getSecondChartOccupancyDataByFloor, getContextId, getCategoryId, getGroupId, getRoomIds, getTotalSurface2, getThirdChartCategoryId, getThirdChartContextId, getThirdChartGroupId, getThirdChartIds, getThirdChartOccupancyDataByFloor, getPeriodArray } from '../services/index'; 
+import { getSecondChartOccupancyDataByFloor, getContextId, getCategoryId, getGroupId, getRoomIds, getTotalSurface2, getThirdChartCategoryId, getThirdChartContextId, getThirdChartGroupId, getThirdChartIds, getThirdChartOccupancyDataByFloor, getPeriodArray } from '../services/index'; 
 import { getFloorOccupancyDynamicIds, getFloorOccupancyRatesByPeriod } from '../services/index';
 
 Chart.register(...registerables);
 
 export default defineComponent({
   name: 'FloorOccupancyDetail',
-  components: {
-    /* TimeFilter */
-  },
+
   
   props: {
     buildingOccupancyRate: {
@@ -120,7 +116,6 @@ const fetchFloorData = async (period, timestamp, startTime, endTime) => {
       throw new Error('Aucun Dynamic ID trouvé pour les taux d\'occupation.');
     }
 
-    // Passez startTime et endTime à getFloorOccupancyRatesByPeriod
     const occupancyRates = await getFloorOccupancyRatesByPeriod(period, timestamp, dynamicIds, startTime, endTime);
 
     floorData.value = occupancyRates.map(floor => {
@@ -134,7 +129,6 @@ const fetchFloorData = async (period, timestamp, startTime, endTime) => {
 
     allFloors.value = floorData.value.map(floor => floor.floor);
 
-    // Ajoutez cet appel pour afficher le graphique
     renderChart();
   } catch (error) {
     console.error("Erreur dans fetchFloorData :", error);

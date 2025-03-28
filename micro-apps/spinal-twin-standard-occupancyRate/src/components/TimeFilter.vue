@@ -22,9 +22,10 @@
                   readonly
                   v-bind="attrs"
                   v-on="on"
+                  color="blue darken-3"
                 />
               </template>
-              <v-time-picker v-model="tempStartTime" format="24hr" @click:minute="startMenu = false" />
+              <v-time-picker v-model="tempStartTime" format="24hr" @click:minute="startMenu = false" color="blue darken-3"/>
             </v-menu>
   
             <v-menu ref="endMenu" v-model="endMenu" :close-on-content-click="false" offset-y>
@@ -35,9 +36,10 @@
                   readonly
                   v-bind="attrs"
                   v-on="on"
+                  color="blue darken-3"
                 />
               </template>
-              <v-time-picker v-model="tempEndTime" format="24hr" @click:minute="endMenu = false" />
+              <v-time-picker v-model="tempEndTime" format="24hr" @click:minute="endMenu = false" color="blue darken-3"/>
             </v-menu>
           </div>
         </v-card-text>
@@ -101,7 +103,7 @@
   .time-chip {
     margin-left: 100px;
     transition: all 0.3s ease;
-    background-color: var(--v-primary-base);
+    background-color: #2749cf;
     color: white;
     cursor: pointer;
   }
