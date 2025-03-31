@@ -4,7 +4,7 @@
       <LoadingPage v-if="isLoading"/>
       <div class="content">
         <div style="z-index: 1;" v-if="temporality.name !== 'Décennie'">
-          <!-- <TimeFilter 
+          <!-- <TemporalFilter 
           v-if="temporality.name !== 'Décennie'"
           @time-change="handleTimeChange"
           :start-time="startTime"
@@ -65,7 +65,7 @@ import { TemporalityModel } from '../models/Temporality.model';
 import { LegendModel } from '../models/Legend.model';
 import config from '../../config.js'; 
 import { ChartData, tempoFilter } from '../interfaces/types';
-import TimeFilter from './TimeFilter.vue';
+import TemporalFilter from './TemporalFilter.vue';
 import { getData, getContextId, getCategoryId, getRoomIds, getGroupId, getSecondChartOccupancyDataByFloor } from '../services/index.js';
 import moment from 'moment';
 
@@ -75,7 +75,7 @@ import moment from 'moment';
     LineChart,
     FloorOccupancyDetail,
     LoadingPage,
-    TimeFilter,
+    TemporalFilter,
   },
 })
 class App extends Vue {
@@ -179,10 +179,6 @@ handleTimeChange({ startTime, endTime }) {
   this.endTime = endTime;
   this.onTimeChange();
 
-
-  const timestamp = moment().valueOf();
-
-  // Rafraîchir les données du composant FloorOccupancyDetail
   if (this.$refs.floorOccupancyDetail) {
     const floorOccupancyDetail = this.$refs.floorOccupancyDetail as Vue & {
       fetchFloorData: (period: string, timestamp: number, startTime: string, endTime: string) => void;
@@ -190,19 +186,14 @@ handleTimeChange({ startTime, endTime }) {
       fetchThirdChartFloorData: (timestamp: number, startTime: string, endTime: string) => void;
     };
 
-    // Mettre à jour les données pour le first chart
-    floorOccupancyDetail.fetchFloorData(this.temporality.name, timestamp, startTime, endTime);
-
-    // Mettre à jour les données pour le second chart
-    floorOccupancyDetail.fetchSecondFloorData(timestamp, startTime, endTime);
-
-    // Mettre à jour les données pour le third chart
-    floorOccupancyDetail.fetchThirdChartFloorData(timestamp, startTime, endTime);
+    floorOccupancyDetail.fetchFloorData(this.temporality.name, moment().valueOf(), startTime, endTime);
+    floorOccupancyDetail.fetchSecondFloorData(moment().valueOf(), startTime, endTime);
+    floorOccupancyDetail.fetchThirdChartFloorData(moment().valueOf(), startTime, endTime);
   }
 }
   
 
-async mounted() {
+  async mounted() {
     this.selectedYear = moment().format('YYYY');
     this.defaultTimeChip = moment().format('MM/YYYY');
     this.defaultFilter = {
@@ -217,13 +208,29 @@ async mounted() {
     this.domain = {name: this.selectedYear, color: '#000000'};
   }
 
-  @Watch('temporality')
+    @Watch('temporality')
   async temporalityChange() {
     this.chart.data = [];  
     this.selectedFilter = [];
     this.selectedReference = 0;
     this.defaultFilter.star = true;
-    this.interval();
+  
+    // Propager les plages horaires pour les graphiques globaux
+    this.handleTimeChange({ startTime: this.startTime, endTime: this.endTime });
+  
+    // Mettre à jour les graphiques par étage
+    if (this.$refs.floorOccupancyDetail) {
+      const floorOccupancyDetail = this.$refs.floorOccupancyDetail as Vue & {
+        fetchFloorData: (period: string, timestamp: number, startTime: string, endTime: string) => void;
+        fetchSecondFloorData: (timestamp: number, startTime: string, endTime: string) => void;
+        fetchThirdChartFloorData: (timestamp: number, startTime: string, endTime: string) => void;
+      };
+  
+      const timestamp = moment().valueOf();
+      floorOccupancyDetail.fetchFloorData(this.temporality.name, timestamp, this.startTime, this.endTime);
+      floorOccupancyDetail.fetchSecondFloorData(timestamp, this.startTime, this.endTime);
+      floorOccupancyDetail.fetchThirdChartFloorData(timestamp, this.startTime, this.endTime);
+    }
   }
 
   @Watch('selectedYear')
@@ -347,7 +354,7 @@ async mounted() {
     if (!this.domain.name) {
       this.domain = { name: this.defaultFilter.name, color: this.defaultFilter.color };
     }
-  }
+  } this.handleTimeChange({ startTime: this.startTime, endTime: this.endTime });
   await this.spreadData();
   if (this.$refs.floorOccupancyDetail) {
     (this.$refs.floorOccupancyDetail as Vue & { fetchFloorData: (name: string, timestamp: number) => void }).fetchFloorData(this.temporality.name, this.currentTimestamp.valueTime);

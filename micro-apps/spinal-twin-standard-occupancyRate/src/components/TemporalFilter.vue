@@ -1,116 +1,165 @@
 <template>
-  <v-container>
-    <v-row justify="space-around">
-      <v-col cols="11" sm="5">
-        <v-menu
-          v-model="startMenu"
-          :close-on-content-click="false"
-          :nudge-right="40"
-          transition="scale-transition"
-          offset-y
-          min-width="290px"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-text-field
-              v-model="startTime"
-              label="Start Time"
-              prepend-icon="mdi-clock-time-four-outline"
-              readonly
-              v-bind="attrs"
-              v-on="on"
-            ></v-text-field>
-          </template>
-          <v-time-picker v-model="startTime" @change="startMenu = false"></v-time-picker>
-        </v-menu>
-      </v-col>
-      <v-col cols="11" sm="5">
-        <v-menu
-          v-model="endMenu"
-          :close-on-content-click="false"
-          :nudge-right="40"
-          transition="scale-transition"
-          offset-y
-          min-width="290px"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-text-field
-              v-model="endTime"
-              label="End Time"
-              prepend-icon="mdi-clock-time-four-outline"
-              readonly
-              v-bind="attrs"
-              v-on="on"
-            ></v-text-field>
-          </template>
-          <v-time-picker v-model="endTime" @change="endMenu = false"></v-time-picker>
-        </v-menu>
-      </v-col>
-    </v-row>
-    <v-row justify="center" class="mt-3">
-      <v-btn color="primary" @click="submit">Valider</v-btn>
-    </v-row>
-    <v-alert v-if="error" type="error" dense class="mt-3">
-      L'heure de fin doit être après l'heure de début.
-    </v-alert>
-  </v-container>
+  <div>
+    <!-- Chip pour la sélection personnalisée -->
+    <v-chip
+      class="time-chip"
+      @click="openCustomDialog"
+    >
+    Sélectionner une période
+    </v-chip>
+    
+    <!-- Dialog pour sélection personnalisée -->
+    <v-dialog v-model="showCustomDialog" max-width="400px" class="custom-dialog">
+        <v-card>
+        <v-card-title class="headline">Personnaliser la plage horaire</v-card-title>
+        <v-card-text>
+          <div class="custom-time-section">
+            <v-menu ref="startMenu" v-model="startMenu" :close-on-content-click="false" offset-y>
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  v-model="tempStartTime"
+                  label="Heure de début"
+                  readonly
+                  v-bind="attrs"
+                  v-on="on"
+                  color="blue darken-3"
+                />
+              </template>
+              <v-time-picker v-model="tempStartTime" format="24hr" @click:minute="startMenu = false" color="blue darken-3"/>
+            </v-menu>
+  
+            <v-menu ref="endMenu" v-model="endMenu" :close-on-content-click="false" offset-y>
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  v-model="tempEndTime"
+                  label="Heure de fin"
+                  readonly
+                  v-bind="attrs"
+                  v-on="on"
+                  color="blue darken-3"
+                />
+              </template>
+              <v-time-picker v-model="tempEndTime" format="24hr" @click:minute="endMenu = false" color="blue darken-3"/>
+            </v-menu>
+          </div>
+        </v-card-text>
+  
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey darken-1" text @click="cancelCustomTime">Annuler</v-btn>
+                  <v-btn class="custom-btn" @click="validateCustomTime" :disabled="!isValidTimeRange">Appliquer</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
-
-<script>
-import { ref, watch } from 'vue';
-import moment from 'moment';
-
-export default {
-  name: 'TemporalFilter',
-  props: {
-    temporality: {
-      type: Object,
-      required: true
-    }
-  },
-  setup(props, { emit }) {
-    const startTime = ref(null);
-    const endTime = ref(null);
-    const startMenu = ref(false);
-    const endMenu = ref(false);
-    const error = ref(false);
-
-    const validateTimes = () => {
-      if (startTime.value && endTime.value) {
-        const start = moment(startTime.value, 'HH:mm');
-        const end = moment(endTime.value, 'HH:mm');
-        if (start.isSameOrAfter(end)) {
-          error.value = true;
-          return false;
+  <script>
+  export default {
+    name: "TemporalFilter",
+  
+    data: () => ({
+      showCustomDialog: false,
+      localStartTime: "00:00",
+      localEndTime: "23:59",
+      tempStartTime: "00:00",
+      tempEndTime: "23:59",
+      startMenu: false,
+      endMenu: false,
+    }),
+  
+    computed: {
+      isValidTimeRange() {
+        return this.tempStartTime < this.tempEndTime;
+      },
+    },
+  
+    methods: {
+      openCustomDialog() {
+        this.tempStartTime = this.localStartTime;
+        this.tempEndTime = this.localEndTime;
+        this.showCustomDialog = true;
+      },
+  
+      validateCustomTime() {
+        if (this.isValidTimeRange) {
+          this.localStartTime = this.tempStartTime;
+          this.localEndTime = this.tempEndTime;
+          this.showCustomDialog = false;
+          this.$emit("time-change", {
+            startTime: this.localStartTime,
+            endTime: this.localEndTime,
+          });
         }
-      }
-      error.value = false;
-      return true;
-    };
-
-    const submit = () => {
-      if (validateTimes()) {
-        emit('submit', { startTime: startTime.value, endTime: endTime.value });
-      }
-    };
-
-    watch(() => props.temporality, () => {
-      error.value = false;
-    });
-
-    return {
-      startTime,
-      endTime,
-      startMenu,
-      endMenu,
-      error,
-      submit
-    };
+      },
+  
+      cancelCustomTime() {
+        this.showCustomDialog = false;
+      },
+    },
+  };
+  </script>
+  
+  <style scoped>
+  .time-chip {
+    margin-left: 310px;
+    margin-top: -45px;
+    transition: all 0.3s ease;
+    background-color: #2749cf;
+    color: white;
+    cursor: pointer;
   }
-};
-</script>
-
-<style scoped>
-.v-application {
-  font-family: "Charlevoix Pro";
+  
+  .custom-time-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .v-text-field {
+    width: 100%;
+  }
+  .custom-btn {
+  background-color: #2749cf !important; 
+  color: white !important;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
 }
-</style>
+
+.custom-btn:hover {
+  background-color: #2749cf !important; 
+}
+
+.custom-btn:disabled {
+  background-color: #2749cf !important; 
+  opacity: 0.6; 
+  cursor: not-allowed;
+}
+.custom-dialog .v-card {
+  background-color: #f0f8ff; /* Couleur de fond personnalisée (bleu clair) */
+  color: #000; /* Couleur du texte */
+  border-radius: 12px; /* Coins arrondis */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Ombre */
+}
+
+/* Style pour le titre du dialogue */
+.custom-dialog .v-card-title {
+  background-color: #2749cf; /* Vert */
+  color: white; /* Texte blanc */
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Style pour le texte du dialogue */
+.custom-dialog .v-card-text {
+  background-color: #ffffff; /* Blanc */
+  color: #333; /* Texte gris foncé */
+  padding: 16px;
+  border-radius: 8px;
+}
+
+/* Style pour les actions (boutons) */
+.custom-dialog .v-card-actions {
+  background-color: #f9f9f9; /* Gris clair */
+  padding: 8px 16px;
+}
+  </style>

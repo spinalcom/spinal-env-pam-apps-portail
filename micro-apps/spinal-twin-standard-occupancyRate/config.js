@@ -1,5 +1,10 @@
+import moment from 'moment';
+import 'moment/locale/fr';
+
+moment.locale('fr'); 
+
 // config pour DEI
-  module.exports = {
+   module.exports = {
     title: "OCCUPATION EN TEMPS RÉEL",
     chart: '%',
     subtitle:'',
@@ -92,9 +97,9 @@
             backgroundColor: '#418FDD',
         }
     }
-}; 
-//config pour l'autre api
-/* module.exports = {
+};  
+/* //config pour l'autre api
+ module.exports = {
     title: "OCCUPATION EN TEMPS RÉEL",
     chart: '%',
     subtitle:'',
@@ -161,7 +166,7 @@
             type: 'geographicBuilding',
             source: [
                 {
-                    profileName: 'Occupation',
+                    profileName: 'Ubigreen affluence',
                     name: "Taux d'occupation Bâtiment",
                     type: 'Other', 
                 }
@@ -187,4 +192,4 @@
             backgroundColor: '#418FDD',
         }
     }
-}; */
+};  */

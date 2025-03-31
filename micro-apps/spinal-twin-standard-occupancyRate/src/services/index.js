@@ -1,8 +1,9 @@
 import config from '../../config.js'; 
 import { HTTP } from "./http-constants";
 import moment from 'moment';
+import 'moment/locale/fr';
 
-//Récupère les informations sur un bâtiment spécifique.
+// On Récupère les informations sur un bâtiment spécifique.
 export async function getBuilding() {
   const buildingId = localStorage.getItem("idBuilding");
   const result = await HTTP.get(config.apiEndpoints.building.replace('{buildingId}', buildingId));
@@ -32,7 +33,7 @@ export async function getFloors() {
   }
 }
 
-//Récupère la surface d'un espace (bâtiment ou étage).
+// On Récupère la surface d'un espace (bâtiment ou étage).
 async function getArea(space) {
   console.log('Get Area');
   const buildingId = localStorage.getItem("idBuilding");
@@ -49,7 +50,7 @@ async function getArea(space) {
   }
 }
 
-//Récupère l'ID du contexte pour un bâtiment.
+// On Récupère l'ID du contexte pour un bâtiment.
 export async function getContextId(contextName) {
   try {
     console.log('getContextId called');
@@ -73,7 +74,7 @@ export async function getContextId(contextName) {
   }
 }
 
-//Récupère l'ID de la catégorie pour un contexte donné.
+// On Récupère l'ID de la catégorie pour un contexte donné.
 export async function getCategoryId(contextId, categoryName) {
   try {
     console.log('getCategoryId called');
@@ -97,7 +98,7 @@ export async function getCategoryId(contextId, categoryName) {
   }
 }
 
-// Récupère l'ID du groupe pour un contexte et une catégorie donnés.
+// On Récupère l'ID du groupe pour un contexte et une catégorie donnés.
 export async function getGroupId(contextId, categoryId, groupName) {
   try {
     console.log('getGroupId called');
@@ -121,7 +122,7 @@ export async function getGroupId(contextId, categoryId, groupName) {
   }
 }
 
-//Récupère les IDs des salles pour un contexte, une catégorie et un groupe donnés.
+// On Récupère les IDs des salles pour un contexte, une catégorie et un groupe donnés.
 export async function getRoomIds(contextId, categoryId, groupId) {
   try {
 /*     console.log('getRoomIds called');
@@ -147,22 +148,29 @@ export async function getRoomIds(contextId, categoryId, groupId) {
   }
 }
 
-//Récupère les positions des salles données.
+// On Récupère les positions des salles données.
 export async function getRoomPositions(roomIds) {
+  console.log('getRoomPositions called');
   const buildingId = localStorage.getItem("idBuilding");
   if (!buildingId) {
     console.error('idBuilding not found in localStorage');
     return null;
   }
 
+  console.log('Building ID:', buildingId);
+  console.log('Room IDs:', roomIds);
+
   const combinedResults = await processInBatches(roomIds, 50, async (batch) => {
+    console.log('Processing batch:', batch);
     const response = await HTTP.post(
       config.apiEndpoints.roomPositions.replace('{buildingId}', buildingId),
       batch
     );
+    console.log('BatchBatch response:', response.data);
     return response.data;
   });
 
+  console.log('Combined results:', combinedResults);
   return combinedResults;
 }
 
@@ -208,7 +216,7 @@ function processRoomEndpointByFloor(endpoint, room, dynamicIdsByFloor, roomsByFl
     dynamicIdsByFloor[floorId].push(endpoint.dynamicId);
   }
 }
-// Récupère les IDs dynamiques d'occupation pour les étages
+// On Récupère les IDs dynamiques d'occupation pour les étages
 export async function getFloorOccupancyDynamicIds() {
   try {
     const buildingId = localStorage.getItem("idBuilding");
@@ -268,7 +276,7 @@ export async function getFloorOccupancyDynamicIds() {
   }
 }
 
-// Récupère les taux d'occupation des étages par période
+// On Récupère les taux d'occupation des étages par période
 export async function getFloorOccupancyRatesByPeriod(period, timestamp, dynamicIds, startTime = null, endTime = null) {
   try {
     const buildingId = localStorage.getItem('idBuilding');
@@ -279,7 +287,6 @@ export async function getFloorOccupancyRatesByPeriod(period, timestamp, dynamicI
 
     const periodArray = getPeriodArray(timestamp, period);
 
-    // Utiliser les plages horaires par défaut pour la requête
     const start = periodArray[1];
     const end = periodArray[2];
 
@@ -351,7 +358,7 @@ async function processInBatches(items, batchSize, callback) {
   }
   return results.flat();
 }
-//Récupère les IDs dynamiques d'occupation pour les salles données.
+// On Récupère les IDs dynamiques d'occupation pour les salles données.
 export async function fetchSecondChartOccupationDynamicIds(roomIds) {
   try {
     const buildingId = localStorage.getItem("idBuilding");
@@ -377,7 +384,7 @@ export async function fetchSecondChartOccupationDynamicIds(roomIds) {
     return [];
   }
 }
-//Regroupe les salles par étage.
+// On Regroupe les salles par étage.
 export function groupSecondChartsByFloor(roomPositions) {
   try {
     console.log('Grouping rooms by floor');
@@ -434,7 +441,7 @@ export async function getFloorSecondChartOccupationDynamicIds(roomIds, roomsByFl
 }
 
 
-//Récupère les données d'occupation par étage.
+// On Récupère les données d'occupation par étage.
 export async function getSecondChartOccupancyDataByFloor(space, tempo, currentTimestamp, roomIds, startTime = null, endTime = null) {
   const buildingId = localStorage.getItem("idBuilding");
   const spaceArea = await getArea(space); 
@@ -464,8 +471,8 @@ export async function getSecondChartOccupancyDataByFloor(space, tempo, currentTi
             HTTP.post(
               config.apiEndpoints.timeSeriesMultiple
                 .replace('{buildingId}', buildingId)
-                .replace('{start}', periodArray[1]) // Utilise les plages horaires par défaut
-                .replace('{end}', periodArray[2]), // Utilise les plages horaires par défaut
+                .replace('{start}', periodArray[1]) 
+                .replace('{end}', periodArray[2]), 
               batch
             )
           );
@@ -484,7 +491,7 @@ export async function getSecondChartOccupancyDataByFloor(space, tempo, currentTi
                 moment(startTime, 'HH:mm'),
                 moment(endTime, 'HH:mm'),
                 null,
-                '[]' // Inclut les bornes
+                '[]' 
               );
             });
           });
@@ -553,7 +560,7 @@ export async function getSecondChartOccupancyDataByFloor(space, tempo, currentTi
   }
 }
 
-// Récupère la surface totale des salles données.
+// On Récupère la surface totale des salles données.
 export async function getTotalSurface2(roomIds) {
   try {
     console.log('Fetching total surface for rooms');
@@ -592,7 +599,7 @@ export async function getTotalSurface2(roomIds) {
     return null;
   }
 }
-// Récupère l'ID du contexte pour un groupe d'équipements.
+// On Récupère l'ID du contexte pour un groupe d'équipements.
 export async function getThirdChartContextId(contextName) {
   try {
     console.log('getThirdChartContextId called');
@@ -616,7 +623,7 @@ export async function getThirdChartContextId(contextName) {
   }
 }
 
-// Récupère l'ID de la catégorie pour un contexte d'équipement donné.
+// On Récupère l'ID de la catégorie pour un contexte d'équipement donné.
 export async function getThirdChartCategoryId(contextId, categoryName) {
   try {
     console.log('getThirdChartCategoryId called');
@@ -639,7 +646,7 @@ export async function getThirdChartCategoryId(contextId, categoryName) {
     return null;
   }
 }
-// Récupère l'ID du groupe pour un contexte et une catégorie d'équipement donnés.
+// On Récupère l'ID du groupe pour un contexte et une catégorie d'équipement donnés.
 export async function getThirdChartGroupId(contextId, categoryId, groupName) {
   try {
     console.log('getThirdChartGroupId called');
@@ -663,7 +670,7 @@ export async function getThirdChartGroupId(contextId, categoryId, groupName) {
   }
 }
 
-// Récupère la liste des équipements pour un contexte, une catégorie et un groupe donnés.
+// On Récupère la liste des équipements pour un contexte, une catégorie et un groupe donnés.
 export async function getThirdChartIds(contextId, categoryId, groupId) {
   try {
     console.log('getThirdChartIds called');
@@ -684,7 +691,7 @@ export async function getThirdChartIds(contextId, categoryId, groupId) {
   }
 }
 
-// Récupère les positions des équipements donnés.
+// On Récupère les positions des équipements donnés.
 export async function getThirdChartPositions(thirdChartIds) {
   try {
     console.log('getThirdChartPositions called');
@@ -705,7 +712,7 @@ export async function getThirdChartPositions(thirdChartIds) {
   }
 }
 
-// Récupère les IDs dynamiques d'occupation pour les équipements donnés.
+// On Récupère les IDs dynamiques d'occupation pour les équipements donnés.
 export async function fetchThirdChartOccupationDynamicIds(thirdChartIds) {
   try {
     const buildingId = localStorage.getItem("idBuilding");
@@ -730,7 +737,7 @@ export async function fetchThirdChartOccupationDynamicIds(thirdChartIds) {
     return [];
   }
 }
-// Regroupe les équipements par étage.
+// On Regroupe les équipements par étage.
 export function groupThirdChartsByFloor(thirdChartPositions) {
   try {
     console.log('Grouping equipments by floor');
@@ -755,7 +762,7 @@ export function groupThirdChartsByFloor(thirdChartPositions) {
   }
 }
 
-// Récupère les IDs dynamiques des points de contrôle de taux d'occupation pour les équipements par étage.
+// On Récupère les IDs dynamiques des points de contrôle de taux d'occupation pour les équipements par étage.
 export async function getThirdChartOccupationDynamicIdsByFloor(thirdChartIds, equipmentsByFloor) {
   try {
     console.log('getThirdChartOccupationDynamicIdsByFloor called');
@@ -781,13 +788,20 @@ export async function getThirdChartOccupationDynamicIdsByFloor(thirdChartIds, eq
 
     const results = await Promise.all(batchedPromises);
 
-    const combinedResults = results.flatMap(result => result.data);/* 
-    console.log('Combined endpoints response:', combinedResults); */
+    const combinedResults = results.flatMap(result => result.data); 
+    console.log('Combined endpoints response:', combinedResults); 
 
     const dynamicIdsByFloor = {};
 
     const processEquipmentEndpointByFloor = (endpoint, equipment, dynamicIdsByFloor, equipmentsByFloor) => {
-      const floorId = Object.keys(equipmentsByFloor).find(floorId => equipmentsByFloor[floorId].equipments.includes(equipment.dynamicId));
+      if (!equipmentsByFloor || Object.keys(equipmentsByFloor).length === 0) {
+        console.error('equipmentsByFloor est vide ou non défini');
+        return;
+      }
+
+      const floorId = Object.keys(equipmentsByFloor).find(floorId => 
+        equipmentsByFloor[floorId]?.equipments?.includes(equipment.dynamicId)
+      );
       if (floorId) {
         if (!dynamicIdsByFloor[floorId]) {
           dynamicIdsByFloor[floorId] = [];
@@ -808,7 +822,7 @@ export async function getThirdChartOccupationDynamicIdsByFloor(thirdChartIds, eq
   }
 }
 
-// Récupère les données de séries temporelles pour les équipements par étage.
+// On Récupère les données de séries temporelles pour les équipements par étage.
 export async function getThirdChartOccupancyDataByFloor(space, tempo, currentTimestamp, thirdChartIds, startTime = null, endTime = null) {
   const buildingId = localStorage.getItem("idBuilding");
   const spaceArea = await getArea(space); 
@@ -821,6 +835,11 @@ export async function getThirdChartOccupancyDataByFloor(space, tempo, currentTim
   try {
     const thirdChartPositions = await getThirdChartPositions(thirdChartIds);
     const equipmentsByFloor = groupThirdChartsByFloor(thirdChartPositions);
+
+    if (!equipmentsByFloor || Object.keys(equipmentsByFloor).length === 0) {
+      console.error('equipmentsByFloor is undefined or empty:', equipmentsByFloor);
+      return [label, data, averages];
+    }
 
     const dynamicIdsByFloor = await getThirdChartOccupationDynamicIdsByFloor(thirdChartIds, equipmentsByFloor);
 
@@ -837,8 +856,8 @@ export async function getThirdChartOccupancyDataByFloor(space, tempo, currentTim
             HTTP.post(
               config.apiEndpoints.timeSeriesMultiple
                 .replace('{buildingId}', buildingId)
-                .replace('{start}', periodArray[1]) // Utilise les plages horaires par défaut
-                .replace('{end}', periodArray[2]), // Utilise les plages horaires par défaut
+                .replace('{start}', periodArray[1]) 
+                .replace('{end}', periodArray[2]),
               batch
             )
           );
@@ -846,20 +865,27 @@ export async function getThirdChartOccupancyDataByFloor(space, tempo, currentTim
 
         const results = await Promise.all(batchedPromises);
 
-        let timeSeriesData = results.flatMap(result => result.data);
+        // Ensure results and result.data are valid
+        let timeSeriesData = results.flatMap(result => result?.data || []);
+        if (!timeSeriesData || timeSeriesData.length === 0) {
+          console.warn('No time series data found for floor:', floor);
+          continue;
+        }
 
-        // Filtrage des données avec startTime et endTime
+        // Filter data with startTime and endTime
         if (startTime && endTime) {
           timeSeriesData.forEach(equipmentData => {
-            equipmentData.timeseries = equipmentData.timeseries.filter(point => {
-              const pointTime = moment(point.date).format('HH:mm');
-              return moment(pointTime, 'HH:mm').isBetween(
-                moment(startTime, 'HH:mm'),
-                moment(endTime, 'HH:mm'),
-                null,
-                '[]' // Inclut les bornes
-              );
-            });
+            if (equipmentData?.timeseries) {
+              equipmentData.timeseries = equipmentData.timeseries.filter(point => {
+                const pointTime = moment(point.date).format('HH:mm');
+                return moment(pointTime, 'HH:mm').isBetween(
+                  moment(startTime, 'HH:mm'),
+                  moment(endTime, 'HH:mm'),
+                  null,
+                  '[]' 
+                );
+              });
+            }
           });
         }
 
@@ -868,33 +894,41 @@ export async function getThirdChartOccupancyDataByFloor(space, tempo, currentTim
           aggregatedFloorData[floor][periodLabel] = [];
         });
 
-        timeSeriesData.forEach(equipmentData => {
-          equipmentData.timeseries.forEach(point => {
-            let formattedLabel;
-            switch (tempo) {
-              case 'Journée':
-              case 'Valeur Courante':
-                formattedLabel = moment(point.date).format('HH');
-                break;
-              case 'Semaine':
-              case 'Mois':
-              case 'Trimestre':
-                formattedLabel = moment(point.date).format('DD MMM');
-                break;
-              case 'Année':
-                formattedLabel = moment(point.date).format('MMM');
-                break;
-              case 'Décennie':
-                formattedLabel = moment(point.date).format('YYYY');
-                break;
-              default:
-                formattedLabel = moment(point.date).format('DD MMM');
-            }
-            if (aggregatedFloorData[floor][formattedLabel]) {
-              aggregatedFloorData[floor][formattedLabel].push(point.value);
-            }
-          });
-        });
+        timeSeriesData
+  .filter(equipmentData => {
+    if (!equipmentData?.timeseries) {
+      console.warn('equipmentData.timeseries is undefined for equipment:', equipmentData);
+      return false; // Exclude this equipment from further processing
+    }
+    return true; // Include only equipment with valid timeseries
+  })
+  .forEach(equipmentData => {
+    equipmentData.timeseries.forEach(point => {
+      let formattedLabel;
+      switch (tempo) {
+        case 'Journée':
+        case 'Valeur Courante':
+          formattedLabel = moment(point.date).format('HH');
+          break;
+        case 'Semaine':
+        case 'Mois':
+        case 'Trimestre':
+          formattedLabel = moment(point.date).format('DD MMM');
+          break;
+        case 'Année':
+          formattedLabel = moment(point.date).format('MMM');
+          break;
+        case 'Décennie':
+          formattedLabel = moment(point.date).format('YYYY');
+          break;
+        default:
+          formattedLabel = moment(point.date).format('DD MMM');
+      }
+      if (aggregatedFloorData[floor][formattedLabel]) {
+        aggregatedFloorData[floor][formattedLabel].push(point.value);
+      }
+    });
+  });
       }
     }
 
@@ -928,17 +962,17 @@ export async function getThirdChartOccupancyDataByFloor(space, tempo, currentTim
 
 
 
-//Récupère les données de graphe pour un bâtiment.
+// On Récupère les données de graphe pour un bâtiment.
 export async function getGraphData() {
   try {
 /*     console.log('getGraphData called');
  */    const buildingId = localStorage.getItem("idBuilding");
     const result = await HTTP.get(config.apiEndpoints.building.replace('{buildingId}', buildingId));
-/*     console.log('Building data:', result.data);
- */
+     console.log('Building data:', result.data);
+ 
     let controlEndpointResponse = await HTTP.get(config.apiEndpoints.controlEndpointList.replace('{buildingId}', buildingId).replace('{dynamicId}', result.data.dynamicId));
-/*     console.log('Control endpoint response data:', controlEndpointResponse.data);
- */
+     console.log('Control endpoint response data:', controlEndpointResponse.data);
+ 
     let occupancyEndpoint = null;
     const endpointName = config.entryPoints[2].source[0].name;
     const profileName = config.entryPoints[2].source[0].profileName;
@@ -961,8 +995,8 @@ export async function getGraphData() {
       return null;
     }
 
-    const occupancyDynamicId = occupancyEndpoint.dynamicId;/* 
-    console.log('Occupancy dynamic ID:', occupancyDynamicId); */
+    const occupancyDynamicId = occupancyEndpoint.dynamicId;
+    console.log('Occupancy dynamic ID:', occupancyDynamicId); 
     
     return occupancyDynamicId;
   } catch (error) {
@@ -976,7 +1010,6 @@ export async function getGraphData() {
 // mth 2 : Calcule moy temp.
 
 function calculateTimeWeightedAverage(timeSeriesData, labels, tempo = 'Journée') {
-  // Add validation
   if (!timeSeriesData || !Array.isArray(timeSeriesData)) {
     console.error('timeSeriesData must be an array');
     return [];
@@ -992,7 +1025,6 @@ function calculateTimeWeightedAverage(timeSeriesData, labels, tempo = 'Journée'
     tempo = 'Journée';
   }
 
-  // Debug logs
   console.log('calculateTimeWeightedAverage inputs:', {
     dataLength: timeSeriesData.length,
     labelsLength: labels.length,
@@ -1054,7 +1086,6 @@ function calculateTimeWeightedAverage(timeSeriesData, labels, tempo = 'Journée'
     weightedAverages.push(totalTime > 0 ? +(weightedSum / totalTime).toFixed(2) : 0);
   });
 
-  // Debug log output
   console.log('calculateTimeWeightedAverage output:', {
     averagesLength: weightedAverages.length,
     sampleValues: weightedAverages.slice(0, 3)
@@ -1070,6 +1101,7 @@ export async function getData(space, tempo, currentTimestamp, roomIds, startTime
     const spaceArea = await getArea(space); 
     let periodArray = getPeriodArray(currentTimestamp, tempo);
     let label = periodArray[0];
+    let tooltipDate = periodArray[5];
     let data = [];
 
     // 1. Taux d'occupation du bâtiment
@@ -1092,6 +1124,7 @@ export async function getData(space, tempo, currentTimestamp, roomIds, startTime
         valeur: point.value
       }))
     });
+
     // Traitement des données du bâtiment
     let buildingProcessedData;
     if (tempo === 'Journée' || tempo === 'Valeur Courante') {
@@ -1106,6 +1139,44 @@ export async function getData(space, tempo, currentTimestamp, roomIds, startTime
         const currentHour = moment(currentTimestamp).hour();
         buildingProcessedData = buildingProcessedData.slice(0, currentHour + 1);
       }
+    } else if (tempo === 'Année') {
+      if (startTime && endTime) {
+        occupancyRateData = occupancyRateData.filter(point => {
+          const pointTime = moment(point.date).format('HH:mm');
+          return moment(pointTime, 'HH:mm').isBetween(
+            moment(startTime, 'HH:mm'),
+            moment(endTime, 'HH:mm'),
+            null,
+            '[]'
+          );
+        });
+      }
+      buildingProcessedData = label.map(month => {
+        const pointsForMonth = occupancyRateData.filter(data =>
+          moment(data.date).format('MMM') === month
+        );
+        const total = pointsForMonth.reduce((sum, point) => sum + parseFloat(point.value || 0), 0);
+        return pointsForMonth.length > 0 ? (total / pointsForMonth.length).toFixed(2) : 0;
+      });
+    } else if (tempo === 'Décennie') {
+      if (startTime && endTime) {
+        occupancyRateData = occupancyRateData.filter(point => {
+          const pointTime = moment(point.date).format('HH:mm');
+          return moment(pointTime, 'HH:mm').isBetween(
+            moment(startTime, 'HH:mm'),
+            moment(endTime, 'HH:mm'),
+            null,
+            '[]'
+          );
+        });
+      }
+      buildingProcessedData = label.map(year => {
+        const pointsForYear = occupancyRateData.filter(data =>
+          moment(data.date).format('YYYY') === year
+        );
+        const total = pointsForYear.reduce((sum, point) => sum + parseFloat(point.value || 0), 0);
+        return pointsForYear.length > 0 ? (total / pointsForYear.length).toFixed(2) : 0;
+      });
     } else {
       if (startTime && endTime) {
         occupancyRateData = occupancyRateData.filter(point => {
@@ -1132,6 +1203,7 @@ export async function getData(space, tempo, currentTimestamp, roomIds, startTime
     data.push({
       label: config.charts.firstChart.label,
       data: buildingProcessedData,
+      tooltipDate: tooltipDate,
       backgroundColor: config.charts.firstChart.backgroundColor,
       borderColor: config.charts.firstChart.borderColor,
       borderWidth: 1,
@@ -1188,6 +1260,44 @@ export async function getData(space, tempo, currentTimestamp, roomIds, startTime
           const currentHour = moment(currentTimestamp).hour();
           roomProcessedData = roomProcessedData.slice(0, currentHour + 1);
         }
+      } else if (tempo === 'Année') {
+        if (startTime && endTime) {
+          timeSeriesData = timeSeriesData.filter(point => {
+            const pointTime = moment(point.date).format('HH:mm');
+            return moment(pointTime, 'HH:mm').isBetween(
+              moment(startTime, 'HH:mm'),
+              moment(endTime, 'HH:mm'),
+              null,
+              '[]'
+            );
+          });
+        }
+        roomProcessedData = label.map(month => {
+          const pointsForMonth = timeSeriesData.filter(data =>
+            moment(data.date).format('MMM') === month
+          );
+          const total = pointsForMonth.reduce((sum, point) => sum + parseFloat(point.value || 0), 0);
+          return pointsForMonth.length > 0 ? (total / pointsForMonth.length).toFixed(2) : 0;
+        });
+      } else if (tempo === 'Décennie') {
+        if (startTime && endTime) {
+          timeSeriesData = timeSeriesData.filter(point => {
+            const pointTime = moment(point.date).format('HH:mm');
+            return moment(pointTime, 'HH:mm').isBetween(
+              moment(startTime, 'HH:mm'),
+              moment(endTime, 'HH:mm'),
+              null,
+              '[]'
+            );
+          });
+        }
+        roomProcessedData = label.map(year => {
+          const pointsForYear = timeSeriesData.filter(data =>
+            moment(data.date).format('YYYY') === year
+          );
+          const total = pointsForYear.reduce((sum, point) => sum + parseFloat(point.value || 0), 0);
+          return pointsForYear.length > 0 ? (total / pointsForYear.length).toFixed(2) : 0;
+        });
       } else {
         if (startTime && endTime) {
           timeSeriesData = timeSeriesData.filter(point => {
@@ -1213,6 +1323,7 @@ export async function getData(space, tempo, currentTimestamp, roomIds, startTime
       data.push({
         label: config.charts.secondChart.label,
         data: roomProcessedData,
+        tooltipDate: tooltipDate,
         backgroundColor: config.charts.secondChart.backgroundColor,
         borderColor: config.charts.secondChart.backgroundColor,
         borderWidth: 1,
@@ -1222,35 +1333,25 @@ export async function getData(space, tempo, currentTimestamp, roomIds, startTime
 
     // 3. Taux d'occupation des positions de travail
     console.log('=== TAUX OCCUPATION POSITIONS DE TRAVAIL ===');
-    
-    // Get context ID first
     const thirdChartContextId = await getThirdChartContextId(config.entryPoints[1].context);
     if (!thirdChartContextId) {
       console.warn('No context ID found for third chart');
       return [label, data, []];
     }
 
-    // Then get category ID
     const thirdChartCategoryId = await getThirdChartCategoryId(thirdChartContextId, config.entryPoints[1].category);
     if (!thirdChartCategoryId) {
       console.warn('No category ID found for third chart');
       return [label, data, []];
     }
 
-    // Finally get group ID
     const thirdChartGroupId = await getThirdChartGroupId(thirdChartContextId, thirdChartCategoryId, config.entryPoints[1].group);
     if (!thirdChartGroupId) {
       console.warn('No group ID found for third chart');
       return [label, data, []];
     }
 
-    // Get equipment IDs
-    const thirdChartIds = await getThirdChartIds(
-      thirdChartContextId,
-      thirdChartCategoryId,
-      thirdChartGroupId
-    );
-
+    const thirdChartIds = await getThirdChartIds(thirdChartContextId, thirdChartCategoryId, thirdChartGroupId);
     if (!thirdChartIds || thirdChartIds.length === 0) {
       console.warn('No equipment IDs found');
       return [label, data, []];
@@ -1307,6 +1408,44 @@ export async function getData(space, tempo, currentTimestamp, roomIds, startTime
           const currentHour = moment(currentTimestamp).hour();
           equipmentProcessedData = equipmentProcessedData.slice(0, currentHour + 1);
         }
+      } else       if (tempo === 'Année') {
+        if (startTime && endTime) {
+          equipmentTimeSeriesData = equipmentTimeSeriesData.filter(point => {
+            const pointTime = moment(point.date).format('HH:mm');
+            return moment(pointTime, 'HH:mm').isBetween(
+              moment(startTime, 'HH:mm'),
+              moment(endTime, 'HH:mm'),
+              null,
+              '[]'
+            );
+          });
+        }
+        equipmentProcessedData = label.map(month => {
+          const pointsForMonth = equipmentTimeSeriesData.filter(data =>
+            moment(data.date).format('MMM') === month
+          );
+          const total = pointsForMonth.reduce((sum, point) => sum + parseFloat(point.value || 0), 0);
+          return pointsForMonth.length > 0 ? (total / pointsForMonth.length).toFixed(2) : 0;
+        });
+      } else if (tempo === 'Décennie') {
+        if (startTime && endTime) {
+          equipmentTimeSeriesData = equipmentTimeSeriesData.filter(point => {
+            const pointTime = moment(point.date).format('HH:mm');
+            return moment(pointTime, 'HH:mm').isBetween(
+              moment(startTime, 'HH:mm'),
+              moment(endTime, 'HH:mm'),
+              null,
+              '[]'
+            );
+          });
+        }
+        equipmentProcessedData = label.map(year => {
+          const pointsForYear = equipmentTimeSeriesData.filter(data =>
+            moment(data.date).format('YYYY') === year
+          );
+          const total = pointsForYear.reduce((sum, point) => sum + parseFloat(point.value || 0), 0);
+          return pointsForYear.length > 0 ? (total / pointsForYear.length).toFixed(2) : 0;
+        });
       } else {
         if (startTime && endTime) {
           equipmentTimeSeriesData = equipmentTimeSeriesData.filter(point => {
@@ -1334,6 +1473,7 @@ export async function getData(space, tempo, currentTimestamp, roomIds, startTime
       data.push({
         label: config.charts.thirdChart.label,
         data: equipmentProcessedData,
+        tooltipDate: tooltipDate,
         backgroundColor: config.charts.thirdChart.backgroundColor,
         borderColor: config.charts.thirdChart.backgroundColor,
         borderWidth: 1,
