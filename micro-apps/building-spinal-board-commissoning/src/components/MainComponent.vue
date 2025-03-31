@@ -1,9 +1,15 @@
 <template>
   <div class="main-container" style="min-height: 480px">
     <div class="content">
-        <div class="header">
-          <div class="title">
-            <span>Détails des éléments connectés</span>
+      <div class="header">
+        <div class="title">
+          <div v-if="!sconfig.entryPoint" style="display: flex; align-items: center;">
+            <span style="display: inline; width: 750px; display: flex; align-items: center;">Détails des éléments connectés sur </span>
+            <SpinalbreadCrumb @loadData="loadDataContext" v-if="!sconfig.entryPoint"  :contextList="context" :categoryList="selectedZone.categoryList" :groupList="selectedZone.groupList" />
+          </div>
+          <div v-else>
+            <span style="display: flex; align-items: center;">Détails des éléments connectés sur  {{ sconfig.entryPoint.context }} / {{  sconfig.entryPoint.category }} / {{ sconfig.entryPoint.group }}</span>
+          </div>
           </div>
           <div class="legend">
             <SmallLegend :size="12" color="#14202C" text="Connecté et fonctionnel"/>
@@ -103,14 +109,15 @@ import Stripe from './Stripe.vue';
 import DotsGrid from './DotsGrid.vue';
 import { config } from '../../config';
 import { MutationTypes } from '../services/store/appDataStore/mutations';
-import { getData, getDataInContextSpatial } from '../services';
-
+import SpinalbreadCrumb from './SpinalbreadCrumb.vue';
+import { getContext, getDataInContextSpatial } from '../services';
 @Component({
   components: {
     SmallLegend,
     SpinalTable,
     Stripe,
-    DotsGrid
+    DotsGrid,
+    SpinalbreadCrumb,
   }
 })
 class App extends Vue {
@@ -127,10 +134,14 @@ class App extends Vue {
   statisticTimeline = config.bilan.timeline;
   sources = config.sources;
   statisticSource = config.sources.find((src) => src.id === config.bilan.timeline.sourceId);
-
+  sconfig = config;
+  context = [];
+  showLoader = true;
 
   async mounted (){
-    const buildingId: string = localStorage.getItem('idBuilding') as string;
+    const buildingId = localStorage.getItem('idBuilding');
+    const context = await getContext(buildingId!);
+    this.context = context;
     this.selectedZone = this.$store.state.appDataStore.zoneSelected;
     this.showLeftBox = config.bilan.dotsGrid ? true : false;
   }
@@ -204,6 +215,17 @@ changeRegex() {
 
   
   this.getDataItem();
+}
+
+async loadDataContext(){
+  const buildingId = localStorage.getItem('idBuilding');
+  const context = this.$store.state.appDataStore.context;
+  const categories = this.$store.state.appDataStore.categoriesContext;
+  const groupEquipement = this.$store.state.appDataStore.groupContext;
+  console.log('context', context);
+  console.log('categories', categories);
+  console.log('groupEquipement', groupEquipement);
+  await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type)
 }
 
 
@@ -305,6 +327,7 @@ color: #214353;
 opacity: 1;
 text-transform: uppercase;
 padding-top: 10px;
+display: flex;
 
 }
 .main {
@@ -369,6 +392,7 @@ padding-top: 10px;
   background-color: #ffffff;
   overflow: hidden;
   overflow-y: auto;
+  position: relative;
 }
 .main .stripe {
   width: 100%;

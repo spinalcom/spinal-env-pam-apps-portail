@@ -53,6 +53,9 @@ export enum MutationTypes {
   SET_T_INDEX= "SET_T_INDEX",
   SET_ENDPOINT = "SET_ENDPOINT",
   SET_STRIPE_DATA = "SET_STRIPE_DATA",
+  SET_CONTEXT = "SET_CONTEXT",
+  SET_CATEGORIES_CONTEXT = "SET_CATEGORIES_CONTEXT",
+  SET_GROUP_EQUIP = "SET_GROUP_EQUIP",
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -86,6 +89,10 @@ export type MutationsAppData<S = StateAppData> = {
   [MutationTypes.SET_DATA](state: StateAppData, data: INodeItemTree[]): void;
   [MutationTypes.SET_ENDPOINT](state: StateAppData, children: any[]): void;
   [MutationTypes.SET_STRIPE_DATA](state: StateAppData, dataStripe: any[]): void;
+  [MutationTypes.SET_CONTEXT](state: StateAppData, context: any): void;
+  [MutationTypes.SET_CATEGORIES_CONTEXT](state: StateAppData, categoriesContext: any): any;
+  [MutationTypes.SET_GROUP_EQUIP](state: StateAppData, groupEquipement: any): any;
+
 };
 
 export const mutations: MutationTree<StateAppData> & MutationsAppData = {
@@ -176,6 +183,16 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
   [MutationTypes.SET_STRIPE_DATA](state: StateAppData, dataStripe: any[]): void {
     state.StripeDataList = dataStripe;
   },
+
+  [MutationTypes.SET_CONTEXT](state: StateAppData, context: any): void {
+    state.context = context;
+  },
+  [MutationTypes.SET_CATEGORIES_CONTEXT](state: StateAppData, categoriesContext: any): void {
+    state.categoriesContext = categoriesContext;
+  },
+  [MutationTypes.SET_GROUP_EQUIP](state: StateAppData, groupEquipement: any): void {
+    state.groupEquipement = groupEquipement;
+  }
   
  
 

@@ -23,8 +23,14 @@ export async function getBuilding() {
 
 async function getReadStaticdetailsMultiple(buildingId: string, dynamicIds: number[]) {
   const spinalAPI = SpinalAPI.getInstance();
-  const url = config.entryPoint.type === "equipement" ? `/equipment/read_static_details_multiple` : `/room/read_static_details_multiple`;
+  let type = config.entryPoint?.type ?? store.state.appDataStore.groupEquipement.type;
+  if(type !== "equipement" && type !== "room") {
+    const test = type.includes("BIMObject");
+    test ? type = "equipement" : type = "room";
+  }
+  const url = type === "equipement" ? `/equipment/read_static_details_multiple` : `/room/read_static_details_multiple`;
   const res = await sendListMultipleRequest(buildingId, dynamicIds, url)
+  console.log('res', res);
   return res;
 }
 
@@ -55,7 +61,6 @@ export async function getAttributeListMultiple(buildingId: string, dynamicIds: n
               }
               
               
-              // On cherche l'attribut avec le label spécifique
               
               const nameAttribut = el.attributs.find((attr: any) => attr.label.toString().toLowerCase() === sources?.name.toLocaleLowerCase());
 
@@ -68,8 +73,8 @@ export async function getAttributeListMultiple(buildingId: string, dynamicIds: n
                   return value;
               }
           }
-          return null; // Retourner null si aucune correspondance trouvée
-      }).filter(Boolean); // Filtrer les valeurs nulles
+          return null; 
+      }).filter(Boolean);
 
       if (category.length > 0) {
           attribut.push(...category);
@@ -97,12 +102,11 @@ export async function getControlpointList(buildingId: string, item: any[]) {
     for (const ctl of res) {
       for (const controlpoint of ctl) {
         if (controlpoint.dynamicId === el.dynamicId) {
-          // Vérifier les correspondances avec `sources`
           for (const src of sources) {
             if (src.profileName === controlpoint.profileName) {
-              // Récupérer tous les `endpoints` qui correspondent
+              // Récupérer tous les endpoints qui correspondent
               const matchingItems = controlpoint.endpoints
-                .filter((match: any) => match.name === src.name); // Garde uniquement les endpoints qui matchent
+                .filter((match: any) => match.name === src.name); 
 
               endpoints.push(...matchingItems);
             }
@@ -113,49 +117,61 @@ export async function getControlpointList(buildingId: string, item: any[]) {
 
     return {
       ...el,
-      endpoints: endpoints.length > 0 ? endpoints : undefined, // Éviter un tableau vide
+      endpoints: endpoints.length > 0 ? endpoints : undefined, 
     };
   });  
   return data;
 }
 
 export async function getData(buildingId: string){
-  const context = await getContext(buildingId);
-  const category = await getCategoryList(buildingId, context.dynamicId);
-  const group = await getGroupList(buildingId, context.dynamicId, category.dynamicId);
+  const rq = await getContext(buildingId);
+  const context = await rq.find((el) => el.name === config.entryPoint?.context || el.name == store.state.appDataStore.context.name);
+  if(!context) {
+    return [];
+  }
+  const rqC = await getCategoryList(buildingId, context.dynamicId);
+  const categoryName = config.entryPoint?.category ?? store.state.appDataStore.categoriesContext.name;
+  const category = await rqC.find((el) => el.name === categoryName);
+  const rqG = await getGroupList(buildingId, context.dynamicId, category.dynamicId);
+  const groupName = config.entryPoint?.group ?? store.state.appDataStore.groupEquipement.name;
+  console.log('groupName', groupName);
+  const group = rqG.find((el) => el.name === groupName) 
+  console.log('group: ', group);
   const groupItems = await getGroupItems(buildingId, context.dynamicId, category.dynamicId, group.dynamicId);
   return groupItems;
 }
 
-async function getContext(buildingId: string): Promise<IContext> {
+export async function getContext(buildingId: string) {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `/groupContext/list`);
   const res = await spinalAPI.get(url);
-  const context = res.data.find((el) => el.name === config.entryPoint.context);
-  return context;
+  return res.data;
 }
 
-async function getCategoryList(buildingId: string, contextId: number): Promise<ICategory>{
+export async function getCategoryList(buildingId: string, contextId: number){
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `/groupeContext/${contextId}/category_list`);
   const res = await spinalAPI.get(url);
-  const category = res.data.find((el) => el.name === config.entryPoint.category) ;
-  return category as ICategory;
+  return res.data;
 }
 
 
-async function getGroupList(buildingId: string, contextId: number, categoryId: number) : Promise<IGroup> {
+export async function getGroupList(buildingId: string, contextId: number, categoryId: number)  {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `/groupeContext/${contextId}/category/${categoryId}/group_list`);
   const res = await spinalAPI.get(url);
-  const group = res.data.find((el) => el.name === config.entryPoint.group);
-  return group as IGroup;
+  return res.data;
 }
 
 
 async function getGroupItems(buildingId: string, contextId: number, categoryId: number, groupId: number): Promise<ItemInGroup[]> {
   const spinalAPI = SpinalAPI.getInstance();
-  const url = config.entryPoint.type === "equipement" ? `/equipementsGroup/${contextId}/category/${categoryId}/group/${groupId}/equipementList` : `/roomsGroup/${contextId}/category/${categoryId}/group/${groupId}/roomList`;
+  let type = config.entryPoint?.type ?? store.state.appDataStore.groupEquipement.type;
+  if(type !== "equipement" && type !== "room") {
+    const test = type.includes("BIMObject");
+    test ? type = "equipement" : type = "room";
+  }
+  const url = type === "equipement" ? `/equipementsGroup/${contextId}/category/${categoryId}/group/${groupId}/equipementList` : `/roomsGroup/${contextId}/category/${categoryId}/group/${groupId}/roomList`;
   const res = await spinalAPI.get(spinalAPI.createUrlWithPlatformId(buildingId, url));
   return res.data as ItemInGroup[];
 }
@@ -191,6 +207,7 @@ export async function getDataInContextSpatial(buildingId: string, spatialName: s
         }).filter(Boolean);
         
        }
+       console.log('result', result);
 
        const dynamicIds = result.map((el) => el.dynamicId);
        const read = await getReadStaticdetailsMultiple(buildingId, dynamicIds);
@@ -257,14 +274,24 @@ export async function getDataInContextSpatial(buildingId: string, spatialName: s
           const matchingRead = result.find((readEl: any) => readEl.dynamicId === el.dynamicId);
           return matchingRead ? { ...el, ...matchingRead } : el;
         });
-        
-        store.commit(MutationTypes.SET_DATA, final);
+        if(final.length > 0) {
+          store.commit(MutationTypes.SET_DATA, final);
+          return true
+        }
+        else {
+          return false;
+        }
 } 
 
 async function getPositionMultiple(buildingId: string, dynamicIds: number[]): Promise<ItemPositon[]> {
   const spinalAPI = SpinalAPI.getInstance();
-  
-  const url = config.entryPoint.type === "equipement" ? `/equipment/get_position_multiple`: `/room/get_position_multiple`;
+  let type = config.entryPoint?.type ?? store.state.appDataStore.groupEquipement.type;
+  if(type !== "equipement" && type !== "room") {
+    const test = type.includes("BIMObject");
+    test ? type = "equipement" : type = "room";
+  }
+
+  const url = type === "equipement" ? `/equipment/get_position_multiple`: `/room/get_position_multiple`;
   const res = await sendListMultipleRequest(buildingId, dynamicIds, url);
   return res as ItemPositon[];
  }

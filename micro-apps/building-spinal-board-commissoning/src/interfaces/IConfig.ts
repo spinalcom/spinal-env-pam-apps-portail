@@ -34,7 +34,7 @@ import { ActionTypes } from "./vuexStoreTypes";
 // }
 
 export interface IConfig {
-  entryPoint: EntryPoint;
+  entryPoint?: EntryPoint;
   sources: ISource[];
   bilan : {
     timeline: Istatistique,

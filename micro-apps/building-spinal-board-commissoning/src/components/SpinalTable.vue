@@ -1,5 +1,6 @@
 <template>
-  <div style="width: 100%; height: 100%;">
+  <Loader v-if="showLoader" />
+  <div v-else style="width: 100%; height: 100%;">
     <v-data-table
     style="height: 100% !important; overflow: hidden; overflow-y: auto;"
     mobile-breakpoint="0"
@@ -63,10 +64,12 @@ import { config } from '../../config';
 import { get } from 'http';
 import { MutationTypes } from '../services/store/appDataStore/mutations';
 import { parseRegex } from '../services';
+import Loader from './Loader.vue';
 export default {
     name: 'SpinalTable',
     components: {
         SmallLegend,
+        Loader
     },
     props: {
         item: {
@@ -89,7 +92,8 @@ export default {
           selected_id: null,
           selected_header: null,
           arrow: false, 
-          selections: {} as any
+          selections: {} as any,
+          showLoader: true,
 
         };
         },
@@ -99,6 +103,7 @@ export default {
       item: {
         handler(newData) {
           this.itemData = newData;
+          this.showLoader = false;
           const stripLegend = config.bilan.timeline;
           const source = config.sources.find((src) => src.id === stripLegend.sourceId);
           const data = this.item.map((el) => {
@@ -191,7 +196,7 @@ getColor(value: any, header: any) {
          if(numericValue <= min.value) {
           return min.color;
         }
-        if (numericValue >= median?.value) {
+        if (numericValue >= median!.value) {
             return median?.color; // Entre médian et max
         }
         return "#14202C"; // Bleu foncé pour les autres valeurs

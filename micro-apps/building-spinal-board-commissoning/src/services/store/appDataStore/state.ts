@@ -52,4 +52,7 @@ export const state = {
   StripeDataList: [] as any[],
   DotsGridList: [] as any[],  
   data: [] as any[],
+  context: {} as any,
+  categoriesContext: {} as any,
+  groupEquipement: {} as any,
 };

@@ -12,7 +12,7 @@
         />
       </div>
     </div>
-    <MicroApp :temporality="selectedTime" :items="dataStore" :space="selectedZone" v-if="selectedZone.dynamicId !== 0"/>
+    <MicroApp :items="dataStore" :space="selectedZone" v-if="selectedZone.dynamicId !== 0"/>
   </v-app>
 </template>
 
@@ -39,7 +39,7 @@ interface IItemDatatmp {
 @Component({
   components: {
     SpaceSelector,
-    MicroApp
+    MicroApp,
   },
 })
 class App extends Vue {
@@ -49,22 +49,7 @@ class App extends Vue {
   openTimeSelector = false;
   $refs!: { spaceSelector: any };
   timedata = { name: 'SEMAINE', value: 'week' };
-  defaultSelected = {
-    platformId: '',
-    name: '',
-    staticId: '1',
-    color: '',
-    dynamicId: 0,
-    type: 'geographicBuilding',
-    level: 0,
-    isOpen: true,
-    loading: false,
-    patrimoineId: 'patrimoineId',
-    parents: [],
-    isLastInGrp: true,
-    drawLink: [],
-    haveChildren: true,
-  } as ISpaceSelectorItem;
+  
   defaultSelectedTime = {
     name: 'Mois',
     loading: false,
@@ -72,22 +57,12 @@ class App extends Vue {
     haveChildren: false
   }
 
-  selectedTime = {
-      name: 'Mois',
-      next: 'Mois suivant',
-      prev: 'Mois précédent',
-      staticId: 'Mois',
-      dynamicId: 1,
-      level: 1,
-      isOpen: true,
-      loading: false,
-      patrimoineId: 'Mois',
-      parents: [],
-      isLastInGrp: true,
-      drawLink: [],
-      haveChildren: false,
-    };
 
+  showLoader = true;
+  showMessage = false;
+
+
+ 
     get dataStore() {
       return this.$store.state.appDataStore.data;
     }
@@ -106,7 +81,15 @@ class App extends Vue {
       type: 'geographicBuilding',
     }
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, item);
-    getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type)
+   const onload = await  getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type)
+    if(onload) {
+      this.showLoader = false;
+      this.showMessage = false;
+    }
+    else {
+        this.showLoader = false;
+        this.showMessage = true;
+    }
     // this.defaultSelected = item;
     // let building = await getBuilding();
     // this.defaultSelected.name = building.name;

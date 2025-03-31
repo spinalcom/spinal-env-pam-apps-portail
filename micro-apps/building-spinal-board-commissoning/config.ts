@@ -53,9 +53,9 @@ export const  config: IConfig = {
             name: "Taux de disponibilité",
             unit: "%",
             legend: {
-                min: { value: 0, color: "#24CBD9" },
-                median: { value: 50, color: "#2077CE"},
-                max: { value: 100, color: "#112C9D" },
+                min: { value: 12, color: "#24CBD9" },
+                median: { value: 37, color: "#2077CE"},
+                max: { value: 75, color: "#112C9D" },
             },
         },
         {
@@ -65,9 +65,9 @@ export const  config: IConfig = {
             name: "Taux de données en défaut reçues",
             unit: "%",
             legend:{
-                min: { value: 0, color: "#24CBD9" },
-                median: { value: 50, color: "#2077CE" },
-                max: { value: 100, color: "#112C9D" },
+                min: { value: 12, color: "#24CBD9" },
+                median: { value: 37, color: "#2077CE" },
+                max: { value: 75, color: "#112C9D" },
             }
         },
         {
@@ -77,9 +77,9 @@ export const  config: IConfig = {
             name: "Taux de données exploitables",
             unit: "%",
             legend:{
-                min: { value: 0, color: "#24CBD9" },
-                median: { value: 50, color: "#2077CE" },
-                max: { value: 100, color: "#112C9D" },
+                min: { value: 12, color: "#24CBD9" },
+                median: { value: 37, color: "#2077CE" },
+                max: { value: 75, color: "#112C9D" },
             }
         }
     ],
