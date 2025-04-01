@@ -56,7 +56,7 @@ moment.locale('fr');
         {
             context: 'Gestion des équipements',
             category: 'Typologie',
-            group: 'Positions de travail',
+            group: 'Multicapteurs',
             type: 'BIMObjectGroup',
             source: [
                 {

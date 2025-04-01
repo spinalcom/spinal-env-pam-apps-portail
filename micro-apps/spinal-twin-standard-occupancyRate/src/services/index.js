@@ -2,6 +2,7 @@ import config from '../../config.js';
 import { HTTP } from "./http-constants";
 import moment from 'moment';
 import 'moment/locale/fr';
+import { SpinalAPI} from '../services/spinalAPI/spinalAPI.ts'
 
 // On Récupère les informations sur un bâtiment spécifique.
 export async function getBuilding() {

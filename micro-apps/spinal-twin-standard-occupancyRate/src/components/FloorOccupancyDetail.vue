@@ -51,6 +51,7 @@ import { getFloors } from '../services/index';
 import { getRoomPositions } from '../services/index';
 import { groupSecondChartsByFloor } from '../services/index';
 import { getThirdChartIds } from '../services/index';
+import { SpinalAPI } from '../services/spinalAPI/spinalAPI';
 
 Chart.register(...registerables);
 
@@ -307,7 +308,10 @@ const fetchThirdChartFloorData = async (timestamp, startTime, endTime) => {
     const fetchTotalSurface = async () => {
       try {
         const buildingId = localStorage.getItem("idBuilding");
-        const result = await HTTP.get(`building/${buildingId}/building/read`);
+        const spinalApi = SpinalAPI.getInstance();
+        const url = spinalApi.createUrlWithPlatformId(buildingId!, 'api/v1/building/read');
+        const result = await spinalApi.get(url);   
+        console.log('result spinalApi: ', result.data);   /* const result = await HTTP.get(`building/${buildingId}/building/read`); */
         totalSurface.value = Math.round(result.data.area);
       } catch (error) {
         console.error("Erreur lors de la récupération de la surface totale :", error);
