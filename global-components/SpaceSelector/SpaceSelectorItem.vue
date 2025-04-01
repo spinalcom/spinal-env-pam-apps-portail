@@ -25,9 +25,7 @@ with this file. If not, see
   <v-list-item tabindex="-1" class="space-selector-list-item card-hover fade"
     :class="{ ['space-selector-list-item-level-' + item.level]: true, 'space-selector-list-item-isopen': item.isOpen && item.haveChildren, 'space-selector-list-item-isSelected': isSelected }"
     :style="{ 'margin-left': '' + ((item.level - 1) * 20 + 30) + 'px', }" @click.stop="onSelect"
-    @mouseenter="onMouseEnter"
-    @mouseleave="onMouseLeave"
-    >
+    :disabled="!loading_viewer" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave">
     <!-- link to parent template -->
     <template v-if="item.level > 0">
       <div class="space-selector-list-item-angle"></div>
@@ -43,6 +41,7 @@ with this file. If not, see
     </v-list-item-content>
 
     <v-list-item-action class="actionsDiv">
+      <v-progress-circular v-if="!loading_viewer" :size="25" color="white" indeterminate></v-progress-circular>
 
       <v-btn tabindex="-1" v-if="viewButtonsType === 'advanced'" v-for="(button, index) in spaceSelectorItemButtons"
         :key="index" x-small elevation="0" fab icon style="color: #bfbfbf" dark :loading="item.loading"
@@ -55,7 +54,6 @@ with this file. If not, see
         :disabled="item.loading" @click.stop="onOpenClose" v-show="item.level != maxDepth">
         <v-icon dark> {{ icon }} </v-icon>
       </v-btn>
-
     </v-list-item-action>
   </v-list-item>
 </template>
@@ -71,10 +69,11 @@ import { EventBus } from './eventBus';
 class SpaceSelectorItem extends Vue {
   @Prop({ type: Object, required: true }) item: ISpaceSelectorItem;
   @Prop({ type: Number, required: true }) maxDepth: number;
+  @Prop({ type: Boolean, required: true, default: false }) loading_viewer!: boolean;
   @Prop({ type: Object, required: true }) selected: ISpaceSelectorItem;
   @Prop({ type: Array<IButton>, required: false, default: () => [] }) spaceSelectorItemButtons!: IButton[];
   @Prop({ type: String, required: false }) viewButtonsType!: string;
-
+  @Prop({ type: String, required: false }) label: string;
   public get isSelected(): boolean {
     return (
       this.item.patrimoineId === this.selected.patrimoineId &&
@@ -89,7 +88,7 @@ class SpaceSelectorItem extends Vue {
 
     return this.item.color as string
   }
-
+  onSelect
 
   public get icon(): string {
     return this.item?.isOpen ? 'mdi-chevron-down' : 'mdi-chevron-up';
@@ -100,6 +99,21 @@ class SpaceSelectorItem extends Vue {
     return !id ? false : this.$store.state.appDataStore.viewerStartedList[id] ? true : false;
   }
 
+  public mounted() {
+    // this.checkViewerStatus();
+    // // setInterval(this.shouldDisable, 500);
+    // window.addEventListener("storage", this.checkViewerStatus);
+  }
+
+  // public clicable: boolean ;
+
+  // shouldDisable() {
+  //   const loading = localStorage.getItem('viewer_loaded')
+  //   this.clicable = loading == 'loaded' && ['geographicRoom', 'geographicFloor'].includes(this.item.type)
+  //   console.log(this.clicable , 'aaa');
+  //   return (loading == 'loaded' && ['geographicRoom', 'geographicFloor'].includes(this.item.type))
+  // }
+
   onSelect() {
     this.onMouseLeave()
     if (this.viewButtonsType === 'base') {
@@ -109,18 +123,20 @@ class SpaceSelectorItem extends Vue {
     this.$emit('onSelect');
   }
 
-  onMouseEnter() {
+  onMouseEnter() {    
     const dynamicId = this.item.dynamicId;
-    if (dynamicId) {
+    if (dynamicId && this.label == 'ESPACE' && this.item.type != "geographicFloor" &&  this.item.type != "building") {
+
       EventBus.$emit('colorRoom', dynamicId);
     }
   }
   onMouseLeave() {
     const dynamicId = this.item.dynamicId;
-    if (dynamicId) {
+    if (dynamicId && this.label == 'ESPACE') {
       EventBus.$emit('descolorRoom', dynamicId);
     }
   }
+
 
   onActionClick(button: IButton) {
     this.$emit("onActionClick", { button, item: this.item });
@@ -137,6 +153,8 @@ class SpaceSelectorItem extends Vue {
   drawParentLink(depth: number) {
     return !this.item.drawLink.includes(depth);
   }
+
+
 
   disableBtn(button: IButton) {
     switch (button.onclickEvent) {
@@ -155,10 +173,9 @@ class SpaceSelectorItem extends Vue {
   }
 
   getButton() {
-    console.log("Space Selector button pressed on item : ",this.item, " of type", this.item.type );
     if (this.item.type === "building") {
-      return;
-      //return this.spaceSelectorItemButtons.find(el => el.onclickEvent === "OPEN_VIEWER");
+      // return;
+      return this.spaceSelectorItemButtons.find(el => el.onclickEvent === "OPEN_VIEWER");
       //!! Add logic to load building
     }
 
@@ -167,7 +184,7 @@ class SpaceSelectorItem extends Vue {
     if (this.item.type === "geographicFloor")
       return this.spaceSelectorItemButtons.find(el => el.onclickEvent === "OPEN_VIEWER");
 
-     return this.spaceSelectorItemButtons.find(el => el.onclickEvent === ActionTypes.ISOLATE_ITEMS);
+    return this.spaceSelectorItemButtons.find(el => el.onclickEvent === ActionTypes.ISOLATE_ITEMS);
   }
 }
 export default SpaceSelectorItem;

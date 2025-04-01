@@ -64,8 +64,9 @@ export class ViewerUtils {
 				path: this._addSlash(d.path),
 				dbids: d.dbids,
 				aecPath: this._addSlash(d.aecPath),
+				offset: d.offset && d.offset[Object.keys(d.offset)[0]],
 				id: d.id,
-				name: d.name,
+				name: d.name
 			});
 		}
 
@@ -75,7 +76,7 @@ export class ViewerUtils {
 			tasks,
 			async (d: IloadModelTask): Promise<Autodesk.Viewing.Model> => {
 				// return this._loadBimFile(viewer, d.path, data.loadingType as any, d.id, d.dbids, d.aecPath, data.buildingId);
-				return this._loadBimFile(viewer, d.path, data.loadingType as any, d.id, d.dbids, d.aecPath, data.buildingId);
+				return this._loadBimFile(viewer, data.loadingType as any, d, data.buildingId);
 			},
 			this._isFirstModel
 		).then((result) => {
@@ -296,6 +297,33 @@ export class ViewerUtils {
 			SpriteManager.getInstance().addComponentAsSprite(viewer, result);
 		});
 	}
+	public async addCardComponent(viewer: Autodesk.Viewing.Viewer3D, data: any) {
+    await this._waitModelIsLoading();
+
+    const promises = data.map(async (item) => {
+      const data = item.data.map(({ bimFileId, dbIds }) => ({
+        dbIds,
+        model: this._getModel(item.modelId, bimFileId),
+      }));
+
+      return {
+        modelId: null,
+        color: item.color,
+        value: null,
+        models: null,
+        dbId: 0,
+        position: item.position || (await getPosition(data)),
+        // position: await getPosition(data),
+        data: item.parent,
+        component: item.component,
+      };
+    });
+
+    Promise.all(promises).then((result) => {
+      SpriteManager.getInstance().addCardComponent(viewer, result);
+    });
+  }
+
 
 	public async hideElementsByDbIds(viewer: Autodesk.Viewing.Viewer3D, dbIdObject: any) {
 		await this._waitModelIsLoading();
@@ -318,6 +346,26 @@ export class ViewerUtils {
 		});
 	}
 	
+	public async getObjectProperties(viewer: Autodesk.Viewing.Viewer3D, dbId: number) {
+		try {
+			const properties = await new Promise<Autodesk.Viewing.PropertyResult | null>((resolve, reject) => {
+				viewer.getProperties(
+					dbId,
+					(success) => {
+						resolve(success);
+					},
+					(error) => {
+						reject(error);
+					}
+				);
+			});
+	
+			return properties;
+		} catch (error) {
+			console.error('Failed to get object properties', error);
+			return null;
+		}
+	}
 	
 
 	// public removeSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
@@ -342,31 +390,41 @@ export class ViewerUtils {
 	//                            PRIVATE                            //
 	///////////////////////////////////////////////////////////////////
 
-	private async _loadBimFile(viewer: Autodesk.Viewing.Viewer3D, urlpath: string, sceneAlignMethod: SceneAlignMethod, modelId: string, dbids?: number[], aecPath?: string, buildingId?: string): Promise<Autodesk.Viewing.Model> {
+	private async _loadBimFile(viewer: Autodesk.Viewing.Viewer3D,sceneAlignMethod: number, modelData : IloadModelTask, buildingId?: string): Promise<Autodesk.Viewing.Model> {
 		try {
-			const option: { globalOffset?: THREE.Vector3; applyRefPoint?: boolean; ids?: number[]; headlessViewer: boolean; theme?: string } = {
+			const option: {
+				globalOffset?: THREE.Vector3;
+				applyRefPoint?: boolean;
+				ids?: number[];
+				headlessViewer: boolean;
+				theme?: string;
+			} = {
 				headlessViewer: true,
 			};
 
-			if (dbids) {
-				option.ids = dbids;
+			if (modelData.dbids) {
+				option.ids = modelData.dbids;
 			}
 
-			if (sceneAlignMethod === SceneAlignMethod.OriginToOrigin) {
-				option.globalOffset = await getGlobalOffset(viewer, buildingId);
-			} else if (sceneAlignMethod === SceneAlignMethod.ShareCoordinates && aecPath) {
+			if(modelData.offset) {
+				if(sceneAlignMethod === SceneAlignMethod.ShareCoordinates) option.applyRefPoint = true;
+				option.globalOffset = modelData.offset;
+
+			} else if (sceneAlignMethod === SceneAlignMethod.OriginToOrigin) {
+				option.globalOffset = await getGlobalOffset(viewer, buildingId as any, modelData.aecPath);				
+			
+			} else if (sceneAlignMethod === SceneAlignMethod.ShareCoordinates && modelData.aecPath) {
 				option.applyRefPoint = true;
-				option.globalOffset = await addOffsetFromAEC(getAPINormalisePath(aecPath, buildingId), viewer, buildingId);
+				option.globalOffset = await addOffsetFromAEC(modelData.aecPath, viewer, buildingId as any);
 			}
 
-			const path = getAPINormalisePath(urlpath, buildingId);
-			const model = await this._loadModel(modelId, viewer, path, option, this._isFirstModel);
+			const path = getAPINormalisePath(modelData.path, buildingId);
+			const model = await this._loadModel(modelData.id, viewer, path, option, this._isFirstModel);
 			if (this._isFirstModel) this._isFirstModel = false;
 
 			return model;
-		} catch (error) { }
+		} catch (error) {}
 	}
-
 	private _addSlash(path: string): string {
 		if (path) return path[0] === "/" ? path : "/" + path;
 		return "";

@@ -50,14 +50,19 @@ export class EventManager {
 			const viewerUtils = ViewerUtils.getInstance();
 
 			emitterHandler.on(VIEWER_START_LOAD_MODEL, async (data: any) => {
+				// localStorage.setItem("viewer_loaded", 'unload');
 				const models = await viewerUtils.load3DModels(viewer, data);
 				// emitterHandler.emit(<any>VIEWER_EVENTS.LOADED,{id: data.item.staticId, models})
 				emitterHandler.emit(<any>VIEWER_EVENTS.LOADED, { id: data.item.dynamicId, models });
+
+				localStorage.setItem("viewer_loaded", 'loaded');
 			});
 
 			emitterHandler.on(VIEWER_OBJ_ISOLATE, (data: any) => {
+				// localStorage.setItem("viewer_loaded", 'unload');
 				if (data && data.length > 0) return viewerUtils.viewerIsolation(viewer, data);
 				viewerUtils.showAllObject(viewer);
+				localStorage.setItem("viewer_loaded", 'loaded');
 			});
 
 			// emitterHandler.on(VIEWER_HIDE_ELEMENT, (data: any) => {
@@ -98,6 +103,9 @@ export class EventManager {
 
 			emitterHandler.on(<any>VIEWER_EVENTS.VIEWER_ADD_COMPONENT_SPRITE, (data: any) => {
 				viewerUtils.addComponentAsSprite(viewer, data);
+			});
+			emitterHandler.on(<any>VIEWER_EVENTS.VIEWER_ADD_CARD_COMPONENT, (data: any) => {
+				viewerUtils.addCardComponent(viewer, data);
 			});
 
 
