@@ -617,11 +617,11 @@ const renderThirdChart = () => {
   }
 };
 
-watch(() => props.temporality, async (newTemporality) => {
+watch(() => [props.startTime, props.endTime], async ([newStartTime, newEndTime]) => {
   const timestamp = moment().valueOf();
-  await fetchFloorData(props.temporality.name, timestamp, props.startTime, props.endTime);
-  await fetchSecondFloorData(timestamp, props.startTime, props.endTime);
-  await fetchThirdChartFloorData(timestamp, props.startTime, props.endTime);
+  await fetchFloorData(props.temporality.name, timestamp, newStartTime, newEndTime);
+  await fetchSecondFloorData(timestamp, newStartTime, newEndTime);
+  await fetchThirdChartFloorData(timestamp, newStartTime, newEndTime);
   await fetchTotalSurface();
   await fetchTotalSurface2();
   await fetchThirdChartTotalCount();

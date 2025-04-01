@@ -46,8 +46,11 @@
           ref="floorOccupancyDetail" 
           :space="space" 
           :temporality="temporality" 
+          :startTime="startTime"
+          :endTime="endTime"
           @time-change="handleTimeChange"
         />
+        
         </div>
     </div>
   </div>
@@ -181,7 +184,7 @@ handleTimeChange({ startTime, endTime }) {
 
   if (this.$refs.floorOccupancyDetail) {
     const floorOccupancyDetail = this.$refs.floorOccupancyDetail as Vue & {
-      fetchFloorData: (period: string, timestamp: number, startTime: string, endTime: string) => void;
+      fetchFloorData: (name: string, timestamp: number, startTime: string, endTime: string) => void;
       fetchSecondFloorData: (timestamp: number, startTime: string, endTime: string) => void;
       fetchThirdChartFloorData: (timestamp: number, startTime: string, endTime: string) => void;
     };
@@ -265,107 +268,101 @@ handleTimeChange({ startTime, endTime }) {
     this.$emit('chart-sent', output);
   }
 
-  async nav(payload: number): Promise<void> {
-  if (this.temporality.name === 'Journée' || this.temporality.name === 'Valeur Courante') {
-    if (!this.defaultFilter.lock)
-      this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'days').valueOf() };
-    for (let i = 0; i < this.selectedFilter.length; i++) {
-      let date = moment(this.selectedFilter[i].value, 'DD/MM/YYYY');
-      if (this.selectedFilter[i].lock === false)
-        date.add(payload, 'days');
-      let newValue = date.format('DD/MM/YYYY');
-      let newMonthName = date.format('DD MMMM YYYY');
-      this.selectedFilter[i].name = newMonthName;
-      this.selectedFilter[i].value = newValue;
-      this.selectedFilter[i].color = this.selectedFilter[i].color;
-    }
-  } else if (this.temporality.name === 'Semaine') {
-    if (!this.defaultFilter.lock)
-      this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'weeks').valueOf() };
-    for (let i = 0; i < this.selectedFilter.length; i++) {
-      let date = moment(this.selectedFilter[i].value, 'WW/YYYY');
-      if (this.selectedFilter[i].lock === false)
-        date.add(payload, 'weeks');
-      let newValue = date.format('WW/YYYY');
-      let newMonthName = 'S' + date.format('WW YYYY');
-      this.selectedFilter[i].name = newMonthName;
-      this.selectedFilter[i].value = newValue;
-      this.selectedFilter[i].color = this.selectedFilter[i].color;
-    }
-  } else if (this.temporality.name === 'Mois') {
-    if (!this.defaultFilter.lock)
-      this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'months').valueOf() };
-    for (let i = 0; i < this.selectedFilter.length; i++) {
-      let date = moment(this.selectedFilter[i].value, 'MM/YYYY');
-      if (this.selectedFilter[i].lock === false)
-        date.add(payload, 'months');
-      let newValue = date.format('MM/YYYY');
-      let newMonthName = date.format('MMMM YYYY');
-      this.selectedFilter[i].name = newMonthName;
-      this.selectedFilter[i].value = newValue;
-      this.selectedFilter[i].color = this.selectedFilter[i].color;
-    }
-  } else if (this.temporality.name === 'Trimestre') {
-    if (!this.defaultFilter.lock)
-      this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload * 3, 'months').valueOf() };
-    for (let i = 0; i < this.selectedFilter.length; i++) {
-      let t = this.selectedFilter[i].value.split('/');
-      let date;
-      switch (t[0]) {
-        case 'T1': date = moment(`01/01/${t[1]}`, 'DD/MM/YYYY'); break;
-        case 'T2': date = moment(`01/04/${t[1]}`, 'DD/MM/YYYY'); break;
-        case 'T3': date = moment(`01/07/${t[1]}`, 'DD/MM/YYYY'); break;
-        case 'T4': date = moment(`01/10/${t[1]}`, 'DD/MM/YYYY'); break;
+    async nav(payload: number): Promise<void> {
+    // Mise à jour du timestamp en fonction de la temporalité
+    if (this.temporality.name === 'Journée' || this.temporality.name === 'Valeur Courante') {
+      if (!this.defaultFilter.lock) {
+        this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'days').valueOf() };
       }
-      if (this.selectedFilter[i].lock === false) {
-        date.add(payload * 3, 'months');
+      for (let i = 0; i < this.selectedFilter.length; i++) {
+        let date = moment(this.selectedFilter[i].value, 'DD/MM/YYYY');
+        if (this.selectedFilter[i].lock === false) {
+          date.add(payload, 'days');
+        }
+        this.selectedFilter[i].name = date.format('DD MMMM YYYY');
+        this.selectedFilter[i].value = date.format('DD/MM/YYYY');
       }
-      let currentMM = date.format('MM');
-      let T = 'T' + Math.ceil(+currentMM / 3);
-      let newValue = date.format('MM/YYYY');
-      let newMonthName = date.format('MMMM YYYY');
-      this.selectedFilter[i].name = `${T} ${date.format('YYYY')}`;
-      this.selectedFilter[i].value = `${T}/${date.format('YYYY')}`;
-      this.selectedFilter[i].color = this.selectedFilter[i].color;
+    } else if (this.temporality.name === 'Semaine') {
+      if (!this.defaultFilter.lock) {
+        this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'weeks').valueOf() };
+      }
+      for (let i = 0; i < this.selectedFilter.length; i++) {
+        let date = moment(this.selectedFilter[i].value, 'WW/YYYY');
+        if (this.selectedFilter[i].lock === false) {
+          date.add(payload, 'weeks');
+        }
+        this.selectedFilter[i].name = 'S' + date.format('WW YYYY');
+        this.selectedFilter[i].value = date.format('WW/YYYY');
+      }
+    } else if (this.temporality.name === 'Mois') {
+      if (!this.defaultFilter.lock) {
+        this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'months').valueOf() };
+      }
+      for (let i = 0; i < this.selectedFilter.length; i++) {
+        let date = moment(this.selectedFilter[i].value, 'MM/YYYY');
+        if (this.selectedFilter[i].lock === false) {
+          date.add(payload, 'months');
+        }
+        this.selectedFilter[i].name = date.format('MMMM YYYY');
+        this.selectedFilter[i].value = date.format('MM/YYYY');
+      }
+    } else if (this.temporality.name === 'Trimestre') {
+      if (!this.defaultFilter.lock) {
+        this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload * 3, 'months').valueOf() };
+      }
+      for (let i = 0; i < this.selectedFilter.length; i++) {
+        let t = this.selectedFilter[i].value.split('/');
+        let date;
+        switch (t[0]) {
+          case 'T1': date = moment(`01/01/${t[1]}`, 'DD/MM/YYYY'); break;
+          case 'T2': date = moment(`01/04/${t[1]}`, 'DD/MM/YYYY'); break;
+          case 'T3': date = moment(`01/07/${t[1]}`, 'DD/MM/YYYY'); break;
+          case 'T4': date = moment(`01/10/${t[1]}`, 'DD/MM/YYYY'); break;
+        }
+        if (this.selectedFilter[i].lock === false) {
+          date.add(payload * 3, 'months');
+        }
+        let currentMM = date.format('MM');
+        let T = 'T' + Math.ceil(+currentMM / 3);
+        this.selectedFilter[i].name = `${T} ${date.format('YYYY')}`;
+        this.selectedFilter[i].value = `${T}/${date.format('YYYY')}`;
+      }
+    } else if (this.temporality.name === 'Année') {
+      if (!this.defaultFilter.lock) {
+        this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf() };
+      }
+      for (let i = 0; i < this.selectedFilter.length; i++) {
+        let date = moment(this.selectedFilter[i].value, 'YYYY');
+        if (this.selectedFilter[i].lock === false) {
+          date.add(payload, 'years');
+        }
+        this.selectedFilter[i].name = date.format('YYYY');
+        this.selectedFilter[i].value = date.format('YYYY');
+      }
     }
-  } else if (this.temporality.name === 'Année') {
-    this.domain.name = '' + (+this.domain.name + payload);
-    if (!this.defaultFilter.lock) {
-      this.currentTimestamp = { valueTime: moment(this.currentTimestamp.valueTime).add(payload, 'years').valueOf() };
-    }
-    for (let i = 0; i < this.selectedFilter.length; i++) {
-      let date = moment(this.selectedFilter[i].value, 'YYYY');
-      if (this.selectedFilter[i].lock === false)
-        date.add(payload, 'years');
-      let newValue = date.format('YYYY');
-      let newMonthName = date.format('YYYY');
-      this.selectedFilter[i].name = newMonthName;
-      this.selectedFilter[i].value = newValue;
-      this.selectedFilter[i].color = this.selectedFilter[i].color;
+  
+    // Récupération des nouvelles données pour les graphiques globaux
+    await this.spreadData();
+  
+    // Réappliquer les plages horaires sélectionnées pour tous les graphiques
+    this.handleTimeChange({ startTime: this.startTime, endTime: this.endTime });
+  
+    // Mise à jour des graphiques par étage
+    if (this.$refs.floorOccupancyDetail) {
+      const floorOccupancyDetail = this.$refs.floorOccupancyDetail as Vue & {
+        fetchFloorData: (name: string, timestamp: number, startTime: string, endTime: string) => void;
+        fetchSecondFloorData: (timestamp: number, startTime: string, endTime: string) => void;
+        fetchThirdChartFloorData: (timestamp: number, startTime: string, endTime: string) => void;
+      };
+  
+      const timestamp = this.currentTimestamp.valueTime;
+  
+      // Mise à jour des données pour les graphiques par étage
+      await floorOccupancyDetail.fetchFloorData(this.temporality.name, timestamp, this.startTime, this.endTime);
+      await floorOccupancyDetail.fetchSecondFloorData(timestamp, this.startTime, this.endTime);
+      await floorOccupancyDetail.fetchThirdChartFloorData(timestamp, this.startTime, this.endTime);
     }
   }
-  await this.spreadData();
-  if (this.temporality.name === 'Année') {
-    this.domainList = [];
-    this.domainList.push({ name: this.defaultFilter.name, color: this.defaultFilter.color });
-    for (let filter = 0; filter < this.selectedFilter.length; filter++) {
-      this.domainList.push({ name: this.selectedFilter[filter].name, color: this.selectedFilter[filter].color });
-    }
-    if (!this.domain.name) {
-      this.domain = { name: this.defaultFilter.name, color: this.defaultFilter.color };
-    }
-  } this.handleTimeChange({ startTime: this.startTime, endTime: this.endTime });
-  await this.spreadData();
-  if (this.$refs.floorOccupancyDetail) {
-    (this.$refs.floorOccupancyDetail as Vue & { fetchFloorData: (name: string, timestamp: number) => void }).fetchFloorData(this.temporality.name, this.currentTimestamp.valueTime);
-  }
-  if (this.$refs.floorOccupancyDetail) {
-    (this.$refs.floorOccupancyDetail as Vue & { fetchSecondFloorData: (timestamp: number) => void }).fetchSecondFloorData(this.currentTimestamp.valueTime);
-  }
-  if (this.$refs.floorOccupancyDetail) {
-    (this.$refs.floorOccupancyDetail as Vue & { fetchThirdChartFloorData: (timestamp: number) => void }).fetchThirdChartFloorData(this.currentTimestamp.valueTime);
-  }
-}
   
 };
 
