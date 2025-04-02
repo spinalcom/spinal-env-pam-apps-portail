@@ -309,7 +309,22 @@ class App extends Vue {
   }
 
   async mounted() {
-    
+    const buildingId = localStorage.getItem('idBuilding');
+    const realBuilding = await this.$store.dispatch(
+            ActionTypes.GET_BOS_BUILDING,
+            { buildingId }
+          )
+          console.log('realBuilding: ',realBuilding);
+      const item = {
+        buildingId: buildingId,
+        dynamicId: realBuilding.dynamicId,
+        isOpen: false,
+        loading: false,
+        name: realBuilding.name,
+        type: 'building',
+      };
+      this.$store.commit(MutationTypes.SET_SELECTED_ZONE, item);
+      this.onActionClick({ button: { onclickEvent: 'OPEN_VIEWER' }, item });
     try {
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();

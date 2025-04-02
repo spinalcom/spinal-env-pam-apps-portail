@@ -28,9 +28,21 @@ import { IConfig } from "../../../../interfaces/IConfig";
 
 export function getItemsToRegroup(map: Map<string, any>, item: ISpaceSelectorItem) {
    const type = item.type;
-   const obj = map.get(type);
-   const data = obj[item.dynamicId];
-
+   console.log("type", type);
+   let obj: any = []
+   let data: any = []
+   if(type === 'building')  {
+      obj = map.get("geographicFloor");
+      data = obj;
+      return {
+         type: 'building',
+         data: data
+      };
+   } else {
+      obj = map.get(type);
+      data = obj[item.dynamicId];
+   }
+   console.log("data in getItemTo regroup: ", data);
    if (!data) return [];
 
    if (data.type === map.get("groupType")) return [data];
@@ -55,22 +67,44 @@ export function regroupByGeographicItem(map, key, itemsToRegroup) {
 }
 
 export async function regroupByGeograhicGroup(parents: any[], itemsToRegroup: any[]) {
+    
+   if(itemsToRegroup.type == 'building') { 
+      const parentsObj = _convertParentToObj(parents);
+      const obj = {};
+      let children = [];
+      const idData = Object.keys(itemsToRegroup.data);
+      for (const id of idData) {
+         const childrenList = itemsToRegroup.data[id].children;
+         for (const item of childrenList) { 
+            const parent = _getParent(item, parentsObj);
+            if (obj[parent.dynamicId]) {
+               obj[parent.dynamicId].children.push(item);
+            } else {
+               parent.children.push(item);
+               obj[parent.dynamicId] = parent;
+            }
+         }
+      }
+      return Array.from(Object.values(obj));
+   }
+   else {
 
-   const parentsObj = _convertParentToObj(parents)   
-   const obj = {};
-
-
-   for (const item of itemsToRegroup) {
-      const parent = _getParent(item, parentsObj);
-      if (obj[parent.dynamicId]) {
+      const parentsObj = _convertParentToObj(parents)   
+      const obj = {};
+      
+      
+      for (const item of itemsToRegroup) {
+         const parent = _getParent(item, parentsObj);
+         if (obj[parent.dynamicId]) {
          obj[parent.dynamicId].children.push(item);
       } else {
          parent.children.push(item);
          obj[parent.dynamicId] = parent;
       }
    }
-
+   
    return Array.from(Object.values(obj));
+}
    
 }
 

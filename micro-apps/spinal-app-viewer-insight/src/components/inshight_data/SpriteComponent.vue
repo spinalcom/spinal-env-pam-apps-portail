@@ -299,6 +299,7 @@ export default {
     },
   },
   async mounted()  {
+    console.log('this.data', this.data)
     await this.loadEndpoint();
 
   },
@@ -321,6 +322,7 @@ export default {
       this.endpointName_selected = this.data.endpoint.name;
       this.unit = this.data.unit;
       this.currentData = this.data;
+
       const endpoint = config.source;
       const endpointList = await getControlEndpointList(idBuilding, this.data.dynamicId);
       let controlPoints = [];
@@ -561,8 +563,8 @@ export default {
   box-shadow: none;
   color: transparent;
   display: flex;
-  flex-direction: row;
-  align-items: center;
+  /* flex-direction: row;
+  align-items: center; */
   
 }
 .sprite_color_insight {
@@ -570,16 +572,15 @@ export default {
   height: 13px;
   border-radius: 100%;
   z-index: 2 ;
-  transition: 0.2s
+  transition: 0.2s;
 }
 .sprite_value_unit_insight {
   border-radius: 100px;
   color: #14202c;
-  margin-left: -13px;
-  padding-left: 13px;
-  padding-right: 4px;
-  /* padding-bottom: 1px;
-  padding-top: 1px; */
+  margin-left: -15px;
+  padding-left: 15px;
+  padding-right: 2px;
+  padding-bottom: 0.5px;
   height: 13px;
   font-size: 12px;
   font-weight: 500;

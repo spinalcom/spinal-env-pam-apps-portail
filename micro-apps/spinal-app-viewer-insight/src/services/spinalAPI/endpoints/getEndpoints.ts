@@ -33,21 +33,51 @@ export async function getSourceValue(
   source: any,
   forceUpdate: boolean = false
 ) {
-  const { dynamicIds, obj } = _formatValues(items, forceUpdate);
-  const url = _getUrl(items[0]?.type);
-  const static_details = await sendListMultipleRequest(
-    buildingId,
-    dynamicIds,
-    url
-  );
-
-  for (const detail of static_details) {
-    const item = obj[detail.dynamicId];
-    if (item) {
-      item.groups = _getGroupsId(detail);
-      item.endpoint = _getEndpoint(detail, source);
-      item.position = _getPos(detail);
+  if(items.type && items.type === 'building') {
+    const idsFloor = Object.keys(items.data);
+    let childreen: any = [];
+    for(const id of idsFloor) {
+      const child = {
+        floorName: items.data[id].name,
+        children: items.data[id].children
+      }
+      childreen.push(child);
     }
+    const { dynamicIds, obj } = _formatValues(childreen, forceUpdate);
+    const type = childreen[0]?.children[0]?.type;
+    const url = _getUrl(type);
+    const static_details = await sendListMultipleRequest(
+      buildingId,
+      dynamicIds,
+      url
+    );
+    for (const detail of static_details) {
+      const item = obj[detail.dynamicId];
+      if (item) {
+        item.groups = _getGroupsId(detail);
+        item.endpoint = _getEndpoint(detail, source);
+        item.position = _getPos(detail);
+      }
+    }
+  }
+  else {
+    const { dynamicIds, obj } = _formatValues(items, forceUpdate);
+    const url = _getUrl(items[0]?.type);
+    const static_details = await sendListMultipleRequest(
+      buildingId,
+      dynamicIds,
+      url
+    );
+  
+    for (const detail of static_details) {
+      const item = obj[detail.dynamicId];
+      if (item) {
+        item.groups = _getGroupsId(detail);
+        item.endpoint = _getEndpoint(detail, source);
+        item.position = _getPos(detail);
+      }
+    }
+
   }
 }
 
@@ -256,16 +286,43 @@ function _getAttibuteAsEndpoint(attributes: any[], source: ISource) {
 // }
 
 function _formatValues(items: any[], forceUpdate: boolean = false) {
-  return items.reduce(
-    (data: { dynamicIds: any[]; obj: any }, item) => {
-      if (!item.endpoint || !item.groups || forceUpdate) {
-        data.dynamicIds.push(item.dynamicId);
-        data.obj[item.dynamicId] = item;
-      }
-      return data;
-    },
-    { dynamicIds: [], obj: {} }
-  );
+  let result =  { dynamicIds: [] as any[], obj: {} as Record<string, any> };
+  if(items[0].floorName) {
+     for (const item of items) {
+    if (!Array.isArray(item.children)) {
+      console.warn("children est invalide pour l'item :", item);
+      continue; 
+    }
+
+    const extracted = item.children.reduce(
+      (data: { dynamicIds: any[]; obj: Record<string, any> }, child) => {
+        if (!child.endpoint || !child.groups || forceUpdate) {
+          data.dynamicIds.push(child.dynamicId);
+          data.obj[child.dynamicId] = child;
+        }
+        return data;
+      }, 
+      { dynamicIds: [], obj: {} }
+    );
+
+    result.dynamicIds.push(...extracted.dynamicIds);
+    Object.assign(result.obj, extracted.obj);
+  }
+  return result;
+  }
+  else {
+
+    return items.reduce(
+      (data: { dynamicIds: any[]; obj: any }, item) => {
+        if (!item.endpoint || !item.groups || forceUpdate) {
+          data.dynamicIds.push(item.dynamicId);
+          data.obj[item.dynamicId] = item;
+        }
+        return data;
+      },
+      { dynamicIds: [], obj: {} }
+    );
+  }
 }
 
 function _getUrl(type: string) {

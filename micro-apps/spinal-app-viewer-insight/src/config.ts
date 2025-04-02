@@ -103,7 +103,22 @@ export const config: IConfig = {
         max: { value: 20, color: "#FF0000" },
       },
     },
-    
+    {
+      name: "Température",
+      profileName: "Control Point",
+      type: "controlPoint",
+      objectType: "rooms",
+      unit: "°C",
+      controllable: {
+        on: false,
+        type: 'currentValue',
+      },
+      legend: {
+        min: { value: 15, color: "#0074FF" },
+        median: { value: 27.5, color: "#FFFF00" },
+        max: { value: 40, color: "#FF004B" },
+      },
+    }
   ],
   regroupement: [
     {

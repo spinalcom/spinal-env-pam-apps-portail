@@ -2,7 +2,7 @@
 <div ref="currentCard" class="card-current-value"  >
     <span @click.stop="onClick" style="width: 20px; height: 20px; border-radius: 50%; background-color: #fff; font-size: 15px; color: rgb(0, 0, 0); position: absolute; right: -7px; top: -10px; font-weight: bold; display: flex; justify-content: center; align-items: center">X</span>
     <div class="space-select">
-        <div style="width: calc(100% - 25px)">
+        <div class="roomName" :data-name="data.name" style="width: calc(100% - 25px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px;">
             <div class="color" :style="{ background: data.color }" style="display: inline-block"></div>
             <span style="font-size: 13px; color: rgb(20, 32, 44)">{{ data.name }} </span>
           </div>
@@ -51,7 +51,8 @@ export default {
         on3D : {
             type : Boolean,
             default : true
-        }
+        },
+      
     },
 
     data() {
@@ -67,18 +68,26 @@ export default {
     },
     mounted() {
       this.getCurrentEndpoint();
-        this.endpointName = this.data.endpoint.name;
-        const value = this.data.endpoint.value;
-        if(typeof value === 'boolean') {
-            this.endpointValue = value ? 1 : 0;
-        }
-        else if(value == null) {
-            this.endpointValue = 'NaN';
-        }
-        else  {
-            this.endpointValue = this.fixedValue(value);
-        }
-        this.endpointUnit = this.data.endpoint.unit;
+      if(this.data.endpoint == undefined) {
+        console.log('data endpoint is undefined');
+        this.endpointName = this.data.source.name;
+        this.endpointValue = this.data.displayValue;
+        this.endpointUnit = this.data.source.unit;
+      }else {
+          this.endpointName = this.data.endpoint.name;
+          const value = this.data.endpoint.value;
+          if(typeof value === 'boolean') {
+              this.endpointValue = value ? 1 : 0;
+          }
+          else if(value == null) {
+              this.endpointValue = 'NaN';
+          }
+          else  {
+              console.log('value', value);
+              this.endpointValue = this.fixedValue(value);
+          }
+          this.endpointUnit = this.data.endpoint.unit;
+      }
     },
     methods : {
         showCardCurrentValue() {
@@ -123,25 +132,51 @@ export default {
                     })
                     
                 })
-                endPointList = endPointList.filter((item) => item.name != this.data.endpoint.name);
+                console.log('endPointList', this.data);
+                const endpointselected = endPointList.map((el) => {
+                    if(el.endpoint.length == 0) {
+                        const match = el.name !== this.data.source.name
+                        if(match) {
+                            return {
+                                name: el.name,
+                                endpoint: {
+                                    name: el.name,
+                                    value: NaN,
+                                    unit: ""
+                                }
+                            }
+
+                        }
+                    }
+                    const match = el.endpoint.find((end) => end.name !== this.data.source.name && end.value !== this.data.displayValue);
+                    if(match){
+                        return {
+                            name: el.name,
+                            endpoint: match
+                        }
+                    } 
+                }).filter((el) => el !== undefined);
+                endPointList = endpointselected;
+                console.log('endPointList', endPointList);
+                console.log('legend', legend);
                 endPointList.map((item) => {
                     let value = null;
                     let unit = null;
                     let color = null;
-                    if(item.endpoint.length > 0) {
-                        value = item.endpoint[0].value;
-                        unit = item.endpoint[0].unit;
+                    if(item.endpoint) {
+                        value = item.endpoint.value;
+                        unit = item.endpoint.unit;
                         legend.map((leg) => {
                             if(leg.name == item.name) {
-                               if(item.endpoint[0].value >= leg.legend.max.value) {
+                               if(item.endpoint.value >= leg.legend.max.value) {
                                       color = leg.legend.max.color;
-                                 } else if(item.endpoint[0].value <= leg.legend.min.value) {
+                                 } else if(item.endpoint.value <= leg.legend.min.value) {
                                       color = leg.legend.min.color;
-                                 } else if(item.endpoint[0].value >= leg.legend.median.value) {
+                                 } else if(item.endpoint.value >= leg.legend.median.value) {
                                       color = leg.legend.median.color;
                                  }
                                  else {
-                                        color = '#1f2937';
+                                        color = '#d6e2e6';
                                  }
                             }
                         
@@ -154,13 +189,14 @@ export default {
                     if(value == null) {
                         value = 'NaN';
                     }
-                    
-                    this.indcateur = [...this.indcateur, {name: item.name, value: value.toFixed(2), unit: unit, color: color ? color : '#00FF00'}]
+                    this.indcateur = [...this.indcateur, {name: item.name, value: !isNaN(value)? value.toFixed(2) : value , unit: unit, color: color ? color : '#d6e2e6'}]
                 })
+                console.log('indcateur', this.indcateur);
                 const uniqueEndpoints = this.indcateur.filter((item, idx, self) => {
-                    return idx === self.findIndex((t) => (
-                        t.name === item.name && t.value === item.value
-                    ))
+                   if(isNaN(item.value)) {
+                       return idx === self.findIndex((el) => el.name === item.name &&  isNaN(el.value));
+                   }
+                   return true;
                 })
                 this.indcateur = uniqueEndpoints;
             } catch (error) {
@@ -193,7 +229,7 @@ export default {
         position: absolute;
         top: 0;
         left: 30px;
-        width: 250px;
+        width: 300px;
         height: 150px;
         background-color: #fff;
         box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
@@ -228,6 +264,20 @@ export default {
         background-color: #E5E3E3;
         border-radius: 6px;
 }
+.roomName:hover::before {
+    content: attr(data-name);
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #14202C;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 12px;
+    color: #fff;
+    font-weight: 500;
+    
+}
 .color {
   width: 7px;
   height: 12px;
@@ -257,5 +307,15 @@ export default {
 .list-endpoint tbody tr td {
     padding: 5px;
     color: #14202C;
+    max-width: 150px !important;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.list-endpoint tbody tr td:first-child {
+    max-width: 150px !important;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 </style>

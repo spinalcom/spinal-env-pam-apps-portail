@@ -374,6 +374,7 @@ async [ActionTypes.WEBSOCKET_CALLBACK]({commit, state, rootState}: any, {data} :
     }
     const floors = await floorObjStore[id].next();
     commit(MutationTypes.SET_ROOMS, { id: id, items: floors.value });
+    console.log("GET_ROOMS: ", floors.value);
     return floors.value;
   },
 
@@ -469,7 +470,6 @@ async [ActionTypes.WEBSOCKET_CALLBACK]({commit, state, rootState}: any, {data} :
     if (!itemsToRegroup || itemsToRegroup.length === 0) {
       return Object.assign([], [{ ...playload.item, children: [] }]);
     }
-
     await getSourceValue(
       playload.item.buildingId,
       itemsToRegroup,
@@ -521,14 +521,16 @@ async [ActionTypes.WEBSOCKET_CALLBACK]({commit, state, rootState}: any, {data} :
   ): Promise<void> {
     try {
       console.log("OPEN_VIEWER", playload);
+      
       if(playload.item.type ==="building"){
         const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
           buildingId: playload.item.buildingId,
           forceUpdate: false,
         })
+
         const body = {
           dynamicId:[building.dynamicId],
-          roomRef: false,
+          roomRef: true,
           floorRef: true,
           equipements: false,
           dbIdsToAdd: [],
@@ -612,6 +614,7 @@ async [ActionTypes.WEBSOCKET_CALLBACK]({commit, state, rootState}: any, {data} :
     { commit, dispatch, state },
     { items, buildingId }: any
   ) {
+    console.log('color items loaded')
     return ViewerManager.getInstance().colorItems(items, buildingId);
   },
 

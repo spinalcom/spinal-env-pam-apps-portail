@@ -227,10 +227,15 @@ with this file. If not, see
           </div>
 
           <!-- page chargée avec succès (zone non selectionnée) -->
-          <div class="centered" v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected">
-            <p>
-              Aucune donnée à afficher ! veuillez selectionner un étage ou une
-              pièce.
+          <div class="centered" style="overflow-y: auto !important;" v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected">
+            <GroupDataView v-if="loadbuilding" v-for="(d, i) in data" :key="i" :data="d" :config="config" :calculMode="calculMode"
+              :selectedItem="selectedItem" :unit="unit" :legend="legend" :percent="percent" @onClick="selectDataView" />
+            
+            <p v-if="!loadbuilding">
+              Aucune donnée à afficher !
+              <v-btn small outlined color="purple" @click="loadedDataBuilding">
+                charger les données du bâtiment
+              </v-btn>
             </p>
           </div>
 
@@ -396,7 +401,7 @@ class InsightApp extends Vue {
     subscribeChildren: true,
     subscribeChildScope: 'tree_in_context',
   }
-
+loadbuilding: boolean = false;
 
   elementContext: string[] = [];
   async enableWebsocket(val) {
@@ -712,7 +717,6 @@ class InsightApp extends Vue {
 
   async mounted() {    
     
-    
     if(this.socket) {
       this.socket.disconnect();
     }
@@ -724,7 +728,7 @@ class InsightApp extends Vue {
       return acc;
     }, {});
     const emitterHandler = EmitterViewerHandler.getInstance();
-
+    
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, async (data) => {
       if (this.ignoreViewerSelection) return;
       if (data && !data[0]) {
@@ -743,9 +747,9 @@ class InsightApp extends Vue {
           });
           const viewer_info_rooms =
             await ViewerManager.getInstance().getViewerInfo(rooms);
-          for (const viewer_info_room of viewer_info_rooms) {
-            for (const viewer_info_room_data of viewer_info_room.data) {
-              const room_bimFileId = viewer_info_room_data.bimFileId;
+            for (const viewer_info_room of viewer_info_rooms) {
+              for (const viewer_info_room_data of viewer_info_room.data) {
+                const room_bimFileId = viewer_info_room_data.bimFileId;
               const room_dbIds = viewer_info_room_data.dbIds;
               if (
                 room_bimFileId === vselected_bimFileId &&
@@ -754,7 +758,7 @@ class InsightApp extends Vue {
                 const matching_room = rooms.find(
                   (el) => el.dynamicId === viewer_info_room.dynamicId
                 );
-
+                
                 this.selectedItem = matching_room;
                 this.$store.commit(
                   MutationTypes.SET_ITEM_SELECTED,
@@ -779,7 +783,6 @@ class InsightApp extends Vue {
       this.$store.commit(MutationTypes.SET_SOURCE, source);
     }
     await this.retriveData();
-    log('store: ', this.$store.state.appDataStore);
   this.sourceSelected.controllable.on ? this.isControllable = true : this.isControllable = false
     
   }
@@ -937,6 +940,7 @@ class InsightApp extends Vue {
         this.legend.min.value,
         this.legend.max.value
       );
+      console.log('calculated: ', calculated);
       this.$store.commit(MutationTypes.SET_DATA, calculated);
       this.pageSate = PAGE_STATES.loaded;
       this.reload_countdown = 0;
@@ -1009,16 +1013,21 @@ class InsightApp extends Vue {
 
   async updateSprites() {
     const buildingId = localStorage.getItem('idBuilding');
-
     // Récuperation des zones à afficher dans le viewer + données utiles
+    console.log('this.data: ', this.data);
     const itemsToColor = this.data.flatMap((el) => el.children || []);
+    console.log('itemsToColor: ', itemsToColor);
     itemsToColor.forEach((el) => {
       el.unit = this.sourceSelected.unit;
       el.navIndex = this.t_index;
+      el.floorId = this.selectedZone.dynamicId;
+      el.source = this.sourceSelected;
     });
+    console.log('Building ID: ', itemsToColor );
+    console.log('this.sprites: ', this.sprites); 
     if (this.sprites) {
       await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-
+   
       await this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
         items: itemsToColor,
         buildingId,
@@ -1044,6 +1053,7 @@ class InsightApp extends Vue {
         this.$store.dispatch(ActionTypes.SELECT_SPRITES, selectedIds);
       }, 500);
     } else {
+      
       // coloration des espaces si on n'affiche pas les sprites
       this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
         items: itemsToColor,
@@ -1058,11 +1068,11 @@ class InsightApp extends Vue {
   }
   // affichage du diagramme sans les sprites
   updateChartSprite() {
-
+    console.log('updateChartSprite: ', this.selectedItem);
     if (this.selectedTime.name == "Valeur courante") {
       if (!this.sprites) {
         this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-          items: [{ ...this.selectedItem, navIndex: this.t_index }],
+          items: [{ ...this.selectedItem, navIndex: this.t_index, source: this.sourceSelected } ],
           buildingId: localStorage.getItem('idBuilding'),
           component: CurrentCard,
         });
@@ -1148,6 +1158,39 @@ class InsightApp extends Vue {
     //   this.$store.dispatch(ActionTypes.SELECT_SPRITES, multipleSelection);
     // }
   }
+  async loadedDataBuilding() {
+    const config_copy = {
+        ...this.config,
+        regroupement: this.regroupementSelected,
+        source: this.sourceSelected,
+      };
+
+      const playload = {
+        config: config_copy,
+        item: this.selectedZone,
+        forceUpdate: true,
+      };
+
+      const regrouped = await this.$store.dispatch(
+        ActionTypes.REGROUP_ITEMS,
+        playload
+      );
+      const calculated = await calculItemsValue(
+        regrouped,
+        this.calculMode,
+        this.time,
+        this.legend.min.value,
+        this.legend.max.value
+      );
+      this.$store.commit(MutationTypes.SET_DATA, calculated);
+      this.isBuildingSelected = true;
+     this.pageSate = PAGE_STATES.loaded;
+     this.loadbuilding = true;
+     this.initiated = true;
+     await this.regroupItemsAndCalculate(true);
+     //this.updateDataOnTimeChanged();
+    await this.updateSprites()
+  }
 
  
  /**
@@ -1202,16 +1245,13 @@ class InsightApp extends Vue {
   }
 
   @Watch('selectedZone')
-  watchSelectedZone() {
+  async watchSelectedZone() {
    this.enableWebsocket(false);
     this.socketisConnected = false;
     
     if (this.selectedZone.type === 'building') {
-      console.log('selectedZone: ', this.selectedZone);
-      
-      this.isBuildingSelected = true;
-      this.$store.commit(MutationTypes.SET_DATA, []);
-      this.reload = function () { };
+      this.loadedDataBuilding();
+      this.sourceSelected.controllable.on ? this.isControllable = true : this.isControllable = false
       return;
     }
     this.initiated = false;
@@ -1225,8 +1265,8 @@ class InsightApp extends Vue {
     } else {
       clearInterval(this.intervalId);
     }
-    
     this.updateDataOnTimeChanged();
+    console.log('data updated: ', this.data);
   }
 
   // watch selectedItem
@@ -1246,7 +1286,9 @@ class InsightApp extends Vue {
   @Watch('calculMode')
   async watchCaculMode(mode) {
     this.percent = mode === calculTypes.MoyennePercent;
-    if (this.isBuildingSelected) return;
+    if (this.isBuildingSelected) {
+      this.loadedDataBuilding();
+    }
 
     const calculated = await calculItemsValue(
       this.data,
@@ -1278,7 +1320,7 @@ class InsightApp extends Vue {
   async watchSource(newVal) {
     if (!newVal) return;
     this.legend = this.config.source.find((el) => el.name === newVal).legend;
-    if (this.isBuildingSelected) return;
+    // if (this.isBuildingSelected) return;
     
     await this.regroupItemsAndCalculate(true);
     await this.updateSprites();
