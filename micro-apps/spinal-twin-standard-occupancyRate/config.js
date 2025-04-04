@@ -47,22 +47,22 @@ moment.locale('fr');
             type: 'geographicRoomGroup',
             source: [
                 {
-                    profileName: 'Occupation',
-                    name: "Taux d'occupation",
-                    type: 'Occupation', 
+                    profileName: 'Control Point',
+                    name: "Température",
+                    type: 'Température', 
                 }
             ]
         },
         {
             context: 'Gestion des équipements',
             category: 'Typologie',
-            group: 'Multicapteurs',
+            group: 'Panneaux solaires',
             type: 'BIMObjectGroup',
             source: [
                 {
-                    profileName: 'hassan',
-                    name: "Taux d'occupation",
-                    type: 'Occupation', 
+                    profileName: 'Control Point',
+                    name: "Maintenance ELEC",
+                    type: 'Other', 
                 }
             ]
         },

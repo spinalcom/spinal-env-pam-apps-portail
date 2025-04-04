@@ -56,7 +56,7 @@ Les données sont récupérées via des **appels API** et affichées sous forme 
 
 ## **🔹 Taux d'Occupation des Salles de Réunion par Étages**
 
- `index.js`
+ `index.ts`
 
 ### **Étapes Principales**
 1. **Récupération des Room IDs**  
@@ -73,7 +73,7 @@ Les données sont récupérées via des **appels API** et affichées sous forme 
 
 ## **🔹 Taux d'Occupation des Équipements par Étages**
 
- `index.js`
+ `index.ts`
 
 ### **Étapes Principales**
 1. **Récupération des IDs**  

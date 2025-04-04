@@ -5,7 +5,7 @@
       class="time-chip"
       @click="openCustomDialog"
     >
-    Sélectionner une période
+    {{ selectedPeriod }}
     </v-chip>
     
     <!-- Dialog pour sélection personnalisée -->
@@ -65,6 +65,7 @@
       tempEndTime: "23:59",
       startMenu: false,
       endMenu: false,
+      selectedPeriod: "Sélectionner une période", // Texte par défaut du bouton
     }),
   
     computed: {
@@ -85,6 +86,7 @@
           this.localStartTime = this.tempStartTime;
           this.localEndTime = this.tempEndTime;
           this.showCustomDialog = false;
+          this.selectedPeriod = `${this.localStartTime} - ${this.localEndTime}`; // Met à jour le texte du bouton
           this.$emit("time-change", {
             startTime: this.localStartTime,
             endTime: this.localEndTime,
@@ -101,13 +103,16 @@
   
   <style scoped>
   .time-chip {
-    margin-left: 310px;
-    margin-top: -45px;
-    transition: all 0.3s ease;
-    background-color: #2749cf;
-    color: white;
-    cursor: pointer;
-  }
+    margin-top: 10px;
+  transition: all 0.3s ease;
+  background-color: #2749cf;
+  color: white;
+  cursor: pointer;
+  margin-left: auto; /* Aligne le bouton à droite */
+  padding: 5px 10px;
+  font-size: 14px;
+  border-radius: 8px;
+}
   
   .custom-time-section {
     display: flex;

@@ -30,7 +30,7 @@ import { Vue } from 'vue-property-decorator';
 import Component from 'vue-class-component';
 import MicroApp from './components/MainComponent.vue';
 import DownloadButton from './components/DownloadButton.vue';
-import { getBuilding } from './services/index.js';
+import { getBuilding } from './services/index';
 
 @Component({
   components: {
@@ -91,9 +91,11 @@ class App extends Vue {
 
   async mounted() {
     let building = await getBuilding();
-    this.defaultSelected.area = building.area;
-    this.defaultSelected.cp = building.cp;
-    this.defaultSelected.dynamicId = building.dynamicId;
+    if (building) {
+      this.defaultSelected.area = building.area;
+      this.defaultSelected.cp = building.cp;
+      this.defaultSelected.dynamicId = Number(building.dynamicId);
+    }
     if (!localStorage.getItem("platformId")) {
       localStorage.setItem("platformId", "votre-id-plateforme"); // Remplacez par l'ID réel
       console.log("Platform ID ajouté au localStorage.");

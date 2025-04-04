@@ -50,7 +50,6 @@ import { getFloorOccupancyDynamicIds, getFloorOccupancyRatesByPeriod } from '../
 import { getFloors } from '../services/index';
 import { getRoomPositions } from '../services/index';
 import { groupSecondChartsByFloor } from '../services/index';
-import { getThirdChartIds } from '../services/index';
 import { SpinalAPI } from '../services/spinalAPI/spinalAPI';
 
 Chart.register(...registerables);
@@ -82,7 +81,7 @@ export default defineComponent({
     const occupancyChart = ref<Chart | null>(null);
     const secondChartCanvas = ref<HTMLCanvasElement | null>(null);
     const secondOccupancyChart = ref<Chart | null>(null);
-    const floorData = ref<{ floor: string; occupancy: number; area?: number }[]>([]);
+    const floorData = ref<{ floor: string; occupancy: number | null; area?: number }[]>([]);
     const secondFloorData = ref<{ floor: string; occupancy: number; area?: number }[]>([]);
     const totalSurface = ref<number>(0);
     const totalSurface2 = ref<number>(0);
@@ -96,10 +95,24 @@ export default defineComponent({
     const displaySecondChart = ref(config.displaySecondChart);
 
 
-    function mapFloorDynamicId(floorDynamicId, floorNames) {
-  const matchingKey = Object.keys(floorNames).find(key => floorDynamicId.toString().includes(key));
-  return matchingKey ? floorNames[matchingKey] : `Étage ${floorDynamicId}`;
-}
+            function mapFloorDynamicId(floorDynamicId, floorNames) {
+        console.log("Mapping floorDynamicId:", floorDynamicId);
+        console.log("Available floorNames:", floorNames);
+      
+        // Extraire la clé `dynamicId` si `floorDynamicId` est un objet
+        const dynamicId = typeof floorDynamicId === 'object' && floorDynamicId !== null
+          ? floorDynamicId.dynamicId
+          : floorDynamicId;
+      
+        console.log("Extracted dynamicId:", dynamicId);
+      
+        // Trouver le nom correspondant
+        const matchingKey = Object.keys(floorNames).find(key => key === dynamicId.toString());
+        if (!matchingKey) {
+          console.warn(`No matching floor name found for dynamicId: ${dynamicId}`);
+        }
+        return matchingKey ? floorNames[matchingKey] : `Étage ${dynamicId}`;
+      }
 const handleTimeChange = async ({ startTime, endTime }) => {
   try {
     console.log("Time changed:", startTime, endTime);
@@ -160,7 +173,7 @@ const fetchFloorData = async (period, timestamp, startTime, endTime) => {
     floorsWithoutData.forEach(floorName => {
       const existingFloor = floorData.value.find(f => f.floor === floorName);
       if (!existingFloor) {
-        floorData.value.push({ floor: floorName, occupancy: null, area: 0 });
+        floorData.value.push({ floor: floorName, occupancy: null, area: 0 }); // Now occupancy can be null
       }
     });
 
@@ -197,6 +210,7 @@ async function getFloorsWithAndWithoutRooms(roomIds) {
 
 const fetchSecondFloorData = async (timestamp, startTime, endTime) => {
   try {
+    console.log("Fetching second chart data for temporalité:", props.temporality.name);
     const entryPoint = config.entryPoints[0];
     const contextId = await getContextId(entryPoint.context);
     const categoryId = await getCategoryId(contextId, entryPoint.category);
@@ -257,6 +271,7 @@ const fetchSecondFloorData = async (timestamp, startTime, endTime) => {
 const fetchThirdChartFloorData = async (timestamp, startTime, endTime) => {
   try {
     const tempo = props.temporality.name;
+    console.log(`Fetching third chart data for temporalité: ${tempo}`);
 
     const entryPoint = config.entryPoints[1]; // Accéder directement au deuxième élément
 
@@ -307,12 +322,22 @@ const fetchThirdChartFloorData = async (timestamp, startTime, endTime) => {
 
     const fetchTotalSurface = async () => {
       try {
+        console.log('fetchTotalSurface called');
         const buildingId = localStorage.getItem("idBuilding");
+        if (!buildingId) {
+          console.error('Building ID not found in localStorage');
+          return;
+        }
+    
         const spinalApi = SpinalAPI.getInstance();
-        const url = spinalApi.createUrlWithPlatformId(buildingId!, 'api/v1/building/read');
-        const result = await spinalApi.get(url);   
-        console.log('result spinalApi: ', result.data);   /* const result = await HTTP.get(`building/${buildingId}/building/read`); */
+        const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/building/read');
+        console.log("Generated URL for fetchTotalSurface:", url);
+    
+        const result = await spinalApi.get(url);
+        console.log('Response from fetchTotalSurface:', result.data);
+    
         totalSurface.value = Math.round(result.data.area);
+        console.log('Total surface:', totalSurface.value);
       } catch (error) {
         console.error("Erreur lors de la récupération de la surface totale :", error);
       }
@@ -621,15 +646,52 @@ const renderThirdChart = () => {
   }
 };
 
-watch(() => [props.startTime, props.endTime], async ([newStartTime, newEndTime]) => {
-  const timestamp = moment().valueOf();
-  await fetchFloorData(props.temporality.name, timestamp, newStartTime, newEndTime);
-  await fetchSecondFloorData(timestamp, newStartTime, newEndTime);
-  await fetchThirdChartFloorData(timestamp, newStartTime, newEndTime);
-  await fetchTotalSurface();
-  await fetchTotalSurface2();
-  await fetchThirdChartTotalCount();
-});
+watch(
+  () => [props.temporality, props.startTime, props.endTime],
+  async ([newTemporality, newStartTime, newEndTime]) => {
+    try {
+      console.log("Changements détectés :", {
+        temporalité: newTemporality.name,
+        startTime: newStartTime,
+        endTime: newEndTime,
+      });
+
+      const timestamp = moment().valueOf();
+
+      // Mettre à jour les données pour le premier graphique
+      await fetchFloorData(newTemporality.name, timestamp, newStartTime, newEndTime);
+      if (chartCanvas.value && floorData.value.length && allFloors.value.length) {
+        renderChart();
+      } else {
+        console.warn("Les données ou le canvas ne sont pas prêts pour le premier graphique.");
+      }
+
+      // Mettre à jour les données pour le deuxième graphique
+      await fetchSecondFloorData(timestamp, newStartTime, newEndTime);
+      if (secondChartCanvas.value && secondFloorData.value.length && allFloors.value.length) {
+        renderSecondChart();
+      } else {
+        console.warn("Les données ou le canvas ne sont pas prêts pour le deuxième graphique.");
+      }
+
+      // Mettre à jour les données pour le troisième graphique
+      await fetchThirdChartFloorData(timestamp, newStartTime, newEndTime);
+      if (thirdChartCanvas.value && thirdChartFloorData.value.length && allFloors.value.length) {
+        renderThirdChart();
+      } else {
+        console.warn("Les données ou le canvas ne sont pas prêts pour le troisième graphique.");
+      }
+
+      // Mettre à jour les surfaces totales et le nombre total d'équipements
+      await fetchTotalSurface();
+      await fetchTotalSurface2();
+      await fetchThirdChartTotalCount();
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour des graphiques :", error);
+    }
+  },
+  { immediate: true } 
+);
 
 onMounted(async () => {
   const timestamp = moment().valueOf(); 

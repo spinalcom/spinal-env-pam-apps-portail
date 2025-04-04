@@ -69,7 +69,7 @@ import { LegendModel } from '../models/Legend.model';
 import config from '../../config.js'; 
 import { ChartData, tempoFilter } from '../interfaces/types';
 import TemporalFilter from './TemporalFilter.vue';
-import { getData, getContextId, getCategoryId, getRoomIds, getGroupId, getSecondChartOccupancyDataByFloor } from '../services/index.js';
+import { getData, getContextId, getCategoryId, getRoomIds, getGroupId, getSecondChartOccupancyDataByFloor } from '../services/index.ts';
 import moment from 'moment';
 
 @Component({

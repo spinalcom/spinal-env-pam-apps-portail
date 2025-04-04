@@ -5,21 +5,29 @@
     elevation="5"
     outlined
   >
-    <v-card-title class="card-title flex-shrink-1 justify-space-between" style="height: fit-content !important; padding: 0 !important">
-      <p class="mb-0" style="padding: 10px;">
-        {{ title }}
-        <br>
-        <span class="desc">{{subtitle}}</span>
-      </p>
+        <v-card-title class="card-title d-flex align-items-center" style="height: fit-content !important; padding: 0 !important; justify-content: space-between;">
+      <!-- Section gauche : Titre et bouton du filtre -->
+      <div class="d-flex align-items-center" style="gap: 10px;">
+        <p class="mb-0" style="padding: 10px;">
+          {{ title }}
+          <br>
+          <span class="desc">{{ subtitle }}</span>
+        </p>
+        <TemporalFilter @time-change="handleTimeChange" />
+      </div>
+    
+      <!-- Section droite : Boutons de navigation -->
       <div v-if="prev_next" style="height: 40px; align-self: flex-start; padding-top: 10px; padding-right: 10px;">
-        <v-btn :disabled="false" @click="$emit('nav', -1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;"><v-icon style="color: #14202c !important" icon>mdi-chevron-left</v-icon>{{ prev }}</v-btn>
-        <v-btn :disabled="false" @click="$emit('nav', +1)" style="font-size: 14px !important; border-radius: 10px;  min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;">{{ next }}<v-icon style="color: #14202c !important" icon>mdi-chevron-right</v-icon></v-btn>
+        <v-btn :disabled="false" @click="$emit('nav', -1)" style="font-size: 14px !important; border-radius: 10px; min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;">
+          <v-icon style="color: #14202c !important" icon>mdi-chevron-left</v-icon>{{ prev }}
+        </v-btn>
+        <v-btn :disabled="false" @click="$emit('nav', +1)" style="font-size: 14px !important; border-radius: 10px; min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;">
+          {{ next }}<v-icon style="color: #14202c !important" icon>mdi-chevron-right</v-icon>
+        </v-btn>
       </div>
     </v-card-title>
     <!--  Intégration du TemporalFilter -->
-       <div class="time-filter-container">
-      <TemporalFilter @time-change="handleTimeChange" />
-    </div> 
+       
     <div class="d-flex flex-column flex-grow-1">
       <slot name="extras" v-if="switchValue && isYear"></slot>
       <div class="flex-grow-1" style="height: 0;" v-if="switchValue && isYear">
@@ -277,11 +285,11 @@ export default {
 </script>
 <style>
 
-.desc {
+/* .desc {
   margin-left: 23px;
   font-family: "Charlevoix Pro";
   font-size: 16px !important;
-}
+} */
 .v-application {
   font-family: "Charlevoix Pro";
 }
@@ -297,6 +305,9 @@ export default {
   letter-spacing: 1.1px !important;
   color: #051604de !important;
   font-size: 20px !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .occupancy-bar {
   margin: 10px;
