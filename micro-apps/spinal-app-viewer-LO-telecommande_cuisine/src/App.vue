@@ -24,29 +24,24 @@ with this file. If not, see
 <template>
 
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
-    <div style="position: absolute;" class="space">
-      <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"
-        :GetChildrenFct="onSpaceSelectOpen" v-model="selectedZone" label="ESPACE"
-        :spaceSelectorItemButtons="spaceSelectorButtons" :viewButtonsType="config.viewButtons"
-        @onActionClick="onActionClick" />
-    </div>
 
-    <div class="navbar" style="">
+    <div class="navbar">
       <div><span class="mdi mdi-map-marker"></span>{{ spaceName }}</div>
-
       <div style="color: #DDECF4;">
         <div style="font-size: 65px;height: 70px;font-weight: bold ;display: flex;justify-content:flex-end">{{
           currentTime }}</div>
         <div style="font-size: 25px;">{{ currentDate }}</div>
       </div>
-
     </div>
 
-    <SpriteComponentMobile v-if="displaySprite" @close="handleClose"
+    <Télécommande v-if="displayTelecommande" @close="handleClose"
       style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 99999;"
-      :selectedItem="selectedItem" :data="''">
-    </SpriteComponentMobile>
+      :selectedItem="selectedItem" :typeTelecommande="typeTelecommande" :data="''">
+    </Télécommande>
 
+    <div v-if="config.SelectionType == 'button' || config.SelectionType == 'multiple' " @click="displayTelecommande = true" class="btn_pilotage">
+      PILOTAGE PIÈCE
+    </div>
 
     <div class="dataBody">
       <viewerApp :class="{ 'active3D': true }" class="viewerContainer"></viewerApp>
@@ -74,10 +69,9 @@ import type {
   TGeoItem,
 } from "./components/SpaceSelector/interfaces/IBuildingItem";
 import viewerApp from "./components/viewer/viewer.vue";
-import ScDownloadButton from "spinal-components/src/components/DownloadButton.vue";
 import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
-import SpriteComponentMobile from "./components/data-side/SpriteComponentMobile.vue"
-import SpriteComponent from "./components/data-side/SpriteComponent2.vue"
+import Télécommande from "./components/data-side/Télécommande.vue"
+import SpriteComponent from "./components/data-side/SpriteComponent.vue"
 import { config } from "./config";
 import { IConfig } from "./interfaces/IConfig";
 import { PAGE_STATES } from "./interfaces/pageStates";
@@ -94,9 +88,6 @@ import {
 
 import "spinal-components/dist/spinal-components.css";
 
-import dataSideApp from "./components/data-side/App.vue";
-import { error } from "console";
-
 
 interface IItemData {
   platformId: string;
@@ -112,9 +103,7 @@ interface IItemDatatmp {
   components: {
     SpaceSelector,
     viewerApp,
-    ScDownloadButton,
-    dataSideApp,
-    SpriteComponentMobile,
+    Télécommande,
     SpriteComponent
   },
 })
@@ -123,16 +112,10 @@ class App extends Vue {
   pageSate: PAGE_STATES = PAGE_STATES.loading;
   $store: Store;
   openSpaceSelector: boolean = false;
-  openTemporalitySelector: boolean = false;
   config: IConfig = config;
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
-  isActive: boolean = false;
-  isActive3D: boolean = false;
-  dataTable: IZoneItem[] = [];
-  isSmallScreen: any;
-  referenceObjects: any[];
   $refs: { spaceSelector };
-  displaySprite: boolean = false;
+  displayTelecommande: boolean = false;
   query: { app: string; mode: string; name: string; spaceSelectedId: string; buildingId: string } = {
     app: '',
     mode: 'null',
@@ -144,7 +127,8 @@ class App extends Vue {
   currentTime: String = '';
   currentDate: String = '';
   spaceName: String = '';
-  floor: any = null
+  floor: any = null;
+  typeTelecommande: String = '';
 
   public get loadedinformation() {
     return this.$store.state.appDataStore.loadedinformation;
@@ -165,8 +149,6 @@ class App extends Vue {
     if (window.parent.router.query.spaceSelectedId != undefined)
       referenceIds = window.parent.router.query.spaceSelectedId
 
-
-
     const buildingId = localStorage.getItem("idBuilding");
     const promises = [
       this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
@@ -177,16 +159,21 @@ class App extends Vue {
     const result = await Promise.all(promises);
     this.setTabletteSprite(result, buildingId)
   }
+
   async mounted() {
+
+
+    this.configTypeTablette()
+
+
+
     if (window.parent.router.query.buildingId != undefined) {
       localStorage.setItem('idBuilding', window.parent.router.query.buildingId)
     }
     else {
       console.log('le building n est pas declaré ');
-      
       localStorage.setItem('idBuilding', this.config.idBuilding)
     }
-
 
     this.updateTime();
     this.updateDate();
@@ -201,29 +188,13 @@ class App extends Vue {
 
     const appLoadContainer = window.parent.document.querySelector('.appLoadContainer');
     if (navPickerApp) {
-      navPickerApp.style.display = 'none'; // Cache l'élément
+      navPickerApp.style.display = 'none';
       if (appLoadContainer) {
         appLoadContainer.style.setProperty('padding', '0px', 'important');
       }
     }
 
     localStorage.removeItem('room_tablette');
-
-
-    const emitterHandler = EmitterViewerHandler.getInstance();
-    emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
-      if (data)
-        this.findDynamicIdByDbid(data[0].dbIds[0], data[0]);
-
-    });
-
-    this.initializeEventHandlers();
-
-
-    if (window.innerWidth < 900) {
-      this.isActive = true;
-      this.isActive3D = false;
-    }
 
     try {
       this.pageSate = PAGE_STATES.loading;
@@ -233,10 +204,20 @@ class App extends Vue {
       this.pageSate = PAGE_STATES.error;
     }
 
+    //clique sur equipement
+    if (config.SelectionType == "room" || config.SelectionType == "equipement" || config.SelectionType == "multiple") {
+      const emitterHandler = EmitterViewerHandler.getInstance();
+      emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
+        if (data) {
+
+          this.findDynamicIdByDbid(data[0]);
+        }
+      });
+    }
+
+
     this.$nextTick(() => {
-
-      this.query.app = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC10ZWxlY29tbWFuZGUiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6Ijg0ZDgtNzgyMS0yZTI2LTE5MjAwNmI4MDJmIiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcyNjU4MzkxOTM1NSwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzI2NTgzODk4MTU5LCJpY29uIjoiIiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLXRlbGVjb21tYW5kZSIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
-
+      // this.query.app = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC10ZWxlY29tbWFuZGUiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6Ijg0ZDgtNzgyMS0yZTI2LTE5MjAwNmI4MDJmIiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcyNjU4MzkxOTM1NSwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzI2NTgzODk4MTU5LCJpY29uIjoiIiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLXRlbGVjb21tYW5kZSIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
       window.parent.router.query.app = this.query.app
       const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
       this.applyURLParam(currentQuery);
@@ -244,146 +225,124 @@ class App extends Vue {
     });
   }
 
-  initializeEventHandlers() {
-    const emitterHandler = EmitterViewerHandler.getInstance();
-    emitterHandler.off(VIEWER_REM_SPHERE);
+  async getTelecommandeType(type) {
+    this.displayTelecommande = true;
   }
 
+  async findDynamicIdByDbid(data) {
+    const roomRef = this.$store.state.appDataStore.roomRef;
+    const selectedbimfileId = data.modelId.bimFileId;
+    const selecteddbId = data.dbIds[0];
 
-  // asynctoto() {
-  //   const roomTablette = localStorage.getItem('room_tablette');
-  //   const item = {
-  //     "dynamicId": roomTablette,
-  //     "staticId": "SpinalNode-4be0192e-562d-1f3c-2d9c-1d558ca6b5ff-186df7cd6ff",
-  //     "name": "Sol [415087]",
-  //     "type": "BIMObject",
-  //     "version": 1,
-  //     "externalId": "154cec60-8d56-4126-8ada-aac07f24c66e-0006556f",
-  //     "dbid": 11181,
-  //     "buildingId": "5932-6086-9e1a-18506478460",
-  //   }
+    console.log('roomRef: ', roomRef);
 
-  //   setTimeout(() => {
-  //     this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
-  //   }, 400);
+    // Recherche dans les sols
+    const matchSol = roomRef.sols.find(
+      sol => sol.bimFileId === selectedbimfileId && sol.dbId === selecteddbId
+    );
 
-  // }
+    if (matchSol && config.SelectionType === 'room' || config.SelectionType === 'multiple') {
+      console.warn('Sol trouvé → on retourne la pièce (roomId):', matchSol.roomId);
+      this.typeTelecommande = 'room'
+      this.selectedItem = matchSol.roomId;
+      this.getTelecommandeType('room')
+      return matchSol.roomId;
+    }
 
-  async findDynamicIdByDbid(dbidToFind, data) {
+    // Recherche dans les équipements
+    const matchEquip = roomRef.equipements.find(
+      equip => equip.bimFileId === selectedbimfileId && equip.dbId === selecteddbId
+    );
+
+    if (matchEquip && config.SelectionType === "equipement") {
+      console.warn('Équipement trouvé:', matchEquip);
+      this.typeTelecommande = 'equipement'
+      this.selectedItem = matchEquip.dynamicId;
+      this.getTelecommandeType('equipement')
+      return matchEquip.dynamicId;
+    }
+
+    console.log('Aucun objet correspondant trouvé.');
+    return null;
+  }
+
+  async configTypeTablette() {
+    console.log('🔧 Démarrage de configTypeTablette');
+
     const buildingId = localStorage.getItem("idBuilding");
-    const BimObject = [
-      {
-        "bimFileId": data.modelId.bimFileId,
-        "dbids": data.dbIds
+    const commandItem = this.config.commandItem;
+
+    console.log(commandItem);
+
+
+    // Étape 1 : Récupération des contextes
+    const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
+
+    const dynamicContextMap = {}; // ctx => dynamicId
+    for (const [cmdKey, cmdValues] of Object.entries(commandItem)) {
+      const ctxName = cmdValues[0]; // 'Gestion des espaces'
+      const context = contextList.find((ctx) => ctx.name === ctxName);
+      if (context) {
+        dynamicContextMap[ctxName] = context.dynamicId;
+      } else {
+        console.warn(`⚠️ Contexte "${ctxName}" non trouvé.`);
       }
-    ]
-    const referenceResult = await this.getBIMInfo(BimObject)
+    }
 
-    const isRoom = this.checkForReferenceObjectRoom(referenceResult[0][0].bimObjects[0].parent_relation_list)
+    // Étape 2 : Récupération des catégories par contexte
+    const categoryMap = {}; // ctx => [categories...]
+    const categoryPromises = Object.entries(dynamicContextMap).map(async ([ctx, contextId]) => {
+      const categories = await this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_LIST, {
+        buildingId,
+        contextId,
+      });
+      categoryMap[ctx] = categories;
+    });
 
-    if (isRoom) {
-      const objects = this.referenceObjects;
-      for (const obj of objects[0]) {
-        if (Array.isArray(obj.infoReferencesObjects)) {
-          for (const ref of obj.infoReferencesObjects) {
-            if (ref.dbid === dbidToFind && data.modelId.bimFileId == obj.bimFileId) {
-              const referenceIds = obj.dynamicId
-              const promises = [
-                this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
-                  buildingId,
-                  referenceIds
-                }),
-              ];
-              const result = await Promise.all(promises);
-              this.forgeItem(result, buildingId, ref.dbid, obj.bimFileId, data.center)
-              return;
+    await Promise.all(categoryPromises);
 
-            }
-          }
-        }
+    // Étape 3 : Récupération des groupes par catégorie
+    const result = {}; // cmd_key => dynamicId du groupe
+
+    for (const [cmdKey, cmdValues] of Object.entries(commandItem)) {
+      const [ctxName, catName, grpName] = cmdValues;
+      const contextId = dynamicContextMap[ctxName];
+      if (!contextId) continue;
+
+      const category = categoryMap[ctxName]?.find((cat) => cat.name === catName);
+      if (!category) {
+        console.warn(`⚠️ Catégorie "${catName}" non trouvée dans le contexte "${ctxName}".`);
+        continue;
       }
-      return null;
-    }
-    else {
-      const referenceIds = referenceResult[0][0].bimObjects[0].dynamicId
-      const promises = [
-        this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
-          buildingId,
-          referenceIds
-        }),
-      ];
 
+      const groupList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_GROUP_LIST, {
+        buildingId,
+        contextId,
+        categoryDynId: category.dynamicId,
+      });
 
-      const result = await Promise.all(promises);
-      this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0], data.center)
-      return;
+      const matchingGroup = groupList.find((grp) => grp.name === grpName);
+
+      if (!matchingGroup) {
+        console.warn(`⚠️ Groupe "${grpName}" non trouvé dans la catégorie "${catName}".`);
+        continue;
+      }
+
+      result[cmdKey] = matchingGroup.dynamicId;
     }
+
+    // Résultat final avec les dynamicId des groupes
+    // this.dynamicCommandMap = result;
+    console.log('✅ Résultat dynamicCommandMap :', result);
+    this.$store.commit(MutationTypes.SET_TELECOMMAND_TYPE, result);
   }
 
 
   handleClose() {
-    this.displaySprite = false;
+    this.displayTelecommande = false;
+    this.typeTelecommande = ''
   }
 
-
-  getDataDynamicIdtab() {
-
-    const data = [{
-      "dynamicId": 42502576,
-      "staticId": "SpinalNode-4bd8b812-f94d-549c-f720-706ab2f16c17-186df7cd2a9",
-      "name": "120-Salle informatique 1",
-      "type": "geographicRoom",
-      "patrimoineId": "37de-02b8-e18b-1850643b68a",
-      "buildingId": "5932-6086-9e1a-18506478460",
-      "color": "#ded638"
-    }]
-    const dynamicIds = data.map(obj => obj.dynamicId);
-    this.fetchReferenceObjects(dynamicIds)
-  }
-
-  async fetchReferenceObjects(referenceIds) {
-    const buildingId = localStorage.getItem("idBuilding");
-
-    const promises = [
-      this.$store.dispatch(ActionTypes.GET_REFERENCE_OBJECT_LIST_MULTIPLE, {
-        buildingId,
-        referenceIds
-      }),
-    ];
-    const result = await Promise.all(promises);
-    this.referenceObjects = [...result];
-
-  }
-
-  async getpositiontablette(referenceIds) {
-    const buildingId = localStorage.getItem("idBuilding");
-
-
-    const promises = [
-      this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
-        buildingId,
-        referenceIds
-      }),
-    ];
-    const result = await Promise.all(promises);
-
-    let xyzCenter = null;
-
-    const spatialCategory = result[0].attributsList.find(item => item.name === "Spatial");
-
-    if (spatialCategory) {
-      const xyzAttribute = spatialCategory.attributs.find(attr => attr.label === "XYZ center");
-      if (xyzAttribute) {
-        xyzCenter = xyzAttribute.value;
-      }
-    }
-
-  }
-
-
-  checkForReferenceObjectRoom(list) {
-    return list.some(item => item.name === "hasReferenceObject.ROOM");
-  }
 
   setTabletteSprite(result, buildingId) {
 
@@ -426,12 +385,10 @@ class App extends Vue {
   }
 
   forgeItem(result, buildingId) {
-
     this.selectedItem = result[0].dynamicId
-    this.displaySprite = false;
+    this.displayTelecommande = false;
     // this.isSmallScreen = item;
-    this.displaySprite = true;
-
+    this.displayTelecommande = true;
   }
 
   async getBIMInfo(referenceIds) {
@@ -455,21 +412,6 @@ class App extends Vue {
     return this.$store.state.appDataStore.zoneSelected;
   }
 
-  public set selectedZone(v: ISpaceSelectorItem) {
-    // if (this.query.spaceSelectedId != v.dynamicId.toString()) {
-
-    //   this.query.name = v.name
-    //   this.query.buildingId = v.buildingId
-    //   this.query.spaceSelectedId = window.parent.router.query.spaceSelectedId
-    //   this.replaceRoute();
-    // }
-
-    // if (v.type == "geographicFloor")
-    //   this.floor = this.query.spaceSelectedId
-
-    // this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
-  }
-
   public get temporalitySelected(): ISpaceSelectorItem {
     return this.$store.state.appDataStore.temporalitySelected;
   }
@@ -479,7 +421,6 @@ class App extends Vue {
   }
 
   applyURLParam(query) {
-
     const buildingId = localStorage.getItem("idBuilding");
     const dynamicId = localStorage.getItem("floor_tablette_id"); //TODO
     const name = localStorage.getItem("floor_tablette_name");
@@ -505,12 +446,7 @@ class App extends Vue {
       "buildingId": buildingId,
       "type": "geographicFloor",
     }
-    // this.$refs['space-selector'].getButton();
 
-    if (this.$refs['space-selector']) {
-      this.$refs['space-selector'].select(itemToSelect);
-    }
-    // }
     this.openSpaceSelector = false
   }
 
@@ -521,134 +457,6 @@ class App extends Vue {
     window.parent.routerFontion.customPush(window.parent.router.path, this.query);
   }
 
-
-  toggleActive() {
-    if (this.isActive3D) {
-      this.isActive3D = false
-    }
-    this.isActive = !this.isActive;
-    this.handleRouteChange();
-  }
-
-
-  toggleActive3D() {
-    if (this.isActive)
-      this.isActive = false
-    this.isActive3D = !this.isActive3D;
-    this.handleRouteChange();
-  }
-
-  full3D() {
-    if (this.isActive) {
-      this.isActive = false
-      this.isActive3D = true;
-    } else {
-      this.isActive = true
-      this.isActive3D = false
-    }
-
-
-    this.handleRouteChange();
-  }
-
-  async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<IZoneItem[]> {
-
-    switch (item?.type) {
-      case undefined:
-
-        const buildingId = localStorage.getItem("idBuilding");
-        const playload = {
-          config,
-          item: { buildingId, type: "building" },
-        };
-
-        const promises = [
-          this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }),
-        ];
-
-        const [building, items] = await Promise.all(promises);
-
-        return [
-          {
-            name: building.name,
-            staticId: building.id,
-            categories: [],
-            color: "#35CAE5",
-            dynamicId: 0,
-            type: "building",
-          },
-        ];
-      case "building":
-        return await this.$store.dispatch(ActionTypes.GET_FLOORS, {
-          buildingId: item.staticId,
-          patrimoineId: item.patrimoineId,
-        });
-      case "geographicFloor":
-        //@ts-ignore
-        return await this.$store.dispatch(ActionTypes.GET_ROOMS, {
-          floorId: item.dynamicId,
-          buildingId: item.buildingId,
-          patrimoineId: item.patrimoineId,
-          id: item.dynamicId,
-        });
-      default:
-        return [];
-    }
-  }
-
-  onTemporalitySelectOpen(item?: any) {
-
-    switch (item?.type) {
-      case undefined:
-        return config.temporality.map((temp, index) => ({
-          name: temp,
-          staticId: index,
-          dynamicId: index,
-          level: 0,
-          isOpen: true,
-          loading: false,
-          parents: [],
-          drawLink: [],
-          haveChildren: false,
-          type: "time",
-        }));
-
-      default:
-        return [];
-    }
-
-  }
-
-  onGoBack() {
-    const parent = this.$refs["space-selector"].getParentOfSelected();
-    if (parent) this.selectedZone = parent;
-  }
-
-  private getItemData(item: TGeoItem | TGeoItem[]): IItemData {
-    const res: IItemDatatmp = {
-      platformId: this.selectedZone.platformId,
-      id: new Set(),
-    };
-    const datas = Array.isArray(item) ? item : [item];
-    for (const data of datas) {
-      res.id.add(data.dynamicId!);
-    }
-    return {
-      platformId: res.platformId,
-      id: res.id.size > 0 ? Array.from(res.id) : res.id.values().next().value,
-    };
-  }
-
-  async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
-    if (!item) return;
-    this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
-    this.$store.dispatch(ActionTypes.SELECT_SPRITES, [item.dynamicId]);
-  }
-
-
-  async onColor(item: TGeoItem | TGeoItem[]) {
-    // TBD
-  }
 
   onActionClick({ button, item }) {
     const buildingId = localStorage.getItem("idBuilding");
@@ -713,20 +521,20 @@ class App extends Vue {
             "geographicFloor"
           ]
         }
-        this.onActionClick({ button, item })
+        // this.onActionClick({ button, item })
 
-        const itemToSelect = {
-          "isOpen": false,
-          "loading": false,
-          "dynamicId": result.node.dynamicId,
-          "name": result.node.name,
-          "buildingId": result.node.buildingId,
-          "type": "geographicFloor",
-        }
+        // const itemToSelect = {
+        //   "isOpen": false,
+        //   "loading": false,
+        //   "dynamicId": result.node.dynamicId,
+        //   "name": result.node.name,
+        //   "buildingId": result.node.buildingId,
+        //   "type": "geographicFloor",
+        // }
 
-        if (this.$refs['space-selector']) {
-          this.$refs['space-selector'].select(itemToSelect);
-        }
+        // if (this.$refs['space-selector']) {
+        //   this.$refs['space-selector'].select(itemToSelect);
+        // }
       }
       else if (result.node?.dynamicId) {
         const a = document.createElement("a");
@@ -741,58 +549,10 @@ class App extends Vue {
     return this.$store.state.appDataStore.data;
   }
 
-  public getDataFormatted() {
-    // color displayedValue name staticId type
-    const d = [this._getHeader(), ...this._getRows(this.displayedData)];
-    return d;
-  }
-
-  private _getHeader() {
-    return {
-      id: "id",
-      name: "name",
-      type: "type",
-      value: "value",
-    };
-  }
-
-
-
-
-  private _getRows(list: any[]) {
-    if (!list) return [];
-
-    return list.map(({ color, displayValue, name, staticId, type }) => ({
-      name,
-      type,
-      value: Number.parseFloat(displayValue).toFixed(2),
-      id: staticId,
-    }));
-  }
-
-  handleRouteChange() {
-    if (this.isActive3D && !this.isActive) {
-      this.query.mode = '3d'
-    } else if (!this.isActive3D && this.isActive) {
-      this.query.mode = 'data'
-    } else {
-      this.query.mode = 'none'
-    }
-    this.replaceRoute();
-  }
-
   @Watch("loadedinformation", { deep: true })
   async watchSelectedChartItems(select, old) {
     this.spaceName = localStorage.getItem("room_tablette_name");
-    // this.asynctoto()
     this.youAreHere()
-    // this.updateChartData();
-    // if (select.length > 0) {
-    //   this.vueChart = true;
-    // }
-    // else {
-    //   this.vueChart = false;
-    // }
   }
 
 }
@@ -834,54 +594,6 @@ export default App;
     border-radius: 8px !important;
   }
 
-  .selectors {
-    position: absolute;
-    display: flex;
-    justify-content: flex-end;
-    top: 5px;
-    right: 5px;
-    height: $selectorHeight;
-    width: 100%;
-    border: 1px solid #f5f5f5;
-    border-radius: 12px;
-
-    .DButton {
-      width: 60px;
-      height: 60px;
-    }
-
-    @media (max-width: 960px) {
-      .DButton {
-        display: none;
-      }
-
-    }
-
-
-    .temporality {
-      position: relative;
-      width: 200px;
-      height: $selectorHeight;
-    }
-
-    .space {
-      position: relative;
-      width: 40%;
-      height: $selectorHeight;
-    }
-
-    @media (max-width: 960px) {
-      .space {
-        position: relative;
-        width: 80%;
-        height: $selectorHeight;
-        margin-top: 2px;
-      }
-    }
-
-  }
-
-
 
   .dataBody {
     height: calc(100% - #{$selectorHeight + 30px});
@@ -892,8 +604,6 @@ export default App;
       height: 100%;
       float: left;
     }
-
-
 
     .appContainer {
       width: 40%;
@@ -954,6 +664,25 @@ export default App;
 </style>
 
 <style>
+.btn_pilotage {
+  cursor: pointer;
+  background-color: #14202c;
+  color: white;
+  width: 280px;
+  height: 55px;
+  z-index: 999999;
+  position: absolute;
+  bottom: 5%;
+  margin-left: 100px;
+  border-radius: 30px;
+  font-weight: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 25px;
+}
+
+
 .forge-spinner {
   /* background-color: rgba(146, 70, 70, 0.63) !important; */
   width: 800px !important;

@@ -27,7 +27,6 @@
    " @click="close()"> X</div>
         </div>
         <div style="display: flex; align-items: center;justify-content: center; margin-top: 20px;">
-
           <EditCommande2 :symbole="true" :activable="activable" @update="handleUpdate" :step="1"
             :commandName="'COMMAND_TEMPERATURE'" :currentData="COMMAND_TEMPERATURE" :objet="temp" :unit="'°C'"
             :icon="'thermometer'" :color="'#FF9685'" style="border-right: 2px dashed #a1a1a1;
@@ -48,7 +47,6 @@
           <EditCommande2 v-if="!this.commandBlind.includes(floorType)" :activable="activable"
             @update="handleUpdate" :step="5" :commandName="'COMMAND_BLIND'" :currentData="COMMAND_BLIND" :objet="store"
             :unit="'%'" :icon="'store'" :color="'#A8DDF4'" style="margin-left: 6%;"></EditCommande2>
-          <!-- <EditCommande></EditCommande> -->
         </div>
       </div>
     </div>

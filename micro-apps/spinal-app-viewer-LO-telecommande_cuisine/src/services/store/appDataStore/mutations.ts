@@ -42,7 +42,10 @@ export enum MutationTypes {
 	REMOVE_VIEWER_LOADED = "REMOVE_VIEWER_LOADED",
 	SET_ITEM_SELECTED = "SET_ITEM_SELECTED",
 	SET_DATA = "SET_DATA",
-	SET_LOADED = 'SET_LOADED'
+	SET_LOADED = 'SET_LOADED',
+	SET_DATA_ROOM = 'SET_DATA_ROOM',
+	SET_ROOM_REF = 'SET_ROOM_REF',
+	SET_TELECOMMAND_TYPE = "SET_TELECOMMAND_TYPE"
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -57,6 +60,10 @@ export type MutationsAppData<S = StateAppData> = {
 	[MutationTypes.REMOVE_VIEWER_LOADED](state: StateAppData, payload: { id: string }): void;
 	[MutationTypes.SET_ITEM_SELECTED](state: StateAppData, item): void;
 	[MutationTypes.SET_DATA](state: StateAppData, data: INodeItemTree[]): void;
+	[MutationTypes.SET_DATA_ROOM](state: StateAppData, data: INodeItemTree[]): void;
+	[MutationTypes.SET_ROOM_REF](state: StateAppData, data: any): void;
+	[MutationTypes.SET_TELECOMMAND_TYPE](state: StateAppData, data: any): void;
+
 };
 
 export const mutations: MutationTree<StateAppData> & MutationsAppData = {
@@ -107,5 +114,15 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 
 	[MutationTypes.SET_LOADED](state: StateAppData, data: Number): void {
 		state.loadedinformation = data;
+	},
+
+	[MutationTypes.SET_DATA_ROOM](state: StateAppData, data: any): void {
+		state.roomData = data;
+	},
+	[MutationTypes.SET_ROOM_REF](state: StateAppData, data: any): void {
+		state.roomRef = data;
+	},
+	[MutationTypes.SET_TELECOMMAND_TYPE](state: StateAppData, data: any): void {
+		state.telecommandeType = data;
 	},
 };

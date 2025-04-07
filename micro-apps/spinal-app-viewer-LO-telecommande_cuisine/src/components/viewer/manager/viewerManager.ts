@@ -96,8 +96,8 @@ export class ViewerManager {
 			const buildingId = item.buildingId;
 			const dynamicId = item.dynamicId;
 
-			
-			
+
+
 			if (!body) body = { dynamicId: [dynamicId], floorRef: true, roomRef: true, equipements: true };
 
 			const res = await this.getViewerInfoMerged(item, body);
@@ -108,7 +108,7 @@ export class ViewerManager {
 
 			const viewerInfo = await getViewInfoFormatted(buildingId, res, item);
 			emitter.emit(VIEWER_START_LOAD_MODEL, viewerInfo);
-			
+
 		});
 	}
 
@@ -139,8 +139,8 @@ export class ViewerManager {
 		const ids = items.map((el) => el.dynamicId);
 		const res: any[] = [];
 		const nodeTofetech: number[] = [];
-		
-		
+
+
 		for (const dynId of ids) {
 			if (this._viewerStores["GET_VIEWER_INFO"][dynId]) {
 				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;
@@ -185,7 +185,7 @@ export class ViewerManager {
 
 
 	public isolate(item: IPlayload) {
-		this.hide(item) 
+		this.hide(item)
 		return this._fctViewerIteract(VIEWER_OBJ_ISOLATE, item.item, item.config);
 	}
 
@@ -216,7 +216,10 @@ export class ViewerManager {
 	}
 
 	public async addComponentAsSprites(item: IPlayloadWithComponent | IPlayloadWithComponent[], buildingId: string, component?: Vue) {
+
+
 		const formatted = await this._getAndFormatViewerInfos(item, buildingId, component);
+		console.log('on avance ????', item);
 		const emitter = EmitterViewerHandler.getInstance();
 		emitter.emit(<any>VIEWER_EVENTS.VIEWER_ADD_COMPONENT_SPRITE, formatted as any);
 	}
@@ -228,6 +231,8 @@ export class ViewerManager {
 		const data = await this.getViewerInfo(item, buildingId);
 
 		const obj = convertToObj(data);
+		console.log(item , obj , 'c est l item');
+		
 
 		return item.map((i) => ({
 			// dbIds: obj[i.dynamicId]?.dbIds ||[],

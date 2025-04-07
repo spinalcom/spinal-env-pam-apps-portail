@@ -86,11 +86,51 @@ export async function getStaticDetailsEquipement(buildingId: string, roomDynId: 
   let result = await spinalAPI.get<IZoneItem[]>(url);
   return result.data;
 }
+export async function getContextList(buildingId: string): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/context/list');
+  try {
+    let result = await spinalAPI.get<IZoneItem[]>(url); // Envoyer le tableau d'identifiants
+    return result.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des positions des pièces:', error);
+    throw error;
+  }
+}
 
+export async function getContextCategoryList(buildingId: string, contextId: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/groupeContext/${contextId}/category_list`);
+  try {
+    let result = await spinalAPI.get<IZoneItem[]>(url); // Envoyer le tableau d'identifiants
+    return result.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des positions des pièces:', error);
+    throw error;
+  }
+}
+export async function getContextCategoryGroupList(buildingId: string, contextId: number, categoryDynId: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/groupeContext/${contextId}/category/${categoryDynId}/group_list`);
+  try {
+    let result = await spinalAPI.get<IZoneItem[]>(url); // Envoyer le tableau d'identifiants
+    return result.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des positions des pièces:', error);
+    throw error;
+  }
+}
 
 export async function getFloorStaticDetails(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/floor/${roomDynId}/read_static_details`);
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+
+export async function getStaticDetailsRoom(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/room/${roomDynId}/read_static_details`);
   let result = await spinalAPI.get<IZoneItem[]>(url);
   return result.data;
 }
@@ -113,7 +153,7 @@ export async function getBuildingStaticDetails(buildingId: string, referenceIds:
 }
 
 export async function getDocumentation(buildingId: string, referenceIds: number): Promise<IZoneItem[]> {
-  
+
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${referenceIds}/file_list`);
   let result = await spinalAPI.get<IZoneItem[]>(url);
@@ -128,7 +168,7 @@ export async function getTicket(buildingId: string, referenceIds: number): Promi
 }
 
 export async function getParent(buildingId: string, referenceIds: number): Promise<IZoneItem[]> {
-  
+
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${referenceIds}/parents`);
   let result = await spinalAPI.get<IZoneItem[]>(url);
@@ -147,10 +187,24 @@ export async function getAttributListMultiple(buildingId: string, referenceIds: 
     throw error;
   }
 }
+
+export async function getParentListMultiple(buildingId: string, inputList: { dynamicId: number; relations: string[] }[]): Promise<any> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/node/parents_multiple');
+  try {
+    const response = await spinalAPI.post<any>(url, inputList);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Erreur lors de la récupération des parents multiples :', error);
+    throw error;
+  }
+}
+
+
 export async function postNodeCommand(buildingId: string, referenceIds: any): Promise<any> {
 
-  console.log({referenceIds});
-  
+  console.log({ referenceIds });
+
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/node/command');
   try {

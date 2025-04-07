@@ -148,6 +148,8 @@ export class EventManager {
 			});
 
 			emitterHandler.on(<any>VIEWER_EVENTS.VIEWER_ADD_COMPONENT_SPRITE, (data: any) => {
+				console.log('evenement ????? , ', data);
+				
 				viewerUtils.addComponentAsSprite(viewer, data);
 			});
 

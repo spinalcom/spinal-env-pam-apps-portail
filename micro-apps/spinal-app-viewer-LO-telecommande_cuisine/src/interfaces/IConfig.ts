@@ -45,6 +45,18 @@ export interface IConfig {
 	floor: { profileNameControlePts: string, profileNameAttribut: string }
 	room: { profileNameControlePts: string, profileNameAttribut: string }
 	equipement: { profileNameControlePts: string, profileNameAttribut: string }
+	equipementSelections?: {
+		equipementContext: string;
+		equipementCat: string;
+		equipementsGroup: string;
+	}[];
+	showAllFloor: boolean;
+	show_equipements: 'all' | 'none' | 'selected';
+	SelectionType: 'button' | 'room' | 'equipement' | 'multiple';
+	commandItem: {
+		[key: string]: [string, string, string];
+	};
+	configCommand: any
 }
 
 export const enum ITemporality {

@@ -23,18 +23,14 @@
 
             <div class="social-media">
               <div v-if="useFullDAta && useFullDAta.attributsList">
-  <div
-    v-for="(attribut, index) in useFullDAta.attributsList"
-    :key="index"
-  >
-    <div
-      v-if="attribut.label === 'area' && !useFullDAta.attributsList.slice(0, index).some(a => a.label === 'area')"
-      style="margin-top: 2px;"
-    >
-      {{ parseFloat(attribut.value).toFixed(1) }}m²
-    </div>
-  </div>
-</div>
+                <div v-for="(attribut, index) in useFullDAta.attributsList" :key="index">
+                  <div
+                    v-if="attribut.label === 'area' && !useFullDAta.attributsList.slice(0, index).some(a => a.label === 'area')"
+                    style="margin-top: 2px;">
+                    {{ parseFloat(attribut.value).toFixed(1) }}m²
+                  </div>
+                </div>  
+              </div>
 
             </div>
           </div>
@@ -76,12 +72,10 @@
 
         </div>
 
-        <div v-if="data.data.type == 'BIMObject'"
-          style="background-color: white;color: black; border: 1px solid black; cursor: pointer;border-radius: 5px;text-align: center;align-self: auto ;  position: relative;
+        <div v-if="data.data.type == 'BIMObject'" style="background-color: white;color: black; border: 1px solid black; cursor: pointer;border-radius: 5px;text-align: center;align-self: auto ;  position: relative;
     left: 50%;
     transform: translate(-50%, 0);
-"
-          ref="focusRoom">Voir la pièce</div>
+" ref="focusRoom">Voir la pièce</div>
 
 
         <div class="bottom-section">

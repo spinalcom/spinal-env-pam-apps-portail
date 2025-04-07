@@ -1,10 +1,13 @@
 <template>
   <div style="display: flex; transform: translate(-1%);">
-    <div class="temperature-control2">
-      <div class="dashedline"></div>
+    <div v-if="activable && commandName == 'COMMAND_BLIND'" class="hide_controle">
+      <span style="font-size: 85px;" class="mdi mdi-lock-outline"></span>
+      Store bloqué pour cause de météo ou d’entretien
+
+
     </div>
     <div class="temperature-control">
-      <!-- SVG en haut -->
+
       <div :style="{
         display: 'flex',
         justifyContent: 'center',
@@ -19,7 +22,7 @@
         transform: 'translate(40%)',
         boxShadow: 'rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px'
       }">
-        <!-- Utilisation de l'image SVG provenant des assets -->
+
         <img :src="svgPath" alt="icon" style="width: 60px; height: 60px;" />
       </div>
 
@@ -35,28 +38,31 @@
           width: '20px',
           height: '20px',
           position: 'absolute',
-          backgroundColor: color, // Utilisation de la prop color
+          backgroundColor: color,
           borderRadius: '50px',
           transform: 'translate(27px, 11px) skewX(26deg) scale(1, -1.1)',
         }"></div>
       </div>
 
+      <div id="sliderContainer" ref="sliderContainer" class="slider-container">
+        <div id="slider" class="slider"></div>
+        <div id="sliderHandle" class="slider-handle" :style="{ top: sliderPosition + 'px', ...sliderStyle }"
+          @mousedown="startDrag" @touchstart="startDrag"></div>
+      </div>
 
-      <input type="range" :min="minTemperature" :max="maxTemperature" v-model="currentTemperature" :style="sliderStyle"
-        class="slider" orient="vertical" @input="updateTemperaturePosition" @change="onSliderChange" ref="slider" />
 
-      <div :style="temperatureStyle">
-        {{ currentTemperature }}{{ unit }}
+      <div v-if="!modeString"
+        style="position: absolute;position: absolute;top: 58%;margin-right: 150px;font-size: 25px;">
+        <div>{{ currentTemperature }}{{ unit }}</div>
       </div>
 
       <!-- Affichage de la température actuelle -->
       <div class="temperature-display"></div>
-      <!-- <div style="position: absolute;top: 40vh;transform: translate(-70px);font-size: 25px;">{{ currentTemperature }}°C</div> -->
-      <!-- Bouton pour diminuer la température (triangle vers le bas) -->
+
       <div class="inverse_triangle" @click="decreaseTemperature">
         <div :style="{
           position: 'absolute',
-          backgroundColor: lastColor, // Utilisation de la couleur minimale
+          backgroundColor: lastColor,
           width: '20px',
           height: '20px',
           borderRadius: '20px',
@@ -64,50 +70,54 @@
           transform: 'translate(29px, 11px) skewX(11deg) skewY(20deg)'
         }"></div>
       </div>
-
-
-
-
     </div>
-
     <div>
 
       <div class="button_selection">
-
-        <div class="btn_clic" style="
-">
-
-          <div v-for="(item, index) in objet" :key="index"
-            style="background-color: white;width: 100px;height: 32px;border-radius: 15px;box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;font-size: 21px;display: flex;flex-direction: row;margin-bottom: 10px; color: #bdbdbd;font-weight: bold;">
-
+        <div class="btn_clic" style="">
+          <div v-for="(item, index) in objet" :key="index" :style="{
+            cursor: 'pointer',
+            backgroundColor: 'white',
+            width: '100px',
+            // height: '32px',
+            borderRadius: '15px',
+            boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px',
+            fontSize: '21px',
+            display: 'flex',
+            flexDirection: 'row',
+            marginBottom: '10px',
+            color: '#bdbdbd',
+            fontWeight: 'bold',
+            border: item.value === currentTemperature ? '2px solid rgb(76 189 243)' : 'none'
+          }">
             <div @click="editvalue(item.value)"
               style="width: 30%; justify-content: center;align-items: center;display: flex;padding-top: 12px;">
-              <!-- Utilisation de la couleur dynamique -->
               <v-badge :color="item.color"></v-badge>
             </div>
-            <div @click="editvalue(item.value)" style="width: 70%; margin-left: 13px;margin-top: 2px;">
-              <!-- Utilisation de la valeur dynamique -->
-              {{ item.value }}{{ unit }}
+            <div @click="editvalue(item.value)" style="width: 70%; margin-left: 13px;">
+              <div v-if="symbole && !modeString">
+                {{ valueWithSymbole(item.value) }}{{ unit }}
+              </div>
+              <div v-else-if="modeString">
+                {{ objet[index].string }}
+                <!-- {{ index === objet.length - 1 ? '0' : '*'.repeat(objet.length - 1 - index) }} -->
+              </div>
+              <div v-else>
+                {{ item.value }}{{ unit }}
+              </div>
             </div>
-
           </div>
-
-
-
         </div>
-
-
       </div>
     </div>
   </div>
-
-
 </template>
 
 <script>
 export default {
   props: {
     data: Object,
+
     commandName: {
       type: String,
       required: true
@@ -133,114 +143,198 @@ export default {
       default: "#ff9b9b"
     },
     currentData: {
-      type: Number,
-      default: 20
+      type: [Number, String],
+      default: 0
+    },
+    activable: {
+      type: Boolean,
+      default: true
+    },
+    symbole: {
+      type: Boolean,
+      default: false
+    },
+    modeString: {
+      type: Boolean,
+      default: false
     }
   },
   data: () => ({
     currentTemperature: null, // Température initiale
-    temperatureTop: 0
+    temperatureTop: 0,
+    isDragging: false,
+    sliderPosition: 0,
+    resizeObserver: null,
   }),
   computed: {
 
+
     lastColor() {
-      // Accéder directement au dernier élément de l'objet
       return this.objet.length > 0 ? this.objet[this.objet.length - 1].color : '';
     },
     minTemperature() {
-      // Récupérer la plus petite valeur "value" dans l'objet vstore
       return Math.min(...this.objet.map(item => item.value));
     },
     maxTemperature() {
-      // Récupérer la plus grande valeur "value" dans l'objet vstore
       return Math.max(...this.objet.map(item => item.value));
     },
     svgPath() {
-      // Mappage des noms de SVG
       const svgMap = {
         ampoule: require('../../assets/ampoule.svg'),
         thermometer: require('../../assets/temp.svg'),
         store: require('../../assets/store.svg'),
-        // Ajoute ici les autres SVG connus
       };
-      return svgMap[this.icon] || ''; // Retourne le chemin du SVG correspondant ou une chaîne vide si non trouvé
-    },
-    temperatureStyle() {
-      const pageHeight = window.innerHeight; // Récupère la hauteur de la fenêtre
-      const translateY = (pageHeight / 100) * 28; // 28vh basé sur la hauteur de la fenêtre
-
-      return {
-        position: 'absolute',
-        top: '50%', // applique la position calculée
-        transform: `translate(-70px, 30px)`, // Utilise une valeur dynamique pour translateY
-        fontSize: '25px',
-      };
+      return svgMap[this.icon] || '';
     },
 
 
     sliderStyle() {
-      // Trouver la valeur de l'objet la plus proche de `currentTemperature`
       const closestItem = this.objet.reduce((prev, curr) => {
         return (Math.abs(curr.value - this.currentTemperature) < Math.abs(prev.value - this.currentTemperature) ? curr : prev);
       });
 
-      // Retourner la couleur associée à l'élément le plus proche
       return {
         '--slider-thumb-color': closestItem.color
       };
     }
 
   },
+
   mounted() {
-    this.updateTemperaturePosition();// Appelle une première fois au chargement
-  },
-  created() {
-    // Assigne la valeur de currentTemperature dans le hook `created`
-    this.currentTemperature = this.currentData;
+
+
+    if (this.modeString == true) {
+      const currentData = this.currentData;
+      const getValueFromString = (currentData) => {
+        const foundObject = this.objet.find(item => item.string === currentData);
+        return foundObject ? foundObject.value : null;
+      };
+      const result = getValueFromString(currentData);
+      this.currentTemperature = result
+    }
+    else
+      this.currentTemperature = this.currentData;
+
+    const sliderContainer = this.$refs.sliderContainer;
+    const rect = sliderContainer.getBoundingClientRect();
+
+    console.log('Hauteur du sliderContainer:', rect.height);
+    const percentage = (this.currentTemperature - this.minTemperature) / (this.maxTemperature - this.minTemperature);
+    this.sliderPosition = percentage * (rect.height - 30);
+
+    this.updateSliderPosition();
+
+    this.initTemperature(); // Pour forcer l'initialisation ici aussi
+
+    this.$nextTick(() => {
+      const container = this.$refs.sliderContainer;
+      if (container) {
+        this.resizeObserver = new ResizeObserver(() => {
+          this.updateSliderPosition();
+        });
+        this.resizeObserver.observe(container);
+      }
+    });
   },
   methods: {
-    onSliderChange() {
-      console.log('l emit');
 
-      this.$emit('update', {
-        command: this.commandName,
-        value: this.currentTemperature
-      });
+    sendDataToparent() {
+
+      if (this.modeString == true) {
+
+        const result = this.objet.find(item => item.value === this.currentTemperature);
+        const stringResult = result ? result.string : null;
+
+        this.$emit('update', {
+          command: this.commandName,
+          value: stringResult
+        });
+
+      } else {
+
+        this.$emit('update', {
+          command: this.commandName,
+          value: this.currentTemperature
+        });
+
+      }
+
     },
+
+    valueWithSymbole(item) {
+      return item > 0 ? `+${item}` : `${item}`;
+    },
+    updateSliderPosition() {
+      const sliderContainer = this.$refs.sliderContainer;
+      if (!sliderContainer) return;
+
+      const rect = sliderContainer.getBoundingClientRect();
+      const range = this.maxTemperature - this.minTemperature;
+
+      if (!range || isNaN(this.currentTemperature)) return;
+
+      const percentage = (this.currentTemperature - this.minTemperature) / range;
+      const top = (1 - percentage) * (rect.height - 30);
+
+      // On garde une valeur safe dans les bornes
+      this.sliderPosition = Math.max(0, Math.min(top, rect.height - 30));
+    },
+    startDrag(event) {
+      this.isDragging = true;
+      document.addEventListener('mousemove', this.onDrag);
+      document.addEventListener('mouseup', this.stopDrag);
+      document.addEventListener('touchmove', this.onDrag);
+      document.addEventListener('touchend', this.stopDrag);
+    },
+    stopDrag() {
+      this.isDragging = false;
+      document.removeEventListener('mousemove', this.onDrag);
+      document.removeEventListener('mouseup', this.stopDrag);
+      document.removeEventListener('touchmove', this.onDrag);
+      document.removeEventListener('touchend', this.stopDrag);
+
+      this.sendDataToparent()
+    },
+    onDrag(event) {
+      if (!this.isDragging) return;
+
+      const sliderContainer = this.$refs.sliderContainer;
+      const rect = sliderContainer.getBoundingClientRect();
+
+      let clientY = event.clientY || event.touches[0].clientY;
+      let newTop = clientY - rect.top;
+
+      newTop = Math.max(0, Math.min(newTop, rect.height - 30));
+
+      const percentage = 1 - (newTop / (rect.height - 30));
+      const temperature = this.minTemperature + percentage * (this.maxTemperature - this.minTemperature);
+
+      this.sliderPosition = newTop;
+      this.currentTemperature = Math.round(temperature);
+    }
+    ,
+
+    // onSliderChange() {
+    //   this.$emit('update', {
+    //     command: this.commandName,
+    //     value: this.currentTemperature
+    //   });
+    // },
 
     editvalue(value) {
       this.currentTemperature = value;
-      this.$emit('update', {
-        command: this.commandName,
-        value: this.currentTemperature
-      });
+      this.updateSliderPosition();
+      this.sendDataToparent()
     },
-    updateTemperaturePosition() {
-      const slider = this.$refs.slider;
-      const sliderRect = slider.getBoundingClientRect(); // Récupère la hauteur réelle du slider
-      const range = slider.max + slider.min;
-      const sliderValue = slider.value + slider.min;
 
-      // Calculer la position en pourcentage de la hauteur du slider
-      const percentage = (sliderValue / range);
-
-      // Inverser le pourcentage pour que la température monte avec le slider
-      const thumbHeight = 20; // Taille du bouton définie dans le CSS
-      const thumbPosition = (1 - percentage) * (sliderRect.height - thumbHeight);
-
-      // Appliquer la position calculée
-      this.temperatureTop = thumbPosition;
-    },
     increaseTemperature() {
       if (this.currentTemperature + Number(this.step) <= this.maxTemperature) {
         this.currentTemperature += Number(this.step);
       } else {
         this.currentTemperature = this.maxTemperature;
       }
-      this.$emit('update', {
-        command: this.commandName,
-        value: this.currentTemperature
-      });
+      this.updateSliderPosition();
+      this.sendDataToparent()
     },
     decreaseTemperature() {
       if (this.currentTemperature - Number(this.step) >= this.minTemperature) {
@@ -248,9 +342,21 @@ export default {
       } else {
         this.currentTemperature = this.minTemperature;
       }
-      this.$emit('update', {
-        command: this.commandName,
-        value: this.currentTemperature
+      this.updateSliderPosition();
+      this.sendDataToparent()
+    },
+    initTemperature() {
+      if (!this.objet || this.objet.length === 0) return;
+
+      if (this.modeString === true) {
+        const found = this.objet.find(item => item.string === this.currentData);
+        this.currentTemperature = found ? found.value : null;
+      } else {
+        this.currentTemperature = Math.round(parseFloat(this.currentData));
+      }
+
+      this.$nextTick(() => {
+        this.updateSliderPosition();
       });
     },
     close() {
@@ -258,23 +364,89 @@ export default {
     }
   },
   watch: {
+    objet: {
+      handler() {
+        this.initTemperature();
+      },
+      immediate: true,
+      deep: true
+    },
     currentData(newVal) {
-      // Mettre à jour currentTemperature lorsque currentData change
-      this.currentTemperature = parseFloat(parseFloat(newVal).toFixed(0));
+      this.initTemperature();
+    },
+    currentTemperature(newVal) {
+      this.updateSliderPosition();
     }
   }
 };
 </script>
 
 <style scoped>
-.btn_clic {
-  height: 27vh;
-  width: 100px;
-  justify-content: space-between;
+.hide_controle {
+  backdrop-filter: blur(15px);
+  z-index: 99;
+  color: red;
+  text-align: center;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
+  width: 110%;
+  height: 82%;
+  margin-top: 120px;
+  padding-top: 20px;
+  font-size: 25px;
   display: flex;
-  align-content: space-between;
+  position: absolute;
+  transform: translate(-30px);
+  padding-bottom: 115px;
+}
+
+.slider-container {
+  position: relative;
+  width: 30px;
+  background-color: rgba(10, 10, 10, 0);
+  border-radius: 5px;
+  margin-bottom: 15px;
+  margin-top: 25px;
+  height: 21.2vh;
+}
+
+.slider-container::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 2px;
+  /* Épaisseur de la ligne */
+  height: 100%;
+  border-left: 2px dashed black;
+  /* Ligne pointillée */
+  transform: translateX(-50%);
+  margin-top: 5px;
+}
+
+.slider-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--slider-thumb-color);
+  border: 2px solid black;
+  cursor: pointer;
+  transform: translate(5px, 10px);
+  /* transform: translateY(-50%); */
+}
+
+
+
+.btn_clic {
+  flex-direction: column;
+    place-content: space-between;
+    align-items: center;
+    width: 100px;
+    height: 22vh;
+    display: flex;
+    align-self: flex-end;
 }
 
 
@@ -321,7 +493,10 @@ export default {
 }
 
 .button_selection {
-  padding-top: 25vh;
+  /* padding-top: 240px; */
+  height: calc(100% - 100px);
+  transform: translate(-10px);
+  display: flex;
 }
 
 @media (min-height: 1000px) {
@@ -330,9 +505,7 @@ export default {
     margin-top: 26vh;
   }
 
-  .button_selection {
-    padding-top: 17vh;
-  }
+
 
   .slider {
     appearance: none;
@@ -342,9 +515,7 @@ export default {
     transform: rotate(-90deg);
   }
 
-  .btn_clic{
-    height: 20vh;
-  }
+
 }
 
 @media (min-height: 1070px) {
@@ -484,87 +655,11 @@ export default {
   box-shadow: 0 2px 8px #00000040;
 }
 
-
-
-
-
-
-.slider::-webkit-slider-runnable-track {
-  width: 1px !important;
-  background-color: #f78d8d00;
-  /* Couleur du trait */
-  border-radius: 2px;
-}
-
-.slider::-moz-range-track {
-  width: 1px;
-  background-color: #9b0c0c;
-  border-radius: 2px;
-}
-
-.slider::-ms-track {
-  width: 1px;
-  background-color: #927e0a;
-  border-radius: 2px;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  background-color: var(--slider-thumb-color);
-  /* Couleur du bouton */
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid #333;
-}
-
-.slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  background-color: var(--slider-thumb-color);
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid #333;
-}
-
-.slider::-ms-thumb {
-  width: 20px;
-  height: 20px;
-  background-color: var(--slider-thumb-color);
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid #333;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .temperature-display {
   font-size: 18px;
   margin: 10px 0;
   margin-left: 30px;
 }
-
-
-
-
-
-
-
-
 
 
 .inverse_triangle {

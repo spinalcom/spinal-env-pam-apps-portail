@@ -33,6 +33,7 @@ import { IViewerColorData } from "../interfaces/IViewerColorData";
 import { getPosition } from "./getObjectPos";
 import SpriteManager from "../manager/spriteManager";
 import Vue from "vue";
+import { log } from "console";
 
 export class ViewerUtils {
 	private static _instance: ViewerUtils;
@@ -271,8 +272,10 @@ export class ViewerUtils {
 		await this._waitModelIsLoading();
 
 		const promises = data.map(async (item) => {
+			console.log('this is the item',item);
 			const data = item.data.map(({ bimFileId, dbIds }) => ({ dbIds, model: this._getModel(item.modelId, bimFileId) }));
-
+			
+			
 			return {
 				modelId: item.modelId,
 				color: item.color,

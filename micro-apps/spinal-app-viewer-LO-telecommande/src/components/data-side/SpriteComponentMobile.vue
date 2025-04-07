@@ -198,10 +198,7 @@ export default {
       this.postion_name = result[0].name
       this.postion_id = result[0].dynamicId
 
-
-
       this.activable = this.getIfActivable(result[0].controlEndpoint);
-
 
       this.extractCommandValues(result[0].controlEndpoint);
 

@@ -27,17 +27,112 @@ import { IConfig, ITemporality } from "./interfaces/IConfig";
 export const config: IConfig = {
 
 	viewButtons: "base",
-	sprites: false,
 	viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },
-	temporality: [ITemporality.currentValue, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
 
-	idBuilding: 'd2e1-1235-2330-19483c8f9cc',
-	tabletteId: 140281325104416, //pas obligatoire
 
-	equipementContext: "Synchronisation équipements GMAO",
-	equipementCat: "Mobilier",
-	equipementsGroup: "Position de travail", //a supprimer
+	//donnée pour le lancement de l'app
+	idBuilding: '5932-6086-9e1a-18506478460',
+	tabletteId: 216681008,
 
-	groupContext:"Gestion des espaces",
-	groupContextCat:"Télécommande de confort"
+	//context et categories du groupe de la tablette
+	groupContext: "Gestion des espaces",
+	groupContextCat: "Télécommande de confort",
+
+	//affiche tout l'etage si true sinon affiche uniquement la piece / les pieces
+	showAllFloor: false,
+
+	//type d'equipement : all(tout les equipement de la piece) , none(que les sols) , selected(un type selectionné)
+
+	show_equipements: 'selected',
+	//si selected ( choisir l'equipement voulu)
+	equipementSelections: [
+		{
+			equipementContext: "Gestion des équipements",
+			equipementCat: "Mobilier",
+			equipementsGroup: "Bureaux"
+		},
+		{
+			equipementContext: "Gestion des équipements",
+			equipementCat: "Typologie",
+			equipementsGroup: "Lavabo"
+		}
+	],
+
+	//moyen de selection de télécommande : button (pilotage par bouton d'une ou plusieur piece) , room (pilotage en cliquant sur le sol de la piece) , equipement (pilotage en cliquant sur l'equipment)
+	// multiple (pilotage par bouton et par sol)
+	SelectionType: 'room',
+
+	//les differents type de télécommande
+	commandItem: {
+		cmd_Light_percent: ['Gestion des espaces', 'CMD_L', 'Type_1'],//commande Light en %
+		cmd_Light_star: ['Gestion des espaces', 'CMD_L', 'Type_2'],//commande Light en * ** *** ****
+		cmd_store_on: ['Gestion des espaces', 'CMD_ST', 'Type_3'],//commande store on
+		cmd_store_off: ['Gestion des espaces', 'CMD_ST', 'Type_4'],//commande store off
+	},
+
+
+
+
+
+
+
+	
+	configCommand: {
+		temperature: {
+			step: 1,
+			symbole: true,
+			format: [
+				{ value: 2, color: '#F0715C' },
+				{ value: 1, color: '#FF9685' },
+				{ value: 0, color: '#FFA685' },
+				{ value: -1, color: '#FFB985' },
+				{ value: -2, color: '#FAD9AD' },
+			],
+			modeString: false,
+			unit: '°C'
+		},
+		cmd_Light_percent: {
+			step: 5,
+			symbole: false,
+			format: [
+				{ value: 100, color: '#EDE474' },
+				{ value: 75, color: '#B7B362' },
+				{ value: 50, color: '#818250' },
+				{ value: 25, color: '#4A513E' },
+				{ value: 0, color: '#14202C' },
+			],
+			modeString: false,
+			unit: '%'
+		},
+		cmd_Light_star: {
+			step: 1,
+			symbole: false,
+			format: [
+				{ value: 3, color: '#EDE474', string: "***" },
+				{ value: 2, color: '#B7B362', string: "**" },
+				{ value: 1, color: '#818250', string: "*" },
+				{ value: 0, color: '#14202C', string: "0" },
+			],
+			modeString: true,
+			unit: ''
+		},
+		cmd_store_on: {
+			step: 5,
+			symbole: false,
+			format: [
+				{ value: 100, color: '#A8DDF4' },
+				{ value: 75, color: '#85B0C4' },
+				{ value: 50, color: '#628395' },
+				{ value: 25, color: '#3E5665' },
+				{ value: 0, color: '#14202C' },
+			],
+			modeString: false,
+			unit: '%'
+		}
+
+	}
+
+
+
+	//reste a gerer le mlti tablette et les info a ajouter dans la config
 };

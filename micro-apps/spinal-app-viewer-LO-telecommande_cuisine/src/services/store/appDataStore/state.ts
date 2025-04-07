@@ -42,4 +42,7 @@ export const state = {
 	dataVizExtn: undefined,
 	data: undefined as any,
 	loadedinformation: 0 as Number,
+	roomData: [] as any,
+	roomRef: undefined as any,
+	telecommandeType : undefined as any,
 };

@@ -28,11 +28,11 @@ import { getBIMFileContext } from '../BIM/BIMFileContext';
 import { IPlayload } from '../../interfaces/IPlayload';
 import { IConfig } from "../../../../interfaces/IConfig";
 import { config } from "../../../../config";
-// import { ActionTypes } from "../../../../interfaces/vuexStoreTypes";
-// import { MutationTypes } from "../../../../services/store/appDataStore/mutations";
-// import { store } from "../../../../services/store";
+import { ActionTypes } from "../../../../interfaces/vuexStoreTypes";
+import { MutationTypes } from "../../../../services/store/appDataStore/mutations";
+import { store } from "../../../../services/store";
 
-// const store = Store;
+const Store = store;
 
 export interface IViewInfoBody {
   dynamicId: number | number[];
@@ -59,7 +59,6 @@ export interface IViewInfoTmpRes {
 
 
 export async function fetchAdditionalData(config: IConfig, buildingId: string): Promise<Map<string, any>> {
-
   //récupérer le tablette Id dans la route 
   let tabletteId = window.parent.router.query.spaceSelectedId
 
@@ -72,6 +71,8 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   // récuperer la position de la tablette room floor
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipment/${tabletteId}/get_position`);
   let result = await spinalAPI.get<{ [key: string]: any[] }>(url);
+  console.log("bbb", result);
+
 
   localStorage.setItem('room_tablette', result.data.info.room.dynamicId);
   localStorage.setItem('room_tablette_dbid', result.data.info.room.dbId);
@@ -79,47 +80,17 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   localStorage.setItem('floor_tablette_id', result.data.info.floor.dynamicId);
   localStorage.setItem('floor_tablette_name', result.data.info.floor.name);
 
-
-  //récuperer les context d'equipement group
-  const listEquipmentgroup = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/list`);
-  let resultlistEquipmentgroup = await spinalAPI.get<{ [key: string]: any[] }>(listEquipmentgroup);
-
-  //croiser avec le context voulu dans la config
-  const DynamicIdContext = resultlistEquipmentgroup.data.find(group => group.name === config.equipementContext)?.dynamicId;
-
-  // réucpéré la categories d'equipement voulu dans la config
-  const categoryEquipementGroup = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/${DynamicIdContext}/category_list`);
-  let resultcategoryEquipementGroup = await spinalAPI.get<{ [key: string]: any[] }>(categoryEquipementGroup);
-  const DynamicIdCategory = resultcategoryEquipementGroup.data.find(group => group.name === config.equipementCat)?.dynamicId;
-
-  //récupéréer le groupe voulu dans la config
-  const GroupList = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/${DynamicIdContext}/category/${DynamicIdCategory}/group_list`);
-  let resultcGroupList = await spinalAPI.get<{ [key: string]: any[] }>(GroupList);
-
-  //zone a supprimer : apres l'edit passer sur tout les equipements , 
-  const IdgrpList = resultcGroupList.data.find(group => group.name === config.equipementsGroup)?.dynamicId;
-  //recuperation de la liste d'equipement
-  const Equipement = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/${DynamicIdContext}/category/${DynamicIdCategory}/group/${IdgrpList}/equipementList`);
-  let resultEquipement = await spinalAPI.get<{ [key: string]: any[] }>(Equipement);
-
-  // console.log(resultEquipement, 'les position de travail');
-
-  //liste des equipements position de travail :resultEquipement 
-
   //partie group context , recuperation des groupes pui comparer 
 
   const GroupContextList = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/groupContext/list`);
   let resultGroupContextList = await spinalAPI.get<{ [key: string]: any[] }>(GroupContextList);
 
   const Idcommand = resultGroupContextList.data.find(group => group.name === config.groupContext)?.dynamicId;
-  // console.log(Idcommand, 'list des espace'); // dynamicId de 'Mobilier '
-
 
   const groupcontext = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/groupeContext/${Idcommand}/category_list`);
   let resultgroupcontext = await spinalAPI.get<{ [key: string]: any[] }>(groupcontext);
 
   const contextGroup = resultgroupcontext.data.find(group => group.name === config.groupContextCat)?.dynamicId;
-  // console.log(contextGroup, 'la category de telecommande de confort'); // dynamicId de 'Mobilier '
 
 
   const grpList = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/groupeContext/${Idcommand}/category/${contextGroup}/group_list`);
@@ -175,35 +146,167 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   let allRoomDetails = await Promise.all(roomDetailsPromises);
 
 
-  let allWorkPositions = allRoomDetails.flatMap((roomDetail: any) =>
-    roomDetail.data.filter((equipment: any) =>
-      resultEquipement.data.some(
-        (workPosition: any) => workPosition.dynamicId === equipment.dynamicId
-      )
-    )
+  store.commit(
+    MutationTypes.SET_DATA_ROOM,
+    {
+      name: resultgrpList.data[matchingGroupIndex].name,
+      rooms: filteredOpenSpaces.rooms.map((room: any) => ({
+        dynamicId: room.dynamicId
+      }))
+    }
   );
+  
+
+  let allWorkPositions: any[][];
+
+  //store.commit(MutationTypes.SET_ROOM_REF, roomInfos);
+
+  let rawEquipments: { roomId: number, dynamicId: number, name: string }[] = [];
+
+  let sols: number[] = [];
+  let equipements: number[] = [];
+
+  if (config.show_equipements == "selected") {
+    let allSelectedEquipements: any[] = [];
+
+    for (const selection of config.equipementSelections) {
+      const listEquipmentgroup = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/list`);
+      let resultlistEquipmentgroup = await spinalAPI.get<{ [key: string]: any[] }>(listEquipmentgroup);
+
+      const DynamicIdContext = resultlistEquipmentgroup.data.find(group => group.name === selection.equipementContext)?.dynamicId;
+      if (!DynamicIdContext) continue;
+
+      const categoryEquipementGroup = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/${DynamicIdContext}/category_list`);
+      let resultcategoryEquipementGroup = await spinalAPI.get<{ [key: string]: any[] }>(categoryEquipementGroup);
+      const DynamicIdCategory = resultcategoryEquipementGroup.data.find(group => group.name === selection.equipementCat)?.dynamicId;
+      if (!DynamicIdCategory) continue;
+
+      const GroupList = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/${DynamicIdContext}/category/${DynamicIdCategory}/group_list`);
+      let resultcGroupList = await spinalAPI.get<{ [key: string]: any[] }>(GroupList);
+      const IdgrpList = resultcGroupList.data.find(group => group.name === selection.equipementsGroup)?.dynamicId;
+      if (!IdgrpList) continue;
+
+      const Equipement = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/${DynamicIdContext}/category/${DynamicIdCategory}/group/${IdgrpList}/equipementList`);
+      let resultEquipement = await spinalAPI.get<{ [key: string]: any[] }>(Equipement);
+
+      allSelectedEquipements.push(...resultEquipement.data);
+    }
+
+    allWorkPositions = allRoomDetails.flatMap((roomDetail: any, index: number) => {
+      const roomId = filteredOpenSpaces.rooms[index]?.dynamicId;
+      return roomDetail.data.filter((equipment: any) => {
+        const isEquipement = allSelectedEquipements.some(
+          (workPosition: any) => workPosition.dynamicId === equipment.dynamicId
+        );
+        const isSol = equipment.name && equipment.name.includes("Sol");
+
+        if ((isEquipement || isSol) && roomId) {
+          rawEquipments.push({
+            roomId,
+            dynamicId: equipment.dynamicId,
+            name: equipment.name
+          });
+        }
+
+        if (isEquipement) equipements.push(equipment.dynamicId);
+        if (isSol) sols.push(equipment.dynamicId);
+
+        return isEquipement || isSol;
+      });
+    });
+  }
+  else if (config.show_equipements == "all") {
+    allWorkPositions = allRoomDetails.flatMap((roomDetail: any, index: number) => {
+      const roomId = filteredOpenSpaces.rooms[index]?.dynamicId;
+      return roomDetail.data.map((equipment: any) => {
+        const isSol = equipment.name && equipment.name.includes("Sol");
+
+        if (roomId) {
+          rawEquipments.push({
+            roomId,
+            dynamicId: equipment.dynamicId,
+            name: equipment.name
+          });
+        }
+
+        if (isSol) sols.push(equipment.dynamicId);
+        else equipements.push(equipment.dynamicId);
+
+        return equipment;
+      });
+    });
+
+  } else {
+    allWorkPositions = allRoomDetails.flatMap((roomDetail: any, index: number) => {
+      const roomId = filteredOpenSpaces.rooms[index]?.dynamicId;
+      return roomDetail.data.filter((equipment: any) => {
+        const isSol = equipment.name && equipment.name.includes("Sol");
+
+        if (isSol && roomId) {
+          rawEquipments.push({
+            roomId,
+            dynamicId: equipment.dynamicId,
+            name: equipment.name
+          });
+        }
+
+        if (isSol) sols.push(equipment.dynamicId);
+
+        return isSol;
+      });
+    });
+  }
+
+
+
+
 
   const equipementDynamicIds = allWorkPositions.map(equipement => equipement.dynamicId);
 
   const static_details_multiple = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/equipment/read_static_details_multiple');
   let result_static_details = await spinalAPI.post(static_details_multiple, equipementDynamicIds);
 
+  // on remplace les arrays simples par des objets enrichis
+  const solsFinal: { dynamicId: number, bimFileId: string, dbId: number, roomId: number }[] = [];
+  const equipementsFinal: { dynamicId: number, bimFileId: string, dbId: number, roomId: number }[] = [];
 
-  //nouvelle methode de recherche
+
   const groupedByBimFileIds: { bimFileId: string, dbIds: number[] }[] = [];
+
   result_static_details.data.forEach(item => {
-    // const hasMatchingParent = item.groupParents.some(parent => parent.dynamicId === dynamicIdPositions);
-    // if (hasMatchingParent) {
-    let group = groupedByBimFileIds.find(group => group.bimFileId === item.bimFileId);
+    const match = rawEquipments.find(e => e.dynamicId === item.dynamicId);
+    if (!match) return;
+
+    const enriched = {
+      dynamicId: item.dynamicId,
+      bimFileId: item.bimFileId,
+      dbId: item.dbid,
+      roomId: match.roomId
+    };
+
+    if (match.name.includes("Sol")) {
+      solsFinal.push(enriched);
+    } else {
+      equipementsFinal.push(enriched);
+    }
+
+    // groupedByBimFileIds comme avant
+    let group = groupedByBimFileIds.find(g => g.bimFileId === item.bimFileId);
     if (!group) {
       group = { bimFileId: item.bimFileId, dbIds: [] };
       groupedByBimFileIds.push(group);
     }
     group.dbIds.push(item.dbid);
-    // }
   });
 
-  return groupedByBimFileIds
+  const roomInfos = {
+    sols: solsFinal,
+    equipements: equipementsFinal
+  };
+
+  store.commit(MutationTypes.SET_ROOM_REF, roomInfos);
+
+  return groupedByBimFileIds;
 
 }
 
@@ -211,38 +314,105 @@ const buildingDefaultScenes = {};
 let Add_value = null
 
 export async function getViewInfo(buildingId: string, options: IViewInfoBody): Promise<IViewInfoRes[]> {
-  console.log('aaa');
-
-  if (Add_value == null)
-    Add_value = await fetchAdditionalData(config, buildingId);
-
-  const modifiedOptions = {
-    ...options, // Conserve les autres propriétés
-    roomRef: true,
-    floorRef: true,
-    equipements: false,
-  };
-
-  if (modifiedOptions.dynamicId[0] == null)
-    return []
-
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, 'api/v1/geographicContext/viewInfo');
 
-  let result = await spinalAPI.post<IViewInfoRes[]>(url, modifiedOptions);
-
-  console.warn(result);
-
-  if (Array.isArray(result.data[0].data)) {
-    // Ajoute les objets de Add_value dans result.data[0].data
-    Add_value.forEach(item => {
-      result.data[0].data.push(item);
-    });
+  if (Add_value == null) {
+    Add_value = await fetchAdditionalData(config, buildingId);
   }
 
+  const modifiedOptions = {
+    ...options,
+    roomRef: true,
+    floorRef: true,
+    equipements: false, // désactivé ici mais tu gères les équipements manuellement ensuite
+  };
 
-  return result.data;
+  // Vérifie qu'un ID dynamique est fourni
+  if (!modifiedOptions.dynamicId || modifiedOptions.dynamicId[0] == null) {
+    return [];
+  }
+
+  let result = await spinalAPI.post<IViewInfoRes[]>(url, modifiedOptions);
+
+  // Cas 1 : Afficher tout le bâtiment (config.showAllFloor == true)
+  if (config.showAllFloor) {
+    if (Array.isArray(result.data[0].data)) {
+      Add_value.forEach(item => {
+        result.data[0].data.push(item);
+      });
+    }
+    return result.data;
+  }
+
+  // Cas 2 : Afficher uniquement la pièce avec les équipements
+  return [{
+    dynamicId: result.data[0].dynamicId,
+    data: Add_value
+  }];
 }
+
+
+// export async function getViewInfo(buildingId: string, options: IViewInfoBody): Promise<IViewInfoRes[]> {
+
+//   if (Add_value == null)
+//     Add_value = await fetchAdditionalData(config, buildingId);
+
+//   const modifiedOptions = {
+//     ...options, // Conserve les autres propriétés
+//     roomRef: true,
+//     floorRef: true,
+//     equipements: false,
+//   };
+
+//   if (modifiedOptions.dynamicId[0] == null)
+//     return []
+
+//   const spinalAPI = SpinalAPI.getInstance();
+//   const url = spinalAPI.createUrlWithPlatformId(buildingId, 'api/v1/geographicContext/viewInfo');
+
+//   let result = await spinalAPI.post<IViewInfoRes[]>(url, modifiedOptions);
+
+//   const ensemble = [{
+//     dynamicId: result.data[0].dynamicId,
+//     data: Add_value
+
+//   }]
+
+//   return ensemble;
+// }
+
+
+// export async function getViewInfo(buildingId: string, options: IViewInfoBody): Promise<IViewInfoRes[]> {
+
+//   if (Add_value == null)
+//     Add_value = await fetchAdditionalData(config, buildingId);
+
+//   const modifiedOptions = {
+//     ...options, // Conserve les autres propriétés
+//     roomRef: true,
+//     floorRef: true,
+//     equipements: false,
+//   };
+
+//   if (modifiedOptions.dynamicId[0] == null)
+//     return []
+
+//   const spinalAPI = SpinalAPI.getInstance();
+//   const url = spinalAPI.createUrlWithPlatformId(buildingId, 'api/v1/geographicContext/viewInfo');
+
+//   let result = await spinalAPI.post<IViewInfoRes[]>(url, modifiedOptions);
+
+//   console.warn(result);
+
+//   if (Array.isArray(result.data[0].data)) {
+//     Add_value.forEach(item => {
+//       result.data[0].data.push(item);
+//     });
+//   }
+
+//   return result.data;
+// }
 
 export function mergeIViewInfoTmpRes(resBody: IViewInfoTmpRes[], bimFileId: string, dbId: number): void {
   let found = false;

@@ -26,7 +26,7 @@ import { getBuildings, getBuildingById } from "../../spinalAPI/GeographicContext
 import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
-import { getEquipments, getFloors, getRooms, getStaticDetails, getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails, postBIMObjectInfo, getBuildingInfo, getBuildingStaticDetails,getDocumentation, postDownloadFile , getParent , getAttributListMultiple , getNodeRead  , getTicket , getpositionEquipement , getpositionRoom , postNodeCommand} from "../../spinalAPI/GeographicContext/geographicContext";
+import { getEquipments, getFloors, getRooms, getStaticDetails, getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails, postBIMObjectInfo, getBuildingInfo, getBuildingStaticDetails, getDocumentation, postDownloadFile, getParent, getAttributListMultiple, getNodeRead, getTicket, getpositionEquipement, getpositionRoom, postNodeCommand, getStaticDetailsRoom, getContextList, getContextCategoryList, getContextCategoryGroupList, getParentListMultiple } from "../../spinalAPI/GeographicContext/geographicContext";
 import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
 import { getMultipleReferenceObjects } from "../../spinalAPI/GeographicContext/getObjectList";
@@ -70,6 +70,47 @@ export const actions = {
 
 		try {
 			const result = await postDownloadFile(buildingId, referenceIds);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_CONTEXT_LIST]({ commit }: AugmentedActionContextAppData, { buildingId }: { buildingId: string }): Promise<any> {
+		try {
+			const result = await getContextList(buildingId);
+			return result;
+		} catch (error) {
+			console.log('Erreur lors de la récuperation du fichier', error);
+			throw error;
+		}
+	},
+
+	async [ActionTypes.GET_CONTEXT_CATEGORY_LIST]({ commit }: AugmentedActionContextAppData, { buildingId, contextId }: { buildingId: string; contextId: any }): Promise<any> {
+		try {
+			const result = await getContextCategoryList(buildingId, contextId);
+			return result;
+		} catch (error) {
+			console.log('Erreur lors de la récuperation du fichier', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_CONTEXT_CATEGORY_GROUP_LIST]({ commit }: AugmentedActionContextAppData, { buildingId, contextId, categoryDynId }: { buildingId: string; contextId: any; categoryDynId: any }): Promise<any> {
+		try {
+			const result = await getContextCategoryGroupList(buildingId, contextId, categoryDynId);
+			return result;
+		} catch (error) {
+			console.log('Erreur lors de la récuperation du fichier', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_STATIC_DETAILS_ROOM]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+		// console.log('Début de l\'action GET_REFERENCE_OBJECT_LIST_MULTIPLE',buildingId , referenceIds);
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			// const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
+			const result = await getStaticDetailsRoom(buildingId, referenceIds);
+			// console.log('Récupération de l objet de référence réussie:', result);
 			return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des objets de référence:', error);
@@ -176,7 +217,7 @@ export const actions = {
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
 			const result = await getBuildingStaticDetails(buildingId, referenceIds);
-			return result; 
+			return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des objets de référence:', error);
 			throw error;
@@ -186,7 +227,7 @@ export const actions = {
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
 			const result = await getDocumentation(buildingId, referenceIds);
-			return result; 
+			return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des objets de référence:', error);
 			throw error;
@@ -197,7 +238,7 @@ export const actions = {
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
 			const result = await getParent(buildingId, referenceIds);
-			return result; 
+			return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des objets de référence:', error);
 			throw error;
@@ -209,9 +250,22 @@ export const actions = {
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
 			const result = await postNodeCommand(buildingId, referenceIds);
-			return result; 
+			return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
+
+	async [ActionTypes.POST_PARENT_LIST_MULTIPLE]({ commit }: AugmentedActionContextAppData,{ buildingId, inputList }: { buildingId: string; inputList: { dynamicId: number; relations: string[] }[] }
+	): Promise<any> {
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getParentListMultiple(buildingId, inputList);
+			return result;
+		} catch (error) {
+			console.error('❌ Erreur lors de la récupération des parents multiples :', error);
 			throw error;
 		}
 	},
@@ -221,7 +275,7 @@ export const actions = {
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
 			const result = await getTicket(buildingId, referenceIds);
-			return result; 
+			return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des objets de référence:', error);
 			throw error;
@@ -229,11 +283,11 @@ export const actions = {
 	},
 	async [ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }): Promise<any> {
 		// console.log(buildingId , referenceIds , 'RR');
-		
+
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
 			const result = await getAttributListMultiple(buildingId, referenceIds);
-			return result; 
+			return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des objets de référence:', error);
 			throw error;
@@ -325,7 +379,7 @@ export const actions = {
 		if (typeof roomObjStore[id] === "undefined" || forceUpdate === true) {
 			roomObjStore[id] = spinalAPI.createIteratorCall(getEquipments, patrimoineId, buildingId, floorId, roomId, id);
 		}
-		
+
 
 		const equipments = await roomObjStore[id].next();
 		commit(MutationTypes.SET_EQUIPMENTS, { id: id, items: equipments.value });
@@ -376,8 +430,8 @@ export const actions = {
 				equipements: false,
 				dbIdsToAdd: [],
 			};
-			
-			
+
+
 			if (viewerInfo.equipments === "all") {
 				body.equipements = true;
 				body.dbIdsToAdd = [];
@@ -406,7 +460,7 @@ export const actions = {
 
 	[ActionTypes.HIDE_ITEMS]({ commit, dispatch, state }, playload: any) {
 		console.log('RAYANNNNEE');
-		
+
 		ViewerManager.getInstance().hide(playload);
 	},
 
