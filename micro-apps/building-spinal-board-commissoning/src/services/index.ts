@@ -30,7 +30,6 @@ async function getReadStaticdetailsMultiple(buildingId: string, dynamicIds: numb
   }
   const url = type === "equipement" ? `/equipment/read_static_details_multiple` : `/room/read_static_details_multiple`;
   const res = await sendListMultipleRequest(buildingId, dynamicIds, url)
-  console.log('res', res);
   return res;
 }
 
@@ -134,9 +133,7 @@ export async function getData(buildingId: string){
   const category = await rqC.find((el) => el.name === categoryName);
   const rqG = await getGroupList(buildingId, context.dynamicId, category.dynamicId);
   const groupName = config.entryPoint?.group ?? store.state.appDataStore.groupEquipement.name;
-  console.log('groupName', groupName);
   const group = rqG.find((el) => el.name === groupName) 
-  console.log('group: ', group);
   const groupItems = await getGroupItems(buildingId, context.dynamicId, category.dynamicId, group.dynamicId);
   return groupItems;
 }
@@ -207,7 +204,6 @@ export async function getDataInContextSpatial(buildingId: string, spatialName: s
         }).filter(Boolean);
         
        }
-       console.log('result', result);
 
        const dynamicIds = result.map((el) => el.dynamicId);
        const read = await getReadStaticdetailsMultiple(buildingId, dynamicIds);
@@ -228,12 +224,22 @@ export async function getDataInContextSpatial(buildingId: string, spatialName: s
               const attribute = el.attributsList.find((attr: any) => attr.name === src?.categoryName);
               if(attribute && attribute.attributs) {
                 const attributs = attribute.attributs.find((attr: any) => attr.label.toString().toLocaleLowerCase() === src?.name.toLocaleLowerCase());
-                const attr = {
-                  dynamicId: attributs.dynamicId,
-                  name: attributs.label,
-                  value: attributs.value ? attributs.value : "undefined",
+                if(!attributs) {
+                  const attr = {
+                    dynamicId: attribute.dynamicId,
+                    name: attribute.name,
+                    value: "undefined",
+                  }
+                  attributeList.push(attr);
                 }
-                attributeList.push(attr);
+                else {
+                  const attr = {
+                    dynamicId: attributs.dynamicId,
+                    name: attributs.label,
+                    value: attributs.value ? attributs.value : "undefined",
+                  }
+                  attributeList.push(attr);
+                }
               }
             }
             src.push(...attributeList);
@@ -275,7 +281,7 @@ export async function getDataInContextSpatial(buildingId: string, spatialName: s
           return matchingRead ? { ...el, ...matchingRead } : el;
         });
         if(final.length > 0) {
-          store.commit(MutationTypes.SET_DATA, final);
+         await store.commit(MutationTypes.SET_DATA, final);
           return true
         }
         else {

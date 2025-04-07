@@ -149,6 +149,8 @@ methods: {
           percent: ((item.value / total) * 100).toFixed(2)
         };
       });
+      console.log('configLegend: ', this.configLegend)
+
   }
  }
   

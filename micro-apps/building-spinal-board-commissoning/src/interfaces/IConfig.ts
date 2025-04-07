@@ -97,7 +97,7 @@ interface Istatistique {
   sourceId: number;
   setup : {
     type: string | 'regex';
-    value: string | number | RegExp;
+    value: string | number ;
     legend?: ILegendStatistique[];
   }
 }

@@ -1,6 +1,14 @@
-<template>  
+<template> 
   <v-app class="spinal-font">
+    <Loader v-if="showLoader" />
     <div class="selectors">
+      <div class="Hx2">
+        <DownloadButton
+          :fileName="selectedZone.name"
+          :data="dataStore"
+          :csv="true"
+        />
+      </div>
       <div class="Hx1">
         <space-selector
           ref="space-selector"
@@ -27,6 +35,8 @@ import MicroApp from './components/MainComponent.vue';
 import { ActionTypes } from './interfaces/vuexStoreTypes';
 import { MutationTypes } from './services/store/appDataStore/mutations';
 import { getDataInContextSpatial } from './services';
+import Loader from './components/Loader.vue'
+import DownloadButton from './components/DownloadButton.vue'
 interface IItemData {
   platformId: string;
   id: number | number[];
@@ -40,6 +50,8 @@ interface IItemDatatmp {
   components: {
     SpaceSelector,
     MicroApp,
+    Loader,
+    DownloadButton
   },
 })
 class App extends Vue {
@@ -60,6 +72,7 @@ class App extends Vue {
 
   showLoader = true;
   showMessage = false;
+  
 
 
  
@@ -84,11 +97,6 @@ class App extends Vue {
    const onload = await  getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type)
     if(onload) {
       this.showLoader = false;
-      this.showMessage = false;
-    }
-    else {
-        this.showLoader = false;
-        this.showMessage = true;
     }
     // this.defaultSelected = item;
     // let building = await getBuilding();
@@ -180,10 +188,11 @@ export default App;
   right: 0px;
   top: -1px;
   height: 60px;
+
 }
 .Hx2 {
   position: absolute;
-  width: 34%;
+  width: max-content;
   right: calc(66%);
   top: -1px;
   height: 60px;

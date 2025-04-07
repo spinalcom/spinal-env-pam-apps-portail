@@ -1,6 +1,5 @@
 <template>
-  <Loader v-if="showLoader" />
-  <div v-else style="width: 100%; height: 100%;">
+  <div style="width: 100%; height: 100%;">
     <v-data-table
     style="height: 100% !important; overflow: hidden; overflow-y: auto;"
     mobile-breakpoint="0"
@@ -18,11 +17,12 @@
   <template v-for="header in headers" v-slot:[`header.${header.value}`]="{ header }">
       <div @click="headershow(header)" :class="{ 'selected-class': selected_header === header.text }"
         style="display: flex;flex-direction: row;justify-content: space-between; align-items: center ; height: 40px;">
-        <span title="Cliquez pour afficher les éléments dans la 3D" id="headerName">{{ header.text }}</span>
+        <span id="headerName">{{ header.text }}</span>
         <div style="width: 39px;  transform: translate(-14px,3px); ">
           <v-select v-model="selections['filter']" :menu-props="{ offsetY: true }" :label="''" multiple
-            append-icon="mdi-chevron-down" color="#14202C" item-color="#14202C" class=" d-inline-block"
-            style="width:20px;min-width: 20px;font-size: 14px !important;transform: translate(15%,10%); border: none;"
+            append-icon="mdi-chevron-down" color="#14202C" item-color="#14202C" class="d-flex justify-center align-center"
+            @click.stop=""
+            style="width:25px;min-width: 25px;font-size: 14px !important;transform: translate(10%,10%); border: none; outline: none; "
             @change="filtredData(selections)"
             v-if="header.filterable" :items="getUniqueColumnValues(stripeData)">
             <template v-slot:selection="{ item, index }">
@@ -209,13 +209,20 @@ getColor(value: any, header: any) {
       if (this.duplicate.includes(value)) {
         const src = config.bilan.timeline.setup.legend?.find((config) => config.type === "dual");
         return src?.color; // Rouge pour les valeurs en double
-      } else if (this.warning.includes(value)) {
+      }
+       if (this.warning.includes(value)) {
         const src = config.bilan.timeline.setup.legend?.find((config) => config.type === "warning");
         return src?.color;
-      } else if (value === 'undefined' || value === 'null') {
+      } 
+       if (value === 'undefined' || value === 'null') {
         const src = config.bilan.timeline.setup.legend?.find((config) => config.type === "missing");
         return src?.color;
-      } else {
+      } 
+        if(this.seen.has(value)) {
+          const src = config.bilan.timeline.setup.legend?.find((config) => config.type === "success");  
+          return src?.color; // Vert pour les valeurs valides
+        }
+      else {
         return '#14202C'; // Bleu foncé pour les autres valeurs
       }
     } else {
@@ -295,7 +302,7 @@ getColor(value: any, header: any) {
       this.itemData = this.updateData(replaceSource);
       
     this.$store.commit(MutationTypes.SET_STRIPE_DATA, result);
- 
+    console.log('result: ', result);
  
 },
   updateData(update: any[]){   
