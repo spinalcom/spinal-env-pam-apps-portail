@@ -39,28 +39,59 @@
         this.downloadCSV();
       },
       downloadCSV() {
-        const data = this.$store.state.appDataStore.StripeDataList;
-        const seletectedZone = this.$store.state.appDataStore.zoneSelected.name;
-        console.log("data", data);
-        console.log("seletectedZone", seletectedZone);
-          const worksheet = XLSX.utils.json_to_sheet(data);
-          const workbook = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(workbook, worksheet, seletectedZone);
-          XLSX.writeFile(workbook, `${seletectedZone}-convention_nomage.xlsx`);
+          // Récupérer les données du store
+        let data = this.$store.state.appDataStore.data;
+        const stripeData = this.$store.state.appDataStore.StripeDataList;
+        const resultFinaldata = data.filter((item) => {
+          const stripeDataItem = stripeData.find((str) => item.sources.find((src) => src.dynamicId === str.dynamicId));
+          if(stripeDataItem) {
+            return true;
+          }
+          else {
+            return false;
+          }
+        })
+        
+        const selectedZone = this.$store.state.appDataStore.zoneSelected.name;
+
+        // Convertir les données en format de tableau adapté pour Excel
+        const flatData = this.convertCSV(resultFinaldata);
+     
+        const worksheet = XLSX.utils.json_to_sheet(flatData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, selectedZone);
+        // Télécharger le fichier Excel
+        XLSX.writeFile(workbook, `${selectedZone}-convention_nomage.xlsx`);
+        
+      
+        
 
       },
-  
-      formatToExcel() {
-        const entete = Object.keys(this.data[0]).map((h) => ({
-          key: h,
-          header: h,
-        }));
-        return {
-          name: "",
-          author: "",
-          data: [{ name: "sheet 1", header: entete, rows: this.data }],
+ extractForCSV(obj) {
+        const row = {
+          dynamicId: obj.dynamicId,
+          name: obj.name,
+          room: obj.info?.room?.name || "",
+          roomStaticId: obj.info?.room?.staticId || "",
+          floor: obj.info?.floor?.name || "",
+          floorStaticId: obj.info?.floor?.staticId || "",
         };
-      },
+
+        // Ajouter une colonne pour chaque source
+        obj.sources.forEach((source, index) => {
+          row[`${source.name}`] = source.value;
+        });
+
+  return row;
+},
+    convertCSV(arr) {
+      let flat = arr.map(this.extractForCSV);
+      return flat;
+     
+      ;
+    }
+    
+      
     },
   };
   </script>

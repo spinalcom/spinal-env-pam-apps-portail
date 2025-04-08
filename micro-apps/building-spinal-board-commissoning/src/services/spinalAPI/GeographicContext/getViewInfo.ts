@@ -128,15 +128,7 @@ export async function getDefaultScene(buildingId: string) {
     return buildingDefaultScenes[buildingId]; 
 }
 
-// export async function getAndFormatModels(res: IViewInfoTmpRes[]) {
-//   return res.map((it: IViewInfoTmpRes) => {
-//     console.log(it);
-//     return {
-//       id: it.bimFileId,
-//       dbIds: Array.from(it.dbIds),
-//     };
-//   });
-// }
+
 
 export function convertViewerInfoToObj(res: IViewInfoTmpRes[]) {
   return res.reduce((obj, item) => {

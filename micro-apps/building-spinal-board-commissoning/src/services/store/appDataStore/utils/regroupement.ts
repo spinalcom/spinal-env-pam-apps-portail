@@ -41,7 +41,6 @@ export function getItemsToRegroup(map: Map<string, any>, item: ISpaceSelectorIte
       obj = map.get(type);
       data = obj[item.dynamicId];
    }
-   console.log("data in getItemTo regroup: ", data);
    if (!data) return [];
 
    if (data.type === map.get("groupType")) return [data];

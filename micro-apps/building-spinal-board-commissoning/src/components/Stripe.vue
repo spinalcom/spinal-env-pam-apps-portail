@@ -28,6 +28,9 @@ export default {
   computed: {
     data() {
       return this.$store.state.appDataStore.StripeDataList;
+    },
+    spaceSelected() {
+      return this.$store.state.appDataStore.zoneSelected;
     }
   },
 
@@ -38,8 +41,16 @@ watch: {
     this.stripeList = newData;
     this.getStripeData();
   }
- }
+ },
+
+  spaceSelected: {
+    handler(newData) {
+      this.stripeList = newData;
+      this.getStripeData();
+    }
+  }
 },
+
 
 
 methods: {
@@ -67,7 +78,7 @@ methods: {
           const regex = parseRegex(stripLegend.setup.value);
           // Vérifie si la regex existe et fonctionne correctement
 
-          if (value === "undefined" || value === "") {
+          if (value === "undefined" || value === ""  || value === null) {
             missing.push(value);
           } else {
             if (regex.test(value)) {
@@ -149,7 +160,6 @@ methods: {
           percent: ((item.value / total) * 100).toFixed(2)
         };
       });
-      console.log('configLegend: ', this.configLegend)
 
   }
  }

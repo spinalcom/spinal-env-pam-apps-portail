@@ -105,6 +105,8 @@ export default {
           this.itemData = newData;
           this.showLoader = false;
           const stripLegend = config.bilan.timeline;
+          this.selections = {};
+          this.selections['filter'] = [];
           const source = config.sources.find((src) => src.id === stripLegend.sourceId);
           const data = this.item.map((el) => {
             if(el.sources) {
@@ -244,7 +246,6 @@ getColor(value: any, header: any) {
         value: this.missing,
       }
       this.seen.forEach((value, key) => {
-        // console.log(`Key: ${key}, Value: ${value}`);
       });
       const correct = {
         text: config.bilan.timeline.setup.legend?.find((src) => src.type === "success")?.name,
@@ -302,7 +303,6 @@ getColor(value: any, header: any) {
       this.itemData = this.updateData(replaceSource);
       
     this.$store.commit(MutationTypes.SET_STRIPE_DATA, result);
-    console.log('result: ', result);
  
 },
   updateData(update: any[]){   

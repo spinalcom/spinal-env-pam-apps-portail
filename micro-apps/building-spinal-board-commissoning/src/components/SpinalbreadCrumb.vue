@@ -113,7 +113,7 @@ export default {
         },
 
         adop() {
-            console.log(this.sconfig);
+        
 
         },
 
@@ -130,7 +130,7 @@ export default {
         },
         validate() {
             this.$emit('loadData')
-            console.log('validate executed');
+      
             this.showSelection = false;
         },
 

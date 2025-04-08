@@ -222,9 +222,7 @@ async loadDataContext(){
   const context = this.$store.state.appDataStore.context;
   const categories = this.$store.state.appDataStore.categoriesContext;
   const groupEquipement = this.$store.state.appDataStore.groupContext;
-  console.log('context', context);
-  console.log('categories', categories);
-  console.log('groupEquipement', groupEquipement);
+
   await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type)
 }
 
