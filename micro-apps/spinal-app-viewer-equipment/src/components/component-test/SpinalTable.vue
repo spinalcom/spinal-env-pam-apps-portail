@@ -9,139 +9,115 @@
       border-color: black !important;
     "
   >
-    <!-- BREADCRUMBS -->
-    <SpinalbreadCrumb
-      @itemSelected="emitValue($event.listType, $event.value)"
-      @goBack="goBack"
-      @deselectItem="unselectDataView()"
-      :ctx_list="ctx_list"
-      :cat_list="cat_list"
-      :grp_list="grp_list"
-      :selected_item="selected_data_item_name"
-    ></SpinalbreadCrumb>
 
-    <!-- Vselect + t_index selector -->
 
-    <div>
-      <div class="equipment-title" style="display: flex; justify-content: space-between">
-        <div
-          v-if="
-            ActiveData &&
-            labelsChart &&
-            ['Indicateur', 'Points de mesures'].includes(vSelectedTab)
-          "
-          style="
-            display: flex;
-            flex-wrap: nowrap;
-            align-items: center;
-            margin-left: 15px;
-            margin-right: 15px;
-          "
-        >
-          <v-btn
-            style="margin: 10px"
-            elevation="0"
-            fab
-            small
-            @click="t_index--"
-          >
-            <v-icon>mdi-chevron-left</v-icon>
-          </v-btn>
-          <div style="white-space: nowrap">{{ timeactuelle }}</div>
-          <v-btn
-            style="margin: 10px"
-            elevation="0"
-            fab
-            small
-            @click="t_index++"
-          >
-            <v-icon>mdi-chevron-right</v-icon>
-          </v-btn>
-        </div>
-
-        <div
-          style="
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-          "
-        >
-          <div>
-            <v-select
-              v-model="vSelectedTab"
-              :items="vSelectDynamic"
-              :label="vSelectLabel"
-              outlined
-              :attach="$refs.toto"
-              :menu-props="{ offsetY: true, nudgeTop: -20 }"
-            ></v-select>
-            <div ref="toto"></div>
-          </div>
-          <div>
-            <div
-              style="
+    <div style="width: 100%;
                 display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: 10px;
-                margin-left: 10px;
-                margin-top: 10px;
-              "
-            >
-              <v-icon
-                large
-                title="Recadrer sur l'espace sélectionné"
-                v-if="$store.state.appDataStore.user_selected.cat"
-                @click="globalFitToView()"
-              >
-                mdi-fit-to-screen
-              </v-icon>
+                justify-content: flex-end;"> 
+      <div style="display: flex;
+        flex-direction: column;
+        justify-content: space-between; 
+        min-width: 39vw; 
+        overflow-x: hidden;
+        ">
 
-              <v-icon
-                large
-                title="Ajouter tous les sprites"
-                :class="{ 'disabled-icon': loadingState }"
-                v-if="$store.state.appDataStore.user_selected.cat"
-                @click="globalAddAllSprites()"
-              >
-                {{
-                  globalSprite
-                    ? 'mdi-map-marker-off-outline'
-                    : 'mdi-map-marker-outline'
-                }}
-              </v-icon>
+        <!-- BREADCRUMBS -->
+        <SpinalbreadCrumb
+          @itemSelected="emitValue($event.listType, $event.value)"
+          @goBack="goBack"
+          @deselectItem="unselectDataView()"
+          :ctx_list="ctx_list"
+          :cat_list="cat_list"
+          :grp_list="grp_list"
+          :selected_item="selected_data_item_name"
+        ></SpinalbreadCrumb>
 
-              <v-icon
-                large
-                title="Colorier tous les éléments"
-                v-if="$store.state.appDataStore.user_selected.cat"
-                @click="globalColorAllGroups()"
-              >
-                {{
-                  globalColored ? 'mdi-invert-colors-off' : 'mdi-invert-colors'
-                }}
-              </v-icon>
-
-              <v-icon
-                large
-                v-if="
-                  $store.state.appDataStore.user_selected.cat &&
-                  !$store.state.appDataStore.user_selected.grp
-                "
-                @click.stop="globalHideAllGroups()"
-                :title="
-                  globalHidden
-                    ? 'Afficher tous les groupes dans la 3D'
-                    : 'Masquer tous les groupes dans la 3D'
-                "
-              >
-                {{ globalHidden ? 'mdi-eye-off-outline' : 'mdi-eye-outline' }}
-              </v-icon>
+        <div
+            style="
+              margin-top: 20px;
+              margin-left: 2px;
+              display: flex;
+            "
+          >
+            <div>
+              <v-select
+                v-model="vSelectedTab"
+                :items="vSelectDynamic"
+                :label="vSelectLabel"
+                outlined
+                
+                :menu-props="{ offsetY: true, nudgeTop: -20 }"
+              ></v-select>
+              
             </div>
-          </div>
+            <div>
+              <div
+                style="
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  gap: 10px;
+                  margin-left: 10px;
+                  margin-top: 10px;
+                "
+              >
+                <v-icon
+                  large
+                  title="Recadrer sur l'espace sélectionné"
+                  v-if="$store.state.appDataStore.user_selected.cat"
+                  @click="globalFitToView()"
+                >
+                  mdi-fit-to-screen
+                </v-icon>
+
+                <v-icon
+                  large
+                  title="Ajouter tous les sprites"
+                  :class="{ 'disabled-icon': loadingState }"
+                  v-if="$store.state.appDataStore.user_selected.cat"
+                  @click="globalAddAllSprites()"
+                >
+                  {{
+                    globalSprite
+                      ? 'mdi-map-marker-off-outline'
+                      : 'mdi-map-marker-outline'
+                  }}
+                </v-icon>
+
+                <v-icon
+                  large
+                  title="Colorier tous les éléments"
+                  v-if="$store.state.appDataStore.user_selected.cat"
+                  @click="globalColorAllGroups()"
+                >
+                  {{
+                    globalColored ? 'mdi-invert-colors-off' : 'mdi-invert-colors'
+                  }}
+                </v-icon>
+
+                <v-icon
+                  large
+                  v-if="
+                    $store.state.appDataStore.user_selected.cat &&
+                    !$store.state.appDataStore.user_selected.grp
+                  "
+                  @click.stop="globalHideAllGroups()"
+                  :title="
+                    globalHidden
+                      ? 'Afficher tous les groupes dans la 3D'
+                      : 'Masquer tous les groupes dans la 3D'
+                  "
+                >
+                  {{ globalHidden ? 'mdi-eye-off-outline' : 'mdi-eye-outline' }}
+                </v-icon>
+              </div>
+            </div>
         </div>
+
       </div>
+
     </div>
+
 
     <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
     <LoadingSpinner
@@ -579,8 +555,44 @@
     <!-- ONGLET INDICATEUR (controleEndpoint) et Points de mesures -->
     <div
       v-if="vSelectedTab == 'Indicateur' || vSelectedTab == 'Points de mesures'"
-      style="display: flex"
+      style="display: flex;"
     >
+    <!-- Contains t_index selector and graph -->
+    <div v-if="
+              ActiveData &&
+              labelsChart &&
+              ['Indicateur', 'Points de mesures'].includes(vSelectedTab)
+            " style="display: flex; flex-direction: column; width: 100% ; align-items: center;">
+      <div
+            style="
+              display: flex;
+              flex-wrap: nowrap;
+              align-items: center;
+              margin-left: 15px;
+              margin-right: 15px;
+            "
+          >
+            <v-btn
+              style="margin: 10px"
+              elevation="0"
+              fab
+              small
+              @click="t_index--"
+            >
+              <v-icon>mdi-chevron-left</v-icon>
+            </v-btn>
+            <div style="white-space: nowrap">{{ timeactuelle }}</div>
+            <v-btn
+              style="margin: 10px"
+              elevation="0"
+              fab
+              small
+              @click="t_index++"
+            >
+              <v-icon>mdi-chevron-right</v-icon>
+            </v-btn>
+      </div>
+
       <div v-if="ActiveData && labelsChart" class="graphContainer">
         <!-- <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
             :step="labelsChart.length" :tooltipCallbacks="{
@@ -607,6 +619,7 @@
           }"
         ></FastLineCardComponent>
       </div>
+    </div>
 
       <!-- ONGLET INDICATEUR -->
       <div style="width: 100%" v-if="vSelectedTab == 'Indicateur'" class="scrollable-content">
@@ -1224,6 +1237,7 @@ export default {
           this.$store.state.appDataStore.zoneSelected.dynamicId ||
           this.$store.state.appDataStore.buildingInfo.dynamicId,
       });
+      this.vSelectedTab='Equipements';
     },
 
     fitToView(item) {
@@ -2221,8 +2235,6 @@ export default {
 
     async vSelectedTab(newVal, oldVal) {
       console.log('vSelectedTab', newVal);
-      const dynamicId = this.currentTargetItemId;
-      const buildingId = localStorage.getItem('idBuilding');
       if (newVal === 'Attributs') {
         await this.updateAttributes();
         // this.$forceUpdate()
@@ -2305,9 +2317,8 @@ export default {
 <style scoped>
 .graphContainer {
   border-radius: 0px;
-  width: 160%;
-  height: 100%;
-  min-height: 700px;
+  min-width: 58vw;
+  min-height: 50vh;
   display: flex;
   padding: 10px;
 }
@@ -2513,15 +2524,6 @@ export default {
   background-color: rgb(199, 199, 199);
 }
 
-.equipment-title {
-  position: relative;
-  width: 100%;
-  display: flex;
-  letter-spacing: 1.1px;
-  color: #214353;
-  opacity: 1;
-  font-size: 20px !important;
-}
 
 .disabled-icon {
   pointer-events: none;

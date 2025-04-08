@@ -6,7 +6,7 @@
         href="#selected_ctx"
         @click.stop="goBackToContextSelection"
         class="breadcrumbs__item"
-        >=></a>
+        ><</a>
       <a
         title="Revenir à la selection de catégories"
         href="#selected_ctx"

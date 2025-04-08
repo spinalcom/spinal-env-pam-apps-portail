@@ -345,9 +345,9 @@ export const actions = {
 	  }
 	},
 
-	async [ActionTypes.GET_ROOM_POSITION_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, equipmentIds }: any): Promise<IZoneItem[]> {
+	async [ActionTypes.GET_ROOM_POSITION_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, roomIds }: any): Promise<IZoneItem[]> {
 		try {
-			const chunkedIds = lodash.chunk(equipmentIds, 200);
+			const chunkedIds = lodash.chunk(roomIds, 200);
 			const promises = chunkedIds.map(ids => getRoomPositions(buildingId, ids));
 
 			const promiseResults = await Promise.allSettled(promises);
