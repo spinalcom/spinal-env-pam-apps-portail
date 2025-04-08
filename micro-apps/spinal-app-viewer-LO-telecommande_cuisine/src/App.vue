@@ -345,6 +345,7 @@ class App extends Vue {
       if (dynamicId) {
         clearInterval(interval);
         this.applyURLParam(); // on peut éventuellement passer un `query` si nécessaire
+        this.youAreHere()
       }
     }, 500); // toutes les 500ms
   }

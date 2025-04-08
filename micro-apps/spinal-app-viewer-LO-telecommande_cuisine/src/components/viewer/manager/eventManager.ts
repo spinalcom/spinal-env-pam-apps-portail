@@ -56,7 +56,6 @@ export class EventManager {
 			const viewerUtils = ViewerUtils.getInstance();
 
 			emitterHandler.on(VIEWER_START_LOAD_MODEL, async (data: any) => {
-				console.log('sasokokasok kdaojzdo kazdoko dozakd 1');
 				const models = await viewerUtils.load3DModels(viewer, data);
 				emitterHandler.emit(<any>VIEWER_EVENTS.LOADED, { id: data.item.dynamicId, models });
 				store.commit(MutationTypes.SET_LOADED, localStorage.getItem('room_tablette'));
@@ -94,7 +93,7 @@ export class EventManager {
 				setTimeout(async() => {
 					viewer.setNavigationLock(true);
 					await viewer.unloadExtension('Autodesk.ViewCubeUi')
-				}, 4000);
+				}, 10000);
 
 
 				// async function setViewCubeAndFit(viewer) {
