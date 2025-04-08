@@ -39,7 +39,8 @@ with this file. If not, see
       :selectedItem="selectedItem" :typeTelecommande="typeTelecommande" :data="''">
     </Télécommande>
 
-    <div v-if="config.SelectionType == 'button' || config.SelectionType == 'multiple' " @click="displayTelecommande = true" class="btn_pilotage">
+    <div v-if="config.SelectionType == 'button' || config.SelectionType == 'multiple'"
+      @click="displayTelecommande = true" class="btn_pilotage">
       PILOTAGE PIÈCE
     </div>
 
@@ -161,7 +162,7 @@ class App extends Vue {
   }
 
   async mounted() {
-
+    this.watchLocalStorageForFloorId();
 
     this.configTypeTablette()
 
@@ -220,7 +221,7 @@ class App extends Vue {
       // this.query.app = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC10ZWxlY29tbWFuZGUiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6Ijg0ZDgtNzgyMS0yZTI2LTE5MjAwNmI4MDJmIiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcyNjU4MzkxOTM1NSwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzI2NTgzODk4MTU5LCJpY29uIjoiIiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLXRlbGVjb21tYW5kZSIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
       window.parent.router.query.app = this.query.app
       const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
-      this.applyURLParam(currentQuery);
+      this.applyURLParam();
       // this.asynctoto()
     });
   }
@@ -338,6 +339,16 @@ class App extends Vue {
   }
 
 
+  watchLocalStorageForFloorId() {
+    const interval = setInterval(() => {
+      const dynamicId = localStorage.getItem("floor_tablette_id");
+      if (dynamicId) {
+        clearInterval(interval);
+        this.applyURLParam(); // on peut éventuellement passer un `query` si nécessaire
+      }
+    }, 500); // toutes les 500ms
+  }
+
   handleClose() {
     this.displayTelecommande = false;
     this.typeTelecommande = ''
@@ -420,7 +431,7 @@ class App extends Vue {
     this.$store.commit(MutationTypes.SET_TEMPORALITY, v);
   }
 
-  applyURLParam(query) {
+  applyURLParam() {
     const buildingId = localStorage.getItem("idBuilding");
     const dynamicId = localStorage.getItem("floor_tablette_id"); //TODO
     const name = localStorage.getItem("floor_tablette_name");

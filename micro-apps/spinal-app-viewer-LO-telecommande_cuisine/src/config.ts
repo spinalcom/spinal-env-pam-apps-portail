@@ -32,7 +32,7 @@ export const config: IConfig = {
 
 	//donnée pour le lancement de l'app
 	idBuilding: '5932-6086-9e1a-18506478460',
-	tabletteId: 216681008,
+	// tabletteId: 216681008,
 
 	//context et categories du groupe de la tablette
 	groupContext: "Gestion des espaces",
