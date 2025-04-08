@@ -147,7 +147,7 @@ class dataSideApp extends Vue {
   async mounted() {
     localStorage.setItem("viewer_loaded", 'initialize');
     // -> update contexts
-    await this.getAndUpdateEquipmentContexts();
+    await this.getAndUpdateRoomContexts();
     await this.updateTableData();
     
 
@@ -168,7 +168,7 @@ class dataSideApp extends Vue {
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "ctx", value: null });
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "cat", value: null });
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: null });
-      await this.getAndUpdateEquipmentContexts();
+      await this.getAndUpdateRoomContexts();
       await this.updateTableData();
       return;
     }
@@ -177,7 +177,7 @@ class dataSideApp extends Vue {
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "ctx", value: payload.value.name });
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "cat", value: null });
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: null });
-      await this.getAndUpdateEquipmentCategories();
+      await this.getAndUpdateRoomCategories();
       await this.updateTableData();
       return;
     }
@@ -185,14 +185,14 @@ class dataSideApp extends Vue {
     if (payload.listType == "cat") {
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "cat", value: payload.value.name });
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: null });
-      await this.getAndUpdateEquipmentGroups();
+      await this.getAndUpdateRoomGroups();
       await this.updateTableData();
       return;
     }
 
     if (payload.listType == "grp"){
       this.$store.commit(MutationTypes.SET_USER_SELECTED, { key: "grp", value: payload.value.name });
-      await this.getAndUpdateEquipmentList();
+      await this.getAndUpdateRoomList();
       await this.updateTableData();
     }
     return;
@@ -202,7 +202,7 @@ class dataSideApp extends Vue {
 
   
 
-  async getAndUpdateEquipmentContexts(){
+  async getAndUpdateRoomContexts(){
     this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
     this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des contextes d'équipements...`);
     let dispatchObject = {
@@ -217,7 +217,7 @@ class dataSideApp extends Vue {
       this.pageSate = PAGE_STATES.loaded;
     } catch (err) {
       console.log(err);
-      this.retry = this.getAndUpdateEquipmentContexts;
+      this.retry = this.getAndUpdateRoomContexts;
       this.pageSate = PAGE_STATES.error;
     } finally {
       this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
@@ -299,7 +299,7 @@ class dataSideApp extends Vue {
 
   }
 
-  async getAndUpdateEquipmentCategories(){
+  async getAndUpdateRoomCategories(){
     const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
     this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
     this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des catégories de ${matchingContext.name}...`);
@@ -318,7 +318,7 @@ class dataSideApp extends Vue {
       this.pageSate = PAGE_STATES.loaded;
     } catch (err) {
       console.log(err);
-      this.retry = this.getAndUpdateEquipmentCategories;
+      this.retry = this.getAndUpdateRoomCategories;
       this.pageSate = PAGE_STATES.error;
     } finally {
       this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
@@ -326,7 +326,7 @@ class dataSideApp extends Vue {
 
   }
 
-  async getAndUpdateEquipmentGroups(){
+  async getAndUpdateRoomGroups(){
     if(!this.$store.state.appDataStore.user_selected.ctx || !this.$store.state.appDataStore.user_selected.cat) return;
     const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
     const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
@@ -344,12 +344,30 @@ class dataSideApp extends Vue {
   
       try {
         const result = await this.$store.dispatch(actionType, dispatchObject);
+
+        await Promise.all(result.map(async (grp) => {
+          const groupItems = await this.$store.dispatch(ActionTypes.GET_ROOM_LIST, {buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: grp.dynamicId,forceUpdate: true});
+
+          const enrichedWithArea = await this.enrichItemsWithCoordinates(groupItems);
+          grp.groupItems = enrichedWithArea;
+
+          grp.area = 0;
+          grp.groupItems.forEach((item) => {
+            if (item.area) {
+              grp.area += parseFloat(item.area);
+            }
+          });
+          grp.area = grp.area.toFixed(2);
+        }));
+
+        console.log('RESULT GROUPS', result);
+
         this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
   
         this.pageSate = PAGE_STATES.loaded;
       } catch (err) {
         console.log(err);
-        this.retry = this.getAndUpdateEquipmentGroups;
+        this.retry = this.getAndUpdateRoomGroups;
         this.pageSate = PAGE_STATES.error;
       } finally {
         this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
@@ -366,7 +384,8 @@ class dataSideApp extends Vue {
           context: matchingContext.name,
           category: matchingCategory.name
         },
-        onlyDynamicId: false
+        onlyDynamicId: false,
+        includeArea: true
         
       } as any;  
       try {
@@ -374,14 +393,24 @@ class dataSideApp extends Vue {
         result.forEach((grp) => {
           grp.nbr_rooms =grp.groupItems?.length || 'NaN'
         })
+        result.forEach((grp) => {
+          grp.area = 0;
+          grp.groupItems.forEach((item) => {
+            if(item.area){
+              grp.area += parseFloat(item.area);
+            }
+          });
+          grp.area = grp.area.toFixed(2);
+        })
         this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
         this.$store.commit(MutationTypes.SET_INVENTORY_DATA, result); // Set the inventory data, will be enriched later
+        
         console.log('RESULT INVENTORY', this.$store.state.appDataStore.inventory);
         
         this.pageSate = PAGE_STATES.loaded;
       } catch (err) {
         console.log(err);
-        this.retry = this.getAndUpdateEquipmentGroups;
+        this.retry = this.getAndUpdateRoomGroups;
         this.pageSate = PAGE_STATES.error;
       }
 
@@ -400,7 +429,7 @@ class dataSideApp extends Vue {
                                                   }
         );
         result.forEach((grp) => {
-          grp.nbr_equipments =grp.groupItems?.length || 'NaN'
+          grp.nbr_rooms =grp.groupItems?.length || 'NaN'
         })
         this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
         this.$store.commit(MutationTypes.SET_INVENTORY_DATA, result);
@@ -412,7 +441,7 @@ class dataSideApp extends Vue {
 
   }
 
-  async getAndUpdateEquipmentList(){
+  async getAndUpdateRoomList(){
     const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
     const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
     const matchingGroup = this.$store.state.appDataStore.user_selection_list.grp.find(grp => grp.name === this.$store.state.appDataStore.user_selected.grp);
@@ -446,7 +475,7 @@ class dataSideApp extends Vue {
       this.pageSate = PAGE_STATES.loaded;
     } catch (err) {
       console.log(err);
-      this.retry = this.getAndUpdateEquipmentList;
+      this.retry = this.getAndUpdateRoomList;
       this.pageSate = PAGE_STATES.error;
     } finally {
       this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
@@ -493,7 +522,7 @@ class dataSideApp extends Vue {
 
     const itemsPositions = await this.$store.dispatch(ActionTypes.GET_ROOM_POSITION_MULTIPLE, {
       buildingId: localStorage.getItem("idBuilding"),
-      equipmentIds: items.map(eq => eq.dynamicId)
+      roomIds: items.map(eq => eq.dynamicId)
     });
 
     return items.map((eq) => {
@@ -512,13 +541,13 @@ class dataSideApp extends Vue {
 
   //also enrich with area
   async enrichItemsWithCoordinates(items){
-    const equipmentAttributes = await this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
+    const roomAttributes = await this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
       buildingId: localStorage.getItem("idBuilding"),
       referenceIds: items.map(eq => eq.dynamicId)
     });
-    // enrich equipmentList with coordinates and color
+    // enrich roomList with coordinates and color
     return items.map(eq => {
-      const matchingResult = equipmentAttributes.find( res => res.dynamicId === eq.dynamicId)
+      const matchingResult = roomAttributes.find( res => res.dynamicId === eq.dynamicId)
       return {
         ...eq,
         position : this.getCoordinatesFromAttributes(matchingResult.categoryAttributes),
@@ -610,7 +639,7 @@ class dataSideApp extends Vue {
     }
 
     console.log('SELECTED ZONE CHANGED TO : ', this.selectedZone);
-    await this.getAndUpdateEquipmentGroups();
+    await this.getAndUpdateRoomGroups();
     await this.updateTableData();
   }
 
