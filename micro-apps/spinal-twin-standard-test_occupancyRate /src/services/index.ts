@@ -1,4 +1,4 @@
-import {config} from '../config';
+import config from '../../config.js';
 import { HTTP } from "./http-constants";
 import moment from 'moment';
 import lodash from 'lodash';
@@ -45,6 +45,7 @@ export async function getBuilding(): Promise<Building | null> {
     console.log("Generated URL for getBuilding:", url);
 
     const result = await spinalApi.get(url) as { data: Building };
+    console.log("Response from getBuilding:", result.data);
     return result.data;
   } catch (error) {
     console.error("Erreur lors de la récupération des informations du bâtiment :", error);
@@ -1189,26 +1190,6 @@ export async function getThirdChartOccupancyDataByFloor(
   }
 }
 
-export async function fetchThirdChartTotalCount(): Promise<number> {
-  try {
-    const entryPoint = config.entryPoints[1]; // Accéder directement au deuxième élément
-    const contextId = await getThirdChartContextId(entryPoint.context);
-    const categoryId = await getThirdChartCategoryId(contextId, entryPoint.category);
-    const groupId = await getThirdChartGroupId(contextId, categoryId, entryPoint.group);
-    const thirdChartIds = await getThirdChartIds(contextId, categoryId, groupId);
-
-    if (!thirdChartIds || thirdChartIds.length === 0) {
-      throw new Error('No equipment IDs found');
-    }
-
-    console.log('Total Equipment Count:', thirdChartIds.length);
-    return thirdChartIds.length;
-  } catch (error) {
-    console.error("Erreur lors de la récupération du nombre total d'équipements :", error);
-    return 0;
-  }
-}
-
 
 // Fonction utilitaire pour formater les labels
 function formatLabel(date: string, tempo: string): string {
@@ -1233,30 +1214,7 @@ function formatLabel(date: string, tempo: string): string {
 
 // On Récupère les données de graphe pour un bâtiment.
 
-export async function fetchTotalSurface(): Promise<number | null> {
-  try {
-    console.log('fetchTotalSurface called');
-    const buildingId = localStorage.getItem("idBuilding");
-    if (!buildingId) {
-      console.error('Building ID not found in localStorage');
-      return null;
-    }
 
-    const spinalApi = SpinalAPI.getInstance();
-    const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/building/read');
-    console.log("Generated URL for fetchTotalSurface:", url);
-
-    const result = await spinalApi.get(url);
-    console.log('Response from fetchTotalSurface:', result.data);
-
-    const totalSurface = Math.round(result.data.area);
-    console.log('Total surface:', totalSurface);
-    return totalSurface;
-  } catch (error) {
-    console.error("Erreur lors de la récupération de la surface totale :", error);
-    return null;
-  }
-}
 // Fonction pour récupérer les données de graphe pour un bâtiment
 export async function getGraphData(): Promise<string | null> {
   try {

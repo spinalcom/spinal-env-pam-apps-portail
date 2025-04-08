@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts">
-import { config } from './config'; // Import correct de config
+import env from '../config.js';
 import {
   ISpaceSelectorItem,
   SpaceSelector,
@@ -30,9 +30,8 @@ import { Vue } from 'vue-property-decorator';
 import Component from 'vue-class-component';
 import MicroApp from './components/MainComponent.vue';
 import DownloadButton from './components/DownloadButton.vue';
-import { Store } from 'vuex';
-/* import { getBuilding } from './services/index';
- */
+import { getBuilding } from './services/index';
+
 @Component({
   components: {
     SpaceSelector,
@@ -41,7 +40,7 @@ import { Store } from 'vuex';
   },
 })
 class App extends Vue {
-  config = config;
+  config = env;
   table = [];
    time = { name: "JOURNÉE", value: 'day' }
 /*   selectedFloor = '';*/ 
@@ -89,15 +88,17 @@ class App extends Vue {
     drawLink: [],
     haveChildren: false,
   };
-  $store: any;
 
-    async mounted() {
-    await this.$store.dispatch('GET_BUILDINGS'); // Appel à l'action Vuex
-    const building = this.$store.state.appDataStore.selectedBuilding; // Récupère le bâtiment sélectionné
+  async mounted() {
+    let building = await getBuilding();
     if (building) {
       this.defaultSelected.area = building.area;
       this.defaultSelected.cp = building.cp;
       this.defaultSelected.dynamicId = Number(building.dynamicId);
+    }
+    if (!localStorage.getItem("platformId")) {
+      localStorage.setItem("platformId", "votre-id-plateforme"); // Remplacez par l'ID réel
+      console.log("Platform ID ajouté au localStorage.");
     }
   }
   onTimeSelectOpen(item?: any): { name: string; staticId: string; dynamicId: number; level: number; isOpen: boolean; loading: boolean; patrimoineId: string; parents: never[]; isLastInGrp: boolean; drawLink: never[]; haveChildren: boolean; }[] {

@@ -42,32 +42,15 @@
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, watch } from 'vue';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
-/* import { HTTP } from '../services/http-constants'; 
- */
-import {config} from '../config';
+import { HTTP } from '../services/http-constants'; 
+import config from '../../config';
 import moment from 'moment';
-import {getSecondChartOccupancyDataByFloor,
-        getContextId,
-        getCategoryId,
-        getGroupId,
-        getRoomIds,
-        getTotalSurface2,
-        getThirdChartCategoryId,
-        getThirdChartContextId,
-        getThirdChartGroupId,
-        getThirdChartIds,
-        getThirdChartOccupancyDataByFloor,
-        getPeriodArray,
-        groupSecondChartsByFloor,
-        getRoomPositions,
-        getFloors,
-        getFloorOccupancyDynamicIds,
-        getFloorOccupancyRatesByPeriod,
-        fetchTotalSurface,
-        fetchThirdChartTotalCount } from '../services/index'; 
-/* import { SpinalAPI } from '../services/spinalAPI/spinalAPI';
- */
-
+import { getSecondChartOccupancyDataByFloor, getContextId, getCategoryId, getGroupId, getRoomIds, getTotalSurface2, getThirdChartCategoryId, getThirdChartContextId, getThirdChartGroupId, getThirdChartIds, getThirdChartOccupancyDataByFloor, getPeriodArray } from '../services/index'; 
+import { getFloorOccupancyDynamicIds, getFloorOccupancyRatesByPeriod } from '../services/index';
+import { getFloors } from '../services/index';
+import { getRoomPositions } from '../services/index';
+import { groupSecondChartsByFloor } from '../services/index';
+import { SpinalAPI } from '../services/spinalAPI/spinalAPI';
 
 Chart.register(...registerables);
 
@@ -112,7 +95,7 @@ export default defineComponent({
     const displaySecondChart = ref(config.displaySecondChart);
 
 
-function mapFloorDynamicId(floorDynamicId, floorNames) {
+            function mapFloorDynamicId(floorDynamicId, floorNames) {
         console.log("Mapping floorDynamicId:", floorDynamicId);
         console.log("Available floorNames:", floorNames);
       
@@ -131,25 +114,25 @@ function mapFloorDynamicId(floorDynamicId, floorNames) {
         return matchingKey ? floorNames[matchingKey] : `Étage ${dynamicId}`;
       }
 const handleTimeChange = async ({ startTime, endTime }) => {
-      try {
-        console.log("Time changed:", startTime, endTime);
-        const timestamp = moment().valueOf();
+  try {
+    console.log("Time changed:", startTime, endTime);
+    const timestamp = moment().valueOf();
 
-        // Màj les données pour le premier graphique
-        await fetchFloorData(props.temporality.name, timestamp, startTime, endTime);
-        renderChart();
+    // Màj les données pour le premier graphique
+    await fetchFloorData(props.temporality.name, timestamp, startTime, endTime);
+    renderChart();
 
-        // Màj les données pour le deuxième graphique
-        await fetchSecondFloorData(timestamp, startTime, endTime);
-        renderSecondChart();
+    // Màj les données pour le deuxième graphique
+    await fetchSecondFloorData(timestamp, startTime, endTime);
+    renderSecondChart();
 
-        // Màj les données pour le troisième graphique
-        await fetchThirdChartFloorData(timestamp, startTime, endTime);
-        renderThirdChart();
-      } catch (error) {
-        console.error("Erreur lors de la mise à jour des graphiques :", error);
-      }
-    };
+    // Màj les données pour le troisième graphique
+    await fetchThirdChartFloorData(timestamp, startTime, endTime);
+    renderThirdChart();
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour des graphiques :", error);
+  }
+};
     
 const fetchFloorData = async (period, timestamp, startTime, endTime) => {
   try {
@@ -202,16 +185,6 @@ const fetchFloorData = async (period, timestamp, startTime, endTime) => {
     renderChart();
   } catch (error) {
     console.error("Erreur dans fetchFloorData :", error);
-  }
-};
-const fetchTotalSurfaceWrapper = async () => {
-  try {
-    const surface = await fetchTotalSurface();
-    if (surface !== null) {
-      totalSurface.value = surface;
-    }
-  } catch (error) {
-    console.error("Erreur lors de l'appel à fetchTotalSurface :", error);
   }
 };
 async function getFloorsWithAndWithoutRooms(roomIds) {
@@ -349,7 +322,29 @@ const fetchThirdChartFloorData = async (timestamp, startTime, endTime) => {
 };
 
 
-const fetchTotalSurface2 = async () => {
+    const fetchTotalSurface = async () => {
+      try {
+        console.log('fetchTotalSurface called');
+        const buildingId = localStorage.getItem("idBuilding");
+        if (!buildingId) {
+          console.error('Building ID not found in localStorage');
+          return;
+        }
+    
+        const spinalApi = SpinalAPI.getInstance();
+        const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/building/read');
+        console.log("Generated URL for fetchTotalSurface:", url);
+    
+        const result = await spinalApi.get(url);
+        console.log('Response from fetchTotalSurface:', result.data);
+    
+        totalSurface.value = Math.round(result.data.area);
+        console.log('Total surface:', totalSurface.value);
+      } catch (error) {
+        console.error("Erreur lors de la récupération de la surface totale :", error);
+      }
+    };
+    const fetchTotalSurface2 = async () => {
       try {
         const entryPoint = config.entryPoints[0]; // Accéder directement au premier élément
         const contextId = await getContextId(entryPoint.context);
@@ -368,28 +363,47 @@ const fetchTotalSurface2 = async () => {
       } catch (error) {
         console.error("Erreur lors de la récupération de la surface totale des salles de réunion :", error);
       }
-};
+    };
 
+    const fetchThirdChartTotalCount = async () => {
+          try {
+            const entryPoint = config.entryPoints[1]; // Accéder directement au deuxième élément
+            const contextId = await getThirdChartContextId(entryPoint.context);
+            const categoryId = await getThirdChartCategoryId(contextId, entryPoint.category);
+            const groupId = await getThirdChartGroupId(contextId, categoryId, entryPoint.group);
+            const thirdChartIds = await getThirdChartIds(contextId, categoryId, groupId);
+
+            if (!thirdChartIds || thirdChartIds.length === 0) {
+              throw new Error('No equipment IDs found');
+            }
+
+            thirdChartTotalCount.value = thirdChartIds.length;
+            console.log('Total Equipment Count:', thirdChartTotalCount.value);
+          } catch (error) {
+            console.error("Erreur lors de la récupération du nombre total d'équipements :", error);
+          }
+        };
 
     const buildingOccupancyRate = computed(() => {
       if (floorData.value.length === 0) return 0;
       const totalOccupancy = floorData.value.reduce((sum, floor) => sum + floor.occupancy, 0);
-      return (totalOccupancy / floorData.value.length).toFixed(1);
+      return (totalOccupancy / floorData.value.length).toFixed(0);
     });
 
     const secondBuildingOccupancyRate = computed(() => {
       if (secondFloorData.value.length === 0) return 0;
       const totalOccupancy = secondFloorData.value.reduce((sum, floor) => sum + floor.occupancy, 0);
-      return (totalOccupancy / secondFloorData.value.length).toFixed(1);
+      return (totalOccupancy / secondFloorData.value.length).toFixed(0);
     });
 
     const thirdChartOccupancyRate = computed(() => {
       if (thirdChartFloorData.value.length === 0) return 0;
       const totalOccupancy = thirdChartFloorData.value.reduce((sum, floor) => sum + floor.occupancy, 0);
-      return (totalOccupancy / thirdChartFloorData.value.length).toFixed(1);
+      return (totalOccupancy / thirdChartFloorData.value.length).toFixed(0);
     });
 
-const renderChart = () => {
+
+            const renderChart = () => {
         if (!chartCanvas.value || !floorData.value.length || !allFloors.value.length) {
           console.warn("Les données ou le canvas ne sont pas prêts pour le graphique.");
           return;
@@ -471,7 +485,7 @@ const renderChart = () => {
       
           occupancyChart.value = new Chart(ctx, chartConfiguration);
         }
-};
+      };
 
 const renderSecondChart = () => {
   if (!secondChartCanvas.value || !secondFloorData.value.length || !allFloors.value.length) {
@@ -673,8 +687,8 @@ watch(
       // Mettre à jour les surfaces totales et le nombre total d'équipements
       await fetchTotalSurface();
       await fetchTotalSurface2();
-      const totalCount = await fetchThirdChartTotalCount();
-      thirdChartTotalCount.value = totalCount;    } catch (error) {
+      await fetchThirdChartTotalCount();
+    } catch (error) {
       console.error("Erreur lors de la mise à jour des graphiques :", error);
     }
   },
@@ -687,14 +701,8 @@ onMounted(async () => {
   await fetchSecondFloorData(timestamp, props.startTime, props.endTime);
   await fetchThirdChartFloorData(timestamp, props.startTime, props.endTime);
   await fetchTotalSurface();
-  await fetchTotalSurfaceWrapper(); 
   await fetchTotalSurface2();
-  try {
-    const totalCount = await fetchThirdChartTotalCount();
-    thirdChartTotalCount.value = totalCount;
-  } catch (error) {
-    console.error("Erreur lors de la récupération du nombre total d'équipements :", error);
-  }
+  await fetchThirdChartTotalCount();
 
   // Vérifiez si les données sont prêtes avant de rendre le premier graphique
   if (floorData.value.length && allFloors.value.length && chartCanvas.value) {
@@ -734,7 +742,6 @@ return {
   thirdChartTotalCount,
   thirdChartOccupancyRate,
   allFloors,
-  fetchTotalSurfaceWrapper,
   fetchFloorData, 
   fetchSecondFloorData,
   fetchThirdChartFloorData,

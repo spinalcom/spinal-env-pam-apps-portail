@@ -25,7 +25,7 @@ import Vue from 'vue';
 import Vuex, { Store as VuexStore, CommitOptions, DispatchOptions } from 'vuex';
 import { StateAppData, state } from './appDataStore/state';
 import { MutationsAppData, mutations } from './appDataStore/mutations';
-import { actions, Actions } from './appDataStore/actions';
+import { Actions, actions } from './appDataStore/actions';
 Vue.use(Vuex);
 
 export const store = new Vuex.Store({
