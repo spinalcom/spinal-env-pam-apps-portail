@@ -93,7 +93,7 @@ export class EventManager {
 				setTimeout(async() => {
 					viewer.setNavigationLock(true);
 					await viewer.unloadExtension('Autodesk.ViewCubeUi')
-				}, 10000);
+				}, 4000);
 
 
 				// async function setViewCubeAndFit(viewer) {
