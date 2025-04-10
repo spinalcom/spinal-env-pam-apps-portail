@@ -106,7 +106,7 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   });
 
   let allRoomLists = await Promise.all(roomListPromises);
-
+  
 
   const parentDynamicId = result.data.info.room.dynamicId; // Dynamic ID de l'open space
 

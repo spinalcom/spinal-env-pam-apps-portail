@@ -196,6 +196,8 @@ export class ViewerManager {
 	}
 
 	public fitToView(item: IPlayload) {
+		console.warn('le fit to view a ete lancééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé', item);
+		
 		return this._fctViewerIteract(VIEWER_OBJ_FIT_TO_VIEW, item);
 	}
 
@@ -231,8 +233,8 @@ export class ViewerManager {
 		const data = await this.getViewerInfo(item, buildingId);
 
 		const obj = convertToObj(data);
-		console.log(item , obj , 'c est l item');
-		
+		console.log(item, obj, 'c est l item');
+
 
 		return item.map((i) => ({
 			// dbIds: obj[i.dynamicId]?.dbIds ||[],
@@ -293,7 +295,9 @@ export class ViewerManager {
 		try {
 			emitter.emit(eventName, res);
 		} catch (error) {
-			console.error('Erreur dans emitter.emit :', error);
+			console.error('Erreur dans emitter.emit :', eventName, error, playload, isolateConfig, 'res :', res);
+			console.warn('emiter :::::: ',emitter);
+			
 		}
 	}
 

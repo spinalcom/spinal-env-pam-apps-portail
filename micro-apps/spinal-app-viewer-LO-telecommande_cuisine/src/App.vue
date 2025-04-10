@@ -147,8 +147,9 @@ class App extends Vue {
   }
   async youAreHere() {
     let referenceIds = this.config.tabletteId
-    if (window.parent.router.query.spaceSelectedId != undefined)
+    if (window.parent.router.query.spaceSelectedId != undefined) {
       referenceIds = window.parent.router.query.spaceSelectedId
+    }
 
     const buildingId = localStorage.getItem("idBuilding");
     const promises = [

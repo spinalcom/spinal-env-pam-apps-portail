@@ -29,9 +29,8 @@ export const config: IConfig = {
 	viewButtons: "base",
 	viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },
 
-
-	//donnée pour le lancement de l'app
-	idBuilding: '5932-6086-9e1a-18506478460',
+	//donnée pour le lancement de l'app à mettre dans l'url
+	// idBuilding: '5932-6086-9e1a-18506478460',
 	// tabletteId: 216681008,
 
 	//context et categories du groupe de la tablette
@@ -50,11 +49,6 @@ export const config: IConfig = {
 			equipementContext: "Gestion des équipements",
 			equipementCat: "Mobilier",
 			equipementsGroup: "Bureaux"
-		},
-		{
-			equipementContext: "Gestion des équipements",
-			equipementCat: "Typologie",
-			equipementsGroup: "Lavabo"
 		}
 	],
 
@@ -71,12 +65,6 @@ export const config: IConfig = {
 	},
 
 
-
-
-
-
-
-	
 	configCommand: {
 		temperature: {
 			step: 1,
