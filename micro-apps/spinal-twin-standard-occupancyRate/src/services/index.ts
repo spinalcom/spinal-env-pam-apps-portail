@@ -391,7 +391,13 @@ export async function getFloorOccupancyDynamicIds(): Promise<FloorOccupancyDynam
 
 
 // Fonction pour récupérer les taux d'occupation des étages par période
-export async function getFloorOccupancyRatesByPeriod(period, timestamp, dynamicIds, startTime = null, endTime = null) {
+export async function getFloorOccupancyRatesByPeriod(
+  period: string,
+  timestamp: number,
+  dynamicIds: string[],
+  startTime: string | null = null,
+  endTime: string | null = null
+): Promise<FloorOccupancyRate[]> {
   try {
     const buildingId = localStorage.getItem('idBuilding');
     if (!buildingId) {
@@ -400,17 +406,17 @@ export async function getFloorOccupancyRatesByPeriod(period, timestamp, dynamicI
     }
 
     const spinalApi = SpinalAPI.getInstance();
-    const periodArray = getPeriodArray(timestamp, period);
+    const periodArray: string[] = getPeriodArray(timestamp, period);
 
-    const start = periodArray[1];
-    const end = periodArray[2];
+    const start: string = periodArray[1];
+    const end: string = periodArray[2];
 
-    const combinedResults = await processInBatches(dynamicIds, 50, async (batch) => {
+    const combinedResults: { timeseries: TimeSeriesPoint[] }[] = await processInBatches(dynamicIds, 50, async (batch) => {
       const url = spinalApi.createUrlWithPlatformId(
         buildingId,
         `api/v1/endpoint/timeSeries/read_multiple/${start}/${end}`
       );
-      const response = await spinalApi.post(url, batch);
+      const response = await spinalApi.post<{ data: { timeseries: TimeSeriesPoint[] }[] }>(url, batch);
       return response.data;
     });
 
@@ -429,7 +435,7 @@ export async function getFloorOccupancyRatesByPeriod(period, timestamp, dynamicI
       });
     }
 
-    const aggregatedData = {};
+    const aggregatedData: Record<string, { date: string; value: number }[]> = {};
     dynamicIds.forEach(dynamicId => {
       aggregatedData[dynamicId] = [];
     });
@@ -446,10 +452,10 @@ export async function getFloorOccupancyRatesByPeriod(period, timestamp, dynamicI
       });
     });
 
-    const floorData = dynamicIds.map(dynamicId => {
+    const floorData: FloorOccupancyRate[] = dynamicIds.map(dynamicId => {
       const floorSeries = aggregatedData[dynamicId];
       const totalValue = floorSeries.reduce((sum, point) => sum + point.value, 0);
-      const averageValue = floorSeries.length > 0 ? (totalValue / floorSeries.length).toFixed(2) : 0;
+      const averageValue = floorSeries.length > 0 ? (totalValue / floorSeries.length).toFixed(2) : '0';
       return {
         dynamicId,
         occupancy: averageValue
@@ -481,28 +487,37 @@ async function processInBatches<T>(
 // Fonction pour récupérer les IDs dynamiques d'occupation pour les salles données
 export async function fetchSecondChartOccupationDynamicIds(roomIds: string[]): Promise<string[]> {
   try {
+    console.log('fetchSecondChartOccupationDynamicIds called with roomIds:', roomIds);
+
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
       console.error('No building ID found in localStorage');
       return [];
     }
+    console.log('Building ID:', buildingId);
 
     const spinalApi = SpinalAPI.getInstance();
     const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/node/control_endpoint_list_multiple');
+    console.log('Generated URL for control endpoint list:', url);
 
     const batchSize = 50;
     const chunkedRoomIds = lodash.chunk(roomIds, batchSize);
+    console.log('Chunked room IDs into batches of size:', batchSize, chunkedRoomIds);
 
     // Envoyer les requêtes en parallèle pour chaque lot
-    const promises = chunkedRoomIds.map(async (batch) => {
+    const promises = chunkedRoomIds.map(async (batch, index) => {
+      console.log(`Processing batch ${index + 1}/${chunkedRoomIds.length}:`, batch);
       const response = await (spinalApi.post as <T>(url: string, body: any) => Promise<{ data: T }>)(url, batch);
+      console.log(`Batch ${index + 1} response:`, response.data);
       return response.data as CombinedResult[];
     });
 
     const combinedResults = (await Promise.all(promises)).flat();
+    console.log('Combined results from all batches:', combinedResults);
 
     // Extraire les IDs dynamiques
     const dynamicIds = extractDynamicIds(combinedResults, config.entryPoints[0], processRoomEndpoint);
+    console.log('Extracted Extracted dynamic IDsdynamic IDs:', dynamicIds);
 
     return dynamicIds;
   } catch (error) {
@@ -1413,14 +1428,21 @@ export function calculateTimeWeightedAverage(
 }
 
 
-export async function getData(space, tempo, currentTimestamp, roomIds, startTime = null, endTime = null) {
+export async function getData(
+  space: { type: string; dynamicId?: string },
+  tempo: string,
+  currentTimestamp: number,
+  roomIds: string[],
+  startTime: string | null = null,
+  endTime: string | null = null
+): Promise<[string[], ChartData[], any[]]>  {
   try {
         const buildingId = localStorage.getItem("idBuilding");
     const spaceArea = await getArea(space); 
     let periodArray = getPeriodArray(currentTimestamp, tempo);
-    let label = periodArray[0];
-    let tooltipDate = periodArray[5];
-    let data = [];
+    const label: string[] = periodArray[0];
+    const tooltipDate: string[] = periodArray[5];
+    const data: ChartData[] = [];
     
     // 1. Taux d'occupation du bâtiment
     console.log('=== TAUX OCCUPATION BÂTIMENT ===');
@@ -1434,8 +1456,8 @@ export async function getData(space, tempo, currentTimestamp, roomIds, startTime
     );
     console.log("Generated URL for time series data:", timeSeriesUrl);
     
-    const timeSeriesResponse = await spinalApi.get(timeSeriesUrl);
-    let occupancyRateData = timeSeriesResponse.data;
+    const timeSeriesResponse = await spinalApi.get<{ data: TimeSeriesPoint[] }>(timeSeriesUrl);
+    let occupancyRateData: TimeSeriesPoint[] = timeSeriesResponse.data;
     
     console.log('Données bâtiment avant filtrage:', {
       nombrePoints: occupancyRateData.length,
@@ -1446,7 +1468,7 @@ export async function getData(space, tempo, currentTimestamp, roomIds, startTime
     });
     
     // Traitement des données du bâtiment
-    let buildingProcessedData;
+    let buildingProcessedData: number[];
     if (tempo === 'Journée' || tempo === 'Valeur Courante') {
       buildingProcessedData = label.map(hour => {
         const point = occupancyRateData.find(data => 
@@ -1543,12 +1565,12 @@ export async function getData(space, tempo, currentTimestamp, roomIds, startTime
         buildingId,
         `api/v1/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`
         );
-        return spinalApi.post(url, batch);
+        return spinalApi.post<{ data: RoomData[] }>(url, batch);
       })
       );
 
-      let timeSeriesData = roomResults.flatMap(result => 
-      result.data.flatMap(room => room.timeseries || [])
+      let timeSeriesData: TimeSeriesPoint[] = roomResults.flatMap(result =>
+        result.data.flatMap(room => room.timeseries || [])
       );
       console.log('Données salles avant filtrage:', {
         nombrePoints: timeSeriesData.length,
@@ -1557,9 +1579,9 @@ export async function getData(space, tempo, currentTimestamp, roomIds, startTime
           valeur: point.value
         }))
       });
-      let roomProcessedData;
+      let roomProcessedData: number[];
       if (tempo === 'Journée' || tempo === 'Valeur Courante') {
-        const aggregatedData = {};
+        const aggregatedData: Record<string, number[]> = {};
         label.forEach(l => aggregatedData[l] = []);
 
         timeSeriesData.forEach(point => {
@@ -1664,40 +1686,42 @@ export async function getData(space, tempo, currentTimestamp, roomIds, startTime
       return [label, data, []];
     }
 
-    const thirdChartGroupId = await getThirdChartGroupId(thirdChartContextId, thirdChartCategoryId, config.entryPoints[1].group);
+    const thirdChartGroupId: string | null = await getThirdChartGroupId(thirdChartContextId, thirdChartCategoryId, config.entryPoints[1].group);
     if (!thirdChartGroupId) {
       console.warn('No group ID found for third chart');
       return [label, data, []];
     }
 
-    const thirdChartIds = await getThirdChartIds(thirdChartContextId, thirdChartCategoryId, thirdChartGroupId);
+    const thirdChartIds: string[] = await getThirdChartIds(thirdChartContextId, thirdChartCategoryId, thirdChartGroupId);
     if (!thirdChartIds || thirdChartIds.length === 0) {
       console.warn('No equipment IDs found');
       return [label, data, []];
     }
 
-    const equipmentDynamicIds = await fetchThirdChartOccupationDynamicIds(thirdChartIds);
+    const equipmentDynamicIds: string[] = await fetchThirdChartOccupationDynamicIds(thirdChartIds);
 
     if (equipmentDynamicIds.length > 0) {
       const spinalApi = SpinalAPI.getInstance();
-      const equipmentResults = await Promise.all(
-      Array(Math.ceil(equipmentDynamicIds.length / 50)).fill().map((_, i) => {
-        const batch = equipmentDynamicIds.slice(i * 50, (i + 1) * 50);
-        const url = spinalApi.createUrlWithPlatformId(
-        buildingId,
-        `api/v1/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`
+      const equipmentResults: { data: TimeSeriesData[] }[] = await Promise.all(
+    Array(Math.ceil(equipmentDynamicIds.length / 50))
+      .fill(null)
+      .map((_, i) => {
+        const batch: string[] = equipmentDynamicIds.slice(i * 50, (i + 1) * 50);
+        const url: string = spinalApi.createUrlWithPlatformId(
+          buildingId,
+          `api/v1/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`
         );
-        return spinalApi.post(url, batch);
+        return spinalApi.post<{ data: TimeSeriesData[] }>(url, batch);
       })
-      ); 
+  ); 
 
-      let equipmentTimeSeriesData = equipmentResults.flatMap(result => 
+      let equipmentTimeSeriesData: TimeSeriesPoint[] = equipmentResults.flatMap(result =>
       result.data.flatMap(equipment => equipment.timeseries || [])
       );
 
       console.log('Données positions avant filtrage:', {
         nombrePoints: equipmentTimeSeriesData.length,
-        échantillon: equipmentTimeSeriesData.slice(0, 3).map(point => ({
+        échantillon: equipmentTimeSeriesData.slice(0, 3).map((point: TimeSeriesPoint) => ({
           date: moment(point.date).format('HH:mm'),
           valeur: point.value
         }))
@@ -1807,150 +1831,190 @@ export async function getData(space, tempo, currentTimestamp, roomIds, startTime
   }
 }
 
-export function getPeriodArray(timestamp, period) {
+export function getPeriodArray(timestamp: number, period: string): any[] {
   if (period === 'Journée' || period === 'Valeur Courante') {
-    var startOfDay = moment(timestamp).startOf('day');
-    var endOfDay = moment(timestamp).endOf('day');
-    var hoursInDay = [];
-    var tooltipDate = [];
-    var currentHour = moment(startOfDay);
+    const startOfDay = moment(timestamp).startOf('day');
+    const endOfDay = moment(timestamp).endOf('day');
+    const hoursInDay: string[] = [];
+    const tooltipDate: string[] = [];
+    let currentHour = moment(startOfDay);
+
     while (currentHour.isSameOrBefore(endOfDay)) {
       hoursInDay.push(currentHour.format('HH'));
-      tooltipDate.push(moment(currentHour).format('ddd DD/MM/YYYY HH:mm').slice(0, 1).toUpperCase() + moment(currentHour).format('ddd DD/MM/YYYY HH:mm').slice(1));
+      tooltipDate.push(
+        currentHour.format('ddd DD/MM/YYYY HH:mm').slice(0, 1).toUpperCase() +
+        currentHour.format('ddd DD/MM/YYYY HH:mm').slice(1)
+      );
       currentHour.add(1, 'hour');
     }
-    
-    return [hoursInDay,
-      moment(timestamp).startOf('day').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).endOf('day').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'day').startOf('day').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'day').endOf('day').format('DD-MM-yyyy HH:mm:ss'),
+
+    return [
+      hoursInDay,
+      startOfDay.format('DD-MM-yyyy HH:mm:ss'),
+      endOfDay.format('DD-MM-yyyy HH:mm:ss'),
+      startOfDay.subtract(1, 'day').format('DD-MM-yyyy HH:mm:ss'),
+      endOfDay.subtract(1, 'day').format('DD-MM-yyyy HH:mm:ss'),
       tooltipDate
     ];
   } else if (period === 'Semaine') {
-    var startOfWeek = moment(timestamp).startOf('week');
-    var endOfWeek = moment(timestamp).endOf('week');
-    var daysInMonth = [];
-    var abstractDaysInMonth = [];
-    var tooltipDate = [];
-    var currentDay = moment(startOfWeek);
+    const startOfWeek = moment(timestamp).startOf('week');
+    const endOfWeek = moment(timestamp).endOf('week');
+    const daysInWeek: string[] = [];
+    const abstractDaysInWeek: string[] = [];
+    const tooltipDate: string[] = [];
+    let currentDay = moment(startOfWeek);
+
     while (currentDay.isSameOrBefore(endOfWeek)) {
-      daysInMonth.push(currentDay.format('DD MMM'));
-      abstractDaysInMonth.push(currentDay.format('dddd').slice(0, 1).toUpperCase() + currentDay.format('dddd').slice(1));
-      tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
+      daysInWeek.push(currentDay.format('DD MMM'));
+      abstractDaysInWeek.push(
+        currentDay.format('dddd').slice(0, 1).toUpperCase() +
+        currentDay.format('dddd').slice(1)
+      );
+      tooltipDate.push(
+        currentDay.format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() +
+        currentDay.format('ddd DD/MM/YYYY').slice(1)
+      );
       currentDay.add(1, 'day');
     }
-    return [daysInMonth,
-      moment(timestamp).startOf('week').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).endOf('week').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'weeks').startOf('week').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'weeks').endOf('week').format('DD-MM-yyyy HH:mm:ss'),
+
+    return [
+      daysInWeek,
+      startOfWeek.format('DD-MM-yyyy HH:mm:ss'),
+      endOfWeek.format('DD-MM-yyyy HH:mm:ss'),
+      startOfWeek.subtract(1, 'week').format('DD-MM-yyyy HH:mm:ss'),
+      endOfWeek.subtract(1, 'week').format('DD-MM-yyyy HH:mm:ss'),
       tooltipDate,
-      abstractDaysInMonth
+      abstractDaysInWeek
     ];
   } else if (period === 'Mois') {
-    var startOfMonth = moment(timestamp).startOf('month');
-    var endOfMonth = moment(timestamp).endOf('month');
-    var daysInMonth = [];
-    var abstractDaysInMonth = [];
-    var tooltipDate = [];
-    var currentDay = moment(startOfMonth);
+    const startOfMonth = moment(timestamp).startOf('month');
+    const endOfMonth = moment(timestamp).endOf('month');
+    const daysInMonth: string[] = [];
+    const abstractDaysInMonth: string[] = [];
+    const tooltipDate: string[] = [];
+    let currentDay = moment(startOfMonth);
+
     while (currentDay.isSameOrBefore(endOfMonth)) {
       abstractDaysInMonth.push(currentDay.format('DD'));
       daysInMonth.push(currentDay.format('DD MMM'));
-      tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
+      tooltipDate.push(
+        currentDay.format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() +
+        currentDay.format('ddd DD/MM/YYYY').slice(1)
+      );
       currentDay.add(1, 'day');
     }
-    return [daysInMonth,
-      moment(timestamp).startOf('month').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).endOf('month').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'months').endOf('month').format('DD-MM-yyyy HH:mm:ss'),
+
+    return [
+      daysInMonth,
+      startOfMonth.format('DD-MM-yyyy HH:mm:ss'),
+      endOfMonth.format('DD-MM-yyyy HH:mm:ss'),
+      startOfMonth.subtract(1, 'month').format('DD-MM-yyyy HH:mm:ss'),
+      endOfMonth.subtract(1, 'month').format('DD-MM-yyyy HH:mm:ss'),
       tooltipDate,
       abstractDaysInMonth
     ];
   } else if (period === 'Année') {
-    var monthsInYear = [];
-    var tooltipDate = [];
-    for (var i = 0; i < 12; i++) {
-      var currentMonth = moment(timestamp).month(i);
+    const monthsInYear: string[] = [];
+    const tooltipDate: string[] = [];
+
+    for (let i = 0; i < 12; i++) {
+      const currentMonth = moment(timestamp).month(i);
       monthsInYear.push(currentMonth.format('MMM'));
-      tooltipDate.push(moment(currentMonth).format('MMMM/YYYY').slice(0, 1).toUpperCase() + moment(currentMonth).format('MMMM/YYYY').slice(1));
+      tooltipDate.push(
+        currentMonth.format('MMMM/YYYY').slice(0, 1).toUpperCase() +
+        currentMonth.format('MMMM/YYYY').slice(1)
+      );
     }
-    return [monthsInYear,
+
+    return [
+      monthsInYear,
       moment(timestamp).startOf('year').format('DD-MM-yyyy HH:mm:ss'),
       moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'years').startOf('year').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-1, 'years').endOf('year').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).subtract(1, 'year').startOf('year').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).subtract(1, 'year').endOf('year').format('DD-MM-yyyy HH:mm:ss'),
       tooltipDate
     ];
   } else if (period === 'Décennie') {
-    var yearsInDecade = [];
-    var tooltipDate = [];
-    for (var i = -9; i <= 0; i++) {
-      var currentYear = moment(timestamp).add(i, 'years');
+    const yearsInDecade: string[] = [];
+    const tooltipDate: string[] = [];
+
+    for (let i = -9; i <= 0; i++) {
+      const currentYear = moment(timestamp).add(i, 'years');
       yearsInDecade.push(currentYear.format('YYYY'));
-      tooltipDate.push(moment(currentYear).format('YYYY').slice(0, 1).toUpperCase() + moment(currentYear).format('YYYY').slice(1));
+      tooltipDate.push(
+        currentYear.format('YYYY').slice(0, 1).toUpperCase() +
+        currentYear.format('YYYY').slice(1)
+      );
     }
-    return [yearsInDecade,
-      moment(timestamp).add(-10, 'years').startOf('year').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss'), '', '', tooltipDate];
+
+    return [
+      yearsInDecade,
+      moment(timestamp).subtract(10, 'years').startOf('year').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).endOf('year').format('DD-MM-yyyy HH:mm:ss'),
+      '',
+      '',
+      tooltipDate
+    ];
   } else if (period === 'Trimestre') {
-    let currentMM = moment(timestamp).format('MM');
-    let T = 'T'+Math.ceil(currentMM / 3);
-    var startOfTrimester;
-    var endOfTrimester;
-    var currentDay;
-    var endDay;
-    switch (T) {
-        case 'T1':
-            startOfTrimester = moment(`01/01/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
-            endOfTrimester = moment(`31/03/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
-            currentDay = moment(`01/01/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            endDay = moment(`31/03/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            break;
+    const currentMonth = moment(timestamp).month() + 1;
+    const trimester = Math.ceil(currentMonth / 3);
+    let startOfTrimester: string;
+    let endOfTrimester: string;
+    let currentDay: moment.Moment;
+    let endDay: moment.Moment;
 
-        case 'T2':
-            startOfTrimester = moment(`01/04/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
-            endOfTrimester = moment(`30/06/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
-            currentDay = moment(`01/04/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            endDay = moment(`30/06/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            break;
-    
-        case 'T3':
-            startOfTrimester = moment(`01/07/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
-            endOfTrimester = moment(`30/09/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
-            currentDay = moment(`01/07/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            endDay = moment(`30/09/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            break;
-    
-        case 'T4':
-            startOfTrimester = moment(`01/10/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
-            endOfTrimester = moment(`31/12/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
-            currentDay = moment(`01/10/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            endDay = moment(`31/12/${moment(timestamp).format('YYYY')}`, 'DD/MM/YYYY');
-            break;
+    switch (trimester) {
+      case 1:
+        startOfTrimester = moment(`01/01/${moment(timestamp).year()}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
+        endOfTrimester = moment(`31/03/${moment(timestamp).year()}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
+        currentDay = moment(`01/01/${moment(timestamp).year()}`, 'DD/MM/YYYY');
+        endDay = moment(`31/03/${moment(timestamp).year()}`, 'DD/MM/YYYY');
+        break;
+      case 2:
+        startOfTrimester = moment(`01/04/${moment(timestamp).year()}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
+        endOfTrimester = moment(`30/06/${moment(timestamp).year()}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
+        currentDay = moment(`01/04/${moment(timestamp).year()}`, 'DD/MM/YYYY');
+        endDay = moment(`30/06/${moment(timestamp).year()}`, 'DD/MM/YYYY');
+        break;
+      case 3:
+        startOfTrimester = moment(`01/07/${moment(timestamp).year()}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
+        endOfTrimester = moment(`30/09/${moment(timestamp).year()}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
+        currentDay = moment(`01/07/${moment(timestamp).year()}`, 'DD/MM/YYYY');
+        endDay = moment(`30/09/${moment(timestamp).year()}`, 'DD/MM/YYYY');
+        break;
+      case 4:
+        startOfTrimester = moment(`01/10/${moment(timestamp).year()}`, 'DD/MM/YYYY').startOf('day').format('DD-MM-yyyy HH:mm:ss');
+        endOfTrimester = moment(`31/12/${moment(timestamp).year()}`, 'DD/MM/YYYY').endOf('day').format('DD-MM-yyyy HH:mm:ss');
+        currentDay = moment(`01/10/${moment(timestamp).year()}`, 'DD/MM/YYYY');
+        endDay = moment(`31/12/${moment(timestamp).year()}`, 'DD/MM/YYYY');
+        break;
+      default:
+        throw new Error('Invalid trimester');
     }
 
-    var daysIn3Months = [];
-    var abstractDaysIn3Months = [];
-    var tooltipDate = [];
+    const daysInTrimester: string[] = [];
+    const abstractDaysInTrimester: string[] = [];
+    const tooltipDate: string[] = [];
+
     while (currentDay.isSameOrBefore(endDay)) {
-      daysIn3Months.push(currentDay.format('DD MMM'));
-      abstractDaysIn3Months.push(currentDay.format('DD'));
-      tooltipDate.push(moment(currentDay).format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() + moment(currentDay).format('ddd DD/MM/YYYY').slice(1));
+      daysInTrimester.push(currentDay.format('DD MMM'));
+      abstractDaysInTrimester.push(currentDay.format('DD'));
+      tooltipDate.push(
+        currentDay.format('ddd DD/MM/YYYY').slice(0, 1).toUpperCase() +
+        currentDay.format('ddd DD/MM/YYYY').slice(1)
+      );
       currentDay.add(1, 'day');
     }
 
-    
-    return [daysIn3Months,
+    return [
+      daysInTrimester,
       startOfTrimester,
       endOfTrimester,
-      moment(timestamp).add(-5, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'),
-      moment(timestamp).add(-3, 'months').endOf('month').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).subtract(5, 'months').startOf('month').format('DD-MM-yyyy HH:mm:ss'),
+      moment(timestamp).subtract(3, 'months').endOf('month').format('DD-MM-yyyy HH:mm:ss'),
       tooltipDate,
-      T,
-      abstractDaysIn3Months
+      `T${trimester}`,
+      abstractDaysInTrimester
     ];
   } else {
     return [];

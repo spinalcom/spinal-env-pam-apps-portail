@@ -67,7 +67,7 @@ import { ISpaceSelectorItem } from './SpaceSelector/index';
 import { TemporalityModel } from '../models/Temporality.model';
 import { LegendModel } from '../models/Legend.model';
 import {config} from '../config'; 
-import { ChartData, tempoFilter } from '../interfaces/types';
+import { ChartData, tempoFilter } from '../components/interfaces/types';
 import TemporalFilter from './TemporalFilter.vue';
 import { getData, getContextId, getCategoryId, getRoomIds, getGroupId, getSecondChartOccupancyDataByFloor } from '../services/index';
 import moment from 'moment';
