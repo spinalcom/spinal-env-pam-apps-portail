@@ -71,8 +71,9 @@ import type {
 } from "./components/SpaceSelector/interfaces/IBuildingItem";
 import viewerApp from "./components/viewer/viewer.vue";
 import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
-import Télécommande from "./components/data-side/Télécommande.vue"
+import Télécommande from "./components/data-side/Telecommande.vue"
 import SpriteComponent from "./components/data-side/SpriteComponent.vue"
+// import SpriteComponentArret from "./components/data-side/SpriteComponentArret.vue"
 import { config } from "./config";
 import { IConfig } from "./interfaces/IConfig";
 import { PAGE_STATES } from "./interfaces/pageStates";
