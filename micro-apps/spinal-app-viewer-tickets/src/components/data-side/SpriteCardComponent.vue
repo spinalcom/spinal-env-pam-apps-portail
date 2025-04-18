@@ -369,8 +369,8 @@ export default {
 }
 
 .nav-button {
-  width: 0px;
-  height: 0px;
+  width: 20px;
+  height: 20px;
   background: #14202c;
   background-image: url(./assets/arrow.svg);
   background-position: center;

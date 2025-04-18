@@ -52,11 +52,22 @@
                     <div class="form-icon-container equipement"></div>
                     <label class="form-input-title">Équipement</label>
                 </div>
-                <select class="select-input-add-ticket" v-model="ticket.equipement"
+                <!-- <div v-if="selectedObj?.[0]?.type === 'BIMObject'" class="form-value locked">{{ ticket.equipement }}
+                </div> -->
+
+                <div class="select-wrapper" :class="{ open: dropdownStates.equipement }">
+                    <select class="select-input-add-ticket" v-model="ticket.equipement"
+                        @focus="dropdownStates.equipement = true" @blur="dropdownStates.equipement = false">
+                        <option value="">Sélectionner</option>
+                        <option v-for="eq in equipements" :key="eq" :value="eq">{{ eq }}</option>
+                    </select>
+                    <!-- <div class="dropdown-icon"></div> -->
+                </div>
+                <!-- <select class="select-input-add-ticket" v-model="ticket.equipement"
                     :disabled="selectedZone.type === 'BIMOBJECT'">
                     <option value="">Sélectionner</option>
                     <option v-for="eq in equipements" :key="eq" :value="eq">{{ eq }}</option>
-                </select>
+                </select> -->
             </div>
         </div>
         <h4 style="margin-bottom: 2px;margin-top: 10px;">Détails de la demande</h4>
@@ -100,14 +111,44 @@
                 </div>
 
                 <div class="form-group" style="width: 100%;">
-                    <label class="form-input-title">Priorité</label>
-                    <PrioritySlider v-model="ticket.priorite" @change="onPriorityChange" />
+                    <label class="form-input-title">Description</label>
+                    <textarea class="form-desc-input" v-model="ticket.description"
+                        placeholder="Une description du ticket..."></textarea>
                 </div>
             </div>
-            <div class="form-group">
-                <label class="form-input-title">Description</label>
-                <textarea class="form-desc-input" v-model="ticket.description"
-                    placeholder="Une description du ticket..."></textarea>
+            <div style="width: 47%;">
+                <div class="form-group" style="width: 100%;">
+                    <label class="form-input-title">Priorité</label>
+                    <div
+                        style="width: 100%; height: 50px; display: flex; flex-direction: row; justify-content: space-between;">
+                        <div v-for="priority in priorities" :key="priority.value" class="custom-radio-wrapper"
+                            @click="ticket.priorite = priority.value">
+                            <div class="custom-radio-box" :class="{ selected: ticket.priorite === priority.value }"
+                                style="border-color: #14202c;">
+                                <span v-if="ticket.priorite === priority.value" class="checkmark">✔</span>
+                            </div>
+                            <div class="d-flex flex-row align-center" style="margin-left: 6px;">
+                                <div class="priority-indicator"
+                                    :style="{ background: getPriorityColor(priority.value) }">
+                                </div>
+                                <div class="prio-filtre-text" style="margin-left: 5px;">{{ priority.label }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" style="width: 100%;">
+                    <label class="form-input-title">Attachement</label>
+                    <div style="width: 120px;
+                                margin-top: 10px;
+                                font-weight: bold;
+                                height: 40px;
+                                background-color: rgb(20, 32, 44);
+                                color: white;
+                                justify-content: center;
+                                align-items: center;" class="d-flex flex-row">Joindre</div>
+                    <!-- <input class="form-title-input" type="text" 
+                        placeholder="Ex: Problème de câblage..." /> -->
+                </div>
             </div>
 
         </div>
@@ -120,11 +161,9 @@
 import { Vue, Prop, Watch } from "vue-property-decorator";
 import Component from "vue-class-component";
 import { ActionTypes } from "../../../interfaces/vuexStoreTypes";
-import PrioritySlider from "./PrioritySlider.vue";
 
 @Component({
     components: {
-        PrioritySlider,
     },
     name: "TicketForm",
 })
@@ -135,6 +174,8 @@ class TicketForm extends Vue {
     @Prop({ required: true }) workflowlist!: any;
     @Prop({ required: true }) domainlist!: any;
     @Prop({ required: true }) building: any;
+    @Prop({ required: true }) priorities: any;
+    @Prop({ required: false }) selectedObj!: any;
     listofFloors: any = [];
     listofRooms: any = [];
     pickedFloor: any = "";
@@ -156,18 +197,29 @@ class TicketForm extends Vue {
         domaine: "",
         titre: "",
         description: "",
-        priorite: "",
+        priorite: 2,
     };
     etages = [];
     salles = ["SÉLECTIONNER UN ÉTAGE AVANT"];
-    equipements = [];
+    equipements: Array<any> = [];
 
     mounted() {
-        console.log("TicketForm mounted", this.selectedZone, this.workflowlist, this.domainlist, this.building.name);
         this.prefillSelectedZone();
+        console.log("selected obj", this.selectedObj)
     }
     onPriorityChange(value: string) {
-        console.log("🔺 Priority changed to:", value);
+    }
+    getPriorityColor(priority: number) {
+        switch (priority) {
+            case 0:
+                return "red";
+            case 1:
+                return "orange";
+            case 2:
+                return "green";
+            default:
+                return "gray";
+        }
     }
 
 
@@ -181,6 +233,7 @@ class TicketForm extends Vue {
             });
             this.listofFloors = floors;
             this.etages = floors.map((floor: any) => floor.name);
+
         }
         else if (zone.type === "geographicFloor") {
             this.ticket.etage = zone.name;
@@ -202,7 +255,6 @@ class TicketForm extends Vue {
     }
 
     async getRooms(floorId: string) {
-        console.log("getRooms", floorId);
         const rooms = await this.$store.dispatch(ActionTypes.GET_ROOMS, {
             buildingId: this.building.buildingId,
             patrimoineId: this.building.patrimoineId,
@@ -211,7 +263,6 @@ class TicketForm extends Vue {
         });
         this.listofRooms = rooms;
         this.salles = rooms.map((room: any) => room.name);
-        console.log("salles", this.salles);
     }
 
     @Watch("ticket.etage")
@@ -223,6 +274,55 @@ class TicketForm extends Vue {
             }
         }
     }
+    @Watch('selectedObj', { immediate: true, deep: true })
+    async onSelectedObjChange(newVal: any, oldVal: any) {
+        console.log('selectedObj changed in TicketForm:', newVal, oldVal);
+        // You can update local data or trigger methods here if needed
+        if (!newVal || newVal.length === 0) return;
+
+        const obj = newVal[0];
+        const type = obj.type;
+
+        if (type === 'BIMObject') {
+            console.log('BIMObject selected:', obj);
+            this.equipements = [obj.name];
+            // Set equipement to object name
+            this.ticket.equipement = obj.name;
+
+            // Find associated room in groupParents
+            const room = obj.groupParents?.find((gp: any) => gp.type === 'geographicRoom');
+            if (room) {
+                this.ticket.salle = room.name;
+                console.log('Room found:', room);
+            }
+            console.log('etages:', this.etages);
+            console.log('salles:', this.salles);
+            // const position = await this.$store.dispatch(ActionTypes.EQUIPEMENT_GET_POSITION, {
+            // id: obj.dynamicId,
+            // });
+            // console.log('position:', position);
+
+        } else if (type === 'geographicRoom') {
+            // Set salle to the current room name
+            this.ticket.salle = obj.name;
+
+            this.ticket.equipement = null;
+            this.equipements = [];
+
+            // Find floor from groupParents
+            const floor = obj.groupParents?.find((gp: any) => gp.type === 'geographicFloor');
+            if (floor) {
+                this.ticket.etage = floor.name;
+                this.pickedFloor = floor.name; // for UI
+            }
+        } else {
+            // Optional: Reset or handle unexpected types
+            this.ticket.equipement = "";
+            this.ticket.salle = "";
+            this.ticket.etage = "";
+        }
+    }
+
 
     async createTicket() {
         const workflowObj = this.workflowlist.find((wf: any) => wf.name === this.ticket.workflow);
@@ -237,7 +337,6 @@ class TicketForm extends Vue {
             } else {
                 elementSelected = this.building.buildingId;
             }
-            console.log("elementSelected", elementSelected);
             this.ticket.priorite = this.ticket.priorite === "faible" ? 2 : this.ticket.priorite === "moyenne" ? 1 : 0;
             const data = {
                 workflow: workflowObj.name,
@@ -247,7 +346,6 @@ class TicketForm extends Vue {
                 priority: this.ticket.priorite || 2,
                 description: this.ticket.description,
             };
-            console.log("🔺 Ticket data:", data);
             const buildingId = localStorage.getItem("idBuilding");
             const res = await this.$store.dispatch("ADD_TICKET", { buildingId, data });
 
@@ -272,7 +370,7 @@ class TicketForm extends Vue {
             domaine: "",
             titre: "",
             description: "",
-            priorite: "",
+            priorite: 2,
         };
         this.prefillSelectedZone();
     }
@@ -290,10 +388,6 @@ export default TicketForm;
     margin: auto;
     margin-top: 20px;
     height: 100%;
-    /* padding: 20px; */
-    /* background: #fff; */
-    /* border-radius: 8px; */
-    /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); */
 }
 
 .form-group {
@@ -361,14 +455,14 @@ label {
 .form-value.locked {
     color: #14202c78;
     background-color: #14202c03;
-    border-bottom: 3px solid #14202c;
+    border-bottom: 2px solid #14202c;
     border-radius: 0 0 8px 0px;
     align-items: center;
     height: 40px;
     margin-top: 5px;
     padding-left: 10px;
     display: flex;
-    box-shadow: 0 2px 4px #0000004d;
+    box-shadow: 0 2px 4px #00000030;
     cursor: not-allowed;
 }
 
@@ -397,9 +491,9 @@ label {
 }
 
 .select-input-add-ticket {
-    border-bottom: 3px solid #14202c;
+    border-bottom: 2px solid #14202c;
     height: 40px;
-    box-shadow: 0 2px 4px #0000004d;
+    box-shadow: 0 2px 4px #00000030;
     cursor: pointer;
     border-radius: 0 0 8px 0px;
     align-items: center;
@@ -408,10 +502,10 @@ label {
 }
 
 .form-title-input {
-    border-bottom: 3px solid #14202c;
+    border-bottom: 2px solid #14202c;
     margin-top: 5px;
     height: 40px;
-    box-shadow: 0 2px 4px #0000004d;
+    box-shadow: 0 2px 4px #00000030;
     cursor: pointer;
     border-radius: 0 0 8px 0px;
     align-items: center;
@@ -420,7 +514,7 @@ label {
 }
 
 .form-desc-input {
-    border-bottom: 3px solid #14202c;
+    border-bottom: 2px solid #14202c;
     margin-top: 5px;
     height: 120px;
     box-shadow: 0 2px 4px #0000004d;
@@ -480,5 +574,34 @@ button:hover {
     height: 45px;
     display: flex;
     cursor: pointer;
+}
+
+.custom-radio-wrapper {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.custom-radio-box {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    background-color: white;
+}
+
+.custom-radio-box.selected {
+    background-color: #14202c;
+    border-color: #14202c;
+}
+
+.checkmark {
+    color: white;
+    font-size: 14px;
+    line-height: 1;
 }
 </style>

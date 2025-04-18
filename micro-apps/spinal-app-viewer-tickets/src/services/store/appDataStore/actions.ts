@@ -35,11 +35,18 @@ import {
   getFloors,
   getRooms,
   getBuildingReferenceObecjts,
+  postBIMObjectInfo,
+  getStaticDetails,
+  getStaticDetailsEquipement,
+  getMultipleReferenceObjects,
 } from "../../spinalAPI/GeographicContext/geographicContext";
 import {
   addTicketDoc,
   createTicket,
   archiveTicket,
+  nextStepTicket,
+  previousStepTicket,
+  addNoteTicket,
 } from "../../spinalAPI/Workflow & ticket/ticketContext";
 import type {
   IEquipmentItem,
@@ -406,6 +413,61 @@ export const actions = {
       throw error;
     }
   },
+  async [ActionTypes.NEXT_STEP_TICKET](
+    { commit }: AugmentedActionContextAppData,
+    {
+      buildingId,
+      ticketId,
+      data,
+    }: { buildingId: string; ticketId: any; data: any }
+  ): Promise<any> {
+    const spinalAPI = SpinalAPI.getInstance();
+    try {
+      const result = await nextStepTicket(buildingId, ticketId, data);
+
+      return result;
+    } catch (error) {
+      console.error("Erreur lors du changement d'etape du ticket:", error);
+      throw error;
+    }
+  },
+  async [ActionTypes.PREVIOUS_STEP_TICKET](
+    { commit }: AugmentedActionContextAppData,
+    {
+      buildingId,
+      ticketId,
+      data,
+    }: { buildingId: string; ticketId: any; data: any }
+  ): Promise<any> {
+    const spinalAPI = SpinalAPI.getInstance();
+    try {
+      const result = await previousStepTicket(buildingId, ticketId, data);
+
+      return result;
+    } catch (error) {
+      console.error("Erreur lors du changement d'etape du ticket:", error);
+      throw error;
+    }
+  },
+  async [ActionTypes.ADD_NOTE](
+    { commit }: AugmentedActionContextAppData,
+    {
+      buildingId,
+      ticketId,
+      data,
+    }: { buildingId: string; ticketId: any; data: any }
+  ): Promise<any> {
+    const spinalAPI = SpinalAPI.getInstance();
+    try {
+      const result = await addNoteTicket(buildingId, ticketId, data);
+
+      return result;
+    } catch (error) {
+      console.error("Erreur lors de la création du ticket:", error);
+      throw error;
+    }
+  },
+
   // Viewer////////////////////////////:
 
   async [ActionTypes.OPEN_VIEWER](
@@ -502,6 +564,80 @@ export const actions = {
 
     for (const item of playload) {
       commit(MutationTypes.REMOVE_VIEWER_LOADED, { id: item.dynamicId });
+    }
+  },
+  async [ActionTypes.GET_BIM_OBJECT_INFO](
+    { commit }: AugmentedActionContextAppData,
+    { buildingId, referenceIds }: { buildingId: string; referenceIds: any }
+  ): Promise<any> {
+    try {
+      const result = await postBIMObjectInfo(buildingId, referenceIds);
+      return result;
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des objets de référence:",
+        error
+      );
+      throw error;
+    }
+  },
+  async [ActionTypes.GET_STATIC_DETAILS](
+    { commit }: AugmentedActionContextAppData,
+    { buildingId, referenceIds }: { buildingId: string; referenceIds: number }
+  ): Promise<any> {
+    // console.log('Début de l\'action GET_REFERENCE_OBJECT_LIST_MULTIPLE',buildingId , referenceIds);
+    const spinalAPI = SpinalAPI.getInstance();
+    try {
+      // const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
+      const result = await getStaticDetails(buildingId, referenceIds);
+      // console.log('Récupération de l objet de référence réussie:', result);
+      return result;
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des objets de référence:",
+        error
+      );
+      throw error;
+    }
+  },
+  async [ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT](
+    { commit }: AugmentedActionContextAppData,
+    { buildingId, referenceIds }: { buildingId: string; referenceIds: number }
+  ): Promise<any> {
+    const spinalAPI = SpinalAPI.getInstance();
+    try {
+      // const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
+      const result = await getStaticDetailsEquipement(buildingId, referenceIds);
+      // console.log('Récupération de l objet de référence réussie:', result);
+      return result;
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des objets de référence:",
+        error
+      );
+      throw error;
+    }
+  },
+  async [ActionTypes.GET_REFERENCE_OBJECT_LIST_MULTIPLE](
+    { commit }: AugmentedActionContextAppData,
+    { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }
+  ): Promise<any> {
+    // console.log('Début de l\'action GET_REFERENCE_OBJECT_LIST_MULTIPLE',buildingId , referenceIds);
+    const spinalAPI = SpinalAPI.getInstance();
+    try {
+      // const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
+      const result = await getMultipleReferenceObjects(
+        buildingId,
+        referenceIds
+      );
+      // console.log('Récupération des objets de référence réussie:', result);
+      return result;
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des objets de référence:",
+        error
+      );
+      throw error;
     }
   },
 

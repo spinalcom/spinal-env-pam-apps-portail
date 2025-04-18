@@ -40,7 +40,7 @@ export interface IConfig {
   sprites: boolean;
   reloadInterval?: number;
   temporality: ITemporality[];
-  workflowList: String[];
+  // workflowList: String[];
   profilType: ProfilType;
 }
 

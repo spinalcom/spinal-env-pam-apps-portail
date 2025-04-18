@@ -66,6 +66,7 @@ with this file. If not, see
             <div class="add-ticket-text-bold">TICKET DE MAINTENANCE</div>
           </div>
         </div>
+        <div v-else style="height: 10px;width: 10px;opacity: 0;"></div>
 
         <div class="reload-container">
           <div class="reload-btn" @click="startReload" :style="{ background: progressGradient }">
@@ -137,7 +138,7 @@ with this file. If not, see
       </div>
       <div v-if="showAddTicket" class="add-ticket-vue" style="height: 87%;">
         <TicketForm :selectedZone="selectedZone" :workflowlist="workflowlist" :domainlist="domainlist"
-          :building="buildingInfo" />
+          :priorities="priorities" :building="buildingInfo" :selectedObj="selectedObjectFromViewer" />
       </div>
       <div v-if="!showAddTicket" class="d-flex flex-row justify-space-between filtres-container" style="width: 100%;">
         <div class="d-flex flex-column justify-space-between filtre-half-holder" style="height: 150px;">
@@ -264,6 +265,9 @@ with this file. If not, see
       <div class="legend-full-container">
         <LegendVue :legendItems="legendItems"></LegendVue>
       </div>
+      <ticketDetails v-if="detailedTicket" style="z-index: 99" v-model="showDialog" @changeRoute="handleRouteChange"
+        @reloadRequested="startReload" :detailed-ticket="detailedTicket" :token="token" :baseURL="baseURL"
+        :steps="fullstepList" :config="ticketConfig"></ticketDetails>
       <!-- <div v-if="(selectedZone.type === 'building') || (selectedZone.name == 'Bâtiment')" class="toggle-full-container">
         <div class="toggle-container"
           @click="toggleSprites = !toggleSprites; toggleSprites ? updateSprites(data) : showAllSprites(data)">
@@ -306,7 +310,13 @@ import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import { regroupTicketByRoom } from "../../services/store/appDataStore/utils/ticketUtils";
 import { regroupTicketsByFloor, regroupFullTicketsByFloor } from "../../services/store/appDataStore/utils/ticketUtils";
+import { fullstepList } from "../../services/store/appDataStore/utils/ticketUtils";
 import { updateItemCounts } from "../../utils/ticketUtils";
+
+import {
+  EmitterViewerHandler,
+  VIEWER_AGGREGATE_SELECTION_CHANGED,
+} from "spinal-viewer-event-manager";
 
 import SpriteComponent from "./SpriteComponent.vue";
 import FullFloorSpriteComponent from "./FullFloorSpriteComponent.vue";
@@ -324,13 +334,16 @@ import { Console } from "console";
 import TicketForm from "./components/TicketForm.vue";
 import { debounce } from "lodash";
 import { Building } from "micro-apps/spinal-app-viewer-space/src/interfaces/API/Geographic Context/DTO/Request";
+import TicketDetails from "./TicketDetailsNew.vue";
+
 
 @Component({
-  components: { TicketComponent, TicketTable, StatusFiltre, SpriteCardComponent, ProfileSelector, LegendVue, TicketForm },
+  components: { TicketComponent, TicketTable, StatusFiltre, SpriteCardComponent, ProfileSelector, LegendVue, TicketForm, TicketDetails },
   filters: {},
 })
 class dataSideApp extends Vue {
   @Prop() config!: IConfig;
+  @Prop() ticketConfig: Object;
   @Prop() selectedZone: ISpaceSelectorItem;
   @Prop() data: any[];
   @Prop() selectedId: number;
@@ -344,8 +357,13 @@ class dataSideApp extends Vue {
     required: false,
   }) token!: string;
 
+  referenceObjects: any[];
+
   workflowlist: any[];
   domainlist: any[];
+  fullstepList: any[] = fullstepList;
+  selectedObjectFromViewer: any;
+
 
   reloadInterval: number;
   progress = 0;
@@ -354,7 +372,8 @@ class dataSideApp extends Vue {
   messageTimeout: ReturnType<typeof setTimeout> | null = null;
   isFirstLoad: boolean = true;
   toggleSprites: boolean = true;
-
+  detailedTicket = null;
+  showDialog = false;
   tickets_with_positions: any[];
   floor_tickets_with_positions: any[];
   full_floor_tickets_with_positions: any[];
@@ -414,6 +433,13 @@ class dataSideApp extends Vue {
   }
   toggleAddTicket() {
     this.showAddTicket = !this.showAddTicket;
+  }
+  showDetails(ticket) {
+    this.detailedTicket = ticket;
+    this.showDialog = true;
+  }
+  handleRouteChange() {
+    this.$emit('changeRoute');
   }
 
 
@@ -563,14 +589,30 @@ class dataSideApp extends Vue {
 
 
   async mounted() {
+    console.log("mounted", this.ticketConfig);
     this.selectedProfile = this.config.profilType;
     this.startTimer();
     this.reloadInterval = this.config.reloadInterval || 60000;
+
+
+
+    const floors = await this.$store.dispatch(ActionTypes.GET_FLOORS, {
+      buildingId: this.buildingInfo.buildingId,
+      patrimoineId: this.buildingInfo.patrimoineId,
+    });
+    this.buildingInfo.floors = floors;
+    this.getDataDynamicIdtab();
+
+    const emitterHandler = EmitterViewerHandler.getInstance();
+    emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
+
+      if (data)
+        this.findDynamicIdByDbid(data[0].dbIds[0], data[0]);
+
+    });
     // await this.retriveData("building");
     EventBus.$on("call-card", this.locateTicket);
     EventBus.$on("showRecapCard", this.showRecapCard);
-    console.log("this workflow", this.workflow_filter)
-    console.log("this domain", this.domain_filter)
 
   }
   beforeDestroy() {
@@ -578,6 +620,111 @@ class dataSideApp extends Vue {
     EventBus.$off("call-card", this.locateTicket);
     EventBus.$off("showRecapCard", this.showRecapCard);
   }
+
+  async findDynamicIdByDbid(dbidToFind, data) {
+    const buildingId = localStorage.getItem("idBuilding");
+    const BimObject = [
+      {
+        "bimFileId": data.modelId.bimFileId,
+        "dbids": data.dbIds
+      }
+    ]
+    const referenceResult = await this.getBIMInfo(BimObject)
+    const isRoom = this.checkForReferenceObjectRoom(referenceResult[0][0].bimObjects[0].parent_relation_list)
+    if (isRoom) {
+      const objects = this.referenceObjects;
+      for (const obj of objects[0]) {
+        if (Array.isArray(obj.infoReferencesObjects)) {
+          for (const ref of obj.infoReferencesObjects) {
+
+            if (ref.dbid === dbidToFind && data.modelId.bimFileId == obj.bimFileId) {
+              const referenceIds = obj.dynamicId
+              const promises = [
+                this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
+                  buildingId,
+                  referenceIds
+                }),
+              ];
+              const result = await Promise.all(promises);
+
+              console.log('result', result);
+              this.selectedObjectFromViewer = result
+              // this.forgeItem(result, buildingId, ref.dbid, obj.bimFileId, data.center)
+
+              return result;
+            }
+          }
+        }
+      }
+
+      return null;
+    }
+    else {
+      const referenceIds = referenceResult[0][0].bimObjects[0].dynamicId
+
+
+      const promises = [
+        this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
+          buildingId,
+          referenceIds
+        }),
+      ];
+
+
+      const result = await Promise.all(promises);
+      console.log('result', result);
+      this.selectedObjectFromViewer = result
+      // this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0], data.center)
+
+      return result;
+    }
+  }
+  async getBIMInfo(referenceIds) {
+    const buildingId = localStorage.getItem("idBuilding");
+    const promises = [
+      this.$store.dispatch(ActionTypes.GET_BIM_OBJECT_INFO, {
+        buildingId,
+        referenceIds
+      }),
+    ];
+    const result = await Promise.all(promises);
+    return [...result]
+  }
+  checkForReferenceObjectRoom(list) {
+    return list.some(item => item.name === "hasReferenceObject.ROOM");
+  }
+
+  async getDataDynamicIdtab() {
+    const buildingId = localStorage.getItem("idBuilding");
+
+    const promises = this.buildingInfo.floors.map(floor =>
+      this.$store.dispatch(ActionTypes.GET_ROOMS, {
+        buildingId,
+        patrimoineId: this.buildingInfo.patrimoineId,
+        floorId: floor.dynamicId,
+        id: floor.dynamicId,
+      })
+    );
+    const result = (await Promise.all(promises)).flat();
+
+    const dynamicIds = result.map(obj => obj.dynamicId);
+
+    this.fetchReferenceObjects(dynamicIds)
+  }
+  async fetchReferenceObjects(referenceIds) {
+    const buildingId = localStorage.getItem("idBuilding");
+
+    const promises = [
+      this.$store.dispatch(ActionTypes.GET_REFERENCE_OBJECT_LIST_MULTIPLE, {
+        buildingId,
+        referenceIds
+      }),
+    ];
+    const result = await Promise.all(promises);
+    this.referenceObjects = [...result];
+    // this.data_loading += 15
+  }
+
 
   async retriveData(type: "building" | "geographicFloor" | "geographicRoom") {
     try {
@@ -600,6 +747,8 @@ class dataSideApp extends Vue {
         ];
         const process_result = await Promise.all(process_promises);
         this.domainlist = process_result[0];
+
+
         const promises = [
           this.$store.dispatch(ActionTypes.FILTER_TICKETS, {
             buildingId,
@@ -684,6 +833,7 @@ class dataSideApp extends Vue {
 
   startReload() {
     // this.reloadData("building");  // Call reloadData initially
+    console.log("startReload");
     this.reloadData(this.selectedZone.type);
     this.startTimer();
   }
@@ -785,9 +935,9 @@ class dataSideApp extends Vue {
     this.$emit("clickOnDataView", item);
   }
 
-  showDetails(ticket) {
-    this.$emit("display", ticket);
-  }
+  // showDetails(ticket) {
+  //   this.$emit("display", ticket);
+  // }
   // regroupTicketsByFloor(to_update) {
   //   const grouped = {};
 
@@ -1095,7 +1245,7 @@ class dataSideApp extends Vue {
 
 
   @Watch("data")
-  watchData(newData) {
+  watchData() {
     // this.updateSprites(newData);
   }
 
@@ -1229,10 +1379,6 @@ export default dataSideApp;
   background-image: url(./assets/ticket-key.svg);
 }
 
-// .add-ticket-icon:hover {
-//   height: 44px;
-//   width: 44px;
-// }
 
 .add-ticket-text-holder {
   display: flex;

@@ -36,13 +36,14 @@ with this file. If not, see
 
     <div class="dataBody">
       <viewerApp :class="{ 'active3D': isActive3D }" class="viewerContainer"></viewerApp>
-      <dataSideApp class="appContainer" :DActive="isActive3D" :ActiveData="isActive" :refrech="refrech" :config="config"
-        :baseURL="baseUrl" :token="token" :selectedZone="selectedZone" :data="displayedData" @changeRoute="changeApp"
+      <dataSideApp ref="dataSideApp" class="appContainer" :DActive="isActive3D" :ActiveData="isActive"
+        :refrech="refrech" :config="config" :ticketConfig="ticketConfig" :baseURL="baseUrl" :token="token"
+        :selectedZone="selectedZone" :data="displayedData" @changeRoute="changeApp"
         @updateBuildingTickets="updateBuildingTicketNumber" :selectedId="selectedId" :buildingInfo="buildingInfo"
         @clickOnDataView="onDataViewClicked" @display="showDetails" @download="downloadList"
         @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D" @full3D="full3D()"
-        :class="{ 'active': isActive, 'inactive': isActive3D }" @floorData="updateSpriteData"
-        style="z-index: 10!important;">
+        @reloadRequested="callReloadOnDataSideApp" :class="{ 'active': isActive, 'inactive': isActive3D }"
+        @floorData="updateSpriteData" style="z-index: 10!important;">
       </dataSideApp>
     </div>
 
@@ -63,7 +64,8 @@ with this file. If not, see
       "></sprite-component>
 
     <ticketDetails v-if="detailedTicket" style="z-index: 99" v-model="showDialog" @changeRoute="handleRouteChange"
-      :detailed-ticket="detailedTicket" :token="token" :baseURL="baseUrl"></ticketDetails>
+      @reloadRequested="callReloadOnDataSideApp" :detailed-ticket="detailedTicket" :token="token" :baseURL="baseUrl"
+      :config="ticketConfig"></ticketDetails>
   </v-app>
 
   <v-container class="loading" v-else-if="pageSate === PAGE_STATES.loading" fluid>
@@ -90,6 +92,7 @@ import type {
 import viewerApp from "../../../global-components/viewer/viewer.vue";
 import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
+import { ticketConfig } from "./config";
 import { IConfig } from "./interfaces/IConfig";
 import { PAGE_STATES } from "./interfaces/pageStates";
 import {
@@ -99,7 +102,7 @@ import {
 import { Legend } from "./interfaces/ILegend";
 
 import dataSideApp from "./components/data-side/App.vue";
-import ticketDetails from "./components/data-side/TicketDetails.vue";
+import ticketDetails from "./components/data-side/TicketDetailsNew.vue";
 import LegendVue from "./components/data-side/components/LegendVue.vue";
 import SpriteComponent from "./components/data-side/FloorSpriteComponent.vue";
 import { SpinalAPI } from "./services/spinalAPI/SpinalAPI";
@@ -129,10 +132,11 @@ class App extends Vue {
   buildingInfo: any = {};
   buildingTicketNumber: number = 0;
   config: IConfig = config;
+  ticketConfig: Object = ticketConfig;
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
   reloadInterval: number;
   dataTable: IZoneItem[] = [];
-  $refs: { spaceSelector };
+  $refs: { spaceSelector, dataSideApp: InstanceType<typeof dataSideApp> };
   isActive: boolean = false;
   isActive3D: boolean = false;
   detailedTicket = null;
@@ -185,7 +189,6 @@ class App extends Vue {
       const { name, type, id } = building;
       this.buildingInfo = { name, type, buildingId, patrimoineId: 0 };
     }
-    console.log(this.buildingInfo);
     await this.fetchFullBuildingData();
     localStorage.setItem("viewer_loaded", 'initialize');
     if (window.innerWidth < 900) {
@@ -280,6 +283,13 @@ class App extends Vue {
   changeApp(e) {
     this.query.app = e
     this.changeRoute();
+  }
+  callReloadOnDataSideApp() {
+    if (this.$refs.dataSideApp && this.$refs.dataSideApp.startReload) {
+      this.$refs.dataSideApp.startReload();
+    } else {
+      console.warn("startReload not available in dataSideApp");
+    }
   }
 
   applyURLParam(query) {

@@ -134,7 +134,7 @@
                 </tbody>
             </v-simple-table>
         </v-card>
-        <!-- <v-dialog class="archive-dialog" v-model="showArchiveDialog" max-width="500px">
+        <v-dialog class="archive-dialog" v-model="showArchiveDialog" max-width="500px">
             <v-card>
                 <v-card-title class="headline">Confirmer l'archivage</v-card-title>
                 <v-card-text>
@@ -148,30 +148,7 @@
                     <v-btn color="red darken-1" text @click="confirmArchive">Archiver</v-btn>
                 </v-card-actions>
             </v-card>
-        </v-dialog> -->
-        <div v-if="showArchiveDialog" class="custom-modal-overlay">
-            <div class="custom-modal">
-                <div class="custom-modal-header">
-                    <h3>Confirmer l'archivage</h3>
-                </div>
-                <div class="custom-modal-body">
-                    Êtes-vous sûr de vouloir archiver le ticket :
-                    <strong v-if="ticketToArchive">#{{ ticketToArchive.dynamicId }}</strong>
-                    <span v-if="ticketToArchive"> - "{{ ticketToArchive.name }}"</span>
-                </div>
-                <div style="width: 100%;">
-                    <div class="d-flex flex-row" style="justify-content: space-around;">
-                        <div class="archive-btn-cancel" @click="cancelArchive">Annuler</div>
-                        <div class="archive-btn-confirm" @click="confirmArchive">archiver</div>
-                    </div>
-                </div>
-                <!-- <div class="custom-modal-footer" style="height: 50%;">
-                    <button class="btn-cancel" @click="cancelArchive">Annuler</button>
-                    <button class="btn-confirm" @click="confirmArchive">Archiver</button>
-                </div> -->
-            </div>
-        </div>
-
+        </v-dialog>
     </div>
 </template>
 
@@ -373,7 +350,6 @@ class TicketTable extends Vue {
     handleArchiveTicket(ticket: any) {
         this.ticketToArchive = ticket;
         this.showArchiveDialog = true;
-        console.log('Archiving ticket:', ticket);
     }
     cancelArchive() {
         this.showArchiveDialog = false;
@@ -381,7 +357,6 @@ class TicketTable extends Vue {
     }
 
     async confirmArchive() {
-        console.log('Archiving ticket:', this.ticketToArchive);
         let buildingId = localStorage.getItem("idBuilding");
 
         const res = await this.$store.dispatch("ARCHIVE_TICKET", {
@@ -392,7 +367,6 @@ class TicketTable extends Vue {
         });
 
         if (res) {
-            console.log('Ticket archived:', this.ticketToArchive);
         } else {
             console.error('Failed to archive ticket:', this.ticketToArchive);
         }
@@ -435,6 +409,16 @@ class TicketTable extends Vue {
     @Watch('selectedTicket', { immediate: true })
     onSelectedTicketChange(newTicket) {
         this.$nextTick(() => {
+            // First remove all `.is-single` classes
+            const allSelected = Array.from(this.$el.querySelectorAll('.selectedTicket-class'));
+            allSelected.forEach(el => el.classList.remove('is-single'));
+
+            // Then, if there's exactly one selected, mark it
+            if (allSelected.length === 1) {
+                allSelected[0].classList.add('is-single');
+            }
+
+            // Keep your scroll logic
             if (newTicket) {
                 const selectedRow = this.$el.querySelector(
                     `tr[data-id="${newTicket.dynamicId}"]`
@@ -445,6 +429,7 @@ class TicketTable extends Vue {
             }
         });
     }
+
 
 }
 
@@ -600,8 +585,8 @@ th {
     width: 15px;
     height: 15px;
     color: #14202c;
-    background-image: url("../assets/more.svg");
-    background-size: 70%;
+    background-image: url("../assets/archive.svg");
+    background-size: 100%;
     background-position: center;
     background-repeat: no-repeat;
 }
@@ -658,36 +643,49 @@ th {
     margin-top: 0.5px;
 }
 
-/* .selectedTicket-class {
-    -webkit-box-shadow: inset 0px 0px 0px 2px blue;
-    -moz-box-shadow: inset 0px 0px 0px 2px blue;
-    box-shadow: inset 0px 0px 0px 2px blue;
-    box-sizing: border-box;
-} */
-/* General selected item border */
-.selectedTicket-class {
-    box-shadow: inset 1px 0px 0px 1px blue;
+.parent:has(> .selectedTicket-class:nth-child(1)):not(:has(> .selectedTicket-class:nth-child(2))) {
+    /* only one child — JS might be cleaner here */
+
+    box-shadow:
+        inset 1px 0 0 0 blue,
+        /* left */
+        inset -1px 0 0 0 blue,
+        /* right */
+        inset 0 1px 0 0 blue,
+        /* top */
+        inset 0 -1px 0 0 blue;
+    /* bottom */
 }
 
-/* Remove top border when the previous item is also selected */
-.selectedTicket-class+.selectedTicket-class {
-    box-shadow: inset 1px -1px 0px 1px blue;
-    /* Keeps only the bottom border */
-}
 
 /* Remove bottom border when the next item is also selected */
 .selectedTicket-class:has(+ .selectedTicket-class) {
-    box-shadow: inset 1px 1px 0px 1px blue;
+    /* box-shadow: inset 0px 0px 0px 0px blue; */
+    box-shadow: inset 1px 0 0 0 #3390FF, inset -1px 0 0 0 #3390FF;
     /* Keeps only the top border */
 }
 
+.selectedTicket-class:first-child {
+    /* This is the first in a group of selected items */
+    box-shadow:
+        inset 1px 0 0 0 #3390FF,
+        inset -1px 0 0 0 #3390FF,
+        inset 0 1px 0 0 #3390FF;
+}
+
+
 /* Ensure the last selected item in a sequence has a bottom border */
 .selectedTicket-class:not(:has(+ .selectedTicket-class)) {
-    box-shadow: inset 1px 1px 0px 1px blue, inset 0px -1px 0px 1px blue;
+    box-shadow: inset 0px -1px 0 1px #3390FF, inset 0 0px 0 0px #3390FF;
+}
+
+.selectedTicket-class.is-single {
+    box-shadow: inset 1px 0 0 0 #3390FF, inset -1px 0 0 0 #3390FF, inset 0 1px 0 0 #3390FF, inset 0 -1px 0 0 #3390FF;
 }
 
 .selected-ticket-item {
-    background-color: rgba(0, 0, 255, 0.1);
+    /* background-color: rgba(0, 0, 255, 0.1); */
+    background-color: #3390ff20;
     /* Light blue with low opacity */
 }
 

@@ -58,6 +58,73 @@ export async function getBuildingReferenceObecjts(
   // });
   return result.data;
 }
+export async function postBIMObjectInfo(
+  buildingId: string,
+  referenceIds: any
+): Promise<any> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    "/api/v1/BIM/getBimObjectsInfo"
+  );
+  try {
+    const response = await spinalAPI.post<any>(url, referenceIds);
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération des objets de référence:",
+      error
+    );
+    throw error;
+  }
+}
+
+export async function getStaticDetails(
+  buildingId: string,
+  roomDynId: number
+): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    `api/v1/room/${roomDynId}/read_static_details`
+  );
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+export async function getStaticDetailsEquipement(
+  buildingId: string,
+  roomDynId: number
+): Promise<IZoneItem[]> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    `api/v1/equipment/${roomDynId}/read_static_details`
+  );
+  let result = await spinalAPI.get<IZoneItem[]>(url);
+  return result.data;
+}
+export async function getMultipleReferenceObjects(
+  buildingId: string,
+  referenceIds: number[]
+): Promise<any> {
+  // console.log('Début de la récupération des objets de référence');
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    "/api/v1/room/reference_object_list_multiple"
+  );
+  try {
+    const response = await spinalAPI.post<any>(url, referenceIds);
+    // console.log('Fin de la récupération des objets de référence');
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération des objets de référence:",
+      error
+    );
+    throw error;
+  }
+}
 
 export async function getFloors(
   patrimoineId: string,

@@ -28,6 +28,8 @@ export const ticketConfig = {
   buildingName: "Patrimoine DEI",
   steps: {
     closed: ["Archived", "Refusée", "Clôturée"],
+    refused: ["Refusée"],
+    archived: ["Archived"],
   },
   workflowList: ["Ticket Mission", "Demande d'intervention"],
 };
@@ -38,7 +40,7 @@ export const config: IConfig = {
   reloadInterval: 600000,
   // profilType: "Admin",
   profilType: ProfilType.Admin,
-  viewerInfo: { roomRef: true, floorRef: true, equipments: "ticket" },
+  viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },
   temporality: [
     ITemporality.currentValue,
     ITemporality.day,
@@ -46,5 +48,5 @@ export const config: IConfig = {
     ITemporality.month,
     ITemporality.year,
   ],
-  workflowList: ["Demande d'intervention"],
+  // workflowList: ["Demande d'intervention"],
 };

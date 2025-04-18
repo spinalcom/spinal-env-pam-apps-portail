@@ -134,3 +134,44 @@ export async function archiveTicket(
   const res = await spinalAPI.post(url, data);
   return res.data;
 }
+export async function nextStepTicket(
+  building: string,
+  ticketId: string,
+  data: { workflowDynamicId: number; processDynamicId: number }
+) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    building,
+    `api/v1/ticket/${ticketId}/next_step`
+  );
+  const res = await spinalAPI.post(url, data);
+  return res.data;
+}
+
+export async function previousStepTicket(
+  building: string,
+  ticketId: string,
+  data: { workflowDynamicId: number; processDynamicId: number }
+) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    building,
+    `api/v1/ticket/${ticketId}/previous_step`
+  );
+  const res = await spinalAPI.post(url, data);
+  return res.data;
+}
+
+export async function addNoteTicket(
+  building: string,
+  ticketId: string,
+  data: { note: string }
+) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    building,
+    `api/v1/ticket/${ticketId}/add_note`
+  );
+  const res = await spinalAPI.post(url, data);
+  return res.data;
+}

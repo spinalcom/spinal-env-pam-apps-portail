@@ -298,6 +298,7 @@
                     Espace
                 </div>
                 <div class="pl-8">
+
                     {{
                         detailedTicket.buildingName +
                         " : " +

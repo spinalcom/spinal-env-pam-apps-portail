@@ -30,7 +30,7 @@ export async function getProcessList(workflows: any[]): Promise<any[]> {
   }
   return processList;
 }
-
+export let fullstepList: any[] = [];
 export async function loadTickets(): Promise<Array<any>> {
   const stepList = <any[]>[];
   const workflows = await ticketAPI.getWorkflowList();
@@ -38,6 +38,11 @@ export async function loadTickets(): Promise<Array<any>> {
   const workflowList = workflows.filter((w) => workflow_list.includes(w.name));
   for (const workflow of workflowList) {
     const processList = await ticketAPI.getProcessList(workflow.dynamicId);
+    fullstepList = await ticketAPI.getStepList(
+      workflow.dynamicId,
+      processList[0].dynamicId
+    );
+
     for (const process of processList) {
       const steps = (
         await ticketAPI.getStepList(workflow.dynamicId, process.dynamicId)
@@ -45,6 +50,7 @@ export async function loadTickets(): Promise<Array<any>> {
       stepList.push(...steps);
     }
   }
+
   // console.log("stepList", stepList);
   const ticketList = (
     await ticketAPI.getTicketListMultiple(stepList.map((s) => s.dynamicId))
