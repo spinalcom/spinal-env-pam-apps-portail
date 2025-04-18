@@ -26,10 +26,7 @@ with this file. If not, see
   <div>
     <v-card elevation="4" class="cardContainer">
       <!-- configuration de la légende (affichage et couleur des sprites)-->
-      <v-card
-        v-if="!ActiveData"
-        class="d-flex flex-column justify-space-around align-center"
-        style="
+      <v-card v-if="!ActiveData" class="d-flex flex-column justify-space-around align-center" style="
           position: absolute;
           top: 0px;
           left: -75px;
@@ -37,66 +34,48 @@ with this file. If not, see
           min-width: 70px !important;
           height: 160px;
           z-index: 2;
-        "
-      >
+        ">
         <!-- <v-switch dense v-model="sprites"></v-switch> -->
         <div class="switch">
-          <input
-            id="toggle"
-            type="checkbox"
-            :checked="sprites"
-            @change="updateSpritesModel($event)"
-          />
+          <input id="toggle" type="checkbox" :checked="sprites" @change="updateSpritesModel($event)" />
           <label class="toggle" for="toggle">
             <i></i>
           </label>
         </div>
 
         <div style="display: flex; align-items: center">
-          <div
-            class="rounded mr-2"
-            :style="{
-              background: legend.min.color,
-              width: '9px',
-              height: '18px',
-            }"
-          ></div>
+          <div class="rounded mr-2" :style="{
+            background: legend.min.color,
+            width: '9px',
+            height: '18px',
+          }"></div>
           <div style="font-size: 13px">{{ legend.min.value }}</div>
         </div>
         <div v-if="legend.median" style="display: flex; align-items: center">
-          <div
-            class="rounded mr-2"
-            :style="{
-              background: legend.median.color,
-              width: '9px',
-              height: '18px',
-            }"
-          ></div>
+          <div class="rounded mr-2" :style="{
+            background: legend.median.color,
+            width: '9px',
+            height: '18px',
+          }"></div>
           <div style="font-size: 13px">{{ medianValue }}</div>
         </div>
         <div style="display: flex; align-items: center">
-          <div
-            class="rounded mr-2"
-            :style="{
-              background: legend.max.color,
-              width: '9px',
-              height: '18px',
-            }"
-          ></div>
+          <div class="rounded mr-2" :style="{
+            background: legend.max.color,
+            width: '9px',
+            height: '18px',
+          }"></div>
           <div style="font-size: 13px">{{ legend.max.value }}</div>
         </div>
         <v-btn icon @click="dialog = true"><v-icon>mdi-cog</v-icon></v-btn>
       </v-card>
       <!-- affichage scindé ou complet (dataapp viewer)-->
-      <button
-        class="notdisplayed"
-        @click="
-          () => {
-            $emit('buttonClicked');
-            resize();
-          }
-        "
-        style="
+      <button class="notdisplayed" @click="
+        () => {
+          $emit('buttonClicked');
+          resize();
+        }
+      " style="
           position: absolute;
           top: 47.5%;
           left: -20px;
@@ -110,22 +89,17 @@ with this file. If not, see
           padding-right: 5px;
           border-left: 2px solid gainsboro;
           z-index: 2;
-        "
-        :style="{ left: DActive ? '-35px' : '-20px' }"
-      >
+        " :style="{ left: DActive ? '-35px' : '-20px' }">
         <v-icon v-if="DActive"> mdi-chevron-double-left </v-icon>
         <v-icon v-else-if="ActiveData">mdi-chevron-right</v-icon>
         <v-icon v-else>mdi-chevron-left</v-icon>
       </button>
-      <button
-        class="notdisplayed"
-        @click="
-          () => {
-            $emit('buttonClicked3D');
-            resize();
-          }
-        "
-        style="
+      <button class="notdisplayed" @click="
+        () => {
+          $emit('buttonClicked3D');
+          resize();
+        }
+      " style="
           position: absolute;
           top: 52.5%;
           background-color: white;
@@ -138,46 +112,30 @@ with this file. If not, see
           padding-right: 5px;
           border-left: 2px solid gainsboro;
           z-index: 2;
-        "
-        :style="{ left: DActive ? '-35px' : '-20px' }"
-      >
+        " :style="{ left: DActive ? '-35px' : '-20px' }">
         <v-icon v-if="ActiveData">mdi-chevron-double-right</v-icon>
         <v-icon v-else-if="DActive">mdi-chevron-left</v-icon>
         <v-icon v-else>mdi-chevron-right</v-icon>
       </button>
 
       <div class="graphDataContainer" v-show="ActiveData || !DActive">
-        <div
-          class="graphContainer"
-          v-if="
-            (!isMobileDisplay && ActiveData) ||
-            (isMobileDisplay && isFullGraph && ActiveData)
-          "
-          :class="[{ 'full-width': isMobileDisplay && isFullGraph }]"
-        >
-          <sc-line-card
-            :title="title"
-            :labels="labelDisplay"
-            :datasets="chartData"
-            :step="labels.length / 4"
+        <div class="graphContainer" v-if="
+          (!isMobileDisplay && ActiveData) ||
+          (isMobileDisplay && isFullGraph && ActiveData)
+        " :class="[{ 'full-width': isMobileDisplay && isFullGraph }]">
+          <sc-line-card :title="title" :labels="labelDisplay" :datasets="chartData" :step="labels.length / 4"
             :tooltipCallbacks="{
               title: (context) => toTooltipDate(context[0].raw.x),
               label: (tooltipItem) =>
                 `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
                   2
                 )} ${unit}`,
-              footer: (data) => {},
-            }"
-          ></sc-line-card>
+              footer: (data) => { },
+            }"></sc-line-card>
         </div>
 
-        <div
-          v-if="!isFullGraph"
-          class="dataContainer"
-          :style="{ width: ActiveData ? '40%' : '100%' }"
-          :class="[{ 'full-width': isMobileDisplay && !isFullGraph }]"
-          @onSpriteClick="updateSelected"
-        >
+        <div v-if="!isFullGraph" class="dataContainer" :style="{ width: ActiveData ? '40%' : '100%' }"
+          :class="[{ 'full-width': isMobileDisplay && !isFullGraph }]" @onSpriteClick="updateSelected">
           <div class="detail_header">
             <div class="title_date">
               <div class="_title">{{ config.title }}</div>
@@ -187,26 +145,14 @@ with this file. If not, see
                   <v-icon>mdi-chevron-left</v-icon>
                 </v-btn>
                 {{ displayDate }}
-                <v-btn
-                  elevation="0"
-                  fab
-                  small
-                  :disabled="!t_index"
-                  @click="t_index++"
-                >
+                <v-btn elevation="0" fab small :disabled="!t_index" @click="t_index++">
                   <v-icon>mdi-chevron-right</v-icon>
                 </v-btn>
               </div>
               <!-- rafraichissement des données -->
               <div v-else>
-                <v-progress-circular
-                  :rotate="-90"
-                  :size="40"
-                  :width="2"
-                  color="purple"
-                  :value="reload_countdown"
-                  @click="reload()"
-                >
+                <v-progress-circular :rotate="-90" :size="40" :width="2" color="purple" :value="reload_countdown"
+                  @click="reload()">
                   <v-icon>mdi-reload</v-icon>
                 </v-progress-circular>
               </div>
@@ -215,32 +161,13 @@ with this file. If not, see
             <!-- selection de la source et du regroupement -->
             <v-row class="source_regroupement_select">
               <v-col>
-                <v-autocomplete
-                  v-model="sourceSelectedName"
-                  item-text="name"
-                  outlined
-                  dense
-                  rounded
-                  flat
-                  :hide-details="true"
-                  :items="sources"
-                  label="Source"
-                ></v-autocomplete>
+                <v-autocomplete v-model="sourceSelectedName" item-text="name" outlined dense rounded flat
+                  :hide-details="true" :items="sources" label="Source"></v-autocomplete>
               </v-col>
 
               <v-col>
-                <v-autocomplete
-                  v-model="regroupementSelected"
-                  item-text="name"
-                  item-value="value"
-                  outlined
-                  dense
-                  rounded
-                  flat
-                  :hide-details="true"
-                  :items="regroupements"
-                  label="Regroupement"
-                ></v-autocomplete>
+                <v-autocomplete v-model="regroupementSelected" item-text="name" item-value="value" outlined dense
+                  rounded flat :hide-details="true" :items="regroupements" label="Regroupement"></v-autocomplete>
               </v-col>
             </v-row>
 
@@ -248,42 +175,27 @@ with this file. If not, see
             <div class="calcul_content">
               <div class="calcul">
                 <div class="select">
-                  <v-select
-                    v-model="calculMode"
-                    :items="calculItems"
-                    height="30"
-                    background-color="#eaeef0"
-                    dense
-                    append-icon=""
-                    solo
-                    flat
-                    :hide-details="true"
-                  >
+                  <v-select v-model="calculMode" :items="calculItems" height="30" background-color="#eaeef0" dense
+                    append-icon="" solo flat :hide-details="true">
                     <template v-slot:item="{ item, index }">
                       <div style="display: flex; align-items: center">
-                        <div
-                          class="color"
-                          :style="{
-                            background: '#14202c',
-                            width: '8px',
-                            height: '15px',
-                            marginRight: '5px',
-                          }"
-                        ></div>
+                        <div class="color" :style="{
+                          background: '#14202c',
+                          width: '8px',
+                          height: '15px',
+                          marginRight: '5px',
+                        }"></div>
                         <div style="font-size: 13px">{{ item }}</div>
                       </div>
                     </template>
 
                     <template v-slot:selection="{ item, index }">
                       <div style="display: flex; align-items: center">
-                        <div
-                          class="color"
-                          :style="{
-                            height: '15px',
-                            background: '#14202c',
-                            borderRadius: '3px',
-                          }"
-                        ></div>
+                        <div class="color" :style="{
+                          height: '15px',
+                          background: '#14202c',
+                          borderRadius: '3px',
+                        }"></div>
                         <div style="font-size: 13px">{{ item }}</div>
                       </div>
                     </template>
@@ -301,29 +213,13 @@ with this file. If not, see
           </div>
 
           <!-- affichage des données -->
-          <div
-            v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected"
-            class="detail_container"
-          >
-            <GroupDataView
-              v-for="(d, i) in data"
-              :key="i"
-              :data="d"
-              :config="config"
-              :calculMode="calculMode"
-              :selectedItem="selectedItem"
-              :unit="unit"
-              :legend="legend"
-              :percent="percent"
-              @onClick="selectDataView"
-            />
+          <div v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected" class="detail_container">
+            <GroupDataView v-for="(d, i) in data" :key="i" :data="d" :config="config" :calculMode="calculMode"
+              :selectedItem="selectedItem" :unit="unit" :legend="legend" :percent="percent" @onClick="selectDataView" />
           </div>
 
           <!-- page chargée avec succès (zone non selectionnée) -->
-          <div
-            class="centered"
-            v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected"
-          >
+          <div class="centered" v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected">
             <p>
               Aucune donnée à afficher ! veuillez selectionner un étage ou une
               pièce.
@@ -332,25 +228,17 @@ with this file. If not, see
 
           <!-- animation de rafraichissement -->
           <div class="centered" v-else-if="pageSate === PAGE_STATES.loading">
-            <v-progress-circular
-              :size="70"
-              :width="3"
-              color="purple"
-              indeterminate
-            ></v-progress-circular>
+            <v-progress-circular :size="70" :width="3" color="purple" indeterminate></v-progress-circular>
           </div>
 
           <!-- bouton de relance en cas d'erreur -->
           <div class="centered" v-else-if="pageSate === PAGE_STATES.error">
             <div>
-              <v-icon color="red" style="font-size: 5em"
-                >mdi-alert-circle-outline</v-icon
-              >
+              <v-icon color="red" style="font-size: 5em">mdi-alert-circle-outline</v-icon>
             </div>
             <div color="red">
               Quelque chose s'est mal passé ! Veuillez
-              <v-btn small outlined color="red" @click="retry"
-                >réessayer
+              <v-btn small outlined color="red" @click="retry">réessayer
               </v-btn>
             </div>
           </div>
@@ -458,7 +346,7 @@ class InsightApp extends Vue {
     this.config.regroupement[0];
   legend: any = this.config.source[0].legend;
   dialog: boolean = false;
-  reload = function () {};
+  reload = function () { };
   ignoreViewerSelection: boolean = false;
   initiated: boolean = false;
 
@@ -1037,7 +925,7 @@ class InsightApp extends Vue {
     if (this.selectedZone.type === 'building') {
       this.isBuildingSelected = true;
       this.$store.commit(MutationTypes.SET_DATA, []);
-      this.reload = function () {};
+      this.reload = function () { };
       return;
     }
     this.initiated = false;
@@ -1226,7 +1114,7 @@ export default InsightApp;
   cursor: pointer;
 }
 
-.switch input[type='checkbox'] + label {
+.switch input[type='checkbox']+label {
   position: relative;
   display: block;
   left: 0;
@@ -1238,7 +1126,7 @@ export default InsightApp;
   transition: all 0.5s ease-in-out;
 }
 
-.switch input[type='checkbox'] + label:after {
+.switch input[type='checkbox']+label:after {
   content: '';
   display: inline-block;
   width: 0;
@@ -1246,7 +1134,7 @@ export default InsightApp;
   vertical-align: middle;
 }
 
-.switch input[type='checkbox'] + label i {
+.switch input[type='checkbox']+label i {
   display: block;
   position: absolute;
   top: 50%;
@@ -1259,8 +1147,8 @@ export default InsightApp;
   box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
 }
 
-.switch input[type='checkbox'] + label i:before,
-.switch input[type='checkbox'] + label i:after {
+.switch input[type='checkbox']+label i:before,
+.switch input[type='checkbox']+label i:after {
   content: '';
   display: block;
   position: absolute;
@@ -1271,15 +1159,15 @@ export default InsightApp;
   box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
 }
 
-.switch input[type='checkbox'] + label i:before {
+.switch input[type='checkbox']+label i:before {
   left: -7px;
 }
 
-.switch input[type='checkbox'] + label i:after {
+.switch input[type='checkbox']+label i:after {
   left: 7px;
 }
 
-.switch input[type='checkbox']:checked + label {
+.switch input[type='checkbox']:checked+label {
   left: 50%;
 }
 </style>
@@ -1335,121 +1223,123 @@ export default InsightApp;
     .detail_header {
       width: 100%;
       height: #{$titleDateHeight + $gradientContentHeight + $calculContentHeight +
-        $selectionHeight};
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 10px;
-
-      .title_date {
-        width: 100%;
-        height: $titleDateHeight;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-
-        ._title {
-          max-width: 50%;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          text-transform: uppercase;
-          font-size: 0.8em;
-        }
-      }
-
-      .source_regroupement_select {
-        /*width: 100%;*/
-        height: $selectionHeight;
-        display: flex;
-        align-items: center;
-      }
-
-      .gradient_content {
-        width: 100%;
-        height: $gradientContentHeight;
-
-        .gradient_bar {
-          width: 100%;
-          height: 15px;
-          border-radius: 5px;
-        }
-
-        .indicators {
-          width: 100%;
-          height: 15px;
-          font-size: 11px;
-          display: flex;
-          justify-content: space-between;
-        }
-      }
-
-      .calcul_content {
-        width: 100%;
-
-        .calcul {
-          width: 100%;
-          display: flex;
-
-          .select {
-            width: 35%;
-            min-height: unset;
-            margin-right: 50px;
-          }
-
-          .calculResult {
-            display: flex;
-            align-items: center;
-            height: 10px;
-
-            .value {
-              margin-right: 1px;
-              font-weight: 500;
-              height: 15px;
-            }
-
-            .text {
-              margin-left: 2px;
-              padding: 0px;
-              font-size: 15px;
-              height: 15px;
-            }
-          }
-        }
-
-        .color {
-          width: 8px;
-          height: 20px;
-          margin-right: 5px;
-          border-radius: 3px;
-        }
-      }
+ $selectionHeight
     }
 
-    .detail_container {
-      width: 100%;
-      height: calc(
-        100% - #{$titleDateHeight + $gradientContentHeight +
-          $calculContentHeight + $selectionHeight}
-      );
-      overflow: auto;
-      scroll-behavior: smooth;
-    }
-  }
-
-  .centered {
-    width: 100%;
-    height: calc(100% - 190px);
+    ;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
+    justify-content: space-between;
+    padding: 10px;
+
+    .title_date {
+      width: 100%;
+      height: $titleDateHeight;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      ._title {
+        max-width: 50%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-transform: uppercase;
+        font-size: 0.8em;
+      }
+    }
+
+    .source_regroupement_select {
+      /*width: 100%;*/
+      height: $selectionHeight;
+      display: flex;
+      align-items: center;
+    }
+
+    .gradient_content {
+      width: 100%;
+      height: $gradientContentHeight;
+
+      .gradient_bar {
+        width: 100%;
+        height: 15px;
+        border-radius: 5px;
+      }
+
+      .indicators {
+        width: 100%;
+        height: 15px;
+        font-size: 11px;
+        display: flex;
+        justify-content: space-between;
+      }
+    }
+
+    .calcul_content {
+      width: 100%;
+
+      .calcul {
+        width: 100%;
+        display: flex;
+
+        .select {
+          width: 35%;
+          min-height: unset;
+          margin-right: 50px;
+        }
+
+        .calculResult {
+          display: flex;
+          align-items: center;
+          height: 10px;
+
+          .value {
+            margin-right: 1px;
+            font-weight: 500;
+            height: 15px;
+          }
+
+          .text {
+            margin-left: 2px;
+            padding: 0px;
+            font-size: 15px;
+            height: 15px;
+          }
+        }
+      }
+
+      .color {
+        width: 8px;
+        height: 20px;
+        margin-right: 5px;
+        border-radius: 3px;
+      }
+    }
   }
 
-  .full-width {
-    width: 100% !important;
-  }
+  .detail_container {
+    width: 100%;
+    height: calc(100% - #{$titleDateHeight + $gradientContentHeight +
+ $calculContentHeight + $selectionHeight
+    });
+  overflow: auto;
+  scroll-behavior: smooth;
+}
+}
+
+.centered {
+  width: 100%;
+  height: calc(100% - 190px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.full-width {
+  width: 100% !important;
+}
 }
 
 .test {

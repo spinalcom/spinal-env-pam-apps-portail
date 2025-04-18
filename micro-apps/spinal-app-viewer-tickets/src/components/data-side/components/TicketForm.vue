@@ -205,7 +205,6 @@ class TicketForm extends Vue {
 
     mounted() {
         this.prefillSelectedZone();
-        console.log("selected obj", this.selectedObj)
     }
     onPriorityChange(value: string) {
     }
@@ -276,7 +275,6 @@ class TicketForm extends Vue {
     }
     @Watch('selectedObj', { immediate: true, deep: true })
     async onSelectedObjChange(newVal: any, oldVal: any) {
-        console.log('selectedObj changed in TicketForm:', newVal, oldVal);
         // You can update local data or trigger methods here if needed
         if (!newVal || newVal.length === 0) return;
 
@@ -284,7 +282,6 @@ class TicketForm extends Vue {
         const type = obj.type;
 
         if (type === 'BIMObject') {
-            console.log('BIMObject selected:', obj);
             this.equipements = [obj.name];
             // Set equipement to object name
             this.ticket.equipement = obj.name;
@@ -293,10 +290,7 @@ class TicketForm extends Vue {
             const room = obj.groupParents?.find((gp: any) => gp.type === 'geographicRoom');
             if (room) {
                 this.ticket.salle = room.name;
-                console.log('Room found:', room);
             }
-            console.log('etages:', this.etages);
-            console.log('salles:', this.salles);
             // const position = await this.$store.dispatch(ActionTypes.EQUIPEMENT_GET_POSITION, {
             // id: obj.dynamicId,
             // });

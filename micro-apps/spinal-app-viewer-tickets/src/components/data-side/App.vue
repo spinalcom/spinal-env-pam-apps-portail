@@ -44,7 +44,7 @@ with this file. If not, see
         <div class="d-flex flex-column justify-space-between" style="align-items: end;">
           <div class="app-title">{{ (selectedZone.type === 'building') || (selectedZone.name == 'Bâtiment') ?
             buildingitemsnumber : flooritemsnumber
-            }} Tickets</div>
+          }} Tickets</div>
           <div class="app-description">sur {{ selectedZone.name }}</div>
         </div>
 
@@ -589,7 +589,7 @@ class dataSideApp extends Vue {
 
 
   async mounted() {
-    console.log("mounted", this.ticketConfig);
+    // console.log("mounted", this.ticketConfig);
     this.selectedProfile = this.config.profilType;
     this.startTimer();
     this.reloadInterval = this.config.reloadInterval || 60000;
@@ -647,7 +647,7 @@ class dataSideApp extends Vue {
               ];
               const result = await Promise.all(promises);
 
-              console.log('result', result);
+              // console.log('result', result);
               this.selectedObjectFromViewer = result
               // this.forgeItem(result, buildingId, ref.dbid, obj.bimFileId, data.center)
 
@@ -672,7 +672,7 @@ class dataSideApp extends Vue {
 
 
       const result = await Promise.all(promises);
-      console.log('result', result);
+      // console.log('result', result);
       this.selectedObjectFromViewer = result
       // this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0], data.center)
 
@@ -833,7 +833,7 @@ class dataSideApp extends Vue {
 
   startReload() {
     // this.reloadData("building");  // Call reloadData initially
-    console.log("startReload");
+    // console.log("startReload");
     this.reloadData(this.selectedZone.type);
     this.startTimer();
   }

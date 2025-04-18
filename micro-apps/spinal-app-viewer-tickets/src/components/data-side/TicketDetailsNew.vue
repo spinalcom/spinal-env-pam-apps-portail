@@ -85,7 +85,7 @@
                                         <p>{{ step.name }}</p>
                                     </div>
                                     <p class="step-date-text" style="color: #fff!important;">{{ getStepDate(step.name)
-                                        }}
+                                    }}
                                     </p>
 
                                 </div>
@@ -616,7 +616,7 @@ export default {
                     this.addNote(this.newNote);
                 });
                 if ((!this.newNote || this.newNote.trim() === "") && (this.selectedStepName === this.detailedTicket.step.name || !this.selectedStepName)) {
-                    console.log("Nothing changed");
+
                 } else {
                     alert("Modification enregistrée !");
                     if (!(this.selectedStepName === this.detailedTicket.step.name || !this.selectedStepName)) {
@@ -633,7 +633,6 @@ export default {
         async addNote(note) {
             let buildingId = localStorage.getItem("idBuilding");
             if (!note || note.trim() === "") {
-                console.log("Note is empty or null. Skipping addition.");
                 return;
             }
             const res = await this.$store.dispatch("ADD_NOTE", {
@@ -646,7 +645,6 @@ export default {
 
             if (res) {
                 console.log("Note added successfully.");
-                // Optionally refresh or update the ticket details
             } else {
                 console.error("Failed to add note.");
             }
@@ -662,16 +660,11 @@ export default {
             const targetStep = this.steps.find(s => s.name === selectedStepName);
 
             if (!targetStep) {
-                console.log("Étape sélectionnée non trouvée.");
                 return;
             }
 
             const currentOrder = currentStep.order;
             const targetOrder = targetStep.order;
-
-            console.log(`➡️ Ticket: ${this.detailedTicket.name}`);
-            console.log(`🔢 Current Step Order: ${currentOrder}`);
-            console.log(`🎯 Target Step Order: ${targetOrder}`);
 
             const diff = Math.abs(currentOrder - targetOrder);
             const direction = targetOrder > currentOrder ? 'next_step' : 'previous_step';
@@ -696,10 +689,6 @@ export default {
                     console.error(`Failed to move ticket: ${this.detailedTicket.name}`);
                     break;
                 }
-
-
-                console.log(`➡️ Calling ${direction.toUpperCase()} to reach step: ${simulatedStep?.name || 'Unknown'} (order ${simulatedOrder})`);
-                // Here you'd normally call your API: await apiCall(ticketId, direction);
 
             }
         },
@@ -753,7 +742,7 @@ export default {
     },
 
     async mounted() {
-        console.log("mounted", this.detailedTicket, this.config);
+        // console.log("mounted", this.detailedTicket, this.config);
         this.enrichedAnnotations = this.matchAnnotationsToSteps(
             this.detailedTicket.annotation_list,
             this.detailedTicket.log_list,

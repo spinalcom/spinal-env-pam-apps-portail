@@ -86,8 +86,7 @@
                                 class="d-flex flex-row">
                                 <div style="background-color: #fff; width: 8px;height: 8px;"></div>
                             </div> -->
-                            <div  class="triangle-outer"
-                                :style="{ background: getPriorityColor(ticket.priority) }">
+                            <div class="triangle-outer" :style="{ background: getPriorityColor(ticket.priority) }">
                                 <div class="triangle-inner"></div>
                             </div>
                             <div class="ticket-name-data" style="margin-bottom: 3px;"
@@ -300,10 +299,10 @@ class TicketTable extends Vue {
         // EventBus.$on("reset-tickets", this.resetTickets);
         // EventBus.$on("next-card-table", this.nextCardTable);
         // EventBus.$on("prev-card-table", this.prevCardTable);
-        
+
         this.localData = [...this.data];
-        console.log(this.localData , 'the local data');
-        
+        console.log(this.localData, 'the local data');
+
     }
     // beforeDestroy() {
     //     EventBus.$off("move-tickets-top", this.moveTicketsToTop);

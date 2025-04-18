@@ -511,7 +511,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                    }}
+                      }}
                     </li>
                   </div>
                 </div>
@@ -595,7 +595,7 @@
             </div>
           </div>
           <div v-if="formattedInventory.length > 1 && formattedInventory">
-            
+
             <div v-for="category in formattedInventory" :key="category.name" class="blocInformation"
               style="margin-bottom: 20px;">
               <span
@@ -651,7 +651,7 @@
               </div>
             </div>
           </div>
-          <div  class="blocInformation" v-else>
+          <div class="blocInformation" v-else>
             PAS DE DONNÉES DISPONIBLES
           </div>
 
@@ -911,7 +911,7 @@ class dataSideApp extends Vue {
   data_loading = 0
   interval: {}
   formattedInventoryiconColors: Record<string, string> = {};
-    iconColors: Record<string, string> = {};
+  iconColors: Record<string, string> = {};
   stockedData: any = []
   typdata = 'building'
   currentId = 0;
@@ -1080,7 +1080,6 @@ class dataSideApp extends Vue {
   }
 
   ShowDialog() {
-    console.log('hahahaha');
 
     this.showFormTicket = !this.showFormTicket;
   }
@@ -1740,10 +1739,10 @@ class dataSideApp extends Vue {
     // window.parent.router.query.app = 'toto'
     // console.log('totototototoottoto windows query');
 
-    
 
-    
-    
+
+
+
 
     document.querySelectorAll('.v-input__icon').forEach(el => {
       el.style.width = '150%';
@@ -2009,10 +2008,11 @@ class dataSideApp extends Vue {
       }
     ]
     const referenceResult = await this.getBIMInfo(BimObject)
-
     const isRoom = this.checkForReferenceObjectRoom(referenceResult[0][0].bimObjects[0].parent_relation_list)
 
     if (isRoom) {
+
+      console.log(this.referenceObjects, 'objects');
       const objects = this.referenceObjects;
       for (const obj of objects[0]) {
         if (Array.isArray(obj.infoReferencesObjects)) {
@@ -2038,6 +2038,8 @@ class dataSideApp extends Vue {
     }
     else {
       const referenceIds = referenceResult[0][0].bimObjects[0].dynamicId
+
+
       const promises = [
         this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
           buildingId,
@@ -2393,7 +2395,6 @@ class dataSideApp extends Vue {
       group: 'card',
       z_index: 1
     }
-
     this.$store.dispatch(ActionTypes.REMOVE_SPRITES_BY_GROUP, 'card');
 
     const screenWidth = window.innerWidth;
@@ -2467,6 +2468,7 @@ class dataSideApp extends Vue {
 
   getDataDynamicIdtab() {
     const dynamicIds = this.data.map(obj => obj.dynamicId);
+    console.log(dynamicIds, 'dynamicIds');
 
     this.fetchReferenceObjects(dynamicIds)
     this.getInventoryObject(dynamicIds)
@@ -3195,8 +3197,6 @@ class dataSideApp extends Vue {
     this.referencedId = 0;
     this.referencedType = ''
     if (this.selectedZone.type != "building") {
-      // console.log('la liste 11');
-
       if (this.data.length == 0) {
         this.getroomstaticdetails(this.selectedZone.dynamicId)
         this.getInventoryObject([this.selectedZone.dynamicId])
@@ -3315,11 +3315,11 @@ class dataSideApp extends Vue {
 
   @Watch("data")
   watchData() {
-    if(this.selectedZone.dynamicId ==   this.$store.state.appDataStore.buildingInfo.dynamicId){
+    if (this.selectedZone.dynamicId == this.$store.state.appDataStore.buildingInfo.dynamicId) {
       console.warn('building enfin ?');
       this.typdata = 'building'
     }
-    
+
     this.referencedId = this.selectedZone.dynamicId
     if (this.selectedZone.type == undefined) {
       this.referencedType = "etage"
@@ -3371,7 +3371,7 @@ export default dataSideApp;
   font-weight: bold;
   display: flex;
   user-select: none;
-  margin-left:8px;
+  margin-left: 8px;
   margin-top: 5px;
   margin-bottom: 5px;
 }
