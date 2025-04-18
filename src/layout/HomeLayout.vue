@@ -81,6 +81,8 @@ export default {
     },
 
     changeApps(data) {
+      console.log('action data : ', data);
+      
       this.selectSpace(data);
     },
   },

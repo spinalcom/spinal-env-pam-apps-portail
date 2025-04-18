@@ -287,6 +287,7 @@ export default {
         app: window.parent.router.query.app,
         buildingId: this.data.buildingId,
         spaceSelectedId: this.data.dynamicId,
+        spaceSelectedType: this.data.type,
         name: this.data.name
       };
 

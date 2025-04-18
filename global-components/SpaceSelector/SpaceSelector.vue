@@ -186,8 +186,9 @@ class SpaceSelector extends Vue {
 
   @Watch("selectedZone")
   async onSelectedChange() {
+    
     if (!this.selectedZone) return; // Vérifie que selectedZone est défini
-
+    
     for (let idx = 0; idx < this.buildingStructure.length; idx++) {
       const item = this.buildingStructure[idx];
       let found = false;
@@ -250,6 +251,8 @@ class SpaceSelector extends Vue {
   }
 
   select(item?: ISpaceSelectorItem) {
+    console.log('action aaa', item);
+
     if (item.name !== "Personnalisé") {
       this.$emit("update:open", !this.open);
       this.$emit("input", item);
@@ -322,6 +325,7 @@ class SpaceSelector extends Vue {
   private async openItem(item: ISpaceSelectorItem, index: number) {
     item.isOpen = true;
     item.loading = true;
+    
     try {
       const children = await this.GetChildrenFct(item);
       this.buildingStructure.splice(
@@ -363,6 +367,7 @@ class SpaceSelector extends Vue {
 
   // used in parent compoment for back button
   public getParentOfSelected(): ISpaceSelectorItem | undefined {
+
     for (let idx = 0; idx < this.buildingStructure.length; idx++) {
       const item = this.buildingStructure[idx];
       if (

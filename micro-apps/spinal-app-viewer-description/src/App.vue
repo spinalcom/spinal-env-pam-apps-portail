@@ -517,20 +517,20 @@ class App extends Vue {
     if (parent) this.selectedZone = parent;
   }
 
-  private getItemData(item: TGeoItem | TGeoItem[]): IItemData {
-    const res: IItemDatatmp = {
-      platformId: this.selectedZone.platformId,
-      id: new Set(),
-    };
-    const datas = Array.isArray(item) ? item : [item];
-    for (const data of datas) {
-      res.id.add(data.dynamicId!);
-    }
-    return {
-      platformId: res.platformId,
-      id: res.id.size > 0 ? Array.from(res.id) : res.id.values().next().value,
-    };
-  }
+  // private getItemData(item: TGeoItem | TGeoItem[]): IItemData {
+  //   const res: IItemDatatmp = {
+  //     platformId: this.selectedZone.platformId,
+  //     id: new Set(),
+  //   };
+  //   const datas = Array.isArray(item) ? item : [item];
+  //   for (const data of datas) {
+  //     res.id.add(data.dynamicId!);
+  //   }
+  //   return {
+  //     platformId: res.platformId,
+  //     id: res.id.size > 0 ? Array.from(res.id) : res.id.values().next().value,
+  //   };
+  // }
 
 
   async onDataViewClicked(item: TGeoItem | TGeoItem[]) {
@@ -540,9 +540,9 @@ class App extends Vue {
   }
 
 
-  async onColor(item: TGeoItem | TGeoItem[]) {
-    // TBD
-  }
+  // async onColor(item: TGeoItem | TGeoItem[]) {
+  //   // TBD
+  // }
 
 
 
@@ -605,7 +605,6 @@ class App extends Vue {
           return
         }
 
-
         this.query.spaceSelectedId = result.node.dynamicId
         this.query.name = result.node.name
         this.query.buildingId = result.node.buildingId
@@ -632,7 +631,7 @@ class App extends Vue {
           "dynamicId": result.node.dynamicId,
           "name": result.node.name,
           "buildingId": result.node.buildingId,
-          "type": "geographicFloor",
+          "type": result.node?.data?.type || result.node.type,
         }
 
         if (this.$refs['space-selector']) {
@@ -668,7 +667,6 @@ class App extends Vue {
       value: "value",
     };
   }
-
 
 
 

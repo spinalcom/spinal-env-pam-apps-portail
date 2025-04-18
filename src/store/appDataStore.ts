@@ -177,7 +177,7 @@ export const appDataStore = {
         const profileId = await dispatch("getProfileId");
         const portofolios = await getPortofolios(profileId);
         commit(SET_PORTOFOLIOS, portofolios);
-      } catch (error) {}
+      } catch (error) { }
     },
 
     getProfileId() {
@@ -205,6 +205,7 @@ export const appDataStore = {
       if (!state.portofolios) {
         await dispatch("getPortofolios");
       }
+      console.log(data, "dataa action");
 
       let apps = [];
       const portofolio = state.portofolios.find(
@@ -237,6 +238,7 @@ export const appDataStore = {
 
       const favoris = await dispatch("getFavoriteApps");
       let appsFormatted = classifyByCategoryAndGroup(apps, favoris);
+      console.log('action des info ', appsFormatted, apps);
 
       commit(SET_AND_FORMAT_APPS, { apps, appsFormatted });
     },
@@ -246,6 +248,8 @@ export const appDataStore = {
         portofolioId: getters.getPortofolioId,
         buildingId: getters.getBuildingId,
       };
+      console.warn(data, ' aaaaaaaaaaaaaaaaaaaaaaa');
+      if (!data.portofolioId) { }
 
       const apps = await addAppToFavorite(appIds, data);
       commit(ADD_FAVORITE_APP, apps);
@@ -272,14 +276,21 @@ export const appDataStore = {
   },
   getters: {
     getPortofolioId(state) {
+      console.warn('state action ', state.selectedPortofolio);
+
       if (!state.selectedPortofolio) return;
       if (
         state.selectedPortofolio.type === "building" &&
         state.selectedPortofolio.parents
-      )
-        return state.selectedPortofolio.parents[0];
-      if (state.selectedPortofolio.type === "portofolio")
+      ) {
+        // return state.selectedPortofolio.parents[0];
         return state.selectedPortofolio.staticId;
+      }
+
+      if (state.selectedPortofolio.type === "portofolio") {
+        return state.selectedPortofolio.staticId;
+      }
+
     },
     getBuildingId(state) {
       if (!state.selectedPortofolio) return;

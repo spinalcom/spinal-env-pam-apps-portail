@@ -32,7 +32,12 @@ const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
 
 
 export function addAppToFavorite(appIds, { portofolioId, buildingId }) {
+    console.warn(portofolioId, buildingId, ' aaaaaaaaaaaaaaaaaaaaaaa');
+
     let endpoint = `${portofolioId}/${buildingId || ""}`;
+
+    console.warn(endpoint, ' aaaaaaaaaaaaaaaaaaaaaaa');
+
     return axios.post(`${baseURL}/add_app_to_favoris/${endpoint}`, { appIds }).then((result) => {
         return result.data;
     }).catch((err) => {

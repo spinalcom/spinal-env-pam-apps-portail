@@ -47,18 +47,26 @@ with this file. If not, see
     <div class="dataBody">
       <viewerApp :class="{ 'active3D': true }" class="viewerContainer"></viewerApp>
     </div>
+
+    <!-- <div class="space">
+      <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2" v-model="selectedZone"
+        label="ESPACE" :spaceSelectorItemButtons="spaceSelectorButtons" :viewButtonsType="config.viewButtons"
+        @onActionClick="onActionClick" />
+    </div> -->
   </v-app>
 
   <v-container class="loading" v-else-if="pageSate === PAGE_STATES.loading" fluid>
     <v-progress-circular :size="70" :width="3" color="purple" indeterminate></v-progress-circular>
   </v-container>
+
+
 </template>
 
 <script lang="ts">
 import {
   ISpaceSelectorItem,
-  SpaceSelector,
-} from "./components/SpaceSelector/index";
+  // SpaceSelector,
+} from "../../../global-components/SpaceSelector/index";
 import { Vue, Watch } from "vue-property-decorator";
 import { ActionTypes } from "./interfaces/vuexStoreTypes";
 import Component from "vue-class-component";
@@ -70,8 +78,8 @@ import type {
   TGeoItem,
 } from "./components/SpaceSelector/interfaces/IBuildingItem";
 import viewerApp from "./components/viewer/viewer.vue";
-import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
-import Télécommande from "./components/data-side/Telecommande.vue"
+// import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
+import Télécommande from "./components/data-side/Télécommande.vue"
 import SpriteComponent from "./components/data-side/SpriteComponent.vue"
 // import SpriteComponentArret from "./components/data-side/SpriteComponentArret.vue"
 import { config } from "./config";
@@ -103,7 +111,7 @@ interface IItemDatatmp {
 
 @Component({
   components: {
-    SpaceSelector,
+    // SpaceSelector,
     viewerApp,
     Télécommande,
     SpriteComponent
@@ -115,7 +123,7 @@ class App extends Vue {
   $store: Store;
   openSpaceSelector: boolean = false;
   config: IConfig = config;
-  spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
+  // spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
   $refs: { spaceSelector };
   displayTelecommande: boolean = false;
   query: { app: string; mode: string; name: string; spaceSelectedId: string; buildingId: string } = {
@@ -163,12 +171,53 @@ class App extends Vue {
     this.setTabletteSprite(result, buildingId)
   }
 
+  watchViewerLoaded() {
+    const interval = setInterval(() => {
+      const viewerLoaded = localStorage.getItem("viewer_loaded");
+      const viewer = (window.parent as any).viewer;
+
+      if (viewerLoaded === "loaded" && viewer) {
+        this.youAreHere()
+        clearInterval(interval);
+        this.onViewerLoadedTriggered();
+      }
+    }, 500);
+  }
+
+
+  async onViewerLoadedTriggered() {
+    const buildingId = localStorage.getItem('idBuilding');
+    const roomTablette = localStorage.getItem('room_tablette');
+    const room_tablette_dbid = localStorage.getItem('room_tablette_dbid');
+
+    // console.warn('le fit to view to tablette', roomTablette);
+
+    const item = {
+      dynamicId: roomTablette,
+      staticId: "SpinalNode-4be0192e-562d-1f3c-2d9c-1d558ca6b5ff-186df7cd6ff",
+      name: "Sol [415087]",
+      type: "BIMObject",
+      version: 1,
+      externalId: "154cec60-8d56-4126-8ada-aac07f24c66e-0006556f",
+      dbid: room_tablette_dbid,
+      buildingId: buildingId,
+    };
+
+    this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
+
+    setTimeout(async () => {
+      const viewCube = await window.parent.viewer.loadExtension('Autodesk.ViewCubeUi');
+      viewCube.displayViewCube(true, true);
+      viewCube.setViewCube('top');
+    }, 3000);
+
+    setTimeout(async () => {
+      window.parent.viewer.setNavigationLock(true);
+      await window.parent.viewer.unloadExtension('Autodesk.ViewCubeUi');
+    }, 4000);
+  }
+
   async mounted() {
-    this.watchLocalStorageForFloorId();
-
-    this.configTypeTablette()
-
-
 
     if (window.parent.router.query.buildingId != undefined) {
       localStorage.setItem('idBuilding', window.parent.router.query.buildingId)
@@ -177,6 +226,27 @@ class App extends Vue {
       console.log('le building n est pas declaré ');
       localStorage.setItem('idBuilding', this.config.idBuilding)
     }
+
+
+    const buildingId = localStorage.getItem("idBuilding");
+    const resultParent = await this.$store.dispatch(ActionTypes.GET_POSTION_EQUIPEMENT, {
+      buildingId,
+      referenceIds: window.parent.router.query.spaceSelectedId,
+    });
+
+    localStorage.setItem('room_tablette', resultParent.info.room.dynamicId);
+    localStorage.setItem('room_tablette_dbid', resultParent.info.room.dbId);
+    localStorage.setItem('floor_tablette_id', resultParent.info.floor.dynamicId);
+    localStorage.setItem('floor_tablette_name', resultParent.info.floor.name);
+    localStorage.setItem("viewer_loaded", 'initialize');
+
+
+    this.watchLocalStorageForFloorId();
+    this.watchViewerLoaded();
+    this.configTypeTablette()
+
+
+
 
     this.updateTime();
     this.updateDate();
@@ -197,7 +267,6 @@ class App extends Vue {
       }
     }
 
-    localStorage.removeItem('room_tablette');
 
     try {
       this.pageSate = PAGE_STATES.loading;
@@ -222,8 +291,8 @@ class App extends Vue {
     this.$nextTick(() => {
       // this.query.app = "eyJuYW1lIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC10ZWxlY29tbWFuZGUiLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6Ijg0ZDgtNzgyMS0yZTI2LTE5MjAwNmI4MDJmIiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcyNjU4MzkxOTM1NSwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzI2NTgzODk4MTU5LCJpY29uIjoiIiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLXRlbGVjb21tYW5kZSIsImlzRXh0ZXJuYWxBcHAiOmZhbHNlLCJsaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ"
       window.parent.router.query.app = this.query.app
-      const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
-      this.applyURLParam();
+      // const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
+      // this.applyURLParam();
       // this.asynctoto()
     });
   }
@@ -274,8 +343,6 @@ class App extends Vue {
 
     const buildingId = localStorage.getItem("idBuilding");
     const commandItem = this.config.commandItem;
-
-    console.log(commandItem);
 
 
     // Étape 1 : Récupération des contextes
@@ -336,7 +403,6 @@ class App extends Vue {
 
     // Résultat final avec les dynamicId des groupes
     // this.dynamicCommandMap = result;
-    console.log('✅ Résultat dynamicCommandMap :', result);
     this.$store.commit(MutationTypes.SET_TELECOMMAND_TYPE, result);
   }
 
@@ -347,7 +413,7 @@ class App extends Vue {
       if (dynamicId) {
         clearInterval(interval);
         this.applyURLParam(); // on peut éventuellement passer un `query` si nécessaire
-        this.youAreHere()
+        // this.youAreHere()
       }
     }, 500); // toutes les 500ms
   }
@@ -364,7 +430,6 @@ class App extends Vue {
     let Y;
     let Z;
 
-    console.error(result[0]);
 
     result[0].attributsList.forEach(category => {
       category.attributs.forEach(attribute => {
@@ -452,14 +517,7 @@ class App extends Vue {
     }
     this.onActionClick({ button, item })
 
-    const itemToSelect = {
-      "isOpen": false,
-      "loading": false,
-      "dynamicId": dynamicId,
-      "name": name,
-      "buildingId": buildingId,
-      "type": "geographicFloor",
-    }
+
 
     this.openSpaceSelector = false
   }
@@ -566,7 +624,7 @@ class App extends Vue {
   @Watch("loadedinformation", { deep: true })
   async watchSelectedChartItems(select, old) {
     this.spaceName = localStorage.getItem("room_tablette_name");
-    this.youAreHere()
+    // this.youAreHere()
   }
 
 }
@@ -581,7 +639,6 @@ export default App;
   top: 0;
   left: 0;
   margin: none;
-  height: 13%;
   width: 100%;
   background-color: white;
   z-index: 9999;

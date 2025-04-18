@@ -272,7 +272,6 @@ export class ViewerUtils {
 		await this._waitModelIsLoading();
 
 		const promises = data.map(async (item) => {
-			console.log('this is the item',item);
 			const data = item.data.map(({ bimFileId, dbIds }) => ({ dbIds, model: this._getModel(item.modelId, bimFileId) }));
 			
 			
