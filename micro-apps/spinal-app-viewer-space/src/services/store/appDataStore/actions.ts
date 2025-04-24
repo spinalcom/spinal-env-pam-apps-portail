@@ -33,6 +33,7 @@ import { postRoomInventory,postFloorInventory,getEquipments, getFloors, getRooms
 import { addTicketDoc, createTicket, getProcess, getWorkFlowList, Ticket } from "../../spinalAPI/CreateTicket";
 
 import { deleteFile, uploadDoc, deleteAttribut, deleteCategoryAttribut, updateCategoryAttribut, updateAttribut } from "../../spinalAPI/UploadDoc/Doc";
+import { getNodePositionInContext } from "../../spinalAPI/Node/node";
 
 import { getGroupContextCategoryList, getGroupContextGroupList, getGroupContextread } from "../../spinalAPI/ContextGroup/groupContext";
 
@@ -755,6 +756,24 @@ export const actions = {
 				throw error;
 			}
 	},
+	async [ActionTypes.GET_NODE_POSITION_IN_CONTEXT](
+		{ commit }: AugmentedActionContextAppData,
+		{ buildingId, contextDynId, nodeDynId }: {
+			buildingId: string;
+			contextDynId: number;
+			nodeDynId: number;
+		}
+		): Promise<any> {
+			try {
+				const result = await getNodePositionInContext(buildingId, contextDynId, nodeDynId);
+				return result;
+			} catch (error) {
+				console.error("Erreur lors de la récupération de la position du noeud:", error);
+				throw error;
+			}
+	},
+
+
 
 
 
@@ -769,13 +788,13 @@ export const actions = {
 			if(playload.item.type ==="building"){
 				const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
 				  buildingId: playload.item.buildingId,
-				  forceUpdate: false,
+				  forceUpdate: true,
 				})
 				const body = {
 				  dynamicId:[building.dynamicId],
 				  roomRef: false,
 				  floorRef: true,
-				  equipements: true,
+				  equipements: false,
 				  dbIdsToAdd: [],
 				}
 				// console.log('body to load -----> : ', body);

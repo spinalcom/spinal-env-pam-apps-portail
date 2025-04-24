@@ -198,10 +198,6 @@ class dataSideApp extends Vue {
     return;
   }
 
-  
-
-  
-
   async getAndUpdateRoomContexts(){
     this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
     this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des contextes d'équipements...`);
@@ -218,6 +214,208 @@ class dataSideApp extends Vue {
     } catch (err) {
       console.log(err);
       this.retry = this.getAndUpdateRoomContexts;
+      this.pageSate = PAGE_STATES.error;
+    } finally {
+      this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
+    }
+  }
+
+  async getAndUpdateRoomCategories(){
+    const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
+    this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+    this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des catégories de ${matchingContext.name}...`);
+    let actionType = ActionTypes.GET_CATEGORY_LIST
+    let dispatchObject = {
+      buildingId: localStorage.getItem("idBuilding"),
+      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+      contextDynId: matchingContext.dynamicId
+    } as any;
+    dispatchObject.forceUpdate = true;
+
+    try {
+      const result = await this.$store.dispatch(actionType, dispatchObject);
+      this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "cat": result });
+
+      this.pageSate = PAGE_STATES.loaded;
+    } catch (err) {
+      console.log(err);
+      this.retry = this.getAndUpdateRoomCategories;
+      this.pageSate = PAGE_STATES.error;
+    } finally {
+      this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
+    }
+
+  }
+
+  async getAndUpdateRoomGroups(){
+    if(!this.$store.state.appDataStore.user_selected.ctx || !this.$store.state.appDataStore.user_selected.cat) return;
+    const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
+    const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
+    if(this.selectedZone.type === "building"){
+      this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+      this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des groupes de ${matchingCategory.name}...`);
+  
+      try {
+        const result = await this.$store.dispatch(ActionTypes.GET_GROUP_LIST, {buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,forceUpdate: true});
+
+        await Promise.all(result.map(async (grp) => {
+          const groupItems = await this.$store.dispatch(ActionTypes.GET_ROOM_LIST, {buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: grp.dynamicId,forceUpdate: true});
+
+          const enrichedWithArea = await this.enrichItemsWithCoordinates(groupItems);
+          grp.groupItems = enrichedWithArea;
+
+          grp.area = 0;
+          grp.groupItems.forEach((item) => {
+            if (item.area) {
+              grp.area += parseFloat(item.area);
+            }
+          });
+          grp.area = grp.area.toFixed(2);
+        }));
+
+        console.log('RESULT GROUPS', result);
+
+        this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
+  
+        this.pageSate = PAGE_STATES.loaded;
+      } catch (err) {
+        console.log(err);
+        this.retry = this.getAndUpdateRoomGroups;
+        this.pageSate = PAGE_STATES.error;
+      } finally {
+        this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
+
+      }
+      return;
+    }
+
+    if(this.selectedZone.type==="geographicFloor"){
+      let actionType = ActionTypes.GET_FLOOR_INVENTORY
+      let dispatchObject = {
+        id: this.selectedZone.dynamicId,
+        body : {
+          context: matchingContext.name,
+          category: matchingCategory.name
+        },
+        onlyDynamicId: false,
+        includeArea: true
+        
+      } as any;  
+      try {
+        const result = await this.$store.dispatch(actionType, dispatchObject);
+        result.forEach((grp) => {
+          grp.nbr_rooms =grp.groupItems?.length || 'NaN'
+        })
+        result.forEach((grp) => {
+          grp.area = 0;
+          grp.groupItems.forEach((item) => {
+            if(item.area){
+              grp.area += parseFloat(item.area);
+            }
+            // remove the dbid and bimFileId because it causes problems for coloration and selection
+            // item.dbid = undefined;
+            // item.bimFileId = undefined;
+          });
+          grp.area = grp.area.toFixed(2);
+        })
+        this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
+        this.$store.commit(MutationTypes.SET_INVENTORY_DATA, result); // Set the inventory data, will be enriched later
+        
+        console.log('RESULT INVENTORY', this.$store.state.appDataStore.inventory);
+        
+        this.pageSate = PAGE_STATES.loaded;
+      } catch (err) {
+        console.log(err);
+        this.retry = this.getAndUpdateRoomGroups;
+        this.pageSate = PAGE_STATES.error;
+      }
+
+    }
+
+    if(this.selectedZone.type === 'geographicRoom'){
+      
+      try {
+        const positionInContext = await this.$store.dispatch(ActionTypes.GET_NODE_POSITION_IN_CONTEXT, {
+                                                    buildingId: localStorage.getItem("idBuilding"),
+                                                    contextDynId: matchingContext.dynamicId,
+                                                    nodeDynId: this.selectedZone.dynamicId
+                                                  }
+        );
+
+        const groupList = await this.$store.dispatch(ActionTypes.GET_GROUP_LIST, {buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,forceUpdate: true});
+
+
+        const groups = positionInContext.parentsInContext;
+        let correctGroup : any = null;
+        for(const group of groups) {
+          const groupName = group.name;
+          const groupId = group.dynamicId;
+          const matchingGroup = groupList.find(grp => grp.name === groupName && grp.dynamicId === groupId);
+          if(matchingGroup) {
+            correctGroup = matchingGroup;
+            break;
+          }
+        }
+        if(!correctGroup) {
+          console.error("No correct group found");
+          return;
+        }
+
+        
+        correctGroup.nbr_rooms = 1;
+        const enrichedWithArea = await this.enrichItemsWithCoordinates([this.selectedZone]);
+        if(enrichedWithArea.length != 1){
+          console.error("Enriched data is not valid");
+          return;
+        }
+        correctGroup.area = enrichedWithArea[0].area;
+        correctGroup.groupItems = enrichedWithArea;
+
+        console.log('RESULT GROUPS', [correctGroup]);
+        this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": [correctGroup] });
+        this.$store.commit(MutationTypes.SET_INVENTORY_DATA, [correctGroup]);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+  }
+
+  async getAndUpdateRoomList(){
+    const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
+    const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
+    const matchingGroup = this.$store.state.appDataStore.user_selection_list.grp.find(grp => grp.name === this.$store.state.appDataStore.user_selected.grp);
+    
+    this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
+    this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des équipements de ${matchingGroup.name}...`);
+    
+    try {
+      let result: any[] = [];
+      if(this.$store.state.appDataStore.zoneSelected.type === 'building'){
+        result = await this.$store.dispatch(ActionTypes.GET_ROOM_LIST, { buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId, forceUpdate: true });
+      }
+      else {
+        result = this.$store.state.appDataStore.inventory.find(it => it.dynamicId === matchingGroup.dynamicId).groupItems;
+      }
+
+      result = result.map(eq => {
+        return {
+          ...eq,
+          color: matchingGroup.color,
+          group: matchingGroup.name
+
+        };
+      });
+      // all of these 3 are important
+      result = await this.enrichItemsWithChildrenReadings(result);
+      result = await this.enrichItemsWithPositions(result);
+      result = await this.enrichItemsWithCoordinates(result);
+      
+      this.$store.commit(MutationTypes.SET_DATA, result);
+      this.pageSate = PAGE_STATES.loaded;
+    } catch (err) {
+      console.log(err);
+      this.retry = this.getAndUpdateRoomList;
       this.pageSate = PAGE_STATES.error;
     } finally {
       this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
@@ -287,199 +485,19 @@ class dataSideApp extends Vue {
         console.log('UPDATE TABLE DATA WITH : ', this.$store.state.appDataStore.data);
         return;
       }
-      else {
+      else if (this.selectedZone.type === "geographicFloor") {
         this.$store.commit(MutationTypes.SET_DATA, this.$store.state.appDataStore.inventory);
         console.log('UPDATE TABLE DATA WITH : ', this.$store.state.appDataStore.data);
       }
-      
-
-    }
-
-    
-
-  }
-
-  async getAndUpdateRoomCategories(){
-    const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
-    this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
-    this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des catégories de ${matchingContext.name}...`);
-    let actionType = ActionTypes.GET_CATEGORY_LIST
-    let dispatchObject = {
-      buildingId: localStorage.getItem("idBuilding"),
-      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
-      contextDynId: matchingContext.dynamicId
-    } as any;
-    dispatchObject.forceUpdate = true;
-
-    try {
-      const result = await this.$store.dispatch(actionType, dispatchObject);
-      this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "cat": result });
-
-      this.pageSate = PAGE_STATES.loaded;
-    } catch (err) {
-      console.log(err);
-      this.retry = this.getAndUpdateRoomCategories;
-      this.pageSate = PAGE_STATES.error;
-    } finally {
-      this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
-    }
-
-  }
-
-  async getAndUpdateRoomGroups(){
-    if(!this.$store.state.appDataStore.user_selected.ctx || !this.$store.state.appDataStore.user_selected.cat) return;
-    const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
-    const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
-    if(this.selectedZone.type === "building"){
-      this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
-      this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des groupes de ${matchingCategory.name}...`);
-      let actionType = ActionTypes.GET_GROUP_LIST
-      let dispatchObject = {
-        buildingId: localStorage.getItem("idBuilding"),
-        patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
-        contextDynId: matchingContext.dynamicId,
-        categoryDynId: matchingCategory.dynamicId
-      } as any;
-      dispatchObject.forceUpdate = true;
-  
-      try {
-        const result = await this.$store.dispatch(actionType, dispatchObject);
-
-        await Promise.all(result.map(async (grp) => {
-          const groupItems = await this.$store.dispatch(ActionTypes.GET_ROOM_LIST, {buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: grp.dynamicId,forceUpdate: true});
-
-          const enrichedWithArea = await this.enrichItemsWithCoordinates(groupItems);
-          grp.groupItems = enrichedWithArea;
-
-          grp.area = 0;
-          grp.groupItems.forEach((item) => {
-            if (item.area) {
-              grp.area += parseFloat(item.area);
-            }
-          });
-          grp.area = grp.area.toFixed(2);
-        }));
-
-        console.log('RESULT GROUPS', result);
-
-        this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
-  
-        this.pageSate = PAGE_STATES.loaded;
-      } catch (err) {
-        console.log(err);
-        this.retry = this.getAndUpdateRoomGroups;
-        this.pageSate = PAGE_STATES.error;
-      } finally {
-        this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
-
-      }
-      return;
-    }
-
-    if(this.selectedZone.type==="geographicFloor"){
-      let actionType = ActionTypes.GET_FLOOR_INVENTORY
-      let dispatchObject = {
-        id: this.selectedZone.dynamicId,
-        body : {
-          context: matchingContext.name,
-          category: matchingCategory.name
-        },
-        onlyDynamicId: false,
-        includeArea: true
-        
-      } as any;  
-      try {
-        const result = await this.$store.dispatch(actionType, dispatchObject);
-        result.forEach((grp) => {
-          grp.nbr_rooms =grp.groupItems?.length || 'NaN'
-        })
-        result.forEach((grp) => {
-          grp.area = 0;
-          grp.groupItems.forEach((item) => {
-            if(item.area){
-              grp.area += parseFloat(item.area);
-            }
-          });
-          grp.area = grp.area.toFixed(2);
-        })
-        this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
-        this.$store.commit(MutationTypes.SET_INVENTORY_DATA, result); // Set the inventory data, will be enriched later
-        
-        console.log('RESULT INVENTORY', this.$store.state.appDataStore.inventory);
-        
-        this.pageSate = PAGE_STATES.loaded;
-      } catch (err) {
-        console.log(err);
-        this.retry = this.getAndUpdateRoomGroups;
-        this.pageSate = PAGE_STATES.error;
-      }
-
-    }
-
-    if(this.selectedZone.type === 'geographicRoom'){
-      
-      try {
-        const result = await this.$store.dispatch(ActionTypes.GET_ROOM_INVENTORY, {
-                                                    id: this.selectedZone.dynamicId,
-                                                    body : {
-                                                      context: matchingContext.name,
-                                                      category: matchingCategory.name
-                                                    },
-                                                    onlyDynamicId: false
-                                                  }
-        );
-        result.forEach((grp) => {
-          grp.nbr_rooms =grp.groupItems?.length || 'NaN'
-        })
-        this.$store.commit(MutationTypes.SET_USER_SELECTION, {...this.$store.state.appDataStore.user_selection_list, "grp": result });
-        this.$store.commit(MutationTypes.SET_INVENTORY_DATA, result);
-        console.log('RESULT INVENTORY', this.$store.state.appDataStore.inventory);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-  }
-
-  async getAndUpdateRoomList(){
-    const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
-    const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
-    const matchingGroup = this.$store.state.appDataStore.user_selection_list.grp.find(grp => grp.name === this.$store.state.appDataStore.user_selected.grp);
-    
-    this.$store.commit(MutationTypes.INCREMENT_LOADING_COUNT);
-    this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des équipements de ${matchingGroup.name}...`);
-    
-    try {
-      let result: any[] = [];
-      if(this.$store.state.appDataStore.zoneSelected.type === 'building'){
-        result = await this.$store.dispatch(ActionTypes.GET_ROOM_LIST, { buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId, forceUpdate: true });
-      }
       else {
-        result = this.$store.state.appDataStore.inventory.find(it => it.dynamicId === matchingGroup.dynamicId).groupItems;
+        this.$store.commit(MutationTypes.SET_DATA, this.$store.state.appDataStore.user_selection_list.grp);
+        console.log('UPDATE TABLE DATA WITH : ', this.$store.state.appDataStore.data);
       }
 
-      result = result.map(eq => {
-        return {
-          ...eq,
-          color: matchingGroup.color,
-          group: matchingGroup.name
-
-        };
-      });
-      // all of these 3 are important
-      result = await this.enrichItemsWithChildrenReadings(result);
-      result = await this.enrichItemsWithPositions(result);
-      result = await this.enrichItemsWithCoordinates(result);
-      
-      this.$store.commit(MutationTypes.SET_DATA, result);
-      this.pageSate = PAGE_STATES.loaded;
-    } catch (err) {
-      console.log(err);
-      this.retry = this.getAndUpdateRoomList;
-      this.pageSate = PAGE_STATES.error;
-    } finally {
-      this.$store.commit(MutationTypes.DECREMENT_LOADING_COUNT);
     }
+
+    
+
   }
 
   async enrichItemsWithChildrenReadings(items){
@@ -571,14 +589,15 @@ class dataSideApp extends Vue {
 
   getAreaFromAttributes(attributes){
     let spatial = attributes.find(cat => cat.name === "Spatial");
-    let area;
+    let area = "0";
     if (spatial) {
       let areaAttr = spatial.attributs.find(attr => attr.label === "area");
       if (areaAttr) {
-        area = areaAttr.value?.toFixed(2);
+        area = Number(areaAttr.value).toFixed(2);
       }
     }
     return area;
+
   }
 
   async putAllFiltredData(allFilteredData) {

@@ -118,8 +118,8 @@ export class ViewerManager {
 		const items = Array.isArray(argItem) ? argItem : [argItem];
 	  
 		// If argItem already has bimFileId and dbid, no need for the expensive call
-		const canSkipApiCall = items.every(item => item.bimFileId && item.dbid);
-	  
+		const canSkipApiCall = items.every(item => item.bimFileId && item.dbid && item.type === "BIMObject");
+		
 		const res: IViewInfoTmpRes[] = [];
 	  
 		if (canSkipApiCall) {
@@ -277,11 +277,11 @@ export class ViewerManager {
 		// The following code is specifically for the case where item is an array of BimObjects and we already have their bimFileId, dbid and position
 		const toFetch : IPlayloadWithComponent [] = []
 		for (const it of item) {
-			if(it.dynamicId && it.bimFileId && it.dbid){ 
+			if(it.dynamicId && it.bimFileId && it.dbid && (!it.type || it.type === 'BIMObject')) { 
 				data.push({dynamicId: it.dynamicId, data: [{bimFileId: it.bimFileId, dbIds: [it.dbid]}]})
 			}
 			else {
-				toFetch.push(it)	
+				toFetch.push(it)
 			}
 		}
 		const lst = await this.getViewerInfo(toFetch, buildingId);

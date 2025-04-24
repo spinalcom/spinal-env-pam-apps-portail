@@ -544,7 +544,7 @@ export default {
             color: matchingGroup.color,
             floorId: this.$store.state.appDataStore.lastLoadedZone.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId
           };
-        });      
+      });   
       this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
         items: roomList,
         buildingId: localStorage.getItem("idBuilding")
@@ -620,11 +620,11 @@ export default {
 
     getAreaFromAttributes(attributes){
     let spatial = attributes.find(cat => cat.name === "Spatial");
-    let area;
+    let area = "0";
     if (spatial) {
       let areaAttr = spatial.attributs.find(attr => attr.label === "area");
       if (areaAttr) {
-        area = areaAttr.value?.toFixed(2);
+        area = Number(areaAttr.value).toFixed(2);
       }
     }
     return area;
