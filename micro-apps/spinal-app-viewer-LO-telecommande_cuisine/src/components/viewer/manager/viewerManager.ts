@@ -79,7 +79,7 @@ export class ViewerManager {
 
 	public async loadInViewer(item: IPlayload, loadOnlyThisModel: boolean = true, body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }) {
 		// if (this._viewerStartedList[item.staticId]) return;
-
+		localStorage.setItem("viewer_loaded", 'unload');
 		if (this._viewerStartedList[item.dynamicId]) {
 			this.showAllObjects();
 			return;
@@ -195,9 +195,7 @@ export class ViewerManager {
 		emitter.emit(VIEWER_OBJ_ISOLATE as any);
 	}
 
-	public fitToView(item: IPlayload) {
-		console.warn('le fit to view a ete lancééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé', item);
-		
+	public fitToView(item: IPlayload) {		
 		return this._fctViewerIteract(VIEWER_OBJ_FIT_TO_VIEW, item);
 	}
 
@@ -221,7 +219,6 @@ export class ViewerManager {
 
 
 		const formatted = await this._getAndFormatViewerInfos(item, buildingId, component);
-		console.log('on avance ????', item);
 		const emitter = EmitterViewerHandler.getInstance();
 		emitter.emit(<any>VIEWER_EVENTS.VIEWER_ADD_COMPONENT_SPRITE, formatted as any);
 	}
@@ -233,7 +230,6 @@ export class ViewerManager {
 		const data = await this.getViewerInfo(item, buildingId);
 
 		const obj = convertToObj(data);
-		console.log(item, obj, 'c est l item');
 
 
 		return item.map((i) => ({

@@ -56,63 +56,18 @@ export class EventManager {
 			const viewerUtils = ViewerUtils.getInstance();
 
 			emitterHandler.on(VIEWER_START_LOAD_MODEL, async (data: any) => {
+
 				const models = await viewerUtils.load3DModels(viewer, data);
 				emitterHandler.emit(<any>VIEWER_EVENTS.LOADED, { id: data.item.dynamicId, models });
 				store.commit(MutationTypes.SET_LOADED, localStorage.getItem('room_tablette'));
-				// viewer.unloadExtension("Autodesk.ViewCubeUi");
-				// viewer.unloadExtension("Autodesk.ViewCubeUi");
 
-				// viewer.createViewCube?.();
-				// viewer.displayViewCube?.(true);
-
-				window.viewer = viewer
-				const buildingId = localStorage.getItem('idBuilding')
-				const roomTablette = localStorage.getItem('room_tablette');
-				const room_tablette_dbid = localStorage.getItem('room_tablette_dbid');
-				const item = {
-					"dynamicId": roomTablette,
-					"staticId": "SpinalNode-4be0192e-562d-1f3c-2d9c-1d558ca6b5ff-186df7cd6ff",
-					"name": "Sol [415087]",
-					"type": "BIMObject",
-					"version": 1,
-					"externalId": "154cec60-8d56-4126-8ada-aac07f24c66e-0006556f",
-					"dbid": room_tablette_dbid,
-					"buildingId": buildingId,
-				}
-
-				store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
-
-
-				setTimeout(async () => {
-					// setViewCubeAndFit(viewer)
-					const a = await viewer.loadExtension('Autodesk.ViewCubeUi')
-					a.displayViewCube(true, true)
-					a.setViewCube('top');
-
-				}, 3000);
-				setTimeout(async() => {
-					viewer.setNavigationLock(true);
-					await viewer.unloadExtension('Autodesk.ViewCubeUi')
-				}, 4000);
-
-
-				// async function setViewCubeAndFit(viewer) {
-				// 	try {
-				// 		// const viewCubeUi = await viewer.loadExtension("Autodesk.ViewCubeUi");
-
-				// 		console.log('salut moi c');
-
-				// 	} catch (error) {
-				// 		console.error("Erreur lors de l'exécution de ViewCube:", error);
-				// 	}
-				// }
-				// setTimeout(() => {
-				// 	viewer.setNavigationLock(true);
-				// }, 1500);
+				localStorage.setItem("viewer_loaded", 'loaded');
+				window.parent.viewer = viewer
 
 			});
 
 			emitterHandler.on(VIEWER_OBJ_ISOLATE, (data: any) => {
+				localStorage.setItem("viewer_loaded", 'loaded');
 				if (data && data.length > 0) return viewerUtils.viewerIsolation(viewer, data);
 				viewerUtils.showAllObject(viewer);
 			});
@@ -147,11 +102,8 @@ export class EventManager {
 			});
 
 			emitterHandler.on(<any>VIEWER_EVENTS.VIEWER_ADD_COMPONENT_SPRITE, (data: any) => {
-				console.log('evenement ????? , ', data);
-				
 				viewerUtils.addComponentAsSprite(viewer, data);
 			});
-
 
 
 			emitterHandler.on(VIEWER_REM_SPRITE, (data: any) => {

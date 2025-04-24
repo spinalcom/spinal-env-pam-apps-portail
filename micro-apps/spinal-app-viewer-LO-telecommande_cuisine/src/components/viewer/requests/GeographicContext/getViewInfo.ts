@@ -69,16 +69,16 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   const spinalAPI = SpinalAPI.getInstance();
 
   // récuperer la position de la tablette room floor
-  const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipment/${tabletteId}/get_position`);
-  let result = await spinalAPI.get<{ [key: string]: any[] }>(url);
-  console.log("bbb", result);
+  // const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipment/${tabletteId}/get_position`);
+  // let result = await spinalAPI.get<{ [key: string]: any[] }>(url);
+  // console.log("bbb", result);
 
 
-  localStorage.setItem('room_tablette', result.data.info.room.dynamicId);
-  localStorage.setItem('room_tablette_dbid', result.data.info.room.dbId);
+  // localStorage.setItem('room_tablette', result.data.info.room.dynamicId);
+  // localStorage.setItem('room_tablette_dbid', result.data.info.room.dbId);
 
-  localStorage.setItem('floor_tablette_id', result.data.info.floor.dynamicId);
-  localStorage.setItem('floor_tablette_name', result.data.info.floor.name);
+  // localStorage.setItem('floor_tablette_id', result.data.info.floor.dynamicId);
+  // localStorage.setItem('floor_tablette_name', result.data.info.floor.name);
 
   //partie group context , recuperation des groupes pui comparer 
 
@@ -91,7 +91,7 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   let resultgroupcontext = await spinalAPI.get<{ [key: string]: any[] }>(groupcontext);
 
   const contextGroup = resultgroupcontext.data.find(group => group.name === config.groupContextCat)?.dynamicId;
-
+ 
 
   const grpList = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/groupeContext/${Idcommand}/category/${contextGroup}/group_list`);
   let resultgrpList = await spinalAPI.get<{ [key: string]: any[] }>(grpList);
@@ -107,13 +107,13 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
 
   let allRoomLists = await Promise.all(roomListPromises);
   
-
-  const parentDynamicId = result.data.info.room.dynamicId; // Dynamic ID de l'open space
+  const roomTablette = localStorage.getItem('room_tablette');  
+  const parentDynamicId = roomTablette // Dynamic ID de l'open space
 
   // Trouver l'index du matchingGroup
   let matchingGroupIndex = -1; // Initialisation de l'index
   const matchingGroup = allRoomLists.find((group, index) => {
-    const found = group.data.some((room: any) => room.dynamicId === parentDynamicId);
+    const found = group.data.some((room: any) => room.dynamicId == parentDynamicId);
     if (found) matchingGroupIndex = index; // Met à jour l'index si trouvé
     return found;
   });
@@ -172,7 +172,7 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
     for (const selection of config.equipementSelections) {
       const listEquipmentgroup = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/list`);
       let resultlistEquipmentgroup = await spinalAPI.get<{ [key: string]: any[] }>(listEquipmentgroup);
-
+      
       const DynamicIdContext = resultlistEquipmentgroup.data.find(group => group.name === selection.equipementContext)?.dynamicId;
       if (!DynamicIdContext) continue;
 
@@ -181,10 +181,12 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
       const DynamicIdCategory = resultcategoryEquipementGroup.data.find(group => group.name === selection.equipementCat)?.dynamicId;
       if (!DynamicIdCategory) continue;
 
+
       const GroupList = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/${DynamicIdContext}/category/${DynamicIdCategory}/group_list`);
       let resultcGroupList = await spinalAPI.get<{ [key: string]: any[] }>(GroupList);
       const IdgrpList = resultcGroupList.data.find(group => group.name === selection.equipementsGroup)?.dynamicId;
       if (!IdgrpList) continue;
+
 
       const Equipement = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/${DynamicIdContext}/category/${DynamicIdCategory}/group/${IdgrpList}/equipementList`);
       let resultEquipement = await spinalAPI.get<{ [key: string]: any[] }>(Equipement);
@@ -214,6 +216,7 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
         return isEquipement || isSol;
       });
     });
+    
   }
   else if (config.show_equipements == "all") {
     allWorkPositions = allRoomDetails.flatMap((roomDetail: any, index: number) => {
@@ -256,8 +259,6 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
       });
     });
   }
-
-
 
 
 

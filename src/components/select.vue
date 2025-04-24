@@ -113,6 +113,8 @@ export default {
     },
 
     getSelectedItem(item) {
+      console.log('action salut hihihih', item);
+      
       this.$store.commit(`appDataStore/${SELECT_PORTOFOLIO}`, item);
       this.selectedZone = item;
       let portofolioId;
@@ -127,7 +129,9 @@ export default {
         portofolioId = realItem.parents[0];
         buildingId = realItem.staticId;
       }
-
+      console.log('action du portfolio', portofolioId);
+      console.log('action du batiment', buildingId);
+      
       this.$emit('selected', {portofolioId, buildingId});
     },
 

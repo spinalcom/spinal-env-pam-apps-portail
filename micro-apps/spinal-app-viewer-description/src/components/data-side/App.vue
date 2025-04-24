@@ -511,7 +511,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                      }}
+                    }}
                     </li>
                   </div>
                 </div>
@@ -582,9 +582,10 @@
 
         <!-- ONGLET INVENTAIRE -->
         <div v-if="selection == 'Inventaire'"
-          style="display: flex; flex-direction: column; overflow: hidden !important; overflow-y: auto !important ;">
+          style="display: flex; flex-direction: column; overflow: hidden !important; overflow-y: auto !important;">
+
           <div @click="fshowDialogInventory()" class="btn_inventory">
-            <v-icon color="white" size="35px">
+            <v-icon color="#14202c" size="35px">
               mdi-plus
             </v-icon>
             <div v-if="formattedInventory.length < 1" style="margin-top: 3px;margin-left: 10px;">
@@ -594,6 +595,31 @@
               Modifier l'inventaire
             </div>
           </div>
+
+          <div class="inventory-wrapper">
+            <div v-for="(category, index) in formattedInventory" :key="category.name" class="category-block">
+              <div class="category-header" @click="toggle(index)">
+                <span class="category-title">{{ category.name }} ({{ category.groupItems.length }})</span>
+                <span class="toggle-arrow">{{ openGroups.includes(index) ? '▲' : '▼' }}</span>
+              </div>
+
+
+              <!-- Liste déroulante -->
+              <div v-if="openGroups.includes(index)" class="item-list">
+                <div v-for="item in category.groupItems" :key="item.id" class="item-row">
+                  <span class="item-name">⎯ {{ item.name }}</span>
+                  <div class="item-icons">
+                    <span class="icon">💧</span>
+                    <span class="icon">🔆</span>
+                    <span class="icon">🔁</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <!--           
           <div v-if="formattedInventory.length > 1 && formattedInventory">
 
             <div v-for="category in formattedInventory" :key="category.name" class="blocInformation"
@@ -615,45 +641,14 @@
                     {{ item.name }}
                   </li>
 
-                  <!-- <v-icon v-if="!eyes[category.name] || eyes[category.name].indexOf(item.dynamicId) === -1"
-                    @click="() => { hideelement(item.dynamicId, category.name); closeeyes(item.dynamicId, category.name) }"
-                    style="cursor: pointer; margin-left: 10px;">
-                    mdi-eye-outline
-                  </v-icon>
-                  <v-icon v-else
-                    @click="() => { hideelement(item.dynamicId, category.name); closeeyes(item.dynamicId, category.name) }"
-                    style="cursor: pointer; margin-left: 10px;">
-                    mdi-eye-off-outline
-                  </v-icon>
 
-                  <v-icon v-if="!ink[category.name] || ink[category.name].indexOf(item.dynamicId) === -1"
-                    @click="() => { showIconElement(item.dynamicId, category.name); closeink(item.dynamicId, category.name) }"
-                    style="cursor: pointer; margin-left: 10px;">
-                    mdi-map-marker-circle
-                  </v-icon>
-                  <v-icon v-else
-                    @click="() => { deleteIconElement(item.dynamicId, category.name); closeink(item.dynamicId, category.name) }"
-                    :style="{ cursor: 'pointer', marginLeft: '10px', color: iconColors[`${category.name}-${item.dynamicId}`] || '#000' }">
-                    mdi-map-marker-remove-variant
-                  </v-icon>
-
-                  <v-icon v-if="!col[category.name] || col[category.name].indexOf(item.dynamicId) === -1"
-                    @click="() => { colorElement(item.dynamicId, category.name); closecol(item.dynamicId, category.name) }"
-                    style="cursor: pointer; margin-left: 10px;">
-                    mdi-invert-colors
-                  </v-icon>
-                  <v-icon v-else
-                    @click="() => { descolorElement(item.dynamicId, category.name); closecol(item.dynamicId, category.name) }"
-                    :style="{ cursor: 'pointer', marginLeft: '10px', color: iconColors[`${category.name}-${item.dynamicId}`] || '#000' }">
-                    mdi-invert-colors-off
-                  </v-icon> -->
                 </div>
               </div>
             </div>
           </div>
           <div class="blocInformation" v-else>
             PAS DE DONNÉES DISPONIBLES
-          </div>
+          </div> -->
 
           <FormInventaire @inventory-loaded="handleInventory" :selectedId="stockedZone" :config="config"
             :typedata="typdata" :value="showDialogInventory" @close-dialog="ShowDialog()" :selectedZone="selectedZone"
@@ -844,6 +839,7 @@ class dataSideApp extends Vue {
   retry: Function;
   referenceObjects: any[];
   inventory: any;
+  openGroups: any[] = [];
   appTab: any[] = [];
   dataListInfo: any[] = [];
   inventoyList: any = null;
@@ -959,6 +955,16 @@ class dataSideApp extends Vue {
     }
   }
 
+  toggle(index) {
+    console.log('je log index', index);
+    if (!this.openGroups.includes(index)) {
+      this.openGroups.push(index);
+    } else {
+      this.openGroups = this.openGroups.filter(i => i !== index);
+    }
+  }
+
+
   get filteredData() {
     return this.searchName
       ? this.formattedData.filter(item =>
@@ -1043,7 +1049,7 @@ class dataSideApp extends Vue {
       this.formattedInventory = data.flatMap(d =>
         d.inventory.map(cat => ({
           ...cat,
-          name: `étages (${d.floorName}) : ${cat.name}`,
+          name: `${d.floorName} : ${cat.name}`,
         }))
       );
     } else if (Array.isArray(data)) {
@@ -1409,6 +1415,9 @@ class dataSideApp extends Vue {
     const node_read = await Promise.all(promises_node);
 
     if (node_read[0].type == "geographicRoom") {
+
+      console.log(node_read[0].dynamicId, ' je suis une abeille');
+
 
       const referenceIds = [node_read[0].dynamicId]
       const promises = [
@@ -1790,6 +1799,7 @@ class dataSideApp extends Vue {
 
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
+      console.log(data, 'dataaaaaaaaaaaaaaaaaa');
 
       if (data)
         this.findDynamicIdByDbid(data[0].dbIds[0], data[0]);
@@ -1985,6 +1995,8 @@ class dataSideApp extends Vue {
 
   async getBIMInfo(referenceIds) {
     const buildingId = localStorage.getItem("idBuilding");
+    console.log(referenceIds, 'ref');
+
     const promises = [
       this.$store.dispatch(ActionTypes.GET_BIM_OBJECT_INFO, {
         buildingId,
@@ -2473,6 +2485,8 @@ class dataSideApp extends Vue {
     this.getInventoryObject(dynamicIds)
   }
   async fetchReferenceObjects(referenceIds) {
+    console.warn('JE SUIS DANS LE TEST DE LA PROBABILITÉ DE LA REFERENCE OBJECT', referenceIds);
+    
     const buildingId = localStorage.getItem("idBuilding");
 
     const promises = [
@@ -3323,7 +3337,7 @@ class dataSideApp extends Vue {
 
   @Watch("data")
   watchData() {
-
+    
     if (this.selectedZone.dynamicId == this.$store.state.appDataStore.buildingInfo.dynamicId) {
       console.warn('building enfin ?');
       this.typdata = 'building'
@@ -3370,19 +3384,19 @@ export default dataSideApp;
 }
 
 .btn_inventory {
-  border: 1px solid black;
-  background-color: #14202c;
+  border: 1px solid #14202c;
+  background-color: #ffffff;
+  color: #14202c;
   cursor: pointer;
-  padding: 15px;
-  color: white;
+  padding: 8px;
   border-radius: 5px;
   font-size: 18px;
   font-weight: bold;
   display: flex;
   user-select: none;
-  margin-left: 8px;
+  margin-left: 7px;
   margin-top: 5px;
-  margin-bottom: 5px;
+  margin-bottom: 12px;
 }
 
 .app_access_fl {
@@ -4040,5 +4054,89 @@ a {
     width: 100%;
     height: 50%;
   }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.inventory-wrapper {
+  display: flex;
+  flex-direction: column;
+  padding-left: 8px;
+  // gap: 16px;
+}
+
+.category-block {
+  border: 1px solid #ddd;
+  // border-radius: 6px;
+  overflow: hidden;
+}
+
+.category-header {
+  // background-color: #f5f5f5;
+  padding: 12px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.category-title {
+  font-size: 16px;
+}
+
+.toggle-arrow {
+  font-size: 18px;
+}
+
+.item-list {
+  display: flex;
+  flex-direction: column;
+  // padding: 10px 0;
+  background-color: #fff;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-top: 1px solid #eee;
+  align-items: center;
+  background-color: #f5f5f5;
+  transition: 0.2s
+}
+
+.item-row:hover {
+  background-color: #e0e0e0;
+}
+
+.item-name {
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+}
+
+.item-icons {
+  display: flex;
+  gap: 10px;
+}
+
+.icon {
+  font-size: 16px;
 }
 </style>
