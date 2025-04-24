@@ -33,6 +33,7 @@ import type { MutationTree } from "vuex";
 import type { StateAppData } from "./state";
 import { INodeItemTree } from "../../../interfaces/INodeItem";
 import { getContextId, getCurrentData } from "../../websocket/Current";
+import { ILoading } from "../../../interfaces/ILoading";
 
 export enum MutationTypes {
   SET_BUILDINGS = "SET_BUILDINGS",
@@ -56,6 +57,11 @@ export enum MutationTypes {
   SET_CONTEXT = "SET_CONTEXT",
   SET_CATEGORIES_CONTEXT = "SET_CATEGORIES_CONTEXT",
   SET_GROUP_EQUIP = "SET_GROUP_EQUIP",
+  SET_LOADING = "SET_LOADING",
+  SET_LOADER = "SET_LOADER",
+  RESET_LOADING = "RESET_LOADING",
+  SET_FILTER_DATA = "SET_FILTER_DATA",
+  SET_CANCEL_FILTER = "SET_CANCEL_FILTER",
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -92,6 +98,11 @@ export type MutationsAppData<S = StateAppData> = {
   [MutationTypes.SET_CONTEXT](state: StateAppData, context: any): void;
   [MutationTypes.SET_CATEGORIES_CONTEXT](state: StateAppData, categoriesContext: any): any;
   [MutationTypes.SET_GROUP_EQUIP](state: StateAppData, groupEquipement: any): any;
+  [MutationTypes.SET_LOADING](state: StateAppData, payload: ILoading): void;
+  [MutationTypes.RESET_LOADING](state: StateAppData): void;
+  [MutationTypes.SET_FILTER_DATA](state: StateAppData, filter: any): void;
+  [MutationTypes.SET_CANCEL_FILTER](state: StateAppData, cancelFilter: boolean): void;
+  [MutationTypes.SET_LOADER](state: StateAppData, loader: boolean): void;
 
 };
 
@@ -192,8 +203,32 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
   },
   [MutationTypes.SET_GROUP_EQUIP](state: StateAppData, groupEquipement: any): void {
     state.groupEquipement = groupEquipement;
-  }
+  },
+  [MutationTypes.SET_LOADING](state: StateAppData, payload: ILoading): void {
+    state.progressLoader = {...state.progressLoader, ...payload }; 
+  },
+  [MutationTypes.RESET_LOADING](state: StateAppData): void {
+    state.progressLoader = {
+      isLoading: false,
+      message: '',
+      total: 0,
+      completed: 0,
+      percent: 0,
+      isError : null,
+      logs: [],
+    };
+  },
   
- 
+  [MutationTypes.SET_FILTER_DATA](state: StateAppData, filter: any): void {
+    state.filterData = filter;
+
+  },
+
+  [MutationTypes.SET_CANCEL_FILTER](state: StateAppData, cancelFilter: boolean): void {
+    state.cancelFilter = cancelFilter;
+  },
+  [MutationTypes.SET_LOADER](state: StateAppData, loader: boolean): void {
+    state.Loading = loader;
+  },
 
 };

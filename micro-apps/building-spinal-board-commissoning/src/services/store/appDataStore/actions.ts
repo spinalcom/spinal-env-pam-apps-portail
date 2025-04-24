@@ -208,6 +208,25 @@ export const actions = {
       } catch (error) {
         
       }
+    },
+
+    async [ActionTypes.RUN_WITH_LOADER](
+      { commit }: AugmentedActionContextAppData, {message, task}: {message: string, task: ()=> Promise<any>}): Promise<any> {
+      commit(MutationTypes.SET_LOADER, true);
+      
+        try {
+          commit(MutationTypes.SET_LOADER, true);
+        console.log("task started");
+         await task();
+        console.log("task finished");
+     
+        commit(MutationTypes.SET_LOADER, false);
+      }
+      catch (error) {
+      
+        throw error;
+      }
+
     }
       
 };

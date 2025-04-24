@@ -28,12 +28,14 @@ import type {
 } from "../../../../../../global-components/SpaceSelector";
 import type { IViewInfoItemRes } from "../../spinalAPI/GeographicContext/getViewInfo";
 import type { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
+import {ILoading} from "../../../interfaces/ILoading"
 import {
   defaultTemporalitySelected,
   defaultZoneSelected,
 } from "./utils/defaultZoneSelected";
 import { subscribe } from "diagnostics_channel";
 import { Socket } from "engine.io-client";
+import { isError } from "util";
 
 export type StateAppData = typeof state;
 export const state = {
@@ -55,4 +57,22 @@ export const state = {
   context: {} as any,
   categoriesContext: {} as any,
   groupEquipement: {} as any,
+
+  //Loader compo
+  progressLoader: {
+    message: '',
+    total: 0,
+    completed: 0,
+    percent: 0,
+    isError : null,
+    logs: [] as any[],
+  } as ILoading,
+   Loading: false,
+
+
+  // FilerData 
+  filterData : [] as any[],
+
+  // CancelFilterOn Stripe Component
+  cancelFilter: false,
 };

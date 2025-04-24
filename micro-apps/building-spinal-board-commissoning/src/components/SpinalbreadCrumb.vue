@@ -1,5 +1,5 @@
 <template>
-    <div style="width: 100%; height: 100%; font-size: 16px;">
+    <div style="width: 100%; height: 100%; font-size: 16px; font-family: 'Charlevoix';">
         <nav title="Modifier la séléction" @click.stop="showSelection = !showSelection" class="breadcrumbs">
             <a href="#selected_ctx" class="breadcrumbs__item">{{ selected_ctx }}</a>
             <a href="#selected_cat" class="breadcrumbs__item">{{ selected_cat }}</a>
@@ -21,7 +21,7 @@
                     <div
                         style="padding: 5px;border-radius: 5px;background-color: rgba(211, 211, 211, 0.733);width: 100%;font-weight: bold;">
                         Selectionner un contexte:</div>
-                    <ul>
+                    <ul style="margin-top: 10px;">
                         <div :class="{ 'selected': selected_ctx === ctx.name }" class="choose_li"
                             style="cursor: pointer;" v-for="ctx in contextList" :key="ctx.name"
                             @click="emitValue('ctx', ctx); selected_ctx = ctx.name">
@@ -255,7 +255,7 @@ export default {
 
 .choose_li {
     margin: 5px;
-    padding: 5px;
+    padding: 10px;
     cursor: pointer;
 }
 

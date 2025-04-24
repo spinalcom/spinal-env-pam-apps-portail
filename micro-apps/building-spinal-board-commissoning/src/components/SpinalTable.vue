@@ -1,5 +1,6 @@
 <template>
-  <div style="width: 100%; height: 100%;">
+  <div style="width: 100%; height: 100%;" >
+    <div  v-show="showLoader" class="flex-column" style="width: 100%; height: 100%; position: absolute; top: 0; left:0; background-color: red; z-index: 9999;"></div>
     <v-data-table
     style="height: 100% !important; overflow: hidden; overflow-y: auto;"
     mobile-breakpoint="0"
@@ -22,8 +23,9 @@
           <v-select v-model="selections['filter']" :menu-props="{ offsetY: true }" :label="''" multiple
             append-icon="mdi-chevron-down" color="#14202C" item-color="#14202C" class="d-flex justify-center align-center"
             @click.stop=""
+
             style="width:25px;min-width: 25px;font-size: 14px !important;transform: translate(10%,10%); border: none; outline: none; "
-            @change="filtredData(selections)"
+            @change="handleFilter(selections)"
             v-if="header.filterable" :items="getUniqueColumnValues(stripeData)">
             <template v-slot:selection="{ item, index }">
               <div v-if="index == 0"
@@ -93,7 +95,7 @@ export default {
           selected_header: null,
           arrow: false, 
           selections: {} as any,
-          showLoader: true,
+          showLoader: false,
 
         };
         },
@@ -103,7 +105,6 @@ export default {
       item: {
         handler(newData) {
           this.itemData = newData;
-          this.showLoader = false;
           const stripLegend = config.bilan.timeline;
           this.selections = {};
           this.selections['filter'] = [];
@@ -116,7 +117,15 @@ export default {
             return null;
           }).filter(Boolean);
           
+            console.log("selection", this.selections);
             this.getStripeData(data);
+        }
+      },
+      dataStripe: {
+        handler(newData) {
+          this.getUniqueColumnValues(newData);
+          this.filterOnStripeComponent(newData);
+
         }
       },
       selections : {
@@ -129,6 +138,23 @@ export default {
    
     methods: {
       
+   async handleFilter(val: { filter?: any[] }) {
+  
+  // Afficher le loader au début
+  this.showLoader = true;
+
+  // Log pour vérifier que showLoader est vrai
+
+      this.filtredData(val);
+
+     // Masquer le loader après le filtrage
+  this.showLoader = false;
+
+  // Log pour vérifier que showLoader est false
+  console.log('showLoader après avoir terminé le filtrage:', this.showLoader);
+    },
+
+
       async getStripeData(data: any) {
     const stripLegend = config.bilan.timeline;
     const source = config.sources.find((src) => src.id === stripLegend.sourceId);
@@ -137,10 +163,10 @@ export default {
         const stripe = el.sources.find(
           (st) => st.name.toLowerCase() === source?.name?.toLowerCase()
         );
-        return stripe || null; // Return stripe or null instead of unnecessary array
+        return stripe || null; 
       }
-      return null; // Ensure all cases return a value
-    }).filter(Boolean); // Remove null values
+      return null; 
+    }).filter(Boolean); 
     this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.stripeData);
     const configL = stripLegend.setup.legend;
     const type = stripLegend.setup.type;
@@ -251,6 +277,13 @@ getColor(value: any, header: any) {
         text: config.bilan.timeline.setup.legend?.find((src) => src.type === "success")?.name,
         value: Array.from(this.seen.keys()),
       }
+      const filter = [
+        correct,
+        warning,
+        duplicate,
+        missing
+      ];
+      this.$store.commit(MutationTypes.SET_FILTER_DATA, filter);
 
       return [correct ,warning, duplicate, missing];
     },
@@ -259,22 +292,74 @@ getColor(value: any, header: any) {
       this.selected_header = header.text
     },
 
-    filtredData(val: { filter?: any[] }) {
-      let result: any[] = [];
+    async filtredData(val: { filter?: any[] }) {
+  if (!val.filter || !Array.isArray(val.filter)) return;
 
-    if (val.filter && Array.isArray(val.filter)) {
-        const filter = val.filter;
+  const filterSet = new Set(val.filter);
+  const result: any[] = [];
 
-        this.stripeData.forEach((data: any) => {
-            if (!filter.some(el => el.includes(data.value))) {
-                if (!result.includes(data)) {
-                    result.push(data);
-                }
-            }
-        });
+  this.$store.commit(MutationTypes.SET_LOADER, true);
+  this.$store.commit(MutationTypes.SET_LOADING, {
+    message: "Chargement des données",
+    total: this.stripeData.length,
+    complete: 0,
+    percent: 0,
+  });
+
+  // Batching sur le filtrage
+  let i = 0;
+  const batchSize = 300;
+
+  const processStripeData = () => {
+    const end = Math.min(i + batchSize, this.stripeData.length);
+
+    for (; i < end; i++) {
+      const data = this.stripeData[i];
+      for (const filterItem of filterSet) {
+        if (filterItem.includes(data.value)) {
+          result.push(data);
+          break;
+        }
       }
+    }
 
-     const sourceData = this.item.map((el) => {
+    const completed = i;
+    this.$store.commit(MutationTypes.SET_LOADING, {
+      complete: completed,
+      percent: Math.round((completed / this.stripeData.length) * 100),
+    });
+
+    if (i < this.stripeData.length) {
+      setTimeout(processStripeData, 0);
+    } else {
+      // Ensuite on traite sourceData
+      const sourceData = this.item.map((el) => {
+        if (el.sources) {
+          return {
+            dynamicId: el.dynamicId,
+            sources: el.sources,
+          };
+        }
+        return null;
+      }).filter(Boolean);
+
+      const resultSet = new Set(result.map(r => `${r.name}_${r.dynamicId}`));
+      const replaceSource = sourceData.filter((el: any) => {
+        return el.sources.some((src: any) =>
+          resultSet.has(`${src.name}_${el.dynamicId}`)
+        );
+      });
+
+      this.itemData = this.updateData(replaceSource);
+      this.$store.commit(MutationTypes.SET_STRIPE_DATA, result);
+      this.$store.commit(MutationTypes.SET_LOADER, false);
+    }
+  };
+
+  processStripeData();
+},
+  filterOnStripeComponent(data){
+    const sourceData = this.item.map((el) => {
       if(el.sources) {
         const value = {
           dynamicId: el.dynamicId,
@@ -285,11 +370,11 @@ getColor(value: any, header: any) {
       return null;
     }).filter(Boolean);
 
-    let replaceSource : any[] = []; 
+    let replaceSource : any[] = [];
     sourceData.forEach((el: any) => {
       const sources = el.sources;
       sources.map((src: any)=> {
-        const macth = result.find((item: any) => item.name === src.name && item.dynamicId === src.dynamicId);
+        const macth = data.find((item: any) => item.name === src.name && item.dynamicId === src.dynamicId);
         if(macth) {
           const value = {
            dynamicId: el.dynamicId,
@@ -299,12 +384,11 @@ getColor(value: any, header: any) {
         }
       })
     })
+    this.itemData = this.updateData(replaceSource);
 
-      this.itemData = this.updateData(replaceSource);
-      
-    this.$store.commit(MutationTypes.SET_STRIPE_DATA, result);
- 
-},
+  },
+
+
   updateData(update: any[]){   
     if(update.length === this.item.length) {
       return this.item;
@@ -319,7 +403,16 @@ getColor(value: any, header: any) {
 
   }
 
-}
+},
+
+computed: {
+    dataStripe() {
+      return this.$store.state.appDataStore.StripeDataList;
+    },
+    spaceSelected() {
+      return this.$store.state.appDataStore.zoneSelected;
+    }
+  },
 }
 
 

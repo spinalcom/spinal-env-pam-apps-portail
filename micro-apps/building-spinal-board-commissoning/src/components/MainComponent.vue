@@ -11,13 +11,13 @@
             <span style="display: flex; align-items: center;">Détails des éléments connectés sur  {{ sconfig.entryPoint.context }} / {{  sconfig.entryPoint.category }} / {{ sconfig.entryPoint.group }}</span>
           </div>
           </div>
-          <div class="legend">
+          <!-- <div class="legend">
             <SmallLegend :size="12" color="#14202C" text="Connecté et fonctionnel"/>
             <SmallLegend :size="12" color="#9830F2" text="Pas de convention de nommage"/>
             <SmallLegend :size="12" color="#EF8BC5" text="Convention de nommage incorrect"/>          
             <SmallLegend :size="12" color="#FF000B" text="Données incohérentes"/>
             <SmallLegend :size="12" color="#898F95" text="Données non remontées / champ indéfini"/>
-          </div>
+          </div> -->
         </div>
 
         <div class="main">
@@ -30,8 +30,9 @@
               <span style="background-color: #f2f2f2 ; padding: 4px; color: #14202C; font-weight: 700; border-radius: 5px;" class="ml-2">
                 <span>{{ statisticTimeline.setup.value }}</span>
               </span>
+             
               <template>
-  <v-row class="ml-2">
+  <v-row class="ml-2" style="position: relative;">
     <v-dialog
       v-model="editedregex"
       persistent
@@ -83,6 +84,11 @@
         </v-card-actions>
         </v-card>
       </v-dialog>
+      <span v-if="CancelFilter" @click="SetCancelFilter(false)"  style="position: absolute; top: 50%; transform: translateY(-50%);  right: 30px; padding: 4px; border-radius: 4px; background-color: rgb(242, 242, 242); color: #14202C; font-weight: 700; font-size: 12px; cursor: pointer; text-align: center;  -webkit-box-shadow: -2px 7px 14px 3px rgba(194,194,194,0.83); 
+                    box-shadow: -2px 7px 14px 3px rgba(194,194,194,0.83);">
+        <span>Annuler</span>    
+        <v-icon style="color: #14202C; font-size: 16px;">mdi-arrow-u-left-top</v-icon>
+      </span>
     </v-row>
   </template>
             </div>
@@ -91,7 +97,7 @@
             </div>
 
             <div class="table">
-              <SpinalTable :item="formateditems" :headers="dynamicHeaders" />
+              <SpinalTable  :item="formateditems" :headers="dynamicHeaders" />
             </div>
           </div>
         </div>
@@ -147,6 +153,16 @@ class App extends Vue {
   }
 
 // Methods
+
+  filterData() {
+    console.log('filterData called spinalTable');
+    this.$store.commit(MutationTypes.SET_LOADING, {
+
+      message: 'Chargement des données',
+    })
+  }
+
+
 
 async getDataItem(newVal: any = this.items) {
   const buildingId: string = localStorage.getItem('idBuilding') as string;
@@ -234,6 +250,13 @@ async loadDataContext(){
     return this.$store.state.appDataStore.zoneSelected;
 }
 
+public get CancelFilter() {
+  return this.$store.state.appDataStore.cancelFilter;
+}
+
+SetCancelFilter(value: boolean) {
+  this.$store.commit(MutationTypes.SET_CANCEL_FILTER, value);
+}
 
 
   @Watch('zoneSelected')
@@ -394,7 +417,7 @@ display: flex;
 }
 .main .stripe {
   width: 100%;
-  height: 70px;
+  height: 100px;
   background-color: #F9F9F9;
   border-radius: 5px;
 }

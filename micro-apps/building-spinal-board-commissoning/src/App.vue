@@ -1,6 +1,6 @@
 <template> 
   <v-app class="spinal-font">
-    <Loader v-if="showLoader" />
+    <Loader />
     <div class="selectors">
       <div class="Hx2">
         <DownloadButton
@@ -29,16 +29,17 @@ import {
   ISpaceSelectorItem,
   SpaceSelector,
 } from './components/SpaceSelector/index';
-import { Vue } from 'vue-property-decorator';
+import { Vue, Watch } from 'vue-property-decorator';
 import Component from 'vue-class-component';
 import MicroApp from './components/MainComponent.vue';
 import { ActionTypes } from './interfaces/vuexStoreTypes';
 import { MutationTypes } from './services/store/appDataStore/mutations';
-import { getDataInContextSpatial } from './services';
+import { getData, getDataInContextSpatial } from './services';
 import Loader from './components/Loader.vue'
 import DownloadButton from './components/DownloadButton.vue'
 import { IConfig } from './interfaces/IConfig';
 import {config} from '../config'
+import { ILoading } from './interfaces/ILoading';
 interface IItemData {
   platformId: string;
   id: number | number[];
@@ -63,7 +64,7 @@ class App extends Vue {
   openTimeSelector = false;
   $refs!: { spaceSelector: any };
   timedata = { name: 'SEMAINE', value: 'week' };
-  
+  showLoader = false; 
   query: {
     app: string;
     mode: string;
@@ -90,7 +91,6 @@ class App extends Vue {
   }
 
 
-  showLoader = true;
   showMessage = false;
   
 
@@ -99,6 +99,20 @@ class App extends Vue {
     get dataStore() {
       return this.$store.state.appDataStore.data;
     }
+
+    get progressLoader (): ILoading {
+      return this.$store.state.appDataStore.progressLoader;
+    }
+
+    
+   
+
+
+
+    @Watch('progressLoader')
+    onProgressLoaderChange(newValue: ILoading) {
+     this.showLoader = newValue.isLoading;
+         }
 
 
     // Methods
@@ -179,7 +193,6 @@ class App extends Vue {
   
 
   async mounted() {
-    console.log("selectedZone", this.selectedZone);
     const buildingId = localStorage.getItem('idBuilding');
     const realBuilding = await this.$store.dispatch(ActionTypes.GET_BOS_BUILDING, {buildingId})
     const item = {
@@ -190,25 +203,29 @@ class App extends Vue {
       name: realBuilding.name,
       type: 'geographicBuilding',
     }
+   
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, item);
     this.$nextTick(() => {
       const currentQuery = window.parent.routerFontion.apps[0]._route.query;
       this.applyURLParam(currentQuery);
     });
-    // this.$store.commit(MutationTypes.SET_SELECTED_ZONE, item);
-   const onload = await  getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type)
-    if(onload) {
-      this.showLoader = false;
+    if(config.entryPoint !== undefined) {
+      console.log("entrypoint not defined");
+      await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
     }
-    // this.defaultSelected = item;
-    // let building = await getBuilding();
-    // this.defaultSelected.name = building.name;
-    // this.defaultSelected.dynamicId = building.dynamicId;
+    else {
+      const result = await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
+      if (result) {
+        console.log('result', result);
+      }
+    }
+
+    this.$store.commit(MutationTypes.SET_SELECTED_ZONE, item);
+
   }
   
   async onSpaceSelectOpen(item?: ISpaceSelectorItem): Promise<any> {
     var floorList: any[] = [];
-    this.showLoader = true;
     const buildingId = localStorage.getItem('idBuilding');
     switch (item?.type) {
       case undefined:
@@ -259,6 +276,14 @@ class App extends Vue {
           buildingId: item.staticId,
           patrimoineId: item.patrimoineId,
         });
+
+      case 'geographicFloor':
+      return await this.$store.dispatch(ActionTypes.GET_ROOMS, {
+          floorId: item.dynamicId,
+          buildingId: item.dynamicId,
+          patrimoineId: item.patrimoineId,
+          id: item.dynamicId,
+        });
       default:
         return [];
     }
@@ -269,7 +294,6 @@ class App extends Vue {
   }
   public set selectedZone(v: ISpaceSelectorItem) {
       const buildingId = localStorage.getItem('idBuilding');
-      this.showLoader = true;
       if(this.query.spaceSelectedId != v.dynamicId.toString()) {
         this.query.name = v.name;
         this.query.spaceSelectedId = v.dynamicId.toString();
@@ -282,13 +306,26 @@ class App extends Vue {
       // this.replaceRoute();
       // console.log('query', this.query);
       this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
+      const zoneSelected = this.$store.state.appDataStore.zoneSelected;
+      console.log('Zone selected: ', zoneSelected);
       this.updateDataInContextSpatial(buildingId);
     }
   
   private async updateDataInContextSpatial(buildingId: string | null) {
-      const result = await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
-      if (result) {
-          this.showLoader = false;
+      if(config.entryPoint !== undefined) {
+        console.log("entrypoint not defined");
+        const result = await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
+        if (result) {
+          console.log('result', result);
+        }
+        return;
+      }
+      else {
+        const result = await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
+        if (result) {
+          console.log('result', result);
+        }
+        return;
       }
   }
 

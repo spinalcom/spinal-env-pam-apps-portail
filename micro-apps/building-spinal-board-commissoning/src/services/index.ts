@@ -23,6 +23,12 @@ export async function getBuilding() {
 
 async function getReadStaticdetailsMultiple(buildingId: string, dynamicIds: number[]) {
   const spinalAPI = SpinalAPI.getInstance();
+  store.commit(MutationTypes.SET_LOADER, true)
+  store.commit(MutationTypes.SET_LOADING, {
+    total: dynamicIds.length,
+    
+    message: `Récupération des controls point`,
+  })
   let type = config.entryPoint?.type ?? store.state.appDataStore.groupEquipement.type;
   if(type !== "equipement" && type !== "room") {
     const test = type.includes("BIMObject");
@@ -30,6 +36,7 @@ async function getReadStaticdetailsMultiple(buildingId: string, dynamicIds: numb
   }
   const url = type === "equipement" ? `/equipment/read_static_details_multiple` : `/room/read_static_details_multiple`;
   const res = await sendListMultipleRequest(buildingId, dynamicIds, url)
+  store.commit(MutationTypes.SET_LOADER, false)
   return res;
 }
 
@@ -142,7 +149,8 @@ export async function getContext(buildingId: string) {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `/groupContext/list`);
   const res = await spinalAPI.get(url);
-  return res.data;
+  const context = res.data.filter(el => el.type === "geographicRoomGroupContext"  || el.type === "BIMObjectGroupContext")
+  return context;
 }
 
 export async function getCategoryList(buildingId: string, contextId: number){
@@ -176,11 +184,15 @@ async function getGroupItems(buildingId: string, contextId: number, categoryId: 
 
 export async function getDataInContextSpatial(buildingId: string, spatialName: string, spatialType: string) {
     const data = await getData(buildingId);
+    store.commit(MutationTypes.SET_LOADER, true)
+
+   
     let result: any = [];
       if(spatialType === "geographicBuilding") {
         const dynamicIds = data.map((el) => el.dynamicId);
         let itemPosition = await getPositionMultiple(buildingId, dynamicIds);
          itemPosition = itemPosition.filter((el) => el.info && el.info.building);
+        
          result = itemPosition.map((el)=> {
           if(el.info.building.name === spatialName) {
             return el;
@@ -193,6 +205,10 @@ export async function getDataInContextSpatial(buildingId: string, spatialName: s
       else if(spatialType === "geographicFloor") {
         const dynamicIds = data.map((el) => el.dynamicId);
         let itemPosition = await getPositionMultiple(buildingId, dynamicIds);
+        store.commit(MutationTypes.SET_LOADING,  {
+          total: itemPosition.length,
+          message: `Chargement des positions terminé`,
+        })
        itemPosition = itemPosition.filter((el) => el.info && el.info.floor);
         result = itemPosition.map((el)=> {
           if(el.info.floor.name === spatialName) {
@@ -204,9 +220,11 @@ export async function getDataInContextSpatial(buildingId: string, spatialName: s
         }).filter(Boolean);
         
        }
-
+       console.log('result: ', spatialName);
        const dynamicIds = result.map((el) => el.dynamicId);
+
        const read = await getReadStaticdetailsMultiple(buildingId, dynamicIds);
+       console.log("read floor", read);
         const sources = read.map((el : any) => {
           const findTypeattributeInsrc = config.sources.map((src) => {
             return src.type === 'attribute' ? src : null;
@@ -227,7 +245,7 @@ export async function getDataInContextSpatial(buildingId: string, spatialName: s
                 if(!attributs) {
                   const attr = {
                     dynamicId: attribute.dynamicId,
-                    name: attribute.name,
+                    name: src?.name,
                     value: "undefined",
                   }
                   attributeList.push(attr);
@@ -297,36 +315,95 @@ async function getPositionMultiple(buildingId: string, dynamicIds: number[]): Pr
     test ? type = "equipement" : type = "room";
   }
 
+
   const url = type === "equipement" ? `/equipment/get_position_multiple`: `/room/get_position_multiple`;
+  const message = type === "equipement" ? "Détection des emplacements des équipements" : " Détection des positions des pièces";
+  store.commit(MutationTypes.SET_LOADING, {
+    message: message,
+  });
   const res = await sendListMultipleRequest(buildingId, dynamicIds, url);
   return res as ItemPositon[];
  }
 
 
 
-
  async function sendListMultipleRequest(
-   buildingId: string,
-   dynamicIds: number[],
-   argUrl: string,
-   size: number = 200
- ) {
-   const spinalAPI = SpinalAPI.getInstance();
-   const url = spinalAPI.createUrlWithPlatformId(buildingId, argUrl);
+  buildingId: string,
+  dynamicIds: number[],
+  argUrl: string,
+  size: number = 200
+) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, argUrl);
+
  
-   const chunked = lodash.chunk(dynamicIds, size);
-   const promises = chunked.map((ids) => spinalAPI.post<any>(url, ids));
-   return Promise.allSettled(promises).then((result) => {
-     return result.reduce((list, { status, value }) => {
-       if (
-         status === "fulfilled" &&
-         (value.status == 200 || value.status == 206)
-       )
-         list.push(...value.data);
-       return list;
-     }, []);
-   });
- }
+  const total = dynamicIds.length;
+
+  // Initialisation de l'état du loader dans le store
+  store.commit(MutationTypes.SET_LOADING, {
+    total,  // Total d'IDs à traiter
+    completed: 0,  // Initialisation du nombre d'IDs traités à 0
+    percent: 0,  // Pourcentage initial à 0
+    isError: false,
+    logs: [],  // Initialisation des logs
+  });
+
+  // Découper dynamicIds en chunks de la taille spécifiée
+  const chunked = lodash.chunk(dynamicIds, size);
+  let completed = 0;  // Nombre d'IDs traités
+  let results: any[] = [];
+  const logs: { chunk: number; status: 'success' | 'error'; message: string }[] = [];
+
+  // Création des promesses pour chaque chunk
+  const promises = chunked.map(async (ids, index) => {
+    try {
+      const response = await spinalAPI.post<any>(url, ids);
+      if (response.status === 200 || response.status === 206) {
+        // Si la requête réussit, on ajoute les données aux résultats
+        results.push(...response.data);
+        // Ajouter un log de succès
+        logs.push({ chunk: index + 1, status: 'success', message: `Chunk ${index + 1} traité avec succès` });
+      } else {
+        console.warn(`Chunk ${index + 1} a retourné un status inattendu`, response.status);
+        // Log pour le chunk échoué
+        logs.push({ chunk: index + 1, status: 'error', message: `Chunk échoué avec le statut ${response.status}` });
+      }
+    } catch (error) {
+      console.error(`Erreur sur le chunk ${index + 1}`, error);
+      // Log en cas d'erreur
+      logs.push({ chunk: index + 1, status: 'error', message: `Chunk échoué` });
+      store.commit(MutationTypes.SET_LOADING, {
+        isError: true,
+        message: `Erreur sur le chunk ${index + 1}`,
+      });
+    }
+
+    // Mise à jour de la progression après chaque chunk
+    completed += ids.length;  // On ajoute le nombre d'IDs traités dans ce chunk
+    const percent = Math.round((completed / total) * 100);  // Pourcentage de progression
+
+    // Mise à jour de l'état du loader
+    store.commit(MutationTypes.SET_LOADING, {
+      completed,
+      percent,
+      logs: [...logs],  // Mise à jour des logs
+    });
+  });
+
+  // Attendre que toutes les promesses soient résolues
+  await Promise.all(promises);
+
+  // Après le traitement de tous les chunks, on met à jour l'état du loader pour indiquer que tout est terminé
+  store.commit(MutationTypes.SET_LOADER, false);  // On cache le loader
+  store.commit(MutationTypes.SET_LOADING, {
+    completed: total,  // Le nombre total d'IDs est maintenant traité
+    percent: 100,  // Le pourcentage est maintenant à 100%
+    message: `Traitement terminé`,
+    logs: [...logs],  // On affiche tous les logs finaux
+  });
+
+  return results;
+}
 
  
 
