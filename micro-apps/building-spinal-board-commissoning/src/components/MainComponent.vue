@@ -148,7 +148,6 @@ class App extends Vue {
     const buildingId = localStorage.getItem('idBuilding');
     const context = await getContext(buildingId!);
     this.context = context;
-    console.log("sconfig: ", this.sconfig)
     this.selectedZone = this.$store.state.appDataStore.zoneSelected;
     this.showLeftBox = config.bilan.dotsGrid ? true : false;
   }
@@ -156,7 +155,6 @@ class App extends Vue {
 // Methods
 
   filterData() {
-    console.log('filterData called spinalTable');
     this.$store.commit(MutationTypes.SET_LOADING, {
 
       message: 'Chargement des données',

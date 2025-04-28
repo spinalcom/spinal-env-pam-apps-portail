@@ -26,6 +26,7 @@
   
   <script>
   import * as XLSX from 'xlsx';
+import { MutationTypes } from '../services/store/appDataStore/mutations';
   
   export default {
     name: "DownloadButton",
@@ -35,38 +36,92 @@
     }),
   
     methods: {
-      download() {
+     async download() {
+       
         this.downloadCSV();
       },
-      downloadCSV() {
-          // Récupérer les données du store
-        let data = this.$store.state.appDataStore.data;
-        const stripeData = this.$store.state.appDataStore.StripeDataList;
-        const resultFinaldata = data.filter((item) => {
-          const stripeDataItem = stripeData.find((str) => item.sources.find((src) => src.dynamicId === str.dynamicId));
-          if(stripeDataItem) {
-            return true;
-          }
-          else {
-            return false;
-          }
-        })
-        
-        const selectedZone = this.$store.state.appDataStore.zoneSelected.name;
+async downloadCSV() {
+  // Démarrer le loader
+  this.$store.commit(MutationTypes.SET_LOADING, {
+    message: "Initialisation...",
+    completed: 0,
+    total: 0,
+    progress: 0,
+  });
+  this.$store.commit(MutationTypes.SET_LOADER, true);
 
-        // Convertir les données en format de tableau adapté pour Excel
-        const flatData = this.convertCSV(resultFinaldata);
-     
-        const worksheet = XLSX.utils.json_to_sheet(flatData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, selectedZone);
-        // Télécharger le fichier Excel
-        XLSX.writeFile(workbook, `${selectedZone}-convention_nomage.xlsx`);
-        
-      
-        
+  await this.$nextTick(); 
 
-      },
+  // Récupérer les données
+  let data = this.$store.state.appDataStore.data;
+  const stripeData = this.$store.state.appDataStore.StripeDataList;
+  let completed = 0;
+  const total = data.length;
+  const resultFinaldata = [];
+
+  const chunkSize = 100; // nombre d'éléments traités à chaque itération
+  for (let i = 0; i < total; i += chunkSize) {
+    const chunk = data.slice(i, i + chunkSize);
+
+    chunk.forEach(item => {
+      completed++;
+      const stripeDataItem = stripeData.find((str) =>
+        item.sources.find((src) => src.dynamicId === str.dynamicId)
+      );
+      if (stripeDataItem) {
+        resultFinaldata.push(item);
+      }
+    });
+
+    // Mise à jour du loader à chaque chunk
+    this.$store.commit(MutationTypes.SET_LOADING, {
+      message: "Récupération des données...",
+      completed: completed,
+      total: total,
+      percent: Math.round((completed / total) * 100),
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 0)); // Pause pour laisser l'UI respirer
+  }
+
+  // Fichier prêt à être télécharger 
+  this.$store.commit(MutationTypes.SET_LOADING, {
+    message: "Préparation du fichier...",
+    completed: total,
+    total: total,
+    percent: 100,
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 300)); // petite pause pour que l'utilisateur voit l'étape de préparation du fichier
+
+  const selectedZone = this.$store.state.appDataStore.zoneSelected.name;
+  // Convertir les données en format CSV
+  const flatData = this.convertCSV(resultFinaldata);
+
+  // Créer un fichier Excel
+  const worksheet = XLSX.utils.json_to_sheet(flatData);
+  // Ajout  des en-têtes
+  const workbook = XLSX.utils.book_new();
+  // Ajout des colonnes
+  XLSX.utils.book_append_sheet(workbook, worksheet, selectedZone);
+
+  XLSX.writeFile(workbook, `${selectedZone}-convention_nomage.xlsx`);
+
+  // Télechargement terminé
+  this.$store.commit(MutationTypes.SET_LOADING, {
+    message: "Téléchargement terminé",
+    completed: 0,
+    total: 0,
+    progress: 0,
+    isSuccess: true
+  });
+
+  // Laisse le temps à l'utilisateur de voir le message
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  // Réinitialiser le loader
+  this.$store.commit(MutationTypes.SET_LOADER, false);
+}
+,
  extractForCSV(obj) {
         const row = {
           dynamicId: obj.dynamicId,

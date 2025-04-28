@@ -7,6 +7,7 @@ export interface ILoading{
     completed: number;
     percent: number;
     isError: Error | null;
+    isSuccess?: boolean | null;
     logs?: ILog[];
 }
 

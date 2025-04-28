@@ -349,7 +349,7 @@ export async function getAllDataInContextSpatial(buildingId: string, spatialName
       
       })
 
-      console.log("sourceList", sourceList);
+
 
       store.commit(MutationTypes.SET_SOURCE_LIST, sourceList);
 

@@ -44,11 +44,11 @@
 
 
    <template  v-for="header in headers"  v-slot:[`item.${header.value}`]="{value }" >
-        <template v-if="header.isEndpoint && header.filterable">
+        <template v-if="header.isEndpoint && header.filterable" style="max-width: 400px; width: 400px;">
             <SmallLegend class="ml-3" :size="11" :color="getColor(value, header)" :text="`${value}`"/>
         </template>
         <template v-else-if="header.isEndpoint">
-            <SmallLegend class="ml-3" :size="11" :color="getColor(value, header)" :text="`${value}%`"/>
+            <SmallLegend class="ml-3" :size="11" :color="getColor(value, header)" :text="`${value}`"/>
         </template>
         <template v-else>
             <div class="font-table
@@ -117,7 +117,6 @@ export default {
             return null;
           }).filter(Boolean);
           
-            console.log("selection", this.selections);
             this.getStripeData(data);
         }
       },
@@ -150,8 +149,6 @@ export default {
      // Masquer le loader après le filtrage
   this.showLoader = false;
 
-  // Log pour vérifier que showLoader est false
-  console.log('showLoader après avoir terminé le filtrage:', this.showLoader);
     },
 
 

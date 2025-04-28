@@ -211,14 +211,10 @@ class App extends Vue {
       this.applyURLParam(currentQuery);
     });
     if(config.entryPoint !== undefined) {
-      console.log("entrypoint not defined");
       await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
     }
     else {
-      // const result = await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
-      // if (result) {
-      //   console.log('result', result);
-      // }
+    
     }
 
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, item);
@@ -302,19 +298,14 @@ class App extends Vue {
         this.query.buildingId = localStorage.getItem('idBuilding')!;
         this.replaceRoute();
       }
-      // const buildingId = localStorage.getItem('idBuilding');
-      // this.updateDataInContextSpatial(buildingId);
-      // this.replaceRoute();
-      // console.log('query', this.query);
+      
       this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
       const zoneSelected = this.$store.state.appDataStore.zoneSelected;
-      console.log('Zone selected: ', zoneSelected);
       this.updateDataInContextSpatial(buildingId);
     }
   
   private async updateDataInContextSpatial(buildingId: string | null) {
     if (config.entryPoint !== undefined) {
-      console.log("entrypoint not defined");
       await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
       
     }
@@ -335,7 +326,6 @@ class App extends Vue {
 
   // Watchers
 public get sconfig() {
-  console.log("Sconfig configure", this.$store.state.appDataStore.context);
   return this.$store.state.appDataStore.context;
 }
 

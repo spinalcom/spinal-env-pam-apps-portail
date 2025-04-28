@@ -66,6 +66,7 @@ export const state = {
     completed: 0,
     percent: 0,
     isError : null,
+    isSuccess: null,
     logs: [] as any[],
   } as ILoading,
    Loading: false,

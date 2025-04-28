@@ -6,7 +6,12 @@
                 </div>
                 <div class="content-card">
                     <div style="width: 100%; height: 100px; display: flex; justify-content: center; align-items: center;" v-if="progressLoader.total == 0">
-                     <span>{{ progressLoader.message }}</span> <div style="margin-left: 4px;" class="loader"></div>
+                     <span>{{ progressLoader.message }}</span>
+                      <div>
+                        <v-icon v-if="progressLoader.isSuccess" style="color: green; margin-left: 7px;" >mdi-check-underline</v-icon>
+                        <div v-else style="margin-left: 4px;" class="loader"></div>
+                      </div>
+
                     </div>
                   <div style=" font-size: 16px;" v-if="progressLoader.total > 0">
                       <span style="color: #14202C; font-size: 16px;">{{ progressLoader.message }} {{ progressLoader.completed }} / {{ progressLoader.total }}</span>

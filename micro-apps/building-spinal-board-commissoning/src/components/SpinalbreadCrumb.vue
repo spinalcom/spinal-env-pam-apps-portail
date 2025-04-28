@@ -125,7 +125,6 @@ export default {
         toggleSelection(group) {
            if(group)  {
             this.selected_grp = group
-            console.log("Selected group: ", group);
             this.$store.commit(MutationTypes.SET_GROUP_EQUIP, group);
            }
         },
@@ -142,7 +141,6 @@ export default {
             const categories = await getCategoryList(this.buildingId, this.contexId);
             this.categoryList = categories;
             this.$store.commit(MutationTypes.SET_CONTEXT, value);
-            console.log("Selected category: ", value);
            }
            if(listType === 'cat') {
             this.categoryId = value.dynamicId
@@ -152,7 +150,6 @@ export default {
 
             const groups = await getGroupList(this.buildingId, this.contexId, this.categoryId);
             this.groupList = groups;
-            console.log(this.groupList);
            }
         },
 

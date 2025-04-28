@@ -76,7 +76,6 @@ watch: {
   handler(newData) {
     this.stripeList = newData;
     this.getStripeData();
-    console.log("config Legend", this.configLegend);
   }
  },
 
@@ -228,7 +227,6 @@ methods: {
       });
 }
       this.filterData = filteredData;
-      console.log("filterData", this.filterData);
       setTimeout(() => {
         this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.filterData);
         this.$store.commit(MutationTypes.SET_LOADER, false);
@@ -245,7 +243,6 @@ methods: {
         const filterData = this.$store.state.appDataStore.filterData;
         
         const onFiltered = filterData.find((item: any) => item.text === value);
-        console.log("onFiltered", onFiltered);
   
 
         let filteredData: any = [];
