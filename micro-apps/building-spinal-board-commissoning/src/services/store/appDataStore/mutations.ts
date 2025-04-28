@@ -62,6 +62,7 @@ export enum MutationTypes {
   RESET_LOADING = "RESET_LOADING",
   SET_FILTER_DATA = "SET_FILTER_DATA",
   SET_CANCEL_FILTER = "SET_CANCEL_FILTER",
+  SET_SOURCE_LIST = "SET_SOURCE_LIST",
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -103,6 +104,7 @@ export type MutationsAppData<S = StateAppData> = {
   [MutationTypes.SET_FILTER_DATA](state: StateAppData, filter: any): void;
   [MutationTypes.SET_CANCEL_FILTER](state: StateAppData, cancelFilter: boolean): void;
   [MutationTypes.SET_LOADER](state: StateAppData, loader: boolean): void;
+  [MutationTypes.SET_SOURCE_LIST](state: StateAppData, sourceList: any[]): void;
 
 };
 
@@ -229,6 +231,10 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
   },
   [MutationTypes.SET_LOADER](state: StateAppData, loader: boolean): void {
     state.Loading = loader;
+  },
+
+  [MutationTypes.SET_SOURCE_LIST](state: StateAppData, sourceList: any[]): void {
+    state.SourceList = sourceList;
   },
 
 };

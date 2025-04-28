@@ -57,6 +57,7 @@ export const state = {
   context: {} as any,
   categoriesContext: {} as any,
   groupEquipement: {} as any,
+  SourceList: [] as any[],
 
   //Loader compo
   progressLoader: {

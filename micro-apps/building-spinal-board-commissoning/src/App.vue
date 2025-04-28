@@ -34,12 +34,13 @@ import Component from 'vue-class-component';
 import MicroApp from './components/MainComponent.vue';
 import { ActionTypes } from './interfaces/vuexStoreTypes';
 import { MutationTypes } from './services/store/appDataStore/mutations';
-import { getData, getDataInContextSpatial } from './services';
+import { getAllDataInContextSpatial, getData, getDataInContextSpatial } from './services';
 import Loader from './components/Loader.vue'
 import DownloadButton from './components/DownloadButton.vue'
 import { IConfig } from './interfaces/IConfig';
 import {config} from '../config'
 import { ILoading } from './interfaces/ILoading';
+import { get } from 'http';
 interface IItemData {
   platformId: string;
   id: number | number[];
@@ -214,10 +215,10 @@ class App extends Vue {
       await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
     }
     else {
-      const result = await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
-      if (result) {
-        console.log('result', result);
-      }
+      // const result = await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
+      // if (result) {
+      //   console.log('result', result);
+      // }
     }
 
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, item);
@@ -312,24 +313,31 @@ class App extends Vue {
     }
   
   private async updateDataInContextSpatial(buildingId: string | null) {
-      if(config.entryPoint !== undefined) {
-        console.log("entrypoint not defined");
-        const result = await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
-        if (result) {
-          console.log('result', result);
+    if (config.entryPoint !== undefined) {
+      console.log("entrypoint not defined");
+      await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
+      
+    }
+    else {
+        if(Object.keys(this.sconfig).length > 0) {
+          const result = await getAllDataInContextSpatial(
+            buildingId!,
+            this.selectedZone.name,
+            this.selectedZone.type
+          );
         }
-        return;
+    }
+    // return;
       }
-      else {
-        const result = await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
-        if (result) {
-          console.log('result', result);
-        }
-        return;
-      }
-  }
+  
 
 
+
+  // Watchers
+public get sconfig() {
+  console.log("Sconfig configure", this.$store.state.appDataStore.context);
+  return this.$store.state.appDataStore.context;
+}
 
 
 }

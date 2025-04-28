@@ -29,7 +29,7 @@ async function getReadStaticdetailsMultiple(buildingId: string, dynamicIds: numb
     
     message: `Récupération des controls point`,
   })
-  let type = config.entryPoint?.type ?? store.state.appDataStore.groupEquipement.type;
+  let type = config.entryPoint?.type ?? store.state.appDataStore.context.type;
   if(type !== "equipement" && type !== "room") {
     const test = type.includes("BIMObject");
     test ? type = "equipement" : type = "room";
@@ -168,6 +168,208 @@ export async function getGroupList(buildingId: string, contextId: number, catego
   return res.data;
 }
 
+export async function getGroupAllItem(buildingId: string, contextId: number, categoryId: number) {
+  const spinalAPI = SpinalAPI.getInstance();
+  let type = config.entryPoint?.type ?? store.state.appDataStore.context.type;
+  if(type !== "equipement" && type !== "room") {
+    const test = type.includes("BIMObject");
+    test ? type = "equipement" : type = "room";
+  }
+  const url = type === "equipement" ? `/equipementsGroup/${contextId}/category/${categoryId}/group_List` : `/roomsGroup/${contextId}/category/${categoryId}/group_list`;
+  const res = await spinalAPI.get(spinalAPI.createUrlWithPlatformId(buildingId, url));
+  const dynamicIds = res.data.map((el: any) => el.dynamicId);
+  const promise = dynamicIds.map(async (groupID) =>{
+      const url_group = type === "equipement" ? `/equipementsGroup/${contextId}/category/${categoryId}/group/${groupID}/equipementList` : `/roomsGroup/${contextId}/category/${categoryId}/group/${groupID}/roomList`;
+      const grouItems = await spinalAPI.get(spinalAPI.createUrlWithPlatformId(buildingId, url_group));
+      return [...grouItems.data];  
+  });
+  const result = await Promise.all(promise);
+  const allItems = result.reduce((acc, curr) => {
+    return acc.concat(curr);
+  }, []);
+  return allItems;
+}
+export async function getGroupAllData(buildingId: string){
+  const rq = await getContext(buildingId);
+  const context = await rq.find((el) => el.name === config.entryPoint?.context || el.name == store.state.appDataStore.context.name);
+  if(!context) {
+    return [];
+  }
+  const rqC = await getCategoryList(buildingId, context.dynamicId);
+  const categoryName = config.entryPoint?.category ?? store.state.appDataStore.categoriesContext.name;
+  const category = await rqC.find((el) => el.name === categoryName);
+  const rqG = await getGroupList(buildingId, context.dynamicId, category.dynamicId);
+  const groupName = config.entryPoint?.group ?? store.state.appDataStore.groupEquipement.name;
+  const group = rqG.find((el) => el.name === groupName) 
+  const groupItems = await getGroupAllItem(buildingId, context.dynamicId, category.dynamicId);
+  return groupItems;
+}
+
+
+
+export async function getAllDataInContextSpatial(buildingId: string, spatialName: string, spatialType: string) {
+  const data = await getGroupAllData(buildingId);
+  
+  store.commit(MutationTypes.SET_LOADER, true)
+
+ 
+  let result: any = [];
+    if(spatialType === "geographicBuilding") {
+      const dynamicIds = data.map((el) => el.dynamicId);
+      let itemPosition = await getPositionMultiple(buildingId, dynamicIds);
+       itemPosition = itemPosition.filter((el) => el.info && el.info.building);
+      
+       result = itemPosition.map((el)=> {
+        if(el.info.building.name === spatialName) {
+          return el;
+        }
+        else {
+          return null;
+        }
+      }).filter(Boolean);
+    }
+    else if(spatialType === "geographicFloor") {
+      const dynamicIds = data.map((el) => el.dynamicId);
+      let itemPosition = await getPositionMultiple(buildingId, dynamicIds);
+      store.commit(MutationTypes.SET_LOADING,  {
+        total: itemPosition.length,
+        message: `Chargement des positions terminé`,
+      })
+     itemPosition = itemPosition.filter((el) => el.info && el.info.floor);
+      result = itemPosition.map((el)=> {
+        if(el.info.floor.name === spatialName) {
+          return el;
+        }
+        else {
+          return null;
+        }
+      }).filter(Boolean);
+      
+     }
+     const dynamicIds = result.map((el) => el.dynamicId);
+
+     const read = await getReadStaticdetailsMultiple(buildingId, dynamicIds);
+      const sources = read.map((el : any) => {
+        const findTypeattributeInsrc = config.sources.map((src) => {
+          return src.type === 'attribute' ? src : null;
+        }).filter(Boolean);
+        const findTypeControlPointInsrc = config.sources.map((src) => {
+          return src.type === 'controlPoint' ? src : null;
+        }).filter(Boolean);
+        const findTypeEquipementInsrc = config.sources.map((src) => {
+          return src.type === 'endpoint' ? src : null;
+        }).filter(Boolean);
+        let src: any = [];
+        if(findTypeattributeInsrc.length > 0 && el.attributsList) {
+          const attributeList: any = [];
+          for (const src of findTypeattributeInsrc) {
+            const attribute = el.attributsList.find((attr: any) => attr.name === src?.categoryName);
+            if(attribute && attribute.attributs) {
+              const attributs = attribute.attributs.map((attr: any) => {
+                return {
+                  categoryName: attribute.name,
+                  dynamicId: attribute.dynamicId,
+                  name: attr.label,
+                  type: "attribute",
+                  value: attr.value ? attr.value : "undefined",
+                  unit: attr.unit ? attr.unit : "",
+                }
+              });
+              
+              attributeList.push(attributs);
+              // if(!attributs) {
+              //   const attr = {
+              //     dynamicId: attribute.dynamicId,
+              //     name: src?.name,
+              //     value: "undefined",
+              //   }
+              //   attributeList.push(attr);
+              // }
+              // else {
+              //   const attr = {
+              //     dynamicId: attributs.dynamicId,
+              //     name: attributs.label,
+              //     value: attributs.value ? attributs.value : "undefined",
+              //   }
+              //   attributeList.push(attr);
+              // }
+            }
+          }
+          const finalAttributeList = attributeList.reduce((acc: any, curr: any) => {
+            if (Array.isArray(curr)) {
+              return acc.concat(curr);
+            }
+            return acc.concat([curr]);
+          }, []);
+
+          src.push(...finalAttributeList);
+
+          
+          
+          
+        }
+        if(findTypeControlPointInsrc.length > 0 && el.controlEndpoint) {
+          const controlPointList: any = [];
+          for (const src of findTypeControlPointInsrc) {
+            const controlPoint = el.controlEndpoint.find((ctl: any) => ctl.profileName === src?.profileName);
+            if(controlPoint && controlPoint.endpoints) {
+              const endpoints = controlPoint.endpoints.find((end: any) => end.name === src?.name);
+              controlPointList.push(endpoints);
+            }
+          }
+          src.push(...controlPointList);
+        }
+        if(findTypeEquipementInsrc.length > 0 && el.equipementsList) {
+          const equipementList: any = [];
+          for (const src of findTypeEquipementInsrc) {
+            const equipement = el.equipementsList.find((eq: any) => eq.name === src?.name);
+            if(equipement) {
+              equipementList.push(equipement);
+            }
+          }
+          src.push(...equipementList);
+        }
+        return  {
+          dynamicId: el.dynamicId,
+          name: el.name,
+          type: el.type,
+          staticId: el.id,
+          info: el.info,
+          sources: src,
+        }
+        
+      } )
+      const sourceList = sources[0].sources.map((el: any) => {
+        return {
+          name: el.name,
+          categoryName: el.categoryName,
+          type: el.type,
+          unit: el.unit,
+        }
+      
+      })
+
+      console.log("sourceList", sourceList);
+
+      store.commit(MutationTypes.SET_SOURCE_LIST, sourceList);
+
+      const final = sources.map((el: any) => {
+        const matchingRead = result.find((readEl: any) => readEl.dynamicId === el.dynamicId);
+        return matchingRead ? { ...el, ...matchingRead } : el;
+      });
+      if(final.length > 0) {
+       await store.commit(MutationTypes.SET_DATA, final);
+        return true
+      }
+      else {
+        return false;
+      }
+} 
+
+
+
+
+
 
 async function getGroupItems(buildingId: string, contextId: number, categoryId: number, groupId: number): Promise<ItemInGroup[]> {
   const spinalAPI = SpinalAPI.getInstance();
@@ -220,11 +422,9 @@ export async function getDataInContextSpatial(buildingId: string, spatialName: s
         }).filter(Boolean);
         
        }
-       console.log('result: ', spatialName);
        const dynamicIds = result.map((el) => el.dynamicId);
 
        const read = await getReadStaticdetailsMultiple(buildingId, dynamicIds);
-       console.log("read floor", read);
         const sources = read.map((el : any) => {
           const findTypeattributeInsrc = config.sources.map((src) => {
             return src.type === 'attribute' ? src : null;
@@ -309,7 +509,7 @@ export async function getDataInContextSpatial(buildingId: string, spatialName: s
 
 async function getPositionMultiple(buildingId: string, dynamicIds: number[]): Promise<ItemPositon[]> {
   const spinalAPI = SpinalAPI.getInstance();
-  let type = config.entryPoint?.type ?? store.state.appDataStore.groupEquipement.type;
+  let type = config.entryPoint?.type ?? store.state.appDataStore.context.type;
   if(type !== "equipement" && type !== "room") {
     const test = type.includes("BIMObject");
     test ? type = "equipement" : type = "room";

@@ -116,7 +116,7 @@ import DotsGrid from './DotsGrid.vue';
 import { config } from '../../config';
 import { MutationTypes } from '../services/store/appDataStore/mutations';
 import SpinalbreadCrumb from './SpinalbreadCrumb.vue';
-import { getContext, getDataInContextSpatial } from '../services';
+import { getAllDataInContextSpatial, getContext, getDataInContextSpatial } from '../services';
 @Component({
   components: {
     SmallLegend,
@@ -148,6 +148,7 @@ class App extends Vue {
     const buildingId = localStorage.getItem('idBuilding');
     const context = await getContext(buildingId!);
     this.context = context;
+    console.log("sconfig: ", this.sconfig)
     this.selectedZone = this.$store.state.appDataStore.zoneSelected;
     this.showLeftBox = config.bilan.dotsGrid ? true : false;
   }
@@ -173,7 +174,7 @@ async getDataItem(newVal: any = this.items) {
   ];
   if(this.ItemList.length > 0) {
     const endpoints = this.ItemList[0].sources || [];
-    const sourceFiltered = config.sources.find((src) => src.id === this.statisticTimeline.sourceId);
+    const sourceFiltered = config.sources.find((src) => src.id === this.statisticTimeline.sourceId) ;
     const endpointHeaders = endpoints.map((endpoint: any) => ({
       text: endpoint.name,
       value: endpoint.name.toLowerCase().replace(/ /g, "-"),
@@ -238,8 +239,14 @@ async loadDataContext(){
   const context = this.$store.state.appDataStore.context;
   const categories = this.$store.state.appDataStore.categoriesContext;
   const groupEquipement = this.$store.state.appDataStore.groupContext;
-
-  await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type)
+  
+  if(context && categories && !groupEquipement) {
+    await getAllDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type)
+  }
+  if(context && categories && groupEquipement) { 
+    await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type)
+  }
+   
 }
 
 
@@ -250,6 +257,11 @@ async loadDataContext(){
     return this.$store.state.appDataStore.zoneSelected;
 }
 
+
+  public get sourceList() {
+    return this.$store.state.appDataStore.SourceList;
+  }
+
 public get CancelFilter() {
   return this.$store.state.appDataStore.cancelFilter;
 }
@@ -258,6 +270,12 @@ SetCancelFilter(value: boolean) {
   this.$store.commit(MutationTypes.SET_CANCEL_FILTER, value);
 }
 
+
+
+  @Watch('sourceList')
+  async onSourceListChange(newVal: any) {
+    this.sources = newVal;
+  }
 
   @Watch('zoneSelected')
   async onZoneSelectedChange() {
