@@ -211,7 +211,7 @@ class App extends Vue {
       this.applyURLParam(currentQuery);
     });
     if(config.entryPoint !== undefined) {
-      await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
+      const result = await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
     }
     else {
     
@@ -290,6 +290,23 @@ class App extends Vue {
     return this.$store.state.appDataStore.zoneSelected;
   }
   public set selectedZone(v: ISpaceSelectorItem) {
+      this.$store.commit(MutationTypes.SET_LOADER, true);
+      this.$nextTick();
+      this.$store.commit(MutationTypes.SET_LOADING, {
+        message: 'Chargement des données',
+        isSuccess: false,
+        total: 0,
+        percent: 0,
+
+
+      })
+    new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(true);
+        }, 1000);
+      });
+    
+
       const buildingId = localStorage.getItem('idBuilding');
       if(this.query.spaceSelectedId != v.dynamicId.toString()) {
         this.query.name = v.name;
@@ -305,8 +322,19 @@ class App extends Vue {
     }
   
   private async updateDataInContextSpatial(buildingId: string | null) {
+    await new Promise((reslove) => (
+        setTimeout(() => {
+          reslove(true);
+        }, 1000)
+      ));
     if (config.entryPoint !== undefined) {
       await getDataInContextSpatial(buildingId!, this.selectedZone.name, this.selectedZone.type);
+      this.$store.commit(MutationTypes.SET_LOADING, {
+        message: 'Terminé',
+        total: 0,
+        percent: 0,
+        isSuccess: true,
+      })
       
     }
     else {

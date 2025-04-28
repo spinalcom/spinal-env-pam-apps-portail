@@ -218,7 +218,7 @@ export async function getAllDataInContextSpatial(buildingId: string, spatialName
       const dynamicIds = data.map((el) => el.dynamicId);
       let itemPosition = await getPositionMultiple(buildingId, dynamicIds);
        itemPosition = itemPosition.filter((el) => el.info && el.info.building);
-      
+        console.log("itemPosition", itemPosition);
        result = itemPosition.map((el)=> {
         if(el.info.building.name === spatialName) {
           return el;
@@ -358,11 +358,11 @@ export async function getAllDataInContextSpatial(buildingId: string, spatialName
         return matchingRead ? { ...el, ...matchingRead } : el;
       });
       if(final.length > 0) {
-       await store.commit(MutationTypes.SET_DATA, final);
-        return true
+        store.commit(MutationTypes.SET_DATA, final);
+        return final
       }
       else {
-        return false;
+        return [];
       }
 } 
 
@@ -387,13 +387,13 @@ async function getGroupItems(buildingId: string, contextId: number, categoryId: 
 export async function getDataInContextSpatial(buildingId: string, spatialName: string, spatialType: string) {
     const data = await getData(buildingId);
     store.commit(MutationTypes.SET_LOADER, true)
-
-   
+    
     let result: any = [];
-      if(spatialType === "geographicBuilding") {
-        const dynamicIds = data.map((el) => el.dynamicId);
-        let itemPosition = await getPositionMultiple(buildingId, dynamicIds);
-         itemPosition = itemPosition.filter((el) => el.info && el.info.building);
+    if(spatialType === "geographicBuilding") {
+      const dynamicIds = data.map((el) => el.dynamicId);
+      let itemPosition = await getPositionMultiple(buildingId, dynamicIds);
+      itemPosition = itemPosition.filter((el) => el.info && el.info.building);
+      console.log("itemPosition", itemPosition);
         
          result = itemPosition.map((el)=> {
           if(el.info.building.name === spatialName) {
@@ -500,10 +500,10 @@ export async function getDataInContextSpatial(buildingId: string, spatialName: s
         });
         if(final.length > 0) {
          await store.commit(MutationTypes.SET_DATA, final);
-          return true
+          return final
         }
         else {
-          return false;
+          return [];
         }
 } 
 
@@ -592,15 +592,18 @@ async function getPositionMultiple(buildingId: string, dynamicIds: number[]): Pr
 
   // Attendre que toutes les promesses soient résolues
   await Promise.all(promises);
-
+  
   // Après le traitement de tous les chunks, on met à jour l'état du loader pour indiquer que tout est terminé
-  store.commit(MutationTypes.SET_LOADER, false);  // On cache le loader
   store.commit(MutationTypes.SET_LOADING, {
-    completed: total,  // Le nombre total d'IDs est maintenant traité
-    percent: 100,  // Le pourcentage est maintenant à 100%
-    message: `Traitement terminé`,
+    completed: 0,  // Le nombre total d'IDs est maintenant traité
+    percent: 0,  // Le pourcentage est maintenant à 100%
+    total: 0,
+    message: `Chargement des données`,
+    isError: false,
     logs: [...logs],  // On affiche tous les logs finaux
   });
+  await new Promise((resolve) => setTimeout(resolve, 1000));  // Attendre 1 seconde avant de mettre à jour l'état
+  store.commit(MutationTypes.SET_LOADER, false);  // On cache le loader
 
   return results;
 }

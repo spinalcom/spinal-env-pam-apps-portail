@@ -255,6 +255,7 @@ methods: {
             total: 0,
             message: "Exécution du filtre",
             percent: 0,
+            isSuccess: false,
           });
         let complete = 0;
         filteredData = this.stripeList.filter((item: any) => {
