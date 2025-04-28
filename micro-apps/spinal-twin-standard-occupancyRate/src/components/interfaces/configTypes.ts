@@ -25,6 +25,7 @@ export interface ApiEndpoints {
 }
 
 export interface EntryPoint {
+  name: string;
   context: string;
   category: string;
   group: string;
@@ -37,6 +38,7 @@ export interface EntryPoint {
 }
 
 export interface ChartsConfig {
+  globalChart: any;
   firstChart: ChartData;
   secondChart: ChartData;
   thirdChart: ChartData;

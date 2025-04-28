@@ -23,6 +23,9 @@
           :prev="temporality.name !== 'Valeur Courante' ? temporality.prev : ''" 
           @nav="nav"
           @time-change="handleTimeChange"
+          :current-date="getCurrentDate()"
+          :temporality="temporality.name"
+          @date-change="handleDateChange"
           :stacked="false" 
           style="max-height: 530px;"
           class="BR"
@@ -36,13 +39,16 @@
           :prev_next="true"
           @nav="nav"
           @time-change="handleTimeChange"
+          :current-date="getCurrentDate()"
+          :temporality="temporality.name"
+          @date-change="handleDateChange"
           :stacked="true"
           :isYear="temporality.name==='Année' || temporality.name==='Trimestre'"
           :next="temporality.name !== 'Valeur Courante' ? temporality.next : ''" 
           :prev="temporality.name !== 'Valeur Courante' ? temporality.prev : ''"
           style="max-height: 530px;"
         />
-                <FloorOccupancyDetail 
+        <FloorOccupancyDetail 
           ref="floorOccupancyDetail" 
           :space="space" 
           :temporality="temporality" 
@@ -58,20 +64,24 @@
 
 <script lang="ts">
 import LineChart from './LineCard.vue';
+import { cachedRoomEntryPoints, initializeSources } from '../services/index';
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
 import BarChart from './BarCard.vue';
 import LoadingPage from './LoadingPage.vue'; 
 import FloorOccupancyDetail from './FloorOccupancyDetail.vue';
-import { ISpaceSelectorItem } from './SpaceSelector/index';
+import { ISpaceSelectorItem } from './SpaceSelector/interfaces/ISpaceSelectorItem';
 import { TemporalityModel } from '../models/Temporality.model';
 import { LegendModel } from '../models/Legend.model';
 import {config} from '../config'; 
 import { ChartData, tempoFilter } from '../components/interfaces/types';
 import TemporalFilter from './TemporalFilter.vue';
-import { getData, getContextId, getCategoryId, getRoomIds, getGroupId, getSecondChartOccupancyDataByFloor } from '../services/index';
+import { getData,getRoomData,getThirdChartData, getContextId, getCategoryId, getRoomIds, getGroupId, getSecondChartOccupancyDataByFloor } from '../services/index';
 import moment from 'moment';
+import 'moment/locale/fr'; // Importer la locale française
 
+moment.locale('fr'); // Définir la locale française
+ 
 @Component({
   components: {
     BarChart,
@@ -125,59 +135,73 @@ class App extends Vue {
 
   @Prop({ type: Object as () => TemporalityModel, required: true })
   temporality!: TemporalityModel;
+  selectedYear: any;
 
   interval() {
     this.currentTimestamp = {valueTime: this.currentTimestamp.valueTime = moment().valueOf()};
     this.spreadData();
   }
 
-  async spreadData() {
-  try {
-    this.isLoading = true; 
-    let res;
-    const entryPoint = config.entryPoints[0]; 
-    const contextId = await getContextId(entryPoint.context);
-    const categoryId = await getCategoryId(contextId, entryPoint.category);
-    const groupId = await getGroupId(contextId, categoryId, entryPoint.group);
-    const roomIds = await getRoomIds(contextId, categoryId, groupId);
-
-    console.log('Room IDs:', roomIds);
-
-    if (this.space.type === 'building') {
-      res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds, this.startTime, this.endTime);
-    } else if (this.space.type === 'floor') {
-      res = await getSecondChartOccupancyDataByFloor(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds, this.startTime, this.endTime);
-    }
-
-    if (res && res.length >= 3) {
-      this.chart.label = res[0] || [];
-      this.chart.data = res[1] || [];
-      this.defaultFilter.name = res[1] && res[1][0] ? res[1][0].label : '';
-    } else {
-      console.warn('Les données de getData sont manquantes ou mal formatées.');
-    }
-  } catch (error) {
-    console.error("Erreur lors de l'exécution de spreadData:", error);
-  } finally {
-    this.isLoading = false; 
-  }
-}
-
-onTimeChange() {
-  // Validation de la plage horaire
-  if (this.startTime && this.endTime) {
-    const start = moment(this.startTime, 'HH:mm');
-    const end = moment(this.endTime, 'HH:mm');
+        async spreadData() {
+      try {
+        this.isLoading = true;
     
-    if (start.isAfter(end)) {
-      alert('L\'heure de début doit être inférieure à l\'heure de fin');
-      return;
+        // Vérifier si les sources sont initialisées
+        if (!cachedRoomEntryPoints || cachedRoomEntryPoints.length === 0) {
+          console.warn("Les sources ne sont pas initialisées. Appel de initializeSources...");
+          await initializeSources();
+        }
+    
+        // Récupérer les données des salles
+        const roomData = await getRoomData();
+        console.log('Room Data:', roomData);
+    
+        // Transformer les données en un tableau plat
+        const roomIds = Object.values(roomData).flat();
+        console.log('Room IDs:', roomIds);
+    
+        if (this.space.type === 'building') {
+          const res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds, this.startTime, this.endTime);
+          if (res && res.length >= 3) {
+            this.chart.label = res[0] || [];
+            this.chart.data = res[1] || [];
+            this.defaultFilter.name = res[1] && res[1][0] ? res[1][0].label : '';
+          } else {
+            console.warn('Les données de getData sont manquantes ou mal formatées.');
+          }
+        }
+      } catch (error) {
+        console.error("Erreur lors de l'exécution de spreadData:", error);
+      } finally {
+        this.isLoading = false;
+      }
     }
-  }
-  this.spreadData();
-}
 
-handleTimeChange({ startTime, endTime }) {
+  onTimeChange() {
+    // Validation de la plage horaire
+    if (this.startTime && this.endTime) {
+      const start = moment(this.startTime, 'HH:mm');
+      const end = moment(this.endTime, 'HH:mm');
+      
+      if (start.isAfter(end)) {
+        alert('L\'heure de début doit être inférieure à l\'heure de fin');
+        return;
+      }
+    }
+    this.spreadData();
+  }
+  getCurrentDate() {
+    const timestamp = this.currentTimestamp.valueTime || moment().valueOf(); 
+    if (this.temporality.name === 'Journée') {
+      return moment(timestamp).format('YYYY-MM-DD'); 
+    } else if (this.temporality.name === 'Mois') {
+      return moment(timestamp).format('YYYY-MM'); 
+    } else if (this.temporality.name === 'Année') {
+      return moment(timestamp).format('YYYY'); 
+    }
+    return moment(timestamp).format('YYYY-MM-DD'); // Valeur par défaut
+  }
+  handleTimeChange({ startTime, endTime }) {
   this.startTime = startTime;
   this.endTime = endTime;
   this.onTimeChange();
@@ -194,26 +218,60 @@ handleTimeChange({ startTime, endTime }) {
     floorOccupancyDetail.fetchThirdChartFloorData(moment().valueOf(), startTime, endTime);
   }
 }
+async handleDateChange(newDate) {
+  console.log(`Date sélectionnée : ${newDate}`);
   
+  // Mettez à jour le timestamp pour la date sélectionnée
+  this.currentTimestamp.valueTime = moment(newDate).valueOf();
 
-  async mounted() {
-    this.selectedYear = moment().format('YYYY');
-    this.defaultTimeChip = moment().format('MM/YYYY');
-    this.defaultFilter = {
-      name: moment().format('MMMM YYYY'),
-      value: moment().format('MM/YYYY'),
-      color: '#000000', 
-      lock: false,
-      star: true
+  // Mettez à jour les graphiques globaux
+  await this.spreadData();
+
+  // Mettez à jour les graphiques par étage
+  if (this.$refs.floorOccupancyDetail) {
+    const floorOccupancyDetail = this.$refs.floorOccupancyDetail as Vue & {
+      fetchFloorData: (period: string, timestamp: number, startTime: string, endTime: string) => void;
+      fetchSecondFloorData: (timestamp: number, startTime: string, endTime: string) => void;
+      fetchThirdChartFloorData: (timestamp: number, startTime: string, endTime: string) => void;
     };
-    this.interval();
-    this.domainList.push({name: this.selectedYear, color: '#000000'});
-    this.domain = {name: this.selectedYear, color: '#000000'};
+
+    const timestamp = moment(newDate).valueOf();
+
+    console.log("Appel des méthodes pour les graphiques par étage avec :");
+    console.log("startTime :", this.startTime);
+    console.log("endTime :", this.endTime);
+
+    await floorOccupancyDetail.fetchFloorData(this.temporality.name, timestamp, this.startTime, this.endTime);
+    await floorOccupancyDetail.fetchSecondFloorData(timestamp, this.startTime, this.endTime);
+    await floorOccupancyDetail.fetchThirdChartFloorData(timestamp, this.startTime, this.endTime);
+  }
+}
+
+
+    async mounted() {
+    try {
+
+  
+      this.selectedYear = moment().format('YYYY');
+      this.defaultTimeChip = moment().format('MM/YYYY');
+      this.defaultFilter = {
+        name: moment().format('MMMM YYYY'),
+        value: moment().format('MM/YYYY'),
+        color: '#000000', 
+        lock: false,
+        star: true
+      };
+      this.interval();
+      this.domainList.push({name: this.selectedYear, color: '#000000'});
+      this.domain = {name: this.selectedYear, color: '#000000'};
+    } catch (error) {
+      console.error("Erreur lors de l'initialisation des sources :", error);
+    }
   }
 
     @Watch('temporality')
   async temporalityChange() {
-    this.chart.data = [];  
+    this.chart.data = [];
     this.selectedFilter = [];
     this.selectedReference = 0;
     this.defaultFilter.star = true;
@@ -242,7 +300,7 @@ handleTimeChange({ startTime, endTime }) {
     for (var week = 1; week <= 52; week++) {
       var startDate = moment().year(+this.selectedYear).isoWeek(week).startOf('isoWeek').format('DD/MM/YYYY');
       var endDate = moment().year(+this.selectedYear).isoWeek(week).endOf('isoWeek').format('DD/MM/YYYY');
-      var weekString = 'S' + week + ' (' + startDate + ' - 'endDate + ')';
+      var weekString = 'S' + week + ' (' + startDate + ' - ' + endDate + ')';
       this.weeks.push(weekString);
     }
   }

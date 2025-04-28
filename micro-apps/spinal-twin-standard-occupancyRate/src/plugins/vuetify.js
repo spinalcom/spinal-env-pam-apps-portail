@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuetify from 'vuetify';
 import colors from 'vuetify/lib/util/colors';
+import { fr } from 'vuetify/lib/locale'; // Importer la locale française
 
 Vue.use(Vuetify);
 
@@ -21,5 +22,9 @@ export default new Vuetify({
   },
   icons: {
     iconfont: 'mdiSvg', // 'mdi' || 'mdiSvg' || 'md' || 'fa' || 'fa4' || 'faSvg'
+  },
+  lang: {
+    locales: { fr }, // Ajouter la locale française
+    current: 'fr', // Définir le français comme langue par défaut
   },
 });

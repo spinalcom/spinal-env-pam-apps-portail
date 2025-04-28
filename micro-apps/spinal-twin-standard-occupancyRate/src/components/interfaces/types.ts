@@ -72,6 +72,7 @@ export interface ChartData {
   export interface FloorOccupancyRate {
     dynamicId: string;
     occupancy: string;
+      area?: number; 
   }
   
   // Interface pour les salles regroupées par étage

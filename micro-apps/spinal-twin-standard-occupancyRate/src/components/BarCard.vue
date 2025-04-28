@@ -21,6 +21,26 @@
         <v-btn :disabled="false" @click="$emit('nav', -1)" style="font-size: 14px !important; border-radius: 10px; min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;">
           <v-icon style="color: #14202c !important" icon>mdi-chevron-left</v-icon>{{ prev }}
         </v-btn>
+                <v-menu v-model="menu" :close-on-content-click="false" offset-y>
+          <template v-slot:activator="{ on, attrs }">
+            <v-chip
+              v-bind="attrs"
+              v-on="on"
+              color="blue darken-3"
+              outlined
+              style="cursor: pointer;"
+            >
+              {{ selectedDate }}
+            </v-chip>
+          </template>
+            <v-date-picker
+                v-model="selectedDate"
+                :type="datePickerType" 
+                @input="onDateChange"
+                color="blue darken-3"
+                :error-messages="selectedDate ? '' : 'Date invalide'"
+              ></v-date-picker>
+        </v-menu>
         <v-btn :disabled="false" @click="$emit('nav', +1)" style="font-size: 14px !important; border-radius: 10px; min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;">
           {{ next }}<v-icon style="color: #14202c !important" icon>mdi-chevron-right</v-icon>
         </v-btn>
@@ -80,6 +100,14 @@ export default {
     subtitle: {
       type: String,
     },
+    currentDate: {  
+      type: String,
+      required: false,
+    },
+    temporality: {
+      type: String,
+      required: true,
+    },
     prev_next: {type: Boolean, required: false},
     next: {type: String, required: false},
     prev: {type: String, required: false},
@@ -131,8 +159,23 @@ export default {
     Bar,
     TemporalFilter,
   },
-
+  data() {
+    return {
+      menu: false, // Contrôle l'ouverture du menu
+      selectedDate: this.currentDate, // Valeur par défaut
+      selectedWeek: null, 
+      switchValue: false, // Initialisation de switchValue
+      load: true, // Initialisation de load
+    };
+  },
   computed: {
+    datePickerType() {
+    // Détermine le type de sélection en fonction de la temporalité
+    if (this.temporality === 'Journée') return 'date';
+    if (this.temporality === 'Mois' || this.temporality === 'Trimestre') return 'month'; // Permet de choisir les mois
+    if (this.temporality === 'Année'|| this.temporality === 'Décennie') return 'year';
+    return 'date'; // Par défaut
+  },
     barChartData() {
       return {
         labels: this.labels,
@@ -258,6 +301,13 @@ export default {
     handleTimeChange({ startTime, endTime }) {
       this.$emit('time-change', { startTime, endTime });
     },
+    onDateChange(newDate) {
+      // Comportement par défaut pour les autres temporalités
+      this.menu = false;
+      this.selectedDate = newDate;
+      this.$emit('date-change', newDate);
+    
+  },
   },
   
   mounted() {

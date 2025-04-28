@@ -1,6 +1,5 @@
 import moment from 'moment';
 import 'moment/locale/fr';
-import { Context, Category, Group, ChartData } from './components/interfaces/types';
 import { ApiEndpoints, EntryPoint, ChartsConfig } from './components/interfaces/configTypes';
 
 moment.locale('fr');
@@ -11,10 +10,10 @@ export const config = {
   title: "OCCUPATION EN TEMPS RÉEL",
   chart: '%',
   subtitle: '',
-  displayBuildingOccupancyChart: true,
-  displaySecondChart: true,
-  displayThirdChart: true,
-
+  chartDisplayConfig: {
+    globalOccupancyChart: [true, true, true],
+    byFloorOccupancyChart: [true, true, true],
+  },
   temporalities: ['Valeur Courante', 'Journée', 'Semaine', 'Mois', 'Trimestre', 'Année', 'Décennie'],
 
   apiEndpoints: <ApiEndpoints>{
@@ -40,12 +39,12 @@ export const config = {
     thirdChartPositions: 'building/{buildingId}/equipment/get_position_multiple',
   },
 
-  entryPoints: <EntryPoint[]>[
-    {
-      context: 'Gestion des espaces',
-      category: 'Typologie',
-      group: 'Salle de réunion',
-      type: 'geographicRoomGroup',
+  entryPoints: <EntryPoint[]><unknown>[
+    /* {
+      name: 'Gestion des espaces par collaborateur',
+      type: 'geographicRoomGroupContext',
+      category: 'DSI',
+      group: 'Non affectés',
       source: [
         {
           profileName: 'Occupation',
@@ -53,12 +52,25 @@ export const config = {
           type: 'Occupation',
         },
       ],
-    },
+    }, */
     {
-      context: 'Gestion des équipements',
+      name: "Gestion des espaces",
+      type: 'geographicRoomGroupContext',
+      category: 'Typologie',
+      group: 'Salle de réunion',
+      source: [
+        {
+          profileName: 'Occupation',
+          name: "Taux d'occupation",
+          type: 'Occupation',
+        },
+      ],
+    }, 
+    {
+      name: "Gestion des équipements",
+      type: 'BIMObjectGroupContext',
       category: 'Typologie',
       group: 'Positions de travail',
-      type: 'BIMObjectGroup',
       source: [
         {
           profileName: 'hassan',
@@ -83,29 +95,37 @@ export const config = {
   labels: {
     downloadFileName: "Taux d'occupation",
   },
-
-  charts: <ChartsConfig><unknown>{
-    firstChart: {
-      label: "Taux d'occupation du bâtiment",
-      backgroundColor: '#14202C',
-      borderColor: '#14202C',
-      data: [],
-      stack: '',
-      tooltipDate: [],
+  
+    charts: <ChartsConfig><unknown>{
+    globalChart: {
+      firstData: {
+        label: "Taux d'occupation du bâtiment",
+        backgroundColor: '#14202C',
+        borderColor: '#14202C',
+      },
+      secondData: {
+        label: "Taux d'occupation des salles de réunion",
+        backgroundColor: '#1C5791',
+      },
+      thirdData: {
+        label: "Taux d'occupation des positions de travail",
+        backgroundColor: '#418FDD',
+      },
     },
-    secondChart: {
-      label: "Taux d'occupation des salles de réunion",
-      backgroundColor: '#1C5791',
-      data: [],
-      stack: '',
-      tooltipDate: [],
-    },
-    thirdChart: {
-      label: "Taux d'occupation des positions de travail",
-      backgroundColor: '#418FDD',
-      data: [],
-      stack: '',
-      tooltipDate: [],
+    byFloorChart: {
+      firstData: {
+        label: "Taux d'occupation du bâtiment",
+        backgroundColor: '#14202C',
+        borderColor: '#14202C',
+      },
+      secondData: {
+        label: "Taux d'occupation des salles de réunion",
+        backgroundColor: '#1C5791',
+      },
+      thirdData: {
+        label: "Taux d'occupation des positions de travail",
+        backgroundColor: '#418FDD',
+      },
     },
   },
 };

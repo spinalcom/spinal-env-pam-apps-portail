@@ -21,6 +21,26 @@
       <v-btn @click="$emit('nav', -1)" style="font-size: 14px !important; border-radius: 10px; min-width: 36px !important; box-shadow: none;">
         <v-icon style="color: #14202c !important" icon>mdi-chevron-left</v-icon> {{ prev }}
       </v-btn>
+            <v-menu v-model="menu" :close-on-content-click="false" offset-y>
+        <template v-slot:activator="{ on, attrs }">
+          <v-chip
+            v-bind="attrs"
+            v-on="on"
+            color="blue darken-3"
+            outlined
+            style="cursor: pointer;"
+          >
+            {{ selectedDate }}
+          </v-chip>
+        </template>
+        <v-date-picker
+          v-model="selectedDate"
+          :type="datePickerType" 
+          @input="onDateChange"
+          color="blue darken-3"
+          :error-messages="selectedDate ? '' : 'Date invalide'"
+        ></v-date-picker>
+      </v-menu>
       <v-btn @click="$emit('nav', +1)" style="font-size: 14px !important; border-radius: 10px; min-width: 36px !important; box-shadow: none;">
         {{ next }}<v-icon style="color: #14202c !important" icon>mdi-chevron-right</v-icon>
       </v-btn>
@@ -53,6 +73,14 @@ export default {
     },
     subtitle: {
       type: String,
+    },
+    currentDate: {  
+      type: String,
+      required: false,
+    },
+    temporality: {
+      type: String,
+      required: true,
     },
     switchval: {
       type: Boolean,
@@ -100,6 +128,13 @@ export default {
         datasets: tempDatasets,
       };
     },
+    datePickerType() {
+    // Détermine le type de sélection en fonction de la temporalité
+    if (this.temporality === 'Journée') return 'date';
+    if (this.temporality === 'Mois' || this.temporality === 'Trimestre') return 'month'; // Permet de choisir les mois
+    if (this.temporality === 'Année'|| this.temporality === 'Décennie') return 'year';
+    return 'date'; // Par défaut
+  },
     lineChartOptions() {
       return {
         maintainAspectRatio: false,
@@ -199,8 +234,11 @@ export default {
   },
   data() {
   return {
-    switchValue: this.stacked,
-    /* startTime: '00:00',
+     menu: false,
+    selectedDate: this.currentDate, 
+    selectedWeek: null, 
+/*     switchValue: this.stacked,
+ */    /* startTime: '00:00',
     endTime: '23:59', */
   }
 },
@@ -208,6 +246,13 @@ export default {
     handleTimeChange({ startTime, endTime }) {
       this.$emit('time-change', { startTime, endTime });
     },
+    onDateChange(newDate) {
+      // Comportement par défaut pour les autres temporalités
+      this.menu = false;
+      this.selectedDate = newDate;
+      this.$emit('date-change', newDate);
+    
+  },
   },
 };
 </script>
@@ -244,6 +289,7 @@ export default {
   font-family: "Charlevoix Pro";
   background-color: #f9f9f9;
 }
+
 .card-title {
   letter-spacing: 1.1px;
   color: #214353;

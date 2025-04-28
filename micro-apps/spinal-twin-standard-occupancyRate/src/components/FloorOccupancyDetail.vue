@@ -3,20 +3,20 @@
     <v-card class="chart-card">
       <h2>DÉTAIL DE L'OCCUPATION PAR GROUPE EN TEMPS RÉEL</h2>
       <v-card-text>
-       <div class="chart-container">
+        <div class="chart-container">
           <div class="chart-title">Étage</div>
           <div class="charts">
-            <div v-if="displayBuildingOccupancyChart" class="chart-block">
+            <div v-if="byFloorOccupancyChartConfig[0] && floorData.length" class="chart-block">
               <div class="occupancy-summary">
-                <span class="occupancy-percentage ">
+                <span class="occupancy-percentage">
                   <span class="percentage">{{ buildingOccupancyRate }}%</span> DU BÂTIMENT EST OCCUPÉ
                 </span>
                 <span class="total-surface">{{ totalSurface }} m² de surface totale</span>
               </div>
               <canvas ref="chartCanvas"></canvas>
             </div>
-            <div v-if="displaySecondChart" class="chart-block">
-              <div class="occupancy-summary ">
+            <div v-if="byFloorOccupancyChartConfig[1] && secondFloorData.length" class="chart-block">
+              <div class="occupancy-summary">
                 <span class="occupancy-percentage">
                   <span class="percentage">{{ secondBuildingOccupancyRate }}%</span> DES SALLES DE RÉUNIONS SONT OCCUPÉES
                 </span>
@@ -24,7 +24,7 @@
               </div>
               <canvas ref="secondChartCanvas"></canvas>
             </div>
-            <div v-if="displayThirdChart" class="chart-block">
+            <div v-if="byFloorOccupancyChartConfig[2] && thirdChartFloorData.length" class="chart-block">
               <div class="occupancy-summary">
                 <span class="occupancy-percentage">
                   <span class="percentage">{{ thirdChartOccupancyRate }}%</span> DES POSITIONS DE TRAVAIL SONT OCCUPÉES
@@ -47,24 +47,29 @@ import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import {config} from '../config';
 import moment from 'moment';
 import {getSecondChartOccupancyDataByFloor,
-        getContextId,
-        getCategoryId,
-        getGroupId,
-        getRoomIds,
         getTotalSurface2,
-        getThirdChartCategoryId,
-        getThirdChartContextId,
-        getThirdChartGroupId,
-        getThirdChartIds,
         getThirdChartOccupancyDataByFloor,
         getPeriodArray,
         groupSecondChartsByFloor,
         getRoomPositions,
         getFloors,
+        getThirdChartData,
         getFloorOccupancyDynamicIds,
         getFloorOccupancyRatesByPeriod,
         fetchTotalSurface,
-        fetchThirdChartTotalCount } from '../services/index'; 
+        initializeData,
+        initializeThirdChartData,
+        getRoomData,
+        fetchThirdChartTotalCount,
+        getThirdChartPositions,
+        groupThirdChartsByFloor,
+        initializeSources,
+        cachedRoomEntryPoints,
+        cachedDynamicIdsByFloorForThirdChart,
+        cachedThirdChartPositions,
+        cachedEquipmentsByFloor,
+      } from '../services/index'; 
+import { FloorOccupancyMapping } from './interfaces/types';
 /* import { SpinalAPI } from '../services/spinalAPI/spinalAPI';
  */
 
@@ -99,7 +104,7 @@ export default defineComponent({
     const secondChartCanvas = ref<HTMLCanvasElement | null>(null);
     const secondOccupancyChart = ref<Chart | null>(null);
     const floorData = ref<{ floor: string; occupancy: number | null; area?: number }[]>([]);
-    const secondFloorData = ref<{ floor: string; occupancy: number; area?: number }[]>([]);
+    const secondFloorData = ref<{ floor: string; occupancy: number | null; area?: number }[]>([]);
     const totalSurface = ref<number>(0);
     const totalSurface2 = ref<number>(0);
     const allFloors = ref<string[]>([]);
@@ -107,9 +112,30 @@ export default defineComponent({
     const thirdChartOccupancyChart = ref<Chart | null>(null);
     const thirdChartFloorData = ref<{ floor: string; occupancy: number; area?: number }[]>([]);
     const thirdChartTotalCount = ref<number>(0);
-    const displayBuildingOccupancyChart = ref(config.displayBuildingOccupancyChart);
+    const globalOccupancyChartConfig = ref(config.chartDisplayConfig.globalOccupancyChart);
+    const byFloorOccupancyChartConfig = ref(config.chartDisplayConfig.byFloorOccupancyChart);
     const displayThirdChart = ref(config.displayThirdChart);
     const displaySecondChart = ref(config.displaySecondChart);
+    
+      let firstChartCache = {
+      dynamicIds: null as string[] | null,
+      floorNames: null as Record<string, string> | null,
+      floorOccupancyMapping: null as FloorOccupancyMapping | null,
+    };
+    
+    let secondChartCache = {
+      roomIds: null as string[] | null,
+      floorsWithRooms: null as string[] | null,
+      floorsWithoutRooms: null as string[] | null,
+    };
+    
+    let thirdChartCache = {
+      thirdChartIds: null as string[] | null,
+      floorNames: null as Record<string, string> | null,
+      thirdChartPositions: [] as any[],
+      equipmentsByFloor: {} as Record<string, { floorName: string; equipments: string[] }>,
+      dynamicIdsByFloor: {} as Record<string, string[]>,
+    };
 
 
 function mapFloorDynamicId(floorDynamicId, floorNames) {
@@ -150,58 +176,64 @@ const handleTimeChange = async ({ startTime, endTime }) => {
         console.error("Erreur lors de la mise à jour des graphiques :", error);
       }
     };
-    
+   
+// Ajoutez des caches locaux pour stocker les résultats
+let cachedDynamicIds: string[] | null = null;
+let cachedFloorOccupancyMapping: FloorOccupancyMapping | null = null;
+let isFetchingFirstChart = false;
+
 const fetchFloorData = async (period, timestamp, startTime, endTime) => {
+  if (isFetchingFirstChart) {
+    console.warn("fetchFloorData déjà en cours d'exécution.");
+    return;
+  }
+  isFetchingFirstChart = true;
+
   try {
+    console.log("Fetching floor data for temporalité:", period);
 
-    // Récupérer les IDs dynamiques et les noms des étages
-    const { dynamicIds, floorNames, floorOccupancyMapping } = await getFloorOccupancyDynamicIds();
-
-    if (dynamicIds.length === 0) {
-      throw new Error("Aucun Dynamic ID trouvé pour les taux d'occupation.");
+    if (!firstChartCache.dynamicIds || !firstChartCache.floorNames || !firstChartCache.floorOccupancyMapping) {
+      console.log("Fetching dynamic IDs and floor names...");
+      const { dynamicIds, floorNames, floorOccupancyMapping } = await getFloorOccupancyDynamicIds();
+      if (dynamicIds.length === 0) {
+        throw new Error("Aucun Dynamic ID trouvé pour les taux d'occupation.");
+      }
+      firstChartCache.dynamicIds = dynamicIds;
+      firstChartCache.floorNames = floorNames;
+      console.log("Noms des étages récupérés :", floorNames);
+      firstChartCache.floorOccupancyMapping = floorOccupancyMapping;
+    } else {
+      console.log("Using cached dynamic IDs and floor names.");
     }
 
-    const occupancyRates = await getFloorOccupancyRatesByPeriod(period, timestamp, dynamicIds, startTime, endTime);
+    const occupancyRates = await getFloorOccupancyRatesByPeriod(
+      period,
+      timestamp,
+      firstChartCache.dynamicIds,
+      startTime,
+      endTime
+    );
 
-    console.log("Taux d'occupation du bâtimrnt récupérés :", occupancyRates);
+    console.log("Données récupérées pour les taux d'occupation :", occupancyRates);
 
-    // Màj les données pour les étages avec des données d'occupation
     floorData.value = occupancyRates.map(floor => {
-      const realFloorId = floorOccupancyMapping ? floorOccupancyMapping[floor.dynamicId] : null;
+      const realFloorId = firstChartCache.floorOccupancyMapping
+      ? firstChartCache.floorOccupancyMapping[floor.dynamicId]
+      : null;
       return {
-        floor: mapFloorDynamicId(realFloorId, floorNames),
-        occupancy: parseFloat(floor.occupancy),
-        area: floor.area,
+      floor: mapFloorDynamicId(realFloorId, firstChartCache.floorNames),
+      occupancy: parseFloat(floor.occupancy),
+      area: floor.area,
       };
     });
 
-    console.log("Données initiales de floorData.value :", floorData.value);
+    console.log("Données formatées pour floorData :", floorData.value);
 
-    // Pour identifier les étages sans données d'occupation
-    const allFloorsList = await getFloors();/* 
-        await this.$store.dispatch('GET_FLOORS', buildingId);
-    const allFloorsList = this.$store.state.floors[buildingId]; */
-    const floorsWithData = floorData.value.map(floor => floor.floor);
-    const floorsWithoutData = allFloorsList
-      .map(floor => floor.name)
-      .filter(floorName => !floorsWithData.includes(floorName));
-
-    console.log("Étages sans données d'occupation :", floorsWithoutData);
-
-    // j'ajoute les étages sans données d'occupation avec "Aucune donnée"
-    floorsWithoutData.forEach(floorName => {
-      const existingFloor = floorData.value.find(f => f.floor === floorName);
-      if (!existingFloor) {
-        floorData.value.push({ floor: floorName, occupancy: null, area: 0 }); // Now occupancy can be null
-      }
-    });
-
-    console.log("Données finales de floorData.value :", floorData.value);
-
-    // Màj le graphique
     renderChart();
   } catch (error) {
     console.error("Erreur dans fetchFloorData :", error);
+  } finally {
+    isFetchingFirstChart = false;
   }
 };
 const fetchTotalSurfaceWrapper = async () => {
@@ -237,261 +269,227 @@ async function getFloorsWithAndWithoutRooms(roomIds) {
   }
 }
 
+// Ajoutez des caches locaux pour stocker les résultats
+let cachedRoomIds: string[] | null = null;
+let cachedFloorsWithRooms: string[] | null = null;
+let cachedFloorsWithoutRooms: string[] | null;
+let isFetchingSecondChart = false;
+
 const fetchSecondFloorData = async (timestamp, startTime, endTime) => {
+  if (isFetchingSecondChart) {
+    console.warn("fetchSecondFloorData déjà en cours d'exécution.");
+    return;
+  }
+  isFetchingSecondChart = true;
+
   try {
     console.log("Fetching second chart data for temporalité:", props.temporality.name);
-    const entryPoint = config.entryPoints[0];
-    const contextId = await getContextId(entryPoint.context);
-    const categoryId = await getCategoryId(contextId, entryPoint.category);
-    const groupId = await getGroupId(contextId, categoryId, entryPoint.group);
 
-    const roomIds = await getRoomIds(contextId, categoryId, groupId);
-    if (!roomIds?.length) throw new Error("No room IDs found");
+    if (!secondChartCache.roomIds) {
+      console.log("Fetching room IDs...");
+      secondChartCache.roomIds = Object.values(await getRoomData()).flat();
+      if (!secondChartCache.roomIds || secondChartCache.roomIds.length === 0) {
+        throw new Error("Aucun ID de salle trouvé.");
+      }
+    }
 
-    // Pour identifier les étages avec et sans salles de réunion
-    const { floorsWithRooms, floorsWithoutRooms } = await getFloorsWithAndWithoutRooms(roomIds);
+    if (!secondChartCache.floorsWithRooms || !secondChartCache.floorsWithoutRooms) {
+      console.log("Fetching floors with and without rooms...");
+      const { floorsWithRooms, floorsWithoutRooms } = await getFloorsWithAndWithoutRooms(secondChartCache.roomIds);
+      secondChartCache.floorsWithRooms = floorsWithRooms;
+      secondChartCache.floorsWithoutRooms = floorsWithoutRooms;
+    }
 
-    console.log("Étages avec des salles de réunion :", floorsWithRooms);
-    console.log("Étages sans salles de réunion :", floorsWithoutRooms);
-
-    // Récupération les données d'occupation par étage pour les salles de réunion
     const [label, data, averages] = await getSecondChartOccupancyDataByFloor(
       { type: "building" },
       props.temporality.name,
       timestamp,
-      roomIds,
+      secondChartCache.roomIds,
       startTime,
       endTime
     );
 
-    console.log("Données récupérées depuis getSecondChartOccupancyDataByFloor :", { label, data, averages });
-
-    // Màj les données pour les étages avec des salles de réunion
-    secondFloorData.value = averages.map(floor => ({
-      floor: floor.floor,
-      occupancy: floor.average !== null ? floor.average : 0,
-      area: 0,
-    }));
-
-    // On ajoute les étages sans salles de réunion avec "Aucune donnée"
-    floorsWithoutRooms.forEach(floorName => {
-      const existingFloor = secondFloorData.value.find(f => f.floor === floorName);
-      if (!existingFloor) {
-        secondFloorData.value.push({ floor: floorName, occupancy: null, area: 0 });
-      }
+    // Ajouter tous les étages (avec et sans salles)
+    const allFloors = [...secondChartCache.floorsWithRooms, ...secondChartCache.floorsWithoutRooms];
+    secondFloorData.value = allFloors.map(floorName => {
+      const floorDataEntry = averages.find(floor => floor.floor === floorName);
+      return {
+        floor: floorName,
+        occupancy: floorDataEntry ? floorDataEntry.average : null, // Null si pas de données
+        area: 0,
+      };
     });
+    console.log("Données pour le deuxieme graphiquesecondFloorData :", secondFloorData.value );
 
-    // Pour Corriger les étages avec `occupancy: 0` qui devraient être `null`
-    secondFloorData.value = secondFloorData.value.map(floor => {
-      if (floorsWithoutRooms.includes(floor.floor)) {
-        return { ...floor, occupancy: null };
-      }
-      return floor;
-    });
-
-    console.log("Données finales de secondFloorData.value :", secondFloorData.value);
-
-    // POUR Mettre à jour le graphique
     renderSecondChart();
   } catch (error) {
-    console.error("Erreur lors de la récupération des données des salles de réunion :", error);
+    console.error("Erreur dans fetchSecondFloorData :", error);
+  } finally {
+    isFetchingSecondChart = false;
   }
 };
+// Ajoutez des caches locaux pour stocker les résultats
+let cachedThirdChartIds: string[] | null = null;
+let cachedFloorNames: Record<string, string> | null = null;
+  let isFetchingThirdChart = false;
+
 const fetchThirdChartFloorData = async (timestamp, startTime, endTime) => {
+  if (isFetchingThirdChart) {
+    console.warn("fetchThirdChartFloorData déjà en cours d'exécution.");
+    return;
+  }
+  isFetchingThirdChart = true;
+
   try {
-    const tempo = props.temporality.name;
-    console.log(`Fetching third chart data for temporalité: ${tempo}`);
+    console.log("Fetching third chart data...");
 
-    const entryPoint = config.entryPoints[1]; // Accéder directement au deuxième élément
+    if (!thirdChartCache.thirdChartIds) {
+      console.log("Fetching third chart IDs...");
+      thirdChartCache.thirdChartIds = await getThirdChartData();
+      if (!thirdChartCache.thirdChartIds || thirdChartCache.thirdChartIds.length === 0) {
+        throw new Error("Aucun ID d'équipement trouvé.");
+      }
+    }
 
-    // Récupérer les IDs nécessaires en parallèle
-    const [contextId, categoryId, groupId] = await Promise.all([
-      getThirdChartContextId(entryPoint.context),
-      getThirdChartCategoryId(await getThirdChartContextId(entryPoint.context), entryPoint.category),
-      getThirdChartGroupId(await getThirdChartContextId(entryPoint.context), await getThirdChartCategoryId(await getThirdChartContextId(entryPoint.context), entryPoint.category), entryPoint.group)
-    ]);
+    const { floorsWithEquipments, floorsWithoutEquipments, floorMapping } = await getFloorsWithAndWithoutEquipments(thirdChartCache.thirdChartIds);
 
-    // Récupérer les IDs des équipements
-    const thirdChartIds = await getThirdChartIds(contextId, categoryId, groupId);
-    if (!thirdChartIds?.length) throw new Error('No equipment IDs found');
+    console.log("Étages avec équipements :", floorsWithEquipments);
+    console.log("Étages sans équipements :", floorsWithoutEquipments);
 
-    // Récupérer les données d'occupation par étage
     const [label, data, averages] = await getThirdChartOccupancyDataByFloor(
-      { type: 'building' }, tempo, timestamp, thirdChartIds, startTime, endTime
+      { type: "building" },
+      props.temporality.name,
+      timestamp,
+      thirdChartCache.thirdChartIds,
+      startTime,
+      endTime
     );
 
-    // Récupérer le mapping ID → Nom d'étage
-    const { floorNames } = await getFloorOccupancyDynamicIds();
+    console.log("Données d'occupation récupérées :", averages);
 
-    // Mettre à jour les données pour le graphique
-    thirdChartFloorData.value = averages.map(floor => ({
-      floor: floorNames[floor.floor] || ` ${floor.floor}`,
-      occupancy: floor.average,
-      area: 0 
-    }));
+    const allFloors = [...floorsWithEquipments, ...floorsWithoutEquipments];
+    thirdChartFloorData.value = allFloors.map(floorName => {
+      // Trouver l'ID dynamique correspondant au nom de l'étage
+      const dynamicId = Object.keys(floorMapping).find(id => floorMapping[id] === floorName);
 
-    // Ajouter tous les étages, même ceux sans positions de travail
-    allFloors.value = Object.values(floorNames); 
+      // Trouver les données d'occupation pour cet ID dynamique
+      const floorDataEntry = averages.find(floor => floor.floor === dynamicId);
 
-    // Compléter les données d'occupation avec null pour les étages sans équipement
-    thirdChartFloorData.value = allFloors.value.map(floor => {
-      const existingData = thirdChartFloorData.value.find(f => f.floor === floor);
-      return existingData || { floor, occupancy: null, area: 0 }; 
+      return {
+        floor: floorName,
+        occupancy: floorDataEntry ? floorDataEntry.average : null, // Null si pas de données
+        area: 0,
+      };
     });
-    console.log("Données finales de thirdChartFloorData.value (complétées) :", thirdChartFloorData.value);
 
-    // Mettre à jour le graphique
+    console.log("Données pour le troisième graphique :", thirdChartFloorData.value);
     renderThirdChart();
-
   } catch (error) {
-    console.error("Erreur lors de la récupération des données des équipements:", error);
+    console.error("Erreur dans fetchThirdChartFloorData :", error);
+  } finally {
+    isFetchingThirdChart = false;
   }
 };
+async function getFloorsWithAndWithoutEquipments(equipmentIds: string[]): Promise<{ floorsWithEquipments: string[]; floorsWithoutEquipments: string[]; floorMapping: Record<string, string> }> {
+  try {
+    // Étape 1 : Récupérer tous les étages du bâtiment
+    const allFloors = await getFloors();
+    if (!allFloors || allFloors.length === 0) {
+      throw new Error("Aucun étage trouvé dans le bâtiment.");
+    }
 
+    // Créer un mapping entre IDs dynamiques et noms des étages
+    const floorMapping: Record<string, string> = {};
+    allFloors.forEach(floor => {
+      floorMapping[floor.dynamicId] = floor.name;
+    });
+
+    // Étape 2 : Récupérer les positions des équipements
+    const equipmentPositions = await getThirdChartPositions(equipmentIds);
+    if (!equipmentPositions || equipmentPositions.length === 0) {
+      console.warn("Aucune position d'équipement trouvée.");
+    }
+
+    // Étape 3 : Regrouper les équipements par étage
+    const equipmentsByFloor = groupThirdChartsByFloor(equipmentPositions);
+    console.log("Équipements regroupés par étage :", equipmentsByFloor);
+
+    // Étape 4 : Identifier les étages avec et sans équipements
+    const floorsWithEquipments = Object.values(equipmentsByFloor).map(floor => floor.floorName);
+    const floorsWithoutEquipments = allFloors
+      .map(floor => floor.name)
+      .filter(floorName => !floorsWithEquipments.includes(floorName));
+
+    console.log("Étages avec équipements :", floorsWithEquipments);
+    console.log("Étages sans équipements :", floorsWithoutEquipments);
+
+    return { floorsWithEquipments, floorsWithoutEquipments, floorMapping };
+  } catch (error) {
+    console.error("Erreur lors de la récupération des étages avec/sans équipements :", error);
+    return { floorsWithEquipments: [], floorsWithoutEquipments: [], floorMapping: {} };
+  }
+}
 
 const fetchTotalSurface2 = async () => {
-      try {
-        const entryPoint = config.entryPoints[0]; // Accéder directement au premier élément
-        const contextId = await getContextId(entryPoint.context);
-        const categoryId = await getCategoryId(contextId, entryPoint.category);
-        const groupId = await getGroupId(contextId, categoryId, entryPoint.group);
-        const roomIds = await getRoomIds(contextId, categoryId, groupId);
+  try {
+    console.log("Fetching total surface for meeting rooms...");
 
-        if (!roomIds || roomIds.length === 0) {
-          throw new Error('No room IDs found');
-        }
+    // Utiliser getRoomData pour récupérer les roomIds
+    const roomIds = await getRoomData();
+    if (!roomIds || roomIds.length === 0) {
+      throw new Error("Aucun ID de salle trouvé.");
+    }
 
-        const result = await getTotalSurface2(roomIds);
-        if (result !== null) {
-          totalSurface2.value = result;
-        }
-      } catch (error) {
-        console.error("Erreur lors de la récupération de la surface totale des salles de réunion :", error);
-      }
+    // Calculer la surface totale des salles
+    const result = await getTotalSurface2(Object.values(roomIds).flat());
+    if (result !== null) {
+      totalSurface2.value = result;
+    }
+
+    console.log(`Surface totale des salles de réunion : ${totalSurface2.value} m²`);
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la surface totale des salles de réunion :", error);
+  }
 };
 
 
     const buildingOccupancyRate = computed(() => {
       if (floorData.value.length === 0) return 0;
       const totalOccupancy = floorData.value.reduce((sum, floor) => sum + floor.occupancy, 0);
-      return (totalOccupancy / floorData.value.length).toFixed(1);
+      return (totalOccupancy / floorData.value.length).toFixed(7);
     });
 
     const secondBuildingOccupancyRate = computed(() => {
       if (secondFloorData.value.length === 0) return 0;
       const totalOccupancy = secondFloorData.value.reduce((sum, floor) => sum + floor.occupancy, 0);
-      return (totalOccupancy / secondFloorData.value.length).toFixed(1);
+      return (totalOccupancy / secondFloorData.value.length).toFixed(7);
     });
 
     const thirdChartOccupancyRate = computed(() => {
       if (thirdChartFloorData.value.length === 0) return 0;
       const totalOccupancy = thirdChartFloorData.value.reduce((sum, floor) => sum + floor.occupancy, 0);
-      return (totalOccupancy / thirdChartFloorData.value.length).toFixed(1);
+      return (totalOccupancy / thirdChartFloorData.value.length).toFixed(7);
     });
 
 const renderChart = () => {
-        if (!chartCanvas.value || !floorData.value.length || !allFloors.value.length) {
-          console.warn("Les données ou le canvas ne sont pas prêts pour le graphique.");
-          return;
-        }
-      
-        const ctx = chartCanvas.value.getContext('2d');
-        if (ctx) {
-          if (occupancyChart.value) {
-            occupancyChart.value.destroy();
-          }
-      
-          const floorLabels = allFloors.value; // Utiliser tous les étages
-          const occupancyData = floorLabels.map(floor => {
-            const floorDataEntry = floorData.value.find(f => f.floor === floor);
-            return floorDataEntry ? floorDataEntry.occupancy : null; // Null si pas de données
-          });
-      
-          const chartConfig = config.charts.firstChart;
-      
-          const chartConfiguration: ChartConfiguration<'bar'> = {
-            type: 'bar',
-            data: {
-              labels: floorLabels,
-              datasets: [{
-                label: chartConfig.label,
-                data: occupancyData,
-                backgroundColor: occupancyData.map(value => value === null ? '#d3d3d3' : chartConfig.backgroundColor), // Gris pour "Aucune donnée"
-                barPercentage: 0.4,
-                categoryPercentage: 1,
-                borderRadius: 10,
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { display: false },
-                tooltip: {
-                  enabled: true,
-                  callbacks: {
-                    label: function(context) {
-                      const value = context.raw;
-                      return value === null ? 'Aucune donnée' : `${chartConfig.label}: ${value.toFixed(2)}%`;
-                    }
-                  }
-                }
-              },
-              scales: {
-                x: {
-                  beginAtZero: true,
-                  ticks: {
-                    callback: (value, index) => {
-                      const dataValue = occupancyData[index];
-                      return dataValue === null ? 'Aucune donnée' : `${dataValue.toFixed(2)}%`;
-                    },
-                    stepSize: 10,
-                    font: { size: 15 },
-                  }
-                },
-                y: {
-                  display: false,
-                },
-                x1: {
-                  display: true,
-                  position: 'top',
-                  ticks: {
-                    font: { size: 15 }
-                  }
-                },
-              },
-              layout: {
-                padding: {
-                  top: 10,
-                  bottom: 10
-                }
-              }
-            }
-          };
-      
-          occupancyChart.value = new Chart(ctx, chartConfiguration);
-        }
-};
-
-const renderSecondChart = () => {
-  if (!secondChartCanvas.value || !secondFloorData.value.length || !allFloors.value.length) {
-    console.warn("Les données ou le canvas ne sont pas prêts pour le second graphique.");
+  if (!chartCanvas.value || !floorData.value.length || !firstChartCache.floorNames) {
+    console.warn("Les données ou le canvas ne sont pas prêts pour le premier graphique.");
     return;
   }
 
-  const ctx = secondChartCanvas.value.getContext('2d');
+  const ctx = chartCanvas.value.getContext('2d');
   if (ctx) {
-    if (secondOccupancyChart.value) {
-      secondOccupancyChart.value.destroy();
+    if (occupancyChart.value) {
+      occupancyChart.value.destroy();
     }
 
-    const floorLabels = allFloors.value; // Utiliser tous les étages
+    const floorLabels = Object.values(firstChartCache.floorNames); // Utiliser les noms des étages depuis le cache
     const occupancyData = floorLabels.map(floor => {
-      const floorDataEntry = secondFloorData.value.find(f => f.floor === floor);
+      const floorDataEntry = floorData.value.find(f => f.floor === floor);
       return floorDataEntry ? floorDataEntry.occupancy : null; // Null si pas de données
     });
 
-    const chartConfig = config.charts.secondChart;
+    const chartConfig = config.charts.byFloorChart.firstData;
 
     const chartConfiguration: ChartConfiguration<'bar'> = {
       type: 'bar',
@@ -500,7 +498,7 @@ const renderSecondChart = () => {
         datasets: [{
           label: chartConfig.label,
           data: occupancyData,
-          backgroundColor: occupancyData.map(value => value === null ? '#d3d3d3' : chartConfig.backgroundColor), // Gris pour "Aucune donnée"
+          backgroundColor: occupancyData.map(value => value === null ? '#d3d3d3' : chartConfig.backgroundColor),
           barPercentage: 0.4,
           categoryPercentage: 1,
           borderRadius: 10,
@@ -516,7 +514,7 @@ const renderSecondChart = () => {
             callbacks: {
               label: function(context) {
                 const value = context.raw;
-                return value === null ? 'Aucune donnée' : `${chartConfig.label}: ${value.toFixed(2)}%`;
+                return value === null ? 'Aucune donnée' : `${chartConfig.label}: ${value.toFixed(7)}%`;
               }
             }
           }
@@ -527,7 +525,7 @@ const renderSecondChart = () => {
             ticks: {
               callback: (value, index) => {
                 const dataValue = occupancyData[index];
-                return dataValue === null ? 'Aucune donnée' : `${dataValue.toFixed(2)}%`;
+                return dataValue === null ? 'Aucune donnée' : `${dataValue.toFixed(7)}%`;
               },
               stepSize: 10,
               font: { size: 15 },
@@ -537,7 +535,91 @@ const renderSecondChart = () => {
             display: false,
           },
           x1: {
+                  display: true,
+                  position: 'top',
+                  ticks: {
+                    font: { size: 15 }
+                  }
+                },
+        },
+        layout: {
+          padding: {
+            top: 10,
+            bottom: 10
+          }
+        }
+      }
+    };
+
+    occupancyChart.value = new Chart(ctx, chartConfiguration);
+  }
+};
+
+const renderSecondChart = () => {
+  if (!secondChartCanvas.value || !secondFloorData.value.length) {
+    console.warn("Les données ou le canvas ne sont pas prêts pour le second graphique.");
+    return;
+  }
+
+  const ctx = secondChartCanvas.value.getContext('2d');
+  if (ctx) {
+    if (secondOccupancyChart.value) {
+      secondOccupancyChart.value.destroy();
+    }
+
+    // Utiliser tous les étages comme étiquettes
+    const floorLabels = secondFloorData.value.map(floor => floor.floor);
+    const occupancyData = secondFloorData.value.map(floor => {
+      // Vérifier si la valeur d'occupation est null ou undefined et fournir une valeur par défaut
+      return floor.occupancy !== null && floor.occupancy !== undefined ? floor.occupancy : 0;
+    });
+
+    const chartConfig = config.charts.byFloorChart.secondData;
+
+    const chartConfiguration: ChartConfiguration<'bar'> = {
+      type: 'bar',
+      data: {
+        labels: floorLabels,
+        datasets: [{
+          label: chartConfig.label,
+          data: occupancyData,
+          backgroundColor: occupancyData.map(value => value === null ? '#d3d3d3' : chartConfig.backgroundColor),
+          barPercentage: 0.4,
+          categoryPercentage: 1,
+          borderRadius: 10,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            enabled: true,
+            callbacks: {
+              label: function(context) {
+                const value = context.raw;
+                return value === 0 ? 'Aucune donnée' : `${chartConfig.label}: ${value.toFixed(7)}%`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value, index) => {
+                const dataValue = occupancyData[index];
+                return dataValue === 0 ? 'Aucune donnée' : `${dataValue.toFixed(7)}%`;
+              },
+              font: { size: 15 },
+            }
+          },
+          y: {
             display: false,
+          },
+          x1: {
+            display: true,
             position: 'top',
             ticks: {
               font: { size: 15 }
@@ -553,84 +635,89 @@ const renderSecondChart = () => {
       }
     };
 
-secondOccupancyChart.value = new Chart(ctx, chartConfiguration);
-}
+    secondOccupancyChart.value = new Chart(ctx, chartConfiguration);
+  }
 };
 
 const renderThirdChart = () => {
-  if (thirdChartCanvas.value) {
-    const ctx = thirdChartCanvas.value.getContext('2d');
-    if (ctx) {
-      if (thirdChartOccupancyChart.value) {
-        thirdChartOccupancyChart.value.destroy();
-      }
+  if (!thirdChartCanvas.value || !thirdChartFloorData.value.length) {
+    console.warn("Les données ou le canvas ne sont pas prêts pour le troisième graphique.");
+    console.log("Canvas:", thirdChartCanvas.value);
+    console.log("Données du graphique :", thirdChartFloorData.value);
+    return;
+  }
 
-      const floorLabels = allFloors.value;
-      
-      const occupancyData = floorLabels.map(floor => {
-        const floorDataEntry = thirdChartFloorData.value.find(f => f.floor === floor);
-        return floorDataEntry ? floorDataEntry.occupancy : null;
-      });
+  const ctx = thirdChartCanvas.value.getContext('2d');
+  if (ctx) {
+    if (thirdChartOccupancyChart.value) {
+      thirdChartOccupancyChart.value.destroy();
+    }
 
-      const chartConfig = config.charts.thirdChart;
+    const floorLabels = thirdChartFloorData.value.map(floor => floor.floor);
+    const occupancyData = thirdChartFloorData.value.map(floor => floor.occupancy);
 
-      const chartConfiguration: ChartConfiguration<'bar'> = {
-        type: 'bar',
-        data: {
-          labels: floorLabels,
-          datasets: [{
-            label: chartConfig.label,
-            data: occupancyData,
-            backgroundColor: occupancyData.map(value => value === null ? '#d3d3d3' : chartConfig.backgroundColor),
-            barPercentage: 0.4,
-            categoryPercentage: 1,
-            borderRadius: 10,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              enabled: true,
-              callbacks: {
-                label: function(context) {
-                  const value = context.raw;
-                    return value === null ? 'Aucune donnée' : `${config.charts.thirdChart.label}: ${value.toFixed(2)}%`;
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              beginAtZero: true,
-              ticks: {
-                callback: (value, index) => {
-                  const dataValue = occupancyData[index];
-                  return dataValue === null ? 'Aucune donnée' : `${dataValue.toFixed(2)}%`;
-                },
-                stepSize: 10,
-                font: { size: 15 },
-              }
-            },
-            y: {
-              display: false,
-            },
-            x1: {
-              display: false,
-              position: 'top',
-              ticks: {
-                callback: (value, index) => `${floorLabels[index]}`,
-                font: { size: 15 }
+    const chartConfig = config.charts.byFloorChart.thirdData;
+
+    const chartConfiguration: ChartConfiguration<'bar'> = {
+      type: 'bar',
+      data: {
+        labels: floorLabels,
+        datasets: [{
+          label: chartConfig.label,
+          data: occupancyData,
+          backgroundColor: occupancyData.map(value => value === null ? '#d3d3d3' : chartConfig.backgroundColor),
+          barPercentage: 0.4,
+          categoryPercentage: 1,
+          borderRadius: 10,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            enabled: true,
+            callbacks: {
+              label: function(context) {
+                const value = context.raw;
+                return value === null ? 'Aucune donnée' : `${chartConfig.label}: ${value.toFixed(7)}%`;
               }
             }
           }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value, index) => {
+                const dataValue = occupancyData[index];
+                return dataValue === null ? 'Aucune donnée' : `${dataValue.toFixed(7)}%`;
+              },
+              font: { size: 15 },
+            }
+          },
+          y: {
+            display: false,
+          },
+          x1: {
+            display: true,
+            position: 'top',
+            ticks: {
+              font: { size: 15 }
+            }
+          },
+        },
+        layout: {
+          padding: {
+            top: 10,
+            bottom: 10
+          }
         }
-      };
+      }
+    };
 
-      thirdChartOccupancyChart.value = new Chart(ctx, chartConfiguration);
-    }
+    thirdChartOccupancyChart.value = new Chart(ctx, chartConfiguration);
   }
 };
 
@@ -646,7 +733,7 @@ watch(
 
       const timestamp = moment().valueOf();
 
-      // Mettre à jour les données pour le premier graphique
+      // Mettre à jour les données pour les graphiques
       await fetchFloorData(newTemporality.name, timestamp, newStartTime, newEndTime);
       if (chartCanvas.value && floorData.value.length && allFloors.value.length) {
         renderChart();
@@ -654,7 +741,6 @@ watch(
         console.warn("Les données ou le canvas ne sont pas prêts pour le premier graphique.");
       }
 
-      // Mettre à jour les données pour le deuxième graphique
       await fetchSecondFloorData(timestamp, newStartTime, newEndTime);
       if (secondChartCanvas.value && secondFloorData.value.length && allFloors.value.length) {
         renderSecondChart();
@@ -662,61 +748,100 @@ watch(
         console.warn("Les données ou le canvas ne sont pas prêts pour le deuxième graphique.");
       }
 
-      // Mettre à jour les données pour le troisième graphique
       await fetchThirdChartFloorData(timestamp, newStartTime, newEndTime);
       if (thirdChartCanvas.value && thirdChartFloorData.value.length && allFloors.value.length) {
         renderThirdChart();
       } else {
         console.warn("Les données ou le canvas ne sont pas prêts pour le troisième graphique.");
       }
-
-      // Mettre à jour les surfaces totales et le nombre total d'équipements
-      await fetchTotalSurface();
-      await fetchTotalSurface2();
-      const totalCount = await fetchThirdChartTotalCount();
-      thirdChartTotalCount.value = totalCount;    } catch (error) {
+    } catch (error) {
       console.error("Erreur lors de la mise à jour des graphiques :", error);
     }
-  },
-  { immediate: true } 
+  }
 );
 
 onMounted(async () => {
-  const timestamp = moment().valueOf(); 
-  await fetchFloorData(props.temporality.name, timestamp, props.startTime, props.endTime);
-  await fetchSecondFloorData(timestamp, props.startTime, props.endTime);
-  await fetchThirdChartFloorData(timestamp, props.startTime, props.endTime);
-  await fetchTotalSurface();
-  await fetchTotalSurfaceWrapper(); 
-  await fetchTotalSurface2();
   try {
-    const totalCount = await fetchThirdChartTotalCount();
-    thirdChartTotalCount.value = totalCount;
+    console.log("Initialisation des données et des graphiques...");
+
+    // Étape 1 : Initialiser les sources globales
+    await initializeSources();
+    console.log('Room Entry Points:', cachedRoomEntryPoints);
+
+    // === Premier graphique ===
+    try {
+      console.log("Initialisation des données pour le premier graphique...");
+      const timestamp = moment().valueOf();
+      await fetchFloorData(props.temporality.name, timestamp, props.startTime, props.endTime);
+      await fetchTotalSurfaceWrapper(); 
+      if (floorData.value.length && chartCanvas.value) {
+        renderChart();
+      } else {
+        console.warn("Les données ou le canvas ne sont pas prêts pour le premier graphique.");
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'initialisation du premier graphique :", error);
+    }
+
+
+    // === Deuxième graphique ===
+    try {
+      console.log("Initialisation des données pour le deuxième graphique...");
+
+      // 1. Récupérer les IDs des salles
+      const roomIds = await getRoomData();
+      if (!roomIds || Object.keys(roomIds).length === 0) {
+        throw new Error("Les données nécessaires pour les salles de réunion ne sont pas initialisées.");
+      }
+
+      // 2. Initialiser les données pour les salles
+      await initializeData(Object.values(roomIds).flat());
+
+      // 3. Récupérer les données d'occupation
+      const timestamp = moment().valueOf();
+      await fetchSecondFloorData(timestamp, props.startTime, props.endTime);
+      await fetchTotalSurface2(); // Surface totale des salles de réunion
+
+      // 4. Afficher le graphique si les données sont prêtes
+      if (secondFloorData.value.length && secondChartCanvas.value) {
+        renderSecondChart();
+      } else {
+        console.warn("Les données ou le canvas ne sont pas prêts pour le deuxième graphique.");
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'initialisation du deuxième graphique :", error);
+    }
+
+    // === Troisième graphique ===
+    try {
+      console.log("Initialisation des données pour le troisième graphique...");
+      const thirdChartIds = await getThirdChartData();
+      if (!thirdChartIds || thirdChartIds.length === 0) {
+        throw new Error("Aucun ID d'équipement trouvé.");
+      }
+
+      await initializeThirdChartData(thirdChartIds);
+      const timestamp = moment().valueOf();
+      await fetchThirdChartFloorData(timestamp, props.startTime, props.endTime);
+
+      const totalCount = await fetchThirdChartTotalCount(); // Nombre total d'équipements
+      thirdChartTotalCount.value = totalCount;
+
+      if (thirdChartFloorData.value.length && thirdChartCanvas.value) {
+        renderThirdChart();
+      } else {
+        console.warn("Les données ou le canvas ne sont pas prêts pour le troisième graphique.");
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'initialisation du troisième graphique :", error);
+    }
+
+    console.log("Initialisation terminée avec succès.");
   } catch (error) {
-    console.error("Erreur lors de la récupération du nombre total d'équipements :", error);
-  }
-
-  // Vérifiez si les données sont prêtes avant de rendre le premier graphique
-  if (floorData.value.length && allFloors.value.length && chartCanvas.value) {
-    renderChart();
-  } else {
-    console.warn("Les données ou le canvas ne sont pas prêts pour le premier graphique après le chargement initial.");
-  }
-
-  // Vérifiez si les données sont prêtes avant de rendre le second graphique
-  if (secondFloorData.value.length && allFloors.value.length && secondChartCanvas.value) {
-    renderSecondChart();
-  } else {
-    console.warn("Les données ou le canvas ne sont pas prêts pour le second graphique après le chargement initial.");
-  }
-
-  // Vérifiez si les données sont prêtes avant de rendre le troisième graphique
-  if (thirdChartFloorData.value.length && allFloors.value.length && thirdChartCanvas.value) {
-    renderThirdChart();
-  } else {
-    console.warn("Les données ou le canvas ne sont pas prêts pour le troisième graphique après le chargement initial.");
+    console.error("Erreur dans onMounted :", error);
   }
 });
+
 return {
   chartCanvas,
   occupancyChart,
@@ -739,7 +864,8 @@ return {
   fetchSecondFloorData,
   fetchThirdChartFloorData,
   fetchThirdChartTotalCount,
-  displayBuildingOccupancyChart,
+  globalOccupancyChartConfig,
+  byFloorOccupancyChartConfig,
   displaySecondChart,
   displayThirdChart,
   handleTimeChange
