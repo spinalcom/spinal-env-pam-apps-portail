@@ -10,10 +10,6 @@ export const config = {
   title: "OCCUPATION EN TEMPS RÉEL",
   chart: '%',
   subtitle: '',
-  chartDisplayConfig: {
-    globalOccupancyChart: [true, true, true],
-    byFloorOccupancyChart: [true, true, true],
-  },
   temporalities: ['Valeur Courante', 'Journée', 'Semaine', 'Mois', 'Trimestre', 'Année', 'Décennie'],
 
   apiEndpoints: <ApiEndpoints>{
@@ -40,7 +36,7 @@ export const config = {
   },
 
   entryPoints: <EntryPoint[]><unknown>[
-    /* {
+     {
       name: 'Gestion des espaces par collaborateur',
       type: 'geographicRoomGroupContext',
       category: 'DSI',
@@ -52,8 +48,8 @@ export const config = {
           type: 'Occupation',
         },
       ],
-    }, */
-    {
+    }, 
+    /* {
       name: "Gestion des espaces",
       type: 'geographicRoomGroupContext',
       category: 'Typologie',
@@ -65,7 +61,7 @@ export const config = {
           type: 'Occupation',
         },
       ],
-    }, 
+    },  */
     {
       name: "Gestion des équipements",
       type: 'BIMObjectGroupContext',
@@ -96,20 +92,23 @@ export const config = {
     downloadFileName: "Taux d'occupation",
   },
   
-    charts: <ChartsConfig><unknown>{
+  charts: <ChartsConfig><unknown>{
     globalChart: {
       firstData: {
         label: "Taux d'occupation du bâtiment",
         backgroundColor: '#14202C',
         borderColor: '#14202C',
+        display: true,
       },
       secondData: {
         label: "Taux d'occupation des salles de réunion",
         backgroundColor: '#1C5791',
+        display: true,
       },
       thirdData: {
         label: "Taux d'occupation des positions de travail",
         backgroundColor: '#418FDD',
+        display: true,
       },
     },
     byFloorChart: {
@@ -117,14 +116,17 @@ export const config = {
         label: "Taux d'occupation du bâtiment",
         backgroundColor: '#14202C',
         borderColor: '#14202C',
+        display: true,
       },
       secondData: {
         label: "Taux d'occupation des salles de réunion",
         backgroundColor: '#1C5791',
+        display: true,
       },
       thirdData: {
         label: "Taux d'occupation des positions de travail",
         backgroundColor: '#418FDD',
+        display: true,
       },
     },
   },

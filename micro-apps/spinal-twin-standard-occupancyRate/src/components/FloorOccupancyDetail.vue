@@ -6,7 +6,7 @@
         <div class="chart-container">
           <div class="chart-title">Étage</div>
           <div class="charts">
-            <div v-if="byFloorOccupancyChartConfig[0] && floorData.length" class="chart-block">
+             <div v-if="config.charts.globalChart.firstData.display && floorData.length" class="chart-block">
               <div class="occupancy-summary">
                 <span class="occupancy-percentage">
                   <span class="percentage">{{ buildingOccupancyRate }}%</span> DU BÂTIMENT EST OCCUPÉ
@@ -15,8 +15,8 @@
               </div>
               <canvas ref="chartCanvas"></canvas>
             </div>
-            <div v-if="byFloorOccupancyChartConfig[1] && secondFloorData.length" class="chart-block">
-              <div class="occupancy-summary">
+            <div v-if="config.charts.globalChart.secondData.display && secondFloorData.length" class="chart-block">
+               <div class="occupancy-summary">
                 <span class="occupancy-percentage">
                   <span class="percentage">{{ secondBuildingOccupancyRate }}%</span> DES SALLES DE RÉUNIONS SONT OCCUPÉES
                 </span>
@@ -24,7 +24,7 @@
               </div>
               <canvas ref="secondChartCanvas"></canvas>
             </div>
-            <div v-if="byFloorOccupancyChartConfig[2] && thirdChartFloorData.length" class="chart-block">
+             <div v-if="config.charts.globalChart.thirdData.display && thirdChartFloorData.length" class="chart-block">           
               <div class="occupancy-summary">
                 <span class="occupancy-percentage">
                   <span class="percentage">{{ thirdChartOccupancyRate }}%</span> DES POSITIONS DE TRAVAIL SONT OCCUPÉES
@@ -42,8 +42,6 @@
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, watch } from 'vue';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
-/* import { HTTP } from '../services/http-constants'; 
- */
 import {config} from '../config';
 import moment from 'moment';
 import {getSecondChartOccupancyDataByFloor,
@@ -65,9 +63,6 @@ import {getSecondChartOccupancyDataByFloor,
         groupThirdChartsByFloor,
         initializeSources,
         cachedRoomEntryPoints,
-        cachedDynamicIdsByFloorForThirdChart,
-        cachedThirdChartPositions,
-        cachedEquipmentsByFloor,
       } from '../services/index'; 
 import { FloorOccupancyMapping } from './interfaces/types';
 /* import { SpinalAPI } from '../services/spinalAPI/spinalAPI';
@@ -112,10 +107,7 @@ export default defineComponent({
     const thirdChartOccupancyChart = ref<Chart | null>(null);
     const thirdChartFloorData = ref<{ floor: string; occupancy: number; area?: number }[]>([]);
     const thirdChartTotalCount = ref<number>(0);
-    const globalOccupancyChartConfig = ref(config.chartDisplayConfig.globalOccupancyChart);
-    const byFloorOccupancyChartConfig = ref(config.chartDisplayConfig.byFloorOccupancyChart);
-    const displayThirdChart = ref(config.displayThirdChart);
-    const displaySecondChart = ref(config.displaySecondChart);
+
     
       let firstChartCache = {
       dynamicIds: null as string[] | null,
@@ -260,12 +252,18 @@ async function getFloorsWithAndWithoutRooms(roomIds) {
       .map(floor => floor.name)
       .filter(floorName => !floorsWithRooms.includes(floorName));
 
-    console.log("Étages sans salles de réunion :", floorsWithoutRooms);
+    // Créer un mapping entre `dynamicId` et `floorName`
+    const floorMapping = {};
+    allFloors.forEach(floor => {
+      floorMapping[floor.dynamicId] = floor.name;
+    });
 
-    return { floorsWithRooms, floorsWithoutRooms };
+    console.log("Mapping entre dynamicId et floorName :", floorMapping);
+
+    return { floorsWithRooms, floorsWithoutRooms, floorMapping };
   } catch (error) {
     console.error("Erreur lors de la récupération des étages avec/sans salles de réunion :", error);
-    return { floorsWithRooms: [], floorsWithoutRooms: [] };
+    return { floorsWithRooms: [], floorsWithoutRooms: [], floorMapping: {} };
   }
 }
 
@@ -284,6 +282,10 @@ const fetchSecondFloorData = async (timestamp, startTime, endTime) => {
 
   try {
     console.log("Fetching second chart data for temporalité:", props.temporality.name);
+    // Réinitialiser les caches
+    secondChartCache.roomIds = null;
+    secondChartCache.floorsWithRooms = null;
+    secondChartCache.floorsWithoutRooms = null;
 
     if (!secondChartCache.roomIds) {
       console.log("Fetching room IDs...");
@@ -295,9 +297,10 @@ const fetchSecondFloorData = async (timestamp, startTime, endTime) => {
 
     if (!secondChartCache.floorsWithRooms || !secondChartCache.floorsWithoutRooms) {
       console.log("Fetching floors with and without rooms...");
-      const { floorsWithRooms, floorsWithoutRooms } = await getFloorsWithAndWithoutRooms(secondChartCache.roomIds);
+      const { floorsWithRooms, floorsWithoutRooms, floorMapping } = await getFloorsWithAndWithoutRooms(secondChartCache.roomIds);
       secondChartCache.floorsWithRooms = floorsWithRooms;
       secondChartCache.floorsWithoutRooms = floorsWithoutRooms;
+      secondChartCache.floorMapping = floorMapping; // Stocker le mapping dans le cache
     }
 
     const [label, data, averages] = await getSecondChartOccupancyDataByFloor(
@@ -312,6 +315,7 @@ const fetchSecondFloorData = async (timestamp, startTime, endTime) => {
     // Ajouter tous les étages (avec et sans salles)
     const allFloors = [...secondChartCache.floorsWithRooms, ...secondChartCache.floorsWithoutRooms];
     secondFloorData.value = allFloors.map(floorName => {
+      const dynamicId = Object.keys(secondChartCache.floorMapping).find(id => secondChartCache.floorMapping[id] === floorName);
       const floorDataEntry = averages.find(floor => floor.floor === floorName);
       return {
         floor: floorName,
@@ -342,7 +346,10 @@ const fetchThirdChartFloorData = async (timestamp, startTime, endTime) => {
 
   try {
     console.log("Fetching third chart data...");
-
+        thirdChartCache.thirdChartIds = null;
+    thirdChartCache.equipmentsByFloor = {};
+    thirdChartCache.dynamicIdsByFloor = {};
+    // Étape 1 : Récupérer les IDs des équipements
     if (!thirdChartCache.thirdChartIds) {
       console.log("Fetching third chart IDs...");
       thirdChartCache.thirdChartIds = await getThirdChartData();
@@ -351,11 +358,17 @@ const fetchThirdChartFloorData = async (timestamp, startTime, endTime) => {
       }
     }
 
-    const { floorsWithEquipments, floorsWithoutEquipments, floorMapping } = await getFloorsWithAndWithoutEquipments(thirdChartCache.thirdChartIds);
+    // Étape 2 : Récupérer les étages avec et sans équipements
+    if (!thirdChartCache.equipmentsByFloor || !Object.keys(thirdChartCache.equipmentsByFloor).length) {
+      console.log("Fetching floors with and without equipments...");
+      const { floorsWithEquipments, floorsWithoutEquipments, floorMapping } = await getFloorsWithAndWithoutEquipments(thirdChartCache.thirdChartIds);
+      thirdChartCache.equipmentsByFloor = groupThirdChartsByFloor(await getThirdChartPositions(thirdChartCache.thirdChartIds));
+      thirdChartCache.floorNames = floorMapping;
+      thirdChartCache.floorsWithEquipments = floorsWithEquipments;
+      thirdChartCache.floorsWithoutEquipments = floorsWithoutEquipments;
+    }
 
-    console.log("Étages avec équipements :", floorsWithEquipments);
-    console.log("Étages sans équipements :", floorsWithoutEquipments);
-
+    // Étape 3 : Récupérer les données d'occupation
     const [label, data, averages] = await getThirdChartOccupancyDataByFloor(
       { type: "building" },
       props.temporality.name,
@@ -367,10 +380,11 @@ const fetchThirdChartFloorData = async (timestamp, startTime, endTime) => {
 
     console.log("Données d'occupation récupérées :", averages);
 
-    const allFloors = [...floorsWithEquipments, ...floorsWithoutEquipments];
+    // Étape 4 : Ajouter tous les étages (avec et sans équipements)
+    const allFloors = [...thirdChartCache.floorsWithEquipments, ...thirdChartCache.floorsWithoutEquipments];
     thirdChartFloorData.value = allFloors.map(floorName => {
       // Trouver l'ID dynamique correspondant au nom de l'étage
-      const dynamicId = Object.keys(floorMapping).find(id => floorMapping[id] === floorName);
+      const dynamicId = Object.keys(thirdChartCache.floorNames).find(id => thirdChartCache.floorNames[id] === floorName);
 
       // Trouver les données d'occupation pour cet ID dynamique
       const floorDataEntry = averages.find(floor => floor.floor === dynamicId);
@@ -456,19 +470,19 @@ const fetchTotalSurface2 = async () => {
     const buildingOccupancyRate = computed(() => {
       if (floorData.value.length === 0) return 0;
       const totalOccupancy = floorData.value.reduce((sum, floor) => sum + floor.occupancy, 0);
-      return (totalOccupancy / floorData.value.length).toFixed(7);
+      return (totalOccupancy / floorData.value.length).toFixed(3);
     });
 
     const secondBuildingOccupancyRate = computed(() => {
       if (secondFloorData.value.length === 0) return 0;
       const totalOccupancy = secondFloorData.value.reduce((sum, floor) => sum + floor.occupancy, 0);
-      return (totalOccupancy / secondFloorData.value.length).toFixed(7);
+      return (totalOccupancy / secondFloorData.value.length).toFixed(3);
     });
 
     const thirdChartOccupancyRate = computed(() => {
       if (thirdChartFloorData.value.length === 0) return 0;
       const totalOccupancy = thirdChartFloorData.value.reduce((sum, floor) => sum + floor.occupancy, 0);
-      return (totalOccupancy / thirdChartFloorData.value.length).toFixed(7);
+      return (totalOccupancy / thirdChartFloorData.value.length).toFixed(3);
     });
 
 const renderChart = () => {
@@ -514,7 +528,7 @@ const renderChart = () => {
             callbacks: {
               label: function(context) {
                 const value = context.raw;
-                return value === null ? 'Aucune donnée' : `${chartConfig.label}: ${value.toFixed(7)}%`;
+                return value === null ? 'Aucune donnée' : `${chartConfig.label}: ${value.toFixed(3)}%`;
               }
             }
           }
@@ -525,7 +539,7 @@ const renderChart = () => {
             ticks: {
               callback: (value, index) => {
                 const dataValue = occupancyData[index];
-                return dataValue === null ? 'Aucune donnée' : `${dataValue.toFixed(7)}%`;
+                return dataValue === null ? 'Aucune donnée' : `${dataValue.toFixed(3)}%`;
               },
               stepSize: 10,
               font: { size: 15 },
@@ -567,12 +581,8 @@ const renderSecondChart = () => {
       secondOccupancyChart.value.destroy();
     }
 
-    // Utiliser tous les étages comme étiquettes
     const floorLabels = secondFloorData.value.map(floor => floor.floor);
-    const occupancyData = secondFloorData.value.map(floor => {
-      // Vérifier si la valeur d'occupation est null ou undefined et fournir une valeur par défaut
-      return floor.occupancy !== null && floor.occupancy !== undefined ? floor.occupancy : 0;
-    });
+    const occupancyData = secondFloorData.value.map(floor => floor.occupancy);
 
     const chartConfig = config.charts.byFloorChart.secondData;
 
@@ -599,7 +609,7 @@ const renderSecondChart = () => {
             callbacks: {
               label: function(context) {
                 const value = context.raw;
-                return value === 0 ? 'Aucune donnée' : `${chartConfig.label}: ${value.toFixed(7)}%`;
+                return value === null ? 'Aucune donnée' : `${chartConfig.label}: ${value.toFixed(3)}%`;
               }
             }
           }
@@ -610,7 +620,7 @@ const renderSecondChart = () => {
             ticks: {
               callback: (value, index) => {
                 const dataValue = occupancyData[index];
-                return dataValue === 0 ? 'Aucune donnée' : `${dataValue.toFixed(7)}%`;
+                return dataValue === null ? 'Aucune donnée' : `${dataValue.toFixed(3)}%`;
               },
               font: { size: 15 },
             }
@@ -619,7 +629,7 @@ const renderSecondChart = () => {
             display: false,
           },
           x1: {
-            display: true,
+            display: false,
             position: 'top',
             ticks: {
               font: { size: 15 }
@@ -681,7 +691,7 @@ const renderThirdChart = () => {
             callbacks: {
               label: function(context) {
                 const value = context.raw;
-                return value === null ? 'Aucune donnée' : `${chartConfig.label}: ${value.toFixed(7)}%`;
+                return value === null ? 'Aucune donnée' : `${chartConfig.label}: ${value.toFixed(3)}%`;
               }
             }
           }
@@ -692,7 +702,7 @@ const renderThirdChart = () => {
             ticks: {
               callback: (value, index) => {
                 const dataValue = occupancyData[index];
-                return dataValue === null ? 'Aucune donnée' : `${dataValue.toFixed(7)}%`;
+                return dataValue === null ? 'Aucune donnée' : `${dataValue.toFixed(3)}%`;
               },
               font: { size: 15 },
             }
@@ -701,7 +711,7 @@ const renderThirdChart = () => {
             display: false,
           },
           x1: {
-            display: true,
+            display: false,
             position: 'top',
             ticks: {
               font: { size: 15 }
@@ -864,11 +874,8 @@ return {
   fetchSecondFloorData,
   fetchThirdChartFloorData,
   fetchThirdChartTotalCount,
-  globalOccupancyChartConfig,
-  byFloorOccupancyChartConfig,
-  displaySecondChart,
-  displayThirdChart,
-  handleTimeChange
+  handleTimeChange,
+  config // Add config to the return object
 };
   }
 });

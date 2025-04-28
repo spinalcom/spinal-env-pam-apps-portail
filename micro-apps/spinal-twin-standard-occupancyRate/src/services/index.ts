@@ -88,7 +88,15 @@ export async function getFloors(): Promise<Floor[]> {
 }
 
 // On Récupère la surface d'un espace (bâtiment ou étage).
+let cachedAreas: Record<string, number> = {};
+
 export async function getArea(space: Space): Promise<number> {
+  const cacheKey = `${space.type}-${space.dynamicId || 'building'}`;
+  if (cachedAreas[cacheKey]) {
+    console.log(`Surface for ${cacheKey} retrieved from cache.`);
+    return cachedAreas[cacheKey];
+  }
+
   try {
     console.log('Get Area');
     const buildingId = localStorage.getItem("idBuilding");
@@ -102,18 +110,16 @@ export async function getArea(space: Space): Promise<number> {
     if (space.type === 'building') {
       console.log('of building');
       const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/building/read');
-      console.log("Generated URL for getArea (building):", url);
       const result = await spinalApi.get(url) as { data: { area: number } };
-      console.log("Response for building area:", result.data);
-      return +result.data.area;
+      cachedAreas[cacheKey] = +result.data.area; // Mettre en cache
+      return cachedAreas[cacheKey];
     } else if (space.type === 'floor' && space.dynamicId) {
       console.log('of floor');
       const url = spinalApi.createUrlWithPlatformId(buildingId, `api/v1/floor/${space.dynamicId}/attributes`);
-      console.log("Generated URL for getArea (floor):", url);
       const result = await spinalApi.get(url) as { data: { attributs: { label: string; value: number }[] } };
-      console.log("Response for floor area:", result.data);
       const area = result.data.attributs.find(attr => attr.label === 'area')?.value || 0;
-      return +area;
+      cachedAreas[cacheKey] = +area; // Mettre en cache
+      return cachedAreas[cacheKey];
     }
 
     console.error("Invalid space type or missing dynamicId for floor");
@@ -273,9 +279,17 @@ export async function initializeSources(): Promise<void> {
 }
 
 
-
+let cachedContextIds: Record<string, string | null> = {};
+let cachedCategoryIds: Record<string, string | null> = {};
+let cachedGroupIds: Record<string, string | null> = {};
+let cachedRoomIdsByGroup: Record<string, string[]> = {};
 // On Récupère l'ID du contexte.
 export async function getContextId(contextName: string): Promise<string | null> {
+  if (cachedContextIds[contextName]) {
+    console.log(`Context ID for ${contextName} retrieved from cache.`);
+    return cachedContextIds[contextName];
+  }
+
   try {
     console.log('getContextId called');
     const buildingId = localStorage.getItem("idBuilding");
@@ -286,12 +300,15 @@ export async function getContextId(contextName: string): Promise<string | null> 
 
     const spinalApi = SpinalAPI.getInstance();
     const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/groupContext/list');
-    console.log(`Fetching context ID for context: ${contextName} in building: ${buildingId}`);
-    const response = await spinalApi.get(url) as unknown as { data: Context[] };
-    console.log('Response data:', response.data);
+    const response = await spinalApi.get(url) as { data: Context[] };
 
     const context = response.data.find(item => item.name === contextName);
-    return context ? context.dynamicId : null;
+    const contextId = context ? context.dynamicId : null;
+
+    // Mettre en cache le résultat
+    cachedContextIds[contextName] = contextId;
+
+    return contextId;
   } catch (error) {
     console.error('Erreur lors de la récupération de l\'ID du contexte :', error);
     return null;
@@ -300,6 +317,12 @@ export async function getContextId(contextName: string): Promise<string | null> 
 
 // On Récupère l'ID de la catégorie pour un contexte donné.
 export async function getCategoryId(contextId: string, categoryName: string): Promise<string | null> {
+  const cacheKey = `${contextId}-${categoryName}`;
+  if (cachedCategoryIds[cacheKey]) {
+    console.log(`Category ID for ${categoryName} in context ${contextId} retrieved from cache.`);
+    return cachedCategoryIds[cacheKey];
+  }
+
   try {
     console.log('getCategoryId called');
     const buildingId = localStorage.getItem("idBuilding");
@@ -310,12 +333,15 @@ export async function getCategoryId(contextId: string, categoryName: string): Pr
 
     const spinalApi = SpinalAPI.getInstance();
     const url = spinalApi.createUrlWithPlatformId(buildingId, `api/v1/groupeContext/${contextId}/category_list`);
-    console.log(`Fetching category ID for category: ${categoryName} in context: ${contextId}`);
     const response = await spinalApi.get(url) as { data: Category[] };
-    console.log('Response data:', response.data);
 
-    const category = (response.data as Category[]).find(item => item.name === categoryName);
-    return category ? category.dynamicId : null;
+    const category = response.data.find(item => item.name === categoryName);
+    const categoryId = category ? category.dynamicId : null;
+
+    // Mettre en cache le résultat
+    cachedCategoryIds[cacheKey] = categoryId;
+
+    return categoryId;
   } catch (error) {
     console.error('Erreur lors de la récupération de l\'ID de la catégorie :', error);
     return null;
@@ -324,6 +350,12 @@ export async function getCategoryId(contextId: string, categoryName: string): Pr
 
 // On Récupère l'ID du groupe pour un contexte et une catégorie donnés.
 export async function getGroupId(contextId: string, categoryId: string, groupName: string): Promise<string | null> {
+  const cacheKey = `${contextId}-${categoryId}-${groupName}`;
+  if (cachedGroupIds[cacheKey]) {
+    console.log(`Group ID for ${groupName} in category ${categoryId} retrieved from cache.`);
+    return cachedGroupIds[cacheKey];
+  }
+
   try {
     console.log('getGroupId called');
     const buildingId = localStorage.getItem("idBuilding");
@@ -334,12 +366,15 @@ export async function getGroupId(contextId: string, categoryId: string, groupNam
 
     const spinalApi = SpinalAPI.getInstance();
     const url = spinalApi.createUrlWithPlatformId(buildingId, `api/v1/groupeContext/${contextId}/category/${categoryId}/group_list`);
-    console.log(`Fetching group ID for group: ${groupName} in category: ${categoryId}`);
     const response = await spinalApi.get(url) as { data: Group[] };
-    console.log('Response data:', response.data);
 
     const group = response.data.find(item => item.name === groupName);
-    return group ? group.dynamicId : null;
+    const groupId = group ? group.dynamicId : null;
+
+    // Mettre en cache le résultat
+    cachedGroupIds[cacheKey] = groupId;
+
+    return groupId;
   } catch (error) {
     console.error('Erreur lors de la récupération de l\'ID du groupe :', error);
     return null;
@@ -348,6 +383,12 @@ export async function getGroupId(contextId: string, categoryId: string, groupNam
 
 // On Récupère les IDs des salles pour un contexte, une catégorie et un groupe donnés.
 export async function getRoomIds(contextId: string, categoryId: string, groupId: string): Promise<string[]> {
+  const cacheKey = `${contextId}-${categoryId}-${groupId}`;
+  if (cachedRoomIdsByGroup[cacheKey]) {
+    console.log(`Room IDs for group ${groupId} retrieved from cache.`);
+    return cachedRoomIdsByGroup[cacheKey];
+  }
+
   try {
     console.log('getRoomIds called');
     const buildingId = localStorage.getItem("idBuilding");
@@ -358,11 +399,14 @@ export async function getRoomIds(contextId: string, categoryId: string, groupId:
 
     const spinalApi = SpinalAPI.getInstance();
     const url = spinalApi.createUrlWithPlatformId(buildingId, `api/v1/roomsGroup/${contextId}/category/${categoryId}/group/${groupId}/roomList`);
-    console.log(`Fetching room IDs for group: ${groupId}`);
-    const response = await (spinalApi.get as <T>(url: string) => Promise<{ data: T }>)(url) as { data: Room[] };
-    console.log('Response data:', response.data);
+    const response = await spinalApi.get(url) as { data: Room[] };
 
-    return response.data.map(room => room.dynamicId);
+    const roomIds = response.data.map(room => room.dynamicId);
+
+    // Mettre en cache le résultat
+    cachedRoomIdsByGroup[cacheKey] = roomIds;
+
+    return roomIds;
   } catch (error) {
     console.error('Erreur lors de la récupération des IDs des salles :', error);
     return [];
@@ -532,6 +576,9 @@ function processRoomEndpointByFloor(
     dynamicIdsByFloor[floorId].push(endpoint.dynamicId);
   }
 }
+
+
+
 // On Récupère les IDs dynamiques d'occupation pour les étages
 export async function getFloorOccupancyDynamicIds(): Promise<FloorOccupancyDynamicIdsResponse> {
   try {
@@ -661,7 +708,7 @@ export async function getFloorOccupancyRatesByPeriod(
       console.log('hadi dar lwarata ', averageValue);
       return {
         dynamicId,
-        occupancy: averageValue.toFixed(7),
+        occupancy: averageValue.toFixed(3),
       };
     });
 
@@ -718,16 +765,19 @@ async function processInBatches<T>(
 }
 
 // Fonction pour récupérer les IDs dynamiques d'occupation pour les salles données
+let cachedSecondChartDynamicIds: Record<string, string[]> = {};
+
 export async function fetchSecondChartOccupationDynamicIds(
   roomIds: string[]
 ): Promise<string[]> {
+  const cacheKey = roomIds.sort().join(','); // Utiliser une clé unique basée sur les roomIds
+  if (cachedSecondChartDynamicIds[cacheKey]) {
+    console.log(`Dynamic IDs for rooms retrieved from cache.`);
+    return cachedSecondChartDynamicIds[cacheKey];
+  }
+
   try {
     console.log('fetchSecondChartOccupationDynamicIds called with roomIds:', roomIds);
-
-    if (!cachedRoomEntryPoints || cachedRoomEntryPoints.length === 0) {
-      console.warn("Aucun roomEntryPoint valide trouvé. Assurez-vous d'avoir appelé initializeSources.");
-      return [];
-    }
 
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
@@ -736,39 +786,23 @@ export async function fetchSecondChartOccupationDynamicIds(
     }
 
     const spinalApi = SpinalAPI.getInstance();
-    const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/node/control_endpoint_list_multiple');
-    console.log('Generated URL for control endpoint list:', url);
-
     const batchSize = 50;
     const chunkedRoomIds = lodash.chunk(roomIds, batchSize);
-    console.log('Chunked room IDs into batches of size:', batchSize, chunkedRoomIds);
 
     const allDynamicIds: string[] = [];
-
-    // Parcourir chaque entryPoint dans cachedRoomEntryPoints
-    for (const entryPoint of cachedRoomEntryPoints) {
-      console.log(`Traitement de l'entryPoint : ${entryPoint.name}`);
-
-      // Envoyer les requêtes en parallèle pour chaque lot
-      const promises = chunkedRoomIds.map(async (batch, index) => {
-        console.log(`Processing batch ${index + 1}/${chunkedRoomIds.length} for entryPoint: ${entryPoint.name}`);
-        const response = await (spinalApi.post as <T>(url: string, body: any) => Promise<{ data: T }>)(url, batch);
-        console.log(`Batch ${index + 1} response for entryPoint ${entryPoint.name}:`, response.data);
-        return response.data as CombinedResult[];
+    for (const entryPoint of cachedRoomEntryPoints || []) {
+      const promises = chunkedRoomIds.map(async (batch) => {
+        const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/node/control_endpoint_list_multiple');
+        const response = await spinalApi.post(url, batch);
+        return response.data;
       });
 
       const combinedResults = (await Promise.all(promises)).flat();
-      console.log(`Combined results for entryPoint ${entryPoint.name}:`, combinedResults);
-
-      // Extraire les IDs dynamiques pour cet entryPoint
       const dynamicIds = extractDynamicIds(combinedResults, entryPoint, processRoomEndpoint);
-      console.log(`Dynamic IDs for entryPoint ${entryPoint.name}:`, dynamicIds);
-
-      // Ajouter les IDs dynamiques au tableau global
       allDynamicIds.push(...dynamicIds);
     }
 
-    console.log('All extracted dynamic IDs:', allDynamicIds);
+    cachedSecondChartDynamicIds[cacheKey] = allDynamicIds; // Mettre en cache
     return allDynamicIds;
   } catch (error) {
     console.error('Error in fetchSecondChartOccupationDynamicIds:', error);
@@ -1014,7 +1048,7 @@ export async function getTotalSurface2(roomIds: string[]): Promise<number | null
       }
     });
 
-    console.log(`Total surface of meeting rooms: ${totalSurface2.toFixed(7)} m²`);
+    console.log(`Total surface of meeting rooms: ${totalSurface2.toFixed(3)} m²`);
     return totalSurface2;
   } catch (error) {
     console.error('Error in getTotalSurface2:', error);
@@ -1254,10 +1288,18 @@ export async function getThirdChartPositions(thirdChartIds: string[]): Promise<a
 }
 
 // On Récupère les IDs dynamiques d'occupation pour les équipements donnés.
+let cachedThirdChartDynamicIds: Record<string, string[]> = {};
+
 export async function fetchThirdChartOccupationDynamicIds(
   thirdChartIds: string[],
   entryPoint: EntryPoint
 ): Promise<string[]> {
+  const cacheKey = thirdChartIds.sort().join(','); // Utiliser une clé unique basée sur les thirdChartIds
+  if (cachedThirdChartDynamicIds[cacheKey]) {
+    console.log(`Dynamic IDs for equipment retrieved from cache.`);
+    return cachedThirdChartDynamicIds[cacheKey];
+  }
+
   try {
     console.log('fetchThirdChartOccupationDynamicIds called with thirdChartIds:', thirdChartIds);
 
@@ -1271,17 +1313,11 @@ export async function fetchThirdChartOccupationDynamicIds(
     const combinedResults = await processInBatches(thirdChartIds, 50, async (batch) => {
       const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/node/control_endpoint_list_multiple');
       const response = await spinalApi.post(url, batch);
-      console.log('Batch response:', response.data);
-
       return response.data;
     });
 
-    console.log('Combined results:', combinedResults);
-
-    // Utiliser l'entryPoint passé en paramètre pour extraire les IDs dynamiques
     const dynamicIds = extractDynamicIds(combinedResults, entryPoint, processEquipmentEndpoint);
-    console.log('Extracted dynamic IDs:', dynamicIds);
-
+    cachedThirdChartDynamicIds[cacheKey] = dynamicIds; // Mettre en cache
     return dynamicIds;
   } catch (error) {
     console.error('Error in fetchThirdChartOccupationDynamicIds:', error);
@@ -1490,7 +1526,7 @@ export async function getThirdChartOccupancyDataByFloor(
     ) {
       throw new Error("Les données nécessaires pour le troisième graphique ne sont pas initialisées. Appelez initializeThirdChartData d'abord.");
     }
-
+        console.log('Temporalité sélectionnée :', tempo);
     const aggregatedFloorData: AggregatedFloorData = {};
     for (const floor of Object.keys(cachedEquipmentsByFloor)) {
       const dynamicIds = cachedDynamicIdsByFloorForThirdChart[floor];
@@ -1509,8 +1545,13 @@ export async function getThirdChartOccupancyDataByFloor(
           batchedPromises.push(spinalApi.post(url, batch));
         }
 
-        const results = await Promise.all(batchedPromises);
-        let timeSeriesData = results.flatMap(result => result?.data || []);
+        // Utiliser Promise.allSettled pour gérer les erreurs
+        const results = await Promise.allSettled(batchedPromises);
+        const successfulResults = results
+          .filter(result => result.status === 'fulfilled')
+          .map(result => (result as PromiseFulfilledResult<any>).value);
+
+        let timeSeriesData = successfulResults.flatMap(result => result?.data || []);
 
         // Utiliser la fonction de filtre
         timeSeriesData.forEach((roomData) => {
@@ -1543,13 +1584,16 @@ export async function getThirdChartOccupancyDataByFloor(
       ...Object.keys(cachedEquipmentsByFloor).map(floor => {
         const values = Object.values(aggregatedFloorData[floor] || {});
         const sum = values.reduce((acc, val) => acc + val, 0);
-        const average = values.length > 0 ? parseFloat((sum / values.length).toFixed(7)) : 0;
+        const average = values.length > 0 ? parseFloat((sum / values.length).toFixed(3)) : 0;
         return {
           floor,
           average
         };
       })
     );
+
+    console.log('Final aggregated data: ', aggregatedFloorData);
+    console.log('Averages by floor:', averages, 'Temporalité:', tempo);
 
     return [label, floorProcessedTimeSeries, averages];
   } catch (e) {
@@ -1624,7 +1668,14 @@ export async function fetchTotalSurface(): Promise<number | null> {
   }
 }
 // Fonction pour récupérer les données de graphe pour un bâtiment
+let cachedGraphData: string | null = null;
+
 export async function getGraphData(): Promise<string | null> {
+  if (cachedGraphData) {
+    console.log('Graph data retrieved from cache.');
+    return cachedGraphData;
+  }
+
   try {
     console.log('getGraphData called');
     const buildingId = localStorage.getItem("idBuilding");
@@ -1634,44 +1685,19 @@ export async function getGraphData(): Promise<string | null> {
     }
 
     const spinalApi = SpinalAPI.getInstance();
-
-    // Récupération des données du bâtiment
     const buildingUrl = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/building/read');
-    console.log("Generated URL for building data:", buildingUrl);
     const buildingResponse = await spinalApi.get<{ dynamicId: string }>(buildingUrl);
-    console.log('Building data:', buildingResponse.data);
 
-    // Récupération des points de contrôle
     const controlEndpointUrl = spinalApi.createUrlWithPlatformId(
       buildingId,
       `api/v1/node/${buildingResponse.data.dynamicId}/control_endpoint_list`
     );
-    console.log("Generated URL for control endpoints:", controlEndpointUrl);
     const controlEndpointResponse = await spinalApi.get<ControlProfile[]>(controlEndpointUrl);
-    console.log('Control endpoint response data:', controlEndpointResponse.data);
-
-    // Vérifier si les buildingEntryPoints sont initialisés
-    if (!cachedBuildingEntryPoints || cachedBuildingEntryPoints.length === 0) {
-      console.error('Aucun buildingEntryPoint valide trouvé. Assurez-vous d\'avoir appelé initializeSources.');
-      return null;
-    }
 
     let occupancyEndpoint: ControlEndpoint | null = null;
 
-    // Parcourir tous les entryPoints dans cachedBuildingEntryPoints
-    for (const buildingEntryPoint of cachedBuildingEntryPoints) {
-      console.log(`Traitement de l'entryPoint : ${buildingEntryPoint.name}`);
-
-      if (!buildingEntryPoint.source || buildingEntryPoint.source.length === 0) {
-        console.warn(`Aucune source valide trouvée pour l'entryPoint : ${buildingEntryPoint.name}`);
-        continue;
-      }
-
-      // Parcourir toutes les sources de l'entryPoint
-      for (const source of buildingEntryPoint.source) {
-        console.log(`Traitement de la source : ${source.name}, profileName : ${source.profileName}`);
-
-        // Rechercher le point de contrôle correspondant
+    for (const buildingEntryPoint of cachedBuildingEntryPoints || []) {
+      for (const source of buildingEntryPoint.source || []) {
         controlEndpointResponse.data.forEach((profile) => {
           const endpoint = profile.endpoints.find(
             (ep) =>
@@ -1682,16 +1708,9 @@ export async function getGraphData(): Promise<string | null> {
             occupancyEndpoint = endpoint;
           }
         });
-
-        if (occupancyEndpoint) {
-          console.log(`Point de contrôle trouvé pour la source : ${source.name}`);
-          break;
-        }
+        if (occupancyEndpoint) break;
       }
-
-      if (occupancyEndpoint) {
-        break;
-      }
+      if (occupancyEndpoint) break;
     }
 
     if (!occupancyEndpoint) {
@@ -1699,10 +1718,8 @@ export async function getGraphData(): Promise<string | null> {
       return null;
     }
 
-    const occupancyDynamicId = occupancyEndpoint.dynamicId;
-    console.log('Occupancy dynamic ID:', occupancyDynamicId);
-
-    return occupancyDynamicId;
+    cachedGraphData = occupancyEndpoint.dynamicId; // Mettre en cache
+    return cachedGraphData;
   } catch (error) {
     console.error('Error in getGraphData:', error);
     return null;
@@ -1747,7 +1764,7 @@ export function calculateTimeWeightedAverage(
       const sum = pointsForHour.reduce((acc, point) => 
         acc + (parseFloat(point.value.toString()) || 0), 0
       );
-      return parseFloat((sum / pointsForHour.length).toFixed(7));
+      return parseFloat((sum / pointsForHour.length).toFixed(3));
     });
   }
 
@@ -1816,7 +1833,7 @@ export function calculateTimeWeightedAverage(
       }
     }
 
-    weightedAverages.push(totalTime > 0 ? +(weightedSum / totalTime).toFixed(7) : 0);
+    weightedAverages.push(totalTime > 0 ? +(weightedSum / totalTime).toFixed(3) : 0);
   });
 
   console.log('calculateTimeWeightedAverage output:', {
@@ -1836,124 +1853,101 @@ export async function getData(
   startTime: string | null = null,
   endTime: string | null = null
 ): Promise<[string[], ChartData[], any[]]> {
+  const data: ChartData[] = [];
+  const label: string[] = [];
+  const tooltipDate: string[] = [];
   try {
     const buildingId = localStorage.getItem("idBuilding");
-    const spaceArea = await getArea(space);
-    let periodArray = getPeriodArray(currentTimestamp, tempo);
-    const label: string[] = periodArray[0];
-    const tooltipDate: string[] = periodArray[5];
-    const data: ChartData[] = [];
+    if (!buildingId) throw new Error("Building ID not found in localStorage");
+
+    const spinalApi = SpinalAPI.getInstance();
+    const periodArray = getPeriodArray(currentTimestamp, tempo);
+    label.push(...periodArray[0]);
+    tooltipDate.push(...periodArray[5]);
 
     // 1. Taux d'occupation du bâtiment
-    if (config.chartDisplayConfig.globalOccupancyChart[0]) {
-      console.log('=== TAUX OCCUPATION BÂTIMENT ===');
-      try {
-        const occupancyDynamicId = await getGraphData();
-        if (!occupancyDynamicId) throw new Error('Occupancy dynamic ID not found');
+    try {
+      console.log("=== TAUX OCCUPATION BÂTIMENT ===");
+      const occupancyDynamicId = await getGraphData();
+      if (!occupancyDynamicId) throw new Error("Occupancy dynamic ID not found");
 
-        const spinalApi = SpinalAPI.getInstance();
-        const timeSeriesUrl = spinalApi.createUrlWithPlatformId(
-          buildingId,
-          `api/v1/endpoint/${occupancyDynamicId}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`
-        );
-        console.log("Generated URL for time series data:", timeSeriesUrl);
+      const timeSeriesUrl = spinalApi.createUrlWithPlatformId(
+        buildingId,
+        `api/v1/endpoint/${occupancyDynamicId}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`
+      );
+      const timeSeriesResponse = await spinalApi.get<{ data: TimeSeriesPoint[] }>(timeSeriesUrl);
+      const occupancyRateData: TimeSeriesPoint[] = timeSeriesResponse.data;
 
-        const timeSeriesResponse = await spinalApi.get<{ data: TimeSeriesPoint[] }>(timeSeriesUrl);
-        let occupancyRateData: TimeSeriesPoint[] = timeSeriesResponse.data;
+      const buildingProcessedData = calculateTimeWeightedAverage(occupancyRateData, label, tempo);
 
-        console.log('Données bâtiment avant filtrage:', {
-          nombrePoints: occupancyRateData.length,
-          échantillon: occupancyRateData.slice(0, 3).map(point => ({
-            date: moment(point.date).format('HH:mm'),
-            valeur: point.value
-          }))
-        });
-
-        // Filtrer les données si nécessaire
-        occupancyRateData = filterTimeSeries(occupancyRateData, startTime, endTime);
-
-        // Calculer les moyennes pondérées
-        const buildingProcessedData = calculateTimeWeightedAverage(occupancyRateData, label, tempo);
-
-        console.log('Données après calculateTimeWeightedAverage:', buildingProcessedData);
-        data.push({
-          label: config.charts.globalChart.firstData.label,
-          data: buildingProcessedData,
-          tooltipDate: tooltipDate,
-          backgroundColor: config.charts.globalChart.firstData.backgroundColor,
-          borderColor: config.charts.globalChart.firstData.borderColor,
-          borderWidth: 1,
-          fill: false,
-        });
-      } catch (error) {
-        console.error('Erreur lors de la récupération des données du bâtiment:', error);
-      }
+      data.push({
+        label: config.charts.globalChart.firstData.label,
+        data: buildingProcessedData,
+        tooltipDate: tooltipDate,
+        backgroundColor: config.charts.globalChart.firstData.backgroundColor,
+        borderColor: config.charts.globalChart.firstData.borderColor,
+        borderWidth: 1,
+        fill: false,
+      });
+    } catch (error) {
+      console.error("Error in building occupancy calculation:", error);
     }
 
     // 2. Taux d'occupation des salles de réunion
-    if (config.chartDisplayConfig.globalOccupancyChart[1]) {
-      console.log('=== TAUX OCCUPATION SALLES DE RÉUNION ===');
+    try {
+      console.log("=== TAUX OCCUPATION SALLES DE RÉUNION ===");
       const dynamicIds = await fetchSecondChartOccupationDynamicIds(roomIds);
-
       if (dynamicIds.length > 0) {
-        const spinalApi = SpinalAPI.getInstance();
         const roomResults = await Promise.all(
-          Array(Math.ceil(dynamicIds.length / 50)).fill().map((_, i) => {
-            const batch = dynamicIds.slice(i * 50, (i + 1) * 50);
-            const url = spinalApi.createUrlWithPlatformId(
-              buildingId,
-              `api/v1/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`
-            );
-            return spinalApi.post<{ data: RoomData[] }>(url, batch);
-          })
+          Array(Math.ceil(dynamicIds.length / 50))
+            .fill(null)
+            .map((_, i) => {
+              const batch = dynamicIds.slice(i * 50, (i + 1) * 50);
+              const url = spinalApi.createUrlWithPlatformId(
+                buildingId,
+                `api/v1/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`
+              );
+              return spinalApi.post<{ data: RoomData[] }>(url, batch);
+            })
         );
 
-        let timeSeriesData: TimeSeriesPoint[] = roomResults.flatMap(result =>
+        const timeSeriesData: TimeSeriesPoint[] = roomResults.flatMap(result =>
           result.data.flatMap(room => room.timeseries || [])
         );
 
-        // Filtrer les données si nécessaire
-        timeSeriesData = filterTimeSeries(timeSeriesData, startTime, endTime);
-
-        // Calculer les moyennes pondérées
         const roomProcessedData = calculateTimeWeightedAverage(timeSeriesData, label, tempo);
-
-        console.log('Données salles après calcul de la moyenne pondérée:', {
-          nombrePoints: timeSeriesData.length,
-          échantillon: timeSeriesData.slice(0, 3).map(point => ({
-            date: moment(point.date).format('HH:mm'),
-            valeur: point.value
-          }))
-        });
 
         data.push({
           label: config.charts.globalChart.secondData.label,
           data: roomProcessedData,
           tooltipDate: tooltipDate,
           backgroundColor: config.charts.globalChart.secondData.backgroundColor,
-          borderColor: config.charts.globalChart.secondData.backgroundColor,
+          borderColor: config.charts.globalChart.secondData.borderColor,
           borderWidth: 1,
           fill: false,
         });
       }
+    } catch (error) {
+      console.error("Error in meeting room occupancy calculation:", error);
     }
 
     // 3. Taux d'occupation des positions de travail
-    if (config.chartDisplayConfig.globalOccupancyChart[2]) {
-      console.log('=== TAUX OCCUPATION POSITIONS DE TRAVAIL ===');
+    try {
+      console.log("=== TAUX OCCUPATION POSITIONS DE TRAVAIL ===");
       const thirdChartIds = await getThirdChartData();
-
       if (thirdChartIds.length > 0) {
+        if (!cachedEquipmentEntryPoints || cachedEquipmentEntryPoints.length === 0) {
+          throw new Error("cachedEquipmentEntryPoints is null or empty. Ensure initializeSources has been called.");
+        }
         const equipmentDynamicIds = await fetchThirdChartOccupationDynamicIds(thirdChartIds, cachedEquipmentEntryPoints[0]);
 
         if (equipmentDynamicIds.length > 0) {
-          const spinalApi = SpinalAPI.getInstance();
-          const equipmentResults: { data: TimeSeriesData[] }[] = await Promise.all(
+          const equipmentResults = await Promise.all(
             Array(Math.ceil(equipmentDynamicIds.length / 50))
               .fill(null)
               .map((_, i) => {
-                const batch: string[] = equipmentDynamicIds.slice(i * 50, (i + 1) * 50);
-                const url: string = spinalApi.createUrlWithPlatformId(
+                const batch = equipmentDynamicIds.slice(i * 50, (i + 1) * 50);
+                const url = spinalApi.createUrlWithPlatformId(
                   buildingId,
                   `api/v1/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`
                 );
@@ -1961,45 +1955,34 @@ export async function getData(
               })
           );
 
-          let equipmentTimeSeriesData: TimeSeriesPoint[] = equipmentResults.flatMap(result =>
+          const equipmentTimeSeriesData: TimeSeriesPoint[] = equipmentResults.flatMap(result =>
             result.data.flatMap(equipment => equipment.timeseries || [])
           );
 
-          // Filtrer les données si nécessaire
-          equipmentTimeSeriesData = filterTimeSeries(equipmentTimeSeriesData, startTime, endTime);
-
-          // Calculer les moyennes pondérées
           const equipmentProcessedData = calculateTimeWeightedAverage(equipmentTimeSeriesData, label, tempo);
-
-          console.log('Données positions après calcul de la moyenne pondérée:', {
-            nombrePoints: equipmentTimeSeriesData.length,
-            échantillon: equipmentTimeSeriesData.slice(0, 3).map(point => ({
-              date: moment(point.date).format('HH:mm'),
-              valeur: point.value
-            }))
-          });
 
           data.push({
             label: config.charts.globalChart.thirdData.label,
             data: equipmentProcessedData,
             tooltipDate: tooltipDate,
             backgroundColor: config.charts.globalChart.thirdData.backgroundColor,
-            borderColor: config.charts.globalChart.thirdData.backgroundColor,
+            borderColor: config.charts.globalChart.thirdData.borderColor,
             borderWidth: 1,
             fill: false,
           });
         }
       }
+    } catch (error) {
+      console.error("Error in workstation occupancy calculation:", error);
     }
 
     return [label, data, []];
-
   } catch (error) {
-    console.error('Error in getData:', error);
-    return [null, null, []];
+    console.error("Error in getData:", error);
+    return [[], [], []];
   }
 }
-
+ 
 export function getPeriodArray(timestamp: number, period: string): any[] {
   if (period === 'Journée' || period === 'Valeur Courante') {
     const startOfDay = moment(timestamp).startOf('day');
