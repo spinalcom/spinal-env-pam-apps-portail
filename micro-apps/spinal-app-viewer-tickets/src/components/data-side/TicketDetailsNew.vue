@@ -297,31 +297,37 @@
                     <div class="mb-1">
                         <div class="d-flex flex-row align-items-center"
                             style="justify-content: start;align-items: center;">
-                            <span style="font-size: 0.75rem;color: #14202c; margin-right: 3px;">Espace</span>
+                            <span style="font-size: 0.75rem;color: #14202c; margin-right: 3px;">Element</span>
                             <div class="details-icon space">
                             </div>
                         </div>
                         <div class="details-input"
-                            style="width: 100%; font-size: 12px; padding: 4px 8px; color: grey; display: flex; align-items: center;">
-                            <span style="cursor: pointer; color: rgb(101, 100, 179);"
-                                @click="changeRoute(detailedTicket.elementSelected.position.building.dynamicId, detailedTicket.elementSelected.position.building.name)">
+                            @click="onClickNavigate(detailedTicket.elementSelected.dynamicId, detailedTicket.elementSelected.name)"
+                            style="width: 100%; font-size: 12px; padding: 4px 8px; color: grey; display: flex; align-items: center; cursor: pointer;">
+                            <span style="color: rgb(101, 100, 179);">
+                                {{ formattedLocation }}
+                            </span>
+                        </div>
+
+                        <!-- <div class="details-input"
+                            @click="onClickNavigate(detailedTicket.elementSelected.dynamicId, detailedTicket.elementSelected.name)"
+                            style="width: 100%; font-size: 12px; padding: 4px 8px; color: grey; display: flex; align-items: center; cursor: pointer;">
+                            <span style="color: rgb(101, 100, 179);">
                                 {{ detailedTicket.buildingName }}
                             </span>
                             <template v-if="detailedTicket.elementSelected.position.floor">
                                 /
                                 <span
                                     v-if="detailedTicket.elementSelected.position.floor.name != detailedTicket.elementSelected.name"
-                                    style="cursor: pointer; color: rgb(101, 100, 179);"
-                                    @click="changeRoute(detailedTicket.elementSelected.position.floor.dynamicId, detailedTicket.elementSelected.position.floor.name)">
+                                    style="color: rgb(101, 100, 179);">
                                     {{ detailedTicket.elementSelected.position.floor.name }}
                                 </span>
                                 /
-                                <span style="cursor: pointer; color: rgb(101, 100, 179);"
-                                    @click="changeRoute(detailedTicket.elementSelected.dynamicId, detailedTicket.elementSelected.name)">
+                                <span style=" color: rgb(101, 100, 179);">
                                     {{ detailedTicket.elementSelected.name }}
                                 </span>
                             </template>
-                        </div>
+                        </div> -->
                     </div>
                     <!-- <div class="mb-1" style="width: 100%;">
                         <div class="d-flex flex-row align-items-center"
@@ -420,13 +426,10 @@
                             <textarea v-model="newNote" placeholder="Écrire un commentaire..."
                                 style="width: 100%; font-size: 12px; padding: 5px 50px 5px 5px; resize: none; border: 1px solid #14202c; border-radius: 2px; border-style: dashed;">
                 </textarea>
-
                             <!-- "Send" Button positioned inside -->
-                            <div @click="addNote(newNote)"
-                                style="position: absolute; right: 5px; top: 5px; bottom: 5px; background-color: #14202c; color: white; border: none; padding: 0 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">
-                                Envoyer ➔
+                            <div @click="addNote(newNote)" class="btn-send"
+                                style="position: absolute; right: 5px; top: 5px; bottom: 5px; cursor: pointer; font-size: 12px;">
                             </div>
-
                         </div>
 
                     </div>
@@ -594,9 +597,26 @@ export default {
             // return false;
             return this.config?.steps?.archived.flat() || [];
         },
+        formattedLocation() {
+            const el = this.detailedTicket.elementSelected;
+            const building = this.detailedTicket.buildingName || (el?.position?.building?.name ?? "");
+            const floor = el?.position?.floor?.name ?? "";
+            const room = el?.position?.room?.name ?? "";
+            const elementName = el?.name ?? "";
 
-
-
+            switch (el?.type) {
+                case "BIMObject":
+                    return [building, floor, room, elementName].filter(Boolean).join("/");
+                case "geographicRoom":
+                    return [building, floor, elementName].filter(Boolean).join("/");
+                case "geographicFloor":
+                    return [building, elementName].filter(Boolean).join("/");
+                case "geographicBuilding":
+                    return [elementName].filter(Boolean).join("/");
+                default:
+                    return elementName;
+            }
+        }
     },
 
     methods: {
@@ -606,6 +626,22 @@ export default {
                 'name': name
             }
             this.$emit("changeRoute", route);
+        },
+        onClickNavigate(id, name) {
+            let buildingId = localStorage.getItem("idBuilding");
+            let app = this.config.application.find(app => app.name.toLowerCase() === "description");
+            if (app) {
+                app = app.id;
+            } else {
+                console.error("Application with name 'description' not found.");
+            }
+            const query = {
+                app: app,
+                buildingId: buildingId,
+                spaceSelectedId: id,
+                name: name
+            };
+            window.parent.routerFontion.customPush(window.parent.router.path, query);
         },
         getStepLineClass(step) {
             const isRefused = this.refusedStepNames.includes(step.name);
@@ -750,7 +786,9 @@ export default {
 
                 this.modifyTicket(this.detailedTicket.name, this.detailedTicket.description, this.detailedTicket.priority);
                 this.goToStep(this.selectedStepName).then(() => {
-                    this.addNote(this.newNote);
+                    this.addNote(this.newNote).then(() => {
+                        this.newNote = "";
+                    });
                 });
                 if ((!this.newNote || this.newNote.trim() === "") &&
                     (this.selectedStepName === this.detailedTicket.step.name || !this.selectedStepName) &&
@@ -783,7 +821,7 @@ export default {
                     note: note,
                 }
             });
-
+            this.newNote = "";
             if (res) {
                 console.log("Note added successfully.");
             } else {
@@ -928,6 +966,7 @@ export default {
     },
 
     watch: {
+
         async isDownloadable(v) {
             if (v) {
                 const mywindow = window.open("", "PRINT", "height=600,width=900");
@@ -1108,6 +1147,48 @@ textarea.editable {
     cursor: pointer;
     font-size: 13px;
     font-weight: bold;
+}
+
+.btn-send {
+    height: 30px;
+    width: 30px;
+    background-size: 80%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url(./assets/send.svg);
+    transform: rotate(0deg);
+    transition: transform 0.2s ease-in-out;
+}
+
+.btn-send:hover {
+    transform: rotate(-45deg);
+    transition: transform 0.2s ease-in-out;
+}
+
+@keyframes flyPath {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+
+    25% {
+        transform: translate(-20px, -20px) rotate(-45deg);
+    }
+
+    50% {
+        transform: translate(50px, -50px) rotate(-90deg);
+    }
+
+    75% {
+        transform: translate(100px, -20px) rotate(-135deg);
+    }
+
+    100% {
+        transform: translate(150px, 0) rotate(-180deg);
+    }
+}
+
+.btn-send:active {
+    animation: flyPath 5s ease-in-out forwards;
 }
 
 .btn-delete {

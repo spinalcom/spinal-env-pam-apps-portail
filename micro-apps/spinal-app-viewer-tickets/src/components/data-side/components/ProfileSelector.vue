@@ -1,9 +1,12 @@
 <template>
   <div class="selector-container">
-    <div v-for="(profile, index) in profiles" :key="index" class="profile-item" @click="selectProfile(profile, index)">
+    <div v-for="(profile, index) in profiles" :key="index" class="profile-item"
+      @click="!disabled && selectProfile(profile, index)"
+      :style="{ opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? 'none' : 'auto' }">
       {{ profile }}
     </div>
-    <div class="selected-background" :style="{ transform: `translateX(${selectedIndex * 160}px)` }"></div>
+    <div class="selected-background"
+      :style="{ transform: `translateX(${selectedIndex * 160}px)`, cursor: not - allowed }"></div>
   </div>
 </template>
 
@@ -15,6 +18,10 @@ export default {
       type: Array,
       default: () => ["Regrouper les tickets", "Dégrouper les tickets"],
     },
+    disabled: {
+      type: Boolean,
+      default: false,
+    }
   },
   data() {
     return {

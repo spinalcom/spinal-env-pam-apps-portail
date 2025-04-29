@@ -144,7 +144,6 @@ export function generateTimeline(
   }
 
   const negativeSteps = steps.filter((step) => step.order < 0);
-  console.log("negativeSteps", negativeSteps);
   for (const step of negativeSteps) {
     timeline.push({
       date: null,

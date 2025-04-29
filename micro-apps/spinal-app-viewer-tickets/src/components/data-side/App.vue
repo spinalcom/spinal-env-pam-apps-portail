@@ -32,7 +32,8 @@ with this file. If not, see
 
       <div v-if="(selectedZone.type === 'building') || (selectedZone.name == 'Bâtiment')"
         class="profil-selec-container">
-        <ProfileSelector style="margin-bottom: 10px;" @profileSelected="handleProfileSelected" />
+        <ProfileSelector style="margin-bottom: 10px;" @profileSelected="handleProfileSelected"
+          :disabled="isSwitchingSptires" />
       </div>
 
       <div class="d-flex flex-row justify-space-between" style="align-items: center;">
@@ -396,6 +397,7 @@ class dataSideApp extends Vue {
   roomitemsnumber: number = 0;
   equipementitemsnumber: number = 0;
   modefull: boolean = false
+  isSwitchingSptires: boolean = false;
   priorities = [
     { value: 0, label: "Élevée", selected: true },
     { value: 1, label: "Moyenne", selected: true },
@@ -478,12 +480,25 @@ class dataSideApp extends Vue {
   //   // this.selectedProfile = selectedProfile;
   //   this.toggleSprites = !this.toggleSprites;
   // }
-  handleProfileSelected(isGrouped) {
+  async handleProfileSelected(isGrouped) {
+    // this.toggleSprites = isGrouped;
+    // if (this.toggleSprites) {
+    //   this.updateSprites(this.data);
+    // } else {
+    //   this.showAllSprites(this.data);
+    // }
+    if (this.isSwitchingSptires) return; // prevent double click
+    this.isSwitchingSptires = true;
     this.toggleSprites = isGrouped;
-    if (this.toggleSprites) {
-      this.updateSprites(this.data);
-    } else {
-      this.showAllSprites(this.data);
+
+    try {
+      if (this.toggleSprites) {
+        await this.updateSprites(this.data);
+      } else {
+        await this.showAllSprites(this.data);
+      }
+    } finally {
+      this.isSwitchingSptires = false;
     }
   }
 
@@ -1026,10 +1041,15 @@ class dataSideApp extends Vue {
 
     const buildingId = localStorage.getItem("idBuilding");
     this.$store.commit(MutationTypes.SET_SELECTED_TICKETS, [ticket.dynamicId]);
-    this.$store.dispatch(ActionTypes.SELECT_ITEMS, {
-      ...ticket.elementSelected,
-      buildingId,
-    });
+    console.log("ticket.elementSelected", ticket);
+    if (ticket.elementSelected.type === "geographicFloor" || ticket.elementSelected.type === "geographicBuilding") {
+    }
+    else {
+      this.$store.dispatch(ActionTypes.SELECT_ITEMS, {
+        ...ticket.elementSelected,
+        buildingId,
+      });
+    }
 
     // this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
     //   ...ticket.elementSelected
@@ -1041,37 +1061,99 @@ class dataSideApp extends Vue {
     const floor = document.querySelector("#floor-sprite");
     floor?.dispatchEvent(new Event("clickExteriorSprite"));
   }
+  updateSprites(to_update): Promise<void> {
+    return new Promise((resolve) => {
+      const buildingId = localStorage.getItem("idBuilding");
+      this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
 
-  updateSprites(to_update) {
-    const buildingId = localStorage.getItem("idBuilding");
-    // if (this.config.sprites)
-    this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+      if (this.config.sprites) {
+        const regrouped_tickets = regroupTicketByRoom(to_update);
+        const floor_tickets = regroupTicketsByFloor(to_update);
+        const floor_full_tickets = regroupFullTicketsByFloor(to_update);
+        const items = [];
+        const floorItems = [];
+        const step = 15;
+        let zPosition = 0;
 
-    // if (this.isBuildingSelected) return;
+        if (Object.keys(floor_full_tickets).length > 1) {
+          for (const key of Object.keys(floor_full_tickets)) {
+            items.push({
+              buildingId,
+              dynamicId: key,
+              data: floor_full_tickets[key].ticketList,
+              position: new THREE.Vector3(0, 0, zPosition),
+            });
+            zPosition += step;
+          }
+        } else {
+          for (const key of Object.keys(regrouped_tickets)) {
+            if (regrouped_tickets[key]["XYZ center"]) {
+              const [X, Y, Z] = regrouped_tickets[key]["XYZ center"].split(";");
+              items.push({
+                buildingId,
+                dynamicId: key,
+                data: regrouped_tickets[key].ticketList,
+                position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
+              });
+            } else {
+              items.push({
+                buildingId,
+                dynamicId: key,
+                data: regrouped_tickets[key].ticketList,
+                position: new THREE.Vector3(0, 0, 0),
+              });
+            }
+          }
 
-    if (this.config.sprites) {
-      const regrouped_tickets = regroupTicketByRoom(to_update);
-      const floor_tickets = regroupTicketsByFloor(to_update);
-      const floor_full_tickets = regroupFullTicketsByFloor(to_update);
-      const items = new Array();
-      const floorItems = [];
-      const step = 15;
-      let zPosition = 0;
-      // console.log("floor_full_tickets", floor_full_tickets);
-      if (Object.keys(floor_full_tickets).length > 1) {
+          for (const key of Object.keys(floor_tickets)) {
+            floorItems.push({
+              buildingId,
+              dynamicId: key,
+              data: floor_tickets[key].ticketList,
+              position: new THREE.Vector3(0, 0, 0),
+            });
+          }
+        }
 
-        for (const key of Object.keys(floor_full_tickets)) {
-          items.push({
-            buildingId,
-            dynamicId: key,
-            data: floor_full_tickets[key].ticketList,
-            position: new THREE.Vector3(0, 0, zPosition),
+        this.resetContext(buildingId);
+        this.tickets_with_positions = items;
+        this.floor_tickets_with_positions = floorItems;
+
+        this.full_floor_tickets_with_positions = Object.keys(floor_full_tickets).map((key, index) => ({
+          ...floor_full_tickets[key],
+          position: new THREE.Vector3(0, 0, index * step),
+        }));
+
+        setTimeout(() => {
+          const componentToUse = Object.keys(floor_full_tickets).length > 1
+            ? FullFloorSpriteComponent
+            : SpriteComponent;
+
+          this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+            items: items,
+            buildingId: buildingId,
+            component: componentToUse,
           });
 
-          zPosition += step;
-        }
+          resolve();
+        }, 1000);
+      } else {
+        resolve();
       }
-      else {
+    });
+  }
+
+  showAllSprites(to_update): Promise<void> {
+    return new Promise((resolve) => {
+      const buildingId = localStorage.getItem("idBuilding");
+      this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+
+      if (this.config.sprites) {
+        const regrouped_tickets = regroupTicketByRoom(to_update);
+        const floor_tickets = regroupTicketsByFloor(to_update);
+        const items = [];
+        const floorItems = [];
+
         for (const key of Object.keys(regrouped_tickets)) {
           if (regrouped_tickets[key]["XYZ center"]) {
             const [X, Y, Z] = regrouped_tickets[key]["XYZ center"].split(";");
@@ -1090,6 +1172,7 @@ class dataSideApp extends Vue {
             });
           }
         }
+
         for (const key of Object.keys(floor_tickets)) {
           floorItems.push({
             buildingId,
@@ -1098,84 +1181,24 @@ class dataSideApp extends Vue {
             position: new THREE.Vector3(0, 0, 0),
           });
         }
-      }
-      // for (const key of Object.keys(floor_full_tickets)) {
-      //   floorItems.push({
-      //     buildingId,
-      //     dynamicId: key,
-      //     data: floor_full_tickets[key].ticketList,
-      //     position: new THREE.Vector3(0, 0, 0),
-      //   });
-      // }
-      this.resetContext(buildingId);
-      this.tickets_with_positions = items;
-      this.floor_tickets_with_positions = floorItems;
-      // console.log("floor_full_tickets", floor_full_tickets);
-      this.full_floor_tickets_with_positions = Object.keys(floor_full_tickets).map((key, index) => ({
-        ...floor_full_tickets[key],
-        position: new THREE.Vector3(0, 0, index * step),
-      }));
-      setTimeout(() => {
-        const componentToUse = Object.keys(floor_full_tickets).length > 1
-          ? FullFloorSpriteComponent
-          : SpriteComponent;
-        this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-          items: items,
-          buildingId: buildingId,
-          component: componentToUse,
-        });
-      }, 1000);
-      return;
-    }
-  }
-  showAllSprites(to_update) {
-    const buildingId = localStorage.getItem("idBuilding");
-    this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-    if (this.config.sprites) {
-      const regrouped_tickets = regroupTicketByRoom(to_update);
-      const floor_tickets = regroupTicketsByFloor(to_update);
-      // const floor_full_tickets = regroupFullTicketsByFloor(to_update);
-      const items = new Array();
-      const floorItems = [];
-      for (const key of Object.keys(regrouped_tickets)) {
-        if (regrouped_tickets[key]["XYZ center"]) {
-          const [X, Y, Z] = regrouped_tickets[key]["XYZ center"].split(";");
-          items.push({
-            buildingId,
-            dynamicId: key,
-            data: regrouped_tickets[key].ticketList,
-            position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
-          });
-        } else {
 
-          items.push({
-            buildingId,
-            dynamicId: key,
-            data: regrouped_tickets[key].ticketList,
-            position: new THREE.Vector3(0, 0, 0),
+        this.resetContext(buildingId);
+        this.tickets_with_positions = items;
+
+        setTimeout(() => {
+          this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+            items: items,
+            buildingId: buildingId,
+            component: SpriteComponent,
           });
-        }
+          resolve(); // ✅ Resolves only after sprite loading dispatch completes
+        }, 1000);
+      } else {
+        resolve(); // Resolve immediately if sprites are disabled
       }
-      for (const key of Object.keys(floor_tickets)) {
-        floorItems.push({
-          buildingId,
-          dynamicId: key,
-          data: floor_tickets[key].ticketList,
-          position: new THREE.Vector3(0, 0, 0),
-        });
-      }
-      this.resetContext(buildingId);
-      this.tickets_with_positions = items;
-      setTimeout(() => {
-        this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-          items: items,
-          buildingId: buildingId,
-          component: SpriteComponent,
-        });
-      }, 1000);
-      return;
-    }
+    });
   }
+
   async resetContext(buildingId: string | null) {
     this.$store.dispatch(ActionTypes.RESET_API_ITERATOR_STORE, {
       buildingId,
