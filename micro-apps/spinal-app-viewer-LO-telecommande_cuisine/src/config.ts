@@ -42,7 +42,7 @@ export const config: IConfig = {
 
 	//type d'equipement : all(tout les equipement de la piece) , none(que les sols) , selected(un type selectionné)
 
-	show_equipements: 'selected',
+	show_equipements: 'all',
 	//si selected ( choisir l'equipement voulu)
 	equipementSelections: [
 		{
@@ -54,7 +54,7 @@ export const config: IConfig = {
 
 	//moyen de selection de télécommande : button (pilotage par bouton d'une ou plusieur piece) , room (pilotage en cliquant sur le sol de la piece) , equipement (pilotage en cliquant sur l'equipment)
 	// multiple (pilotage par bouton et par sol)
-	SelectionType: 'room',
+	SelectionType: 'button',
 
 	//les differents type de télécommande
 	commandItem: {

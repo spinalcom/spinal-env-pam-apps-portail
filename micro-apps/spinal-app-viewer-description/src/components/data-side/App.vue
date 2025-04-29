@@ -58,12 +58,7 @@
             <div
               style="background-color: white;border-radius: 2px;border: 1px solid #ebebeb; width: 50px; height: 50px;display: flex;justify-content: center;align-items: center;">
               <v-icon color="#14202c" size="40">{{ item.icon }}</v-icon>
-              <!-- <v-card-text>
-                <v-btn color="primary" dark @click="dialog3 = !dialog3">
-                  Open Dialog 3
-                </v-btn>
-                <v-select :items="select" label="A Select List" item-value="text"></v-select>
-              </v-card-text> -->
+
             </div>
           </div>
 
@@ -77,17 +72,9 @@
             </div>
             <div style="margin-left: 10px;width: 90%;">{{ item.description }}</div>
 
-            <!-- <div class="gotoApp">
-              <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" fill="#14202c" class="bi bi-chevron-right"
-                viewBox="0 0 16 16">
-                <path fill-rule="evenodd"
-                  d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708" />
-              </svg>
-            </div> -->
           </div>
         </div>
       </div>
-      <!-- </div> -->
 
     </div>
 
@@ -511,7 +498,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                    }}
+                      }}
                     </li>
                   </div>
                 </div>
@@ -586,13 +573,13 @@
 
           <div @click="fshowDialogInventory()" class="btn_inventory">
             <v-icon color="#14202c" size="35px">
-              mdi-plus
+              mdi-table-plus
             </v-icon>
             <div v-if="formattedInventory.length < 1" style="margin-top: 3px;margin-left: 10px;">
               Séléctionner un inventaire
             </div>
             <div v-else style="margin-top: 3px;margin-left: 10px;">
-              Modifier l'inventaire
+              Modifier l'inventaire Séléctionné
             </div>
           </div>
 
@@ -600,18 +587,43 @@
             <div v-for="(category, index) in formattedInventory" :key="category.name" class="category-block">
               <div class="category-header" @click="toggle(index)">
                 <span class="category-title">{{ category.name }} ({{ category.groupItems.length }})</span>
-                <span class="toggle-arrow">{{ openGroups.includes(index) ? '▲' : '▼' }}</span>
-              </div>
+                <div>
+                  <v-icon v-if="!groupColored.includes(category.name)" @click.stop="colorCategory(category)"
+                    style="cursor: pointer; margin-left: 10px;">
+                    mdi-invert-colors
+                  </v-icon>
+                  <v-icon v-else @click.stop="descolorCategory(category)" style="cursor: pointer; margin-left: 5px;">
+                    mdi-invert-colors-off
+                  </v-icon>
+                  <span class="toggle-arrow">{{ openGroups.includes(index) ? '▲' : '▼' }}</span>
+                </div>
 
+              </div>
 
               <!-- Liste déroulante -->
               <div v-if="openGroups.includes(index)" class="item-list">
                 <div v-for="item in category.groupItems" :key="item.id" class="item-row">
                   <span class="item-name">⎯ {{ item.name }}</span>
                   <div class="item-icons">
-                    <span class="icon">💧</span>
-                    <span class="icon">🔆</span>
-                    <span class="icon">🔁</span>
+                    <v-icon v-if="coloredElement && !coloredElement.includes(item.dynamicId)"
+                      @click="colorselected(item)" style="cursor: pointer; margin-left: 10px;">
+                      mdi-invert-colors
+                    </v-icon>
+                    <v-icon v-if="coloredElement && coloredElement.includes(item.dynamicId)"
+                      @click="descolorselected(item)"
+                      :style="{ cursor: 'pointer', marginLeft: '10px', color: item.color }">
+                      mdi-invert-colors-off
+                    </v-icon>
+                    <v-icon @click="zoomselected(item)" style="cursor: pointer; margin-left: 10px;">
+                      mdi-magnify-plus-outline
+                    </v-icon>
+                    <v-icon @click="selectselected(item)" style="cursor: pointer; margin-left: 10px;">
+                      mdi-select-place
+                    </v-icon>
+                    <v-icon @click="gotoselected(item)" style="cursor: pointer; margin-left: 10px;">
+                      mdi-arrow-down-left-bold
+                    </v-icon>
+
                   </div>
                 </div>
               </div>
@@ -619,40 +631,9 @@
           </div>
 
 
-          <!--           
-          <div v-if="formattedInventory.length > 1 && formattedInventory">
-
-            <div v-for="category in formattedInventory" :key="category.name" class="blocInformation"
-              style="margin-bottom: 20px;">
-              <span
-                style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold; display: block; margin-bottom: 10px;">
-                Inventaire des {{ category.name }}
-              </span>
-
-              <div v-if="!category.groupItems || category.groupItems.length === 0"
-                style="text-align: center; font-style: italic; color: #888; margin: 10px 0;">
-                PAS DE DONNÉES DISPONIBLES
-              </div>
-
-              <div v-else class="inventory-container" style="display: flex; flex-wrap: wrap;">
-                <div v-for="item in category.groupItems" :key="item.dynamicId" class="inventory-item"
-                  style="display: flex; align-items: center; width: 100%; border: 1px solid #ddd; padding: 14px 5px; border-radius: 5px;">
-                  <li style="flex: 1; font-size: 16px; font-family: Arial, Helvetica, sans-serif;">
-                    {{ item.name }}
-                  </li>
-
-
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="blocInformation" v-else>
-            PAS DE DONNÉES DISPONIBLES
-          </div> -->
-
           <FormInventaire @inventory-loaded="handleInventory" :selectedId="stockedZone" :config="config"
-            :typedata="typdata" :value="showDialogInventory" @close-dialog="ShowDialog()" :selectedZone="selectedZone"
-            @add-ticket="showAlert" />
+            :typedata="typdata" :value="showDialogInventory" @close-dialog="fcloseDialogInventory"
+            :selectedZone="selectedZone" @add-ticket="showAlert" />
         </div>
 
 
@@ -746,10 +727,6 @@
         </div>
       </div>
 
-
-
-
-
     </div>
   </div>
 </template>
@@ -794,7 +771,9 @@ import OverMenu from "./OverMenu.vue";
 import ConfirmDelete from "./ConfirmDelete.vue";
 import ProgressBar from "./ProgressBar.vue";
 import { EventBus } from '../../../../../global-components/SpaceSelector/eventBus';
-import { log } from "console";
+import { getViewInfoReactive } from '../../../../../global-components/viewer/requests/GeographicContext/ViewInfoMemory';
+
+import { error, log } from "console";
 
 @Component({
   components: {
@@ -900,6 +879,7 @@ class dataSideApp extends Vue {
   activeChartData: any = []
   coloredElement: any = []
   coloredRoom: any = []
+  groupColored: any = []
   confirmIdReferenceDelete: number | null = null
   confirmIdFileDelete: number | null = null
   showConfirmDelete = false
@@ -911,7 +891,8 @@ class dataSideApp extends Vue {
   stockedData: any = []
   typdata = 'building'
   currentId = 0;
-
+  viewInfo = null
+  state = getViewInfoReactive();
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets', 'Inventaire'];
@@ -931,6 +912,10 @@ class dataSideApp extends Vue {
     }
 
     return items;
+  }
+
+  public get selectedZoneType(): ISpaceSelectorItem {
+    return this.$store.state.appDataStore.zoneSelected.type;
   }
 
   get dynamicHeaders() {
@@ -1081,12 +1066,14 @@ class dataSideApp extends Vue {
   }
 
   fshowDialogInventory() {
-    this.showDialogInventory = !this.showDialogInventory
+    this.showDialogInventory = true
     this.currentId = this.$store.state.appDataStore.zoneSelected.dynamicId
+  }
+  fcloseDialogInventory() {
+    this.showDialogInventory = false
   }
 
   ShowDialog() {
-    console.log('hahahaha');
 
     this.showFormTicket = !this.showFormTicket;
   }
@@ -1404,22 +1391,11 @@ class dataSideApp extends Vue {
   async selectselected(item) {
 
     const buildingId = localStorage.getItem("idBuilding");
-    const promises_node = [
-      this.$store.dispatch(ActionTypes.GET_NODE_READ, {
-        buildingId,
-        referenceIds: [item.dynamicId]
-      }),
-    ];
 
+    if (item.type == "geographicRoom") {
+      console.log('on est dnas une geographique room', item);
 
-    const node_read = await Promise.all(promises_node);
-
-    if (node_read[0].type == "geographicRoom") {
-
-      console.log(node_read[0].dynamicId, ' je suis une abeille');
-
-
-      const referenceIds = [node_read[0].dynamicId]
+      const referenceIds = [item.dynamicId]
       const promises = [
         this.$store.dispatch(ActionTypes.GET_REFERENCE_OBJECT_LIST_MULTIPLE, {
           buildingId,
@@ -1427,6 +1403,8 @@ class dataSideApp extends Vue {
         }),
       ];
       const result = await Promise.all(promises);
+      console.warn('les objet de reference des pieces maybe ?', result);
+
       const solObjects = result[0][0].infoReferencesObjects.filter(refObj => refObj.name.includes("Sol"));
 
       if (solObjects.length === 0) {
@@ -1503,6 +1481,61 @@ class dataSideApp extends Vue {
 
   }
 
+
+  async colorCategory(category) {
+    const buildingId = localStorage.getItem("idBuilding");
+
+    const itemsToColor = category.groupItems.map(item => ({
+      buildingId: buildingId,
+      dynamicId: item.dynamicId,
+      color: item.color,
+      floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId,
+    }));
+
+    this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+      items: itemsToColor,
+      buildingId: buildingId,
+    });
+
+    // Ajoute chaque item au tableau coloredElement
+    for (const item of category.groupItems) {
+      if (!this.coloredElement.includes(item.dynamicId)) {
+        this.coloredElement.push(item.dynamicId);
+      }
+    }
+
+    // Ajoute le groupe dans groupColored s’il n’y est pas
+    if (!this.groupColored.includes(category.name)) {
+      this.groupColored.push(category.name);
+    }
+  }
+
+
+  async descolorCategory(category) {
+    const buildingId = localStorage.getItem("idBuilding");
+
+    const itemsToColor = category.groupItems.map(item => ({
+      buildingId: buildingId,
+      dynamicId: item.dynamicId,
+      color: null,
+      floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId,
+    }));
+
+    this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+      items: itemsToColor,
+      buildingId: buildingId,
+    });
+
+    // Supprime les items de coloredElement
+    this.coloredElement = this.coloredElement.filter(
+      id => !category.groupItems.some(item => item.dynamicId === id)
+    );
+
+    // Supprime le groupe de groupColored
+    this.groupColored = this.groupColored.filter(name => name !== category.name);
+  }
+
+
   async descolorElement(item, categoryName) {
 
     const itemType = item.substring(item.indexOf(' ') + 1);
@@ -1534,6 +1567,9 @@ class dataSideApp extends Vue {
       buildingId: buildingId,
     });
   }
+
+
+
 
   getColorForGroup(categoryName, groupIndex) {
     const category = this.spaceInventoryData.find(item => item.category === categoryName);
@@ -1668,7 +1704,6 @@ class dataSideApp extends Vue {
       obj.categoryAttributes.forEach(category => {
         category.attributs.forEach(attr => {
           if (attr.label === "XYZ center") {
-            // Transformer la string "-37.1215;-45.4714;1.25" en un objet { x, y, z }
             const values = attr.value.split(";").map(Number);
             if (values.length === 3) {
               center = { x: values[0], y: values[1], z: values[2] };
@@ -1746,14 +1781,11 @@ class dataSideApp extends Vue {
   }
 
   async mounted() {
-    // window.parent.router.query.app = 'toto'
-    // console.log('totototototoottoto windows query');
-    console.warn('aaaaaaaaaaaaaaaaaaaaaa');
-    this.countSpaceInventory()
 
+    this.watchData();
 
-
-
+    // if(this.)
+    // this.countSpaceInventory()
 
     document.querySelectorAll('.v-input__icon').forEach(el => {
       el.style.width = '150%';
@@ -1761,10 +1793,6 @@ class dataSideApp extends Vue {
       el.style.position = 'absolute';
       el.style.transform = 'translate(-51%, -28%)';
     });
-
-    // document.querySelectorAll(".v-menu__content").forEach(el => {
-    //   el.style.marginLeft = '20px';
-    // });
 
 
     EventBus.$on('vignette', async (data) => {
@@ -1786,6 +1814,7 @@ class dataSideApp extends Vue {
 
     EventBus.$on('loadedviewer', async (data) => {
       this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, [{ dynamicId: this.selectedZone.dynamicId }]);
+
     });
 
 
@@ -1809,6 +1838,12 @@ class dataSideApp extends Vue {
     this.isBuildingSelected = true;
 
     this.data_loading += 15
+
+
+    // this.$nextTick(() => {
+    //   console.warn('je suis monté', this.selectedZone, this.$store.state.appDataStore.zoneSelected.type);
+    // });
+
   }
 
   async loadBuildingInfo() {
@@ -2012,82 +2047,298 @@ class dataSideApp extends Vue {
     return list.some(item => item.name === "hasReferenceObject.ROOM");
   }
 
+  async getReferenceObjectRoom(dynamicId: number) {
 
-  async findDynamicIdByDbid(dbidToFind, data) {
     const buildingId = localStorage.getItem("idBuilding");
-    const BimObject = [
-      {
-        "bimFileId": data.modelId.bimFileId,
-        "dbids": data.dbIds
-      }
-    ]
-    const referenceResult = await this.getBIMInfo(BimObject)
-
-    const isRoom = this.checkForReferenceObjectRoom(referenceResult[0][0].bimObjects[0].parent_relation_list)
-
-    if (isRoom) {
-      const objects = this.referenceObjects;
-      for (const obj of objects[0]) {
-        if (Array.isArray(obj.infoReferencesObjects)) {
-          for (const ref of obj.infoReferencesObjects) {
-            if (ref.dbid === dbidToFind && data.modelId.bimFileId == obj.bimFileId) {
-              const referenceIds = obj.dynamicId
-              const promises = [
-                this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
-                  buildingId,
-                  referenceIds
-                }),
-              ];
-              const result = await Promise.all(promises);
-              this.forgeItem(result, buildingId, ref.dbid, obj.bimFileId, data.center)
-
-              return;
-            }
-          }
-        }
-      }
-
-      return null;
-    }
-    else {
-      const referenceIds = referenceResult[0][0].bimObjects[0].dynamicId
-      const promises = [
-        this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
-          buildingId,
-          referenceIds
-        }),
-      ];
-
-
-      const result = await Promise.all(promises);
-      this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0], data.center)
-
+    if (!buildingId) {
+      console.error("Aucun buildingId trouvé dans le localStorage");
       return;
     }
 
 
-  }
-
-  async getfloorstaticdetails(id) {
-    const buildingId = localStorage.getItem("idBuilding");
-
-    const promises = [
-      this.$store.dispatch(ActionTypes.GET_FLOOR_STATIC_DETAILS, {
-        buildingId,
-        referenceIds: id || this.$store.state.appDataStore.zoneSelected.dynamicId
-      }),
+    const element = [
+      {
+        dynamicId: dynamicId,
+        relations: ["hasReferenceObject.ROOM"]
+      }
     ];
-    const result = await Promise.all(promises);
-    this.floorstaticDetails = result
-    this.typdata = 'floor'
-    this.filteredEndpoints('floor')
-    this.getListinfo('floor', id)
-    this.getDocumentation(result)
-    this.filtredAttribut('floor')
-    this.getTicket(result)
-    this.createApp()
-    this.$forceUpdate();
+
+    try {
+      const resultRaw = await this.$store.dispatch(ActionTypes.GET_NODE_PARENTS, {
+        buildingId,
+        referenceIds: element
+      });
+
+      return resultRaw?.[0] ?? [];
+    } catch (error) {
+      console.error("Erreur lors de la récupération des parents :", error);
+      return [];
+    }
+    //FAIRE LA RECHERCHE DE SI IL Y A UN hasReferenceObject.ROOM si oui 
+
   }
+
+  getDynamicId(dbId, bimFileId) {
+    for (const item of this.viewInfo) {
+      for (const model of item.data) {
+        if (model.bimFileId === bimFileId) {
+          const index = model.dbIds.indexOf(dbId);
+          if (index !== -1) {
+            console.warn('il trouve l\'élément');
+            return model.dynamicIds[index];
+          }
+        }
+      }
+    }
+    return null; // rien trouvé
+  }
+
+
+
+
+  async findDynamicIdByDbid(dbidToFind, data) {
+
+    const buildingId = localStorage.getItem("idBuilding");
+    const bimFileId = data.modelId.bimFileId;
+
+    const dynamicId = this.getDynamicId(dbidToFind, bimFileId)
+
+    // faire getModelsId fair le filtre pour récupéré le dynamicID correspondant au dbids / bimbileId
+
+    const isRoom = await this.getReferenceObjectRoom(dynamicId); //renvoi false /  si non sinon renvoi la room de référence 
+
+    if (isRoom?.nodes[0]) {
+      const resultRaw = await this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
+        buildingId,
+        referenceIds: isRoom?.nodes[0]?.dynamicId
+      });
+      const result = [resultRaw];
+
+      this.forgeItem(result, buildingId, dbidToFind, bimFileId, data.center);
+      return;
+    } else {
+
+      const resultRaw = await this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
+        buildingId,
+        referenceIds: dynamicId
+      });
+
+      const result = [resultRaw];
+      this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0], data.center);
+    }
+
+  }
+
+
+  // async findDynamicIdByDbid(dbidToFind, data) {
+
+
+  //   const buildingId = localStorage.getItem("idBuilding");
+  //   const bimFileId = data.modelId.bimFileId;
+  //   const zoneType = this.$store.state.appDataStore.zoneSelected?.type;
+
+  //   // Cas où zoneType est "building" ou undefined → ancienne logique complète
+  //   if (!zoneType || zoneType === "building") {
+  //     const BimObject = [
+  //       {
+  //         bimFileId: bimFileId,
+  //         dbids: data.dbIds
+  //       }
+  //     ];
+
+  //     const referenceResult = await this.getBIMInfo(BimObject);
+
+  //     const isRoom = this.checkForReferenceObjectRoom(referenceResult[0][0].bimObjects[0].parent_relation_list);
+
+  //     if (isRoom) {
+
+  //       const objects = this.referenceObjects;
+  //       for (const obj of objects[0]) {
+  //         if (Array.isArray(obj.infoReferencesObjects)) {
+  //           for (const ref of obj.infoReferencesObjects) {
+  //             if (ref.dbid === dbidToFind && bimFileId === obj.bimFileId) {
+  //               const referenceIds = obj.dynamicId;
+  //               const resultRaw = await this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
+  //                 buildingId,
+  //                 referenceIds
+  //               });
+  //               const result = [resultRaw];
+
+  //               this.forgeItem(result, buildingId, ref.dbid, obj.bimFileId, data.center);
+  //               return;
+  //             }
+  //           }
+  //         }
+  //       }
+
+  //       return null;
+  //     } else {
+  //       const referenceIds = referenceResult[0][0].bimObjects[0].dynamicId;
+
+  //       const resultRaw = await this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
+  //         buildingId,
+  //         referenceIds
+  //       });
+
+  //       const result = [resultRaw];
+
+  //       this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0], data.center);
+  //       return;
+  //     }
+  //   }
+
+  //   // Sinon → nouvelle logique via le store
+  //   const roomReferenceMap = this.$store.state.appDataStore.roomReferenceObjects;
+
+  //   for (const [dynamicId, refs] of Object.entries(roomReferenceMap)) {
+  //     const match = refs.find(ref => ref.dbid === dbidToFind && ref.bimfileId === bimFileId);
+  //     if (match) {
+  //       console.log('→ Room trouvée via le store (zone)');
+
+  //       const referenceIds = parseInt(dynamicId, 10);
+
+  //       const resultRaw = await this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
+  //         buildingId,
+  //         referenceIds
+  //       });
+  //       const result = [resultRaw];
+
+  //       this.forgeItem(result, buildingId, dbidToFind, bimFileId, data.center);
+  //       return;
+  //     }
+  //   }
+
+  //   // Fallback équipement si non trouvé dans le store
+  //   const BimObject = [
+  //     {
+  //       bimFileId: bimFileId,
+  //       dbids: data.dbIds
+  //     }
+  //   ];
+
+  //   const referenceResult = await this.getBIMInfo(BimObject);
+
+  //   const referenceIds = referenceResult[0][0].bimObjects[0].dynamicId;
+
+  //   const resultRaw = await this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
+  //     buildingId,
+  //     referenceIds
+  //   });
+
+  //   const result = [resultRaw];
+
+  //   this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0], data.center);
+  // }
+
+
+
+  // async findDynamicIdByDbid(dbidToFind, data) {
+  //   const buildingId = localStorage.getItem("idBuilding");
+  //   const bimFileId = data.modelId.bimFileId;
+
+  //   // ✅ On vérifie si dbid + bimfileId sont dans le store des rooms
+  //   const roomReferenceMap = this.$store.state.appDataStore.roomReferenceObjects;
+
+  //   // Recherche du dynamicId d'une room déjà connue
+  //   for (const [dynamicId, refs] of Object.entries(roomReferenceMap)) {
+  //     const match = refs.find(ref => ref.dbid === dbidToFind && ref.bimfileId === bimFileId);
+  //     if (match) {
+  //       console.log('cest bien une room haha');
+
+  //       const referenceIds = parseInt(dynamicId, 10);
+
+  //       const resultRaw = await this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
+  //         buildingId,
+  //         referenceIds
+  //       });
+  //       const result = [resultRaw];
+
+  //       this.forgeItem(result, buildingId, dbidToFind, bimFileId, data.center);
+  //       return;
+  //     }
+  //   }
+
+  //   // ❌ Pas trouvé dans le store → c’est un équipement → ancienne logique
+  //   const BimObject = [
+  //     {
+  //       bimFileId: bimFileId,
+  //       dbids: data.dbIds
+  //     }
+  //   ];
+
+  //   const referenceResult = await this.getBIMInfo(BimObject);
+
+  //   const referenceIds = referenceResult[0][0].bimObjects[0].dynamicId;
+
+  //   const resultRaw = await this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
+  //     buildingId,
+  //     referenceIds
+  //   });
+
+  //   const result = [resultRaw];
+
+  //   this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0], data.center);
+  // }
+
+
+  // async findDynamicIdByDbid(dbidToFind, data) {
+
+  //   const buildingId = localStorage.getItem("idBuilding");
+  //   const BimObject = [
+  //     {
+  //       "bimFileId": data.modelId.bimFileId,
+  //       "dbids": data.dbIds
+  //     }
+  //   ]
+  //   const referenceResult = await this.getBIMInfo(BimObject)
+
+  //   const isRoom = this.checkForReferenceObjectRoom(referenceResult[0][0].bimObjects[0].parent_relation_list)
+
+  //   if (isRoom) {
+  //     const objects = this.referenceObjects;
+  //     console.log('this.referenceObjects' , this.referenceObjects);
+
+  //     for (const obj of objects[0]) {
+  //       if (Array.isArray(obj.infoReferencesObjects)) {
+  //         for (const ref of obj.infoReferencesObjects) {
+  //           if (ref.dbid === dbidToFind && data.modelId.bimFileId == obj.bimFileId) {
+  //             const referenceIds = obj.dynamicId
+  //             const promises = [
+  //               this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
+  //                 buildingId,
+  //                 referenceIds
+  //               }),
+  //             ];
+  //             const result = await Promise.all(promises);
+  //             this.forgeItem(result, buildingId, ref.dbid, obj.bimFileId, data.center)
+
+  //             return;
+  //           }
+  //         }
+  //       }
+  //     }
+
+  //     return null;
+  //   }
+  //   else {
+  //     const referenceIds = referenceResult[0][0].bimObjects[0].dynamicId
+  //     const promises = [
+  //       this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
+  //         buildingId,
+  //         referenceIds
+  //       }),
+  //     ];
+
+
+  //     const result = await Promise.all(promises);
+  //     this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0], data.center)
+
+  //     return;
+  //   }
+
+
+  // }
+
 
   async getListinfo(typeData, id) {
 
@@ -2136,125 +2387,60 @@ class dataSideApp extends Vue {
 
   }
 
-  async getroomstaticdetails(id) {
 
+  async getStaticDetails(id) {
     const buildingId = localStorage.getItem("idBuilding");
-    const promises_node = [
-      this.$store.dispatch(ActionTypes.GET_NODE_READ, {
+
+    let type = '';
+    let action = '';
+    let referenceId = id || this.$store.state.appDataStore.zoneSelected.dynamicId;
+    const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
+
+    let zoneType = this.selectedZoneType || currentQuery.SpaceSelectedType
+
+    console.warn(zoneType, 'ou est la zonetype');
+
+    switch (zoneType) {
+      case 'geographicRoom':
+        type = 'room';
+        action = ActionTypes.GET_STATIC_DETAILS;
+        break;
+      case 'BIMObject':
+        type = 'equipement';
+        action = ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT;
+        break;
+      case 'geographicFloor':
+        type = 'floor';
+        action = ActionTypes.GET_FLOOR_STATIC_DETAILS;
+        break;
+      default:
+        console.warn('Type de zone non reconnu:', this.selectedZoneType);
+        return;
+    }
+
+    this.referencedType = this.selectedZoneType;
+    this.referencedId = id;
+
+    const result = await Promise.all([
+      this.$store.dispatch(action, {
         buildingId,
-        referenceIds: [id]
+        referenceIds: Array.isArray(referenceId) ? referenceId : [referenceId],
       }),
-    ];
+    ]);
 
-
-    const node_read = await Promise.all(promises_node);
-
-    if (node_read[0].type == 'geographicBuilding') {
-      this.getListinfo('building', id)
-    }
-    else if (node_read[0].type == "geographicRoom") {
-
-      const promises = [
-        this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS, {
-          buildingId,
-          referenceIds: [id]
-        }),
-      ];
-
-      this.referencedType = node_read[0].type
-      this.referencedId = id
-
-
-
-      const result = await Promise.all(promises);
-      this.typdata = 'room'
-      this.floorstaticDetails = result
-      this.filteredEndpoints('room')
-      this.getDocumentation(result)
-      this.getListinfo('room', id)
-      this.getTicket(result)
-      this.filtredAttribut('room')
-      this.createApp()
-
-
-    } else if (node_read[0].type == 'BIMObject') {
-
-
-      this.referencedType = 'BIMObject'
-      this.referencedId = id
-
-      const promises = [
-        this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
-          buildingId,
-          referenceIds: [id]
-        }),
-      ];
-
-      const result = await Promise.all(promises);
-      this.typdata = 'equipement'
-      this.floorstaticDetails = result
-      this.filteredEndpoints('equipement')
-      this.getDocumentation(result)
-      this.getTicket(result)
-      this.getListinfo('equipement', id)
-      this.filtredAttribut('equipement')
-      this.$forceUpdate();
-    } else {
-
-      this.referencedType = 'etage'
-      this.referencedId = id
-
-    }
-
-
+    this.typdata = type;
+    this.floorstaticDetails = result;
+    this.filteredEndpoints(type);
+    this.getDocumentation(result);
+    this.getListinfo(type, id);
+    this.getTicket(result);
+    this.filtredAttribut(type);
+    this.createApp();
+    this.$forceUpdate();
   }
 
 
-  // createApp(tab) {
-  //   let objetApp = [];
-  //   if (!this.config || !this.config.application) {
-  //     return [];
-  //   }
 
-  //   this.config.application.forEach(application => {
-  //     const { name, id, type, targetValue, profileName, unit } = application;
-  //     let appObject = { name, id, value: null, unit: unit };
-
-  //     if (type === "controlEndpoint") {
-  //       const matchedProfile = tab[0].controlEndpoint.find(profile => profile.profileName === profileName);
-  //       if (matchedProfile) {
-  //         if (targetValue) {
-  //           const targetEndpoint = matchedProfile.endpoints.find(endpoint => endpoint.name === targetValue);
-  //           if (targetEndpoint) {
-  //             appObject.value = targetEndpoint.value;
-  //             if (targetEndpoint.unit) {
-  //               appObject.unit = targetEndpoint.unit;
-  //             }
-  //           } else {
-  //             console.warn("Aucun endpoint correspondant trouvé pour la targetValue donnée.");
-  //           }
-  //         } else {
-  //           appObject.value = matchedProfile.endpoints?.length || 5
-  //         }
-  //       } else {
-  //         console.warn('Pas de profil qui match');
-  //       }
-  //     } else if (type === "tickets") {
-  //       if (!targetValue) {
-
-  //         appObject.value = tab[0]?.tickets?.length;
-  //       } else {
-  //         console.warn('Pas de donnée disponible pour les tickets avec targetValue.');
-  //       }
-  //     } else {
-  //       console.warn('Type non supporté, valeur non définie');
-  //     }
-
-  //     objetApp.push(appObject);
-  //   });
-  //   this.appTab = [...objetApp];
-  //   return objetApp;
-  // }
   createApp() {
     this.appTab = this.config.application
   }
@@ -2429,8 +2615,21 @@ class dataSideApp extends Vue {
 
   getTotalArea(rooms) {
     if (!rooms || rooms.length === 0) return 0;
-    return rooms.reduce((total, room) => total + (room.area || 0), 0).toFixed(2);
+
+    let total = 0;
+    for (const room of rooms) {
+      const area = Number(room.area); // Convertir en nombre
+
+      if (!isNaN(area)) {
+        total += area;
+      } else {
+        console.warn('Room with invalid area detected:', room);
+      }
+    }
+
+    return Math.round(total * 100) / 100; // Renvoie un nombre arrondi à 2 décimales
   }
+
 
   extractUniqueInventoryNames() {
     let uniqueNames = new Set();
@@ -2484,23 +2683,47 @@ class dataSideApp extends Vue {
     this.fetchReferenceObjects(dynamicIds)
     this.getInventoryObject(dynamicIds)
   }
+
   async fetchReferenceObjects(referenceIds) {
-    console.warn('JE SUIS DANS LE TEST DE LA PROBABILITÉ DE LA REFERENCE OBJECT', referenceIds);
-    
     const buildingId = localStorage.getItem("idBuilding");
 
-    const promises = [
-      this.$store.dispatch(ActionTypes.GET_REFERENCE_OBJECT_LIST_MULTIPLE, {
-        buildingId,
-        referenceIds
-      }),
-    ];
-    const result = await Promise.all(promises);
+    const result = await this.$store.dispatch(ActionTypes.GET_REFERENCE_OBJECT_LIST_MULTIPLE, {
+      buildingId,
+      referenceIds
+    });
+
     this.referenceObjects = [...result];
-    this.data_loading += 15
-    // console.log('5%');
+    this.data_loading += 15;
+
+    const rooms = result.filter(room => room.type === "geographicRoom");
+
+    rooms.forEach(room => {
+      const roomId = room.dynamicId;
+      const newReferences = room.infoReferencesObjects.map(obj => ({
+        dbid: obj.dbid,
+        bimfileId: obj.bimFileId,
+      }));
+
+      const existing = this.$store.state.appDataStore.roomReferenceObjects[roomId] || [];
+
+      const merged = [...existing];
+      newReferences.forEach(ref => {
+        const isDuplicate = merged.some(e =>
+          e.dbid === ref.dbid && e.bimfileId === ref.bimfileId
+        );
+        if (!isDuplicate) merged.push(ref);
+      });
+
+      this.$store.commit(MutationTypes.SET_ROOM_REFERENCE_OBJET, {
+        roomId,
+        references: merged
+      });
+    });
   }
+
+
   async getInventoryObject(referenceIds) {
+
     const buildingId = localStorage.getItem("idBuilding");
     const promises = [
       this.$store.dispatch(ActionTypes.GET_INVENTORY_MULTIPLE, {
@@ -2510,10 +2733,10 @@ class dataSideApp extends Vue {
     ];
     const result = await Promise.all(promises);
     this.inventory = [...result];
+
     this.countInventoryTypes([...result]);
     this.countSpaceInventory();
     this.data_loading += 15
-    // console.log('15%');
 
   }
 
@@ -2744,7 +2967,6 @@ class dataSideApp extends Vue {
 
   closecol(item, categoryName) {
     if (!this.col[categoryName]) {
-      // Utilisation de $set pour rendre la propriété réactive
       this.$set(this.col, categoryName, []);
     }
 
@@ -2757,176 +2979,94 @@ class dataSideApp extends Vue {
     }
   }
 
+  async getBuildingInventoryObject(ids) {
+    const dynamicIdMap = {};
+    const buildingId = localStorage.getItem("idBuilding");
+    const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
 
-  // async countSpaceInventory(floors) {
-  //   const buildingId = localStorage.getItem("idBuilding");
-  //   const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
+    // Associer chaque contexte à son dynamicId
+    for (const configItem of this.config.inventaire) {
+      if (!dynamicIdMap[configItem.ctx]) {
+        const matchingContext = contextList.find(
+          (context) => context.name === configItem.ctx
+        );
+        if (matchingContext) {
+          dynamicIdMap[configItem.ctx] = matchingContext.dynamicId;
+        } else {
+          console.warn(`Contexte "${configItem.ctx}" non trouvé dans la liste.`);
+        }
+      }
+    }
 
-  //   const dynamicIdMap = {};
-  //   const spaceInventoryMap = new Map();
+    // Maintenant, pour chaque objet inventaire (ctx + cat)
+    const categoryPromises = this.config.inventaire.map(async (configItem) => {
+      const contextId = dynamicIdMap[configItem.ctx];
+      if (!contextId) {
+        console.warn(`Pas de contextId pour "${configItem.ctx}"`);
+        return null;
+      }
 
-  //   for (const configItem of this.config.spaceInventaire) {
-  //     const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
-  //     const matchingContext = contextList.find((context) => context.name === configItem.ctx);
+      // On récupère les catégories du contexte
+      const categories = await this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_LIST, {
+        buildingId,
+        contextId,
+      });
 
-  //     if (matchingContext) {
-  //       dynamicIdMap[configItem.ctx] = matchingContext.dynamicId;
-  //     } else {
-  //       console.warn(`Contexte "${configItem.ctx}" non trouvé.`);
-  //     }
-  //   }
+      // On filtre pour ne garder que la catégorie voulue
+      const matchingCategory = categories.find(cat => cat.name === configItem.cat);
+      if (!matchingCategory) {
+        console.warn(`Catégorie "${configItem.cat}" non trouvée dans le contexte "${configItem.ctx}"`);
+      }
 
-  //   const categoryPromises = Object.entries(dynamicIdMap).map(([ctx, contextId]) =>
-  //     this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_LIST, { buildingId, contextId })
-  //   );
-  //   const resultCategory = await Promise.all(categoryPromises);
+      return {
+        ctx: configItem.ctx,
+        cat: configItem.cat,
+        category: matchingCategory,
+      };
+    });
 
-  //   for (const [ctx, contextId] of Object.entries(dynamicIdMap)) {
-  //     const configItems = this.config.spaceInventaire.filter((item) => item.ctx === ctx);
+    const resultCategory = await Promise.all(categoryPromises);
 
-  //     for (const configItem of configItems) {
-  //       const configCatName = configItem.cat;
-  //       const matchingCategory = resultCategory.flat().find((category) => category.name === configCatName);
+    console.log(resultCategory, ' Résultat final avec contexte + catégorie');
 
-  //       if (!matchingCategory) {
-  //         console.warn(`Catégorie "${configCatName}" non trouvée pour le contexte "${ctx}".`);
-  //         continue;
-  //       }
-
-  //       const categoryDynId = matchingCategory.dynamicId;
-
-  //       const groupList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_GROUP_LIST, {
-  //         buildingId,
-  //         contextId,
-  //         categoryDynId,
-  //       });
-
-  //       let selectedGroups = [];
-
-  //       if (Array.isArray(configItem.grp)) {
-  //         selectedGroups = configItem.grp
-  //           .map((groupName) => groupList.find((group) => group.name === groupName))
-  //           .filter(Boolean);
-  //       } else {
-  //         selectedGroups = groupList;
-  //       }
-
-  //       const key = `${ctx}-${configCatName}`;
-  //       if (!spaceInventoryMap.has(key)) {
-  //         spaceInventoryMap.set(key, {
-  //           context: ctx,
-  //           category: configCatName,
-  //           groups: [],
-  //         });
-  //       }
-
-  //       const inventoryEntry = spaceInventoryMap.get(key);
-
-  //       for (const group of selectedGroups) {
-  //         const roomList = await this.$store.dispatch(ActionTypes.GET_ROOM_LIST, {
-  //           patrimoineId,
-  //           buildingId,
-  //           contextDynId: contextId,
-  //           categoryDynId,
-  //           groupDynId: group.dynamicId,
-  //         });
-
-  //         inventoryEntry.groups.push({
-  //           groupName: group.name,
-  //           rooms: roomList || [],
-  //         });
-  //       }
-  //     }
-  //   }
-
-  //   let spaceInventoryData = Array.from(spaceInventoryMap.values());
-
-  //   const firstFloorItem = Array.isArray(floors) ? floors[0][0] : floors[0];
-
-  //   if (firstFloorItem?.error) {
-  //     console.log('Erreur détectée, aucune filtration appliquée.');
-  //   } else if (firstFloorItem?.type === "geographicRoom") {
-  //     const floorRoomIds = new Set(floors[0].map((room) => room.dynamicId));
-  //     console.log(floorRoomIds, 'has rooms id');
-
-  //     spaceInventoryData.forEach((entry) => {
-  //       entry.groups.forEach((group) => {
-  //         group.rooms = group.rooms.filter((room) => floorRoomIds.has(room.dynamicId));
-  //       });
-
-  //       entry.groups = entry.groups.filter((group) => group.rooms.length > 0);
-  //     });
-
-  //     spaceInventoryData = spaceInventoryData.filter((entry) => entry.groups.length > 0);
-  //     console.log('Filtrage appliqué, seules les rooms présentes dans floors sont conservées.' , spaceInventoryData);
-  //   }
+    // Tu peux retourner le résultat si besoin
+    // return resultCategory.filter(item => item !== null);
+  }
 
 
-  //   const promises_node = [
-  //     this.$store.dispatch(ActionTypes.GET_NODE_READ, {
-  //       buildingId,
-  //       referenceIds: [this.$store.state.appDataStore.zoneSelected.dynamicId]
-  //     }),
-  //   ];
-
-
-  //   const node_read = await Promise.all(promises_node);
-  //   console.log(node_read[0].type, ' aaaaaaaa');
-
-  //   if (node_read[0].type != 'geographicBuilding' && node_read[0].type != 'geographicFloor') {
-  //     console.log('le reead es as building ou geographicFLOOR', node_read[0].type);
-
-  //     this.spaceInventoryData = []
-  //     return
-  //   }
-
-
-
-
-
-
-  //   this.spaceInventoryData = spaceInventoryData
-  //   return spaceInventoryData; 
-  // }
   async countSpaceInventory() {
-
-
     this.data_loading = 75;
-
     const buildingId = localStorage.getItem("idBuilding");
     let contextId = this.$store.state.appDataStore.zoneSelected.dynamicId;
 
     if (contextId === 0) {
       contextId = this.$store.state.appDataStore.buildingInfo.dynamicId
     }
-    // Récupération des infos du node
-    const nodeRead = await this.$store.dispatch(ActionTypes.GET_NODE_READ, {
-      buildingId,
-      referenceIds: [contextId],
-    });
 
-    if (!nodeRead) {
-      // On initialise quand même spaceInventoryData, puis on sort
+    if (this.$store.state.appDataStore.zoneSelected.type == "BIMObject" || this.$store.state.appDataStore.zoneSelected.type == "geographicRoom") {
+
       this.spaceInventoryData = [];
       this.data_loading = 100;
-      return this.spaceInventoryData;
-    }
 
-    if (nodeRead.type !== "geographicFloor" && nodeRead.type !== "geographicBuilding") {
-      this.spaceInventoryData = [];
-      this.data_loading = 100;
-      return this.spaceInventoryData;
+      return [];
     }
 
 
-    // Calcul des floorIds
+    // if (this.$store.state.appDataStore.zoneSelected.type != "geographicFloor" && this.$store.state.appDataStore.zoneSelected.type.type != "building" && this.$store.state.appDataStore.zoneSelected.type.type != undefined) {
+    //   this.spaceInventoryData = [];
+    //   this.data_loading = 100;
+    //   return this.spaceInventoryData;
+    // }
+
     let floorIds = [];
-    if (nodeRead.type === "geographicBuilding") {
-      // Vérifie qu'on est autorisé à récupérer l'inventaire côté building
+    if (this.$store.state.appDataStore.zoneSelected.type == "building" || this.$store.state.appDataStore.zoneSelected.type == undefined) {
+
       if (!this.config.BuildingInventory) {
         this.spaceInventoryData = [];
         this.data_loading = 100;
+
         return this.spaceInventoryData;
+
       }
 
       const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
@@ -2935,9 +3075,8 @@ class dataSideApp extends Vue {
         patrimoineId,
       });
 
-      // Vérifie qu'on a bien un tableau de floors
+
       if (!Array.isArray(floorsResult)) {
-        console.warn('[countSpaceInventory] GET_FLOORS n\'a pas renvoyé un tableau. Inventaire vide.');
         this.spaceInventoryData = [];
         this.data_loading = 100;
         return this.spaceInventoryData;
@@ -2945,28 +3084,22 @@ class dataSideApp extends Vue {
 
       floorIds = floorsResult.map(floor => floor.dynamicId);
     } else {
-      // Dans le cas d'un floor, on récupère simplement son ID
       floorIds = [contextId];
     }
 
-    // Prépare une Map pour accumuler les données d'inventaire
     const spaceInventoryMap = new Map();
 
-    // Vérifie qu'on a bien une config spaceInventaire
     if (!Array.isArray(this.config.spaceInventaire)) {
       this.spaceInventoryData = [];
       this.data_loading = 100;
       return this.spaceInventoryData;
     }
 
-    // Parcourt chaque floor pour constituer l'inventaire
     for (const floorId of floorIds) {
       for (const configItem of this.config.spaceInventaire) {
         const categoryName = configItem.cat;
         const contextName = configItem.ctx;
-
         try {
-          // Récupération de l’inventaire du floor courant
           const inventoryResponse = await this.$store.dispatch(ActionTypes.GET_FLOOR_INVENTORY, {
             id: floorId,
             body: { context: contextName, category: categoryName },
@@ -2974,28 +3107,23 @@ class dataSideApp extends Vue {
             onlyDynamicId: false,
           });
 
-          // Si pas de réponse ou pas un tableau, on skip
           if (!Array.isArray(inventoryResponse) || !inventoryResponse.length) {
-            // console.warn(`[countSpaceInventory] Aucun inventaire pour ${contextName} - ${categoryName} (floor: ${floorId}).`);
             continue;
           }
 
-          // Génère une clé unique pour regrouper
           const mapKey = `${contextName}-${categoryName}`;
           if (!spaceInventoryMap.has(mapKey)) {
             spaceInventoryMap.set(mapKey, {
               context: contextName,
               category: categoryName,
-              groups: new Map(), // Évite les doublons de groupes
+              groups: new Map(),
             });
           }
 
           const inventoryEntry = spaceInventoryMap.get(mapKey);
 
-          // Boucle sur chaque élément de la réponse d’inventaire
           for (const inventoryItem of inventoryResponse) {
             if (Array.isArray(inventoryItem.groupItems) && inventoryItem.groupItems.length > 0) {
-              // Vérifie si le groupe existe déjà, sinon on le crée
               if (!inventoryEntry.groups.has(inventoryItem.name)) {
                 inventoryEntry.groups.set(inventoryItem.name, {
                   groupName: inventoryItem.name,
@@ -3003,7 +3131,6 @@ class dataSideApp extends Vue {
                   rooms: [],
                 });
               }
-              // On ajoute les nouvelles rooms dans le groupe existant
               inventoryEntry.groups.get(inventoryItem.name).rooms.push(
                 ...inventoryItem.groupItems.map(room => ({
                   dynamicId: room.dynamicId,
@@ -3018,32 +3145,49 @@ class dataSideApp extends Vue {
       }
     }
 
-
-    // Conversion finale : Map -> Array
     this.spaceInventoryData = Array.from(spaceInventoryMap.values()).map(entry => ({
       context: entry.context,
       category: entry.category,
       groups: Array.from(entry.groups.values()),
     }));
 
+
     this.data_loading = 100;
     return this.spaceInventoryData;
   }
 
 
-
-
-
   async countInventoryTypes(floors) {
+    console.error(floors, 'je suis dans linventaire batiement ');
 
-    const inventoryCounts = {};
+
     const inventoryDbids = {};
-
     const buildingId = localStorage.getItem("idBuilding");
-
     const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
-
     const dynamicIdMap = {};
+
+
+    // if (this.$store.state.appDataStore.zoneSelected.type == "building" || this.$store.state.appDataStore.zoneSelected.type == undefined) {
+    //   console.log('on rentre dans le bon element de la lala');
+
+    //   if (!this.config.BuildingInventory) {
+    //     this.spaceInventoryData = [];
+    //     this.data_loading = 100;
+
+    //     return this.spaceInventoryData;
+
+    //   }
+    //   const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
+    //   const floorsResult = await this.$store.dispatch(ActionTypes.GET_FLOORS, {
+    //     buildingId,
+    //     patrimoineId,
+    //   });
+    //   console.log('on rentre dans le bon element de la lala' , );
+    //   // floors = floorsResult
+    // }
+
+    console.log(contextList, "contextList");
+
 
     this.data_loading += 25
 
@@ -3074,7 +3218,6 @@ class dataSideApp extends Vue {
 
       for (const configItem of configItems) {
         const configCatName = configItem.cat;
-
         const matchingCategory = resultCategory.flat().find(
           (category) => category.name === configCatName
         );
@@ -3092,23 +3235,18 @@ class dataSideApp extends Vue {
           categoryDynId,
         });
 
-        // Gestion des groupes sous forme de tableau
         const groupIds = [];
         if (Array.isArray(configItem.grp)) {
           configItem.grp.forEach((groupName) => {
             const matchingGroup = groupList.find((group) => group.name === groupName);
             if (matchingGroup) {
               groupIds.push(matchingGroup.dynamicId);
-            } else {
-              // console.warn(`Groupe "${groupName}" non trouvé pour la catégorie "${configCatName}".`);
             }
           });
         } else if (configItem.grp) {
           const matchingGroup = groupList.find((group) => group.name === configItem.grp);
           if (matchingGroup) {
             groupIds.push(matchingGroup.dynamicId);
-          } else {
-            // console.warn(`Groupe "${configItem.grp}" non trouvé pour la catégorie "${configCatName}".`);
           }
         } else {
           groupIds.push(...groupList.map((group) => group.dynamicId));
@@ -3124,7 +3262,6 @@ class dataSideApp extends Vue {
         });
       }
     }
-
 
     const categorizedResults = {};
     floors[0].forEach((floor) => {
@@ -3143,8 +3280,6 @@ class dataSideApp extends Vue {
             if (!matchingCategory) {
               return;
             }
-
-
 
             matchingCategory.inventory.forEach((group) => {
               if (!groupIds.includes(group.dynamicId)) {
@@ -3184,13 +3319,7 @@ class dataSideApp extends Vue {
             });
           });
         }
-
-
       }
-      // else {
-      //   console.warn(`Aucun inventaire trouvé pour cet étage :`, floor);
-      // }
-
     });
 
     this.data_loading += 60
@@ -3215,20 +3344,15 @@ class dataSideApp extends Vue {
     this.referencedId = 0;
     this.referencedType = ''
     if (this.selectedZone.type != "building") {
-      // console.log('la liste 11');
-
+      this.getStaticDetails(this.selectedZone.dynamicId);
       if (this.data.length == 0) {
-        this.getroomstaticdetails(this.selectedZone.dynamicId)
         this.getInventoryObject([this.selectedZone.dynamicId])
       } else {
-        this.getfloorstaticdetails(this.floor)
         this.getDataDynamicIdtab()
       }
     }
     else {
       this.inventoyList = []
-
-
     }
 
   }
@@ -3246,6 +3370,12 @@ class dataSideApp extends Vue {
     this.timeactuelle = this.getFormattedDateFromTemporalData();
     this.reloadNewChartData();
   }
+
+  @Watch('state.viewInfo')
+  onViewInfoChanged(newVal: any) {
+    this.viewInfo = newVal
+  }
+
 
   @Watch("documentation")
   watchDocumentation(newVal) {
@@ -3275,9 +3405,6 @@ class dataSideApp extends Vue {
 
     this.itemOverflowMenu = null
     if (this.selectedZone.type === "building") {
-
-
-      // this.countSpaceInventory()
       this.loadBuildingInfo()
       this.isBuildingSelected = true;
       this.$store.commit(MutationTypes.SET_DATA, []);
@@ -3287,6 +3414,7 @@ class dataSideApp extends Vue {
       this.retriveData();
     }
   }
+
   @Watch("showDocvalue")
   watchShowDocvalue(newVal) {
     this.showDocvalue = newVal;
@@ -3298,7 +3426,6 @@ class dataSideApp extends Vue {
       this.data_loading = 10;
     }
   }
-
 
   @Watch("floorstaticDetails")
   async watchFloorstaticDetails(newVal, oldVal) {
@@ -3326,7 +3453,6 @@ class dataSideApp extends Vue {
     }
   }
 
-
   @Watch("dynamicItems")
   editSelection() {
     if (!this.formattedData.length) {
@@ -3336,33 +3462,47 @@ class dataSideApp extends Vue {
   }
 
   @Watch("data")
-  watchData() {
-    
-    if (this.selectedZone.dynamicId == this.$store.state.appDataStore.buildingInfo.dynamicId) {
-      console.warn('building enfin ?');
-      this.typdata = 'building'
+  async watchData() {
+    console.error('watch sdata ??');
+
+    this.referencedId = this.selectedZone.dynamicId;
+    const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query };
+    console.error('watch sdata ??', currentQuery.SpaceSelectedType);
+
+    this.referencedType = this.selectedZone.type;
+    if (this.selectedZoneType === 'geographicFloor' || currentQuery.SpaceSelectedType == 'geographicFloor') {
+      this.getStaticDetails(this.floor);
+      this.getDataDynamicIdtab();
+    } else if (this.selectedZoneType === 'geographicRoom' || this.selectedZoneType === 'BIMObject' || currentQuery.SpaceSelectedType == 'BIMObject' || currentQuery.SpaceSelectedType == 'geographicRoom') {
+      this.getInventoryObject([this.selectedZone.dynamicId]);
+      this.getStaticDetails(this.selectedZone.dynamicId);
+    } else {
+      this.inventoyList = [];
     }
 
-    this.referencedId = this.selectedZone.dynamicId
-    if (this.selectedZone.type == undefined) {
-      this.referencedType = "etage"
-    } else this.referencedType = this.selectedZone.type;
+    if (currentQuery.SpaceSelectedType == 'building' || currentQuery.SpaceSelectedTypee == undefined) {
+      this.typdata = 'building';
+      this.referencedType = 'building';
+      // this.getInventoryObject([this.selectedZone.dynamicId]);
+      const buildingId = localStorage.getItem("idBuilding");
 
-
-    if (this.selectedZone.type != "building") {
-      if (this.data.length == 0) {
-
-        this.getroomstaticdetails(this.selectedZone.dynamicId)
-        this.getInventoryObject([this.selectedZone.dynamicId])
-      } else {
-        this.getfloorstaticdetails(this.floor)
-        this.getDataDynamicIdtab()
-      }
+      const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
+      const floorsResult = await this.$store.dispatch(ActionTypes.GET_FLOORS, {
+        buildingId,
+        patrimoineId,
+      });
+      const floorIds = floorsResult.map(floor => floor.dynamicId);
+      console.log(floorIds);
+      // this.getBuildingInventoryObject(floorIds);
+      this.countSpaceInventory();
+      this.inventoyList = [];
+      console.error('watch sdata  building ??', currentQuery);
+      return;
     }
-    else {
-      this.inventoyList = []
-    }
+
   }
+
+
 }
 
 export { dataSideApp };
@@ -3384,19 +3524,19 @@ export default dataSideApp;
 }
 
 .btn_inventory {
-  border: 1px solid #14202c;
+  border: 1px solid #d1d1d1;
   background-color: #ffffff;
   color: #14202c;
   cursor: pointer;
   padding: 8px;
   border-radius: 5px;
   font-size: 18px;
-  font-weight: bold;
   display: flex;
   user-select: none;
   margin-left: 7px;
   margin-top: 5px;
   margin-bottom: 12px;
+  // font-weight: 700;
 }
 
 .app_access_fl {
@@ -3469,8 +3609,6 @@ export default dataSideApp;
   }
 }
 
-
-
 .graphDataContainer {
   display: flex;
   justify-content: space-between;
@@ -3486,7 +3624,6 @@ export default dataSideApp;
   display: flex;
   padding: 10px;
 }
-
 
 .back_blanc {
   margin: 6px;
@@ -3591,8 +3728,6 @@ a {
   cursor: pointer;
 }
 
-
-
 .v-input__icon {
   background-color: red !important;
 }
@@ -3622,14 +3757,6 @@ a {
   justify-content: space-between;
   background-color: white;
 }
-
-// .v-select__selection--comma {
-//   font-size: 12px ;
-//   font-family: Arial, Helvetica, sans-serif;
-//   overflow: visible !important;
-//   font-weight: 200 !important;
-// }
-
 
 @media (max-width: 960px) {
   .inventory-item {
@@ -3709,7 +3836,6 @@ a {
   left: 50%;
   transform: translate(30%, -0%);
   filter: blur(0rem);
-  /* Pour centrer */
 }
 
 .Spinal_card:hover::before {
@@ -3954,8 +4080,6 @@ a {
 }
 
 .data_cardDescription {
-  // border-right: 1px solid rgb(202, 202, 202);
-  // width: 87%;
   width: 100%;
   height: 100%;
   display: flex;
@@ -4056,39 +4180,18 @@ a {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .inventory-wrapper {
   display: flex;
   flex-direction: column;
   padding-left: 8px;
-  // gap: 16px;
 }
 
 .category-block {
   border: 1px solid #ddd;
-  // border-radius: 6px;
   overflow: hidden;
 }
 
 .category-header {
-  // background-color: #f5f5f5;
   padding: 12px;
   font-weight: bold;
   display: flex;

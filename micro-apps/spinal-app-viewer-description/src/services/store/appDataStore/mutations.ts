@@ -49,6 +49,7 @@ export enum MutationTypes {
 	SET_BUILDING_INFO = "SET_BUILDING_INFO",
 	SET_COMPONENT_SELECTED = "SET_COMPONENT_SELECTED",
 	SET_LAST_LOADED_ZONE = "SET_LAST_LOADED_ZONE",
+	SET_ROOM_REFERENCE_OBJET = "SET_ROOM_REFERENCE_OBJET"
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -69,8 +70,9 @@ export type MutationsAppData<S = StateAppData> = {
 	[MutationTypes.REMOVE_ITEM_TO_COLOR](state: StateAppData): void;
 	[MutationTypes.SET_BUILDING_INFO](state: StateAppData, item): void;
 	[MutationTypes.SET_COMPONENT_SELECTED](state: StateAppData, item): void;
-       
-    }
+	[MutationTypes.SET_ROOM_REFERENCE_OBJET](state: S, payload: { roomId: number; references: { bimfileId: number; dbid: number }[] }): void;
+
+}
 
 export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 	[MutationTypes.SET_BUILDINGS](state: StateAppData, payload: IGetAllBuildingsRes[]): void {
@@ -139,6 +141,9 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 		state.buildingInfo = item;
 	},
 	[MutationTypes.SET_LAST_LOADED_ZONE](state: StateAppData, payload: ISpaceSelectorItem): void {
-        state.lastLoadedZone = payload;
-    },
+		state.lastLoadedZone = payload;
+	},
+	[MutationTypes.SET_ROOM_REFERENCE_OBJET](state: StateAppData, { roomId, references }: { roomId: number; references: { bimfileId: number; dbid: number }[] }): void {
+		state.roomReferenceObjects[roomId] = references;
+	},
 };

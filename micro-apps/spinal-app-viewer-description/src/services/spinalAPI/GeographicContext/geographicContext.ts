@@ -79,6 +79,12 @@ export async function getpositionRoom(buildingId: string, roomDynId: number): Pr
   let result = await spinalAPI.get<IZoneItem[]>(url);
   return result.data;
 }
+// export async function getNodeParent(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
+//   const spinalAPI = SpinalAPI.getInstance();
+//   const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${roomDynId}/  `);
+//   let result = await spinalAPI.get<IZoneItem[]>(url);
+//   return result.data;
+// }
 
 export async function getTimeSeriesAsync(buildingId: string, endpointId: string, begin: number, end: number) {
   const spinalAPI = SpinalAPI.getInstance();
@@ -142,6 +148,20 @@ export async function getParent(buildingId: string, referenceIds: number): Promi
   let result = await spinalAPI.get<IZoneItem[]>(url);
   return result.data;
 }
+
+
+export async function getNodeParent(buildingId: string, referenceIds: number[]): Promise<any> {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/node/parents_multiple');
+  try {
+    const response = await spinalAPI.post<any>(url, referenceIds);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des objets de référence:', error);
+    throw error;
+  }
+}
+
 
 
 export async function getAttributListMultiple(buildingId: string, referenceIds: number[]): Promise<any> {

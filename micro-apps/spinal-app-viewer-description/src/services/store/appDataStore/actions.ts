@@ -26,7 +26,7 @@ import { getBuildings, getBuildingById } from "../../spinalAPI/GeographicContext
 import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
-import { postFloorInventory, postRoomInventory, getEquipments, getBuilding, getFloors, getRooms, getStaticDetails, getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails, postBIMObjectInfo, getBuildingInfo, getBuildingStaticDetails, getDocumentation, postDownloadFile, getParent, getAttributListMultiple, getTimeSeriesAsync, getNodeRead, getTicket, getpositionEquipement, getpositionRoom, getFile } from "../../spinalAPI/GeographicContext/geographicContext";
+import { postFloorInventory, postRoomInventory, getEquipments, getBuilding, getFloors, getRooms, getStaticDetails, getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails, postBIMObjectInfo, getBuildingInfo, getBuildingStaticDetails, getDocumentation, postDownloadFile, getParent, getAttributListMultiple, getTimeSeriesAsync, getNodeRead, getTicket, getpositionEquipement, getpositionRoom, getFile, getNodeParent } from "../../spinalAPI/GeographicContext/geographicContext";
 import { getContextList, getContextCategoryList, getContextCategoryGroupList, getroomList } from "../../spinalAPI/ContextGroup/groupContext";
 import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../../../../global-components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
@@ -225,6 +225,20 @@ export const actions = {
 		}
 	},
 
+	async [ActionTypes.GET_NODE_PARENTS]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: any }): Promise<any> {
+		// console.log('Début de l\'action GET_REFERENCE_OBJECT_LIST_MULTIPLE',buildingId , referenceIds);
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			// const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
+			const result = await getNodeParent(buildingId, referenceIds);
+			// console.log('Récupération de l objet de référence réussie:', result);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
+
 	async [ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
@@ -269,7 +283,7 @@ export const actions = {
 			throw error;
 		}
 	},
-	async [ActionTypes.GET_PARENT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
+	async [ActionTypes.GET_PARENT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: any }): Promise<any> {
 
 		const spinalAPI = SpinalAPI.getInstance();
 		try {
@@ -691,18 +705,29 @@ export const actions = {
 
 	async [ActionTypes.OPEN_VIEWER]({ commit, dispatch, state }: AugmentedActionContextAppData, playload: { onlyThisModel: boolean; config: IConfig; item: any }): Promise<void> {
 		try {
-
+			console.warn('LE OPEN VIEWER LE TYPE DU TRUC EST :playload.item.type', playload.item.type);
+			
 			if (playload.item.type === "building") {
 				const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
 					buildingId: playload.item.buildingId,
 					forceUpdate: false,
 				})
+				const viewerInfo = playload.config.viewerInfoBuilding;
 				const body = {
-					dynamicId: [building.dynamicId],
-					roomRef: false,
-					floorRef: true,
-					equipements: true,
+					dynamicId: [playload.item.dynamicId],
+					roomRef: viewerInfo.roomRef,
+					floorRef: viewerInfo.floorRef,
+					equipements: false,
 					dbIdsToAdd: [],
+				};
+				if (viewerInfo.equipments === "all") {
+					body.equipements = true;
+					body.dbIdsToAdd = [];
+				} else if (viewerInfo.equipments === "groupItem") {
+					body.equipements = false;
+					const map = await dispatch(ActionTypes.GET_GROUPS_ITEMS, { config: playload.config, buildingId: playload.item.buildingId });
+					console.log('Get group items : ', map);
+					body.dbIdsToAdd = classifyItemByBimFileId(map, playload.item.dynamicId, playload.item.type);
 				}
 				// console.log('body to load -----> : ', body);
 				// console.log('playload item to load -----> : ', playload.item);
@@ -716,6 +741,8 @@ export const actions = {
 
 			}
 			const viewerInfo = playload.config.viewerInfo;
+
+
 			const body = {
 				dynamicId: [playload.item.dynamicId],
 				roomRef: viewerInfo.roomRef,

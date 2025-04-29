@@ -1,7 +1,7 @@
 <template>
-  <v-dialog v-model="isDialogOpen" persistent max-width="65%"
-    style="display: flex !important;gap: 20px !important; font-size: 12px !important; overflow: hidden; background: white !important;   border-radius: 20px !important;">
-    <div class="content">
+  <v-dialog v-model="isDialogOpen" persistent
+    style="display: flex !important;gap: 20px !important; font-size: 12px !important; overflow: hidden; background: white !important;border-radius: 20px !important;">
+    <div class="contentPop">
 
 
       <div v-if="loadingStatus === 'loading'"
@@ -19,7 +19,8 @@
       </div>
 
 
-      <div style="padding: 10px; align-items: center;" class="w-full flex justify-between border-bottom">
+      <div style="padding: 10px; align-items: center;max-height: 100px;"
+        class="w-full flex justify-between border-bottom">
         <span class="headline">Creer un inventaire</span>
         <div style="display: flex; gap: 10px;">
           <!-- <button type="submit" class="save-btn">
@@ -29,8 +30,7 @@
         </div>
 
       </div>
-      <v-card elevation="0"
-        style="overflow-y: auto !important; width: 100% !important; height: 100%; padding-top: 10px;">
+      <v-card elevation="0" style="width: 100% !important; height: 100%; padding-top: 10px;">
         <div class="w-full h-full overflow-hidden overflow-y-auto">
           <div style="width: 100%; padding: 25px;">
             <v-card-text style="min-height: 50px;">
@@ -43,7 +43,8 @@
                 <v-row class="flex justify-center items-center" style="padding: 10px">
                   <span style="text-align: center; font-weight: 800; font-size: 16px;">Selectionez un type d'inventaire:
                   </span>
-                  <span style="width: 150px; height: 38px;" :class="['cursor-pointer chip', { 'checked': item.checked }]" v-for="(item, index) in prioritie"
+                  <span style="width: 150px; height: 38px;"
+                    :class="['cursor-pointer chip', { 'checked': item.checked }]" v-for="(item, index) in prioritie"
                     @click="checkPrioritie(index)">
                     <span class="icon-check" v-if="item.checked">&#10003;</span>
                     <span style="font-weight: 700; text-transform: capitalize;"> {{ item.name }}</span>
@@ -193,15 +194,14 @@ export default {
       if (newVal != null) {
         setTimeout(() => {
           this.remove_animation = null;
-        }, 500);
+        }, 200);
       }
     },
     loadingStatus(newVal) {
-      console.warn('la new val ', newVal);
       if (newVal === 'end') {
         setTimeout(() => {
           this.loadingStatus = 'idle';
-        }, 1500); // 2000ms = 2 secondes
+        }, 1300); // 2000ms = 2 secondes
       }
     },
     prioritie: {
@@ -303,9 +303,9 @@ export default {
     },
 
     async GetInventory() {
-      this.loadingStatus = 'loading'; 
-      console.warn('l inventaire charche 1 ' ,  this.currentType ,this.typedata);
-      
+      this.loadingStatus = 'loading';
+      console.warn('l inventaire charche 1 ', this.currentType, this.typedata);
+
       try {
         if (this.typedata === 'equipement' || this.currentType == "BIMObject") {
           this.loadingStatus = 'end';
@@ -321,11 +321,11 @@ export default {
           });
 
           this.$emit('inventory-loaded', inventoryResponse);
-        
-          this.loadingStatus = 'end'; 
+
+          this.loadingStatus = 'end';
         }
 
-        else if (this.typedata === 'floor' || this.currentType == "geographicFloor" ) {
+        else if (this.typedata === 'floor' || this.currentType == "geographicFloor") {
           console.warn('l inventaire charche 2 , floor ');
 
           const inventoryResponse = await this.$store.dispatch(ActionTypes.GET_FLOOR_INVENTORY, {
@@ -372,11 +372,11 @@ export default {
           }
 
           this.$emit('inventory-loaded', allInventories);
-          this.loadingStatus = 'end'; 
+          this.loadingStatus = 'end';
         }
       } catch (err) {
         console.error("Erreur GetInventory globale :", err);
-        this.loadingStatus = 'error'; 
+        this.loadingStatus = 'error';
       }
     }
     ,
@@ -434,6 +434,20 @@ export default {
 
 
 <style>
+.contentPop {
+  background-color: #fff;
+  border-radius: 24px;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  /* height: calc(100vh - 200px); */
+  min-height: 80vh;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
 .category-item.selected {
   background-color: #14202c;
   color: white;

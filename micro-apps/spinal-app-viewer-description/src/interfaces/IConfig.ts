@@ -27,6 +27,7 @@ import { ActionTypes } from "./vuexStoreTypes";
 export interface IConfig {
 	viewButtons: "base" | "advanced";
 	viewerInfo: { roomRef: boolean; floorRef: boolean; equipments: "all" | "groupItem" | "none" };
+	viewerInfoBuilding: { roomRef: boolean; floorRef: boolean; equipments: "all" | "groupItem" | "none" };
 	sprites: boolean;
 	temporality: ITemporality[];
 	application?: IApplication[];

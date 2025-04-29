@@ -29,7 +29,7 @@
                     style="margin-top: 2px;">
                     {{ parseFloat(attribut.value).toFixed(1) }}m²
                   </div>
-                </div>  
+                </div>
               </div>
 
             </div>
@@ -283,13 +283,17 @@ export default {
     onClickNavigate() {
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { navigate: 'la page', node: this.data });
+      console.warn('Navigation triggered', this.data);
       const query = {
         app: window.parent.router.query.app,
         buildingId: this.data.buildingId,
         spaceSelectedId: this.data.dynamicId,
-        spaceSelectedType: this.data.type,
+        spaceSelectedType: this.data?.data?.type || this.data.type,
         name: this.data.name
       };
+
+      console.warn('query !!!!!!!!!!!!!!!!!!!!!!!!!!!!', query);
+
 
       window.parent.routerFontion.customPush(window.parent.router.path, query);
     },

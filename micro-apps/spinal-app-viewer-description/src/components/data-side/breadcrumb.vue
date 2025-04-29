@@ -5,7 +5,7 @@
         {{ building }}
       </v-breadcrumbs-item>
     </div>
-    <div class="breadcrumb-item" @click="setPosition(id_etage, etage, 'geographicFloor'); clearRoom()">
+    <div class="breadcrumb-item" @click="setPosition(id_etage, etage, 'geographicFloor');">
       <v-breadcrumbs-item v-if="etage">
         {{ etage }}
       </v-breadcrumbs-item>
@@ -44,7 +44,6 @@ export default defineComponent({
       required: true
     },
     ids: {
-      type: Number,
       required: true
     }
   },
@@ -63,41 +62,22 @@ export default defineComponent({
     };
   },
   async mounted() {
-    // console.error('////////////////////////////////////////////////');
-    // console.error('////////////////////////////////////////////////');
-    console.warn("combinedIdsAndQuery", this.combinedIdsAndQuery);
+
   },
   watch: {
-    combinedIdsAndQuery: {
-      immediate: true,
-      handler([newIds, newSpaceSelectedId]) {
-        this.handleBreadcrumbUpdate(newIds, newSpaceSelectedId);
-      }
-    },
 
-    // 👇 Ce nouveau watch déclenche aussi handleBreadcrumbUpdate quand `type` change
-    type(newType) {
-      const [newIds, newSpaceSelectedId] = this.combinedIdsAndQuery;
-      this.handleBreadcrumbUpdate(newIds, newSpaceSelectedId, newType);
-    }
-  }
-  ,
-  computed: {
-    combinedIdsAndQuery() {
-      return [this.ids, window.parent.routerFontion.apps[0]._route.query.spaceSelectedId];
+
+    '$store.state.appDataStore.zoneSelected.dynamicId'(newType, oldType) {
+      // console.log('Changement de type détecté depuis le store !');
+      // const [newIds, newSpaceSelectedId] = this.combinedIdsAndQuery;
+      this.handleBreadcrumbUpdate(this.$store.state.appDataStore.zoneSelected.dynamicId || window.parent.routerFontion.apps[0]._route.query.spaceSelectedId, this.$store.state.appDataStore.zoneSelected.type || window.parent.routerFontion.apps[0]._route.query.SpaceSelectedType);
     }
   }
 
   ,
   methods: {
 
-    async handleBreadcrumbUpdate(newIds, newSpaceSelectedId, currentType = this.type) {
-      console.warn("🔁 handleBreadcrumbUpdate avec type:", currentType);
-
-      if (!currentType || !newIds || newIds === 0) {
-        console.warn("⛔️ Données insuffisantes pour traiter le breadcrumb");
-        return;
-      }
+    async handleBreadcrumbUpdate(newSpaceSelectedId, currentType) {
 
       try {
         const buildingId = localStorage.getItem("idBuilding");
@@ -105,25 +85,15 @@ export default defineComponent({
         this.id_building = res1.dynamicId;
         this.building = res1.name;
 
-        if (this.id_building == newIds) {
-          this.etage = null;
-          this.id_etage = null;
-          this.id_piece = null;
-          this.id_building = null;
-          this.piece = null;
-          this.equipement = null;
-          this.building = null;
-          this.show = false;
-          return;
-        }
 
         switch (currentType) {
           case 'BIMObject': {
+            console.warn('bim boject , 112v');
+
             const result = await this.$store.dispatch(ActionTypes.GET_POSTION_EQUIPEMENT, {
               buildingId,
-              referenceIds: newIds,
+              referenceIds: newSpaceSelectedId,
             });
-            console.warn("✅ [BIMObject] Résultat :", result);
 
             this.etage = result.info.floor?.name || null;
             this.id_etage = result.info.floor?.dynamicId || null;
@@ -131,15 +101,17 @@ export default defineComponent({
             this.id_piece = result.info.room?.dynamicId || null;
             this.equipement = result.name || null;
             this.building = result.info.building?.name || null;
+
+
             break;
           }
 
           case 'geographicRoom': {
             const result = await this.$store.dispatch(ActionTypes.GET_POSTION_ROOM, {
               buildingId,
-              referenceIds: newIds,
+              referenceIds: newSpaceSelectedId,
             });
-            console.warn("✅ [Room] Résultat :", result);
+            // console.warn("✅ [Room] Résultat :", result);
 
             this.etage = result.info.floor?.name || null;
             this.id_etage = result.info.floor?.dynamicId || null;
@@ -149,37 +121,25 @@ export default defineComponent({
             this.building = result.info.building?.name || null;
             break;
           }
-
+          case undefined:
           case 'building': {
-            if (!newSpaceSelectedId) break;
 
-            const result = await this.$store.dispatch(ActionTypes.GET_NODE_READ, {
-              buildingId,
-              referenceIds: [newSpaceSelectedId],
-            });
-            console.warn("✅ [Building] Résultat :", result);
-
-            if (result.type === 'geographicFloor') {
-              this.etage = result.name || null;
-              this.id_etage = result.dynamicId || null;
-              this.piece = null;
-              this.equipement = null;
-              this.show = true;
-            } else {
-              this.show = false;
-            }
+            this.etage = null;
+            this.id_etage = null;
+            this.piece = null;
+            this.equipement = null;
+            this.show = false;
+            this.building = null
             break;
           }
 
           case 'etage':
           case 'geographicFloor': {
-            if (!newSpaceSelectedId) break;
 
             const result = await this.$store.dispatch(ActionTypes.GET_NODE_READ, {
               buildingId,
-              referenceIds: [newIds],
+              referenceIds: [newSpaceSelectedId],
             });
-            console.warn("✅ [Etage] Résultat :", result);
 
             if (result.type === 'geographicFloor') {
               this.etage = result.name || null;
@@ -194,7 +154,7 @@ export default defineComponent({
           }
 
           default:
-            console.warn("❓ Type non pris en charge :", currentType);
+            // console.warn("❓ Type non pris en charge :", currentType);
             this.etage = null;
             this.piece = null;
             this.equipement = null;
@@ -204,33 +164,16 @@ export default defineComponent({
         console.error('❌ Erreur breadcrumb:', error);
       }
 
-      console.log("📌 BREADCRUMB DEBUG:");
-      console.log("building:", this.building);
-      console.log("etage:", this.etage);
-      console.log("piece:", this.piece);
-      console.log("equipement:", this.equipement);
-      console.log("show:", this.show);
+
     }
     ,
-    clearRoom() {
+
+
+    setPosition(id, position: string, type: string) {
+
       if (localStorage.getItem("viewer_loaded") == 'unload')
         return
-      this.piece = null;
-      this.equipement = null;
-
-    },
-    clearFLoor() {
-      this.piece = null;
-      this.equipement = null;
-      this.show = false;
-      this.etage = null;
-    },
-
-    setPosition(id, position: string , type: string) {
-      if (localStorage.getItem("viewer_loaded") == 'unload')
-        return
-      const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
-      if (id == currentQuery.spaceSelectedId)
+      if (id == this.$store.state.appDataStore.zoneSelected.dynamicId)
         return
       const buildingId = localStorage.getItem("idBuilding");
       const item = {
@@ -246,14 +189,17 @@ export default defineComponent({
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { navigate: 'la page', node: item });
       this.currentPosition = position;
 
+
       const query = {
         app: window.parent.router.query.app,
         buildingId: buildingId,
         spaceSelectedId: id,
-        name: position
+        name: position,
+        SpaceSelectedType: type,
       };
+      if (window.parent.router.query.spaceSelectedId != this.$store.state.appDataStore.zoneSelected.dynamicId)
+        window.parent.routerFontion.customPush(window.parent.router.path, query)
 
-      window.parent.routerFontion.customPush(window.parent.router.path, query)
 
     }
   }

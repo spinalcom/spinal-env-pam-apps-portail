@@ -45,4 +45,5 @@ export const state = {
 	itemToHide : undefined as any,
 	itemToColor : undefined as any,
 	componentSelected : undefined as any,
+	roomReferenceObjects: {} as Record<number, { bimfileId: number; dbid: number }[]>,
 };

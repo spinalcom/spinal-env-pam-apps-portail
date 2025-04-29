@@ -294,6 +294,7 @@ class SpaceSelector extends Vue {
     if (!currentQuery.app) {
       this.viewerLoaded = true
       localStorage.setItem("viewer_loaded", "loaded");
+      EventBus.$emit('loadedviewer');
     } else {
       // TODO
       const currentStatus = ["loaded", "initialize"].includes(localStorage.getItem("viewer_loaded") || "");

@@ -135,13 +135,16 @@ class App extends Vue {
     mode: 'null',
     name: '',
     spaceSelectedId: '',
-    buildingId: ''
+    buildingId: '',
+    spaceSelectedType: '',
   };
   loadingdata: boolean = false
   firstCOlor: boolean = false;
   coloredRoom: null
   floor: any = null
   async mounted() {
+    console.warn('112v , chochola');
+
     localStorage.setItem("viewer_loaded", 'initialize');
     this.viewerManager = ViewerManager.getInstance();
     this.RemoveEventHandlers();
@@ -192,24 +195,6 @@ class App extends Vue {
     // );
     // console.log(building);
 
-    const buildingId = localStorage.getItem("idBuilding");
-    const building = await this.$store.dispatch(
-      ActionTypes.GET_BOS_BUILDING,
-      {
-        buildingId: buildingId,
-      }
-    );
-    this.$store.state.appDataStore.zoneSelected
-    this.$store.commit(MutationTypes.SET_BUILDING_INFO, building);
-    const item = {
-      buildingId: localStorage.getItem("idBuilding"),
-      dynamicId: building.dynamicId,
-      parents: [],
-      type: "building",
-    }
-
-
-    this.onActionClick({ button: { onclickEvent: ActionTypes.OPEN_VIEWER }, item: item });
 
 
     if (window.innerWidth < 900) {
@@ -240,18 +225,17 @@ class App extends Vue {
   }
 
   gotoView(data) {
-    console.log('les data instance');
-
     const buildingId = localStorage.getItem("idBuilding");
     this.query.spaceSelectedId = data.dynamicId
     this.query.name = data.name
     this.query.buildingId = buildingId
-
+    this.query.spaceSelectedType = data.type;
 
     const item = {
       buildingId: buildingId,
       dynamicId: data.dynamicId,
-      name: data.name
+      name: data.name,
+      type: data.type,
     };
     const button = {
       "title": "charger",
@@ -269,7 +253,7 @@ class App extends Vue {
       "dynamicId": data.dynamicId,
       "name": data.name,
       "buildingId": buildingId,
-      "type": "geographicFloor",
+      "type": data.type,
     }
 
     if (this.$refs['space-selector']) {
@@ -277,6 +261,7 @@ class App extends Vue {
       // this.$refs['space-selector'].closeItem(itemToSelect);
     }
     this.openSpaceSelector = false
+    this.replaceRoute();
   }
 
 
@@ -303,6 +288,8 @@ class App extends Vue {
     //   this.query.spaceSelectedId = '24063840'
     //   this.replaceRoute();
     // }
+
+
     if (v.type == "geographicFloor")
       this.floor = this.query.spaceSelectedId
 
@@ -317,7 +304,7 @@ class App extends Vue {
     this.$store.commit(MutationTypes.SET_TEMPORALITY, v);
   }
 
-  applyURLParam(query) {
+  async applyURLParam(query) {
 
     this.query.mode = query.mode
     this.query.buildingId = query.buildingId
@@ -331,7 +318,6 @@ class App extends Vue {
     } else if (query.mode == "data") {
       this.isActive = true
     }
-    // console.warn(query.spaceSelectedId);
 
 
     if (query.spaceSelectedId) {
@@ -366,6 +352,29 @@ class App extends Vue {
       if (this.$refs['space-selector']) {
         this.$refs['space-selector'].select(itemToSelect);
       }
+    }
+    else {
+      console.log('112v ici ?');
+      
+      const buildingId = localStorage.getItem("idBuilding");
+      const building = await this.$store.dispatch(
+        ActionTypes.GET_BOS_BUILDING,
+        {
+          buildingId: buildingId,
+        }
+      );
+      this.$store.commit(MutationTypes.SET_BUILDING_INFO, building);
+
+      const item = {
+        buildingId: localStorage.getItem("idBuilding"),
+        dynamicId: building.dynamicId,
+        parents: [],
+        type: "building",
+      }
+
+
+      this.onActionClick({ button: { onclickEvent: ActionTypes.OPEN_VIEWER }, item: item });
+
     }
     this.openSpaceSelector = false
   }
@@ -547,6 +556,8 @@ class App extends Vue {
 
 
   onActionClick({ button, item }) {
+    console.warn('112v', item);
+
 
     this.loadingdata = !this.loadingdata
     const buildingId = localStorage.getItem("idBuilding");
@@ -608,12 +619,13 @@ class App extends Vue {
         this.query.spaceSelectedId = result.node.dynamicId
         this.query.name = result.node.name
         this.query.buildingId = result.node.buildingId
-
+        this.query.spaceSelectedType = result.node?.data?.type || result.node.type;
 
         const item = {
           buildingId: result.node.buildingId,
           dynamicId: result.node.dynamicId,
-          name: result.node.name
+          name: result.node.name,
+          type: result.node?.data?.type || result.node.type
         };
         const button = {
           "title": "charger",
