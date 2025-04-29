@@ -641,7 +641,14 @@ export default {
                 spaceSelectedId: id,
                 name: name
             };
-            window.parent.routerFontion.customPush(window.parent.router.path, query);
+            // window.parent.routerFontion.customPush(window.parent.router.path, query);
+            const searchParams = new URLSearchParams(query).toString();
+
+            // Build the full URL (adjust window.parent.router.path if needed)
+            const fullPath = `${location.origin}#/app?${searchParams}`;
+
+            // Open in new tab
+            window.open(fullPath, '_blank');
         },
         getStepLineClass(step) {
             const isRefused = this.refusedStepNames.includes(step.name);
