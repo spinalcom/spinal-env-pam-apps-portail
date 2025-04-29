@@ -1,4 +1,4 @@
-<template>
+<template class="spinal-scrollbar">
     <div>
         <v-card class="table-container spinal-scrollbar">
             <!--div @click="moveRandomTicketsToTop()">
@@ -47,7 +47,7 @@
 
                         <th style="width: 22%;" @click="changeSort('step.name')">
                             <div style="width: 100%; display: flex; flex-direction: row;">
-                                <div>Status</div>
+                                <div>Étape</div>
                                 <div class="sort-icon" :class="{
                                     'sort-icon-asc': sortKey === 'step.name' && sortOrder === 'asc',
                                     'sort-icon-desc': sortKey === 'step.name' && sortOrder === 'desc',
@@ -612,6 +612,12 @@ th {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+/* .spinal-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #14202c transparent;
+    overflow: hidden !important;
+} */
+
 .spinal-scrollbar::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -685,7 +691,7 @@ th {
 
 .selected-ticket-item {
     /* background-color: rgba(0, 0, 255, 0.1); */
-    background-color: #3390ff20;
+    background-color: #3390ff41;
     /* Light blue with low opacity */
 }
 

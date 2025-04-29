@@ -162,6 +162,20 @@ export async function previousStepTicket(
   return res.data;
 }
 
+export async function moveToStepTicket(
+  building: string,
+  ticketId: string,
+  data: { workflowDynamicId: number; toStepName: string }
+) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    building,
+    `api/v1/ticket/${ticketId}/move_to_step`
+  );
+  const res = await spinalAPI.post(url, data);
+  return res.data;
+}
+
 export async function addNoteTicket(
   building: string,
   ticketId: string,
@@ -173,5 +187,22 @@ export async function addNoteTicket(
     `api/v1/ticket/${ticketId}/add_note`
   );
   const res = await spinalAPI.post(url, data);
+  return res.data;
+}
+export async function modify_ticket(
+  building: string,
+  ticketId: string,
+  data: {
+    name: string | null;
+    description: string | null;
+    priority: number | null;
+  }
+) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    building,
+    `api/v1/ticket/${ticketId}/update`
+  );
+  const res = await spinalAPI.put(url, data);
   return res.data;
 }

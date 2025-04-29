@@ -4,7 +4,11 @@
         <div v-show="value" class="dialog-background" @click="closePopUp"></div>
 
         <!--Dialog box to display the details of the tcket-->
-        <v-card v-if="detailedTicket" elevation="24" v-show="value" class="dialog-box">
+        <v-card v-if="detailedTicket" elevation="24" v-show="value"
+            :class="['dialog-box', { 'editing-mode': isEditing }]">
+            <div @click="closePopUp()" class="details-card-close">
+                X
+            </div>
             <v-card-title style="height: 35px; overflow: hidden;justify-content: space-between;padding: 0px!important;"
                 class="bold px-4 d-flex flex-row align-items-center">
                 <div class="overflow-hidden d-flex" style="min-width: 150px;flex-direction: row;">
@@ -19,7 +23,8 @@
                         Créé le: <b>{{ dispDateCreation }}</b>
                     </template>
                     <template v-else>
-                        Modifié le: <b>{{ dispDateModif }}</b>
+                        Créé le: <b>{{ dispDateCreation }}</b>
+                        | Modifié le: <b>{{ dispDateModif }}</b>
                     </template>
                 </div>
                 <!-- <div class="flex-grow-1 text-right overflow-hidden" style="min-width: 150px;">
@@ -34,35 +39,46 @@
             </v-divider>
             <div v-if="isEditing" class="modification-warning">
                 Modification</div>
-            <v-card-text
-                style="height: calc(100% - 112px); padding: 0px!important;justify-content: space-between;overflow: hidden!important;"
-                class="d-flex flex-row overflow-y-auto overflow-x-hidden">
-                <div style="width: 51%;justify-content: space-between;" class="d-flex flex-column">
-                    <div style="width: 100%;overflow: auto;height: 85%;">
-                        <div class="first-step-container">
-                            <div class="first-step-title">
-                                <p><b>Création</b> ticket</p>
-                                <p>{{ dispDateCreation }}</p>
-                            </div>
-                            <div class="first-step-desc">
-                                Ticket signalé pour {{ this.detailedTicket.process.name }} dans {{
-                                    this.detailedTicket.elementSelected.name }}. En attente
-                                de
-                                prise en
-                                charge par l'équipe de maintenance.
-                            </div>
-                            <div style="margin-bottom: 0px!important;position:absolute;right: 0;font-size: 11px;">
-                                <p>Déclarant: <b style="color: #14202c;">{{ detailedTicket.userName || "Système" }}</b>
-                                </p>
-                            </div>
-                        </div>
+            <div class="first-step-container" style="">
+                <div class="first-step-title">
+                    <!-- <p><b>Création</b> ticket</p> -->
+                    <input type="text" :disabled="!isEditing" v-model="detailedTicket.name" placeholder="Non défini"
+                        :class="{ 'editable': isEditing }"
+                        style="width:60%;font-size: 12px;    margin-bottom: 16px;color: #fff;" />
+                    <!-- <p>{{ dispDateCreation }}</p> -->
+                    <p>Par: <b style="color: #fff;">{{ detailedTicket.userName || "Système" }}</b>
+                    </p>
+                </div>
+                <div class="first-step-desc">
+                    <!-- Ticket signalé pour {{ this.detailedTicket.process.name }} dans {{
+                        this.detailedTicket.elementSelected.name }}. En attente
+                    de
+                    prise en
+                    charge par l'équipe de maintenance. -->
+                    <textarea :disabled="!isEditing" v-model="detailedTicket.description" placeholder="Non défini"
+                        :class="{ 'editable': isEditing }"
+                        style="width: 100%; height: auto; font-size: 12px; resize: none; overflow: auto; text-align: left; line-height: 1.5;"></textarea>
 
-                        <div v-for="step in steps" :key="step.id" class="step-container">
+                </div>
+                <!-- <div style="margin-bottom: 0px!important;position:absolute;right: 0;font-size: 11px;">
+                    <p>Par: <b style="color: #14202c;">{{ detailedTicket.userName || "Système" }}</b>
+                    </p>
+                </div> -->
+            </div>
+            <v-card-text
+                :style="{ height: isEditing ? 'calc(100% - 190px)' : 'calc(100% - 180px)', padding: '0px!important', justifyContent: 'space-between' }"
+                class="overflow-y-auto overflow-x-hidden fulldetails-card">
+                <div :style="{ width: isEditing ? '49% !important' : '' }"
+                    class="d-flex flex-column steps-container-wrapper">
+                    <div class="custom-scroll" style="width: 100%;overflow: auto;max-height: 85%;min-height: 65%;">
+
+
+                        <!-- <div v-for="step in steps" :key="step.id" class="step-container">
                             <div v-for="n in 3" :key="`refused-step-${n}`" v-if="refusedStepNames.includes(step.name)"
                                 :style="{
                                     height: '5px',
                                     width: '2px',
-                                    background: step.order <= detailedTicket.step.order ? '#1DC374' : '#ccc',
+                                    background: step.order <= detailedTicket.step.order ? '#142020' : '#ccc',
                                     marginLeft: '10px',
                                     marginBottom: '3px'
                                 }" :class="getStepLineClass(step)">
@@ -70,14 +86,14 @@
                             <div :style="{
                                 height: '25px',
                                 width: '2px',
-                                background: step.order <= detailedTicket.step.order ? '#1DC374' : '#ccc',
+                                background: step.order <= detailedTicket.step.order ? '#142020' : '#ccc',
                                 marginLeft: '10px'
                             }" :class="getStepLineClass(step)">
                             </div>
 
                             <div v-if="step.name === detailedTicket.step.name" class="first-step-container"
-                                style="border-color: #1DC374;">
-                                <div class="first-step-title" style="background-color: #1DC374;">
+                                style="border-color: #142020;">
+                                <div class="first-step-title" style="background-color: #142020;">
                                     <div class="d-flex flex-row"
                                         style="align-items: center;margin: 0!important;padding: 0!important;">
                                         <div class="status-indicator-point2" :style="{ background: step.color }">
@@ -104,12 +120,9 @@
                                         <em>Aucune annotation disponible</em>
                                     </div>
                                 </div>
-                                <!-- <div>Étape: <b>{{ step.name }}</b></div>
-                            <div>Ticket: <b>{{ detailedTicket.name }}</b></div> -->
                             </div>
-                            <div v-else class="step-holder">
+                            <div class="step-holder">
                                 <div :class="getStepCircleClass(step)">
-                                    <!-- <span>✔</span> -->
                                     <span v-if="refusedStepNames.includes(step.name)">✘</span>
                                     <span v-else-if="archivedStepNames.includes(step.name)">✘</span>
                                     <span v-else>✔</span>
@@ -131,7 +144,6 @@
                                     </div>
                                     <div style="display: flex;flex-direction: column;align-items: end;">
                                         <div class="step-date-text">{{ getStepDate(step.name) }}</div>
-                                        <!-- Nombre de messages -->
                                         <div class="step-message-count"
                                             style="position: absolute; font-size: 11px; color: #14202c; margin-top: 20px; cursor: pointer; display: flex; align-items: center; gap: 5px;"
                                             @click="toggleStepMessages(step.name)">
@@ -156,12 +168,100 @@
                                 </div>
                             </div>
 
+                        </div> -->
+                        <div v-for="timeLineItem in TimeLine"
+                            :key="timeLineItem.step.staticId + '-' + timeLineItem.date" class="step-container"
+                            style="padding-right: 4px;">
+                            <div v-for="n in 3" :key="`refused-step-${n}`"
+                                v-if="refusedStepNames.includes(timeLineItem.step.name)" :style="{
+                                    height: '5px',
+                                    width: '2px',
+                                    background: (timeLineItem.type !== 'next' && timeLineItem.type !== 'other') ? '#142020' : '#ccc',
+                                    marginLeft: '10px',
+                                    marginBottom: '3px'
+                                }" :class="getStepLineClass(timeLineItem.step)"></div>
+
+                            <div v-if="!archivedStepNames.includes(timeLineItem.step.name)" :style="{
+                                height: '25px',
+                                width: '2px',
+                                background: (timeLineItem.type !== 'next' && timeLineItem.type !== 'other') ? '#142020' : '#ccc',
+                                marginLeft: '10px'
+                            }" :class="getStepLineClass(timeLineItem.step)"></div>
+
+
+
+                            <div class="step-holder" v-if="!archivedStepNames.includes(timeLineItem.step.name)"
+                                :style="{ opacity: (timeLineItem.type === 'next') || (timeLineItem.type == 'other') ? 0.3 : 1 }">
+                                <div :class="getStepCircleClass(timeLineItem)">
+                                    <span v-if="refusedStepNames.includes(timeLineItem.step.name)">✘</span>
+                                    <!-- <span v-else-if="archivedStepNames.includes(timeLineItem.step.name)">✘</span> -->
+                                    <span v-else>✔</span>
+                                </div>
+                                <div class="d-flex flex-row"
+                                    style="justify-content: space-between;align-items: center;  width: 98%;margin-left: 5px;">
+                                    <div class=" d-flex flex-row" style="align-items: center;">
+
+                                        <div class="d-flex flex-row justify-content-start status-indicator"
+                                            :style="{ background: `${timeLineItem.step.color}20` }">
+                                            <div class="status-indicator-point"
+                                                :style="{ background: timeLineItem.step.color }">
+                                            </div>
+                                            <span>
+                                                {{ timeLineItem.step.name.length > 25 ?
+                                                    timeLineItem.step.name.substring(0, 25) +
+                                                    '...'
+                                                    :
+                                                    timeLineItem.step.name }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex;flex-direction: column;align-items: end;">
+                                        <div class="step-date-text">{{ getLogDate(timeLineItem) }}</div>
+                                        <div class="step-message-count"
+                                            style="position: absolute; font-size: 11px; color: #14202c; margin-top: 20px; cursor: pointer; display: flex; align-items: center; gap: 5px;"
+                                            @click="timeLineItem.annotations.length === 0 ? null : toggleStepMessages(timeLineItem.step.staticId + '-' + timeLineItem.date)">
+                                            <span>{{ timeLineItem.annotations.length }} message(s)</span>
+                                            <span v-if="timeLineItem.annotations.length !== 0" :style="{
+                                                display: 'inline-block',
+                                                transition: 'transform 0.3s ease',
+                                                transform: openedSteps.includes(timeLineItem.step.name) ? 'rotate(180deg)' : 'rotate(0deg)'
+                                            }">▼</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="!openedSteps.includes(timeLineItem.step.staticId + '-' + timeLineItem.date) && (timeLineItem.annotations && timeLineItem.annotations.length > 0)"
+                                class="step-annotations"
+                                style=" margin-top: 15px;display: flex; flex-direction: row;align-items: stretch; ">
+                                <div :style="{
+                                    height: `${timeLineItem.annotations.length * 60 + 10}px`,
+                                    width: '2px',
+                                    background: '#142020', marginLeft: '10px', marginRight: '10px'
+                                }"></div>
+                                <div class="d-flex flex-column"
+                                    style="width: 100%;margin-left: 5px;align-items: stretch;">
+                                    <div v-for="(annotation, i) in timeLineItem.annotations" :key="annotation.date"
+                                        style="width: 100%;font-size: 11px; border: 1px solid #14202c; border-radius: 5px; padding: 6px; margin-bottom: 5px;">
+                                        <strong>{{ annotation.userName || 'Non défini' }}</strong> – {{
+                                            formatDate(annotation.date)
+                                        }}<br />
+                                        {{ annotation.message }}
+                                    </div>
+                                </div>
+                            </div>
+
+
                         </div>
                     </div>
+
+                    <v-divider style="margin-top: 10px ;">
+                    </v-divider>
                     <div v-if="isEditing" class="mb-1" style="width: 100%;height: 10%;">
                         <div class="d-flex flex-row align-items-center"
                             style="justify-content: start; align-items: center;">
-                            <span style="font-size: 0.75rem; color: #14202c; margin-right: 3px;margin-top: 5px;">Aller à
+                            <span
+                                style="font-size: 0.75rem; color: #14202c; margin-right: 3px;margin-top: 5px;">Sélectionner
+                                une
                                 l'étape</span>
                             <div class="details-icon process"></div>
                         </div>
@@ -171,18 +271,19 @@
                             label="Sélectionner une étape" class="small-label"
                             style="width: 100%; font-size: 11px; margin-top: 1px;"></v-select>
 
-                        <!-- Button to trigger step navigation -->
-                        <!-- <v-btn class="btn btn-edit" style="" @click="goToSelectedStep(selectedStepName)"
-                            :disabled="!selectedStepName">
-                            Aller à l'étape sélectionnée
-                        </v-btn> -->
-
                     </div>
+                    <p v-if="isEditing && selectedStepName != '' && selectedStepName != null" style="font-size: 10px;
+    margin-top: 2px;
+    text-align: end;">
+                        Le ticket sera déplacé de l'étape "<b>{{ detailedTicket.step.name }}</b>" à l'étape "<b>{{
+                            selectedStepName }}</b>".
+                    </p>
                 </div>
-                <v-divider vertical style="margin: 0px 15px;" :style="{ backgroundColor: isEditing ? '#FFC107' : '' }">
+                <v-divider vertical style="margin: 0px ;margin-left: 6px;margin-right: 10px;" class="hide-devider"
+                    :style="{ backgroundColor: isEditing ? '#FFC107' : '' }">
                 </v-divider>
-                <div style="width: 49%;">
-                    <div class="mb-1">
+                <div class="restofdetails-container-wrapper">
+                    <!-- <div class="mb-1">
                         <div class="d-flex flex-row align-items-center"
                             style="justify-content: start;align-items: center;">
                             <span style="font-size: 0.75rem;color: #14202c; margin-right: 3px;">Titre</span>
@@ -192,11 +293,11 @@
                         <input class="details-input" type="text" :disabled="!isEditing" v-model="detailedTicket.name"
                             placeholder="Non défini" :class="{ 'editable': isEditing }"
                             style="width: 100%; font-size: 12px;padding: 4px 8px;" />
-                    </div>
+                    </div> -->
                     <div class="mb-1">
                         <div class="d-flex flex-row align-items-center"
                             style="justify-content: start;align-items: center;">
-                            <span style="font-size: 0.75rem;color: #14202c; margin-right: 3px;">Éspace</span>
+                            <span style="font-size: 0.75rem;color: #14202c; margin-right: 3px;">Espace</span>
                             <div class="details-icon space">
                             </div>
                         </div>
@@ -222,7 +323,7 @@
                             </template>
                         </div>
                     </div>
-                    <div class="mb-1" style="width: 100%;">
+                    <!-- <div class="mb-1" style="width: 100%;">
                         <div class="d-flex flex-row align-items-center"
                             style="justify-content: start;align-items: center;">
                             <span style="font-size: 0.75rem;color: #14202c; margin-right: 3px;">Description</span>
@@ -233,7 +334,7 @@
                             placeholder="Non défini" :class="{ 'editable': isEditing }"
                             style="width: 100%; height: 80px; font-size: 12px; padding: 5px; resize: none; overflow: auto; text-align: left; line-height: 1.5;"></textarea>
 
-                    </div>
+                    </div> -->
                     <!-- <div class="mb-1">
                         <div class="d-flex flex-row align-items-center"
                             style="justify-content: start;align-items: center;">
@@ -284,15 +385,15 @@
                         </div> -->
                         <div class="d-flex flex-row align-items-center"
                             style="justify-content: start;align-items: center;">
-                            <span style="font-size: 0.75rem;color: #14202c; margin-right: 3px;">Piéces jointes</span>
+                            <span v-if="detailedTicket.file_list && detailedTicket.file_list.length > 0"
+                                style="font-size: 0.75rem;color: #14202c; margin-right: 3px;">Piéces jointes</span>
                             <div class="details-icon attachement">
                             </div>
                         </div>
-                        <carousel-component v-if="images_loaded" style="width: 100%;height: 100%;"
-                            :image_list="images"></carousel-component>
+                        <carousel-component
+                            v-if="images_loaded && detailedTicket.file_list && detailedTicket.file_list.length > 0"
+                            style="width: 100%;height: 100%;" :image_list="images"></carousel-component>
                     </div>
-
-
                 </div>
 
 
@@ -311,8 +412,23 @@
                         </div> -->
 
                         <!-- Text input for adding a note -->
-                        <textarea v-model="newNote" placeholder="Écrire un commentaire..."
-                            style="width: 100%; font-size: 12px; padding: 5px; resize: none; border: 1px solid #14202c; border-radius: 2px;border-style: dashed;"></textarea>
+                        <!-- <textarea v-model="newNote" placeholder="Écrire un commentaire..."
+                            style="width: 100%; font-size: 12px; padding: 5px; resize: none; border: 1px solid #14202c; border-radius: 2px;border-style: dashed;"></textarea> -->
+                        <div style="position: relative; width: 100%;">
+
+                            <!-- Textarea -->
+                            <textarea v-model="newNote" placeholder="Écrire un commentaire..."
+                                style="width: 100%; font-size: 12px; padding: 5px 50px 5px 5px; resize: none; border: 1px solid #14202c; border-radius: 2px; border-style: dashed;">
+                </textarea>
+
+                            <!-- "Send" Button positioned inside -->
+                            <div @click="addNote(newNote)"
+                                style="position: absolute; right: 5px; top: 5px; bottom: 5px; background-color: #14202c; color: white; border: none; padding: 0 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">
+                                Envoyer ➔
+                            </div>
+
+                        </div>
+
                     </div>
                     <div v-else style="width: 10px;height: 5px;background-color: transparent;opacity: 0;"></div>
                     <!-- Step selection control -->
@@ -342,12 +458,15 @@
 </template>
 
 <script>
+
 import axios from "axios";
 import { displayDate } from "../date";
 import html2canvas from "html2canvas";
 import CarouselComponent from "./CarouselComponent.vue";
 import { config } from "process";
 import { ActionTypes } from "../../interfaces/vuexStoreTypes";
+import { generateTimeline } from "../../utils/ticketDetailsUtils";
+
 export default {
     components: { CarouselComponent },
 
@@ -397,9 +516,8 @@ export default {
         selectedStepName: "",
         newNote: "",
         enrichedAnnotations: [],
+        TimeLine: [],
         openedSteps: [],
-
-
     }),
 
     computed: {
@@ -499,6 +617,9 @@ export default {
         getStepCircleClass(step) {
             // const isRefused = this.refusedStepNames.includes(step.name);
             // if (isRefused) return 'step-circle red refused';
+            if (step.type === 'next') return 'step-circle grey';
+            if (step.type === 'other') return 'step-circle grey';
+            else return 'step-circle green done';
             if ((step.order < this.detailedTicket.step.order) && (step.order >= 0)) return 'step-circle green done';
             if (step.order === this.detailedTicket.step.order) return 'step-circle green current';
             return 'step-circle grey';
@@ -506,10 +627,18 @@ export default {
         closePopUp() {
             this.$emit("input", false);
         },
-        toggleStepMessages(stepName) {
-            const index = this.openedSteps.indexOf(stepName);
-            if (index === -1) this.openedSteps.push(stepName);
-            else this.openedSteps.splice(index, 1);
+        generateOpenedStepsKeys() {
+            return this.TimeLine
+                .filter(item => item.annotations.length > 0)
+                .map(item => item.step.staticId + '-' + item.date);
+        },
+        toggleStepMessages(itemKey) {
+            const index = this.openedSteps.indexOf(itemKey);
+            if (index === -1) {
+                this.openedSteps.push(itemKey);
+            } else {
+                this.openedSteps.splice(index, 1);
+            }
         },
         // getToStep(logEvent) {
         //     const match = logEvent.match(/(?:from|to) (.+?) to (.+)/);
@@ -552,6 +681,16 @@ export default {
             } else {
                 return "À venir";
             }
+        },
+        getLogDate(log) {
+
+            if ((log.type !== "next") && (log.type !== "other")) return this.formatDate(log.date);
+            else if (log.type === "next") {
+                return "À venir";
+            } else if (log.type === "other") {
+                return "--:--";
+            }
+            if (!step) return "Inconnu";
         },
         formatDate(timestamp) {
             const dateObj = new Date(timestamp);
@@ -608,14 +747,16 @@ export default {
                 // alert("Modification activée !");
 
             } else {
-                // alert("Modifications sauvegardées !");
-                // Add logic to save changes
 
-                //this.goToSelectedStep(this.selectedStepName);
-                this.goToSelectedStep(this.selectedStepName).then(() => {
+                this.modifyTicket(this.detailedTicket.name, this.detailedTicket.description, this.detailedTicket.priority);
+                this.goToStep(this.selectedStepName).then(() => {
                     this.addNote(this.newNote);
                 });
-                if ((!this.newNote || this.newNote.trim() === "") && (this.selectedStepName === this.detailedTicket.step.name || !this.selectedStepName)) {
+                if ((!this.newNote || this.newNote.trim() === "") &&
+                    (this.selectedStepName === this.detailedTicket.step.name || !this.selectedStepName) &&
+                    (this.detailedTicket.name === this.$props.detailedTicket.name) &&
+                    (this.detailedTicket.description === this.$props.detailedTicket.description) &&
+                    (this.detailedTicket.priority === this.$props.detailedTicket.priority)) {
 
                 } else {
                     alert("Modification enregistrée !");
@@ -649,49 +790,52 @@ export default {
                 console.error("Failed to add note.");
             }
         },
+        async modifyTicket(name, description, priority) {
+            let buildingId = localStorage.getItem("idBuilding");
+            if (!name && !description && !priority) {
+                return;
+            }
+            const res = await this.$store.dispatch("MODIFY_TICKET", {
+                buildingId,
+                ticketId: this.detailedTicket.dynamicId,
+                data: {
+                    name: name,
+                    description: description,
+                    priority: priority,
+                }
+            });
 
-        async goToSelectedStep(selectedStepName) {
+            if (res) {
+                console.log("Updated successfully.");
+            } else {
+                console.error("Failed to update.");
+            }
+        },
+
+        async goToStep(selectedStepName) {
 
             let buildingId = localStorage.getItem("idBuilding");
-
-
-
-            const currentStep = this.detailedTicket.step;
             const targetStep = this.steps.find(s => s.name === selectedStepName);
 
             if (!targetStep) {
                 return;
             }
-
-            const currentOrder = currentStep.order;
-            const targetOrder = targetStep.order;
-
-            const diff = Math.abs(currentOrder - targetOrder);
-            const direction = targetOrder > currentOrder ? 'next_step' : 'previous_step';
-
-            for (let i = 1; i <= diff; i++) {
-                const simulatedOrder = direction === 'next_step' ? currentOrder + i : currentOrder - i;
-                const simulatedStep = this.steps.find(s => s.order === simulatedOrder);
-                const actionType = direction === 'next_step' ? "NEXT_STEP_TICKET" : "PREVIOUS_STEP_TICKET";
-
-                const res = await this.$store.dispatch(actionType, {
-                    buildingId,
-                    ticketId: this.detailedTicket.dynamicId,
-                    data: {
-                        workflowDynamicId: this.detailedTicket.workflowId,
-                        processDynamicId: this.detailedTicket.process.dynamicId
-                    }
-                });
-
-                if (res) {
-                    console.log(`Successfully moved to step: ${simulatedStep?.name || 'Unknown'} (order ${simulatedOrder})`);
-                } else {
-                    console.error(`Failed to move ticket: ${this.detailedTicket.name}`);
-                    break;
+            const res = await this.$store.dispatch("MOVE_TO_STEP_TICKET", {
+                buildingId,
+                ticketId: this.detailedTicket.dynamicId,
+                data: {
+                    workflowDynamicId: this.detailedTicket.workflowId,
+                    toStepName: targetStep.name,
                 }
-
+            });
+            if (res) {
+                console.log(`Successfully moved to step: ${targetStep.name || 'Unknown'}`);
+            } else {
+                console.error(`Failed to move ticket: ${this.detailedTicket.name}`);
+                return;
             }
         },
+
 
         matchAnnotationsToSteps(annotations, logs, steps) {
             const stepMap = Object.fromEntries(steps.map(step => [step.name, step]));
@@ -748,8 +892,10 @@ export default {
             this.detailedTicket.log_list,
             this.steps
         );
+        this.TimeLine = generateTimeline(this.steps, this.detailedTicket.log_list, this.detailedTicket.annotation_list);
+        // this.openedSteps = this.generateOpenedStepsKeys();
 
-
+        // console.log("timeline", this.TimeLine);
         const { loader } = this.$refs;
         const size =
             loader.clientWidth < loader.clientHeight
@@ -808,6 +954,7 @@ export default {
                     this.detailedTicket.log_list,
                     this.steps
                 );
+                this.TimeLine = generateTimeline(this.steps, this.detailedTicket.log_list, this.detailedTicket.annotation_list,);
                 this.images_loaded = false;
                 this.images = (
                     await Promise.all(
@@ -832,6 +979,7 @@ export default {
                         newTicket.log_list,
                         this.steps
                     );
+                    this.TimeLine = generateTimeline(this.steps, this.detailedTicket.log_list, this.detailedTicket.annotation_list,);
                 }
             },
             immediate: true
@@ -853,12 +1001,21 @@ export default {
 }
 
 .dialog-box {
+    transition: all 0.7s ease;
+    max-width: 200%;
     width: 94%;
     height: calc(100% - 80px);
     position: absolute;
     top: 30px;
     left: 3%;
-    padding: 12;
+    padding: 10px;
+}
+
+.dialog-box.editing-mode {
+    max-width: 200%;
+    width: 200%;
+    left: -120%;
+    padding: 10px;
 }
 
 .flexdisplay {
@@ -878,17 +1035,20 @@ input {
 
 /* Styles when in editable mode */
 input.editable {
-    border: 2px solid;
-    border-color: #14202c;
-    background-color: #fff;
-    color: #14202c;
+    border: 2px solid #fff;
+    padding: 4px;
+    margin-top: 4px;
+    border-radius: 4px;
+    width: 50% !important;
 }
 
 textarea.editable {
-    border: 2px solid;
-    border-color: #14202c;
-    background-color: #fff;
     color: #14202c;
+    border: 2px solid #14202c;
+    border-radius: 3px;
+    margin-top: 2px;
+    width: 99% !important;
+    padding-left: 5px;
 }
 
 .details-card-ticket-id {
@@ -1009,9 +1169,9 @@ textarea.editable {
 }
 
 .first-step-desc {
-    padding: 5px;
+    padding-left: 5px;
     font-size: 11px;
-    line-height: 1.5;
+    /* line-height: 1.5; */
     text-align: justify;
 }
 
@@ -1091,7 +1251,7 @@ textarea.editable {
 }
 
 .step-circle.green {
-    background: #1DC374;
+    background: #142020 !important;
 }
 
 .step-circle.grey {
@@ -1103,7 +1263,7 @@ textarea.editable {
 }
 
 .step-circle.current span {
-    display: none;
+    /* display: none; */
 }
 
 
@@ -1137,12 +1297,90 @@ textarea.editable {
 .modification-warning {
     background-color: rgb(255, 193, 7);
     position: absolute;
-    left: 44%;
+    left: 50%;
+    transform: translateX(-50%);
     font-size: 11px;
     top: 38px;
     height: 20px;
     padding: 2px 20px;
     border-radius: 4px 4px 0px 0px;
+}
+
+.custom-scroll {
+    scrollbar-width: thin;
+    /* For Firefox */
+    scrollbar-color: #14202c transparent;
+    /* For Firefox */
+}
+
+.custom-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+    background-color: #14202c;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    /* Optional: adds space around thumb */
+    background-clip: content-box;
+    /* Optional: keeps border effect visible */
+}
+
+.hide-divider {
+    display: block !important;
+}
+
+.fulldetails-card {
+    display: flex;
+    flex-direction: row;
+    overflow: hidden !important;
+}
+
+.steps-container-wrapper {
+    width: 51%;
+}
+
+.restofdetails-container-wrapper {
+    width: 49%;
+}
+
+.details-card-close {
+    padding: inherit;
+    cursor: pointer;
+    z-index: 9;
+    color: #fff;
+    background-color: #14202c;
+    border-radius: 25px !important;
+    justify-content: center;
+    align-items: center;
+    font-size: 13px;
+    font-weight: bold;
+    display: flex;
+    position: absolute;
+    right: -10px;
+    top: -10px;
+    padding: 5px !important;
+}
+
+@media (max-width: 1700px) {
+    .step-date-text[data-v-3ac51c] {
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .status-indicator[data-v-3ac51c] {
+        font-size: 10px;
+    }
+
+    .status-indicator-point[data-v-3ac51c] {
+        width: 8px;
+        height: 8px;
+    }
+
 }
 
 @media (max-width: 900px) {
@@ -1151,7 +1389,24 @@ textarea.editable {
         visibility: hidden !important;
     }
 
+    .hide-divider {
+        display: none !important;
+        visibility: hidden !important;
+    }
 
+    .fulldetails-card {
+        display: flex;
+        flex-direction: column;
+        overflow: scroll !important;
+    }
+
+    .steps-container-wrapper {
+        width: 100%;
+    }
+
+    .restofdetails-container-wrapper {
+        width: 100%;
+    }
 }
 
 

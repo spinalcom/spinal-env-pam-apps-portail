@@ -39,12 +39,18 @@ with this file. If not, see
 
         <div class="d-flex flex-column justify-space-between" style="align-items: start;">
           <div class="app-title">Liste des tickets</div>
-          <div class="app-description">{{ sortedTickets().length }} demande en cours</div>
+          <div class="app-description">{{ sortedTickets().length }} demande<span
+              v-if="sortedTickets().length > 1">s</span></div>
         </div>
         <div class="d-flex flex-column justify-space-between" style="align-items: end;">
-          <div class="app-title">{{ (selectedZone.type === 'building') || (selectedZone.name == 'Bâtiment') ?
-            buildingitemsnumber : flooritemsnumber
-          }} Tickets</div>
+          <div class="app-title">
+            <template v-if="selectedZone.type === 'building' || selectedZone.name === 'Bâtiment'">
+              {{ buildingitemsnumber }} Ticket<span v-if="buildingitemsnumber > 1">s</span>
+            </template>
+            <template v-else>
+              {{ flooritemsnumber }} Ticket<span v-if="flooritemsnumber > 1">s</span>
+            </template>
+          </div>
           <div class="app-description">sur {{ selectedZone.name }}</div>
         </div>
 
@@ -144,7 +150,7 @@ with this file. If not, see
         <div class="d-flex flex-column justify-space-between filtre-half-holder" style="height: 150px;">
           <div>
             <div class="filtre-title">
-              Status
+              Étape
             </div>
             <div style="height: 50px;width: 100%;display:flex;font-weight: bold;margin: auto;color: azure;">
               <StatusFiltre :list="steps2()" v-model="step_filter" @update:modelValue="handleStepFilterUpdate" />
@@ -613,12 +619,14 @@ class dataSideApp extends Vue {
     // await this.retriveData("building");
     EventBus.$on("call-card", this.locateTicket);
     EventBus.$on("showRecapCard", this.showRecapCard);
+    EventBus.$on("show-modal-ticket-details", this.showDetails);
 
   }
   beforeDestroy() {
     clearInterval(this.timer);
     EventBus.$off("call-card", this.locateTicket);
     EventBus.$off("showRecapCard", this.showRecapCard);
+    EventBus.$off("show-modal-ticket-details", this.showDetails);
   }
 
   async findDynamicIdByDbid(dbidToFind, data) {

@@ -46,7 +46,9 @@ import {
   archiveTicket,
   nextStepTicket,
   previousStepTicket,
+  moveToStepTicket,
   addNoteTicket,
+  modify_ticket,
 } from "../../spinalAPI/Workflow & ticket/ticketContext";
 import type {
   IEquipmentItem,
@@ -449,6 +451,24 @@ export const actions = {
       throw error;
     }
   },
+  async [ActionTypes.MOVE_TO_STEP_TICKET](
+    { commit }: AugmentedActionContextAppData,
+    {
+      buildingId,
+      ticketId,
+      data,
+    }: { buildingId: string; ticketId: any; data: any }
+  ): Promise<any> {
+    const spinalAPI = SpinalAPI.getInstance();
+    try {
+      const result = await moveToStepTicket(buildingId, ticketId, data);
+
+      return result;
+    } catch (error) {
+      console.error("Erreur lors du changement d'etape du ticket:", error);
+      throw error;
+    }
+  },
   async [ActionTypes.ADD_NOTE](
     { commit }: AugmentedActionContextAppData,
     {
@@ -460,6 +480,42 @@ export const actions = {
     const spinalAPI = SpinalAPI.getInstance();
     try {
       const result = await addNoteTicket(buildingId, ticketId, data);
+
+      return result;
+    } catch (error) {
+      console.error("Erreur lors de la création du ticket:", error);
+      throw error;
+    }
+  },
+  async [ActionTypes.MODIFY_TICKET](
+    { commit }: AugmentedActionContextAppData,
+    {
+      buildingId,
+      ticketId,
+      data,
+    }: { buildingId: string; ticketId: any; data: any }
+  ): Promise<any> {
+    const spinalAPI = SpinalAPI.getInstance();
+    try {
+      const result = await modify_ticket(buildingId, ticketId, data);
+
+      return result;
+    } catch (error) {
+      console.error("Erreur lors de la création du ticket:", error);
+      throw error;
+    }
+  },
+  async [ActionTypes.ADD_DOC](
+    { commit }: AugmentedActionContextAppData,
+    {
+      buildingId,
+      ticketId,
+      data,
+    }: { buildingId: string; ticketId: any; data: any }
+  ): Promise<any> {
+    const spinalAPI = SpinalAPI.getInstance();
+    try {
+      const result = await addTicketDoc(buildingId, ticketId, data);
 
       return result;
     } catch (error) {

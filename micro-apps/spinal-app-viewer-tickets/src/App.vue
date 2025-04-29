@@ -196,7 +196,6 @@ class App extends Vue {
       this.isActive = true;
       this.isActive3D = false;
     }
-    EventBus.$on("show-modal-ticket-details", this.showDetails);
     EventBus.$on("change-space-selecor-value", this.changeSpaceSelectorValue);
 
     EventBus.$on('colorRoom', (dynamicId, color) => {
@@ -273,7 +272,6 @@ class App extends Vue {
 
   }
   beforeDestroy() {
-    EventBus.$off("show-modal-ticket-details", this.showDetails);
     EventBus.$off("change-space-selecor-value", this.changeSpaceSelectorValue);
   }
   updateBuildingTicketNumber(count) {
