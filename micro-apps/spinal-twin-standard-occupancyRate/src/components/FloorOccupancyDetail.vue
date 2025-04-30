@@ -44,26 +44,21 @@ import { defineComponent, ref, computed, onMounted, watch } from 'vue';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import {config} from '../config';
 import moment from 'moment';
+import { getFloorOccupancyDynamicIds } from '../services/floorOccupancyService';
 import {getSecondChartOccupancyDataByFloor,
-        getTotalSurface2,
-        getThirdChartOccupancyDataByFloor,
-        getPeriodArray,
         groupSecondChartsByFloor,
         getRoomPositions,
         getFloors,
-        getThirdChartData,
-        getFloorOccupancyDynamicIds,
         getFloorOccupancyRatesByPeriod,
-        fetchTotalSurface,
-        initializeData,
-        initializeThirdChartData,
+        getThirdChartData,
         getRoomData,
-        fetchThirdChartTotalCount,
         getThirdChartPositions,
-        groupThirdChartsByFloor,
-        initializeSources,
-        cachedRoomEntryPoints,
-      } from '../services/index'; 
+      } from '../services/index';
+import { initializeSources,cachedRoomEntryPoints,initializeData } from '../services/calculationUtils'; 
+import { fetchTotalSurface, getTotalSurface2, fetchThirdChartTotalCount, initializeThirdChartData, 
+  getThirdChartOccupancyDataByFloor, groupThirdChartsByFloor
+    } from '../services/secondChartData';
+
 import { FloorOccupancyMapping } from './interfaces/types';
 /* import { SpinalAPI } from '../services/spinalAPI/spinalAPI';
  */
@@ -170,7 +165,6 @@ const handleTimeChange = async ({ startTime, endTime }) => {
     };
    
 // Ajoutez des caches locaux pour stocker les résultats
-let cachedDynamicIds: string[] | null = null;
 let cachedFloorOccupancyMapping: FloorOccupancyMapping | null = null;
 let isFetchingFirstChart = false;
 
@@ -497,10 +491,10 @@ const renderChart = () => {
       occupancyChart.value.destroy();
     }
 
-    const floorLabels = Object.values(firstChartCache.floorNames); // Utiliser les noms des étages depuis le cache
+    const floorLabels = Object.values(firstChartCache.floorNames);
     const occupancyData = floorLabels.map(floor => {
       const floorDataEntry = floorData.value.find(f => f.floor === floor);
-      return floorDataEntry ? floorDataEntry.occupancy : null; // Null si pas de données
+      return floorDataEntry ? floorDataEntry.occupancy : null;
     });
 
     const chartConfig = config.charts.byFloorChart.firstData;
@@ -541,7 +535,6 @@ const renderChart = () => {
                 const dataValue = occupancyData[index];
                 return dataValue === null ? 'Aucune donnée' : `${dataValue.toFixed(3)}%`;
               },
-              stepSize: 10,
               font: { size: 15 },
             }
           },
@@ -549,12 +542,12 @@ const renderChart = () => {
             display: false,
           },
           x1: {
-                  display: true,
-                  position: 'top',
-                  ticks: {
-                    font: { size: 15 }
-                  }
-                },
+            display: chartConfig.displayX1, // Utilisation du paramètre displayX1
+            position: 'top',
+            ticks: {
+              font: { size: 15 }
+            }
+          },
         },
         layout: {
           padding: {
@@ -629,7 +622,7 @@ const renderSecondChart = () => {
             display: false,
           },
           x1: {
-            display: false,
+            display: chartConfig.displayX1, // Utilisation du paramètre displayX1
             position: 'top',
             ticks: {
               font: { size: 15 }
@@ -711,7 +704,7 @@ const renderThirdChart = () => {
             display: false,
           },
           x1: {
-            display: false,
+            display: chartConfig.displayX1, // Utilisation du paramètre displayX1
             position: 'top',
             ticks: {
               font: { size: 15 }

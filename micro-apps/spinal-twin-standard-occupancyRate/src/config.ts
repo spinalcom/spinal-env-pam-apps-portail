@@ -36,20 +36,7 @@ export const config = {
   },
 
   entryPoints: <EntryPoint[]><unknown>[
-     {
-      name: 'Gestion des espaces par collaborateur',
-      type: 'geographicRoomGroupContext',
-      category: 'DSI',
-      group: 'Non affectés',
-      source: [
-        {
-          profileName: 'Occupation',
-          name: "Taux d'occupation",
-          type: 'Occupation',
-        },
-      ],
-    }, 
-    /* {
+    {
       name: "Gestion des espaces",
       type: 'geographicRoomGroupContext',
       category: 'Typologie',
@@ -61,7 +48,7 @@ export const config = {
           type: 'Occupation',
         },
       ],
-    },  */
+    }, 
     {
       name: "Gestion des équipements",
       type: 'BIMObjectGroupContext',
@@ -117,56 +104,26 @@ export const config = {
         backgroundColor: '#14202C',
         borderColor: '#14202C',
         display: true,
+        displayX1: true, // Contrôle l'affichage de l'axe x1 pour le premier graphique
       },
       secondData: {
         label: "Taux d'occupation des salles de réunion",
         backgroundColor: '#1C5791',
         display: true,
+        displayX1: false, // Contrôle l'affichage de l'axe x1 pour le deuxième graphique
       },
       thirdData: {
         label: "Taux d'occupation des positions de travail",
         backgroundColor: '#418FDD',
         display: true,
+        displayX1: false, // Contrôle l'affichage de l'axe x1 pour le troisième graphique
       },
     },
   },
 };
  
  //config pour l'autre api
-/*  export const config  = {
-    title: "OCCUPATION EN TEMPS RÉEL",
-    chart: '%',
-    subtitle:'',
-    displayBuildingOccupancyChart: false,
-    displaySecondChart: false,
-    displayThirdChart: true,
-
-    temporalities: ['Valeur Courante', 'Journée', 'Semaine', 'Mois', 'Trimestre', 'Année', 'Décennie'],
-
-    apiEndpoints: <ApiEndpoints>{
-        building: 'building/{buildingId}/building/read',
-        floors: 'building/{buildingId}/floor/list',
-        controlEndpointList: 'building/{buildingId}/node/{dynamicId}/control_endpoint_list',
-        timeSeries: 'building/{buildingId}/endpoint/{dynamicId}/timeSeries/read/{start}/{end}',
-        timeSeriesMultiple: 'building/{buildingId}/endpoint/timeSeries/read_multiple/{start}/{end}',
-        roomPositions: 'building/{buildingId}/room/get_position_multiple',
-        attributeListMultiple: 'building/{buildingId}/node/attribute_list_multiple',
-        groupContextList: 'building/{buildingId}/groupContext/list',
-        categoryList: 'building/{buildingId}/groupeContext/{contextId}/category_list',
-        groupList: 'building/{buildingId}/groupeContext/{contextId}/category/{categoryId}/group_list',
-        roomList: 'building/{buildingId}/roomsGroup/{contextId}/category/{categoryId}/group/{groupId}/roomList',
-        controlEndpointListMultiple: 'building/{buildingId}/node/control_endpoint_list_multiple',
-        contextList: 'building/{buildingId}/context/list',
-        contextTree: 'building/{buildingId}/context/{contextId}/tree/{numberOfLevel}/depth',
-        floorAttributes: 'building/{buildingId}/node/{dynamicId}/attributsList',
-        // New API endpoints for equipment groups
-        equipmentContextList: 'building/{buildingId}/equipementsGroup/list',
-        equipmentCategoryList: 'building/{buildingId}/equipementsGroup/{contextId}/category_list',
-        equipmentGroupList: 'building/{buildingId}/equipementsGroup/{contextId}/category/{categoryId}/group_list',
-        equipmentList: 'building/{buildingId}/equipementsGroup/{contextId}/category/{categoryId}/group/{groupId}/equipementList',
-        thirdChartPositions: 'building/{buildingId}/equipment/get_position_multiple',
-    },
-    
+/* 
   entryPoints: <EntryPoint[]>[
         
         {
@@ -208,22 +165,4 @@ export const config = {
         },
         
     ],
-      labels: {
-        downloadFileName: "Taux d'occupation"
-    },
-  charts: <ChartsConfig><unknown>{
-        firstChart: {
-            label: "Taux d'occupation du bâtiment",
-            backgroundColor: '#14202C',
-            borderColor: '#14202C',
-        },
-        secondChart: {
-            label: "Taux d'occupation des salles de réunion",
-            backgroundColor: '#1C5791',
-        },
-        thirdChart: {
-            label: "Taux d'occupation des positions de travail",
-            backgroundColor: '#418FDD',
-        }
-    }
 };  */  

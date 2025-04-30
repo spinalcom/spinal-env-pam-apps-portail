@@ -18,7 +18,7 @@
     
       <!-- Section droite : Boutons de navigation -->
       <div v-if="prev_next" style="height: 40px; align-self: flex-start; padding-top: 10px; padding-right: 10px;">
-        <v-btn :disabled="false" @click="$emit('nav', -1)" style="font-size: 14px !important; border-radius: 10px; min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;">
+        <v-btn @click="handleNav(-1)" style="font-size: 14px !important; border-radius: 10px; min-width: 36px !important; box-shadow: none;">
           <v-icon style="color: #14202c !important" icon>mdi-chevron-left</v-icon>{{ prev }}
         </v-btn>
                 <v-menu v-model="menu" :close-on-content-click="false" offset-y>
@@ -41,7 +41,7 @@
                 :error-messages="selectedDate ? '' : 'Date invalide'"
               ></v-date-picker>
         </v-menu>
-        <v-btn :disabled="false" @click="$emit('nav', +1)" style="font-size: 14px !important; border-radius: 10px; min-width: 36px !important; box-shadow: none; border: 1px solid #EAEEF0 !important;">
+        <v-btn @click="handleNav(+1)" style="font-size: 14px !important; border-radius: 10px; min-width: 36px !important; box-shadow: none;">
           {{ next }}<v-icon style="color: #14202c !important" icon>mdi-chevron-right</v-icon>
         </v-btn>
       </div>
@@ -64,6 +64,7 @@
 </template>
 
 <script>
+import moment from 'moment';
 import { Bar } from "vue-chartjs";
 import TemporalFilter from './TemporalFilter.vue';
 import {
@@ -162,7 +163,7 @@ export default {
   data() {
     return {
       menu: false, // Contrôle l'ouverture du menu
-      selectedDate: this.currentDate, // Valeur par défaut
+      selectedDate: this.currentDate || moment().format('YYYY-MM-DD'), // Valeur par défaut
       selectedWeek: null, 
       switchValue: false, // Initialisation de switchValue
       load: true, // Initialisation de load
@@ -297,16 +298,34 @@ export default {
   },
 
   
-  methods: {
+    methods: {
     handleTimeChange({ startTime, endTime }) {
       this.$emit('time-change', { startTime, endTime });
     },
     onDateChange(newDate) {
-      // Comportement par défaut pour les autres temporalités
       this.menu = false;
       this.selectedDate = newDate;
       this.$emit('date-change', newDate);
-    
+    },
+    handleNav(payload) {
+    // Vérifiez si `selectedDate` est défini
+    if (!this.selectedDate) {
+      console.error("selectedDate is not defined");
+      return;
+    }
+
+    // Met à jour la date en fonction de la navigation
+    const currentDate = moment(this.selectedDate, 'YYYY-MM-DD');
+    if (this.temporality === 'Journée') {
+      this.selectedDate = currentDate.add(payload, 'days').format('YYYY-MM-DD');
+    } else if (this.temporality === 'Mois') {
+      this.selectedDate = currentDate.add(payload, 'months').format('YYYY-MM');
+    } else if (this.temporality === 'Année') {
+      this.selectedDate = currentDate.add(payload, 'years').format('YYYY');
+    }
+
+    // Émettez l'événement pour informer le parent
+    this.$emit('date-change', this.selectedDate);
   },
   },
   

@@ -64,7 +64,9 @@
 
 <script lang="ts">
 import LineChart from './LineCard.vue';
-import { cachedRoomEntryPoints, initializeSources } from '../services/index';
+import { getData } from '../services/floorOccupancyService';
+import { initializeSources , cachedRoomEntryPoints} from '../services/calculationUtils';
+
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
 import BarChart from './BarCard.vue';
@@ -76,7 +78,7 @@ import { LegendModel } from '../models/Legend.model';
 import {config} from '../config'; 
 import { ChartData, tempoFilter } from '../components/interfaces/types';
 import TemporalFilter from './TemporalFilter.vue';
-import { getData,getRoomData,getThirdChartData, getContextId, getCategoryId, getRoomIds, getGroupId, getSecondChartOccupancyDataByFloor } from '../services/index';
+import { getRoomData } from '../services/index';
 import moment from 'moment';
 import 'moment/locale/fr'; // Importer la locale française
 

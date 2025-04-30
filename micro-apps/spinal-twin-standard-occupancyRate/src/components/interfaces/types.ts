@@ -1,18 +1,4 @@
-export interface ChartData {
-    label: string;
-    backgroundColor: string;
-    data: number[];
-    stack: string;
-    tooltipDate: string[];
-  }
-  
-  export interface tempoFilter {
-    name: string;
-    value: string;
-    color: string;
-    lock: boolean;
-    star: boolean;
-  }
+
   // Interface pour un bâtiment
   export interface Building {
     dynamicId: string;
@@ -27,6 +13,10 @@ export interface ChartData {
     name: string;
   }
   
+  export interface Room {
+    dynamicId: string;
+  }
+
   // Interface pour un espace (bâtiment ou étage)
   export interface Space {
     type: 'building' | 'floor';
@@ -50,9 +40,20 @@ export interface ChartData {
     name: string;
   }
   
-  // Interface pour une salle
-  export interface Room {
-    dynamicId: string;
+export interface ChartData {
+    label: string;
+    backgroundColor: string;
+    data: number[];
+    stack: string;
+    tooltipDate: string[];
+  }
+  
+  export interface tempoFilter {
+    name: string;
+    value: string;
+    color: string;
+    lock: boolean;
+    star: boolean;
   }
   // Interface pour les résultats combinés
   export interface CombinedResult {
@@ -162,11 +163,11 @@ export interface ChartData {
     floorId: string;
     coordinates: { x: number; y: number };
   }
-  
-  export interface FloorOccupancyRate {
-    dynamicId: string;
-    occupancy: string;
-  }
+export interface FloorOccupancyRate {
+  dynamicId: string;
+  occupancy: string;
+  area?: number;
+}
   
   export interface Equipment {
     dynamicId: string;

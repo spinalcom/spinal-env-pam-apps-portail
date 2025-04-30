@@ -18,8 +18,8 @@
   
     <!-- Section droite : Boutons de navigation -->
     <div v-if="next && prev" style="height: 40px; align-self: flex-start; padding-top: 10px; padding-right: 10px;">
-      <v-btn @click="$emit('nav', -1)" style="font-size: 14px !important; border-radius: 10px; min-width: 36px !important; box-shadow: none;">
-        <v-icon style="color: #14202c !important" icon>mdi-chevron-left</v-icon> {{ prev }}
+      <v-btn @click="handleNav(-1)" style="font-size: 14px !important; border-radius: 10px; min-width: 36px !important; box-shadow: none;">
+        <v-icon style="color: #14202c !important" icon>mdi-chevron-left</v-icon>{{ prev }}
       </v-btn>
             <v-menu v-model="menu" :close-on-content-click="false" offset-y>
         <template v-slot:activator="{ on, attrs }">
@@ -41,7 +41,7 @@
           :error-messages="selectedDate ? '' : 'Date invalide'"
         ></v-date-picker>
       </v-menu>
-      <v-btn @click="$emit('nav', +1)" style="font-size: 14px !important; border-radius: 10px; min-width: 36px !important; box-shadow: none;">
+      <v-btn @click="handleNav(+1)" style="font-size: 14px !important; border-radius: 10px; min-width: 36px !important; box-shadow: none;">
         {{ next }}<v-icon style="color: #14202c !important" icon>mdi-chevron-right</v-icon>
       </v-btn>
     </div>
@@ -60,6 +60,7 @@
 </template>
 
 <script>
+import moment from 'moment';
 import { Line as LineChart } from "vue-chartjs";
 import TemporalFilter from './TemporalFilter.vue';
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, LinearScale, CategoryScale, PointElement, Filler } from 'chart.js';
@@ -252,6 +253,22 @@ export default {
       this.selectedDate = newDate;
       this.$emit('date-change', newDate);
     
+  },
+  handleNav(payload) {
+    console.log("handleNav called with payload:", payload);
+    console.log("Current selectedDate:", this.selectedDate);
+
+    const currentDate = moment(this.selectedDate, 'YYYY-MM-DD');
+    if (this.temporality === 'Journée') {
+      this.selectedDate = currentDate.add(payload, 'days').format('YYYY-MM-DD');
+    } else if (this.temporality === 'Mois') {
+      this.selectedDate = currentDate.add(payload, 'months').format('YYYY-MM');
+    } else if (this.temporality === 'Année') {
+      this.selectedDate = currentDate.add(payload, 'years').format('YYYY');
+    }
+
+    console.log("Updated selectedDate:", this.selectedDate);
+    this.$emit('date-change', this.selectedDate);
   },
   },
 };
