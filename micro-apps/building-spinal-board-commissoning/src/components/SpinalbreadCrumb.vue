@@ -145,7 +145,8 @@ export default {
            if(listType === 'cat') {
             this.categoryId = value.dynamicId
             this.$store.commit(MutationTypes.SET_CATEGORIES_CONTEXT, value);
-            
+            this.selected_grp = {}
+            this.$store.commit(MutationTypes.SET_GROUP_EQUIP, {});
 
 
             const groups = await getGroupList(this.buildingId, this.contexId, this.categoryId);

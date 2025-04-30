@@ -319,6 +319,7 @@ class App extends Vue {
       this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
       const zoneSelected = this.$store.state.appDataStore.zoneSelected;
       this.updateDataInContextSpatial(buildingId);
+      this.$store.commit(MutationTypes.SET_LOADER, false);
     }
   
   private async updateDataInContextSpatial(buildingId: string | null) {

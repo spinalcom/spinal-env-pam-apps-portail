@@ -177,17 +177,25 @@ export async function getGroupAllItem(buildingId: string, contextId: number, cat
   }
   const url = type === "equipement" ? `/equipementsGroup/${contextId}/category/${categoryId}/group_List` : `/roomsGroup/${contextId}/category/${categoryId}/group_list`;
   const res = await spinalAPI.get(spinalAPI.createUrlWithPlatformId(buildingId, url));
+  console.log("res", res);
   const dynamicIds = res.data.map((el: any) => el.dynamicId);
   const promise = dynamicIds.map(async (groupID) =>{
       const url_group = type === "equipement" ? `/equipementsGroup/${contextId}/category/${categoryId}/group/${groupID}/equipementList` : `/roomsGroup/${contextId}/category/${categoryId}/group/${groupID}/roomList`;
-      const grouItems = await spinalAPI.get(spinalAPI.createUrlWithPlatformId(buildingId, url_group));
-      return [...grouItems.data];  
-  });
-  const result = await Promise.all(promise);
-  const allItems = result.reduce((acc, curr) => {
-    return acc.concat(curr);
-  }, []);
-  return allItems;
+      const groupItems = await spinalAPI.get(spinalAPI.createUrlWithPlatformId(buildingId, url_group));
+      const group = res.data.find((el: any) => el.dynamicId === groupID);
+       console.log("grouname", group.name)
+       // Intègre le groupe à chaque item
+  const itemsWithGroup = groupItems.data.map((item: any) => ({
+    ...item,
+    group
+  }));
+
+  return itemsWithGroup;
+});
+const result = await Promise.all(promise);
+
+const allItems = result.flat();
+return allItems;
 }
 export async function getGroupAllData(buildingId: string){
   const rq = await getContext(buildingId);
@@ -200,8 +208,16 @@ export async function getGroupAllData(buildingId: string){
   const category = await rqC.find((el) => el.name === categoryName);
   const rqG = await getGroupList(buildingId, context.dynamicId, category.dynamicId);
   const groupName = config.entryPoint?.group ?? store.state.appDataStore.groupEquipement.name;
+  console.log("groupName", groupName);
   const group = rqG.find((el) => el.name === groupName) 
-  const groupItems = await getGroupAllItem(buildingId, context.dynamicId, category.dynamicId);
+  let groupItems: any = [];
+  if(group) {
+    groupItems = await getGroupItems(buildingId, context.dynamicId, category.dynamicId, group.dynamicId) 
+
+  }
+  else {
+    groupItems = await  getGroupAllItem(buildingId, context.dynamicId, category.dynamicId);
+  }
   return groupItems;
 }
 
@@ -218,7 +234,6 @@ export async function getAllDataInContextSpatial(buildingId: string, spatialName
       const dynamicIds = data.map((el) => el.dynamicId);
       let itemPosition = await getPositionMultiple(buildingId, dynamicIds);
        itemPosition = itemPosition.filter((el) => el.info && el.info.building);
-        console.log("itemPosition", itemPosition);
        result = itemPosition.map((el)=> {
         if(el.info.building.name === spatialName) {
           return el;
@@ -329,6 +344,30 @@ export async function getAllDataInContextSpatial(buildingId: string, spatialName
           }
           src.push(...equipementList);
         }
+        let group: any = null;
+        if(config.entryPoint) {
+          console.log("Group from config")
+          group = {
+            dynamicId: config.entryPoint?.group,
+            name: config.entryPoint?.group,
+            type: config.entryPoint?.type,
+          }
+        }
+       else if(store.state.appDataStore.groupEquipement && store.state.appDataStore.groupEquipement.dynamicId) {
+          console.log("Group from store")
+          group = {
+            dynamicId: store.state.appDataStore.groupEquipement.dynamicId,
+            name: store.state.appDataStore.groupEquipement.name,
+            type: store.state.appDataStore.groupEquipement.type,
+          }
+        }
+          else {
+            console.log("All group")
+            group = data.find((grp: any) => grp.dynamicId === el.dynamicId).group ? data.find((grp: any) => grp.dynamicId === el.dynamicId).group : null;
+
+          }
+        console.log("groupName: ", group.name);
+        if(group) {
         return  {
           dynamicId: el.dynamicId,
           name: el.name,
@@ -336,7 +375,25 @@ export async function getAllDataInContextSpatial(buildingId: string, spatialName
           staticId: el.id,
           info: el.info,
           sources: src,
+          group: {
+            dynamicId: group.dynamicId,
+            name: group.name,
+            type: group.type,
+            staticId: group.id,
+          }
         }
+        }
+        else {
+          return  {
+            dynamicId: el.dynamicId,
+            name: el.name,
+            type: el.type,
+            staticId: el.id,
+            info: el.info,
+            sources: src,
+          }
+        }
+        
         
       } )
       const sourceList = sources[0].sources.map((el: any) => {
@@ -352,7 +409,6 @@ export async function getAllDataInContextSpatial(buildingId: string, spatialName
 
 
       store.commit(MutationTypes.SET_SOURCE_LIST, sourceList);
-
       const final = sources.map((el: any) => {
         const matchingRead = result.find((readEl: any) => readEl.dynamicId === el.dynamicId);
         return matchingRead ? { ...el, ...matchingRead } : el;
@@ -362,6 +418,7 @@ export async function getAllDataInContextSpatial(buildingId: string, spatialName
         return final
       }
       else {
+        store.commit(MutationTypes.SET_DATA, []);
         return [];
       }
 } 
@@ -483,6 +540,14 @@ export async function getDataInContextSpatial(buildingId: string, spatialName: s
             }
             src.push(...equipementList);
           }
+          let group: any = null;
+          if(config.entryPoint) {
+            group = {
+              dynamicId: config.entryPoint?.group,
+              name: config.entryPoint?.group,
+              type: config.entryPoint?.type,
+            }
+          }
           return  {
             dynamicId: el.dynamicId,
             name: el.name,
@@ -490,6 +555,7 @@ export async function getDataInContextSpatial(buildingId: string, spatialName: s
             staticId: el.id,
             info: el.info,
             sources: src,
+            group: group
           }
           
         } )
@@ -598,7 +664,7 @@ async function getPositionMultiple(buildingId: string, dynamicIds: number[]): Pr
     completed: 0,  // Le nombre total d'IDs est maintenant traité
     percent: 0,  // Le pourcentage est maintenant à 100%
     total: 0,
-    message: `Chargement des données`,
+    message: `Compiltation des données`,
     isError: false,
     logs: [...logs],  // On affiche tous les logs finaux
   });

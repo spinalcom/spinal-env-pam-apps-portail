@@ -6,12 +6,14 @@
     mobile-breakpoint="0"
     :headers="headers"
     :items="itemData"
-    :items-per-page="10"
+    :items-per-page="15"
     fixed-header
     :footer-props="{
     'items-per-page-text':'Lignes par page',
-    'page-text': '',
-    'items-per-page-all-text': 'Toutes'
+    'page-text': '$vuetify.dataFooter.pageText',
+    'items-per-page-all-text': 'Toutes',
+    firstIcon: 'mdi-arrow-left',
+    lastIcon: 'mdi-arrow-right',
   }"
   >
     
@@ -323,6 +325,7 @@ getColor(value: any, header: any) {
     const completed = i;
     this.$store.commit(MutationTypes.SET_LOADING, {
       complete: completed,
+      total: this.stripeData.length,
       percent: Math.round((completed / this.stripeData.length) * 100),
     });
 

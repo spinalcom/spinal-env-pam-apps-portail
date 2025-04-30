@@ -168,6 +168,7 @@ async getDataItem(newVal: any = this.items) {
   this.ItemList = newVal;
     const baseHeaders = [
     { text: 'Etage', value: 'info.floor.name', align: 'start' },
+     {text: "Groupe", value: 'group.name', align: 'start'},
       { text: 'Nom', value: 'name', align: 'start' },
   ];
   if(this.ItemList.length > 0) {

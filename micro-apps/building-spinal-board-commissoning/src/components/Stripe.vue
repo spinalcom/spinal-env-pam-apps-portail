@@ -4,7 +4,8 @@
       <div style="display: flex; flex-direction: row; align-items: center; gap: 5px;">
         <v-icon v-if="cancelFilter" @click="SetCancelFilter(false)" style="cursor: pointer; font-size: 20px; color: #14202C;">mdi-cancel</v-icon>
       </div>
-      <div @click="filterReverse(item.name)" v-for="(item, idx) in configLegend" :key="idx" :style="{width: `max-content`, height: '100%', zIndex: idx, padding: '0 5px', cursor: 'pointer'}" >
+      <div @click="filterReverse(item.name)" v-for="(item, idx) in configLegend" :key="idx" :style="{width: `max-content`, height: '100%', zIndex: idx, padding: '0 5px', cursor: 'pointer', position: 'relative'}" >
+        <div class="underline"></div>
         <SmallLegend  :color="item.color" :text="`${item.name}: ${item.value}`" :size="16"  />
       </div>
     </div>
@@ -55,6 +56,8 @@ export default {
       warning: [] as any[],
       missing: [] as any[],
       filterData: [] as any[],
+      worker: null as Worker | null,
+      titles: [] as any[],
     };
   },
   computed: {
@@ -76,6 +79,10 @@ watch: {
   handler(newData) {
     this.stripeList = newData;
     this.getStripeData();
+    this.titles = this.configLegend;
+
+
+    console.log('titles: ', this.titles)
   }
  },
 
@@ -87,13 +94,10 @@ watch: {
   },
 
   cancelFilter: {
-    handler(newData) {
+   async handler(newData) {
       
-      if (newData == false) {
+  if (newData == false) {
         
-        this.$store.dispatch(ActionTypes.RUN_WITH_LOADER, {
-          message: "Récupération des données",
-          task : async () => {
   try {
     const dataStore = this.$store.state.appDataStore.data;
     const stripLegend = config.bilan.timeline;
@@ -101,50 +105,62 @@ watch: {
     const source = config.sources.find(
       (src) => src.id === stripLegend.sourceId
     );
-    
+    // Exécutez la fonction filterBysource dans le worker
+    this.worker!.postMessage({
+      type: 'reset',
+      payload: { data: dataStore, source:  source?.name },
+    })
+  
 
-    if (!source?.name) {
-      console.warn("Source introuvable pour l'ID :", stripLegend.sourceId);
-      return;
-    }
-
-    const sourceName = source.name.toLowerCase();
-
-    // Affiche le loader avant le traitement
-    this.$store.commit(MutationTypes.SET_LOADER, true);
-    await this.$nextTick();
-
-    this.$store.commit(MutationTypes.SET_LOADING, {
-      completed: 0,
-      total: dataStore.length,
-      message: "Réinitialisation des filtres",
-      percent: 0,
-    });
-
-
-
-    // Filtrage async avec batching + memoize
-    const result: any = await this.filterBysource(dataStore, sourceName);
-
-    // Met à jour les données filtrées
-    this.stripeList = result;
-    this.$store.commit(MutationTypes.SET_STRIPE_DATA, result);
-    this.getStripeData(); // Si c’est une méthode du composant
-    setTimeout(() => {
-      this.$store.commit(MutationTypes.SET_LOADER, false);
-      
-    }, 200);
   } catch (err) {
     console.error("Erreur lors du filtrage des données :", err);
   }
 }
 
-        })
+ 
        }
     }
-  }
-},
+  },
 
+
+created() {
+  //
+
+
+
+
+  // Gérer le message du Worker
+  this.worker = new Worker(new URL('../workers/filterWorker.ts', import.meta.url), {
+    type: "module"}
+  );
+  this.worker.onmessage = (e) => {
+  const { type, showCanceled } = e.data;
+
+
+  if (type === 'progress') {
+    this.$store.commit(MutationTypes.SET_LOADER, true);
+    this.$store.commit(MutationTypes.SET_LOADING, {
+      completed: e.data.completed,
+      total: e.data.total,
+      percent: e.data.percent,
+      message: e.data.message,
+    });
+  } else if (type === 'done') {
+    console.log("done", showCanceled);
+    if(showCanceled) {
+      this.$store.commit(MutationTypes.SET_LOADER, false);
+      this.$store.commit(MutationTypes.SET_CANCEL_FILTER, false);
+    }
+    else {
+      this.$store.commit(MutationTypes.SET_LOADER, false);
+      this.$store.commit(MutationTypes.SET_CANCEL_FILTER, true);
+    }
+    this.$store.commit(MutationTypes.SET_STRIPE_DATA, e.data.filteredData);
+    
+  }
+};
+
+},
 
 
 methods: {
@@ -154,11 +170,12 @@ methods: {
         return stripe;
       }
     },
-     filterBysource (dataStore: any[], sourceName: string) {
+filterBysource (dataStore: any[], sourceName: string) {
   return new Promise((resolve) => {
     const result: any = [];
     let i = 0;
-    const batchSize = 500;
+    const batchSize = 500;  
+ 
 
     const processBatch = () => {
       const end = Math.min(i + batchSize, dataStore.length);
@@ -178,7 +195,7 @@ methods: {
       });
 
       if(i < dataStore.length) {
-        setTimeout(processBatch, 0); // executer le prochain batch
+        setTimeout(processBatch, 30); // executer le prochain batch
       } else {
  
         // Mettre à jour la progression finale
@@ -211,34 +228,18 @@ methods: {
     if (onFiltered?.value) {
     
     const valueSet = this.createFilterSet(onFiltered.value);
-    this.$store.commit(MutationTypes.SET_LOADING, {
-      completed: 0,
-      total: 0,
-      message: "Exécution du filtre",
-      percent: 0,
+    this.worker!.postMessage({
+      type: "removedfilter",
+      payload: { filterSet: Array.from(valueSet), list: this.stripeList },
     });
-      let complete = 0;
-      filteredData = this.stripeList.filter((item: any) => {
-        complete++;
-        this.$store.commit(MutationTypes.SET_LOADING, {
-        
-          });
-          return !valueSet.has(item.value);
-      });
 }
-      this.filterData = filteredData;
-      setTimeout(() => {
-        this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.filterData);
-        this.$store.commit(MutationTypes.SET_LOADER, false);
-        this.$store.commit(MutationTypes.SET_CANCEL_FILTER, true);
-      }, 50);
-    
+     
 
    },
 
     async filter(value: string) {
+    
         this.$store.commit(MutationTypes.SET_LOADER, true);
-        await this.$nextTick();
 
         const filterData = this.$store.state.appDataStore.filterData;
         
@@ -257,23 +258,23 @@ methods: {
             percent: 0,
             isSuccess: false,
           });
+          this.worker!.postMessage({
+          type: "filter",
+          payload: {filterSet: Array.from(valueSet), list: this.stripeList},
+        });
         let complete = 0;
-        filteredData = this.stripeList.filter((item: any) => {
-          complete++;
-          this.$store.commit(MutationTypes.SET_LOADING, {
-           
-          });
-          return valueSet.has(item.value);
-    });
+        
+    await this.$nextTick();
+
   }
 
-  this.filterData = filteredData;
-  this.$store.commit(MutationTypes.SET_CANCEL_FILTER, true);
+  // this.filterData = filteredData;
+  // this.$store.commit(MutationTypes.SET_CANCEL_FILTER, true);
 
-  setTimeout(() => {
-    this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.filterData);
-    this.$store.commit(MutationTypes.SET_LOADER, false);
-  }, 30);
+  // setTimeout(() => {
+  //   this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.filterData);
+  //   this.$store.commit(MutationTypes.SET_LOADER, false);
+  // }, 30);
 },
 
     async getStripeData() {
@@ -426,6 +427,15 @@ methods: {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+}
+.underline {
+  width: 100px;
+  height: px;
+  position: absolute;
+  background-color: #14202C;
+  left: 0;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
 }
 
 </style>
