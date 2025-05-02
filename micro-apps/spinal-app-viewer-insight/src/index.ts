@@ -37,6 +37,7 @@ import FloatingVue from "floating-vue";
 import "floating-vue/dist/style.css";
 import "vuetify/dist/vuetify.min.css";
 import "@mdi/font/css/materialdesignicons.css";
+import { OverflowDirective } from "./components/inshight_data/Overflow-directive";
 Vue.use(FloatingVue);
 Vue.use(Vuetify);
 Vue.use(SpinalComponents, {});
@@ -75,9 +76,11 @@ const vuetify = new Vuetify({
     },
   },
 });
-
+Vue.config.productionTip = false;
+Vue.directive("overflow", OverflowDirective);
 new Vue({
   vuetify,
   store,
+
   render: (h) => h(App),
 }).$mount("#app");
