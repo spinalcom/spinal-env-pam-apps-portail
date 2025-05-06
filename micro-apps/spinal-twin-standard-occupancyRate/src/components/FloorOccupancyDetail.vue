@@ -6,7 +6,8 @@
         <div class="chart-container">
           <div class="chart-title">Étage</div>
           <div class="charts">
-             <div v-if="config.charts.globalChart.firstData.display && floorData.length" class="chart-block">
+            <!-- Premier graphique : cachedBuildingEntryPoints -->
+            <div v-if="showBuildingChart" class="chart-block">
               <div class="occupancy-summary">
                 <span class="occupancy-percentage">
                   <span class="percentage">{{ buildingOccupancyRate }}%</span> DU BÂTIMENT EST OCCUPÉ
@@ -15,8 +16,10 @@
               </div>
               <canvas ref="chartCanvas"></canvas>
             </div>
-            <div v-if="config.charts.globalChart.secondData.display && secondFloorData.length" class="chart-block">
-               <div class="occupancy-summary">
+
+            <!-- Deuxième graphique : cachedRoomEntryPoints -->
+            <div v-if="showRoomChart" class="chart-block">
+              <div class="occupancy-summary">
                 <span class="occupancy-percentage">
                   <span class="percentage">{{ secondBuildingOccupancyRate }}%</span> DES SALLES DE RÉUNIONS SONT OCCUPÉES
                 </span>
@@ -24,7 +27,9 @@
               </div>
               <canvas ref="secondChartCanvas"></canvas>
             </div>
-             <div v-if="config.charts.globalChart.thirdData.display && thirdChartFloorData.length" class="chart-block">           
+
+            <!-- Troisième graphique : cachedEquipmentEntryPoints -->
+            <div v-if="showEquipmentChart" class="chart-block">
               <div class="occupancy-summary">
                 <span class="occupancy-percentage">
                   <span class="percentage">{{ thirdChartOccupancyRate }}%</span> DES POSITIONS DE TRAVAIL SONT OCCUPÉES
@@ -54,7 +59,7 @@ import {getSecondChartOccupancyDataByFloor,
         getRoomData,
         getThirdChartPositions,
       } from '../services/index';
-import { initializeSources,cachedRoomEntryPoints,initializeData } from '../services/calculationUtils'; 
+import { initializeSources,cachedRoomEntryPoints,initializeData, cachedBuildingEntryPoints,cachedEquipmentEntryPoints } from '../services/calculationUtils'; 
 import { fetchTotalSurface, getTotalSurface2, fetchThirdChartTotalCount, initializeThirdChartData, 
   getThirdChartOccupancyDataByFloor, groupThirdChartsByFloor
     } from '../services/secondChartData';
@@ -102,7 +107,46 @@ export default defineComponent({
     const thirdChartOccupancyChart = ref<Chart | null>(null);
     const thirdChartFloorData = ref<{ floor: string; occupancy: number; area?: number }[]>([]);
     const thirdChartTotalCount = ref<number>(0);
+      const isSourcesInitialized = ref(false);
 
+const showBuildingChart = computed(() => {
+  if (!isSourcesInitialized.value || !cachedBuildingEntryPoints || cachedBuildingEntryPoints.length === 0) {
+    console.warn("cachedBuildingEntryPoints n'est pas initialisé ou vide.");
+    return false;
+  }
+  // Vérifie si au moins une source a `byFloorDisplay` activé
+  const result = cachedBuildingEntryPoints.some(entryPoint =>
+    entryPoint.source.some(source => source.byFloorDisplay)
+  );
+  console.log("showBuildingChart (par étage):", result);
+  return result;
+});
+
+const showRoomChart = computed(() => {
+  if (!isSourcesInitialized.value || !cachedRoomEntryPoints || cachedRoomEntryPoints.length === 0) {
+    console.warn("cachedRoomEntryPoints n'est pas initialisé ou vide.");
+    return false;
+  }
+  // Vérifie si au moins une source a `byFloorDisplay` activé
+  const result = cachedRoomEntryPoints.some(entryPoint =>
+    entryPoint.source.some(source => source.byFloorDisplay)
+  );
+  console.log("showRoomChart (par étage):", result);
+  return result;
+});
+
+const showEquipmentChart = computed(() => {
+  if (!isSourcesInitialized.value || !cachedEquipmentEntryPoints || cachedEquipmentEntryPoints.length === 0) {
+    console.warn("cachedEquipmentEntryPoints n'est pas initialisé ou vide.");
+    return false;
+  }
+  // Vérifie si au moins une source a `byFloorDisplay` activé
+  const result = cachedEquipmentEntryPoints.some(entryPoint =>
+    entryPoint.source.some(source => source.byFloorDisplay)
+  );
+  console.log("showEquipmentChart (par étage):", result);
+  return result;
+});
     
       let firstChartCache = {
       dynamicIds: null as string[] | null,
@@ -497,20 +541,34 @@ const renderChart = () => {
       return floorDataEntry ? floorDataEntry.occupancy : null;
     });
 
-    const chartConfig = config.charts.byFloorChart.firstData;
+    // Boucle dynamique pour récupérer les configurations des sources
+    const chartConfig = cachedBuildingEntryPoints?.flatMap(entryPoint =>
+      entryPoint.source.map(source => ({
+        label: source.label,
+        backgroundColor: source.backgroundColor,
+        borderColor: source.borderColor || source.backgroundColor,
+        displayX1: source.displayX1 || false, // Ajout de displayX1
+      }))
+    );
+
+    if (!chartConfig || chartConfig.length === 0) {
+      console.error("Aucune configuration valide trouvée pour le premier graphique.");
+      return;
+    }
 
     const chartConfiguration: ChartConfiguration<'bar'> = {
       type: 'bar',
       data: {
         labels: floorLabels,
-        datasets: [{
-          label: chartConfig.label,
+        datasets: chartConfig.map(config => ({
+          label: config.label,
           data: occupancyData,
-          backgroundColor: occupancyData.map(value => value === null ? '#d3d3d3' : chartConfig.backgroundColor),
+          backgroundColor: occupancyData.map(value => value === null ? '#d3d3d3' : config.backgroundColor),
+          borderColor: config.borderColor,
           barPercentage: 0.4,
           categoryPercentage: 1,
           borderRadius: 10,
-        }]
+        })),
       },
       options: {
         responsive: true,
@@ -522,7 +580,7 @@ const renderChart = () => {
             callbacks: {
               label: function(context) {
                 const value = context.raw;
-                return value === null ? 'Aucune donnée' : `${chartConfig.label}: ${value.toFixed(3)}%`;
+                return value === null ? 'Aucune donnée' : `${context.dataset.label}: ${value.toFixed(3)}%`;
               }
             }
           }
@@ -542,7 +600,7 @@ const renderChart = () => {
             display: false,
           },
           x1: {
-            display: chartConfig.displayX1, // Utilisation du paramètre displayX1
+            display: chartConfig.some(config => config.displayX1), 
             position: 'top',
             ticks: {
               font: { size: 15 }
@@ -577,20 +635,34 @@ const renderSecondChart = () => {
     const floorLabels = secondFloorData.value.map(floor => floor.floor);
     const occupancyData = secondFloorData.value.map(floor => floor.occupancy);
 
-    const chartConfig = config.charts.byFloorChart.secondData;
+    // Boucle dynamique pour récupérer les configurations des sources
+    const chartConfig = cachedRoomEntryPoints?.flatMap(entryPoint =>
+      entryPoint.source.map(source => ({
+        label: source.label,
+        backgroundColor: source.backgroundColor,
+        borderColor: source.borderColor || source.backgroundColor,
+        displayX1: source.displayX1 || false, // Ajout de displayX1
+      }))
+    );
+
+    if (!chartConfig || chartConfig.length === 0) {
+      console.error("Aucune configuration valide trouvée pour le deuxième graphique.");
+      return;
+    }
 
     const chartConfiguration: ChartConfiguration<'bar'> = {
       type: 'bar',
       data: {
         labels: floorLabels,
-        datasets: [{
-          label: chartConfig.label,
+        datasets: chartConfig.map(config => ({
+          label: config.label,
           data: occupancyData,
-          backgroundColor: occupancyData.map(value => value === null ? '#d3d3d3' : chartConfig.backgroundColor),
+          backgroundColor: occupancyData.map(value => value === null ? '#d3d3d3' : config.backgroundColor),
+          borderColor: config.borderColor,
           barPercentage: 0.4,
           categoryPercentage: 1,
           borderRadius: 10,
-        }]
+        })),
       },
       options: {
         responsive: true,
@@ -602,7 +674,7 @@ const renderSecondChart = () => {
             callbacks: {
               label: function(context) {
                 const value = context.raw;
-                return value === null ? 'Aucune donnée' : `${chartConfig.label}: ${value.toFixed(3)}%`;
+                return value === null ? 'Aucune donnée' : `${context.dataset.label}: ${value.toFixed(3)}%`;
               }
             }
           }
@@ -622,10 +694,10 @@ const renderSecondChart = () => {
             display: false,
           },
           x1: {
-            display: chartConfig.displayX1, // Utilisation du paramètre displayX1
+            display: chartConfig.some(config => config.displayX1), 
             position: 'top',
             ticks: {
-              font: { size: 15 }
+              font: { size: 15 },
             }
           },
         },
@@ -659,20 +731,34 @@ const renderThirdChart = () => {
     const floorLabels = thirdChartFloorData.value.map(floor => floor.floor);
     const occupancyData = thirdChartFloorData.value.map(floor => floor.occupancy);
 
-    const chartConfig = config.charts.byFloorChart.thirdData;
+    // Boucle dynamique pour récupérer les configurations des sources
+    const chartConfig = cachedEquipmentEntryPoints?.flatMap(entryPoint =>
+      entryPoint.source.map(source => ({
+        label: source.label,
+        backgroundColor: source.backgroundColor,
+        borderColor: source.borderColor || source.backgroundColor,
+        displayX1: source.displayX1 || false, // Ensure displayX1 is included
+      }))
+    );
+
+    if (!chartConfig || chartConfig.length === 0) {
+      console.error("Aucune configuration valide trouvée pour le troisième graphique.");
+      return;
+    }
 
     const chartConfiguration: ChartConfiguration<'bar'> = {
       type: 'bar',
       data: {
         labels: floorLabels,
-        datasets: [{
-          label: chartConfig.label,
+        datasets: chartConfig.map(config => ({
+          label: config.label,
           data: occupancyData,
-          backgroundColor: occupancyData.map(value => value === null ? '#d3d3d3' : chartConfig.backgroundColor),
+          backgroundColor: occupancyData.map(value => value === null ? '#d3d3d3' : config.backgroundColor),
+          borderColor: config.borderColor,
           barPercentage: 0.4,
           categoryPercentage: 1,
           borderRadius: 10,
-        }]
+        })),
       },
       options: {
         responsive: true,
@@ -684,7 +770,7 @@ const renderThirdChart = () => {
             callbacks: {
               label: function(context) {
                 const value = context.raw;
-                return value === null ? 'Aucune donnée' : `${chartConfig.label}: ${value.toFixed(3)}%`;
+                return value === null ? 'Aucune donnée' : `${context.dataset.label}: ${value.toFixed(3)}%`;
               }
             }
           }
@@ -704,7 +790,7 @@ const renderThirdChart = () => {
             display: false,
           },
           x1: {
-            display: chartConfig.displayX1, // Utilisation du paramètre displayX1
+            display: chartConfig.some(config => config.displayX1), 
             position: 'top',
             ticks: {
               font: { size: 15 }
@@ -769,6 +855,12 @@ onMounted(async () => {
 
     // Étape 1 : Initialiser les sources globales
     await initializeSources();
+    isSourcesInitialized.value = true; 
+    console.log("Sources initialisées :", {
+      cachedBuildingEntryPoints,
+      cachedRoomEntryPoints,
+      cachedEquipmentEntryPoints,
+    });
     console.log('Room Entry Points:', cachedRoomEntryPoints);
 
     // === Premier graphique ===
@@ -868,7 +960,13 @@ return {
   fetchThirdChartFloorData,
   fetchThirdChartTotalCount,
   handleTimeChange,
-  config // Add config to the return object
+  config, // Add config to the return object
+  cachedBuildingEntryPoints,
+  cachedRoomEntryPoints,
+  cachedEquipmentEntryPoints,
+  showBuildingChart,
+  showRoomChart,
+  showEquipmentChart,
 };
   }
 });

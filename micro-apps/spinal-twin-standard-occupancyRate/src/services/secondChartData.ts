@@ -1,10 +1,12 @@
 import { FloorOccupancyRate, DynamicIdsByFloor, RoomsByFloor, FloorOccupancyMapping, AggregatedFloorData, Equipment } from '../components/interfaces/types';
 import { getFloors, getRoomPositions, groupSecondChartsByFloor, getFloorSecondChartOccupationDynamicIds, getFloorOccupancyRatesByPeriod, getThirdChartPositions, getThirdChartData } from './index';
-import { cachedFloors, cachedRoomPositions, cachedRoomsByFloor, cachedDynamicIdsByFloor, cachedDynamicIds, cachedFloorNames, cachedFloorOccupancyMapping, getPeriodArray, calculateTimeWeightedAverage, filterTimeSeries, cachedEquipmentEntryPoints, processEntryPoints, extractDynamicIds, processInBatches } from './calculationUtils';
+import { cachedFloors, cachedRoomPositions, cachedRoomsByFloor, cachedDynamicIdsByFloor, cachedDynamicIds, cachedFloorNames, cachedFloorOccupancyMapping, getPeriodArray, calculateTimeWeightedAverage, filterTimeSeries, cachedEquipmentEntryPoints, processEntryPoints, extractDynamicIds, processInBatches, calculateBinaryOccupancyRate } from './calculationUtils';
 import moment from 'moment';
 import { config } from '../config';
 import { SpinalAPI } from './spinalAPI/spinalAPI';
 import { EntryPoint } from '../components/interfaces/configTypes';
+import { apiEndpoints } from '../configConstants'; 
+
 // On Récupère les données de graphe pour un bâtiment.
 
 export async function fetchTotalSurface(): Promise<number | null> {
@@ -292,8 +294,10 @@ export function groupThirdChartsByFloor(thirdChartPositions: Equipment[]): Recor
       ) {
         throw new Error("Les données nécessaires pour le troisième graphique ne sont pas initialisées. Appelez initializeThirdChartData d'abord.");
       }
-          console.log('Temporalité sélectionnée :', tempo);
+  
+      console.log('Temporalité sélectionnée :', tempo);
       const aggregatedFloorData: AggregatedFloorData = {};
+  
       for (const floor of Object.keys(cachedEquipmentsByFloor)) {
         const dynamicIds = cachedDynamicIdsByFloorForThirdChart[floor];
   
@@ -324,9 +328,18 @@ export function groupThirdChartsByFloor(thirdChartPositions: Equipment[]): Recor
             roomData.timeseries = filterTimeSeries(roomData.timeseries || [], startTime, endTime);
           });
   
-          // Calculer les moyennes pondérées pour chaque étage
+          // Déterminer le type de données (binaire ou continue) à partir des entryPoints
+          const entryPoint = cachedEquipmentEntryPoints?.find((entry) =>
+            entry.source.some((source) => source.byFloorDisplay && source.type)
+          );
+          const sourceType = entryPoint?.source.find((source) => source.byFloorDisplay)?.type || "continue";
+  
+          // Calculer les moyennes pondérées ou binaires pour chaque étage
           const floorSeries = timeSeriesData.flatMap(roomData => roomData.timeseries);
-          const weightedAverages = calculateTimeWeightedAverage(floorSeries, label, tempo);
+          const weightedAverages =
+            sourceType === "binaire"
+              ? calculateBinaryOccupancyRate(floorSeries, label, tempo)
+              : calculateTimeWeightedAverage(floorSeries, label, tempo);
   
           // Ajouter les données agrégées pour chaque période
           aggregatedFloorData[floor] = {};

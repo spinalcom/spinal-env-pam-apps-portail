@@ -158,6 +158,7 @@ export interface ChartData {
   }
   
   export interface RoomPosition {
+    dynamicId(dynamicId: any): unknown;
     id: string;
     name: string;
     floorId: string;

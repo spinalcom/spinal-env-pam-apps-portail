@@ -31,6 +31,11 @@ export interface EntryPoint {
   group: string;
   type: string;
   source: {
+    label: any;
+    borderColor: any;
+    globalDisplay: string;
+    byFloorDisplay: string;
+    display: unknown;
     profileName: string;
     name: string;
     type: string;

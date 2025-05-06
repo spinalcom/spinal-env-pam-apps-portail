@@ -1,11 +1,15 @@
 import { FloorOccupancyDynamicIdsResponse, TimeSeriesPoint, FloorOccupancyMapping, ChartData, RoomData, TimeSeriesData, ControlProfile, ControlEndpoint } from '../components/interfaces/types';
 import { getFloors , getThirdChartData } from './index';
-import {processBuildingEndpoint, processRoomEndpoint,processEquipmentEndpoint,calculateTimeWeightedAverage,processInBatches, getPeriodArray,cachedRoomEntryPoints,cachedEquipmentEntryPoints,cachedBuildingEntryPoints,extractDynamicIds } from './calculationUtils';
+import {processBuildingEndpoint, processRoomEndpoint,processEquipmentEndpoint,calculateTimeWeightedAverage,processInBatches, getPeriodArray,cachedRoomEntryPoints,cachedEquipmentEntryPoints,cachedBuildingEntryPoints,extractDynamicIds, filterTimeSeries } from './calculationUtils';
 import lodash from 'lodash';
 import moment from 'moment';
 import { SpinalAPI } from './spinalAPI/spinalAPI';
 import { config } from '../config';
 import { EntryPoint } from '../components/interfaces/configTypes';
+import { apiEndpoints } from '../configConstants'; 
+import { calculateBinaryOccupancyRate } from './calculationUtils'; // Assurez-vous que cette fonction est importée
+
+
 
 // Cache pour les données
 let cachedFloorNames: Record<string, string> = {};
@@ -232,6 +236,16 @@ export async function getGraphData(): Promise<string | null> {
 }
 
 
+const processData = (timeSeriesData: TimeSeriesPoint[], sourceType: string): number[] => {
+  if (sourceType === 'binaire') {
+    return calculateBinaryOccupancyRate(timeSeriesData, label, tempo);
+  } else if (sourceType === 'continue') {
+    return calculateTimeWeightedAverage(timeSeriesData, label, tempo);
+  } else {
+    console.warn(`Type de données inconnu : ${sourceType}`);
+    return [];
+  }
+};
 
 export async function getData(
   space: { type: string; dynamicId?: string },
@@ -256,36 +270,66 @@ export async function getData(
 
     const currentHour = moment(currentTimestamp).hour();
 
+    // Fonction pour traiter les données en fonction du type
+    const processData = (timeSeriesData: TimeSeriesPoint[], sourceType: string): number[] => {
+      if (sourceType === 'binaire') {
+        return calculateBinaryOccupancyRate(timeSeriesData, label, tempo);
+      } else if (sourceType === 'continue') {
+        return calculateTimeWeightedAverage(timeSeriesData, label, tempo);
+      } else {
+        console.warn(`Type de données inconnu : ${sourceType}`);
+        return [];
+      }
+    };
+
     // 1. Occupation bâtiment
     try {
       console.log("=== TAUX OCCUPATION BÂTIMENT ===");
-      const occupancyDynamicId = await getGraphData();
-      if (!occupancyDynamicId) throw new Error("Occupancy dynamic ID not found");
 
-      const url = spinalApi.createUrlWithPlatformId(
-        buildingId,
-        `api/v1/endpoint/${occupancyDynamicId}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`
-      );
-      const response = await spinalApi.get<{ data: TimeSeriesPoint[] }>(url);
-      let processedData = calculateTimeWeightedAverage(response.data, label, tempo);
-
-      if (tempo === "Valeur Courante") {
-        processedData = processedData.slice(0, currentHour + 1);
-        processedData = [
-          ...processedData,
-          ...Array(24 - processedData.length).fill(null),
-        ];
+      if (!cachedBuildingEntryPoints || cachedBuildingEntryPoints.length === 0) {
+        throw new Error("cachedBuildingEntryPoints is not initialized. Ensure initializeSources is called.");
       }
 
-      data.push({
-        label: config.charts.globalChart.firstData.label,
-        data: processedData,
-        tooltipDate,
-        backgroundColor: config.charts.globalChart.firstData.backgroundColor,
-        borderColor: config.charts.globalChart.firstData.borderColor,
-        borderWidth: 1,
-        fill: false,
-      });
+      for (const buildingEntryPoint of cachedBuildingEntryPoints) {
+        for (const source of buildingEntryPoint.source || []) {
+          if (!source.globalDisplay) {
+            console.log(`Source ${source.name} ignorée car globalDisplay est désactivé.`);
+            continue;
+          }
+
+          const occupancyDynamicId = await getGraphData();
+          if (!occupancyDynamicId) {
+            console.warn(`Dynamic ID introuvable pour la source : ${source.name}`);
+            continue;
+          }
+
+          const url = spinalApi.createUrlWithPlatformId(
+            buildingId,
+            `api/v1/endpoint/${occupancyDynamicId}/timeSeries/read/${periodArray[1]}/${periodArray[2]}`
+          );
+          const response = await spinalApi.get<{ data: TimeSeriesPoint[] }>(url);
+
+          // Appliquer le filtre temporel
+          const filteredData = filterTimeSeries(response.data, startTime, endTime);
+
+          const processedData = processData(filteredData, source.type);
+
+          if (tempo === "Valeur Courante") {
+            processedData.splice(currentHour + 1);
+            processedData.push(...Array(24 - processedData.length).fill(null));
+          }
+
+          data.push({
+            label: source.label,
+            data: processedData,
+            tooltipDate,
+            backgroundColor: source.backgroundColor,
+            borderColor: source.borderColor || source.backgroundColor,
+            borderWidth: 1,
+            fill: false,
+          });
+        }
+      }
     } catch (error) {
       console.error("Error in building occupancy calculation:", error);
     }
@@ -293,43 +337,58 @@ export async function getData(
     // 2. Occupation salles de réunion
     try {
       console.log("=== TAUX OCCUPATION SALLES DE RÉUNION ===");
-      const dynamicIds = await fetchSecondChartOccupationDynamicIds(roomIds);
-      if (dynamicIds.length > 0) {
-        const results = await Promise.all(
-          Array(Math.ceil(dynamicIds.length / 50))
-            .fill(null)
-            .map((_, i) => {
-              const batch = dynamicIds.slice(i * 50, (i + 1) * 50);
-              const url = spinalApi.createUrlWithPlatformId(
-                buildingId,
-                `api/v1/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`
-              );
-              return spinalApi.post<{ data: RoomData[] }>(url, batch);
-            })
-        );
 
-        let seriesData = results.flatMap(r =>
-          r.data.flatMap(room => room.timeseries || [])
-        );
-        let processedData = calculateTimeWeightedAverage(seriesData, label, tempo);
+      if (!cachedRoomEntryPoints || cachedRoomEntryPoints.length === 0) {
+        throw new Error("cachedRoomEntryPoints is not initialized. Ensure initializeSources is called.");
+      }
 
-        if (tempo === "Valeur Courante") {
-          processedData = processedData.slice(0, currentHour + 1);
-          processedData = [
-            ...processedData,
-            ...Array(24 - processedData.length).fill(null),
-          ];
+      for (const roomEntryPoint of cachedRoomEntryPoints) {
+        for (const source of roomEntryPoint.source || []) {
+          if (!source.globalDisplay) {
+            console.log(`Source ${source.name} ignorée car globalDisplay est désactivé.`);
+            continue;
+          }
+
+          const dynamicIds = await fetchSecondChartOccupationDynamicIds(roomIds);
+          if (dynamicIds.length > 0) {
+            const results = await Promise.all(
+              Array(Math.ceil(dynamicIds.length / 50))
+                .fill(null)
+                .map((_, i) => {
+                  const batch = dynamicIds.slice(i * 50, (i + 1) * 50);
+                  const url = spinalApi.createUrlWithPlatformId(
+                    buildingId,
+                    `api/v1/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`
+                  );
+                  return spinalApi.post<{ data: RoomData[] }>(url, batch);
+                })
+            );
+
+            const seriesData = results.flatMap(r =>
+              r.data.flatMap(room => room.timeseries || [])
+            );
+
+            // Appliquer le filtre temporel
+            const filteredData = filterTimeSeries(seriesData, startTime, endTime);
+
+            const processedData = processData(filteredData, source.type);
+
+            if (tempo === "Valeur Courante") {
+              processedData.splice(currentHour + 1);
+              processedData.push(...Array(24 - processedData.length).fill(null));
+            }
+
+            data.push({
+              label: source.label,
+              data: processedData,
+              tooltipDate,
+              backgroundColor: source.backgroundColor,
+              borderColor: source.borderColor || source.backgroundColor,
+              borderWidth: 1,
+              fill: false,
+            });
+          }
         }
-
-        data.push({
-          label: config.charts.globalChart.secondData.label,
-          data: processedData,
-          tooltipDate,
-          backgroundColor: config.charts.globalChart.secondData.backgroundColor,
-          borderColor: config.charts.globalChart.secondData.borderColor,
-          borderWidth: 1,
-          fill: false,
-        });
       }
     } catch (error) {
       console.error("Error in meeting room occupancy calculation:", error);
@@ -338,50 +397,61 @@ export async function getData(
     // 3. Occupation positions de travail
     try {
       console.log("=== TAUX OCCUPATION POSITIONS DE TRAVAIL ===");
-      const thirdChartIds = await getThirdChartData();
-      if (thirdChartIds.length > 0) {
-        if (!cachedEquipmentEntryPoints || cachedEquipmentEntryPoints.length === 0) {
-          console.error("cachedEquipmentEntryPoints is null or empty.");
-          return [label, data, []];
-        }
-        const dynamicIds = await fetchThirdChartOccupationDynamicIds(thirdChartIds, cachedEquipmentEntryPoints[0]);
 
-        if (dynamicIds.length > 0) {
-          const results = await Promise.all(
-            Array(Math.ceil(dynamicIds.length / 50))
-              .fill(null)
-              .map((_, i) => {
-                const batch = dynamicIds.slice(i * 50, (i + 1) * 50);
-                const url = spinalApi.createUrlWithPlatformId(
-                  buildingId,
-                  `api/v1/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`
-                );
-                return spinalApi.post<{ data: TimeSeriesData[] }>(url, batch);
-              })
-          );
+      if (!cachedEquipmentEntryPoints || cachedEquipmentEntryPoints.length === 0) {
+        throw new Error("cachedEquipmentEntryPoints is not initialized. Ensure initializeSources is called.");
+      }
 
-          let seriesData = results.flatMap(r =>
-            r.data.flatMap(eq => eq.timeseries || [])
-          );
-          let processedData = calculateTimeWeightedAverage(seriesData, label, tempo);
-
-          if (tempo === "Valeur Courante") {
-            processedData = processedData.slice(0, currentHour + 1);
-            processedData = [
-              ...processedData,
-              ...Array(24 - processedData.length).fill(null),
-            ];
+      for (const equipmentEntryPoint of cachedEquipmentEntryPoints) {
+        for (const source of equipmentEntryPoint.source || []) {
+          if (!source.globalDisplay) {
+            console.log(`Source ${source.name} ignorée car globalDisplay est désactivé.`);
+            continue;
           }
 
-          data.push({
-            label: config.charts.globalChart.thirdData.label,
-            data: processedData,
-            tooltipDate,
-            backgroundColor: config.charts.globalChart.thirdData.backgroundColor,
-            borderColor: config.charts.globalChart.thirdData.borderColor,
-            borderWidth: 1,
-            fill: false,
-          });
+          const thirdChartIds = await getThirdChartData();
+          if (thirdChartIds.length > 0) {
+            const dynamicIds = await fetchThirdChartOccupationDynamicIds(thirdChartIds, equipmentEntryPoint);
+
+            if (dynamicIds.length > 0) {
+              const results = await Promise.all(
+                Array(Math.ceil(dynamicIds.length / 50))
+                  .fill(null)
+                  .map((_, i) => {
+                    const batch = dynamicIds.slice(i * 50, (i + 1) * 50);
+                    const url = spinalApi.createUrlWithPlatformId(
+                      buildingId,
+                      `api/v1/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`
+                    );
+                    return spinalApi.post<{ data: TimeSeriesData[] }>(url, batch);
+                  })
+              );
+
+              const seriesData = results.flatMap(r =>
+                r.data.flatMap(eq => eq.timeseries || [])
+              );
+
+              // Appliquer le filtre temporel
+              const filteredData = filterTimeSeries(seriesData, startTime, endTime);
+
+              const processedData = processData(filteredData, source.type);
+
+              if (tempo === "Valeur Courante") {
+                processedData.splice(currentHour + 1);
+                processedData.push(...Array(24 - processedData.length).fill(null));
+              }
+
+              data.push({
+                label: source.label,
+                data: processedData,
+                tooltipDate,
+                backgroundColor: source.backgroundColor,
+                borderColor: source.borderColor || source.backgroundColor,
+                borderWidth: 1,
+                fill: false,
+              });
+            }
+          }
         }
       }
     } catch (error) {

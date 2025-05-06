@@ -5,6 +5,8 @@ import { SpinalAPI } from './spinalAPI/spinalAPI';
 import { Context, Endpoint } from '../components/interfaces/types';
 import { getBuilding, getFloorOccupancyDynamicIds, getFloors, getFloorSecondChartOccupationDynamicIds, getRoomPositions, groupSecondChartsByFloor } from './index';
 import { EntryPoint } from '../components/interfaces/configTypes';
+import { apiEndpoints } from '../configConstants'; 
+
 
 
 
@@ -440,6 +442,119 @@ export function calculateTimeWeightedAverage(
 
   return weightedAverages;
 }
+
+export function calculateBinaryOccupancyRate(
+  timeSeriesData: TimeSeriesPoint[],
+  labels: string[],
+  tempo: string
+): number[] {
+  if (!timeSeriesData || !Array.isArray(timeSeriesData)) {
+    console.error('timeSeriesData must be an array');
+    return [];
+  }
+
+  if (!labels || !Array.isArray(labels)) {
+    console.error('labels must be an array');
+    return [];
+  }
+
+  console.log('calculateBinaryOccupancyRate inputs:', {
+    dataLength: timeSeriesData.length,
+    labelsLength: labels.length,
+    tempo: tempo,
+  });
+
+  // Traitement spécial pour la temporalité Journée ou Valeur Courante
+  if (tempo === 'Journée' || tempo === 'Valeur Courante') {
+    return labels.map(hour => {
+      const pointsForHour = timeSeriesData.filter(point =>
+        moment(point.date).format('HH') === hour
+      );
+
+      if (pointsForHour.length === 0) return 0;
+
+      // Calculer le pourcentage d'occupation pour l'heure
+      const occupiedCount = pointsForHour.reduce((acc, point) => acc + (point.value === 1 ? 1 : 0), 0);
+      return parseFloat(((occupiedCount / pointsForHour.length) * 100).toFixed(3));
+    });
+  }
+
+  // Pour les autres temporalités, utiliser une moyenne pondérée
+  const weightedAverages: number[] = [];
+  const aggregatedData: Record<string, { value: number; timestamp: number }[]> = {};
+
+  // Initialiser les données agrégées pour chaque période
+  labels.forEach((periodLabel) => {
+    aggregatedData[periodLabel] = [];
+  });
+
+  // Grouper les points de données par période
+  timeSeriesData.forEach((point) => {
+    if (!point || !point.date) {
+      console.warn('Invalid data point:', point);
+      return;
+    }
+
+    let formattedLabel: string;
+    try {
+      switch (tempo) {
+        case 'Semaine':
+        case 'Mois':
+        case 'Trimestre':
+          formattedLabel = moment(point.date).format('DD MMM');
+          break;
+        case 'Année':
+          formattedLabel = moment(point.date).format('MMM');
+          break;
+        case 'Décennie':
+          formattedLabel = moment(point.date).format('YYYY');
+          break;
+        default:
+          formattedLabel = moment(point.date).format('DD MMM');
+      }
+    } catch (e) {
+      console.error('Error formatting date:', e);
+      return;
+    }
+
+    if (aggregatedData[formattedLabel]) {
+      aggregatedData[formattedLabel].push({
+        value: point.value === 1 ? 1 : 0, // Convertir en binaire explicite
+        timestamp: moment(point.date).valueOf(),
+      });
+    }
+  });
+
+  // Calculer les moyennes pondérées pour chaque période
+  labels.forEach((periodLabel) => {
+    const values = aggregatedData[periodLabel] || [];
+    if (values.length < 2) {
+      weightedAverages.push(0);
+      return;
+    }
+
+    let totalTime = 0;
+    let weightedSum = 0;
+
+    for (let i = 0; i < values.length - 1; i++) {
+      const deltaTime = values[i + 1].timestamp - values[i].timestamp;
+      if (deltaTime > 0) {
+        totalTime += deltaTime;
+        weightedSum += values[i].value * deltaTime;
+      }
+    }
+
+    weightedAverages.push(totalTime > 0 ? +(weightedSum / totalTime * 100).toFixed(3) : 0);
+  });
+
+  console.log('calculateBinaryOccupancyRate output:', {
+    averagesLength: weightedAverages.length,
+    sampleValues: weightedAverages.slice(0, 3),
+  });
+
+  return weightedAverages;
+}
+
 
 export function getPeriodArray(timestamp: number, period: string): any[] {
     if (period === 'Journée' || period === 'Valeur Courante') {

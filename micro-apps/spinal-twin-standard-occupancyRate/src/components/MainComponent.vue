@@ -35,12 +35,12 @@
           :title="title"
           :subtitle="subtitle"
           :labels="chart.label" 
+          :temporality="temporality.name"
           :datasets="chart.data" 
           :prev_next="true"
           @nav="nav"
           @time-change="handleTimeChange"
           :current-date="getCurrentDate()"
-          :temporality="temporality.name"
           @date-change="handleDateChange"
           :stacked="true"
           :isYear="temporality.name==='Année' || temporality.name==='Trimestre'"
@@ -65,8 +65,7 @@
 <script lang="ts">
 import LineChart from './LineCard.vue';
 import { getData } from '../services/floorOccupancyService';
-import { initializeSources , cachedRoomEntryPoints} from '../services/calculationUtils';
-
+import { initializeSources , cachedRoomEntryPoints} from '../services/calculationUtils';  
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
 import BarChart from './BarCard.vue';

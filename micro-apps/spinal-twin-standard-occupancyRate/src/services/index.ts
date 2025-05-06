@@ -3,6 +3,7 @@ import lodash from 'lodash';
 import 'moment/locale/fr';
 import { SpinalAPI } from './spinalAPI/spinalAPI';
 export * from './floorOccupancyService';
+import { apiEndpoints } from '../configConstants'; 
 
 import {
   Building,
@@ -24,7 +25,9 @@ import {
 
 import { calculateTimeWeightedAverage, getPeriodArray,cachedFloors,cachedRoomsByFloor,cachedDynamicIdsByFloor,
           cachedRoomEntryPoints,cachedEquipmentEntryPoints,filterTimeSeries,
-          extractDynamicIds,processInBatches,processRoomEndpointByFloor } from './calculationUtils';
+          extractDynamicIds,processInBatches,processRoomEndpointByFloor, 
+          calculateBinaryOccupancyRate,
+          cachedBuildingEntryPoints} from './calculationUtils';
 import { formatLabel} from './secondChartData';
 let cachedThirdChartContextId: string | null = null;
 let cachedThirdChartCategoryId: string | null = null;
@@ -480,9 +483,24 @@ export async function getFloorOccupancyRatesByPeriod(
 
     const floorData: FloorOccupancyRate[] = dynamicIds.map(dynamicId => {
       const floorSeries = aggregatedData[dynamicId];
-      const weightedAverages = calculateTimeWeightedAverage(floorSeries, labels, period);
-      const averageValue = weightedAverages.length > 0 ? weightedAverages.reduce((sum, val) => sum + val, 0) / weightedAverages.length : 0;
-      console.log('hadi dar lwarata ', averageValue);
+
+      // Déterminer le type de données (binaire ou continue) à partir des entryPoints
+      const entryPoint = cachedBuildingEntryPoints?.find(entry =>
+        entry.source.some(source => source.byFloorDisplay && source.type)
+      );
+      const sourceType = entryPoint?.source.find(source => source.byFloorDisplay)?.type || 'continue';
+
+      // Appliquer la méthode appropriée
+      const weightedAverages =
+        sourceType === 'binaire'
+          ? calculateBinaryOccupancyRate(floorSeries, labels, period)
+          : calculateTimeWeightedAverage(floorSeries, labels, period);
+
+      const averageValue =
+        weightedAverages.length > 0
+          ? weightedAverages.reduce((sum, val) => sum + val, 0) / weightedAverages.length
+          : 0;
+
       return {
         dynamicId,
         occupancy: averageValue.toFixed(3),
@@ -512,7 +530,11 @@ export async function getSecondChartOccupancyDataByFloor(
     const data: any[] = [];
     const averages: { floor: string; average: number }[] = [];
 
-    if (cachedFloors.length === 0 || Object.keys(cachedRoomsByFloor).length === 0 || Object.keys(cachedDynamicIdsByFloor).length === 0) {
+    if (
+      cachedFloors.length === 0 ||
+      Object.keys(cachedRoomsByFloor).length === 0 ||
+      Object.keys(cachedDynamicIdsByFloor).length === 0
+    ) {
       console.error("Les données nécessaires ne sont pas initialisées. Appelez initializeData d'abord.");
       return [[], [], []];
     }
@@ -538,7 +560,7 @@ export async function getSecondChartOccupancyDataByFloor(
         let timeSeriesData: RoomData[] = results.flat();
 
         // Utiliser la fonction de filtre
-        timeSeriesData.forEach(roomData => {
+        timeSeriesData.forEach((roomData) => {
           roomData.timeseries = filterTimeSeries(roomData.timeseries || [], startTime, endTime);
         });
 
@@ -556,15 +578,25 @@ export async function getSecondChartOccupancyDataByFloor(
           });
         });
 
+        // Déterminer le type de données (binaire ou continue) à partir des entryPoints
+        const entryPoint = cachedRoomEntryPoints?.find((entry) =>
+          entry.source.some((source) => source.byFloorDisplay && source.type)
+        );
+        const sourceType = entryPoint?.source.find((source) => source.byFloorDisplay)?.type || "continue";
+
         // Calculer les moyennes pondérées pour chaque étage
-        const floorSeries = timeSeriesData.flatMap(roomData => roomData.timeseries);
-        const weightedAverages = calculateTimeWeightedAverage(floorSeries, label, tempo);
+        const floorSeries = timeSeriesData.flatMap((roomData) => roomData.timeseries);
+        const weightedAverages =
+          sourceType === "binaire"
+            ? calculateBinaryOccupancyRate(floorSeries, label, tempo)
+            : calculateTimeWeightedAverage(floorSeries, label, tempo);
 
         averages.push({
           floor: floor.name,
-          average: weightedAverages.length > 0
-            ? weightedAverages.reduce((sum, val) => sum + val, 0) / weightedAverages.length
-            : 0,
+          average:
+            weightedAverages.length > 0
+              ? weightedAverages.reduce((sum, val) => sum + val, 0) / weightedAverages.length
+              : 0,
         });
       }
     }
