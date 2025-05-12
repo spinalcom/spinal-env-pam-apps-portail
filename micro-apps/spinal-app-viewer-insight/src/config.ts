@@ -61,6 +61,10 @@ export const config: IConfig = {
       type: "controlPoint",
       objectType: "rooms",
       unit: "%",
+      controllable: {
+        on: true,
+        type: 'currentValue',
+      },
       legend: {
         min: { value: 0, color: "#24CBD9" },
         median: { value: 50, color: "#2077CE" },
@@ -73,6 +77,10 @@ export const config: IConfig = {
       type: "controlPoint",
       objectType: "rooms",
       unit: "",
+      controllable: {
+        on: false,
+        type: 'controlValue',
+      },
       legend: {
         min: { value: 0, color: "#00FF00" },
         median: { value: 0.5, color: "#FFFF00" },
@@ -85,10 +93,30 @@ export const config: IConfig = {
       type: "controlPoint",
       objectType: "rooms",
       unit: "",
+      controllable: {
+        on: false,
+        type: 'controlValue',
+      },
       legend: {
         min: { value: 0, color: "#00FF00" },
         median: { value: 10, color: "#FFFF00" },
         max: { value: 20, color: "#FF0000" },
+      },
+    },
+    {
+      name: "Température",
+      profileName: "Control Point",
+      type: "controlPoint",
+      objectType: "rooms",
+      unit: "°C",
+      controllable: {
+        on: false,
+        type: 'currentValue',
+      },
+      legend: {
+        min: { value: 15, color: "#0074FF" },
+        median: { value: 27.5, color: "#FFFF00" },
+        max: { value: 40, color: "#FF004B" },
       },
     }
   ],

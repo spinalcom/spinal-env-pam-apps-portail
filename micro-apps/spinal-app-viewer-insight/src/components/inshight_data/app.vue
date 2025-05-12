@@ -26,10 +26,7 @@ with this file. If not, see
   <div>
     <v-card elevation="4" class="cardContainer">
       <!-- configuration de la légende (affichage et couleur des sprites)-->
-      <v-card
-        v-if="!ActiveData"
-        class="d-flex flex-column justify-space-around align-center"
-        style="
+      <v-card v-if="!ActiveData" class="d-flex flex-column justify-space-around align-center" style="
           position: absolute;
           top: 0px;
           left: -75px;
@@ -37,66 +34,48 @@ with this file. If not, see
           min-width: 70px !important;
           height: 160px;
           z-index: 2;
-        "
-      >
+        ">
         <!-- <v-switch dense v-model="sprites"></v-switch> -->
         <div class="switch">
-          <input
-            id="toggle"
-            type="checkbox"
-            :checked="sprites"
-            @change="updateSpritesModel($event)"
-          />
+          <input id="toggle" type="checkbox" :checked="sprites" @change="updateSpritesModel($event)" />
           <label class="toggle" for="toggle">
             <i></i>
           </label>
         </div>
 
         <div style="display: flex; align-items: center">
-          <div
-            class="rounded mr-2"
-            :style="{
-              background: legend.min.color,
-              width: '9px',
-              height: '18px',
-            }"
-          ></div>
+          <div class="rounded mr-2" :style="{
+            background: legend.min.color,
+            width: '9px',
+            height: '18px',
+          }"></div>
           <div style="font-size: 13px">{{ legend.min.value }}</div>
         </div>
         <div v-if="legend.median" style="display: flex; align-items: center">
-          <div
-            class="rounded mr-2"
-            :style="{
-              background: legend.median.color,
-              width: '9px',
-              height: '18px',
-            }"
-          ></div>
+          <div class="rounded mr-2" :style="{
+            background: legend.median.color,
+            width: '9px',
+            height: '18px',
+          }"></div>
           <div style="font-size: 13px">{{ medianValue }}</div>
         </div>
         <div style="display: flex; align-items: center">
-          <div
-            class="rounded mr-2"
-            :style="{
-              background: legend.max.color,
-              width: '9px',
-              height: '18px',
-            }"
-          ></div>
+          <div class="rounded mr-2" :style="{
+            background: legend.max.color,
+            width: '9px',
+            height: '18px',
+          }"></div>
           <div style="font-size: 13px">{{ legend.max.value }}</div>
         </div>
         <v-btn icon @click="dialog = true"><v-icon>mdi-cog</v-icon></v-btn>
       </v-card>
       <!-- affichage scindé ou complet (dataapp viewer)-->
-      <button
-        class="notdisplayed"
-        @click="
-          () => {
-            $emit('buttonClicked');
-            resize();
-          }
-        "
-        style="
+      <button class="notdisplayed" @click="
+        () => {
+          $emit('buttonClicked');
+          resize();
+        }
+      " style="
           position: absolute;
           top: 47.5%;
           left: -20px;
@@ -110,22 +89,17 @@ with this file. If not, see
           padding-right: 5px;
           border-left: 2px solid gainsboro;
           z-index: 2;
-        "
-        :style="{ left: DActive ? '-35px' : '-20px' }"
-      >
+        " :style="{ left: DActive ? '-35px' : '-20px' }">
         <v-icon v-if="DActive"> mdi-chevron-double-left </v-icon>
         <v-icon v-else-if="ActiveData">mdi-chevron-right</v-icon>
         <v-icon v-else>mdi-chevron-left</v-icon>
       </button>
-      <button
-        class="notdisplayed"
-        @click="
-          () => {
-            $emit('buttonClicked3D');
-            resize();
-          }
-        "
-        style="
+      <button class="notdisplayed" @click="
+        () => {
+          $emit('buttonClicked3D');
+          resize();
+        }
+      " style="
           position: absolute;
           top: 52.5%;
           background-color: white;
@@ -138,109 +112,64 @@ with this file. If not, see
           padding-right: 5px;
           border-left: 2px solid gainsboro;
           z-index: 2;
-        "
-        :style="{ left: DActive ? '-35px' : '-20px' }"
-      >
+        " :style="{ left: DActive ? '-35px' : '-20px' }">
         <v-icon v-if="ActiveData">mdi-chevron-double-right</v-icon>
         <v-icon v-else-if="DActive">mdi-chevron-left</v-icon>
         <v-icon v-else>mdi-chevron-right</v-icon>
       </button>
 
       <div class="graphDataContainer" v-show="ActiveData || !DActive">
-        <div
-          class="graphContainer"
-          v-if="
-            (!isMobileDisplay && ActiveData) ||
-            (isMobileDisplay && isFullGraph && ActiveData)
-          "
-          :class="[{ 'full-width': isMobileDisplay && isFullGraph }]"
-        >
-          <sc-line-card
-            :title="title"
-            :labels="labelDisplay"
-            :datasets="chartData"
-            :step="labels.length / 4"
+        <div class="graphContainer" v-if="
+          (!isMobileDisplay && ActiveData) ||
+          (isMobileDisplay && isFullGraph && ActiveData)
+        " :class="[{ 'full-width': isMobileDisplay && isFullGraph }]">
+          <sc-line-card :title="title" :labels="labelDisplay" :datasets="chartData" :step="labels.length / 4"
             :tooltipCallbacks="{
               title: (context) => toTooltipDate(context[0].raw.x),
               label: (tooltipItem) =>
                 `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
                   2
                 )} ${unit}`,
-              footer: (data) => {},
-            }"
-          ></sc-line-card>
+              footer: (data) => { },
+            }"></sc-line-card>
         </div>
 
-        <div
-          v-if="!isFullGraph"
-          class="dataContainer"
-          :style="{ width: ActiveData ? '40%' : '100%' }"
-          :class="[{ 'full-width': isMobileDisplay && !isFullGraph }]"
-          @onSpriteClick="updateSelected"
-        >
+        <div v-if="!isFullGraph" class="dataContainer" :style="{ width: ActiveData ? '40%' : '100%' }"
+          :class="[{ 'full-width': isMobileDisplay && !isFullGraph }]" @onSpriteClick="updateSelected">
           <div class="detail_header">
             <div class="title_date">
               <div class="_title">{{ config.title }}</div>
               <!-- navigation temporelle-->
-              <div v-if="navigable">
+              <div v-if="navigable" style="display: flex; align-items: center; justify-content: center; padding: 10px;">
                 <v-btn elevation="0" fab small @click="t_index--">
                   <v-icon>mdi-chevron-left</v-icon>
                 </v-btn>
-                {{ displayDate }}
-                <v-btn
-                  elevation="0"
-                  fab
-                  small
-                  :disabled="!t_index"
-                  @click="t_index++"
-                >
+                <SelectTimesSeries @selected="selectTimeseriesChange" />
+                <v-btn elevation="0" fab small :disabled="!t_index" @click="t_index++">
                   <v-icon>mdi-chevron-right</v-icon>
                 </v-btn>
               </div>
               <!-- rafraichissement des données -->
-              <div v-else>
-                <v-progress-circular
-                  :rotate="-90"
-                  :size="40"
-                  :width="2"
-                  color="purple"
-                  :value="reload_countdown"
-                  @click="reload()"
-                >
+              <div v-if="!realTime && !navigable && enablereloadValue">
+                <v-progress-circular :rotate="-90" :size="40" :width="2" color="purple" :value="reload_countdown"
+                  @click="reload()">
                   <v-icon>mdi-reload</v-icon>
                 </v-progress-circular>
+
               </div>
+              <Checkbox @change="enableWebsocket" :checkedValue="socketisConnected" v-if="!navigable" :label="'Temps réel'" />
             </div>
 
             <!-- selection de la source et du regroupement -->
             <v-row class="source_regroupement_select">
               <v-col>
-                <v-autocomplete
-                  v-model="sourceSelectedName"
-                  item-text="name"
-                  outlined
-                  dense
-                  rounded
-                  flat
-                  :hide-details="true"
-                  :items="sources"
-                  label="Source"
-                ></v-autocomplete>
+                <v-autocomplete v-model="sourceSelectedName" item-text="name" outlined dense rounded flat
+                  :hide-details="true" :items="sources" label="Source"></v-autocomplete>
               </v-col>
 
               <v-col>
-                <v-autocomplete
-                  v-model="regroupementSelected"
-                  item-text="name"
-                  item-value="value"
-                  outlined
-                  dense
-                  rounded
-                  flat
-                  :hide-details="true"
-                  :items="regroupements"
-                  label="Regroupement"
-                ></v-autocomplete>
+                <v-autocomplete v-model="regroupementSelected" item-text="name" item-value="value" outlined dense
+                  rounded flat :hide-details="true" :items="regroupements" label="Regroupement"></v-autocomplete>
               </v-col>
             </v-row>
 
@@ -248,42 +177,27 @@ with this file. If not, see
             <div class="calcul_content">
               <div class="calcul">
                 <div class="select">
-                  <v-select
-                    v-model="calculMode"
-                    :items="calculItems"
-                    height="30"
-                    background-color="#eaeef0"
-                    dense
-                    append-icon=""
-                    solo
-                    flat
-                    :hide-details="true"
-                  >
+                  <v-select v-model="calculMode" :items="calculItems" height="30" background-color="#eaeef0" dense
+                    append-icon="" solo flat :hide-details="true">
                     <template v-slot:item="{ item, index }">
                       <div style="display: flex; align-items: center">
-                        <div
-                          class="color"
-                          :style="{
-                            background: '#14202c',
-                            width: '8px',
-                            height: '15px',
-                            marginRight: '5px',
-                          }"
-                        ></div>
+                        <div class="color" :style="{
+                          background: '#14202c',
+                          width: '8px',
+                          height: '15px',
+                          marginRight: '5px',
+                        }"></div>
                         <div style="font-size: 13px">{{ item }}</div>
                       </div>
                     </template>
 
                     <template v-slot:selection="{ item, index }">
                       <div style="display: flex; align-items: center">
-                        <div
-                          class="color"
-                          :style="{
-                            height: '15px',
-                            background: '#14202c',
-                            borderRadius: '3px',
-                          }"
-                        ></div>
+                        <div class="color" :style="{
+                          height: '15px',
+                          background: '#14202c',
+                          borderRadius: '3px',
+                        }"></div>
                         <div style="font-size: 13px">{{ item }}</div>
                       </div>
                     </template>
@@ -294,63 +208,52 @@ with this file. If not, see
                   <div class="color" :style="{ background: toltalColor }"></div>
                   <div class="value">{{ total | round }}</div>
                   <div class="value">{{ unit }}</div>
-                  <div class="text">Pour l'étage {{ selectedZone.name }}</div>
+                  <div class="text" v-if="!loadbuilding">Pour l'étage {{ selectedZone.name }}</div>
+                  <div class="text" v-if="loadbuilding">Pour le batiment {{ selectedZone.name }}</div>
+
                 </div>
+                <!-- Notif au pilotage de l'étage -->
+                <alert :show="showAlert" :text="messageAlert" :type_alert="typeAlert" />
+                <div>
+                  <v-icon size="20" v-if="isControllable" style=" padding: 5px; cursor: pointer; background-color: #14202C; color: #ffff; border-radius: 5px;" @click.stop="controlFloor" >mdi-square-edit-outline</v-icon>
+                </div>
+                <EditEndpoint v-if="showEditForm" :item="itemGroup" @close="showEditForm = false" @update="updateEndpointValue" :allFloor="true" />
               </div>
             </div>
           </div>
 
           <!-- affichage des données -->
-          <div
-            v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected"
-            class="detail_container"
-          >
-            <GroupDataView
-              v-for="(d, i) in data"
-              :key="i"
-              :data="d"
-              :config="config"
-              :calculMode="calculMode"
-              :selectedItem="selectedItem"
-              :unit="unit"
-              :legend="legend"
-              :percent="percent"
-              @onClick="selectDataView"
-            />
+          <div v-if="pageSate === PAGE_STATES.loaded && !isBuildingSelected" class="detail_container">
+            <GroupDataView v-for="(d, i) in data" :key="i" :data="d" :config="config" :calculMode="calculMode"
+              :selectedItem="selectedItem" :unit="unit" :legend="legend" :percent="percent" @onClick="selectDataView" />
           </div>
 
           <!-- page chargée avec succès (zone non selectionnée) -->
-          <div
-            class="centered"
-            v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected"
-          >
-            <p>
-              Aucune donnée à afficher ! veuillez selectionner un étage ou une
-              pièce.
+          <div class="detail_container" v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected">
+            <GroupDataView v-if="loadbuilding" v-for="(d, i) in data" :key="i" :data="d" :config="config" :calculMode="calculMode"
+              :selectedItem="selectedItem" :unit="unit" :legend="legend" :percent="percent" @onClick="selectDataView" />
+            
+            <p v-if="!loadbuilding">
+              Aucune donnée à afficher !
+              <v-btn small outlined color="purple" @click="loadedDataBuilding">
+                charger les données du bâtiment
+              </v-btn>
             </p>
           </div>
 
           <!-- animation de rafraichissement -->
           <div class="centered" v-else-if="pageSate === PAGE_STATES.loading">
-            <v-progress-circular
-              :size="70"
-              :width="3"
-              color="purple"
-              indeterminate
-            ></v-progress-circular>
+            <v-progress-circular :size="70" :width="3" color="purple" indeterminate></v-progress-circular>
           </div>
 
           <!-- bouton de relance en cas d'erreur -->
           <div class="centered" v-else-if="pageSate === PAGE_STATES.error">
             <div>
-              <v-icon color="red" style="font-size: 5em"
-                >mdi-alert-circle-outline</v-icon
-              >
+              <v-icon color="red" style="font-size: 5em">mdi-alert-circle-outline</v-icon>
             </div>
             <div color="red">
               Quelque chose s'est mal passé ! Veuillez
-              <v-btn small outlined color="red" @click="retry"
-                >réessayer
+              <v-btn small outlined color="red" @click="retry">réessayer
               </v-btn>
             </div>
           </div>
@@ -360,7 +263,7 @@ with this file. If not, see
 
     <!-- boite de dialogue de configuration de la légende -->
     <v-dialog v-model="dialog" width="80%">
-      <config-legend v-if="dialog" v-model="legend" @close="dialog = false">
+      <config-legend v-if="dialog" v-model="legend" @close="dialog = false" :data="data">
       </config-legend>
     </v-dialog>
   </div>
@@ -400,7 +303,17 @@ import { ViewerManager } from '../../../../../global-components/viewer';
 import moment from 'moment';
 import { getLabels, getValues } from '../../services/calcul/computeChart';
 import 'moment/locale/fr';
-
+import CurrentCard from './CurrentCard.vue';
+import SelectTimesSeries from '../data-table/SelectTimesSeries.vue';
+import Checkbox from '../Checkbox.vue';
+import { SpinalAPI } from '../../services/spinalAPI/SpinalAPI';
+import io, { Socket } from 'socket.io-client';
+import { subscribe } from '../../services/websocket/subscribe';
+import { getContextId } from '../../services/websocket/Current';
+import connectSocket from '../../services/websocket';
+import EditEndpoint from '../EditEndpoint.vue';
+import Alert from '../Alert.vue';
+import { log } from 'console';
 moment.updateLocale('fr', {
   months: [
     'Janvier',
@@ -422,6 +335,11 @@ moment.updateLocale('fr', {
   components: {
     GroupDataView,
     ConfigLegend,
+    CurrentCard,
+    SelectTimesSeries,
+    Checkbox,
+    EditEndpoint,
+    Alert
   },
   filters: {
     round(value) {
@@ -450,7 +368,7 @@ class InsightApp extends Vue {
   @Prop() isMobileDisplay: boolean;
 
   time: any = null;
-  sprites: boolean = true;
+  sprites: boolean = false;
   reload_countdown: number = 0;
   t_index: number = 0;
   sourceSelectedName: string = '';
@@ -458,16 +376,161 @@ class InsightApp extends Vue {
     this.config.regroupement[0];
   legend: any = this.config.source[0].legend;
   dialog: boolean = false;
-  reload = function () {};
+  reload = function () { };
   ignoreViewerSelection: boolean = false;
   initiated: boolean = false;
-
+// Edit form variables
+  isControllable: boolean = false
+  showEditForm: boolean = false;
+  itemGroup: any = null;
+  // End Edit form variables
   selectedItem: any = null;
   selectedItems: any[] = [];
-
+  //Notif values
+  showAlert: boolean = false;
+  messageAlert: string = '';
+  typeAlert: string = '';
+  //End Notif values
   intervalId: any;
+  listDisplayDate: any[] = [{}];
+  //Websocket
+  socket: null | Socket = null;
+  socketisConnected: boolean = false;
+  realTime: boolean = false;
+  enablereloadValue: boolean = this.$store.state.appDataStore.enablereload;
+  buildingId = localStorage.getItem('idBuilding');
+  requestOption = {
+    subscribeChildren: true,
+    subscribeChildScope: 'tree_in_context',
+  }
+loadbuilding: boolean = false;
+
+  elementContext: string[] = [];
+  async enableWebsocket(val) {
+    this.realTime = val;
+    if (this.realTime) {
+      //teste si le websocket est déja connecté
+      if (!this.socket || !this.socket.connected) {
+        // connexion au websocket
+        this.socket = connectSocket();
+        this.socket?.on('connect', () => {
+          console.log('websocket connected')
+        })
+        this.socketisConnected = true;
+
+
+
+
+        //Récupération des nodeId pour la souscription au websocket
+        let endpointList: any[] = [];
+        if (this.$store.state.appDataStore.data.length > 0) {
+          const item = this.$store.state.appDataStore.data
+          item.map((item: any) => {
+            item.children.map((el: any) => {
+              const value = el.endpoint.dynamicId
+              endpointList.push(value);
+            })
+          })
+          
+          const context = await getContextId(this.buildingId);
+          //context ID
+          const contextId = context[0].dynamicId;
+          let elementContext_alt: any[] = [];
+          endpointList.map(async (el: any) => {
+            elementContext_alt.push(`${contextId}/${el}`);
+          });
+          this.elementContext = elementContext_alt;
+        }
+        const events = await subscribe(this.socket, this.elementContext, this.requestOption, (data) => {
+          // this.myWebsocketCallBack(data)
+        })
+        // parcourir les events 
+        this.listenEvents(events);
+
+      } else {
+        //déconnexion du websocket
+        if (this.socket && this.socket.connected) {
+          this.socket.disconnect();
+          console.log('websocket disconnected');
+        }
+      }
+    }
+    else {
+      //déconnexion du websocket
+      if (this.socket && this.socket.connected) {
+        this.socket.disconnect();
+        this.socketisConnected = false;
+        console.log('websocket disconnected');
+      }
+    }
+  }
+
+  listenEvents(events) {
+    try {
+      for (const eventName of events) {
+        this.socket!.on(eventName.toString(), (data) => {
+          this.myWebsocketCallBack(data)
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+  }
+
+  async myWebsocketCallBack(data) {
+    const value = {
+      dynamicId: data.data.node.dynamicId,
+      name: data.data.node.element.name,
+      value: data.data.node.element.currentValue,
+      unit: data.data.node.element.unit
+    }
+    const stateupdate = await this.$store.dispatch(ActionTypes.WEBSOCKET_CALLBACK, {data: value});
+
+    this.$store.commit(MutationTypes.SET_DATA, stateupdate);
+    this.regroupItemsAndCalculate(true)
+    this.updateDataOnTimeChanged();
+    
+  }
+  async controlFloor() {
+    this.showEditForm = true;
+    const buildingId = localStorage.getItem('idBuilding');
+    let endpointList: any = [];
+    if(this.$store.state.appDataStore.data.length > 0) {
+      const item = this.$store.state.appDataStore.data
+      item.map((item: any) => {
+          item.children.map((el: any) => {
+            const value = {
+                dynamicId: el.dynamicId,
+                name: el.name,
+                displayValue: el.displayValue,
+                endpoint: el.endpoint,
+                type: el.type,
+            }
+            endpointList.push(value);
+          })
+      })
+      this.itemGroup = endpointList;
+    }
+  }
+  updateEndpointValue (response) {
+    if (response.statusCode === 200) {
+        this.messageAlert = response.text;
+        this.typeAlert = response.status;
+        this.showAlert = true;
+        
+      } else {
+        this.messageAlert = response.text;
+        this.typeAlert = response.status;
+        this.showAlert = true;
+
+      }
+  }
+
+
 
   regroupItemsAndCalculateDebounced: any = lodash.debounce(
+    
     this.regroupItemsAndCalculate.bind(this),
     500
   );
@@ -518,6 +581,7 @@ class InsightApp extends Vue {
   toDate(date) {
     switch (this.$store.state.appDataStore.temporalitySelected.name) {
       case ITemporality.hour:
+
         return moment(date).format('HH:mm');
       case ITemporality.day:
         return moment(date).format('HH[h]');
@@ -570,7 +634,6 @@ class InsightApp extends Vue {
     const result: any[] = [];
     const t_index = this.t_index;
     const items = this.selectedChartItems;
-    console.log('Chart items : ', items);
     for (const item of items) {
       const labels = getLabels(
         this.$store.state.appDataStore.temporalitySelected,
@@ -595,7 +658,6 @@ class InsightApp extends Vue {
             if (valueAtTimestamp !== null) {
               timestampValues.push(valueAtTimestamp);
             }
-            console.log('series : ', series);
           }
           console.log(
             'calculTotal : ',
@@ -607,13 +669,11 @@ class InsightApp extends Vue {
           };
         });
 
-        //console.log('data!!! : ', data);
         const color = '#ffffff';
         result.push({ label: item.name, data, color, tension: 0.3 });
       } else {
         const vals = getValues(item.series);
-        console.log('labels : ', labels);
-        console.log('vals : ', vals);
+
 
         // Convert the vals object keys to an array of timestamps
         const valTimestamps = Object.keys(vals).map((key) => parseInt(key));
@@ -655,17 +715,25 @@ class InsightApp extends Vue {
 
     // Assign the result to a reactive property (if necessary)
     this.chartData = result;
-    console.log(this.chartData, 'gab');
   }
 
-  async mounted() {
+  async mounted() {    
+    
+    if(this.socket) {
+      this.socket.disconnect();
+    }
+    const lastDays = moment().subtract(1, 'days').format('YYYY-MM-DD');
+    const hours = this.getHoursBetweenDates(lastDays);
+    const groupedHours = this.groupHoursByDate(hours);
+    const sortedGroupedHours = Object.keys(groupedHours).sort().reduce((acc, key) => {
+      acc[key] = groupedHours[key];
+      return acc;
+    }, {});
     const emitterHandler = EmitterViewerHandler.getInstance();
-
+    
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, async (data) => {
       if (this.ignoreViewerSelection) return;
       if (data && !data[0]) {
-        //console.log('viewer aggr selection : ',data)
-        console.log('no data inside viewer selection');
         this.clearSelection();
         //this.selectedItem = null;
       }
@@ -676,16 +744,14 @@ class InsightApp extends Vue {
         for (const group of this.data) {
           let rooms = group.children;
           if (!rooms) continue;
-          //console.log('viewer_selected_items : ', viewer_selected_items);
           rooms = rooms.map((el) => {
             return { ...el, buildingId };
           });
-          // console.log('rooms : ', rooms);
           const viewer_info_rooms =
             await ViewerManager.getInstance().getViewerInfo(rooms);
-          for (const viewer_info_room of viewer_info_rooms) {
-            for (const viewer_info_room_data of viewer_info_room.data) {
-              const room_bimFileId = viewer_info_room_data.bimFileId;
+            for (const viewer_info_room of viewer_info_rooms) {
+              for (const viewer_info_room_data of viewer_info_room.data) {
+                const room_bimFileId = viewer_info_room_data.bimFileId;
               const room_dbIds = viewer_info_room_data.dbIds;
               if (
                 room_bimFileId === vselected_bimFileId &&
@@ -694,8 +760,7 @@ class InsightApp extends Vue {
                 const matching_room = rooms.find(
                   (el) => el.dynamicId === viewer_info_room.dynamicId
                 );
-                // console.log('matching_room : ', matching_room);
-
+                
                 this.selectedItem = matching_room;
                 this.$store.commit(
                   MutationTypes.SET_ITEM_SELECTED,
@@ -706,9 +771,7 @@ class InsightApp extends Vue {
                 ]);
               }
             }
-            // console.log('viewer_info_room : ', viewer_info_room);
-            // console.log('vselected_bimFileId : ', vselected_bimFileId);
-            // console.log('vselected_dbIds : ', vselected_dbIds);
+      
           }
         }
       }
@@ -722,7 +785,11 @@ class InsightApp extends Vue {
       this.$store.commit(MutationTypes.SET_SOURCE, source);
     }
     await this.retriveData();
+  this.sourceSelected.controllable.on ? this.isControllable = true : this.isControllable = false
+  this.loadbuilding = false;
+    
   }
+  
 
   get navigable() {
     return ![ITemporality.currentValue, ITemporality.custom].includes(
@@ -770,6 +837,34 @@ class InsightApp extends Vue {
     }
   }
 
+  getHoursBetweenDates(startDate): { time: moment.Moment; t_index: number }[] {
+    const hours: { time: moment.Moment; t_index: number }[] = [];
+    let current = moment(startDate, 'YY-MM-DD');
+    let t_index = 0;
+    while (current.isBefore(moment()) || current.isSame(moment())) {
+      hours.push({ time: current.clone(), t_index });
+      current.add(1, 'hour');
+      t_index--;
+    }
+
+    return hours;
+  }
+
+
+  groupHoursByDate(hours) {
+    const grouped = {};
+
+    hours.forEach(hour => {
+      const date = hour.time.format('YYYY-MM-DD');
+      if (!grouped[date]) {
+        grouped[date] = [];
+      }
+      grouped[date].push({ time: hour.time.format('HH:mm'), t_index: hour.t_index });
+    });
+
+    return grouped;
+  }
+
   // chartView(val) {
   //   this.chartViewDisplay = val;
   //   this.$emit("chartView", { display: val, source: this.sourceSelectedName });
@@ -812,7 +907,6 @@ class InsightApp extends Vue {
           })
         );
       }
-
       await Promise.all(promises);
       this.pageSate = PAGE_STATES.loaded;
     } catch (err) {
@@ -823,6 +917,7 @@ class InsightApp extends Vue {
   }
 
   async regroupItemsAndCalculate(forceUpdate: boolean = false) {
+
     try {
       const config_copy = {
         ...this.config,
@@ -848,6 +943,7 @@ class InsightApp extends Vue {
         this.legend.min.value,
         this.legend.max.value
       );
+      console.log('calculated: ', calculated);
       this.$store.commit(MutationTypes.SET_DATA, calculated);
       this.pageSate = PAGE_STATES.loaded;
       this.reload_countdown = 0;
@@ -859,7 +955,6 @@ class InsightApp extends Vue {
   }
 
   updateSelected(item) {
-    //console.log('----> selected item : ', item);
     // item.detail is the item clicked in the viewer (sprite), item is the item clicked in the data view
     this.selectedItem = item.detail || item;
   }
@@ -916,20 +1011,26 @@ class InsightApp extends Vue {
     }
     await this.regroupItemsAndCalculate(true);
     await this.updateSprites();
+
   }
 
   async updateSprites() {
     const buildingId = localStorage.getItem('idBuilding');
-
     // Récuperation des zones à afficher dans le viewer + données utiles
+    console.log('this.data: ', this.data);
     const itemsToColor = this.data.flatMap((el) => el.children || []);
+    console.log('itemsToColor: ', itemsToColor);
     itemsToColor.forEach((el) => {
       el.unit = this.sourceSelected.unit;
       el.navIndex = this.t_index;
+      el.floorId = this.selectedZone.dynamicId;
+      el.source = this.sourceSelected;
     });
+    console.log('Building ID: ', itemsToColor );
+    console.log('this.sprites: ', this.sprites); 
     if (this.sprites) {
       await this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-
+   
       await this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
         items: itemsToColor,
         buildingId,
@@ -946,6 +1047,7 @@ class InsightApp extends Vue {
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.selectedItem });
 
+
       // selection des items dans le viewer (regroupement pas complet)
       const selectedIds = this.selectedItem.children?.map(
         (el) => el.dynamicId
@@ -954,11 +1056,13 @@ class InsightApp extends Vue {
         this.$store.dispatch(ActionTypes.SELECT_SPRITES, selectedIds);
       }, 500);
     } else {
+      
       // coloration des espaces si on n'affiche pas les sprites
       this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
         items: itemsToColor,
         buildingId,
       });
+
     }
   }
 
@@ -967,6 +1071,16 @@ class InsightApp extends Vue {
   }
   // affichage du diagramme sans les sprites
   updateChartSprite() {
+    console.log('updateChartSprite: ', this.selectedItem);
+    if (this.selectedTime.name == "Valeur courante") {
+      if (!this.sprites) {
+        this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+          items: [{ ...this.selectedItem, navIndex: this.t_index, source: this.sourceSelected } ],
+          buildingId: localStorage.getItem('idBuilding'),
+          component: CurrentCard,
+        });
+      }
+    }
     if (!this.sprites) this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
     if (
       !this.selectedItem ||
@@ -979,6 +1093,42 @@ class InsightApp extends Vue {
       buildingId: localStorage.getItem('idBuilding'),
       component: ChartSpriteComponent,
     });
+
+
+  }
+  selectTimeseriesChange(val) {
+    switch (val.name) {
+      case 'Heure':
+        const hour = moment(`${val.year}-${val.month}-${val.day} ${val.start_hour}`, 'YYYY-MM-DD HH');
+        const currentHour = moment();
+        this.t_index = hour.diff(currentHour, 'hours');
+        break;
+      case 'Journée':
+        let day = moment(`${val.year}-${val.month}-${val.day}`, 'YYYY-MM-DD');
+        let current = moment();
+        this.t_index = day.diff(current, 'days');
+        break;
+      case 'Semaine':
+        const dayS = moment(`${val.year}-${val.month}-${val.start}`, 'YYYY-MM-DD');
+        const currentS = moment().endOf('week');
+        this.t_index = dayS.diff(currentS, 'weeks'); // Inverser l'ordre pour obtenir un nombre négatif si currentS > dayS
+        break;
+
+      case 'Mois':
+        const dayM = moment(`${val.year}-${val.month}-${val.day}`, 'YYYY-MM-DD');
+        const currentMonth = moment();
+        this.t_index = dayM.diff(currentMonth, 'months');
+        break;
+
+      case 'Année':
+        const dayY = moment(`${val.year}-${val.month}-${val.day}`, 'YYYY-MM-DD');
+        const currentYear = moment();
+        this.t_index = dayY.diff(currentYear, 'years');
+        break;
+
+      default:
+        break;
+    }
   }
 
   clearSelection() {
@@ -989,7 +1139,6 @@ class InsightApp extends Vue {
   }
   // selection d'un element dans la vue de données au click
   selectDataView(item) {
-    console.log('selectDataView :', item);
     this.updateSelected(item);
     this.$store.commit(MutationTypes.SET_ITEM_SELECTED, item);
 
@@ -1012,10 +1161,78 @@ class InsightApp extends Vue {
     //   this.$store.dispatch(ActionTypes.SELECT_SPRITES, multipleSelection);
     // }
   }
+  async loadedDataBuilding() {
+    const config_copy = {
+        ...this.config,
+        regroupement: this.regroupementSelected,
+        source: this.sourceSelected,
+      };
+
+      const playload = {
+        config: config_copy,
+        item: this.selectedZone,
+        forceUpdate: true,
+      };
+
+      const regrouped = await this.$store.dispatch(
+        ActionTypes.REGROUP_ITEMS,
+        playload
+      );
+      const calculated = await calculItemsValue(
+        regrouped,
+        this.calculMode,
+        this.time,
+        this.legend.min.value,
+        this.legend.max.value
+      );
+      this.$store.commit(MutationTypes.SET_DATA, calculated);
+      this.isBuildingSelected = true;
+     this.pageSate = PAGE_STATES.loaded;
+     this.loadbuilding = true;
+     this.initiated = true;
+     await this.regroupItemsAndCalculate(true);
+      this.$store.commit(MutationTypes.SET_DATA, calculated);
+      this.total = calculateTotal(
+        this.data.map((el) => el.displayValue),
+        this.calculMode
+      );
+      this.updateChartSprite();
+     //this.updateDataOnTimeChanged();
+    await this.updateSprites()
+  }
+
+ 
+ /**
+  * Computed
+  */
+  
+  get enablereload() {
+    return this.$store.state.appDataStore.enablereload;
+  }
+ 
 
   /**
    * Watchers
    */
+
+
+
+
+   @Watch('showAlert')
+    watchShowAlert(val) {
+      if(val) {
+        setTimeout(() => {
+          this.showAlert = false;
+        }, 7000);
+      }
+    }
+
+   @Watch('enablereload')
+    watchEnablereload(val) {
+      this.enablereloadValue = val;
+    } 
+  
+
 
   @Watch('pageSate')
   watchPageState(state) {
@@ -1031,13 +1248,19 @@ class InsightApp extends Vue {
     this.updateSprites();
     this.updateChartSprite();
   }
+  @Watch('socketisConnected')
+  watchSocketisConnected(val) {
+    this.socketisConnected = val;
+  }
 
   @Watch('selectedZone')
-  watchSelectedZone() {
+  async watchSelectedZone() {
+   this.enableWebsocket(false);
+    this.socketisConnected = false;
+    
     if (this.selectedZone.type === 'building') {
-      this.isBuildingSelected = true;
-      this.$store.commit(MutationTypes.SET_DATA, []);
-      this.reload = function () {};
+      this.loadedDataBuilding();
+      this.sourceSelected.controllable.on ? this.isControllable = true : this.isControllable = false
       return;
     }
     this.initiated = false;
@@ -1051,8 +1274,8 @@ class InsightApp extends Vue {
     } else {
       clearInterval(this.intervalId);
     }
-
     this.updateDataOnTimeChanged();
+    console.log('data updated: ', this.data);
   }
 
   // watch selectedItem
@@ -1063,13 +1286,18 @@ class InsightApp extends Vue {
 
   @Watch('reload_countdown')
   watchReloadCountdown() {
-    if (this.reload_countdown > 100) this.reload();
+    if(this.realTime) return;
+    if(!this.enablereloadValue) return;
+    
+    if (this.reload_countdown > 100 && !this.realTime) this.reload();
   }
 
   @Watch('calculMode')
   async watchCaculMode(mode) {
     this.percent = mode === calculTypes.MoyennePercent;
-    if (this.isBuildingSelected) return;
+    if (this.isBuildingSelected) {
+      this.loadedDataBuilding();
+    }
 
     const calculated = await calculItemsValue(
       this.data,
@@ -1101,17 +1329,25 @@ class InsightApp extends Vue {
   async watchSource(newVal) {
     if (!newVal) return;
     this.legend = this.config.source.find((el) => el.name === newVal).legend;
-
-    if (this.isBuildingSelected) return;
-
+    // if (this.isBuildingSelected) return;
+    
     await this.regroupItemsAndCalculate(true);
     await this.updateSprites();
     this.updateChartSprite();
+    if(this.realTime) {
+      this.socket?.disconnect();
+      this.enableWebsocket(true);
+    }
+    this.sourceSelected.controllable.on ? this.isControllable = true : this.isControllable = false
   }
 
   @Watch('regroupementSelected')
   watchRegroupement() {
-    if (this.isBuildingSelected) return;
+    if (this.isBuildingSelected) {
+      this.loadedDataBuilding();
+      this.sourceSelected.controllable.on ? this.isControllable = true : this.isControllable = false
+      this.updateChartSprite();
+    }
     this.regroupItemsAndCalculateDebounced();
     this.updateChartSprite();
   }
@@ -1148,6 +1384,8 @@ class InsightApp extends Vue {
   async watchLegend() {
     if (this.isBuildingSelected) return;
     await this.updateSprites();
+    this.regroupItemsAndCalculate(true);
+    this.updateChartData();
   }
 
   @Watch('selectedChartItems', { deep: true })
@@ -1226,7 +1464,7 @@ export default InsightApp;
   cursor: pointer;
 }
 
-.switch input[type='checkbox'] + label {
+.switch input[type='checkbox']+label {
   position: relative;
   display: block;
   left: 0;
@@ -1238,7 +1476,7 @@ export default InsightApp;
   transition: all 0.5s ease-in-out;
 }
 
-.switch input[type='checkbox'] + label:after {
+.switch input[type='checkbox']+label:after {
   content: '';
   display: inline-block;
   width: 0;
@@ -1246,7 +1484,7 @@ export default InsightApp;
   vertical-align: middle;
 }
 
-.switch input[type='checkbox'] + label i {
+.switch input[type='checkbox']+label i {
   display: block;
   position: absolute;
   top: 50%;
@@ -1259,8 +1497,8 @@ export default InsightApp;
   box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
 }
 
-.switch input[type='checkbox'] + label i:before,
-.switch input[type='checkbox'] + label i:after {
+.switch input[type='checkbox']+label i:before,
+.switch input[type='checkbox']+label i:after {
   content: '';
   display: block;
   position: absolute;
@@ -1271,15 +1509,15 @@ export default InsightApp;
   box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
 }
 
-.switch input[type='checkbox'] + label i:before {
+.switch input[type='checkbox']+label i:before {
   left: -7px;
 }
 
-.switch input[type='checkbox'] + label i:after {
+.switch input[type='checkbox']+label i:after {
   left: 7px;
 }
 
-.switch input[type='checkbox']:checked + label {
+.switch input[type='checkbox']:checked+label {
   left: 50%;
 }
 </style>
@@ -1335,121 +1573,125 @@ export default InsightApp;
     .detail_header {
       width: 100%;
       height: #{$titleDateHeight + $gradientContentHeight + $calculContentHeight +
-        $selectionHeight};
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 10px;
-
-      .title_date {
-        width: 100%;
-        height: $titleDateHeight;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-
-        ._title {
-          max-width: 50%;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          text-transform: uppercase;
-          font-size: 0.8em;
-        }
-      }
-
-      .source_regroupement_select {
-        /*width: 100%;*/
-        height: $selectionHeight;
-        display: flex;
-        align-items: center;
-      }
-
-      .gradient_content {
-        width: 100%;
-        height: $gradientContentHeight;
-
-        .gradient_bar {
-          width: 100%;
-          height: 15px;
-          border-radius: 5px;
-        }
-
-        .indicators {
-          width: 100%;
-          height: 15px;
-          font-size: 11px;
-          display: flex;
-          justify-content: space-between;
-        }
-      }
-
-      .calcul_content {
-        width: 100%;
-
-        .calcul {
-          width: 100%;
-          display: flex;
-
-          .select {
-            width: 35%;
-            min-height: unset;
-            margin-right: 50px;
-          }
-
-          .calculResult {
-            display: flex;
-            align-items: center;
-            height: 10px;
-
-            .value {
-              margin-right: 1px;
-              font-weight: 500;
-              height: 15px;
-            }
-
-            .text {
-              margin-left: 2px;
-              padding: 0px;
-              font-size: 15px;
-              height: 15px;
-            }
-          }
-        }
-
-        .color {
-          width: 8px;
-          height: 20px;
-          margin-right: 5px;
-          border-radius: 3px;
-        }
-      }
+ $selectionHeight
     }
 
-    .detail_container {
-      width: 100%;
-      height: calc(
-        100% - #{$titleDateHeight + $gradientContentHeight +
-          $calculContentHeight + $selectionHeight}
-      );
-      overflow: auto;
-      scroll-behavior: smooth;
-    }
-  }
-
-  .centered {
-    width: 100%;
-    height: calc(100% - 190px);
+    ;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
+    justify-content: space-between;
+    padding: 10px;
+
+    .title_date {
+      width: 100%;
+      height: $titleDateHeight;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      ._title {
+        max-width: 50%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-transform: uppercase;
+        font-size: 0.8em;
+      }
+    }
+
+    .source_regroupement_select {
+      /*width: 100%;*/
+      height: $selectionHeight;
+      display: flex;
+      align-items: center;
+    }
+
+    .gradient_content {
+      width: 100%;
+      height: $gradientContentHeight;
+
+      .gradient_bar {
+        width: 100%;
+        height: 15px;
+        border-radius: 5px;
+      }
+
+      .indicators {
+        width: 100%;
+        height: 15px;
+        font-size: 11px;
+        display: flex;
+        justify-content: space-between;
+      }
+    }
+
+    .calcul_content {
+      width: 100%;
+
+      .calcul {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+
+        .select {
+          width: 35%;
+          min-height: unset;
+          margin-right: 50px;
+        }
+
+        .calculResult {
+          display: flex;
+          align-items: center;
+          height: 30px;
+
+          .value {
+            margin-right: 1px;
+            font-weight: 500;
+            height: max-content;
+          }
+
+          .text {
+            margin-left: 2px;
+            padding: 0px;
+            font-size: 15px;
+            height: max-content;
+            text-align: center;
+          }
+        }
+      }
+
+      .color {
+        width: 8px;
+        height: 20px;
+        margin-right: 5px;
+        border-radius: 3px;
+      }
+    }
   }
 
-  .full-width {
-    width: 100% !important;
-  }
+  .detail_container {
+    width: 100%;
+    height: calc(100% - #{$titleDateHeight + $gradientContentHeight +
+ $calculContentHeight + $selectionHeight
+    });
+  overflow: auto;
+  scroll-behavior: smooth;
+}
+}
+
+.centered {
+  width: 100%;
+  height: calc(100% - 190px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.full-width {
+  width: 100% !important;
+}
 }
 
 .test {

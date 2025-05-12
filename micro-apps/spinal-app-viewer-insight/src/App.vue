@@ -309,11 +309,27 @@ class App extends Vue {
   }
 
   async mounted() {
+    const buildingId = localStorage.getItem('idBuilding');
+    const realBuilding = await this.$store.dispatch(
+            ActionTypes.GET_BOS_BUILDING,
+            { buildingId }
+          )
+          console.log('realBuilding: ',realBuilding);
+      const item = {
+        buildingId: buildingId,
+        dynamicId: realBuilding.dynamicId,
+        isOpen: false,
+        loading: false,
+        name: realBuilding.name,
+        type: 'building',
+      };
+      this.$store.commit(MutationTypes.SET_SELECTED_ZONE, item);
+      this.onActionClick({ button: { onclickEvent: 'OPEN_VIEWER' }, item });
     try {
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();
       this.pageSate = PAGE_STATES.loaded;
-
+      
       if (window.innerWidth < 900) {
         this.isMobileDisplay = true;
         this.mobileDisplayMode = 1;
@@ -323,7 +339,7 @@ class App extends Vue {
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
-
+    
     this.$nextTick(() => {
       const currentQuery = window.parent.routerFontion.apps[0]._route.query;
       this.applyURLParam(currentQuery);
@@ -410,8 +426,9 @@ class App extends Vue {
   }
 
   onSourceChange(newVal) {
+    console.log('onSourceChange', newVal);
     this.chartTitle = newVal;
-    console.log();
+ 
   }
 
   public get selectedZone(): ISpaceSelectorItem {
@@ -596,7 +613,7 @@ class App extends Vue {
   }
 
   public get displayedData() {
-    return this.$store.state.appDataStore.data;
+      return this.$store.state.appDataStore.data;
   }
 
   public getDataFormatted() {
@@ -607,7 +624,6 @@ class App extends Vue {
 
   private _getRows(list: any[]) {
     if (!list) return [];
-
     return list.flatMap((el) => {
       return [
         {
