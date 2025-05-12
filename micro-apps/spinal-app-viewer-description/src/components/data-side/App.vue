@@ -498,7 +498,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                      }}
+                    }}
                     </li>
                   </div>
                 </div>
@@ -896,7 +896,8 @@ class dataSideApp extends Vue {
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets', 'Inventaire'];
-
+    console.log(this.floorstaticDetails , ' les floors');
+    
     if (this.floorstaticDetails.some(detail =>
       detail?.controlEndpoint?.some(endpoint => endpoint?.endpoints?.length > 0)
     )) {
@@ -941,7 +942,6 @@ class dataSideApp extends Vue {
   }
 
   toggle(index) {
-    console.log('je log index', index);
     if (!this.openGroups.includes(index)) {
       this.openGroups.push(index);
     } else {
@@ -1393,7 +1393,6 @@ class dataSideApp extends Vue {
     const buildingId = localStorage.getItem("idBuilding");
 
     if (item.type == "geographicRoom") {
-      console.log('on est dnas une geographique room', item);
 
       const referenceIds = [item.dynamicId]
       const promises = [
@@ -1403,7 +1402,6 @@ class dataSideApp extends Vue {
         }),
       ];
       const result = await Promise.all(promises);
-      console.warn('les objet de reference des pieces maybe ?', result);
 
       const solObjects = result[0][0].infoReferencesObjects.filter(refObj => refObj.name.includes("Sol"));
 
@@ -1485,30 +1483,38 @@ class dataSideApp extends Vue {
   async colorCategory(category) {
     const buildingId = localStorage.getItem("idBuilding");
 
+    // Utilise la couleur du premier item du groupe comme couleur commune
+    const commonColor = category.groupItems[0]?.color || '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0'); // rouge par défaut si aucune couleur définie
+
+
+    // Mets à jour tous les items du groupe avec la même couleur
+    for (const item of category.groupItems) {
+      item.color = commonColor;
+    }
+
     const itemsToColor = category.groupItems.map(item => ({
       buildingId: buildingId,
       dynamicId: item.dynamicId,
-      color: item.color,
+      color: commonColor,
       floorId: this.$store.state.appDataStore.zoneSelected.dynamicId || this.$store.state.appDataStore.buildingInfo.dynamicId,
     }));
 
-    this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
+    await this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
       items: itemsToColor,
       buildingId: buildingId,
     });
 
-    // Ajoute chaque item au tableau coloredElement
     for (const item of category.groupItems) {
       if (!this.coloredElement.includes(item.dynamicId)) {
         this.coloredElement.push(item.dynamicId);
       }
     }
 
-    // Ajoute le groupe dans groupColored s’il n’y est pas
     if (!this.groupColored.includes(category.name)) {
       this.groupColored.push(category.name);
     }
   }
+
 
 
   async descolorCategory(category) {
@@ -1828,7 +1834,6 @@ class dataSideApp extends Vue {
 
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
-      console.log(data, 'dataaaaaaaaaaaaaaaaaa');
 
       if (data)
         this.findDynamicIdByDbid(data[0].dbIds[0], data[0]);
@@ -2030,7 +2035,6 @@ class dataSideApp extends Vue {
 
   async getBIMInfo(referenceIds) {
     const buildingId = localStorage.getItem("idBuilding");
-    console.log(referenceIds, 'ref');
 
     const promises = [
       this.$store.dispatch(ActionTypes.GET_BIM_OBJECT_INFO, {
@@ -2074,7 +2078,7 @@ class dataSideApp extends Vue {
       console.error("Erreur lors de la récupération des parents :", error);
       return [];
     }
-    //FAIRE LA RECHERCHE DE SI IL Y A UN hasReferenceObject.ROOM si oui 
+    //FAIRE LA RECHERCHE DE SI IL Y A UN hasReferenceObject.ROOM si oui TODO
 
   }
 
@@ -2084,7 +2088,6 @@ class dataSideApp extends Vue {
         if (model.bimFileId === bimFileId) {
           const index = model.dbIds.indexOf(dbId);
           if (index !== -1) {
-            console.warn('il trouve l\'élément');
             return model.dynamicIds[index];
           }
         }
@@ -2398,7 +2401,6 @@ class dataSideApp extends Vue {
 
     let zoneType = this.selectedZoneType || currentQuery.SpaceSelectedType
 
-    console.warn(zoneType, 'ou est la zonetype');
 
     switch (zoneType) {
       case 'geographicRoom':
@@ -3027,7 +3029,6 @@ class dataSideApp extends Vue {
 
     const resultCategory = await Promise.all(categoryPromises);
 
-    console.log(resultCategory, ' Résultat final avec contexte + catégorie');
 
     // Tu peux retourner le résultat si besoin
     // return resultCategory.filter(item => item !== null);
@@ -3158,7 +3159,6 @@ class dataSideApp extends Vue {
 
 
   async countInventoryTypes(floors) {
-    console.error(floors, 'je suis dans linventaire batiement ');
 
 
     const inventoryDbids = {};
@@ -3186,7 +3186,6 @@ class dataSideApp extends Vue {
     //   // floors = floorsResult
     // }
 
-    console.log(contextList, "contextList");
 
 
     this.data_loading += 25
@@ -3463,11 +3462,9 @@ class dataSideApp extends Vue {
 
   @Watch("data")
   async watchData() {
-    console.error('watch sdata ??');
 
     this.referencedId = this.selectedZone.dynamicId;
     const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query };
-    console.error('watch sdata ??', currentQuery.SpaceSelectedType);
 
     this.referencedType = this.selectedZone.type;
     if (this.selectedZoneType === 'geographicFloor' || currentQuery.SpaceSelectedType == 'geographicFloor') {
@@ -3492,11 +3489,9 @@ class dataSideApp extends Vue {
         patrimoineId,
       });
       const floorIds = floorsResult.map(floor => floor.dynamicId);
-      console.log(floorIds);
       // this.getBuildingInventoryObject(floorIds);
       this.countSpaceInventory();
       this.inventoyList = [];
-      console.error('watch sdata  building ??', currentQuery);
       return;
     }
 

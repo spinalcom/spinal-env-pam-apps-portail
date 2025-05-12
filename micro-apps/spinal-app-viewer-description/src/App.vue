@@ -143,7 +143,6 @@ class App extends Vue {
   coloredRoom: null
   floor: any = null
   async mounted() {
-    console.warn('112v , chochola');
 
     localStorage.setItem("viewer_loaded", 'initialize');
     this.viewerManager = ViewerManager.getInstance();
@@ -193,7 +192,6 @@ class App extends Vue {
     //     buildingId: null,
     //   }
     // );
-    // console.log(building);
 
 
 
@@ -306,12 +304,49 @@ class App extends Vue {
 
   async applyURLParam(query) {
 
+
+
     this.query.mode = query.mode
     this.query.buildingId = query.buildingId
     this.query.spaceSelectedId = query.spaceSelectedId
     this.query.spaceSelectedType = query.spaceSelectedType;
     this.query.name = query.name
     this.query.app = query.app
+
+
+    if (!query.spaceSelectedType && query.spaceSelectedId) {
+      const buildingId = localStorage.getItem("idBuilding");
+      console.error('pas de type disponible !!!' , query.spaceSelectedId);
+
+      const results = await Promise.all([
+        this.$store.dispatch(ActionTypes.GET_NODE_READ, {
+          buildingId,
+          referenceIds: [query.spaceSelectedId]
+        }),
+      ]);
+
+      const node = results[0];
+      console.warn(node.type, 'le node est ');
+
+      this.query.spaceSelectedType = node.type
+      // Appel du setter avec tous les champs requis
+      // this.selectedZone = {
+      //   name: node.name,
+      //   buildingId: node.buildingId,
+      //   dynamicId: node.dynamicId,
+      //   staticId: node.staticId, // <- Ajout de cette propriété obligatoire
+      //   type: node.type,
+      //   level: node.level ?? 0,
+      //   isOpen: false,
+      //   patrimoineId: node.patrimoineId ?? '',
+      //   parents: node.parents ?? [],
+      //   isLastInGrp: false,
+      //   drawLink: node.drawLink ?? [],
+      //   haveChildren: node.haveChildren ?? false,
+      // };
+      this.$store.state.appDataStore.zoneSelected.type = node.type
+      this.changeRoute()
+    }
 
     if (query.mode == "3d") {
       this.isActive3D = true
@@ -354,8 +389,7 @@ class App extends Vue {
       }
     }
     else {
-      console.log('112v ici ?');
-      
+
       const buildingId = localStorage.getItem("idBuilding");
       const building = await this.$store.dispatch(
         ActionTypes.GET_BOS_BUILDING,
@@ -383,12 +417,13 @@ class App extends Vue {
     window.parent.routerFontion.customReplace(window.parent.router.path, this.query);
   }
   changeRoute() {
+    console.warn('je change la route avec query', this.query);
+
     window.parent.routerFontion.customPush(window.parent.router.path, this.query);
   }
 
 
   toggleActive(value) {
-    console.log(value);
     if (this.isActive3D) {
       this.isActive3D = false
     }
@@ -468,7 +503,6 @@ class App extends Vue {
               buildingId: null,
             }
           );
-          console.log(building);
           return [
             {
               name: building.name,
@@ -556,7 +590,6 @@ class App extends Vue {
 
 
   onActionClick({ button, item }) {
-    console.warn('112v', item);
 
 
     this.loadingdata = !this.loadingdata
@@ -585,7 +618,9 @@ class App extends Vue {
         });
         break;
       case ActionTypes.ISOLATE_ITEMS:
-        this.$store.dispatch(button.onclickEvent, {
+        console.log(button.onclickEvent , 'isolation');
+        
+        this.$store.dispatch('OPEN_VIEWER', {
           onlyThisModel: true,
           config: this.config,
           item: data,

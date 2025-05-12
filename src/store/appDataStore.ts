@@ -238,7 +238,6 @@ export const appDataStore = {
 
       const favoris = await dispatch("getFavoriteApps");
       let appsFormatted = classifyByCategoryAndGroup(apps, favoris);
-      console.log('action des info ', appsFormatted, apps);
 
       commit(SET_AND_FORMAT_APPS, { apps, appsFormatted });
     },
@@ -248,8 +247,7 @@ export const appDataStore = {
         portofolioId: getters.getPortofolioId,
         buildingId: getters.getBuildingId,
       };
-      console.warn(data, ' aaaaaaaaaaaaaaaaaaaaaaa');
-      if (!data.portofolioId) { }
+      // if (!data.portofolioId) { }
 
       const apps = await addAppToFavorite(appIds, data);
       commit(ADD_FAVORITE_APP, apps);

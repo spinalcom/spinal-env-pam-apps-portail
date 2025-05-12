@@ -63,6 +63,22 @@ export default defineComponent({
   },
   async mounted() {
 
+    if (!window.parent.routerFontion.apps[0]._route.query.SpaceSelectedType) {
+      const buildingId = localStorage.getItem("idBuilding");
+
+      console.error('il ny arra')
+      const results = await Promise.all([
+        this.$store.dispatch(ActionTypes.GET_NODE_READ, {
+          buildingId,
+          referenceIds: [window.parent.routerFontion.apps[0]._route.query.spaceSelectedId]
+        }),
+      ]);
+
+      const node = results[0];
+      this.handleBreadcrumbUpdate(window.parent.routerFontion.apps[0]._route.query.spaceSelectedId, node.type)
+
+    }
+
   },
   watch: {
 
@@ -78,6 +94,7 @@ export default defineComponent({
   methods: {
 
     async handleBreadcrumbUpdate(newSpaceSelectedId, currentType) {
+      console.warn('il est call ????', newSpaceSelectedId, currentType);
 
       try {
         const buildingId = localStorage.getItem("idBuilding");
@@ -88,7 +105,6 @@ export default defineComponent({
 
         switch (currentType) {
           case 'BIMObject': {
-            console.warn('bim boject , 112v');
 
             const result = await this.$store.dispatch(ActionTypes.GET_POSTION_EQUIPEMENT, {
               buildingId,
@@ -141,12 +157,30 @@ export default defineComponent({
               referenceIds: [newSpaceSelectedId],
             });
 
+            const element = [
+              {
+                dynamicId: result.dynamicId ,
+                relations: ["hasGeographicFloor"]
+              }
+            ];
+
+            const resultRaw = await this.$store.dispatch(ActionTypes.GET_NODE_PARENTS, {
+              buildingId,
+              referenceIds: element
+            });
+
+            const geographicBuilding = resultRaw[0].nodes.find(node => node.type === "geographicBuilding");
+            // console.warn(resultRaw[0].nodes , 'LE RESULT ROWWWWWWWWWWW!!!!!');
+            
+            // return resultRaw?.[0]
+
             if (result.type === 'geographicFloor') {
               this.etage = result.name || null;
               this.id_etage = result.dynamicId || null;
               this.piece = null;
               this.equipement = null;
               this.show = true;
+              this.building = geographicBuilding.name
             } else {
               this.show = false;
             }

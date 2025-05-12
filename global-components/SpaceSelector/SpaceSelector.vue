@@ -251,7 +251,6 @@ class SpaceSelector extends Vue {
   }
 
   select(item?: ISpaceSelectorItem) {
-    console.log('action aaa', item);
 
     if (item.name !== "Personnalisé") {
       this.$emit("update:open", !this.open);

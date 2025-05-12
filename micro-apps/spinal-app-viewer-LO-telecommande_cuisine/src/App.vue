@@ -185,6 +185,30 @@ class App extends Vue {
   }
 
 
+  async setViewCubeAndFit(viewer) {
+    try {
+      viewer.navigation.setRequestTransition(false);
+      setTimeout(async () => {
+        const a = await viewer.loadExtension('Autodesk.ViewCubeUi')
+        a.displayViewCube(true, true)
+        a.setViewCube('right');
+      }, 3000);
+      setTimeout(async () => {
+        const a = await viewer.loadExtension('Autodesk.ViewCubeUi')
+        a.displayViewCube(true, true)
+        a.setViewCube('top');
+
+      }, 4000);
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      viewer.unloadExtension("Autodesk.ViewCubeUi");
+      viewer.navigation.fitBounds(true, viewer.impl.getFitBounds());
+      viewer.setNavigationLock(true);
+
+    } catch (error) {
+      console.error("Erreur lors de l'exécution de ViewCube:", error);
+    }
+  }
+
   async onViewerLoadedTriggered() {
     const buildingId = localStorage.getItem('idBuilding');
     const roomTablette = localStorage.getItem('room_tablette');
@@ -204,18 +228,39 @@ class App extends Vue {
     };
 
     this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
+   
+   const toto =  !this.config.rotation
+    
+    if (!toto) {
 
-    setTimeout(async () => {
-      const viewCube = await window.parent.viewer.loadExtension('Autodesk.ViewCubeUi');
-      viewCube.displayViewCube(true, true);
-      viewCube.setViewCube('top');
-    }, 3000);
+      setTimeout(async () => {
+        const viewCube = await window.parent.viewer.loadExtension('Autodesk.ViewCubeUi');
+        viewCube.displayViewCube(true, true);
+        viewCube.setViewCube('right');
+      }, 3000);
 
-    setTimeout(async () => {
-      window.parent.viewer.setNavigationLock(true);
-      await window.parent.viewer.unloadExtension('Autodesk.ViewCubeUi');
-    }, 4000);
+      setTimeout(async () => {
+        window.parent.viewer.setNavigationLock(true);
+        await window.parent.viewer.unloadExtension('Autodesk.ViewCubeUi');
+      }, 4000);
+
+    }
+    else if (toto == true) {
+      setTimeout(async () => {
+        const viewCube = await window.parent.viewer.loadExtension('Autodesk.ViewCubeUi');
+        viewCube.displayViewCube(true, true);
+        viewCube.setViewCube('top');
+      }, 3000);
+
+      setTimeout(async () => {
+        window.parent.viewer.setNavigationLock(true);
+        await window.parent.viewer.unloadExtension('Autodesk.ViewCubeUi');
+      }, 4000);
+    }
+
   }
+
+
 
   async mounted() {
 

@@ -30,15 +30,14 @@ export const config: IConfig = {
 	viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },
 
 	//donnée pour le lancement de l'app à mettre dans l'url
-	// idBuilding: '5932-6086-9e1a-18506478460',
-	// tabletteId: 216681008,
+
 
 	//context et categories du groupe de la tablette
 	groupContext: "Gestion des espaces",
 	groupContextCat: "Télécommande de confort",
 
 	//affiche tout l'etage si true sinon affiche uniquement la piece / les pieces
-	showAllFloor: false,
+	showAllFloor: true,
 
 	//type d'equipement : all(tout les equipement de la piece) , none(que les sols) , selected(un type selectionné)
 
@@ -54,7 +53,7 @@ export const config: IConfig = {
 
 	//moyen de selection de télécommande : button (pilotage par bouton d'une ou plusieur piece) , room (pilotage en cliquant sur le sol de la piece) , equipement (pilotage en cliquant sur l'equipment)
 	// multiple (pilotage par bouton et par sol)
-	SelectionType: 'button',
+	SelectionType: 'room',
 
 	//les differents type de télécommande
 	commandItem: {
@@ -64,6 +63,16 @@ export const config: IConfig = {
 		cmd_store_off: ['Gestion des espaces', 'CMD_ST', 'Type_4'],//commande store off
 	},
 
+	// commandItem: {
+	// 	Light_percent: [
+	// 		{
+	// 			context: 'Gestion des espaces',
+	// 			category: 'CMD_L',
+	// 			group: ['type 1', 'type2']
+	// 		}
+	// 	]
+	// }
+	rotation: false,
 
 	configCommand: {
 		temperature: {

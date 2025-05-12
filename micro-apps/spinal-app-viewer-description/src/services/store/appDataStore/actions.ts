@@ -726,11 +726,9 @@ export const actions = {
 				} else if (viewerInfo.equipments === "groupItem") {
 					body.equipements = false;
 					const map = await dispatch(ActionTypes.GET_GROUPS_ITEMS, { config: playload.config, buildingId: playload.item.buildingId });
-					console.log('Get group items : ', map);
 					body.dbIdsToAdd = classifyItemByBimFileId(map, playload.item.dynamicId, playload.item.type);
 				}
-				// console.log('body to load -----> : ', body);
-				// console.log('playload item to load -----> : ', playload.item);
+				
 				playload.item.dynamicId = building.dynamicId;
 				await ViewerManager.getInstance().loadInViewer(
 					playload.item,
@@ -757,7 +755,6 @@ export const actions = {
 			} else if (viewerInfo.equipments === "groupItem") {
 				body.equipements = false;
 				const map = await dispatch(ActionTypes.GET_GROUPS_ITEMS, { config: playload.config, buildingId: playload.item.buildingId });
-				console.log('Get group items : ', map);
 				body.dbIdsToAdd = classifyItemByBimFileId(map, playload.item.dynamicId, playload.item.type);
 			}
 			// console.log('body to load -----> : ', body);
@@ -796,7 +793,6 @@ export const actions = {
 			ViewerManager.getInstance().isolate(playload);
 		} else {
 
-			console.log(playload.config, playload.item, playload.onlyThisModel, 'toto');
 
 			dispatch(ActionTypes.OPEN_VIEWER, {
 				onlyThisModel: playload.onlyThisModel,

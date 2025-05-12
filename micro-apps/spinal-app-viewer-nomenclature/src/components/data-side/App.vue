@@ -177,7 +177,7 @@ class dataSideApp extends Vue {
     let actionType = ActionTypes.GET_GROUP_CONTEXT
     let dispatchObject = {
       buildingId: localStorage.getItem("idBuilding"),
-      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+      patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,
       position_type: this.selectedZone,
     } as any;
     dispatchObject.forceUpdate = true;
