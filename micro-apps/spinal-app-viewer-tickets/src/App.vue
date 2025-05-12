@@ -178,11 +178,13 @@ class App extends Vue {
   }
 
   async mounted() {
+
     const promises = [
-      this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId })
+      this.$store.dispatch(ActionTypes.GET_BOS_BUILDING, { buildingId })
     ];
 
     const [building] = await Promise.all(promises);
+    console.log("building", building);
 
 
     if (building) {

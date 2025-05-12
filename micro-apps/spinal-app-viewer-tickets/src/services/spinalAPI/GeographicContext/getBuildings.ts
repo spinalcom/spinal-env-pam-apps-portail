@@ -22,25 +22,28 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { SpinalAPI } from '../SpinalAPI';
-import { IGetAllBuildingsRes } from '../../../interfaces/IGetAllBuildingsRes';
+import { SpinalAPI } from "../SpinalAPI";
+import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 
-export async function getBuildings(patrimoineId: string): Promise<IGetAllBuildingsRes[]> {
+export async function getBuildings(
+  patrimoineId: string
+): Promise<IGetAllBuildingsRes[]> {
   const spinalAPI = SpinalAPI.getInstance();
   // const url = spinalAPI.createUrl(`api/v1/pam/get_all_buildings`);
-  const url = spinalAPI.createUrl(`api/v1/pam/get_all_buildings_from_portofolio/${patrimoineId}`);
+  const url = spinalAPI.createUrl(
+    `api/v1/pam/get_all_buildings_from_portofolio/${patrimoineId}`
+  );
   const res = await spinalAPI.get<IGetAllBuildingsRes[]>(url);
-  
+
   return res.data;
 }
 
-
-export async function getBuildingById(buildingId: string): Promise<IGetAllBuildingsRes> {
+export async function getBuildingById(
+  buildingId: string
+): Promise<IGetAllBuildingsRes> {
   const spinalAPI = SpinalAPI.getInstance();
   // const url = spinalAPI.createUrl(`api/v1/pam/get_all_buildings`);
   const url = spinalAPI.createUrl(`api/v1/pam/get_building/${buildingId}`);
   const res = await spinalAPI.get<IGetAllBuildingsRes>(url);
   return res.data;
 }
-
-

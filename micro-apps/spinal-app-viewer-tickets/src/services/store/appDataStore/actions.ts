@@ -39,6 +39,7 @@ import {
   getStaticDetails,
   getStaticDetailsEquipement,
   getMultipleReferenceObjects,
+  getBuilding,
 } from "../../spinalAPI/GeographicContext/geographicContext";
 import {
   addTicketDoc,
@@ -137,6 +138,23 @@ export const actions = {
     ]!.next();
     return building.value;
   },
+  async [ActionTypes.GET_BOS_BUILDING](
+    { commit }: AugmentedActionContextAppData,
+    { buildingId }: { buildingId: string }
+  ): Promise<any> {
+    const spinalAPI = SpinalAPI.getInstance();
+    try {
+      const result = await getBuilding(buildingId);
+      return result;
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des objets de référence:",
+        error
+      );
+      throw error;
+    }
+  },
+
   async [ActionTypes.GET_BUILDING_REFERENCE_OBJECTS](
     { commit }: AugmentedActionContextAppData,
     { buildingId, patrimoineId, forceUpdate }
