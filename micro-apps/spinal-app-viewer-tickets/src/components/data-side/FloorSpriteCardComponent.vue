@@ -15,7 +15,7 @@
           <div class="floor-count-holder">
             <span class="ticket-count">{{ data.countFloorTickets }}</span>
           </div>
-          <p>Tickets sur l’étage</p>
+          <p style="font-size: 12px;">Tickets sur l’étage</p>
           <!-- <div class="icon">⬛</div> -->
         </div>
         <div class="divider"></div>
@@ -23,7 +23,7 @@
           <div class="floor-count-holder" style="border-radius: 50%;">
             <span class="ticket-count" style="margin-top: 1px;">{{ data.countRoomTickets }}</span>
           </div>
-          <p>Tickets sur salles</p>
+          <p style="font-size: 12px;">Tickets sur salles</p>
         </div>
         <div class="divider"></div>
         <div class="ticket-item">
@@ -34,7 +34,7 @@
             </div>
           </div>
 
-          <p>Tickets d’équipements</p>
+          <p style="font-size: 12px;">Tickets d’équipements</p>
         </div>
       </div>
     </div>
@@ -168,7 +168,7 @@ export default {
 }
 
 .ticket-count {
-  font-size: 15px;
+  font-size: 0.9rem;
   font-weight: bold;
   text-align: center;
 }

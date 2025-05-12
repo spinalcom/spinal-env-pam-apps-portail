@@ -2,24 +2,20 @@
     <div class="status-filtre">
         <div v-for="(step, index) in list" :key="step.name" class="status-filtre-container">
             <!-- Names are always rendered with opacity 0 when hidden -->
-            <div class="step-name" :style="getStepNameStyle(step, index, true)">
-                <!-- {{ step.name }}! -->
-                {{ step.name.length > 25 ? step.name.substring(0, 25) + '...' :
-                    step.name }}
+            <div class="step-name" :style="getStepNameStyle(step, index, true)" :title="getStepTooltip()">
+                {{ step.name.length > 25 ? step.name.substring(0, 25) + '...' : step.name }}
             </div>
 
             <div class="d-flex flex-row circle-holder">
                 <div class="circle" :style="getCircleBorderStyle(step)" @click.left="toggleSelection(step, false)"
-                    @click.right.prevent="toggleSelection(step, true)">
+                    @click.right.prevent="toggleSelection(step, true)" :title="getStepTooltip()">
                     <div :style="getCircleStyle(step)"></div>
                 </div>
                 <div class="separator" v-if="index < list.length - 1"></div>
             </div>
 
-            <div class="step-name" :style="getStepNameStyle(step, index, false)">
-                <!-- {{ step.name }} -->
-                {{ step.name.length > 25 ? step.name.substring(0, 25) + '...' :
-                    step.name }}
+            <div class="step-name" :style="getStepNameStyle(step, index, false)" :title="getStepTooltip()">
+                {{ step.name.length > 25 ? step.name.substring(0, 25) + '...' : step.name }}
             </div>
         </div>
     </div>
@@ -44,6 +40,9 @@ export default {
         };
     },
     methods: {
+        getStepTooltip() {
+            return "Clic droit : Isoler cette étape\nClic gauche : (Dé)sélectionner cette étape";
+        },
         toggleSelection(step, isolate) {
             if (isolate) {
                 // Right-click isolates the step

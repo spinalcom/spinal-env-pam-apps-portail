@@ -21,60 +21,60 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-// export * from 'global-components/requests/SpinalAPI';
+export * from "global-components/requests/SpinalAPI";
 
-import axios from "axios";
+// import axios from "axios";
 
-export class SpinalAPI {
-  axiosInstance = axios.create({ baseURL: this.apiUrl });
-  get apiUrl() {
-    return `${this._apiUrl}${this._apiUrl.endsWith("/") ? "" : "/"}`;
-  }
+// export class SpinalAPI {
+//   axiosInstance = axios.create({ baseURL: this.apiUrl });
+//   get apiUrl() {
+//     return `${this._apiUrl}${this._apiUrl.endsWith("/") ? "" : "/"}`;
+//   }
 
-  private constructor(public readonly _apiUrl: string = "") {
-    this.axiosInstance.interceptors.request.use((request) => {
-      const t = localStorage.getItem("token");
-      // @ts-ignore
-      if (t) request.headers.common.Authorization = `Bearer ${t}`;
-      return request;
-    });
-  }
+//   private constructor(public readonly _apiUrl: string = "") {
+//     this.axiosInstance.interceptors.request.use((request) => {
+//       const t = localStorage.getItem("token");
+//       // @ts-ignore
+//       if (t) request.headers.common.Authorization = `Bearer ${t}`;
+//       return request;
+//     });
+//   }
 
-  static #instance: SpinalAPI;
-  /**
-   * @static
-   * @param {string} [apiUrl] mandatory on 1st call after it's not needed
-   * @return {*}  {SpinalAPI}
-   * @memberof SpinalAPI
-   */
-  public static getInstance(apiUrl?: string): SpinalAPI {
-    if (SpinalAPI.#instance) return SpinalAPI.#instance;
-    SpinalAPI.#instance = new SpinalAPI(apiUrl);
+//   static #instance: SpinalAPI;
+//   /**
+//    * @static
+//    * @param {string} [apiUrl] mandatory on 1st call after it's not needed
+//    * @return {*}  {SpinalAPI}
+//    * @memberof SpinalAPI
+//    */
+//   public static getInstance(apiUrl?: string): SpinalAPI {
+//     if (SpinalAPI.#instance) return SpinalAPI.#instance;
+//     SpinalAPI.#instance = new SpinalAPI(apiUrl);
 
-    return SpinalAPI.#instance;
-  }
+//     return SpinalAPI.#instance;
+//   }
 
-  public createUrl(ApiRoute: string): string {
-    if (ApiRoute.startsWith("/")) ApiRoute = ApiRoute.substring(1);
-    return this.apiUrl + ApiRoute;
-  }
+//   public createUrl(ApiRoute: string): string {
+//     if (ApiRoute.startsWith("/")) ApiRoute = ApiRoute.substring(1);
+//     return this.apiUrl + ApiRoute;
+//   }
 
-  public createUrlWithPlatformId(buildingId: string, ApiRoute: string): string {
-    if (!ApiRoute.startsWith("/")) ApiRoute = "/" + ApiRoute;
-    return `${this.apiUrl}api/v2/building/${buildingId}${ApiRoute}`;
-  }
+//   public createUrlWithPlatformId(buildingId: string, ApiRoute: string): string {
+//     if (!ApiRoute.startsWith("/")) ApiRoute = "/" + ApiRoute;
+//     return `${this.apiUrl}api/v2/building/${buildingId}${ApiRoute}`;
+//   }
 
-  get = this.axiosInstance.get;
-  post = this.axiosInstance.post;
-  put = this.axiosInstance.put;
+//   get = this.axiosInstance.get;
+//   post = this.axiosInstance.post;
+//   put = this.axiosInstance.put;
 
-  async *createIteratorCall<K extends (...args) => any>(
-    fct: K,
-    ...args: Parameters<K>
-  ): AsyncGenerator<Awaited<ReturnType<K>>> {
-    const res = await fct(...args);
-    while (true) {
-      yield res;
-    }
-  }
-}
+//   async *createIteratorCall<K extends (...args) => any>(
+//     fct: K,
+//     ...args: Parameters<K>
+//   ): AsyncGenerator<Awaited<ReturnType<K>>> {
+//     const res = await fct(...args);
+//     while (true) {
+//       yield res;
+//     }
+//   }
+// }

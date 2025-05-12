@@ -25,8 +25,8 @@
                             </div>
                         </th>
                         <th style="width: 16%;" @click="changeSort('creationDate')">
-                            <div style="width: 100%; display: flex; flex-direction: row;">
-                                <div>Créé le</div>
+                            <div style="width: 100%; display: flex; flex-direction: row;align-items: center;">
+                                <div>Créé / Modifié le</div>
                                 <div class="sort-icon" :class="{
                                     'sort-icon-asc': sortKey === 'creationDate' && sortOrder === 'asc',
                                     'sort-icon-desc': sortKey === 'creationDate' && sortOrder === 'desc',
@@ -73,7 +73,12 @@
                                     #{{ ticket.dynamicId }}</div>
                             </div>
                         </td>
-                        <td style="width: 16%;">{{ formatDate(ticket.creationDate) }}</td>
+                        <!-- <td style="width: 16%;">{{ formatDate(ticket.creationDate) }}</td> -->
+                        <td style="width: 16%;">
+                            {{ ticket.log_list && ticket.log_list.length > 1
+                                ? formatDate(ticket.log_list[ticket.log_list.length - 1].date)
+                                : formatDate(ticket.creationDate) }}
+                        </td>
                         <td style="width: 36%;">
                             <div class="d-flex flex-row ">
                                 <div v-if="ticket.elementSelected.type === 'geographicRoom'"
@@ -329,11 +334,13 @@ class TicketTable extends Vue {
 
 
     mounted() {
+
         EventBus.$on("move-tickets-top", this.moveTicketsToTop);
         EventBus.$on("reset-tickets", this.resetTickets);
         EventBus.$on("next-card-table", this.nextCardTable);
         EventBus.$on("prev-card-table", this.prevCardTable);
         this.localData = [...this.data];
+        console.log("mounted", this.localData);
     }
     beforeDestroy() {
         EventBus.$off("move-tickets-top", this.moveTicketsToTop);
