@@ -203,7 +203,7 @@ class dataSideApp extends Vue {
     this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des contextes d'équipements...`);
     let dispatchObject = {
       buildingId: localStorage.getItem("idBuilding"),
-      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id
+      patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id
     } as any;
     dispatchObject.forceUpdate = true;
 
@@ -227,7 +227,7 @@ class dataSideApp extends Vue {
     let actionType = ActionTypes.GET_CATEGORY_LIST
     let dispatchObject = {
       buildingId: localStorage.getItem("idBuilding"),
-      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+      patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,
       contextDynId: matchingContext.dynamicId
     } as any;
     dispatchObject.forceUpdate = true;
@@ -256,10 +256,10 @@ class dataSideApp extends Vue {
       this.$store.commit(MutationTypes.SET_LOADING_TEXT, `Chargement des groupes de ${matchingCategory.name}...`);
   
       try {
-        const result = await this.$store.dispatch(ActionTypes.GET_GROUP_LIST, {buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,forceUpdate: true});
+        const result = await this.$store.dispatch(ActionTypes.GET_GROUP_LIST, {buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,forceUpdate: true});
 
         await Promise.all(result.map(async (grp) => {
-          const groupItems = await this.$store.dispatch(ActionTypes.GET_ROOM_LIST, {buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: grp.dynamicId,forceUpdate: true});
+          const groupItems = await this.$store.dispatch(ActionTypes.GET_ROOM_LIST, {buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: grp.dynamicId,forceUpdate: true});
 
           const enrichedWithArea = await this.enrichItemsWithCoordinates(groupItems);
           grp.groupItems = enrichedWithArea;
@@ -342,7 +342,7 @@ class dataSideApp extends Vue {
                                                   }
         );
 
-        const groupList = await this.$store.dispatch(ActionTypes.GET_GROUP_LIST, {buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,forceUpdate: true});
+        const groupList = await this.$store.dispatch(ActionTypes.GET_GROUP_LIST, {buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,forceUpdate: true});
 
 
         const groups = positionInContext.parentsInContext;
@@ -392,7 +392,7 @@ class dataSideApp extends Vue {
     try {
       let result: any[] = [];
       if(this.$store.state.appDataStore.zoneSelected.type === 'building'){
-        result = await this.$store.dispatch(ActionTypes.GET_ROOM_LIST, { buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId, forceUpdate: true });
+        result = await this.$store.dispatch(ActionTypes.GET_ROOM_LIST, { buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId, forceUpdate: true });
       }
       else {
         result = this.$store.state.appDataStore.inventory.find(it => it.dynamicId === matchingGroup.dynamicId).groupItems;
@@ -426,7 +426,7 @@ class dataSideApp extends Vue {
     if (!this.$store.state.appDataStore.user_selected.ctx) {
       let dispatchObject = {
       buildingId: localStorage.getItem("idBuilding"),
-      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+      patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,
       nodeIds: this.$store.state.appDataStore.user_selection_list.ctx.map(ctx => ctx.dynamicId),
       includeChildrenRelations : true,
       includeParentRelations : false
@@ -445,7 +445,7 @@ class dataSideApp extends Vue {
     if (!this.$store.state.appDataStore.user_selected.cat) {
       let dispatchObject = {
       buildingId: localStorage.getItem("idBuilding"),
-      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+      patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,
       nodeIds: this.$store.state.appDataStore.user_selection_list.cat.map(cat => cat.dynamicId),
       includeChildrenRelations : true,
       includeParentRelations : false
@@ -465,7 +465,7 @@ class dataSideApp extends Vue {
       if(this.selectedZone.type === "building"){ // otherwise we would already have the info from calling inventory
         let dispatchObject = {
         buildingId: localStorage.getItem("idBuilding"),
-        patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+        patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,
         nodeIds: this.$store.state.appDataStore.user_selection_list.grp.map(grp => grp.dynamicId),
         includeChildrenRelations : true,
         includeParentRelations : false
@@ -503,7 +503,7 @@ class dataSideApp extends Vue {
   async enrichItemsWithChildrenReadings(items){
     const readings = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, {
     buildingId: localStorage.getItem("idBuilding"),
-    patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+    patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,
     nodeIds: items.map(eq => eq.dynamicId),
     includeChildrenRelations : true,
     includeParentRelations : false

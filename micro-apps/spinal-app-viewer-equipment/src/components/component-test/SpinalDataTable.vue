@@ -439,7 +439,7 @@ export default {
       const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
       const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
       const matchingGroup = item;
-      let equipmentList = await this.$store.dispatch(ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+      let equipmentList = await this.$store.dispatch(ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
       const itemsToHide = {};
       for(const eq of equipmentList){
         if (!itemsToHide[eq.bimFileId]){
@@ -492,7 +492,7 @@ export default {
       const matchingGroup = item;
       let equipmentList = [];
       if(this.$store.state.appDataStore.zoneSelected.type === 'building'){
-        equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+        equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
       }
 
       else {
@@ -519,7 +519,7 @@ export default {
       const matchingGroup = item;
       let equipmentList = [];
       if(this.$store.state.appDataStore.zoneSelected.type === 'building'){
-        equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+        equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
       }
 
       else {
@@ -561,7 +561,7 @@ export default {
       
       let equipmentList = [];
       if(this.$store.state.appDataStore.zoneSelected.type === 'building'){
-        equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+        equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
       }
 
       else {
@@ -615,7 +615,7 @@ export default {
 
       let equipmentList = [];
       if(this.$store.state.appDataStore.zoneSelected.type === 'building'){
-        equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+        equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
       }
 
       else {
@@ -662,7 +662,7 @@ export default {
       const matchingContext = this.$store.state.appDataStore.user_selection_list.ctx.find(ctx => ctx.name === this.$store.state.appDataStore.user_selected.ctx);
       const matchingCategory = this.$store.state.appDataStore.user_selection_list.cat.find(cat => cat.name === this.$store.state.appDataStore.user_selected.cat);
       const matchingGroup = item;
-      let equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
+      let equipmentList = await this.$store.dispatch( ActionTypes.GET_EQUIPEMENT_LIST,{buildingId: localStorage.getItem("idBuilding"),patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,contextDynId: matchingContext.dynamicId,categoryDynId: matchingCategory.dynamicId,groupDynId: matchingGroup.dynamicId,forceUpdate: true});
       console.log('viewerSelectItems TO select : ', equipmentList);
       this.$store.dispatch(ActionTypes.SELECT_ITEMS, equipmentList);
     },
@@ -670,7 +670,7 @@ export default {
     async enrichItemsWithChildrenReadings(items){
       const readings = await this.$store.dispatch(ActionTypes.READ_NODE_MULTIPLE, {
       buildingId: localStorage.getItem("idBuilding"),
-      patrimoineId: JSON.parse(localStorage.getItem("patrimoine")).id,
+      patrimoineId: JSON.parse(localStorage.getItem("patrimoine"))?.id,
       nodeIds: items.map(eq => eq.dynamicId),
       includeChildrenRelations : true,
       includeParentRelations : false
