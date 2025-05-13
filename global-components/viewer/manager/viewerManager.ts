@@ -119,7 +119,7 @@ export class ViewerManager {
 
 		// If argItem already has bimFileId and dbid, no need for the expensive call
 		const canSkipApiCall = items.every(item => item.bimFileId && item.dbid && item.type === "BIMObject");
-		
+
 		const res: IViewInfoTmpRes[] = [];
 
 		if (canSkipApiCall) {
@@ -185,7 +185,7 @@ export class ViewerManager {
 				if (itemData) res.push(itemData);
 			}
 		}
-		
+
 		return res;
 
 		async function* generator(data: number, floorRef: boolean = true, roomRef: boolean = true, equipements: boolean = true): AsyncGenerator<Awaited<any>> {
@@ -209,6 +209,8 @@ export class ViewerManager {
 	}
 
 	public select(item: IPlayload) {
+		console.warn('rayane !!', item);
+
 		return this._fctViewerIteract(VIEWER_OBJ_SELECT, item);
 	}
 
@@ -278,16 +280,16 @@ export class ViewerManager {
 		const data: any = []
 		// The following code is specifically for the case where item is an array of BimObjects and we already have their bimFileId, dbid and position
 		const toFetch: IPlayloadWithComponent[] = []
-		
+
 		for (const it of item) {
-			if(it.dynamicId && it.bimFileId && it.dbid && (!it.type || it.type === 'BIMObject')) { 
-				data.push({dynamicId: it.dynamicId, data: [{bimFileId: it.bimFileId, dbIds: [it.dbid]}]})
+			if (it.dynamicId && it.bimFileId && it.dbid && (!it.type || it.type === 'BIMObject')) {
+				data.push({ dynamicId: it.dynamicId, data: [{ bimFileId: it.bimFileId, dbIds: [it.dbid] }] })
 			}
 			else {
 				toFetch.push(it)
 			}
 		}
-		
+
 		const lst = await this.getViewerInfo(toFetch, buildingId);
 		data.push(...lst)
 		//const data = await this.getViewerInfo(item, buildingId);
@@ -342,6 +344,7 @@ export class ViewerManager {
 			data = await this.getViewerInfoMerged(playload as IPlayload);
 		}
 
+
 		const res = data.map((it) => {
 			return {
 				dbIds: it.dbIds,
@@ -352,7 +355,9 @@ export class ViewerManager {
 
 
 		try {
+			console.warn('rayane 3 toto',res);
 			emitter.emit(eventName, res);
+			console.warn('rayane 8 toto');
 		} catch (error) {
 			console.error('Erreur dans emitter.emit :', error);
 		}

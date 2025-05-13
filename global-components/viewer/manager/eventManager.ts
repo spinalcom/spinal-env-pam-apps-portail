@@ -74,6 +74,8 @@ export class EventManager {
 
 
 			emitterHandler.on(VIEWER_OBJ_SELECT, (data: any) => {
+				console.log('rayane suite emitter ');
+				
 				viewerUtils.viewerSelect(viewer, data);
 			});
 

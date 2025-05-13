@@ -121,14 +121,19 @@ export class ViewerUtils {
 
 	public viewerSelect(viewer: Autodesk.Viewing.Viewer3D, data: IDbIdModelAggregate[]): void {
 		//this.clearSelect(viewer);
+		console.log(data, ' rayane ???????????????????????????????????????????????????????????????????');
 
 		const datas = this._classifyDbIdsByModel(data);
+		console.log('le toto de rayane', datas);
 
 		const res = datas.map(el => {
 			return { model: el.model, ids: el.dbIds }
 		})
-		viewer.setAggregateSelection(res)
 
+		console.log('on est la ??? ', res);
+
+		viewer.setAggregateSelection(res)
+		console.log('on est la ??? ');
 		// for (const { model, dbIds } of datas) {
 		// 	model.selector.setSelection(dbIds, "selectOnly");
 		// }
@@ -174,18 +179,18 @@ export class ViewerUtils {
 		// viewer.impl.visibilityManager.aggregateIsolate(res)
 		const res = datas.map(async el => {
 			if (el.dbIds.length > 0)
-			return {
-				model: el.model,
-				ids :  
-				el.dbIds 
-			}
+				return {
+					model: el.model,
+					ids:
+						el.dbIds
+				}
 			else {
 				const dbid = await getRootDbId(el.model)
-				return{
+				return {
 					model: el.model,
-					ids :  
-					[dbid] 
-				} 
+					ids:
+						[dbid]
+				}
 			}
 		})
 		const r = await Promise.all(res)
@@ -613,7 +618,13 @@ export class ViewerUtils {
 			return o;
 		}, {});
 
+
+		console.warn(obj, 'moussa');
+
 		const modelList = ModelManager.getInstance().getModelList();
+
+		console.log('laurant : ',modelList);
+
 		const list: { model: Autodesk.Viewing.Model; dbIds: number[] }[] = [];
 
 		for (const [modelId, models] of modelList) {
@@ -622,6 +633,8 @@ export class ViewerUtils {
 				list.push(value);
 			}
 		}
+		console.log(list , ' aaaaasas');
+		
 
 		return list;
 	}

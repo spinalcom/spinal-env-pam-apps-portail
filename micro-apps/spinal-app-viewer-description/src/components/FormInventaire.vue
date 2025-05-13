@@ -55,7 +55,25 @@
               <p v-if="isValid" class="valid_formText">{{ valid_message }}</p>
             </v-card-text>
           </div>
+
           <div style="padding: 20px;" class="category-list">
+            <div style="font-weight: bold;" v-if="categories.length > 0">Selectionez une categorie</div>
+            <div v-if="!selectedContext">
+              <div @click="selectContext(category.name, category.dynamicId)" v-for="category in context"
+                :key="category.dynamicId">
+                <div :class="{ selected: selectedCategory === category.name }" class="category-item">
+                  <span class="material-icons">{{ category.icon }}</span>
+                  <span class="category-name">{{ category.name }}</span>
+                </div>
+              </div>
+            </div>
+            <div style="color : green" v-else>
+              context : {{ selectedContext.name }}
+              <div @click="deleteContext">delete</div>
+            </div>
+          </div>
+
+          <div v-if="selectedContext" style="padding: 20px;" class="category-list">
             <div style="font-weight: bold;" v-if="categories.length > 0">Selectionez une categorie</div>
             <div @click="selectCategory(category.name)" v-for="category in categories" :key="category.dynamicId">
               <div :class="{ selected: selectedCategory === category.name }" class="category-item">
@@ -64,6 +82,7 @@
               </div>
             </div>
           </div>
+
         </div>
       </v-card>
     </div>
@@ -110,6 +129,7 @@ export default {
       description: '',
       isDialogOpen: this.value,
       selectedCategory: null,
+      selectedContext: null,
       prioritie: [
         {
           name: 'equipement',
@@ -132,6 +152,7 @@ export default {
       isValid: false,
       valid_message: '',
       categories: [],
+      context: [],
       getIcon: getIcon,
       selectedCtx: null,
       selectedCat: null,
@@ -140,6 +161,8 @@ export default {
 
   },
   async mounted() {
+
+    this.getFirstContextList();
 
     this.$emit('inventory-loaded', []);
     const buildingId = localStorage.getItem("idBuilding");
@@ -248,6 +271,19 @@ export default {
       this.GetInventory();
     },
 
+    selectContext(name, dynamicId) {
+      this.selectedContext = {
+        name: name,
+        dynamicId: dynamicId
+      }
+
+      this.getCategories(this.selectedContext.dynamicId)
+    },
+
+    deleteContext() {
+      this.selectedContext = null
+    },
+
     closeDialog() {
       this.isDialogOpen = !this.isDialogOpen;
       this.$emit('close-dialog', this.isDialogOpen);
@@ -279,18 +315,29 @@ export default {
         typeofvalue = 'Gestion des équipements'
       }
 
-      this.getContextList(typeofvalue)
+      // this.getContextList(typeofvalue)
     },
 
-    async getContextList(typeofvalue) {
+    async getFirstContextList() {
+      let types = ["BIMObjectGroupContext", "geographicRoomGroupContext"];
       const buildingId = localStorage.getItem("idBuilding");
       const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
-      const targetContext = contextList.find(ctx => ctx.name === typeofvalue);
-      this.getCategories(targetContext.dynamicId)
-      this.selectedCtx = targetContext.name
+      const targetContexts = contextList.filter(ctx => types.includes(ctx.type));
 
-    }
-    ,
+      console.log('la liste des contexts', targetContexts);
+      this.context = targetContexts
+    },
+
+
+    // async getContextList(typeofvalue) {
+    //   const buildingId = localStorage.getItem("idBuilding");
+    //   const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
+    //   const targetContext = contextList.find(ctx => ctx.name === typeofvalue);
+    //   this.getCategories(targetContext.dynamicId)
+    //   this.selectedCtx = targetContext.name
+
+    // }
+
 
     async getCategories(contextId) {
       const buildingId = localStorage.getItem("idBuilding");
