@@ -197,13 +197,13 @@ import getIcon from '../services/function/getIcon';
         });
       },
       async getWorkFlowList () {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     const res = await this.$store.dispatch(ActionTypes.GET_WORKFLOW_LIST, { buildingId });
     const workflow = await Promise.all(res);
     return workflow;
   },
     async getProcessList (workflowId: Number) { 
-      const buildingId = localStorage.getItem("idBuilding");
+      const buildingId = sessionStorage.getItem("idBuilding");
       const res = await this.$store.dispatch(ActionTypes.GET_PROCESS_WORKFLOW, { buildingId, workflowId});
       this.process = res.children;
     },
@@ -267,7 +267,7 @@ import getIcon from '../services/function/getIcon';
         description: this.description,
       }
 
-      const buildingId = localStorage.getItem("idBuilding");
+      const buildingId = sessionStorage.getItem("idBuilding");
       const res = await this.$store.dispatch(ActionTypes.ADD_TICKET, { buildingId, data, file});
       if(res) {
         this.resetForm();

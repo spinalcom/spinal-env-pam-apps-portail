@@ -64,7 +64,7 @@ export default defineComponent({
   async mounted() {
 
     if (!window.parent.routerFontion.apps[0]._route.query.SpaceSelectedType) {
-      const buildingId = localStorage.getItem("idBuilding");
+      const buildingId = sessionStorage.getItem("idBuilding");
 
       console.error('il ny arra')
       const results = await Promise.all([
@@ -97,7 +97,7 @@ export default defineComponent({
       console.warn('il est call ????', newSpaceSelectedId, currentType);
 
       try {
-        const buildingId = localStorage.getItem("idBuilding");
+        const buildingId = sessionStorage.getItem("idBuilding");
         const res1 = await this.$store.dispatch(ActionTypes.GET_BUILDING_INFO, { buildingId });
         this.id_building = res1.dynamicId;
         this.building = res1.name;
@@ -205,11 +205,11 @@ export default defineComponent({
 
     setPosition(id, position: string, type: string) {
 
-      if (localStorage.getItem("viewer_loaded") == 'unload')
+      if (sessionStorage.getItem("viewer_loaded") == 'unload')
         return
       if (id == this.$store.state.appDataStore.zoneSelected.dynamicId)
         return
-      const buildingId = localStorage.getItem("idBuilding");
+      const buildingId = sessionStorage.getItem("idBuilding");
       const item = {
         color: '#ded638',
         dynamicId: id,

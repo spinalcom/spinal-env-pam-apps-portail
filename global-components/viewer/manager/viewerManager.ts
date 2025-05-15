@@ -82,6 +82,7 @@ export class ViewerManager {
 
 
 		localStorage.setItem("viewer_loaded", 'unload');
+		sessionStorage.setItem("viewer_loaded", 'unload');
 		// if (this._viewerStartedList[item.staticId]) return;
 		if (this._viewerStartedList[item.dynamicId]) {
 			this.showAllObjects();
@@ -132,6 +133,8 @@ export class ViewerManager {
 			for (const _item of datas) {
 				mergeIViewInfo(res, _item.data);
 			}
+
+
 		}
 
 		// Merge additional dbIds if provided
@@ -209,10 +212,11 @@ export class ViewerManager {
 	}
 
 	public select(item: IPlayload) {
-		console.warn('rayane !!', item);
+		console.log('rain', item);
 
 		return this._fctViewerIteract(VIEWER_OBJ_SELECT, item);
 	}
+
 
 
 
@@ -309,9 +313,11 @@ export class ViewerManager {
 	}
 
 	private async _fctViewerIteract(eventName: keyof ViewerEventWithData, playload: (IPlayload | string) | (IPlayload | string)[], isolateConfig?: any,): Promise<any> {
+		console.log('on voit ici ???');
 
 		const emitter = EmitterViewerHandler.getInstance();
 		if (eventName === (VIEWER_EVENTS.UNLOAD as any)) {
+
 
 			playload = Array.isArray(playload) ? playload : [playload];
 			const obj = {};
@@ -342,6 +348,8 @@ export class ViewerManager {
 		} else {
 
 			data = await this.getViewerInfoMerged(playload as IPlayload);
+
+
 		}
 
 
@@ -355,9 +363,11 @@ export class ViewerManager {
 
 
 		try {
-			console.warn('rayane 3 toto',res);
+			console.log('aaa', res, eventName);
+			// console.log(emitter.emit)
 			emitter.emit(eventName, res);
-			console.warn('rayane 8 toto');
+			console.log('bbb', eventName);
+
 		} catch (error) {
 			console.error('Erreur dans emitter.emit :', error);
 		}

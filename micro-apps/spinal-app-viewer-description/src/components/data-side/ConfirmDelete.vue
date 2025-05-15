@@ -67,7 +67,7 @@ export default {
       
         
          async DeleteFile() {
-            const buildingId = localStorage.getItem('idBuilding');
+            const buildingId = sessionStorage.getItem('idBuilding');
           const res = await this.$store.dispatch(ActionTypes.DELETE_FILE, {
             buildingId: buildingId,
             referenceId: this.idReference!,

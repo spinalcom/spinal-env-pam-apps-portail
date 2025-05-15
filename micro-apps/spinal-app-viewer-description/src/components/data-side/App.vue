@@ -87,7 +87,7 @@
     </div>
     <div v-if="ActiveData && selection == 'Indicateur' && labelsChart" class="graphContainer">
 
-      <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
+      <!-- <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
         :step="labelsChart.length" :tooltipCallbacks="{
           title: (context) => { },
           label: (tooltipItem) =>
@@ -95,7 +95,21 @@
               2
             )} `,
           footer: (data) => { },
-        }"></LineCardComponent>
+        }"></LineCardComponent> -->
+
+
+
+
+      <FastLineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
+        :step="labelsChart.length" :tooltipCallbacks="{
+          title: (context) => { },
+          label: (tooltipItem) =>
+            `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
+              2
+            )} `,
+          footer: (data) => { },
+        }"></FastLineCardComponent>
+
     </div>
     <div
       style="max-height: 100%; display:flex; overflow: hidden ; overflow-y: auto; flex-direction: column; align-content:space-between;"
@@ -498,7 +512,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                    }}
+                      }}
                     </li>
                   </div>
                 </div>
@@ -756,6 +770,7 @@ import {
 } from "spinal-viewer-event-manager";
 import TicketTable from "./DataTable.vue";
 import LineCardComponent from "./LineCardComponent.vue";
+import FastLineCardComponent from "./FastLineCardComponent.vue";
 import moment from 'moment';
 import FormTicket from "../FormTicket.vue";
 import FormInventaire from "../FormInventaire.vue";
@@ -795,7 +810,8 @@ import { error, log } from "console";
     ConfirmDelete,
     ProgressBar,
     TicketTable,
-    FormInventaire
+    FormInventaire,
+    FastLineCardComponent
   },
   filters: {},
 })
@@ -896,8 +912,8 @@ class dataSideApp extends Vue {
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets', 'Inventaire'];
-    console.log(this.floorstaticDetails , ' les floors');
-    
+    console.log(this.floorstaticDetails, ' les floors');
+
     if (this.floorstaticDetails.some(detail =>
       detail?.controlEndpoint?.some(endpoint => endpoint?.endpoints?.length > 0)
     )) {
@@ -1011,7 +1027,7 @@ class dataSideApp extends Vue {
   async descolorAll() {
     this.allColored = false
 
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
 
     const itemsToDescolor = this.stockedData.map(item => ({
       buildingId: buildingId,
@@ -1047,7 +1063,7 @@ class dataSideApp extends Vue {
   colorAll() {
     this.allColored = true
 
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
 
     const itemsToColor = this.stockedData.map(item => ({
       buildingId: buildingId,
@@ -1093,7 +1109,7 @@ class dataSideApp extends Vue {
     }
   }
   async showAlert(v) {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     if (v.status === 'success') {
       this.alert = true
       this.alert_ind = v.message
@@ -1165,7 +1181,7 @@ class dataSideApp extends Vue {
     const delay = 1000;
     for (let i = 0; i < max; i++) {
       const result = this.$store.dispatch(ActionTypes.GET_DOCUMENTATION, {
-        buildingId: localStorage.getItem("idBuilding"),
+        buildingId: sessionStorage.getItem("idBuilding"),
         referenceIds: this.selectedZone.dynamicId,
       })
       const documentation = await result.then((res => {
@@ -1208,7 +1224,7 @@ class dataSideApp extends Vue {
 
   async DeleteAttribut(referenceId: number, cateId: number, name: string) {
     const result = await this.$store.dispatch(ActionTypes.DELETE_ATTRIBUT, {
-      buildingId: localStorage.getItem("idBuilding"),
+      buildingId: sessionStorage.getItem("idBuilding"),
       referenceId: referenceId,
       cateId: cateId,
       name: name
@@ -1222,7 +1238,7 @@ class dataSideApp extends Vue {
 
 
     const result = await this.$store.dispatch(ActionTypes.UPDATE_ATTRIBUT, {
-      buildingId: localStorage.getItem("idBuilding"),
+      buildingId: sessionStorage.getItem("idBuilding"),
       referenceId: referenceId,
       cateId: cateId,
       name: name,
@@ -1237,7 +1253,7 @@ class dataSideApp extends Vue {
 
 
     const result = await this.$store.dispatch(ActionTypes.DELETE_CATE_ATTRIBUT, {
-      buildingId: localStorage.getItem("idBuilding"),
+      buildingId: sessionStorage.getItem("idBuilding"),
       referenceId: referenceId,
       cateId: cateId
     })
@@ -1250,7 +1266,7 @@ class dataSideApp extends Vue {
   async updateCateAttr(referenceId: number, cateId: number, name: string, item: object) {
 
     const result = await this.$store.dispatch(ActionTypes.UPDATE_CATE_ATTRIBUT, {
-      buildingId: localStorage.getItem("idBuilding"),
+      buildingId: sessionStorage.getItem("idBuilding"),
       referenceId: referenceId,
       cateId: cateId,
       item: item
@@ -1354,7 +1370,7 @@ class dataSideApp extends Vue {
     }
 
     const groupData = categoryData[itemType];
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     const itemsToColor = [];
     for (const [bimFileId, entries] of Object.entries(groupData)) {
       entries.forEach(equipment => {
@@ -1378,19 +1394,19 @@ class dataSideApp extends Vue {
   }
 
   async gotoselected(item) {
-    if (localStorage.getItem("viewer_loaded") != "unload")
+    if (sessionStorage.getItem("viewer_loaded") != "unload")
       this.$emit("gotoView", item);
   }
 
   async zoomselected(item) {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
 
     this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, [{ buildingId: buildingId, dynamicId: item.dynamicId }]);
   }
 
   async selectselected(item) {
 
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
 
     if (item.type == "geographicRoom") {
 
@@ -1412,14 +1428,17 @@ class dataSideApp extends Vue {
 
       const firstSol = solObjects[0];
 
+
       const itemsToColor = {
         buildingId: buildingId,
-        dynamicId: firstSol.dynamicId,
+        dynamicId: item.dynamicId,
         floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
         staticId: firstSol.staticId,
-        type: item.type,
+        type: firstSol.type,
         name: item.name
       };
+
+      console.warn(itemsToColor, 'ite to color');
 
       // Envoi via le store
       await this.$store.dispatch(ActionTypes.SELECT_ITEMS, itemsToColor);
@@ -1441,7 +1460,7 @@ class dataSideApp extends Vue {
     }
   }
   async colorselected(item) {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
 
     const itemsToColor = [{
       buildingId: buildingId,
@@ -1460,7 +1479,7 @@ class dataSideApp extends Vue {
   }
 
   async descolorselected(item) {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
 
     const itemsToColor = [{
       buildingId: buildingId,
@@ -1481,7 +1500,7 @@ class dataSideApp extends Vue {
 
 
   async colorCategory(category) {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
 
     // Utilise la couleur du premier item du groupe comme couleur commune
     const commonColor = category.groupItems[0]?.color || '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0'); // rouge par défaut si aucune couleur définie
@@ -1518,7 +1537,7 @@ class dataSideApp extends Vue {
 
 
   async descolorCategory(category) {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
 
     const itemsToColor = category.groupItems.map(item => ({
       buildingId: buildingId,
@@ -1553,7 +1572,7 @@ class dataSideApp extends Vue {
     }
 
     const groupData = categoryData[itemType];
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     const itemsToColor = [];
     for (const [bimFileId, entries] of Object.entries(groupData)) {
       entries.forEach(equipment => {
@@ -1583,7 +1602,7 @@ class dataSideApp extends Vue {
   }
 
   colorSpace(categoryName, groupIndex) {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     //console.log(this.spaceInventoryData.find(item => item.category === categoryName));
     const category = this.spaceInventoryData.find(item => item.category === categoryName);
     if (!category) return console.warn(`Catégorie "${categoryName}" non trouvée`);
@@ -1618,7 +1637,7 @@ class dataSideApp extends Vue {
 
 
   descolorSpace(categoryName, groupIndex) {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
 
     const category = this.spaceInventoryData.find(item => item.category === categoryName);
     if (!category) return console.warn(`Catégorie "${categoryName}" non trouvée`);
@@ -1681,7 +1700,7 @@ class dataSideApp extends Vue {
       return;
     }
 
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     const batchSize = 50;
     const batchedPromises = [];
 
@@ -1802,7 +1821,7 @@ class dataSideApp extends Vue {
 
 
     EventBus.$on('vignette', async (data) => {
-      const buildingId = localStorage.getItem("idBuilding");
+      const buildingId = sessionStorage.getItem("idBuilding");
       const promises = [
         this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
           buildingId,
@@ -1874,7 +1893,7 @@ class dataSideApp extends Vue {
 
 
   async getTicket(data) {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     const elementDynamicId = data[0].dynamicId
 
     const parentPromise = [
@@ -1927,7 +1946,7 @@ class dataSideApp extends Vue {
 
   async getDocumentation(data) {
 
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     const elementDynamicId = data[0].dynamicId;
 
     const parentPromise = [
@@ -1986,7 +2005,7 @@ class dataSideApp extends Vue {
 
     const promises = [
       this.$store.dispatch(ActionTypes.GET_BUILDING_STATIC_DETAILS, {
-        buildingId: localStorage.getItem("idBuilding"),
+        buildingId: sessionStorage.getItem("idBuilding"),
         referenceIds: this.buildingInfo[0].dynamicId
       }),
     ];
@@ -1996,7 +2015,7 @@ class dataSideApp extends Vue {
   async downloadFile(referenceIds, name) {
     const promises = [
       this.$store.dispatch(ActionTypes.POST_DOWNLOAD_FILE, {
-        buildingId: localStorage.getItem("idBuilding"),
+        buildingId: sessionStorage.getItem("idBuilding"),
         referenceIds: referenceIds
       }),
     ];
@@ -2019,7 +2038,7 @@ class dataSideApp extends Vue {
 
 
   async getBuildingInfo() {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
 
     const promises = [
       this.$store.dispatch(ActionTypes.GET_BUILDING_INFO, {
@@ -2034,7 +2053,7 @@ class dataSideApp extends Vue {
 
 
   async getBIMInfo(referenceIds) {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
 
     const promises = [
       this.$store.dispatch(ActionTypes.GET_BIM_OBJECT_INFO, {
@@ -2053,9 +2072,9 @@ class dataSideApp extends Vue {
 
   async getReferenceObjectRoom(dynamicId: number) {
 
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error("Aucun buildingId trouvé dans le localStorage");
+      console.error("Aucun buildingId trouvé dans le sessionStorage");
       return;
     }
 
@@ -2101,7 +2120,7 @@ class dataSideApp extends Vue {
 
   async findDynamicIdByDbid(dbidToFind, data) {
 
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     const bimFileId = data.modelId.bimFileId;
 
     const dynamicId = this.getDynamicId(dbidToFind, bimFileId)
@@ -2136,7 +2155,7 @@ class dataSideApp extends Vue {
   // async findDynamicIdByDbid(dbidToFind, data) {
 
 
-  //   const buildingId = localStorage.getItem("idBuilding");
+  //   const buildingId = sessionStorage.getItem("idBuilding");
   //   const bimFileId = data.modelId.bimFileId;
   //   const zoneType = this.$store.state.appDataStore.zoneSelected?.type;
 
@@ -2236,7 +2255,7 @@ class dataSideApp extends Vue {
 
 
   // async findDynamicIdByDbid(dbidToFind, data) {
-  //   const buildingId = localStorage.getItem("idBuilding");
+  //   const buildingId = sessionStorage.getItem("idBuilding");
   //   const bimFileId = data.modelId.bimFileId;
 
   //   // ✅ On vérifie si dbid + bimfileId sont dans le store des rooms
@@ -2286,7 +2305,7 @@ class dataSideApp extends Vue {
 
   // async findDynamicIdByDbid(dbidToFind, data) {
 
-  //   const buildingId = localStorage.getItem("idBuilding");
+  //   const buildingId = sessionStorage.getItem("idBuilding");
   //   const BimObject = [
   //     {
   //       "bimFileId": data.modelId.bimFileId,
@@ -2346,8 +2365,8 @@ class dataSideApp extends Vue {
   async getListinfo(typeData, id) {
 
     if (typeData == 'floor') {
-      const buildingId = localStorage.getItem("idBuilding");
-      const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
+      const buildingId = sessionStorage.getItem("idBuilding");
+      const patrimoineId = JSON.parse(sessionStorage.getItem("patrimoine"))?.id;
       const promises = [
         this.$store.dispatch(ActionTypes.GET_ROOMS, {
           buildingId,
@@ -2360,8 +2379,8 @@ class dataSideApp extends Vue {
       this.dataListInfo = result
     }
     else if (typeData == 'room') {
-      const buildingId = localStorage.getItem("idBuilding");
-      const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
+      const buildingId = sessionStorage.getItem("idBuilding");
+      const patrimoineId = JSON.parse(sessionStorage.getItem("patrimoine"))?.id;
       const promises = [
         this.$store.dispatch(ActionTypes.GET_EQUIPMENTS, {
           buildingId,
@@ -2374,8 +2393,8 @@ class dataSideApp extends Vue {
       this.dataListInfo = result
     }
     else if (typeData == 'building') {
-      const buildingId = localStorage.getItem("idBuilding");
-      const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
+      const buildingId = sessionStorage.getItem("idBuilding");
+      const patrimoineId = JSON.parse(sessionStorage.getItem("patrimoine"))?.id;
       const promises = [
         this.$store.dispatch(ActionTypes.GET_FLOORS, {
           buildingId,
@@ -2392,7 +2411,7 @@ class dataSideApp extends Vue {
 
 
   async getStaticDetails(id) {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
 
     let type = '';
     let action = '';
@@ -2449,7 +2468,7 @@ class dataSideApp extends Vue {
 
 
   async getParentAttribut() {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     const elementDynamicId = this.floorstaticDetails[0].dynamicId;
 
     const parentPromise = [
@@ -2651,8 +2670,8 @@ class dataSideApp extends Vue {
   async retriveData() {
     try {
       this.pageSate = PAGE_STATES.loading;
-      const buildingId = localStorage.getItem("idBuilding");
-      const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
+      const buildingId = sessionStorage.getItem("idBuilding");
+      const patrimoineId = JSON.parse(sessionStorage.getItem("patrimoine"))?.id;
       const promises = [
         this.$store.dispatch(ActionTypes.GET_ROOMS, {
           buildingId,
@@ -2687,7 +2706,7 @@ class dataSideApp extends Vue {
   }
 
   async fetchReferenceObjects(referenceIds) {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
 
     const result = await this.$store.dispatch(ActionTypes.GET_REFERENCE_OBJECT_LIST_MULTIPLE, {
       buildingId,
@@ -2726,7 +2745,7 @@ class dataSideApp extends Vue {
 
   async getInventoryObject(referenceIds) {
 
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     const promises = [
       this.$store.dispatch(ActionTypes.GET_INVENTORY_MULTIPLE, {
         buildingId,
@@ -2775,7 +2794,7 @@ class dataSideApp extends Vue {
     if (!this.cpIdToDraw.includes(dyn)) return;
 
     const { begintime, endtime } = this.getBeginAndEndTime();
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     const beginTimestamp = this.parseDateString(begintime).getTime();
     const endTimestamp = this.parseDateString(endtime).getTime();
 
@@ -2786,28 +2805,11 @@ class dataSideApp extends Vue {
       end: endtime,
     });
 
-    const timeStep = 60000; // Une minute en millisecondes
-    const seenMinutes = new Map();
 
-    result.forEach(({ date, value }) => {
-      const minuteTimestamp = Math.floor(new Date(date).getTime() / timeStep) * timeStep;
-      seenMinutes.set(minuteTimestamp, value);
-    });
-
-    const processedResult = Array.from({ length: Math.floor((endTimestamp - beginTimestamp) / timeStep) + 1 }, (_, i) => {
-      const date = beginTimestamp + i * timeStep;
-      return {
-        date,
-        value: seenMinutes.get(date) ?? NaN,
-      };
-    });
-
-
-    // Mettre à jour le tableau de données
     const actuelleTable = {
       dynamicId: dyn,
       label: name,
-      data: processedResult.map(({ date, value }) => ({ x: date, y: value })),
+      data: result.map(({ date, value }) => ({ x: date, y: value })),
       unit: "kwh",
       name: "le nom du graph",
     };
@@ -2983,7 +2985,7 @@ class dataSideApp extends Vue {
 
   async getBuildingInventoryObject(ids) {
     const dynamicIdMap = {};
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
 
     // Associer chaque contexte à son dynamicId
@@ -3037,7 +3039,7 @@ class dataSideApp extends Vue {
 
   async countSpaceInventory() {
     this.data_loading = 75;
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     let contextId = this.$store.state.appDataStore.zoneSelected.dynamicId;
 
     if (contextId === 0) {
@@ -3070,7 +3072,7 @@ class dataSideApp extends Vue {
 
       }
 
-      const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
+      const patrimoineId = JSON.parse(sessionStorage.getItem("patrimoine"))?.id;
       const floorsResult = await this.$store.dispatch(ActionTypes.GET_FLOORS, {
         buildingId,
         patrimoineId,
@@ -3162,7 +3164,7 @@ class dataSideApp extends Vue {
 
 
     const inventoryDbids = {};
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
     const dynamicIdMap = {};
 
@@ -3177,7 +3179,7 @@ class dataSideApp extends Vue {
     //     return this.spaceInventoryData;
 
     //   }
-    //   const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
+    //   const patrimoineId = JSON.parse(sessionStorage.getItem("patrimoine"))?.id;
     //   const floorsResult = await this.$store.dispatch(ActionTypes.GET_FLOORS, {
     //     buildingId,
     //     patrimoineId,
@@ -3429,7 +3431,7 @@ class dataSideApp extends Vue {
   @Watch("floorstaticDetails")
   async watchFloorstaticDetails(newVal, oldVal) {
     const dynamicIds = newVal[0].controlEndpoint.flatMap(profile => profile.endpoints.map(endpoint => endpoint.dynamicId));
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     const parentDocPromise = [
       this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
         buildingId,
@@ -3481,9 +3483,9 @@ class dataSideApp extends Vue {
       this.typdata = 'building';
       this.referencedType = 'building';
       // this.getInventoryObject([this.selectedZone.dynamicId]);
-      const buildingId = localStorage.getItem("idBuilding");
+      const buildingId = sessionStorage.getItem("idBuilding");
 
-      const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
+      const patrimoineId = JSON.parse(sessionStorage.getItem("patrimoine"))?.id;
       const floorsResult = await this.$store.dispatch(ActionTypes.GET_FLOORS, {
         buildingId,
         patrimoineId,

@@ -226,7 +226,7 @@ import AddCategorie from './data-side/AddCategorie.vue';
             },
 
            async getCategoriesList(){
-                const buildingId = localStorage.getItem('idBuilding');
+                const buildingId = sessionStorage.getItem('idBuilding');
                 this.categoriesList = await this.$store.dispatch(ActionTypes.GET_CATEGORIES_LIST , {buildingId, referenceId: this.referenceId})
             },
 
@@ -287,7 +287,7 @@ import AddCategorie from './data-side/AddCategorie.vue';
         // CreateAttribute
 
        async addAttribut(){
-            const buildingId = localStorage.getItem('idBuilding');
+            const buildingId = sessionStorage.getItem('idBuilding');
 
             const formdata = new FormData();
             if((this.attributeName !== ''  && this.attributeValue !== '') && this.selectCateogry.index != null){

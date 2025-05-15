@@ -121,19 +121,16 @@ export class ViewerUtils {
 
 	public viewerSelect(viewer: Autodesk.Viewing.Viewer3D, data: IDbIdModelAggregate[]): void {
 		//this.clearSelect(viewer);
-		console.log(data, ' rayane ???????????????????????????????????????????????????????????????????');
+		console.log('viewer objet select du moment');
 
 		const datas = this._classifyDbIdsByModel(data);
-		console.log('le toto de rayane', datas);
 
 		const res = datas.map(el => {
 			return { model: el.model, ids: el.dbIds }
 		})
 
-		console.log('on est la ??? ', res);
 
 		viewer.setAggregateSelection(res)
-		console.log('on est la ??? ');
 		// for (const { model, dbIds } of datas) {
 		// 	model.selector.setSelection(dbIds, "selectOnly");
 		// }
@@ -165,11 +162,9 @@ export class ViewerUtils {
 
 	public async viewerIsolation(viewer: Autodesk.Viewing.Viewer3D, data: (IDbIdModelAggregate & { bimFileId: string })[]): Promise<void> {
 		this.setWaitBeforeDisplaySprites(true);
-		console.warn(data, 'modeles :::::!!!!!!!!!!!!!!!!!!');
 
 
 		const datas = this._classifyDbIdsByModel(data);
-		console.warn(datas, 'modeles 5555 :::::!!!!!!!!!!!!!!!!!!');
 		// const res = datas.map(el => {
 		// 	return { model: el.model, ids: [] }
 		// 	// return { model: el.model, ids: el.dbIds }
@@ -194,7 +189,6 @@ export class ViewerUtils {
 			}
 		})
 		const r = await Promise.all(res)
-		console.warn(r, 'rezr :::::!!!!!!!!!!!!!!!!!!');
 
 		// @ts-ignore
 		viewer.impl.visibilityManager.aggregateIsolate(r)
@@ -217,7 +211,6 @@ export class ViewerUtils {
 				let rootId = m.getRootId();
 				m.getObjectTree((tree) => {
 					let dbidRoot = tree.nodeAccess.dbIdToIndex[rootId];
-					console.warn(dbidRoot, 'dbidRoot :::::!!!!!!!!!!!!!!!!!!');
 
 					resolve(dbidRoot)
 				});
@@ -619,11 +612,10 @@ export class ViewerUtils {
 		}, {});
 
 
-		console.warn(obj, 'moussa');
 
 		const modelList = ModelManager.getInstance().getModelList();
+		console.error('le modelList', modelList);
 
-		console.log('laurant : ',modelList);
 
 		const list: { model: Autodesk.Viewing.Model; dbIds: number[] }[] = [];
 
@@ -633,8 +625,7 @@ export class ViewerUtils {
 				list.push(value);
 			}
 		}
-		console.log(list , ' aaaaasas');
-		
+
 
 		return list;
 	}

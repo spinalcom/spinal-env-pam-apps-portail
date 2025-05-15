@@ -64,8 +64,8 @@ export class EventManager {
 
 				localStorage.setItem("viewer_loaded", 'loaded');
 				window.parent.viewer = viewer
-				
-				setViewCubeAndFit(viewer);
+
+				// setViewCubeAndFit(viewer);
 
 
 			});
@@ -79,27 +79,7 @@ export class EventManager {
 			// 	setViewCubeAndFit(viewer);
 			// });
 
-			async function setViewCubeAndFit(viewer) {
-				try {
-					viewer.navigation.setRequestTransition(false);
-					setTimeout(async () => {
-						const a = await viewer.loadExtension('Autodesk.ViewCubeUi')
-						a.displayViewCube(true, true)
-						a.setViewCube('right');
-					}, 3000);
-					setTimeout(async () => {
-						const a = await viewer.loadExtension('Autodesk.ViewCubeUi')
-						a.displayViewCube(true, true)
-						a.setViewCube('top');
-					}, 4000);
-					await new Promise(resolve => setTimeout(resolve, 5000));
-					viewer.unloadExtension("Autodesk.ViewCubeUi");
-					viewer.navigation.fitBounds(true, viewer.impl.getFitBounds());
-					viewer.setNavigationLock(true);
-				} catch (error) {
-					console.error("Erreur lors de l'exécution de ViewCube:", error);
-				}
-			}
+			
 
 			emitterHandler.on(VIEWER_OBJ_ISOLATE, (data: any) => {
 				localStorage.setItem("viewer_loaded", 'loaded');

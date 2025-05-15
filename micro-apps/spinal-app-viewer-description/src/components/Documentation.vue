@@ -166,7 +166,7 @@ const getToolbar = () => ({
             this.fileName_with_ext = this.fileName;
             this.fileName = this.fileName.replace(/\.[^/.]+$/, "");
             const fileExtension = this.file_prop.split('.').pop();
-                const buildingId = localStorage.getItem("idBuilding");
+                const buildingId = sessionStorage.getItem("idBuilding");
                 this.referenceId = val;
                 const file = [this.$store.dispatch(ActionTypes.GET_FILE, {
                     buildingId: buildingId,

@@ -7,10 +7,10 @@ export const DASHBOARD_MODE = {
 
 class HttpService {
   constructor() {
-    this.mode = DASHBOARD_MODE.PAM_APP; 
-    this.host = (process.env.SPINAL_API_URL || "").replace(/\/$/, ""); 
+    this.mode = DASHBOARD_MODE.PAM_APP;
+    this.host = (process.env.SPINAL_API_URL || "").replace(/\/$/, "");
     // this.host = 'http://localhost:3000'
-    this.setEndpoint(); 
+    this.setEndpoint();
 
     this.http = axios.create({
       baseURL: this.computeBaseURL(),
@@ -41,7 +41,7 @@ class HttpService {
     if (this.mode === DASHBOARD_MODE.BOS_APP) {
       this.endpoint = "/api/v1";
     } else {
-      const buildingId = localStorage.getItem("idBuilding");
+      const buildingId = sessionStorage.getItem("idBuilding") || localStorage.getItem("idBuilding");
       if (!buildingId) {
         throw new Error("Building ID is not set in localStorage");
       }

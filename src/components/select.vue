@@ -126,6 +126,7 @@ export default {
         portofolioId = realItem.staticId;
       } else if (realItem.type === this.TYPES.building) {
         localStorage.setItem('idBuilding', realItem.staticId);
+        sessionStorage.setItem('idBuilding', realItem.staticId);
         portofolioId = realItem.parents[0];
         buildingId = realItem.staticId;
       }

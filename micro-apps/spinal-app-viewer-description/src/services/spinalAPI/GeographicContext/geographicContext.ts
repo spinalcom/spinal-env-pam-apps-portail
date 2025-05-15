@@ -204,9 +204,9 @@ export async function postBIMObjectInfo(buildingId: string, referenceIds: any): 
   }
 }
 
-export async function postFloorInventory(id: number, body: { context: string; category: string }, includePosition?: boolean, includeArea: boolean = true, onlyDynamicId: boolean = true): Promise<any> {
+export async function postFloorInventory(id: number, body: { context: string; category: string; group: any }, includePosition?: boolean, includeArea: boolean = true, onlyDynamicId: boolean = true): Promise<any> {
   const spinalAPI = SpinalAPI.getInstance();
-  const buildingId = localStorage.getItem("idBuilding");
+  const buildingId = sessionStorage.getItem("idBuilding");
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/floor/${id}/inventory`);
 
   const params = new URLSearchParams();
@@ -224,9 +224,9 @@ export async function postFloorInventory(id: number, body: { context: string; ca
 }
 
 
-export async function postRoomInventory(id: number, body: { context: string; category: string }, includePosition?: boolean, onlyDynamicId: boolean = true): Promise<any> {
+export async function postRoomInventory(id: number, body: { context: string; category: string; group: [] }, includePosition?: boolean, onlyDynamicId: boolean = true): Promise<any> {
   const spinalAPI = SpinalAPI.getInstance();
-  const buildingId = localStorage.getItem("idBuilding");
+  const buildingId = sessionStorage.getItem("idBuilding");
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/room/${id}/inventory`);
 
   const params = new URLSearchParams();
