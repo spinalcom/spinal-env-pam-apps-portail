@@ -101,7 +101,7 @@ import getIcon from '../services/function/getIcon';
             const referenceid = this.referenceid
             let filesData = this.files
             if(filesData.length != 0) {
-                const buildingId = localStorage.getItem('idBuilding')
+                const buildingId = sessionStorage.getItem('idBuilding')
                 const res = await this.$store.dispatch(ActionTypes.ADD_DOC, {buildingId, referenceId:  referenceid,  file: filesData })
                 if (res[0].status) {
                     this.resetForm()

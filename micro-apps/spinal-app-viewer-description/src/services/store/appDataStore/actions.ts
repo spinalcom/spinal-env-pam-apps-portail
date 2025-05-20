@@ -76,7 +76,7 @@ export const actions = {
 		{ commit }: AugmentedActionContextAppData,
 		{ id, body, includePosition, includeArea, onlyDynamicId }: {
 			id: number;
-			body: { context: string; category: string };
+			body: { context: string; category: string; group: any};
 			includePosition?: boolean;
 			includeArea?: boolean;
 			onlyDynamicId?: boolean;
@@ -94,7 +94,7 @@ export const actions = {
 		{ commit }: AugmentedActionContextAppData,
 		{ id, body, includePosition, onlyDynamicId }: {
 			id: number;
-			body: { context: string; category: string };
+			body: { context: string; category: string; group: [] };
 			includePosition?: boolean;
 			onlyDynamicId?: boolean;
 		}
@@ -706,7 +706,7 @@ export const actions = {
 	async [ActionTypes.OPEN_VIEWER]({ commit, dispatch, state }: AugmentedActionContextAppData, playload: { onlyThisModel: boolean; config: IConfig; item: any }): Promise<void> {
 		try {
 			console.warn('LE OPEN VIEWER LE TYPE DU TRUC EST :playload.item.type', playload.item.type);
-			
+
 			if (playload.item.type === "building") {
 				const building = await dispatch(ActionTypes.GET_BOS_BUILDING, {
 					buildingId: playload.item.buildingId,
@@ -728,7 +728,7 @@ export const actions = {
 					const map = await dispatch(ActionTypes.GET_GROUPS_ITEMS, { config: playload.config, buildingId: playload.item.buildingId });
 					body.dbIdsToAdd = classifyItemByBimFileId(map, playload.item.dynamicId, playload.item.type);
 				}
-				
+
 				playload.item.dynamicId = building.dynamicId;
 				await ViewerManager.getInstance().loadInViewer(
 					playload.item,
@@ -772,6 +772,8 @@ export const actions = {
 	},
 	[ActionTypes.SELECT_ITEMS]({ commit, dispatch, state }, playload: any) {
 		ViewerManager.getInstance().select(playload);
+		console.log('on fini ici ?');
+		
 	},
 
 	[ActionTypes.HIDE_ITEMS]({ commit, dispatch, state }, playload: any) {

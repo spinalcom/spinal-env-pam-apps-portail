@@ -837,9 +837,6 @@ export const actions = {
 	async [ActionTypes.GET_VIEWER_INFO]({ commit, state }: AugmentedActionContextAppData, playload): Promise<IViewInfoItemRes[]> {
 		return ViewerManager.getInstance().getViewerInfoMerged(playload);
 	},
-	[ActionTypes.SELECT_ITEMS]({ commit, dispatch, state }, playload: any) {
-		ViewerManager.getInstance().select(playload);
-	},
 
 	[ActionTypes.HIDE_ITEMS]({ commit, dispatch, state }, playload: any) {
 		ViewerManager.getInstance().hide(playload);
@@ -889,6 +886,10 @@ export const actions = {
 	[ActionTypes.COLOR_ITEMS]({ commit, dispatch, state }, { items, buildingId }: any) {
 		return ViewerManager.getInstance().colorItems(items, buildingId);
 	},
+	[ActionTypes.SELECT_ITEMS]({ commit, dispatch, state }, playload: any) {
+		ViewerManager.getInstance().select(playload);
+	},
+
 
 	[ActionTypes.ADD_SPRITES]({ commit, dispatch, state }, { items, buildingId }: any) {
 		return ViewerManager.getInstance().addSprites(items, buildingId);

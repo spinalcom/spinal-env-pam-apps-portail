@@ -31,8 +31,8 @@
 
       </div>
       <v-card elevation="0" style="width: 100% !important; height: 100%; padding-top: 10px;">
-        <div class="w-full h-full overflow-hidden overflow-y-auto">
-          <div style="width: 100%; padding: 25px;">
+        <div style="display: flex;" class="w-full h-full overflow-hidden overflow-y-auto">
+          <!-- <div style="width: 100%; padding: 25px;">
             <v-card-text style="min-height: 50px;">
               <div class="col">
                 <v-row v-if="showalert"
@@ -54,10 +54,10 @@
               </div>
               <p v-if="isValid" class="valid_formText">{{ valid_message }}</p>
             </v-card-text>
-          </div>
+          </div> -->
 
           <div style="padding: 20px;" class="category-list">
-            <div style="font-weight: bold;" v-if="categories.length > 0">Selectionez une categorie</div>
+            <div style="font-weight: bold;" v-if="categories.length > 0">Selectionez un context</div>
             <div v-if="!selectedContext">
               <div @click="selectContext(category.name, category.dynamicId)" v-for="category in context"
                 :key="category.dynamicId">
@@ -68,21 +68,48 @@
               </div>
             </div>
             <div style="color : green" v-else>
-              context : {{ selectedContext.name }}
-              <div @click="deleteContext">delete</div>
+              <div class="validate">{{ selectedContext.name }}</div>
+              <div class="cancel" style="color:  red; cursor: pointer;font" @click="deleteContext">annuler</div>
             </div>
           </div>
 
-          <div v-if="selectedContext" style="padding: 20px;" class="category-list">
-            <div style="font-weight: bold;" v-if="categories.length > 0">Selectionez une categorie</div>
-            <div @click="selectCategory(category.name)" v-for="category in categories" :key="category.dynamicId">
-              <div :class="{ selected: selectedCategory === category.name }" class="category-item">
-                <span class="material-icons">{{ category.icon }}</span>
-                <span class="category-name">{{ category.name }}</span>
+          <div style="padding: 20px;" class="category-list">
+            <div style="font-weight: bold;" v-if="categories.length > 0 && selectedContext">Selectionez une categorie
+            </div>
+            <div v-if="selectedContext">
+              <div v-if="!selectedCat">
+                <div @click="selectCategory(category)" v-for="category in categories" :key="category.dynamicId">
+                  <div :class="{ selected: selectedCategory === category.name }" class="category-item">
+                    <span class="material-icons">{{ category.icon }}</span>
+                    <span class="category-name">{{ category.name }}</span>
+                  </div>
+                </div>
+              </div>
+              <div v-else>
+                <div class="validate">{{ selectedCat }}</div>
+                <div class="cancel" style="color:  red; cursor: pointer;font" @click="deleteCat">annuler</div>
+
               </div>
             </div>
           </div>
 
+          <div style="padding: 20px" class="category-list">
+            <div style="font-weight: bold;" v-if="grp.length > 0">Selectionez un groupe</div>
+            <div v-if="selectedCat">
+              <div v-for="category in grp" :key="category.dynamicId" @click="selectGrp(category)">
+                <div :class="['category-item', { selected: isSelected(category) }]">
+                  <span class="material-icons">{{ category.icon }}</span>
+                  <span class="category-name">{{ category.name }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div style="display: flex;justify-content :  flex-end">
+          <div @click="GetInventory"
+            style="font-weight: bold;margin-right: 10px;padding: 12px;border-radius: 7px;margin-top: 10px;border:1px solid #14202c">
+            Valider</div>
         </div>
       </v-card>
     </div>
@@ -153,10 +180,13 @@ export default {
       valid_message: '',
       categories: [],
       context: [],
+      grp: [],
       getIcon: getIcon,
       selectedCtx: null,
       selectedCat: null,
-      currentType: ''
+      currentType: '',
+      selectedGrp: [],
+      groupString :[]
     };
 
   },
@@ -165,7 +195,7 @@ export default {
     this.getFirstContextList();
 
     this.$emit('inventory-loaded', []);
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
 
     const promises_node = [
       this.$store.dispatch(ActionTypes.GET_NODE_READ, {
@@ -265,11 +295,29 @@ export default {
     }
   },
   methods: {
-    selectCategory(name) {
-      this.selectedCategory = name;
-      this.selectedCat = name
-      this.GetInventory();
+    selectCategory(cate) {
+      this.selectedCategory = cate.name;
+      this.selectedCat = cate.name
+      // this.GetInventory();
+      this.getGroup(this.selectedContext.dynamicId, cate.dynamicId)
     },
+    selectGrp(grp) {
+      const index = this.selectedGrp.findIndex(g => g.dynamicId === grp.dynamicId);
+      if (index === -1) {
+        this.selectedGrp.push(grp);
+      } else {
+        this.selectedGrp.splice(index, 1);
+      }
+
+      // Met à jour le tableau des noms sélectionnés
+      this.groupString = this.selectedGrp.map(g => g.name);
+      console.log('les grp',this.groupString);
+      
+    },
+    isSelected(grp) {
+      return this.selectedGrp.some(g => g.dynamicId === grp.dynamicId);
+    },
+
 
     selectContext(name, dynamicId) {
       this.selectedContext = {
@@ -282,6 +330,11 @@ export default {
 
     deleteContext() {
       this.selectedContext = null
+      this.selectedCat = null
+    },
+    deleteCat() {
+      // this.selectedContext = null
+      this.selectedCat = null
     },
 
     closeDialog() {
@@ -320,7 +373,7 @@ export default {
 
     async getFirstContextList() {
       let types = ["BIMObjectGroupContext", "geographicRoomGroupContext"];
-      const buildingId = localStorage.getItem("idBuilding");
+      const buildingId = sessionStorage.getItem("idBuilding");
       const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
       const targetContexts = contextList.filter(ctx => types.includes(ctx.type));
 
@@ -330,7 +383,7 @@ export default {
 
 
     // async getContextList(typeofvalue) {
-    //   const buildingId = localStorage.getItem("idBuilding");
+    //   const buildingId = sessionStorage.getItem("idBuilding");
     //   const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
     //   const targetContext = contextList.find(ctx => ctx.name === typeofvalue);
     //   this.getCategories(targetContext.dynamicId)
@@ -340,12 +393,25 @@ export default {
 
 
     async getCategories(contextId) {
-      const buildingId = localStorage.getItem("idBuilding");
+      const buildingId = sessionStorage.getItem("idBuilding");
       const resultCategory = await this.$store.dispatch(
         ActionTypes.GET_CONTEXT_CATEGORY_LIST,
         { buildingId, contextId }
       );
       this.categories = resultCategory
+
+    },
+
+    async getGroup(contextId, categoryDynId) {
+
+      const buildingId = sessionStorage.getItem("idBuilding");
+      const resultCategory = await this.$store.dispatch(
+        ActionTypes.GET_CONTEXT_CATEGORY_GROUP_LIST,
+        { buildingId, contextId, categoryDynId }
+      );
+      this.grp = resultCategory
+      // console.warn(grp);
+
 
     },
 
@@ -362,7 +428,7 @@ export default {
         if (this.typedata === 'room' || this.currentType == "geographicRoom") {
           const inventoryResponse = await this.$store.dispatch(ActionTypes.GET_ROOM_INVENTORY, {
             id: this.selectedId,
-            body: { context: this.selectedCtx, category: this.selectedCat },
+            body: { context: this.selectedContext.name, category: this.selectedCat, group: this.groupString },
             includeArea: true,
             onlyDynamicId: false,
           });
@@ -373,22 +439,21 @@ export default {
         }
 
         else if (this.typedata === 'floor' || this.currentType == "geographicFloor") {
-          console.warn('l inventaire charche 2 , floor ');
 
           const inventoryResponse = await this.$store.dispatch(ActionTypes.GET_FLOOR_INVENTORY, {
             id: this.selectedId,
-            body: { context: this.selectedCtx, category: this.selectedCat },
+            body: { context: this.selectedContext.name, category: this.selectedCat, group: this.groupString },
             onlyDynamicId: false,
           });
 
           this.$emit('inventory-loaded', inventoryResponse);
 
-          this.loadingStatus = 'end'; // ⬅️ Chargement terminé
+          this.loadingStatus = 'end'; 
         }
 
         else {
-          const buildingId = localStorage.getItem("idBuilding");
-          const patrimoineId = JSON.parse(localStorage.getItem("patrimoine"))?.id;
+          const buildingId = sessionStorage.getItem("idBuilding");
+          const patrimoineId = JSON.parse(sessionStorage.getItem("patrimoine"))?.id;
           const floorsResult = await this.$store.dispatch(ActionTypes.GET_FLOORS, {
             buildingId,
             patrimoineId,
@@ -401,7 +466,7 @@ export default {
             try {
               const inventoryResponse = await this.$store.dispatch(ActionTypes.GET_FLOOR_INVENTORY, {
                 id: floorId,
-                body: { context: this.selectedCtx, category: this.selectedCat },
+                body: { context: this.selectedCtx, category: this.selectedCat, group: [] },
                 includeArea: true,
                 onlyDynamicId: false,
               });
@@ -454,7 +519,7 @@ export default {
       //     description: this.description,
       //   }
 
-      //   const buildingId = localStorage.getItem("idBuilding");
+      //   const buildingId = sessionStorage.getItem("idBuilding");
       //   const res = await this.$store.dispatch(ActionTypes.ADD_TICKET, { buildingId, data, file });
       //   if (res) {
       //     this.resetForm();
@@ -502,17 +567,18 @@ export default {
 }
 
 .category-list {
-  display: flex;
+  background-color: #f3f3f3;
+  border: 1px solid #cecece;
+  border-radius: 5px;
   flex-direction: column;
   gap: 10px;
-  border: 1px solid rgb(206, 206, 206);
+  width: 100%;
+  height: 600px;
   margin: 10px;
-  border-radius: 5px;
-  background-color: rgb(243, 243, 243);
-  max-height: 80%;
-  /* height: 80%; */
-  overflow-y: auto;
   padding: 10px;
+  margin: 10px;
+  display: flex;
+  overflow-y: auto;
 }
 
 .category-item {
@@ -557,6 +623,25 @@ export default {
   animation: slide-in-bottom 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
   margin-bottom: 100px;
   /* font-weight: bold; */
+}
+
+.validate {
+  background-color: #14202c;
+  color: white;
+  border-radius: 5px;
+  padding: 16px;
+  margin-top: 7px;
+}
+
+.cancel {
+  color: red;
+  cursor: pointer;
+  border: 1px solid red;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  margin-top: 20px;
+  border-radius: 5px;
 }
 
 @-webkit-keyframes slide-in-bottom {

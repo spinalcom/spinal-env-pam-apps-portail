@@ -144,12 +144,12 @@ class App extends Vue {
   floor: any = null
   async mounted() {
 
-    localStorage.setItem("viewer_loaded", 'initialize');
+    sessionStorage.setItem("viewer_loaded", 'initialize');
     this.viewerManager = ViewerManager.getInstance();
     this.RemoveEventHandlers();
 
     EventBus.$on('colorRoom', (dynamicId) => {
-      const buildingId = localStorage.getItem("idBuilding");
+      const buildingId = sessionStorage.getItem("idBuilding");
       const itemsToColor = [{
         buildingId: buildingId,
         color: "#24CBD9",
@@ -161,7 +161,7 @@ class App extends Vue {
         this.firstCOlor = true
       } else {
 
-        const statviewer = localStorage.getItem("viewer_loaded");
+        const statviewer = sessionStorage.getItem("viewer_loaded");
         if (statviewer == "loaded") {
           this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
             items: itemsToColor,
@@ -171,7 +171,7 @@ class App extends Vue {
       }
     });
     EventBus.$on('descolorRoom', (dynamicId) => {
-      const buildingId = localStorage.getItem("idBuilding");
+      const buildingId = sessionStorage.getItem("idBuilding");
 
       const itemsToColor = [{
         buildingId: buildingId,
@@ -220,10 +220,11 @@ class App extends Vue {
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.off(VIEWER_REM_SPHERE);
     emitterHandler.off(VIEWER_SPRITE_CLICK);
+    // emitterHandler.off(VIEWER_OBJ_SELECT);
   }
 
   gotoView(data) {
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     this.query.spaceSelectedId = data.dynamicId
     this.query.name = data.name
     this.query.buildingId = buildingId
@@ -315,8 +316,8 @@ class App extends Vue {
 
 
     if (!query.spaceSelectedType && query.spaceSelectedId) {
-      const buildingId = localStorage.getItem("idBuilding");
-      console.error('pas de type disponible !!!' , query.spaceSelectedId);
+      const buildingId = sessionStorage.getItem("idBuilding");
+      console.error('pas de type disponible !!!', query.spaceSelectedId);
 
       const results = await Promise.all([
         this.$store.dispatch(ActionTypes.GET_NODE_READ, {
@@ -390,7 +391,7 @@ class App extends Vue {
     }
     else {
 
-      const buildingId = localStorage.getItem("idBuilding");
+      const buildingId = sessionStorage.getItem("idBuilding");
       const building = await this.$store.dispatch(
         ActionTypes.GET_BOS_BUILDING,
         {
@@ -400,7 +401,7 @@ class App extends Vue {
       this.$store.commit(MutationTypes.SET_BUILDING_INFO, building);
 
       const item = {
-        buildingId: localStorage.getItem("idBuilding"),
+        buildingId: sessionStorage.getItem("idBuilding"),
         dynamicId: building.dynamicId,
         parents: [],
         type: "building",
@@ -469,7 +470,7 @@ class App extends Vue {
     switch (item?.type) {
       case undefined:
 
-        const buildingId = localStorage.getItem("idBuilding");
+        const buildingId = sessionStorage.getItem("idBuilding");
         if (buildingId) {
           const playload = {
             config,
@@ -593,7 +594,7 @@ class App extends Vue {
 
 
     this.loadingdata = !this.loadingdata
-    const buildingId = localStorage.getItem("idBuilding");
+    const buildingId = sessionStorage.getItem("idBuilding");
     const data = {
       "isOpen": false,
       "loading": false,
@@ -618,8 +619,8 @@ class App extends Vue {
         });
         break;
       case ActionTypes.ISOLATE_ITEMS:
-        console.log(button.onclickEvent , 'isolation');
-        
+        console.log(button.onclickEvent, 'isolation');
+
         this.$store.dispatch('OPEN_VIEWER', {
           onlyThisModel: true,
           config: this.config,
@@ -647,7 +648,7 @@ class App extends Vue {
     emitterHandler.on(VIEWER_SPRITE_CLICK, (result: any) => {
       this.$store.commit(MutationTypes.SET_ITEM_SELECTED, result.node);
       if (result.navigate) {
-        if (localStorage.getItem("viewer_loaded") == 'unload') {
+        if (sessionStorage.getItem("viewer_loaded") == 'unload') {
           return
         }
 

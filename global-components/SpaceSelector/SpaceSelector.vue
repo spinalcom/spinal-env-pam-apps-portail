@@ -186,9 +186,9 @@ class SpaceSelector extends Vue {
 
   @Watch("selectedZone")
   async onSelectedChange() {
-    
+
     if (!this.selectedZone) return; // Vérifie que selectedZone est défini
-    
+
     for (let idx = 0; idx < this.buildingStructure.length; idx++) {
       const item = this.buildingStructure[idx];
       let found = false;
@@ -293,10 +293,14 @@ class SpaceSelector extends Vue {
     if (!currentQuery.app) {
       this.viewerLoaded = true
       localStorage.setItem("viewer_loaded", "loaded");
+      sessionStorage.setItem("viewer_loaded", "loaded");
       EventBus.$emit('loadedviewer');
     } else {
       // TODO
-      const currentStatus = ["loaded", "initialize"].includes(localStorage.getItem("viewer_loaded") || "");
+      const currentStatus = ["loaded", "initialize"].includes(
+        sessionStorage.getItem("viewer_loaded") || localStorage.getItem("viewer_loaded") || ""
+      );
+      
       if (this.viewerLoaded !== currentStatus) {
         this.viewerLoaded = currentStatus;
 
@@ -325,7 +329,7 @@ class SpaceSelector extends Vue {
   private async openItem(item: ISpaceSelectorItem, index: number) {
     item.isOpen = true;
     item.loading = true;
-    
+
     try {
       const children = await this.GetChildrenFct(item);
       this.buildingStructure.splice(
