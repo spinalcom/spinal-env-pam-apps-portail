@@ -11,7 +11,6 @@
     "build": "rm -rf dist .parcel-cache && parcel build index.html micro-apps/*/index.html --no-optimize --dist-dir dist/ --no-scope-hoist  && npm run copy",
     "copy": "cp -r global-components/offline/viewer dist/micro-apps/viewer",
     "ui-dev-select": "./scripts/dev-select.sh"
-
   },
   "alias": {
     "global-components": "./global-components"
