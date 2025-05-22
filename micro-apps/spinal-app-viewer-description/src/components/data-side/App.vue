@@ -512,7 +512,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                    }}
+                      }}
                     </li>
                   </div>
                 </div>
@@ -1045,6 +1045,7 @@ class dataSideApp extends Vue {
   }
 
   handleInventory(data) {
+
     if (Array.isArray(data) && data[0]?.inventory) {
       // cas building : on fusionne les inventories avec le floorId comme préfixe
       this.formattedInventory = data.flatMap(d =>
@@ -4163,14 +4164,10 @@ a {
 
 
 @media (max-width: 1024px) and (min-width: 768px) {
-  .appli {
-    flex-direction: column;
-  }
-
   .doc-vue {
     width: 100%;
     height: 50%;
-  }
+  } 
 
   .doc-content {
     width: 100%;

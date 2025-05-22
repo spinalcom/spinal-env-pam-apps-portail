@@ -504,6 +504,7 @@ export default {
         }
       } catch (err) {
         console.error("Erreur GetInventory globale :", err);
+        this.$emit('inventory-loaded', []);
         this.loadingStatus = 'error';
       }
     }
