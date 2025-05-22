@@ -46,14 +46,13 @@ export async function getBuilding(): Promise<Building | null> {
   try {
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error("Building ID not found in localStorage");
-      return null;
+/*       console.error("Building ID not found in localStorage");
+      return null; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
     const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/building/read');
-    console.log("Generated URL for getBuilding:", url);
-
+ 
     const result = await spinalApi.get(url) as { data: Building };
     return result.data;
   } catch (error) {
@@ -67,8 +66,8 @@ export async function getFloors(): Promise<Floor[]> {
   try {
     const buildingId = localStorage.getItem('idBuilding');
     if (!buildingId) {
-      console.error('idBuilding not found in localStorage');
-      return [];
+/*       console.error('idBuilding not found in localStorage');
+      return []; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
@@ -87,29 +86,25 @@ let cachedAreas: Record<string, number> = {};
 export async function getArea(space: Space): Promise<number> {
   const cacheKey = `${space.type}-${space.dynamicId || 'building'}`;
   if (cachedAreas[cacheKey]) {
-    console.log(`Surface for ${cacheKey} retrieved from cache.`);
-    return cachedAreas[cacheKey];
+     return cachedAreas[cacheKey];
   }
 
   try {
-    console.log('Get Area');
-    const buildingId = localStorage.getItem("idBuilding");
+     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error("Building ID not found in localStorage");
-      return 0;
+/*       console.error("Building ID not found in localStorage");
+      return 0; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
 
     if (space.type === 'building') {
-      console.log('of building');
-      const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/building/read');
+       const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/building/read');
       const result = await spinalApi.get(url) as { data: { area: number } };
       cachedAreas[cacheKey] = +result.data.area; // Mettre en cache
       return cachedAreas[cacheKey];
     } else if (space.type === 'floor' && space.dynamicId) {
-      console.log('of floor');
-      const url = spinalApi.createUrlWithPlatformId(buildingId, `api/v1/floor/${space.dynamicId}/attributes`);
+       const url = spinalApi.createUrlWithPlatformId(buildingId, `api/v1/floor/${space.dynamicId}/attributes`);
       const result = await spinalApi.get(url) as { data: { attributs: { label: string; value: number }[] } };
       const area = result.data.attributs.find(attr => attr.label === 'area')?.value || 0;
       cachedAreas[cacheKey] = +area; // Mettre en cache
@@ -132,16 +127,14 @@ let cachedRoomIdsByGroup: Record<string, string[]> = {};
 // On Récupère l'ID du contexte.
 export async function getContextId(contextName: string): Promise<string | null> {
   if (cachedContextIds[contextName]) {
-    console.log(`Context ID for ${contextName} retrieved from cache.`);
-    return cachedContextIds[contextName];
+     return cachedContextIds[contextName];
   }
 
   try {
-    console.log('getContextId called');
-    const buildingId = localStorage.getItem("idBuilding");
+     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error('idBuilding not found in localStorage');
-      return null;
+/*       console.error('idBuilding not found in localStorage');
+      return null; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
@@ -165,16 +158,14 @@ export async function getContextId(contextName: string): Promise<string | null> 
 export async function getCategoryId(contextId: string, categoryName: string): Promise<string | null> {
   const cacheKey = `${contextId}-${categoryName}`;
   if (cachedCategoryIds[cacheKey]) {
-    console.log(`Category ID for ${categoryName} in context ${contextId} retrieved from cache.`);
-    return cachedCategoryIds[cacheKey];
+     return cachedCategoryIds[cacheKey];
   }
 
   try {
-    console.log('getCategoryId called');
-    const buildingId = localStorage.getItem("idBuilding");
+     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error('idBuilding not found in localStorage');
-      return null;
+ /*      console.error('idBuilding not found in localStorage');
+      return null; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
@@ -198,16 +189,14 @@ export async function getCategoryId(contextId: string, categoryName: string): Pr
 export async function getGroupId(contextId: string, categoryId: string, groupName: string): Promise<string | null> {
   const cacheKey = `${contextId}-${categoryId}-${groupName}`;
   if (cachedGroupIds[cacheKey]) {
-    console.log(`Group ID for ${groupName} in category ${categoryId} retrieved from cache.`);
     return cachedGroupIds[cacheKey];
   }
 
   try {
-    console.log('getGroupId called');
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error('idBuilding not found in localStorage');
-      return null;
+/*       console.error('idBuilding not found in localStorage');
+      return null; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
@@ -231,16 +220,14 @@ export async function getGroupId(contextId: string, categoryId: string, groupNam
 export async function getRoomIds(contextId: string, categoryId: string, groupId: string): Promise<string[]> {
   const cacheKey = `${contextId}-${categoryId}-${groupId}`;
   if (cachedRoomIdsByGroup[cacheKey]) {
-    console.log(`Room IDs for group ${groupId} retrieved from cache.`);
     return cachedRoomIdsByGroup[cacheKey];
   }
 
   try {
-    console.log('getRoomIds called');
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error('idBuilding not found in localStorage');
-      return [];
+/*       console.error('idBuilding not found in localStorage');
+      return []; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
@@ -261,16 +248,17 @@ export async function getRoomIds(contextId: string, categoryId: string, groupId:
 
 // On Récupère les positions des salles données.
 
-export async function getRoomPositions(roomIds: string[]): Promise<RoomPosition[] | null> {
-  console.log('getRoomPositions called');
+export async function getRoomPositions(
+  roomIds: string[],
+  entryPointName: string
+): Promise<RoomPosition[] | null> {
   const buildingId = localStorage.getItem("idBuilding");
   if (!buildingId) {
-    console.error('idBuilding not found in localStorage');
-    return null;
+/*     console.error('idBuilding not found in localStorage');
+    return null; */
   }
 
-  console.log('Building ID:', buildingId);
-  console.log('Room IDs:', roomIds);
+
 
   try {
     const spinalAPI = SpinalAPI.getInstance();
@@ -280,35 +268,28 @@ export async function getRoomPositions(roomIds: string[]): Promise<RoomPosition[
     const batchSize = 50;
     const chunkedRoomIds = lodash.chunk(roomIds, batchSize);
 
-    // Envoyer les requêtes en parallèle pour chaque lot
     const promises = chunkedRoomIds.map(async (batch) => {
-      console.log('Processing batch:', batch);
       const response = await (spinalAPI.post as <T>(url: string, body: any) => Promise<{ data: T }>)(url, batch) as { data: RoomPosition[] };
-      console.log('Batch response:', response.data);
       return response.data;
     });
 
-    // Attendre que toutes les requêtes soient terminées
     const results = await Promise.allSettled(promises);
 
-    // Combiner les résultats des lots réussis
     const combinedResults = results.reduce<RoomPosition[]>((acc, result) => {
       if (result.status === 'fulfilled') {
         acc.push(...result.value);
       } else {
-        console.error('Error in batch:', result.reason);
+        console.error(`Error in batch for ${entryPointName}:`, result.reason);
       }
       return acc;
     }, []);
 
-    console.log('Combined results:', combinedResults);
     return combinedResults;
   } catch (error) {
-    console.error('Error in getRoomPositions:', error);
+    console.error(`Error in getRoomPositions for ${entryPointName}:`, error);
     return null;
   }
 }
-
 export async function getRoomData(): Promise<Record<string, string[]>> {
   try {
     if (!cachedRoomEntryPoints || cachedRoomEntryPoints.length === 0) {
@@ -317,8 +298,8 @@ export async function getRoomData(): Promise<Record<string, string[]>> {
     }
 
     const roomData: Record<string, string[]> = {};
+
     for (const roomEntryPoint of cachedRoomEntryPoints) {
-      console.log(`Traitement de l'entryPoint : ${roomEntryPoint.name}`);
       const contextId = await getContextId(roomEntryPoint.name);
       if (!contextId) {
         console.warn(`Aucun contexte trouvé pour l'entryPoint : ${roomEntryPoint.name}`);
@@ -343,10 +324,9 @@ export async function getRoomData(): Promise<Record<string, string[]>> {
         continue;
       }
 
-      roomData[roomEntryPoint.name] = roomIds;
+      roomData[roomEntryPoint.name] = roomIds; 
     }
 
-    console.log('Room Data:', roomData);
     return roomData;
   } catch (error) {
     console.error('Erreur dans getRoomData :', error);
@@ -355,10 +335,13 @@ export async function getRoomData(): Promise<Record<string, string[]>> {
 }
 
 // On Regroupe les salles par étage.
-export function groupSecondChartsByFloor(roomPositions: RoomPosition[]): RoomsByFloor {
+export function groupSecondChartsByFloor(
+  roomPositions: RoomPosition[],
+  entryPointName: string
+): RoomsByFloor {
   try {
-    console.log('Grouping rooms by floor');
     const roomsByFloor: RoomsByFloor = {};
+
     roomPositions.forEach(room => {
       const floorId = (room as any)?.info?.floor?.dynamicId;
       const floorName = (room as any)?.info?.floor?.name;
@@ -371,10 +354,10 @@ export function groupSecondChartsByFloor(roomPositions: RoomPosition[]): RoomsBy
       roomsByFloor[floorId].rooms.push(room.dynamicId);
     });
 
-    console.log('Rooms grouped by floor:', roomsByFloor);
+     
     return roomsByFloor;
   } catch (error) {
-    console.error('Error in groupSecondChartsByFloor:', error);
+    console.error(`Error in groupSecondChartsByFloor for ${entryPointName}:`, error);
     return {};
   }
 }
@@ -393,8 +376,8 @@ export async function getFloorSecondChartOccupationDynamicIds(
 
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error('No building ID found in localStorage');
-      return {};
+/*       console.error('No building ID found in localStorage');
+      return {}; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
@@ -415,7 +398,7 @@ export async function getFloorSecondChartOccupationDynamicIds(
 
     // Parcourir tous les entryPoints dans cachedRoomEntryPoints
     for (const roomEntryPoint of cachedRoomEntryPoints) {
-      console.log(`Traitement de l'entryPoint : ${roomEntryPoint.name}`);
+      
 
       extractDynamicIds(
         combinedResults,
@@ -424,6 +407,7 @@ export async function getFloorSecondChartOccupationDynamicIds(
       );
     }
 
+    
     return dynamicIdsByFloor;
   } catch (error) {
     console.error('Error in getFloorSecondChartOccupationDynamicIds:', error);
@@ -442,8 +426,8 @@ export async function getFloorOccupancyRatesByPeriod(
   try {
     const buildingId = localStorage.getItem('idBuilding');
     if (!buildingId) {
-      console.error('No building ID found in localStorage');
-      return [];
+/*       console.error('No building ID found in localStorage');
+      return []; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
@@ -461,7 +445,7 @@ export async function getFloorOccupancyRatesByPeriod(
       return response.data;
     });
 
-    console.log('Données brutes récupérées depuis l\'API :', combinedResults);
+    
 
     // Filtrage des données avec la fonction utilitaire
     combinedResults.forEach(series => {
@@ -477,9 +461,9 @@ export async function getFloorOccupancyRatesByPeriod(
       aggregatedData[dynamicIds[index]].push(...series.timeseries);
     });
 
-    console.log('Aggregated data:', aggregatedData);
+    
 
-    const labels = getPeriodArray(timestamp, period)[0]; // Générer les labels pour la période
+    const labels = getPeriodArray(timestamp, period)[0]; 
 
     const floorData: FloorOccupancyRate[] = dynamicIds.map(dynamicId => {
       const floorSeries = aggregatedData[dynamicId];
@@ -524,11 +508,15 @@ export async function getSecondChartOccupancyDataByFloor(
   endTime: string | null = null
 ): Promise<[string[], any[], { floor: string; average: number }[]]> {
   try {
+
+
     const periodArray = getPeriodArray(currentTimestamp, tempo);
     const label = periodArray[0];
     const tooltipDate = periodArray[5];
     const data: any[] = [];
     const averages: { floor: string; average: number }[] = [];
+
+
 
     if (
       cachedFloors.length === 0 ||
@@ -539,13 +527,18 @@ export async function getSecondChartOccupancyDataByFloor(
       return [[], [], []];
     }
 
+
+
     const aggregatedFloorData: Record<string, Record<string, number[]>> = {};
 
     for (const floor of cachedFloors) {
+
       const dynamicIds = cachedDynamicIdsByFloor[floor.dynamicId];
       if (dynamicIds && dynamicIds.length > 0) {
+
         const batchSize = 50;
         const chunkedDynamicIds = lodash.chunk(dynamicIds, batchSize);
+
 
         const promises = chunkedDynamicIds.map(async (batch) => {
           const url = spinalApi.createUrlWithPlatformId(
@@ -559,10 +552,12 @@ export async function getSecondChartOccupancyDataByFloor(
         const results = await Promise.all(promises);
         let timeSeriesData: RoomData[] = results.flat();
 
+
         // Utiliser la fonction de filtre
         timeSeriesData.forEach((roomData) => {
           roomData.timeseries = filterTimeSeries(roomData.timeseries || [], startTime, endTime);
         });
+
 
         aggregatedFloorData[floor.name] = {};
         label.forEach((periodLabel) => {
@@ -578,11 +573,13 @@ export async function getSecondChartOccupancyDataByFloor(
           });
         });
 
+
         // Déterminer le type de données (binaire ou continue) à partir des entryPoints
         const entryPoint = cachedRoomEntryPoints?.find((entry) =>
           entry.source.some((source) => source.byFloorDisplay && source.type)
         );
         const sourceType = entryPoint?.source.find((source) => source.byFloorDisplay)?.type || "continue";
+
 
         // Calculer les moyennes pondérées pour chaque étage
         const floorSeries = timeSeriesData.flatMap((roomData) => roomData.timeseries);
@@ -591,6 +588,7 @@ export async function getSecondChartOccupancyDataByFloor(
             ? calculateBinaryOccupancyRate(floorSeries, label, tempo)
             : calculateTimeWeightedAverage(floorSeries, label, tempo);
 
+
         averages.push({
           floor: floor.name,
           average:
@@ -598,8 +596,11 @@ export async function getSecondChartOccupancyDataByFloor(
               ? weightedAverages.reduce((sum, val) => sum + val, 0) / weightedAverages.length
               : 0,
         });
+      } else {
       }
     }
+
+
 
     return [label, data, averages];
   } catch (error) {
@@ -611,24 +612,20 @@ export async function getSecondChartOccupancyDataByFloor(
 // On Récupère l'ID du contexte pour un groupe d'équipements.
 export async function getThirdChartContextId(contextName: string): Promise<string | null> {
   try {
-    console.log('getThirdChartContextId called');
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error('idBuilding not found in localStorage');
-      return null;
+/*       console.error('idBuilding not found in localStorage');
+      return null; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
     const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/equipementsGroup/list');
-    console.log(`Fetching equipment context ID for context: ${contextName} in building: ${buildingId}`);
-    console.log("Generated URL for getThirdChartContextId:", url);
 
     const response = await spinalApi.get(url) as { data: Context[] };
-    console.log('Response data:', response.data);
+  
 
     const context = response.data.find(item => item.name === contextName);
-    console.log('Context:', context);
-
+ 
     return context ? context.dynamicId : null;
   } catch (error) {
     console.error('Error in getThirdChartContextId:', error);
@@ -639,23 +636,21 @@ export async function getThirdChartContextId(contextName: string): Promise<strin
 // On Récupère l'ID de la catégorie pour un contexte d'équipement donné.
 export async function getThirdChartCategoryId(contextId: string, categoryName: string): Promise<string | null> {
   try {
-    console.log('getThirdChartCategoryId called');
+
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error('idBuilding not found in localStorage');
-      return null;
+/*       console.error('idBuilding not found in localStorage');
+      return null; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
     const url = spinalApi.createUrlWithPlatformId(buildingId, `api/v1/equipementsGroup/${contextId}/category_list`);
-    console.log(`Fetching Category ID for context: ${contextId} in building: ${buildingId}`);
-    console.log("Generated URL for getThirdChartCategoryId:", url);
 
     const response = await spinalApi.get(url) as { data: Context[] };
-    console.log('Response data:', response.data);
+
 
     const category = response.data.find(item => item.name === categoryName);
-    console.log('Category:', category);
+
 
     return category ? category.dynamicId : null;
   } catch (error) {
@@ -667,11 +662,10 @@ export async function getThirdChartCategoryId(contextId: string, categoryName: s
 // On Récupère l'ID du groupe pour un contexte et une catégorie d'équipement donnés.
 export async function getThirdChartGroupId(contextId: string, categoryId: string, groupName: string): Promise<string | null> {
   try {
-    console.log('getThirdChartGroupId called');
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error('idBuilding not found in localStorage');
-      return null;
+/*       console.error('idBuilding not found in localStorage');
+      return null; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
@@ -679,14 +673,12 @@ export async function getThirdChartGroupId(contextId: string, categoryId: string
       buildingId,
       `api/v1/equipementsGroup/${contextId}/category/${categoryId}/group_list`
     );
-    console.log(`Fetching Group ID for context: ${contextId}, category: ${categoryId} in building: ${buildingId}`);
-    console.log("Generated URL for getThirdChartGroupId:", url);
+
 
     const response = await spinalApi.get(url) as { data: Group[] };
-    console.log('Response data:', response.data);
 
     const group = response.data.find(item => item.name === groupName);
-    console.log('Group:', group);
+
 
     return group ? group.dynamicId : null;
   } catch (error) {
@@ -698,11 +690,10 @@ export async function getThirdChartGroupId(contextId: string, categoryId: string
 // On Récupère la liste des équipements pour un contexte, une catégorie et un groupe donnés.
 export async function getThirdChartIds(contextId: string, categoryId: string, groupId: string): Promise<string[]> {
   try {
-    console.log('getThirdChartIds called');
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error('idBuilding not found in localStorage');
-      return [];
+/*       console.error('idBuilding not found in localStorage');
+      return []; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
@@ -710,11 +701,9 @@ export async function getThirdChartIds(contextId: string, categoryId: string, gr
       buildingId,
       `api/v1/equipementsGroup/${contextId}/category/${categoryId}/group/${groupId}/equipementList`
     );
-    console.log(`Fetching Equipment IDs for context: ${contextId}, category: ${categoryId}, group: ${groupId} in building: ${buildingId}`);
-    console.log("Generated URL for getThirdChartIds:", url);
+
 
     const response = await (spinalApi.get as <T>(url: string) => Promise<{ data: T }>)(url) as { data: Equipment[] };
-    console.log('Response data:', response.data);
 
     return response.data.map(equipment => equipment.dynamicId);
   } catch (error) {
@@ -723,119 +712,103 @@ export async function getThirdChartIds(contextId: string, categoryId: string, gr
   }
 }
 
-export async function getThirdChartData(): Promise<string[]> {
+export async function getThirdChartData(): Promise<Record<string, string[]>> {
   try {
-    console.log("getThirdChartData called");
+
 
     // Vérifier si les equipmentEntryPoints sont initialisés
     if (!cachedEquipmentEntryPoints || cachedEquipmentEntryPoints.length === 0) {
       console.warn("Aucun equipmentEntryPoint valide trouvé. Assurez-vous d'avoir appelé initializeSources.");
-      return [];
+      return {};
     }
 
-    // Initialiser un tableau pour stocker les IDs des équipements
-    const allEquipmentIds: string[] = [];
+    // Initialiser un objet pour stocker les IDs des équipements par entryPoint
+    const equipmentData: Record<string, string[]> = {};
 
     // Parcourir tous les entryPoints dans cachedEquipmentEntryPoints
     for (const equipmentEntryPoint of cachedEquipmentEntryPoints) {
-      console.log(`Traitement de l'entryPoint : ${equipmentEntryPoint.name}`);
+
 
       // Récupérer les IDs dynamiques pour le contexte, la catégorie et le groupe
-      if (!cachedThirdChartContextId) {
-        console.log(`Fetching context ID for entryPoint: ${equipmentEntryPoint.name}`);
-        cachedThirdChartContextId = await getThirdChartContextId(equipmentEntryPoint.name);
-        console.log(`Context ID fetched: ${cachedThirdChartContextId}`);
+      const contextId = await getThirdChartContextId(equipmentEntryPoint.name);
+      if (!contextId) {
+        console.warn(`Aucun contexte trouvé pour l'entryPoint : ${equipmentEntryPoint.name}`);
+        continue;
       }
 
-      if (!cachedThirdChartCategoryId) {
-        console.log(`Fetching category ID for context: ${cachedThirdChartContextId}, category: ${equipmentEntryPoint.category}`);
-        cachedThirdChartCategoryId = await getThirdChartCategoryId(
-          cachedThirdChartContextId,
-          equipmentEntryPoint.category
-        );
-        console.log(`Category ID fetched: ${cachedThirdChartCategoryId}`);
+      const categoryId = await getThirdChartCategoryId(contextId, equipmentEntryPoint.category);
+      if (!categoryId) {
+        console.warn(`Aucune catégorie trouvée pour l'entryPoint : ${equipmentEntryPoint.name}`);
+        continue;
       }
 
-      if (!cachedThirdChartGroupId) {
-        console.log(`Fetching group ID for context: ${cachedThirdChartContextId}, category: ${cachedThirdChartCategoryId}, group: ${equipmentEntryPoint.group}`);
-        cachedThirdChartGroupId = await getThirdChartGroupId(
-          cachedThirdChartContextId,
-          cachedThirdChartCategoryId,
-          equipmentEntryPoint.group
-        );
-        console.log(`Group ID fetched: ${cachedThirdChartGroupId}`);
+      const groupId = await getThirdChartGroupId(contextId, categoryId, equipmentEntryPoint.group);
+      if (!groupId) {
+        console.warn(`Aucun groupe trouvé pour l'entryPoint : ${equipmentEntryPoint.name}`);
+        continue;
       }
 
-      // Récupérer les IDs des équipements pour le groupe
-      if (cachedThirdChartIds.length === 0) {
-        console.log(`Fetching equipment IDs for context: ${cachedThirdChartContextId}, category: ${cachedThirdChartCategoryId}, group: ${cachedThirdChartGroupId}`);
-        cachedThirdChartIds = await getThirdChartIds(
-          cachedThirdChartContextId,
-          cachedThirdChartCategoryId,
-          cachedThirdChartGroupId
-        );
-        console.log(`Equipment IDs fetched: ${cachedThirdChartIds}`);
+      const equipmentIds = await getThirdChartIds(contextId, categoryId, groupId);
+      if (equipmentIds.length === 0) {
+        console.warn(`Aucun équipement trouvé pour l'entryPoint : ${equipmentEntryPoint.name}`);
+        continue;
       }
 
-      // Ajouter les IDs récupérés au tableau global
-      console.log(`Adding ${cachedThirdChartIds.length} equipment IDs to the global list`);
-      allEquipmentIds.push(...cachedThirdChartIds);
+      // Associer les `equipmentIds` à l'`entryPoint`
+      equipmentData[equipmentEntryPoint.name] = equipmentIds;
     }
 
-    console.log(`Total equipment IDs collected: ${allEquipmentIds.length}`);
-    // Retourner tous les IDs des équipements
-    return allEquipmentIds;
+
+    return equipmentData;
   } catch (error) {
     console.error("Erreur dans getThirdChartData :", error);
-    return [];
+    return {};
   }
 }
 
 // On Récupère les positions des équipements donnés.
-export async function getThirdChartPositions(thirdChartIds: string[]): Promise<any[]> {
+export async function getThirdChartPositions(
+  thirdChartIds: string[],
+  entryPointName: string
+): Promise<any[]> {
+
+  const buildingId = localStorage.getItem("idBuilding");
+  if (!buildingId) {
+/*     console.error('idBuilding not found in localStorage');
+    return []; */
+  }
+
+
   try {
-    console.log('getThirdChartPositions called');
-    const buildingId = localStorage.getItem("idBuilding");
-    if (!buildingId) {
-      console.error('idBuilding not found in localStorage');
-      return [];
-    }
-
-    console.log(`Fetching positions for equipment IDs: ${thirdChartIds}`);
-
     const spinalApi = SpinalAPI.getInstance();
-    const url = `api/v1/building/${buildingId}/equipment/get_position_multiple`;
+    const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/equipment/get_position_multiple');
 
-    // Diviser les IDs en lots pour éviter de surcharger l'API
+    // Diviser les thirdChartIds en lots de 50
     const batchSize = 50;
     const chunkedIds = lodash.chunk(thirdChartIds, batchSize);
 
     // Envoyer les requêtes en parallèle pour chaque lot
     const promises = chunkedIds.map(async (batch) => {
-      const response = await (spinalApi.post as <T>(url: string, body: any) => Promise<{ data: { datas: any[] } }>)(
-        url,
-        batch
-      );
-
-      // Vérifier si la réponse contient la clé `data.datas`
-      if (response && response.data && Array.isArray(response.data.datas)) {
-        return response.data.datas;
-      } else {
-        console.error('Invalid response format for batch:', batch, response);
-        return [];
-      }
+      const response = await (spinalApi.post as <T>(url: string, body: any) => Promise<{ data: T }>)(url, batch) as { data: any[] };
+      return response.data;
     });
 
     // Attendre que toutes les requêtes soient terminées
-    const results = await Promise.all(promises);
+    const results = await Promise.allSettled(promises);
 
-    // Combiner les résultats des lots
-    const combinedResults = results.flat();
-    console.log('Combined equipment positions:', combinedResults);
+    // Combiner les résultats des lots réussis
+    const combinedResults = results.reduce<any[]>((acc, result) => {
+      if (result.status === 'fulfilled') {
+        acc.push(...result.value);
+      } else {
+        console.error(`Error in batch for ${entryPointName}:`, result.reason);
+      }
+      return acc;
+    }, []);
 
     return combinedResults;
   } catch (error) {
-    console.error('Error in getThirdChartPositions:', error);
+    console.error(`Error in getThirdChartPositions for ${entryPointName}:`, error);
     return [];
   }
 }

@@ -18,6 +18,7 @@ export const config = {
     {
       name: 'DEI',
       type: 'geographicBuilding',
+      group: 'BÂTIMENT',
       source: [
         {
           profileName: 'hassan',
@@ -37,6 +38,7 @@ export const config = {
       type: 'geographicRoomGroupContext',
       category: 'Typologie',
       group: 'Salle de réunion',
+      id: 'entry-1',
       source: [
         {
           profileName: 'Occupation',
@@ -48,7 +50,7 @@ export const config = {
           byFloorDisplay: true,
           displayX1:false,
         },
-      ],
+      ],  
     },
     {
       name: "Gestion des équipements",
@@ -70,6 +72,45 @@ export const config = {
       ],
     },
     
+    {
+      name: "Gestion des espaces par collaborateur",
+      type: 'geographicRoomGroupContext',
+      category: 'DSI',
+      group: 'DSI - Équipe 1',
+      id: 'entry-2',
+      source: [
+        {
+          profileName: 'Control Point',
+          name: "Température",
+          type: 'continue',
+          label: "Température des DSI - Équipe 1",
+          backgroundColor: '#ff0000',
+          globalDisplay: true, 
+          byFloorDisplay: true,
+          displayX1:false,
+        },
+      ],  
+    },
+    
+    {
+      name: "Contexte équipement Mission 2",
+      type: 'BIMObjectGroupContext',
+      category: 'C',
+      group: "G",
+      source: [
+        {
+          profileName: 'Maintenance élec',
+          name: "Maintenance ELEC",
+          type: 'continue',
+          label: "Taux d'occupation G",
+          backgroundColor: '#ff0000',
+          globalDisplay: true,
+          byFloorDisplay: true,
+          displayX1:false,
+
+        },
+      ],
+    },
   ],
   labels: {
     downloadFileName: "Taux d'occupation",

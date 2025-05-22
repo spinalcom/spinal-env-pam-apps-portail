@@ -30,6 +30,7 @@ export interface EntryPoint {
   category: string;
   group: string;
   type: string;
+  id: number;
   source: {
     label: any;
     borderColor: any;

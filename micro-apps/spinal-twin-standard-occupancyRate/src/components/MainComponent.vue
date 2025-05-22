@@ -79,9 +79,9 @@ import { ChartData, tempoFilter } from '../components/interfaces/types';
 import TemporalFilter from './TemporalFilter.vue';
 import { getRoomData } from '../services/index';
 import moment from 'moment';
-import 'moment/locale/fr'; // Importer la locale française
+import 'moment/locale/fr'; 
 
-moment.locale('fr'); // Définir la locale française
+moment.locale('fr'); 
  
 @Component({
   components: {
@@ -144,42 +144,36 @@ class App extends Vue {
   }
 
         async spreadData() {
-      try {
-        this.isLoading = true;
-    
-        // Vérifier si les sources sont initialisées
-        if (!cachedRoomEntryPoints || cachedRoomEntryPoints.length === 0) {
-          console.warn("Les sources ne sont pas initialisées. Appel de initializeSources...");
-          await initializeSources();
-        }
-    
-        // Récupérer les données des salles
-        const roomData = await getRoomData();
-        console.log('Room Data:', roomData);
-    
-        // Transformer les données en un tableau plat
-        const roomIds = Object.values(roomData).flat();
-        console.log('Room IDs:', roomIds);
-    
-        if (this.space.type === 'building') {
-          const res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds, this.startTime, this.endTime);
-          if (res && res.length >= 3) {
-            this.chart.label = res[0] || [];
-            this.chart.data = res[1] || [];
-            this.defaultFilter.name = res[1] && res[1][0] ? res[1][0].label : '';
-          } else {
-            console.warn('Les données de getData sont manquantes ou mal formatées.');
+          try {
+            this.isLoading = true;
+        
+            // Vérifiez si les sources sont initialisées
+            if (!cachedRoomEntryPoints || cachedRoomEntryPoints.length === 0) {
+              console.warn("Les sources ne sont pas initialisées. Appel de initializeSources...");
+              await initializeSources(); // Initialisez les sources si nécessaire
+            }
+        
+            const roomData = await getRoomData();
+            const roomIds = Object.values(roomData).flat();
+        
+            if (this.space.type === 'building') {
+              const res = await getData(this.space, this.temporality.name, this.currentTimestamp.valueTime, roomIds, this.startTime, this.endTime);
+              if (res && res.length >= 3) {
+                this.chart.label = res[0] || [];
+                this.chart.data = res[1] || [];
+                this.defaultFilter.name = res[1] && res[1][0] ? res[1][0].label : '';
+              } else {
+                console.warn('Les données de getData sont manquantes ou mal formatées.');
+              }
+            }
+          } catch (error) {
+            console.error("Erreur lors de l'exécution de spreadData:", error);
+          } finally {
+            this.isLoading = false;
           }
         }
-      } catch (error) {
-        console.error("Erreur lors de l'exécution de spreadData:", error);
-      } finally {
-        this.isLoading = false;
-      }
-    }
 
   onTimeChange() {
-    // Validation de la plage horaire
     if (this.startTime && this.endTime) {
       const start = moment(this.startTime, 'HH:mm');
       const end = moment(this.endTime, 'HH:mm');
@@ -200,27 +194,28 @@ class App extends Vue {
     } else if (this.temporality.name === 'Année') {
       return moment(timestamp).format('YYYY'); 
     }
-    return moment(timestamp).format('YYYY-MM-DD'); // Valeur par défaut
+    return moment(timestamp).format('YYYY-MM-DD'); 
   }
-  handleTimeChange({ startTime, endTime }) {
-  this.startTime = startTime;
-  this.endTime = endTime;
-  this.onTimeChange();
-
-  if (this.$refs.floorOccupancyDetail) {
-    const floorOccupancyDetail = this.$refs.floorOccupancyDetail as Vue & {
-      fetchFloorData: (name: string, timestamp: number, startTime: string, endTime: string) => void;
-      fetchSecondFloorData: (timestamp: number, startTime: string, endTime: string) => void;
-      fetchThirdChartFloorData: (timestamp: number, startTime: string, endTime: string) => void;
-    };
-
-    floorOccupancyDetail.fetchFloorData(this.temporality.name, moment().valueOf(), startTime, endTime);
-    floorOccupancyDetail.fetchSecondFloorData(moment().valueOf(), startTime, endTime);
-    floorOccupancyDetail.fetchThirdChartFloorData(moment().valueOf(), startTime, endTime);
+    async handleTimeChange({ startTime, endTime }) {
+    this.startTime = startTime;
+    this.endTime = endTime;
+    this.onTimeChange();
+  
+    if (this.$refs.floorOccupancyDetail) {
+      const floorOccupancyDetail = this.$refs.floorOccupancyDetail as Vue & {
+        fetchFloorData: (name: string, timestamp: number, startTime: string, endTime: string) => void;
+        fetchSecondFloorData: (timestamp: number, startTime: string, endTime: string, roomData: Record<string, string[]>) => void;
+        fetchThirdChartFloorData: (timestamp: number, startTime: string, endTime: string) => void;
+      };
+  
+      const roomData = await getRoomData(); 
+  
+      floorOccupancyDetail.fetchFloorData(this.temporality.name, moment().valueOf(), startTime, endTime);
+      floorOccupancyDetail.fetchSecondFloorData(moment().valueOf(), startTime, endTime, roomData); 
+      floorOccupancyDetail.fetchThirdChartFloorData(moment().valueOf(), startTime, endTime);
+    }
   }
-}
 async handleDateChange(newDate) {
-  console.log(`Date sélectionnée : ${newDate}`);
   
   // Mettez à jour le timestamp pour la date sélectionnée
   this.currentTimestamp.valueTime = moment(newDate).valueOf();
@@ -228,22 +223,27 @@ async handleDateChange(newDate) {
   // Mettez à jour les graphiques globaux
   await this.spreadData();
 
+  // Récupérer roomData
+  const roomData = await getRoomData();
+  if (!roomData || Object.keys(roomData).length === 0) {
+    console.error("roomData est vide ou non défini.");
+    return;
+  }
+
   // Mettez à jour les graphiques par étage
   if (this.$refs.floorOccupancyDetail) {
     const floorOccupancyDetail = this.$refs.floorOccupancyDetail as Vue & {
       fetchFloorData: (period: string, timestamp: number, startTime: string, endTime: string) => void;
-      fetchSecondFloorData: (timestamp: number, startTime: string, endTime: string) => void;
+      fetchSecondFloorData: (timestamp: number, startTime: string, endTime: string, roomData: Record<string, string[]>) => void;
       fetchThirdChartFloorData: (timestamp: number, startTime: string, endTime: string) => void;
     };
 
     const timestamp = moment(newDate).valueOf();
 
-    console.log("Appel des méthodes pour les graphiques par étage avec :");
-    console.log("startTime :", this.startTime);
-    console.log("endTime :", this.endTime);
+
 
     await floorOccupancyDetail.fetchFloorData(this.temporality.name, timestamp, this.startTime, this.endTime);
-    await floorOccupancyDetail.fetchSecondFloorData(timestamp, this.startTime, this.endTime);
+    await floorOccupancyDetail.fetchSecondFloorData(timestamp, this.startTime, this.endTime, roomData); // Passer roomData
     await floorOccupancyDetail.fetchThirdChartFloorData(timestamp, this.startTime, this.endTime);
   }
 }
@@ -262,6 +262,7 @@ async handleDateChange(newDate) {
         lock: false,
         star: true
       };
+       await initializeSources(); 
       this.interval();
       this.domainList.push({name: this.selectedYear, color: '#000000'});
       this.domain = {name: this.selectedYear, color: '#000000'};
@@ -271,7 +272,7 @@ async handleDateChange(newDate) {
   }
 
     @Watch('temporality')
-  async temporalityChange() {
+    async temporalityChange() {
     this.chart.data = [];
     this.selectedFilter = [];
     this.selectedReference = 0;
@@ -284,13 +285,17 @@ async handleDateChange(newDate) {
     if (this.$refs.floorOccupancyDetail) {
       const floorOccupancyDetail = this.$refs.floorOccupancyDetail as Vue & {
         fetchFloorData: (period: string, timestamp: number, startTime: string, endTime: string) => void;
-        fetchSecondFloorData: (timestamp: number, startTime: string, endTime: string) => void;
+        fetchSecondFloorData: (timestamp: number, startTime: string, endTime: string, roomData: Record<string, string[]>) => void;
         fetchThirdChartFloorData: (timestamp: number, startTime: string, endTime: string) => void;
       };
   
       const timestamp = moment().valueOf();
+  
+      // Récupérer roomData
+      const roomData = await getRoomData();
+  
       floorOccupancyDetail.fetchFloorData(this.temporality.name, timestamp, this.startTime, this.endTime);
-      floorOccupancyDetail.fetchSecondFloorData(timestamp, this.startTime, this.endTime);
+      floorOccupancyDetail.fetchSecondFloorData(timestamp, this.startTime, this.endTime, roomData); // Passer roomData
       floorOccupancyDetail.fetchThirdChartFloorData(timestamp, this.startTime, this.endTime);
     }
   }
@@ -308,7 +313,6 @@ async handleDateChange(newDate) {
 
   @Watch('chart', { deep: true })
   emitChartChange(newChart) {
-    console.log(this.chart);
     let output: any[] = [];
     for (let c = 0; c < newChart.data.length; c++) {
       output.push({

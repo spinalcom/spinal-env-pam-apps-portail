@@ -255,19 +255,32 @@ export default {
     
   },
   handleNav(payload) {
-    console.log("handleNav called with payload:", payload);
-    console.log("Current selectedDate:", this.selectedDate);
 
     const currentDate = moment(this.selectedDate, 'YYYY-MM-DD');
+    if (!currentDate.isValid()) {
+      console.error("Invalid selectedDate format:", this.selectedDate);
+      return;
+    }
+
     if (this.temporality === 'Journée') {
       this.selectedDate = currentDate.add(payload, 'days').format('YYYY-MM-DD');
+    } else if (this.temporality === 'Semaine') {
+      // Naviguer par semaine (-7 jours ou +7 jours)
+      this.selectedDate = currentDate.add(payload, 'weeks').startOf('isoWeek').format('YYYY-MM-DD');
     } else if (this.temporality === 'Mois') {
       this.selectedDate = currentDate.add(payload, 'months').format('YYYY-MM');
     } else if (this.temporality === 'Année') {
       this.selectedDate = currentDate.add(payload, 'years').format('YYYY');
+    } else if (this.temporality === 'Trimestre') {
+      const currentMonth = currentDate.month(); // Mois actuel (0-11)
+      const newMonth = currentMonth + payload * 3; // Avancer ou reculer de 3 mois
+      this.selectedDate = currentDate.month(newMonth).format('YYYY-MM');
+    } else if (this.temporality === 'Décennie') {
+      const currentYear = currentDate.year();
+      const newYear = currentYear + payload * 10; // Avancer ou reculer de 10 ans
+      this.selectedDate = currentDate.year(newYear).format('YYYY');
     }
 
-    console.log("Updated selectedDate:", this.selectedDate);
     this.$emit('date-change', this.selectedDate);
   },
   },

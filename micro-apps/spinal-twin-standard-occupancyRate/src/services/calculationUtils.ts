@@ -30,8 +30,8 @@ export async function processEntryPoints(): Promise<{
     // Récupérer l'ID du bâtiment
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error("Building ID not found in localStorage");
-      return { roomEntryPoints, equipmentEntryPoints, buildingEntryPoints };
+/*       console.error("Building ID not found in localStorage");
+      return { roomEntryPoints, equipmentEntryPoints, buildingEntryPoints }; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
@@ -40,17 +40,14 @@ export async function processEntryPoints(): Promise<{
     const contextUrl = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/groupContext/list');
     const contextResponse = await spinalApi.get<{ data: Context[] }>(contextUrl);
     const groupContexts = contextResponse.data;
-    console.log("Group contexts retrieved:", groupContexts);
 
     // Récupérer les contextes d'équipements via equipementsGroup/list
     const equipmentContextUrl = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/equipementsGroup/list');
     const equipmentContextResponse = await spinalApi.get<{ data: Context[] }>(equipmentContextUrl);
     const equipmentContexts = equipmentContextResponse.data;
-    console.log("Equipment contexts retrieved:", equipmentContexts);
 
     // Parcourir les entryPoints définis dans la configuration
     for (const entryPoint of config.entryPoints) {
-      console.log(`Processing entryPoint: type=${entryPoint.type}, name=${entryPoint.name}`);
 
       let isMatched = false;
 
@@ -59,7 +56,6 @@ export async function processEntryPoints(): Promise<{
         (context) => context.type === entryPoint.type && context.name === entryPoint.name
       );
       if (equipmentContextMatch) {
-        console.log(`Match found in equipementsGroup/list for type=${entryPoint.type}, name=${entryPoint.name}`);
         equipmentEntryPoints.push(entryPoint);
         isMatched = true;
         continue; // Éviter d'ajouter cet entryPoint à roomEntryPoints
@@ -70,14 +66,12 @@ export async function processEntryPoints(): Promise<{
         (context) => context.type === entryPoint.type && context.name === entryPoint.name
       );
       if (groupContextMatch) {
-        console.log(`Match found in groupContext/list for type=${entryPoint.type}, name=${entryPoint.name}`);
         roomEntryPoints.push(entryPoint);
         isMatched = true;
       }
 
       // Vérification pour les contextes de bâtiments
       if (entryPoint.type === 'geographicBuilding' && entryPoint.name === buildingData.name) {
-        console.log(`Match found for building context: name=${entryPoint.name}`);
         buildingEntryPoints.push(entryPoint);
         isMatched = true;
       }
@@ -87,10 +81,6 @@ export async function processEntryPoints(): Promise<{
       }
     }
 
-    // Afficher les entryPoints valides trouvés
-    console.log("Room entryPoints found:", roomEntryPoints);
-    console.log("Equipment entryPoints found:", equipmentEntryPoints);
-    console.log("Building entryPoints found:", buildingEntryPoints);
 
     return { roomEntryPoints, equipmentEntryPoints, buildingEntryPoints };
   } catch (error) {
@@ -100,63 +90,133 @@ export async function processEntryPoints(): Promise<{
 }
 
 
+/* 
+export let cachedRoomEntryPoints: EntryPoint[] | null = [
+  {
+    name: "Gestion des espaces",
+    type: 'geographicRoomGroupContext',
+    category: 'Typologie',
+    group: 'Salle de réunion',
+    source: [
+      {
+        profileName: 'Occupation',
+        name: "Taux d'occupation",
+        type: 'continue',
+        label: "Taux d'occupation des salles de réunion",
+        backgroundColor: '#1C5791',
+        globalDisplay: true, 
+        byFloorDisplay: true,
+        displayX1:false,
+      },
+    ],  
+  },{
+    name: "Gestion des espaces par collaborateur",
+    type: 'geographicRoomGroupContext',
+    category: 'DSI',
+    group: 'DSI - Équipe 1',
+    source: [
+      {
+        profileName: 'Control Point',
+        name: "Température",
+        type: 'continue',
+        label: "Température des DSI - Équipe 1",
+        backgroundColor: '#ff0000',
+        globalDisplay: true, 
+        byFloorDisplay: true,
+        displayX1:false,
+      },
+    ],  
+  },
+];
+export let cachedEquipmentEntryPoints: EntryPoint[] | null = [
+  {
+    name: "Contexte équipement Mission 2",
+    type: 'BIMObjectGroupContext',
+    category: 'C',
+    group: "G",
+    source: [
+      {
+        profileName: 'Maintenance élec',
+        name: "Maintenance ELEC",
+        type: 'continue',
+        label: "Taux d'occupation G",
+        backgroundColor: '#ff0000',
+        globalDisplay: true,
+        byFloorDisplay: true,
+        displayX1:false,
 
+      },
+    ],
+  },{
+    name: "Gestion des équipements",
+    type: 'BIMObjectGroupContext',
+    category: 'Typologie',
+    group: 'Positions de travail',
+    source: [
+      {
+        profileName: 'hassan',
+        name: "Taux d'occupation",
+        type: 'continue',
+        label: "Taux d'occupation des positions de travail",
+        backgroundColor: '#418FDD',
+        globalDisplay: true,
+        byFloorDisplay: true,
+        displayX1:false,
+      },
+    ],
+  },
+];
+export let cachedBuildingEntryPoints: EntryPoint[] | null = null; */
 export let cachedRoomEntryPoints: EntryPoint[] | null = null;
 export let cachedEquipmentEntryPoints: EntryPoint[] | null = null;
 export let cachedBuildingEntryPoints: EntryPoint[] | null = null;
 export async function initializeRoomSources(): Promise<void> {
   try {
-    console.log('🔄 Initialisation des sources pour les salles...');
     const { roomEntryPoints } = await processEntryPoints();
     if (!roomEntryPoints || roomEntryPoints.length === 0) {
-      console.warn('⚠️ Aucun entryPoint valide trouvé pour les salles.');
+      console.warn(' Aucun entryPoint valide trouvé pour les salles.');
       return;
     }
     cachedRoomEntryPoints = roomEntryPoints;
-    console.log('✅ Sources des salles initialisées avec succès :', cachedRoomEntryPoints);
   } catch (error) {
-    console.error('❌ Erreur lors de l\'initialisation des sources pour les salles :', error);
+    console.error(' Erreur lors de l\'initialisation des sources pour les salles :', error);
   }
 }
 
 export async function initializeEquipmentSources(): Promise<void> {
   try {
-    console.log('🔄 Initialisation des sources pour les équipements...');
     const { equipmentEntryPoints } = await processEntryPoints();
     if (!equipmentEntryPoints || equipmentEntryPoints.length === 0) {
-      console.warn('⚠️ Aucun entryPoint valide trouvé pour les équipements.');
+      console.warn(' Aucun entryPoint valide trouvé pour les équipements.');
       return;
     }
     cachedEquipmentEntryPoints = equipmentEntryPoints;
-    console.log('✅ Sources des équipements initialisées avec succès :', cachedEquipmentEntryPoints);
   } catch (error) {
-    console.error('❌ Erreur lors de l\'initialisation des sources pour les équipements :', error);
+    console.error(' Erreur lors de l\'initialisation des sources pour les équipements :', error);
   }
 }
 
 export async function initializeBuildingSources(): Promise<void> {
   try {
-    console.log('🔄 Initialisation des sources pour le bâtiment...');
     const { buildingEntryPoints } = await processEntryPoints();
     if (!buildingEntryPoints || buildingEntryPoints.length === 0) {
-      console.warn('⚠️ Aucun entryPoint valide trouvé pour le bâtiment.');
+      console.warn(' Aucun entryPoint valide trouvé pour le bâtiment.');
       return;
     }
     cachedBuildingEntryPoints = buildingEntryPoints;
-    console.log('✅ Sources du bâtiment initialisées avec succès :', cachedBuildingEntryPoints);
   } catch (error) {
-    console.error('❌ Erreur lors de l\'initialisation des sources pour le bâtiment :', error);
+    console.error(' Erreur lors de l\'initialisation des sources pour le bâtiment :', error);
   }
 }
 export async function initializeSources(): Promise<void> {
   try {
-    console.log('🔄 Initialisation des sources globales...');
+    console.log("Initialisation des sources...");
     await initializeBuildingSources();
     await initializeEquipmentSources();
     await initializeRoomSources();
-    console.log('✅ Toutes les sources ont été initialisées.');
+    console.log("Toutes les sources ont été initialisées avec succès.");
   } catch (error) {
-    console.error('❌ Erreur lors de l\'initialisation des sources globales :', error);
+    console.error(' Erreur lors de l\'initialisation des sources globales :', error);
   }
 }
 
@@ -169,43 +229,27 @@ export let cachedFloorNames: Record<string, string> = {};
 export let cachedFloorOccupancyMapping: FloorOccupancyMapping = {};
 
 
-export async function initializeData(roomIds: string[]): Promise<void> {
+export async function initializeData(roomIds: string[], entryPointName: string): Promise<void> {
   try {
-    console.log("Initialisation des données...");
-        console.log("Room IDs passés à initializeData :", roomIds);
+
+
+    // Réinitialiser les caches pour cet entryPoint
+    cachedRoomPositions = [];
+    cachedRoomsByFloor = {};
+    cachedDynamicIdsByFloor = {};
 
     if (cachedFloors.length === 0) {
       cachedFloors = await getFloors();
-      console.log("Étages récupérés :", cachedFloors);
       if (!cachedFloors.length) {
         throw new Error("Aucun étage trouvé.");
       }
     }
 
-    if (cachedRoomPositions.length === 0) {
-      cachedRoomPositions = await getRoomPositions(roomIds) || [];
-      console.log("Positions des salles mises en cache :", cachedRoomPositions);
-    }
+    cachedRoomPositions = await getRoomPositions(roomIds, entryPointName) || [];
 
-    if (Object.keys(cachedRoomsByFloor).length === 0) {
-      cachedRoomsByFloor = groupSecondChartsByFloor(cachedRoomPositions);
-      console.log("Salles regroupées par étage :", cachedRoomsByFloor);
-    }
+    cachedRoomsByFloor = groupSecondChartsByFloor(cachedRoomPositions, entryPointName);
 
-    if (Object.keys(cachedDynamicIdsByFloor).length === 0) {
-      cachedDynamicIdsByFloor = await getFloorSecondChartOccupationDynamicIds(roomIds, cachedRoomsByFloor);
-      console.log("IDs dynamiques des salles par étage mis en cache :", cachedDynamicIdsByFloor);
-    }
-
-    if (cachedDynamicIds.length === 0 || Object.keys(cachedFloorNames).length === 0) {
-      const { dynamicIds, floorNames, floorOccupancyMapping } = await getFloorOccupancyDynamicIds();
-      cachedDynamicIds = dynamicIds;
-      cachedFloorNames = floorNames;
-      cachedFloorOccupancyMapping = floorOccupancyMapping;
-      console.log("IDs dynamiques et noms des étages mis en cache :", { cachedDynamicIds, cachedFloorNames });
-    }
-
-    console.log("Données initialisées avec succès.");
+    cachedDynamicIdsByFloor = await getFloorSecondChartOccupationDynamicIds(roomIds, cachedRoomsByFloor);
   } catch (error) {
     console.error("Erreur lors de l'initialisation des données :", error);
   }
@@ -220,25 +264,18 @@ export function filterTimeSeries<T extends { date: string }>(
     return timeSeriesData; // Si aucune plage horaire n'est spécifiée, retourner les données non filtrées.
   }
 
-/*   console.log('Filtrage des séries temporelles avec la plage horaire :', { startTime, endTime });
- */
+
   const filteredData = timeSeriesData.filter(point => {
     const pointTime = moment(point.date).format('HH:mm');
     return moment(pointTime, 'HH:mm').isBetween(
       moment(startTime, 'HH:mm'),
       moment(endTime, 'HH:mm'),
       null,
-      '[]' // Inclut les bornes
+      '[]' 
     );
   });
 
-  /* console.log('Données après filtrage :', {
-    nombrePoints: filteredData.length,
-    échantillon: filteredData.slice(0, 3).map(point => ({
-      date: moment(point.date).format('HH:mm'),
-      valeur: (point as any).value, // Supposant que `value` est une propriété des points.
-    })),
-  }); */
+
 
   return filteredData;
 }
@@ -344,11 +381,7 @@ export function calculateTimeWeightedAverage(
     return [];
   }
 
-  console.log('calculateTimeWeightedAverage inputs:', {
-    dataLength: timeSeriesData.length,
-    labelsLength: labels.length,
-    tempo: tempo,
-  });
+
 
   // Traitement spécial pour la temporalité Journée
   if (tempo === 'Journée' || tempo === 'Valeur Courante') {
@@ -435,10 +468,6 @@ export function calculateTimeWeightedAverage(
     weightedAverages.push(totalTime > 0 ? +(weightedSum / totalTime).toFixed(3) : 0);
   });
 
-  console.log('calculateTimeWeightedAverage output:', {
-    averagesLength: weightedAverages.length,
-    sampleValues: weightedAverages.slice(0, 3),
-  });
 
   return weightedAverages;
 }
@@ -458,11 +487,7 @@ export function calculateBinaryOccupancyRate(
     return [];
   }
 
-  console.log('calculateBinaryOccupancyRate inputs:', {
-    dataLength: timeSeriesData.length,
-    labelsLength: labels.length,
-    tempo: tempo,
-  });
+
 
   // Traitement spécial pour la temporalité Journée ou Valeur Courante
   if (tempo === 'Journée' || tempo === 'Valeur Courante') {
@@ -547,10 +572,7 @@ export function calculateBinaryOccupancyRate(
     weightedAverages.push(totalTime > 0 ? +(weightedSum / totalTime * 100).toFixed(3) : 0);
   });
 
-  console.log('calculateBinaryOccupancyRate output:', {
-    averagesLength: weightedAverages.length,
-    sampleValues: weightedAverages.slice(0, 3),
-  });
+
 
   return weightedAverages;
 }

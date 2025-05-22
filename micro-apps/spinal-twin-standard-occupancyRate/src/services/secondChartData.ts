@@ -6,27 +6,26 @@ import { config } from '../config';
 import { SpinalAPI } from './spinalAPI/spinalAPI';
 import { EntryPoint } from '../components/interfaces/configTypes';
 import { apiEndpoints } from '../configConstants'; 
-
+import lodash from 'lodash';
 // On Récupère les données de graphe pour un bâtiment.
 
 export async function fetchTotalSurface(): Promise<number | null> {
   try {
-    console.log('fetchTotalSurface called');
+    
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error('Building ID not found in localStorage');
-      return null;
+/*       console.error('Building ID not found in localStorage');
+      return null; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
     const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/building/read');
-    console.log("Generated URL for fetchTotalSurface:", url);
+    
 
     const result = await spinalApi.get(url);
-    console.log('Response from fetchTotalSurface:', result.data);
-
+    
     const totalSurface = Math.round(result.data.area);
-    console.log('Total surface:', totalSurface);
+    
     return totalSurface;
   } catch (error) {
     console.error("Erreur lors de la récupération de la surface totale :", error);
@@ -35,102 +34,121 @@ export async function fetchTotalSurface(): Promise<number | null> {
 }
 
 // Fonction pour récupérer la surface totale des salles données
-export async function getTotalSurface2(roomIds: string[]): Promise<number | null> {
+export async function getTotalSurface2(roomIdsByEntryPoint: Record<string, string[]>): Promise<Record<string, number>> {
   try {
-    console.log('Fetching total surface for rooms');
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error('idBuilding not found in localStorage');
-      return null; 
+/*       console.error('idBuilding not found in localStorage');
+      return {}; // Retourne un objet vide si l'ID du bâtiment est introuvable */
     }
-
-    
-
-    console.log('Building ID:', buildingId);
-    console.log('Room IDs:', roomIds);
 
     const spinalApi = SpinalAPI.getInstance();
-    const combinedResults = await processInBatches(roomIds, 50, async (batch) => {
-      const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/node/attribute_list_multiple');
-      const response = await spinalApi.post(url, batch);
-      return response.data;
-    });
+    const totalSurfacesByEntryPoint: Record<string, number> = {};
 
-    let totalSurface2 = 0; 
-    combinedResults.forEach(room => {
-      const category = room.categoryAttributes.find((cat: any) => cat.name === "Spatial");
-      if (category && category.attributs) {
-        const areaAttribute = category.attributs.find((attr: any) => attr.label === "area");
-        if (areaAttribute && areaAttribute.value) {
-          totalSurface2 += parseFloat(areaAttribute.value);
-        }
+    for (const [entryPoint, roomIds] of Object.entries(roomIdsByEntryPoint)) {
+      if (!roomIds || roomIds.length === 0) {
+        console.warn(`No room IDs found for entryPoint: ${entryPoint}`);
+        totalSurfacesByEntryPoint[entryPoint] = 0;
+        continue;
       }
-    });
 
-    console.log(`Total surface of meeting rooms: ${totalSurface2.toFixed(3)} m²`);
-    return totalSurface2;
+
+      const combinedResults = await processInBatches(roomIds, 50, async (batch) => {
+        const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/node/attribute_list_multiple');
+        const response = await spinalApi.post(url, batch);
+        return response.data;
+      });
+
+      let totalSurface = 0;
+      combinedResults.forEach(room => {
+        const category = room.categoryAttributes.find((cat: any) => cat.name === "Spatial");
+        if (category && category.attributs) {
+          const areaAttribute = category.attributs.find((attr: any) => attr.label === "area");
+          if (areaAttribute && areaAttribute.value) {
+            totalSurface += parseFloat(areaAttribute.value);
+          }
+        }
+      });
+
+      totalSurfacesByEntryPoint[entryPoint] = totalSurface;
+    }
+
+    return totalSurfacesByEntryPoint;
   } catch (error) {
     console.error('Error in getTotalSurface2:', error);
-    return null;
+    return {};
   }
 }
 
-export async function fetchThirdChartTotalCount(): Promise<number> {
+export async function fetchThirdChartTotalCount(): Promise<Record<string, number>> {
   try {
-    console.log('fetchThirdChartTotalCount called');
 
     // Appeler getThirdChartData pour récupérer tous les IDs des équipements
-    const thirdChartIds = await getThirdChartData();
+    const thirdChartData = await getThirdChartData();
 
-    // Retourner le nombre total d'équipements
-    const totalCount = thirdChartIds.length;
-    console.log('Total Equipment Count:', totalCount);
-    return totalCount;
+    // Calculer le nombre total d'équipements pour chaque entryPoint
+    const totalCountByEntryPoint: Record<string, number> = {};
+    for (const [entryPoint, equipmentIds] of Object.entries(thirdChartData)) {
+      totalCountByEntryPoint[entryPoint] = equipmentIds.length;
+    }
+
+    return totalCountByEntryPoint;
   } catch (error) {
     console.error("Erreur lors de la récupération du nombre total d'équipements :", error);
-    return 0;
+    return {};
   }
 }
 
 
-
+const groupThirdChartsCache: Map<string, Record<string, { floorName: string; equipments: string[] }>> = new Map();
 // Fonction pour regrouper les équipements par étage
 export function groupThirdChartsByFloor(thirdChartPositions: Equipment[]): Record<string, { floorName: string; equipments: string[] }> {
-    try {
-      console.log('Grouping equipments by floor');
-      const equipmentsByFloor: Record<string, { floorName: string; equipments: string[] }> = {};
-      thirdChartPositions.forEach(equipment => {
-        const floorId = equipment.info?.floor?.dynamicId;
-        const floorName = equipment.info?.floor?.name;
-  
-        if (!floorId || !floorName) return;
-        if (!equipmentsByFloor[floorId]) {
-          equipmentsByFloor[floorId] = { floorName, equipments: [] };
-        }
-  
-        equipmentsByFloor[floorId].equipments.push(equipment.dynamicId);
-      });
-  
-      console.log('Equipments grouped by floor:', equipmentsByFloor);
-      return equipmentsByFloor;
-    } catch (error) {
-      console.error('Error in groupThirdChartsByFloor:', error);
-      return {};
+  try {
+
+    // Générer une clé unique pour le cache en fonction des IDs des équipements
+    const cacheKey = JSON.stringify(thirdChartPositions.map(equipment => equipment.dynamicId).sort());
+
+    // Vérifier si les résultats sont déjà dans le cache
+    if (groupThirdChartsCache.has(cacheKey)) {
+      return groupThirdChartsCache.get(cacheKey)!;
     }
+
+    const equipmentsByFloor: Record<string, { floorName: string; equipments: string[] }> = {};
+    thirdChartPositions.forEach(equipment => {
+      const floorId = equipment.info?.floor?.dynamicId;
+      const floorName = equipment.info?.floor?.name;
+
+      if (!floorId || !floorName) return;
+      if (!equipmentsByFloor[floorId]) {
+        equipmentsByFloor[floorId] = { floorName, equipments: [] };
+      }
+
+      equipmentsByFloor[floorId].equipments.push(equipment.dynamicId);
+    });
+
+
+    // Stocker les résultats dans le cache
+    groupThirdChartsCache.set(cacheKey, equipmentsByFloor);
+
+    return equipmentsByFloor;
+  } catch (error) {
+    console.error('Error in groupThirdChartsByFloor:', error);
+    return {};
   }
+}
   
   // Fonction pour récupérer les IDs dynamiques des points de contrôle pour les équipements par étage
   export async function getThirdChartOccupationDynamicIdsByFloor(
     thirdChartIds: string[],
     equipmentsByFloor: Record<string, { floorName: string; equipments: string[] }>,
-    entryPoint: EntryPoint // Passer l'entryPoint dynamiquement
+    entryPoint: EntryPoint
   ): Promise<DynamicIdsByFloor> {
     try {
-      console.log('getThirdChartOccupationDynamicIdsByFloor called');
+
       const buildingId = localStorage.getItem("idBuilding");
       if (!buildingId) {
-        console.error('Building ID not found in localStorage');
-        return {};
+ /*        console.error('Building ID not found in localStorage');
+        return {}; */
       }
   
       if (!thirdChartIds || thirdChartIds.length === 0) {
@@ -143,31 +161,22 @@ export function groupThirdChartsByFloor(thirdChartPositions: Equipment[]): Recor
         return {};
       }
   
-      console.log(`Fetching control endpoints for equipment IDs: ${thirdChartIds.length} IDs`);
-  
       const batchSize = 50;
       const batchedPromises = [];
   
-      // Diviser les IDs en lots pour éviter de surcharger l'API
       for (let i = 0; i < thirdChartIds.length; i += batchSize) {
         const batch = thirdChartIds.slice(i, i + batchSize);
-        console.log(`Processing batch ${i / batchSize + 1}:`, batch);
   
         const spinalApi = SpinalAPI.getInstance();
         const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/node/control_endpoint_list_multiple');
         batchedPromises.push(spinalApi.post(url, batch));
       }
   
-      // Attendre que toutes les requêtes soient terminées
       const results = await Promise.all(batchedPromises);
-  
-      // Combiner les résultats des lots
       const combinedResults = results.flatMap(result => result.data);
-      console.log('Combined endpoints response:', combinedResults);
   
       const dynamicIdsByFloor: DynamicIdsByFloor = {};
   
-      // Fonction pour traiter les endpoints par étage
       const processEquipmentEndpointByFloor = (
         endpoint: { dynamicId: string },
         equipment: Equipment,
@@ -185,12 +194,11 @@ export function groupThirdChartsByFloor(thirdChartPositions: Equipment[]): Recor
         }
       };
   
-      // Extraire les IDs dynamiques par étage
       extractDynamicIds(combinedResults, entryPoint, (endpoint, equipment, dynamicIds, ...extraParams) => {
+
         processEquipmentEndpointByFloor(endpoint, equipment, dynamicIdsByFloor, equipmentsByFloor);
       });
   
-      console.log('Dynamic IDs by floor:', dynamicIdsByFloor);
       return dynamicIdsByFloor;
     } catch (error) {
       console.error('Error in getThirdChartOccupationDynamicIdsByFloor:', error);
@@ -201,183 +209,194 @@ export function groupThirdChartsByFloor(thirdChartPositions: Equipment[]): Recor
   export let cachedThirdChartPositions: any[] = [];
   export let cachedEquipmentsByFloor: Record<string, { floorName: string; equipments: string[] }> = {};
   export let cachedDynamicIdsByFloorForThirdChart: DynamicIdsByFloor = {};
-  export async function initializeThirdChartData(thirdChartIds: string[]): Promise<void> {
+  export async function initializeThirdChartData(): Promise<{
+    equipmentsByFloorByEntryPoint: Record<string, Record<string, { floorName: string; equipments: string[] }>>;
+    positionsByEntryPoint: Record<string, any[]>;
+    dynamicIdsByFloorByEntryPoint: Record<string, DynamicIdsByFloor>;
+  }> {
     try {
-      console.log("Initialisation des données pour le troisième graphique...");
   
-      // Récupérer les positions des équipements
-          if (cachedThirdChartPositions.length === 0) {
-        cachedThirdChartPositions = await getThirdChartPositions(thirdChartIds);
-        if (!cachedThirdChartPositions.length) {
-          throw new Error("Aucune position d'équipement trouvée.");
-        }
-      }
-  
-      // Regrouper les équipements par étage
-      if (Object.keys(cachedEquipmentsByFloor).length === 0) {
-        cachedEquipmentsByFloor = groupThirdChartsByFloor(cachedThirdChartPositions);
-        console.log("Équipements regroupés par étage :", cachedEquipmentsByFloor);
-      }
-  
-      // Récupérer les IDs dynamiques des équipements par étage
-      if (Object.keys(cachedDynamicIdsByFloorForThirdChart).length === 0) {
-        // Vérifiez si les equipmentEntryPoints sont déjà mis en cache
+      if (!cachedEquipmentEntryPoints || cachedEquipmentEntryPoints.length === 0) {
+        console.warn(" Aucun equipmentEntryPoint valide trouvé. Initialisation des sources...");
+        const { equipmentEntryPoints } = await processEntryPoints();
+        cachedEquipmentEntryPoints.length = 0;
+        cachedEquipmentEntryPoints.push(...equipmentEntryPoints);
         if (!cachedEquipmentEntryPoints || cachedEquipmentEntryPoints.length === 0) {
-          console.warn("Aucun equipmentEntryPoint valide trouvé. Initialisation des sources...");
-          const { equipmentEntryPoints } = await processEntryPoints();
-          cachedEquipmentEntryPoints = equipmentEntryPoints;
+          throw new Error("Aucun equipmentEntryPoint valide trouvé après initialisation.");
         }
-      
-        // Parcourir les entryPoints pour traiter chaque cas
-        for (const entryPoint of cachedEquipmentEntryPoints) {
-          console.log(`Traitement de l'entryPoint : ${entryPoint.name}`);
-      
-          const dynamicIdsByFloor = await getThirdChartOccupationDynamicIdsByFloor(
-            thirdChartIds,
-            cachedEquipmentsByFloor,
-            entryPoint // EntryPoint dynamique
-          );
-      
-          // Fusionner les résultats dans le cache global
-          Object.keys(dynamicIdsByFloor).forEach((floorId) => {
-            if (!cachedDynamicIdsByFloorForThirdChart[floorId]) {
-              cachedDynamicIdsByFloorForThirdChart[floorId] = [];
-            }
-            cachedDynamicIdsByFloorForThirdChart[floorId].push(...dynamicIdsByFloor[floorId]);
-          });
-        }
-      
-        console.log("IDs dynamiques des équipements par étage mis en cache :", cachedDynamicIdsByFloorForThirdChart);
       }
   
-      console.log("Données pour le troisième graphique initialisées avec succès.");
+      const equipmentsByFloorByEntryPoint: Record<string, Record<string, { floorName: string; equipments: string[] }>> = {};
+      const positionsByEntryPoint: Record<string, any[]> = {};
+      const dynamicIdsByFloorByEntryPoint: Record<string, DynamicIdsByFloor> = {};
+  
+      for (const entryPoint of cachedEquipmentEntryPoints) {
+  
+        const equipmentData = await getThirdChartData();
+        const equipmentIds = equipmentData[entryPoint.name];
+        if (!equipmentIds || equipmentIds.length === 0) {
+          console.warn(` Aucun équipement trouvé pour l'entryPoint : ${entryPoint.name}`);
+          continue;
+        }
+  
+        const positions = await getThirdChartPositions(equipmentIds, entryPoint.name);
+        if (!positions || positions.length === 0) {
+          console.warn(` Aucune position d'équipement trouvée pour l'entryPoint : ${entryPoint.name}`);
+          continue;
+        }
+  
+        const equipmentsByFloor = groupThirdChartsByFloor(positions);
+        if (!equipmentsByFloor || Object.keys(equipmentsByFloor).length === 0) {
+          console.warn(` Aucun équipement regroupé par étage pour l'entryPoint : ${entryPoint.name}`);
+          continue;
+        }
+  
+        const dynamicIdsByFloor = await getThirdChartOccupationDynamicIdsByFloor(
+          equipmentIds,
+          equipmentsByFloor,
+          entryPoint
+        );
+        if (!dynamicIdsByFloor || Object.keys(dynamicIdsByFloor).length === 0) {
+          console.warn(` Aucun ID dynamique trouvé pour l'entryPoint : ${entryPoint.name}`);
+          continue;
+        }
+  
+        equipmentsByFloorByEntryPoint[entryPoint.name] = equipmentsByFloor;
+        positionsByEntryPoint[entryPoint.name] = positions;
+        dynamicIdsByFloorByEntryPoint[entryPoint.name] = dynamicIdsByFloor;
+  
+      }
+  
+      // Mettre à jour les caches globaux
+      cachedThirdChartPositions = Object.values(positionsByEntryPoint).flat();
+      cachedEquipmentsByFloor = Object.assign({}, ...Object.values(equipmentsByFloorByEntryPoint));
+      cachedDynamicIdsByFloorForThirdChart = {};
+      for (const entryPointName in dynamicIdsByFloorByEntryPoint) {
+        const dynamicIdsByFloor = dynamicIdsByFloorByEntryPoint[entryPointName];
+        for (const floorId in dynamicIdsByFloor) {
+          if (!cachedDynamicIdsByFloorForThirdChart[floorId]) {
+            cachedDynamicIdsByFloorForThirdChart[floorId] = [];
+          }
+          cachedDynamicIdsByFloorForThirdChart[floorId].push(...dynamicIdsByFloor[floorId]);
+        }
+      }
+      cachedDynamicIdsByFloorByEntryPoint = dynamicIdsByFloorByEntryPoint; // Mettre à jour le cache global
+  
+      return {
+        equipmentsByFloorByEntryPoint,
+        positionsByEntryPoint,
+        dynamicIdsByFloorByEntryPoint,
+      };
     } catch (error) {
-      console.error("Erreur lors de l'initialisation des données pour le troisième graphique :", error);
+      console.error(" Erreur lors de l'initialisation des données pour le troisième graphique :", error);
+      throw error;
     }
   }
   // Fonction pour récupérer les données de séries temporelles pour les équipements par étage
-  export async function getThirdChartOccupancyDataByFloor(
-    space: { type: string; dynamicId?: string },
-    tempo: string,
-    currentTimestamp: number,
-    thirdChartIds: string[],
-    startTime: string | null = null,
-    endTime: string | null = null
-  ): Promise<[string[], any[], { floor: string; average: number }[]]> {
-    try {
-      console.log('getThirdChartOccupancyDataByFloor called with parameters:', {
-        space,
-        tempo,
-        currentTimestamp,
-        thirdChartIds,
-        startTime,
-        endTime,
-      });
-  
-      const buildingId = localStorage.getItem("idBuilding");
-      if (!buildingId) {
-        console.error('Building ID not found in localStorage');
-        return [[], [], []];
-      }
-  
-      const periodArray = getPeriodArray(currentTimestamp, tempo);
-      const label = periodArray[0];
-      const tooltipDate = periodArray[5];
-      const data: any[] = [];
-      const averages: { floor: string; average: number }[] = [];
-  
-      // Vérifiez si les données nécessaires sont initialisées
-      if (
-        cachedThirdChartPositions.length === 0 ||
-        Object.keys(cachedEquipmentsByFloor).length === 0 ||
-        Object.keys(cachedDynamicIdsByFloorForThirdChart).length === 0
-      ) {
-        throw new Error("Les données nécessaires pour le troisième graphique ne sont pas initialisées. Appelez initializeThirdChartData d'abord.");
-      }
-  
-      console.log('Temporalité sélectionnée :', tempo);
-      const aggregatedFloorData: AggregatedFloorData = {};
-  
-      for (const floor of Object.keys(cachedEquipmentsByFloor)) {
-        const dynamicIds = cachedDynamicIdsByFloorForThirdChart[floor];
-  
-        if (dynamicIds && dynamicIds.length > 0) {
-          const batchSize = 50;
-          const batchedPromises = [];
-  
-          for (let i = 0; i < dynamicIds.length; i += batchSize) {
-            const batch = dynamicIds.slice(i, i + batchSize);
-            const spinalApi = SpinalAPI.getInstance();
-            const url = spinalApi.createUrlWithPlatformId(
-              buildingId,
-              `api/v1/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`
-            );
-            batchedPromises.push(spinalApi.post(url, batch));
-          }
-  
-          // Utiliser Promise.allSettled pour gérer les erreurs
-          const results = await Promise.allSettled(batchedPromises);
-          const successfulResults = results
-            .filter(result => result.status === 'fulfilled')
-            .map(result => (result as PromiseFulfilledResult<any>).value);
-  
-          let timeSeriesData = successfulResults.flatMap(result => result?.data || []);
-  
-          // Utiliser la fonction de filtre
-          timeSeriesData.forEach((roomData) => {
-            roomData.timeseries = filterTimeSeries(roomData.timeseries || [], startTime, endTime);
-          });
-  
-          // Déterminer le type de données (binaire ou continue) à partir des entryPoints
-          const entryPoint = cachedEquipmentEntryPoints?.find((entry) =>
-            entry.source.some((source) => source.byFloorDisplay && source.type)
-          );
-          const sourceType = entryPoint?.source.find((source) => source.byFloorDisplay)?.type || "continue";
-  
-          // Calculer les moyennes pondérées ou binaires pour chaque étage
-          const floorSeries = timeSeriesData.flatMap(roomData => roomData.timeseries);
-          const weightedAverages =
-            sourceType === "binaire"
-              ? calculateBinaryOccupancyRate(floorSeries, label, tempo)
-              : calculateTimeWeightedAverage(floorSeries, label, tempo);
-  
-          // Ajouter les données agrégées pour chaque période
-          aggregatedFloorData[floor] = {};
-          label.forEach((periodLabel, index) => {
-            aggregatedFloorData[floor][periodLabel] = weightedAverages[index] || 0;
-          });
+    export let cachedDynamicIdsByFloorByEntryPoint: Record<string, DynamicIdsByFloor> = {};
+    export async function getThirdChartOccupancyDataByFloor(
+      space: { type: string; dynamicId?: string },
+      tempo: string,
+      currentTimestamp: number,
+      thirdChartIds: string[],
+      startTime: string | null = null,
+      endTime: string | null = null
+    ): Promise<{
+      resultsByEntryPoint: Record<string, { label: string[]; data: any[]; averages: { floor: string; average: number }[] }>;
+    }> {
+      try {
+
+    
+        const buildingId = localStorage.getItem("idBuilding");
+        if (!buildingId) {
+/*           console.error('Building ID not found in localStorage');
+          return { resultsByEntryPoint: {} }; */
         }
-      }
+    
+        const periodArray = getPeriodArray(currentTimestamp, tempo);
+        const label = periodArray[0];
+        const tooltipDate = periodArray[5];
+    
+        if (
+          cachedThirdChartPositions.length === 0 ||
+          Object.keys(cachedEquipmentsByFloor).length === 0 ||
+          Object.keys(cachedDynamicIdsByFloorForThirdChart).length === 0
+        ) {
+          throw new Error("Les données nécessaires pour le troisième graphique ne sont pas initialisées. Appelez initializeThirdChartData d'abord.");
+        }
+    
+    
+        const resultsByEntryPoint: Record<string, { label: string[]; data: any[]; averages: { floor: string; average: number }[] }> = {};
+    
+        for (const entryPoint of cachedEquipmentEntryPoints || []) {
+    
+          // Utiliser le cache global pour récupérer les Dynamic IDs
+          const dynamicIdsByFloor = cachedDynamicIdsByFloorByEntryPoint[entryPoint.name];
+          if (!dynamicIdsByFloor) {
+            console.warn(`Aucun Dynamic ID trouvé pour l'entryPoint : ${entryPoint.name}`);
+            continue;
+          }
+    
+    
+        const averages: { floor: string; average: number }[] = [];
+        const data: any[] = [];
   
-      // Préparer les données pour chaque période
-      const floorProcessedTimeSeries = label.map(periodLabel => {
-        const floorData: Record<string, number> = {};
-        Object.keys(cachedEquipmentsByFloor).forEach(floor => {
-          floorData[floor] = aggregatedFloorData[floor]?.[periodLabel] || 0;
-        });
-        return floorData;
-      });
+        for (const floor of Object.keys(dynamicIdsByFloor)) {
+          const floorName = cachedEquipmentsByFloor[floor]?.floorName || `Étage ${floor}`;
   
-      // Calculer les moyennes globales par étage
-      averages.push(
-        ...Object.keys(cachedEquipmentsByFloor).map(floor => {
-          const values = Object.values(aggregatedFloorData[floor] || {});
-          const sum = values.reduce((acc, val) => acc + val, 0);
-          const average = values.length > 0 ? parseFloat((sum / values.length).toFixed(3)) : 0;
-          return {
-            floor,
-            average
-          };
-        })
-      );
+          const dynamicIds = dynamicIdsByFloor[floor];
+          if (dynamicIds && dynamicIds.length > 0) {
   
-      console.log('Final aggregated data: ', aggregatedFloorData);
-      console.log('Averages by floor:', averages, 'Temporalité:', tempo);
+            const batchSize = 50;
+            const chunkedDynamicIds = lodash.chunk(dynamicIds, batchSize);
   
-      return [label, floorProcessedTimeSeries, averages];
-    } catch (e) {
-      console.error('Error in getThirdChartOccupancyDataByFloor:', e);
-      return [[], [], []]; // Retourner des valeurs vides en cas d'erreur
+            const promises = chunkedDynamicIds.map(async (batch) => {
+              const url = SpinalAPI.getInstance().createUrlWithPlatformId(
+                buildingId,
+                `api/v1/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`
+              );
+              const response = await SpinalAPI.getInstance().post<{ data: any[] }>(url, batch);
+              return response.data;
+            });
+  
+            const results = await Promise.all(promises);
+            let timeSeriesData: any[] = results.flat();
+  
+            timeSeriesData.forEach((roomData) => {
+              roomData.timeseries = filterTimeSeries(roomData.timeseries || [], startTime, endTime);
+            });
+  
+            const floorSeries = timeSeriesData.flatMap((roomData) => roomData.timeseries);
+  
+            const sourceType = entryPoint.source.find((source) => source.byFloorDisplay)?.type || "continue";
+  
+            const weightedAverages =
+              sourceType === "binaire"
+                ? calculateBinaryOccupancyRate(floorSeries, label, tempo)
+                : calculateTimeWeightedAverage(floorSeries, label, tempo);
+  
+  
+            averages.push({
+              floor: floorName,
+              average:
+                weightedAverages.length > 0
+                  ? weightedAverages.reduce((sum, val) => sum + val, 0) / weightedAverages.length
+                  : 0,
+            });
+          } else {
+          }
+        }
+  
+        resultsByEntryPoint[entryPoint.name] = {
+          label,
+          data,
+          averages,
+        };
+      }  
+      return { resultsByEntryPoint };
+    } catch (error) {
+      console.error("Erreur dans getThirdChartOccupancyDataByFloor :", error);
+      return { resultsByEntryPoint: {} };
     }
   }
   

@@ -24,7 +24,6 @@ export async function getFloorOccupancyDynamicIds(): Promise<FloorOccupancyDynam
       console.error('Aucun étage trouvé pour ce bâtiment.');
       return { dynamicIds: [], floorNames: {}, floorOccupancyMapping: {} };
     }
-    console.log('Étages récupérés depuis getFloors :', floors);
 
     // Préparer les noms des étages et leurs IDs dynamiques
     const floorNames: Record<string, string> = {};
@@ -33,7 +32,6 @@ export async function getFloorOccupancyDynamicIds(): Promise<FloorOccupancyDynam
       return floor.dynamicId;
     });
 
-    console.log('Correspondance ID → Nom des étages :', floorNames);
 
     // Diviser les IDs dynamiques en lots
     const batchSize = 50;
@@ -41,11 +39,9 @@ export async function getFloorOccupancyDynamicIds(): Promise<FloorOccupancyDynam
 
     // Envoyer les requêtes en parallèle pour chaque lot
     const promises = chunkedFloorDynamicIds.map(async (batch) => {
-      console.log('Processing batch:', batch);
       const spinalApi = SpinalAPI.getInstance();
       const batchUrl = spinalApi.createUrlWithPlatformId(localStorage.getItem("idBuilding")!, 'api/v1/node/control_endpoint_list_multiple');
       const response = await (spinalApi.post as <T>(url: string, body: any) => Promise<{ data: T }>)(batchUrl, batch);
-      console.log('Batch response:', response.data);
       return response.data;
     });
 
@@ -54,7 +50,7 @@ export async function getFloorOccupancyDynamicIds(): Promise<FloorOccupancyDynam
 
     // Combiner les résultats des lots
     const combinedResults = results.flat();
-    console.log('Combined endpoints response:', combinedResults);
+     
 
     // Extraire les IDs dynamiques et créer le mapping
        if (!cachedBuildingEntryPoints || cachedBuildingEntryPoints.length === 0) {
@@ -67,10 +63,8 @@ export async function getFloorOccupancyDynamicIds(): Promise<FloorOccupancyDynam
     
     // Parcourir tous les entryPoints dans cachedBuildingEntryPoints
     for (const buildingEntryPoint of cachedBuildingEntryPoints) {
-      console.log(`Traitement de l'entryPoint : ${buildingEntryPoint.name}`);
       
       const dynamicIds = extractDynamicIds(combinedResults, buildingEntryPoint, processBuildingEndpoint, floorOccupancyMapping);
-      console.log(`Dynamic IDs pour l'entryPoint ${buildingEntryPoint.name} :`, dynamicIds);
     
       // Ajouter les IDs dynamiques extraits à la liste globale
       allDynamicIds.push(...dynamicIds);
@@ -80,8 +74,7 @@ export async function getFloorOccupancyDynamicIds(): Promise<FloorOccupancyDynam
       console.warn('⚠️ Aucun Dynamic ID trouvé pour les taux d\'occupation.');
     }
     
-    console.log('Tous les Dynamic IDs des taux d\'occupation :', allDynamicIds);
-    console.log('Mapping Dynamic ID → Étages :', floorOccupancyMapping);
+
     
     return { dynamicIds: allDynamicIds, floorNames, floorOccupancyMapping };
   } catch (error) {
@@ -94,44 +87,40 @@ export async function getFloorOccupancyDynamicIds(): Promise<FloorOccupancyDynam
 let cachedSecondChartDynamicIds: Record<string, string[]> = {};
 
 export async function fetchSecondChartOccupationDynamicIds(
-  roomIds: string[]
+  roomIds: string[],
+  entryPoint: EntryPoint
 ): Promise<string[]> {
-  const cacheKey = roomIds.sort().join(','); // Utiliser une clé unique basée sur les roomIds
+
+  const cacheKey = `${entryPoint.name}-${roomIds.sort().join(',')}`; // Utiliser une clé unique basée sur l'entryPoint et les roomIds
   if (cachedSecondChartDynamicIds[cacheKey]) {
-    console.log(`Dynamic IDs for rooms retrieved from cache.`);
     return cachedSecondChartDynamicIds[cacheKey];
   }
 
   try {
-    console.log('fetchSecondChartOccupationDynamicIds called with roomIds:', roomIds);
 
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error('No building ID found in localStorage');
-      return [];
+/*       console.error('No building ID found in localStorage');
+      return []; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
     const batchSize = 50;
     const chunkedRoomIds = lodash.chunk(roomIds, batchSize);
 
-    const allDynamicIds: string[] = [];
-    for (const entryPoint of cachedRoomEntryPoints || []) {
-      const promises = chunkedRoomIds.map(async (batch) => {
-        const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/node/control_endpoint_list_multiple');
-        const response = await spinalApi.post(url, batch);
-        return response.data;
-      });
+    const promises = chunkedRoomIds.map(async (batch) => {
+      const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/node/control_endpoint_list_multiple');
+      const response = await spinalApi.post(url, batch);
+      return response.data;
+    });
 
-      const combinedResults = (await Promise.all(promises)).flat();
-      const dynamicIds = extractDynamicIds(combinedResults, entryPoint, processRoomEndpoint);
-      allDynamicIds.push(...dynamicIds);
-    }
+    const combinedResults = (await Promise.all(promises)).flat();
+    const dynamicIds = extractDynamicIds(combinedResults, entryPoint, processRoomEndpoint);
 
-    cachedSecondChartDynamicIds[cacheKey] = allDynamicIds; // Mettre en cache
-    return allDynamicIds;
+    cachedSecondChartDynamicIds[cacheKey] = dynamicIds; // Mettre en cache
+    return dynamicIds;
   } catch (error) {
-    console.error('Error in fetchSecondChartOccupationDynamicIds:', error);
+    console.error(`Error in fetchSecondChartOccupationDynamicIds for entryPoint: ${entryPoint.name}`, error);
     return [];
   }
 }
@@ -144,33 +133,41 @@ export async function fetchThirdChartOccupationDynamicIds(
   thirdChartIds: string[],
   entryPoint: EntryPoint
 ): Promise<string[]> {
-  const cacheKey = thirdChartIds.sort().join(','); // Utiliser une clé unique basée sur les thirdChartIds
+
+  const cacheKey = `${entryPoint.name}-${thirdChartIds.sort().join(',')}`; // Utiliser une clé unique basée sur l'entryPoint et les thirdChartIds
   if (cachedThirdChartDynamicIds[cacheKey]) {
-    console.log(`Dynamic IDs for equipment retrieved from cache.`);
     return cachedThirdChartDynamicIds[cacheKey];
   }
 
   try {
-    console.log('fetchThirdChartOccupationDynamicIds called with thirdChartIds:', thirdChartIds);
 
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error('No building ID found in localStorage');
-      return [];
+/*       console.error('No building ID found in localStorage');
+      return []; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
-    const combinedResults = await processInBatches(thirdChartIds, 50, async (batch) => {
+    const batchSize = 50;
+    const chunkedThirdChartIds = lodash.chunk(thirdChartIds, batchSize);
+
+    const promises = chunkedThirdChartIds.map(async (batch) => {
       const url = spinalApi.createUrlWithPlatformId(buildingId, 'api/v1/node/control_endpoint_list_multiple');
       const response = await spinalApi.post(url, batch);
       return response.data;
     });
 
+    const combinedResults = (await Promise.all(promises)).flat();
+
+    // Traiter les résultats pour cet entryPoint
     const dynamicIds = extractDynamicIds(combinedResults, entryPoint, processEquipmentEndpoint);
-    cachedThirdChartDynamicIds[cacheKey] = dynamicIds; // Mettre en cache
+
+    // Mettre en cache les résultats pour cet entryPoint
+    cachedThirdChartDynamicIds[cacheKey] = dynamicIds;
+
     return dynamicIds;
   } catch (error) {
-    console.error('Error in fetchThirdChartOccupationDynamicIds:', error);
+    console.error(`Error in fetchThirdChartOccupationDynamicIds for entryPoint: ${entryPoint.name}`, error);
     return [];
   }
 }
@@ -181,16 +178,14 @@ let cachedGraphData: string | null = null;
 
 export async function getGraphData(): Promise<string | null> {
   if (cachedGraphData) {
-    console.log('Graph data retrieved from cache.');
     return cachedGraphData;
   }
 
   try {
-    console.log('getGraphData called');
     const buildingId = localStorage.getItem("idBuilding");
     if (!buildingId) {
-      console.error('idBuilding not found in localStorage');
-      return null;
+/*       console.error('idBuilding not found in localStorage');
+      return null; */
     }
 
     const spinalApi = SpinalAPI.getInstance();
@@ -261,8 +256,8 @@ export async function getData(
 
   try {
     const buildingId = localStorage.getItem("idBuilding");
-    if (!buildingId) throw new Error("Building ID not found in localStorage");
-
+/*     if (!buildingId) throw new Error("Building ID not found in localStorage");
+ */
     const spinalApi = SpinalAPI.getInstance();
     const periodArray = getPeriodArray(currentTimestamp, tempo);
     label.push(...periodArray[0]);
@@ -293,7 +288,6 @@ export async function getData(
       for (const buildingEntryPoint of cachedBuildingEntryPoints) {
         for (const source of buildingEntryPoint.source || []) {
           if (!source.globalDisplay) {
-            console.log(`Source ${source.name} ignorée car globalDisplay est désactivé.`);
             continue;
           }
 
@@ -345,11 +339,10 @@ export async function getData(
       for (const roomEntryPoint of cachedRoomEntryPoints) {
         for (const source of roomEntryPoint.source || []) {
           if (!source.globalDisplay) {
-            console.log(`Source ${source.name} ignorée car globalDisplay est désactivé.`);
             continue;
           }
 
-          const dynamicIds = await fetchSecondChartOccupationDynamicIds(roomIds);
+          const dynamicIds = await fetchSecondChartOccupationDynamicIds(roomIds, roomEntryPoint);
           if (dynamicIds.length > 0) {
             const results = await Promise.all(
               Array(Math.ceil(dynamicIds.length / 50))
@@ -394,70 +387,79 @@ export async function getData(
       console.error("Error in meeting room occupancy calculation:", error);
     }
 
-    // 3. Occupation positions de travail
+        // 3. Occupation positions de travail
     try {
       console.log("=== TAUX OCCUPATION POSITIONS DE TRAVAIL ===");
-
+    
       if (!cachedEquipmentEntryPoints || cachedEquipmentEntryPoints.length === 0) {
         throw new Error("cachedEquipmentEntryPoints is not initialized. Ensure initializeSources is called.");
       }
-
+    
+      // Récupérer les données des équipements groupés par entryPoint
+      const thirdChartData = await getThirdChartData();
+      if (!thirdChartData || Object.keys(thirdChartData).length === 0) {
+        console.warn("Aucun équipement trouvé pour les entryPoints.");
+        return;
+      }
+    
       for (const equipmentEntryPoint of cachedEquipmentEntryPoints) {
+        const thirdChartIds = thirdChartData[equipmentEntryPoint.name];
+        if (!thirdChartIds || thirdChartIds.length === 0) {
+          console.warn(`Aucun équipement trouvé pour l'entryPoint : ${equipmentEntryPoint.name}`);
+          continue;
+        }
+    
         for (const source of equipmentEntryPoint.source || []) {
           if (!source.globalDisplay) {
-            console.log(`Source ${source.name} ignorée car globalDisplay est désactivé.`);
             continue;
           }
-
-          const thirdChartIds = await getThirdChartData();
-          if (thirdChartIds.length > 0) {
-            const dynamicIds = await fetchThirdChartOccupationDynamicIds(thirdChartIds, equipmentEntryPoint);
-
-            if (dynamicIds.length > 0) {
-              const results = await Promise.all(
-                Array(Math.ceil(dynamicIds.length / 50))
-                  .fill(null)
-                  .map((_, i) => {
-                    const batch = dynamicIds.slice(i * 50, (i + 1) * 50);
-                    const url = spinalApi.createUrlWithPlatformId(
-                      buildingId,
-                      `api/v1/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`
-                    );
-                    return spinalApi.post<{ data: TimeSeriesData[] }>(url, batch);
-                  })
-              );
-
-              const seriesData = results.flatMap(r =>
-                r.data.flatMap(eq => eq.timeseries || [])
-              );
-
-              // Appliquer le filtre temporel
-              const filteredData = filterTimeSeries(seriesData, startTime, endTime);
-
-              const processedData = processData(filteredData, source.type);
-
-              if (tempo === "Valeur Courante") {
-                processedData.splice(currentHour + 1);
-                processedData.push(...Array(24 - processedData.length).fill(null));
-              }
-
-              data.push({
-                label: source.label,
-                data: processedData,
-                tooltipDate,
-                backgroundColor: source.backgroundColor,
-                borderColor: source.borderColor || source.backgroundColor,
-                borderWidth: 1,
-                fill: false,
-              });
+    
+          // Récupérer les IDs dynamiques pour cet entryPoint
+          const dynamicIds = await fetchThirdChartOccupationDynamicIds(thirdChartIds, equipmentEntryPoint);
+    
+          if (dynamicIds.length > 0) {
+            const results = await Promise.all(
+              Array(Math.ceil(dynamicIds.length / 50))
+                .fill(null)
+                .map((_, i) => {
+                  const batch = dynamicIds.slice(i * 50, (i + 1) * 50);
+                  const url = spinalApi.createUrlWithPlatformId(
+                    buildingId,
+                    `api/v1/endpoint/timeSeries/read_multiple/${periodArray[1]}/${periodArray[2]}`
+                  );
+                  return spinalApi.post<{ data: TimeSeriesData[] }>(url, batch);
+                })
+            );
+    
+            const seriesData = results.flatMap(r =>
+              r.data.flatMap(eq => eq.timeseries || [])
+            );
+    
+            // Appliquer le filtre temporel
+            const filteredData = filterTimeSeries(seriesData, startTime, endTime);
+    
+            const processedData = processData(filteredData, source.type);
+    
+            if (tempo === "Valeur Courante") {
+              processedData.splice(currentHour + 1);
+              processedData.push(...Array(24 - processedData.length).fill(null));
             }
+    
+            data.push({
+              label: source.label,
+              data: processedData,
+              tooltipDate,
+              backgroundColor: source.backgroundColor,
+              borderColor: source.borderColor || source.backgroundColor,
+              borderWidth: 1,
+              fill: false,
+            });
           }
         }
       }
     } catch (error) {
       console.error("Error in workstation occupancy calculation:", error);
     }
-
     return [label, data, []];
   } catch (error) {
     console.error("Error in getData:", error);
