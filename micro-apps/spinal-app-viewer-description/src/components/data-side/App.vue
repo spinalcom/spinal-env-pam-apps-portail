@@ -213,7 +213,7 @@
 
       <ProgressBar v-if="data_loading < 100" :value="data_loading" :size="120" :width="20" />
 
-      <div v-if="data_loading >= 100" class="inventory">
+      <div v-show="data_loading >= 100" class="inventory">
 
 
         <div v-if="selection == 'Vue Globale'">
@@ -512,7 +512,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                      }}
+                    }}
                     </li>
                   </div>
                 </div>
@@ -619,7 +619,7 @@
                 <div v-for="item in category.groupItems" :key="item.id" class="item-row">
                   <span class="item-name">⎯ {{ item.name }}</span>
                   <div class="item-icons">
-                    <v-icon v-if="coloredElement && !coloredElement.includes(item.dynamicId)"
+                    <!-- <v-icon v-if="coloredElement && !coloredElement.includes(item.dynamicId)"
                       @click="colorselected(item)" style="cursor: pointer; margin-left: 10px;">
                       mdi-invert-colors
                     </v-icon>
@@ -627,7 +627,7 @@
                       @click="descolorselected(item)"
                       :style="{ cursor: 'pointer', marginLeft: '10px', color: item.color }">
                       mdi-invert-colors-off
-                    </v-icon>
+                    </v-icon> -->
                     <v-icon @click="zoomselected(item)" style="cursor: pointer; margin-left: 10px;">
                       mdi-magnify-plus-outline
                     </v-icon>
@@ -1806,6 +1806,7 @@ class dataSideApp extends Vue {
   }
 
   async mounted() {
+
 
     this.watchData();
 

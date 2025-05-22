@@ -45,6 +45,7 @@ export enum MutationTypes {
 	SET_LOADED = 'SET_LOADED',
 	SET_DATA_ROOM = 'SET_DATA_ROOM',
 	SET_ROOM_REF = 'SET_ROOM_REF',
+	SET_PILOTABLE = 'SET_PILOTABLE',
 	SET_TELECOMMAND_TYPE = "SET_TELECOMMAND_TYPE"
 }
 
@@ -53,7 +54,7 @@ export type MutationsAppData<S = StateAppData> = {
 	[MutationTypes.SET_SELECTED_ZONE](state: S, payload: ISpaceSelectorItem): void;
 	[MutationTypes.SET_FLOORS](state: S, payload: { id: string; items: IZoneItem[] }): void;
 	[MutationTypes.SET_ROOMS](state: S, payload: { id: number; items: IZoneItem[] }): void;
-	[MutationTypes.SET_LOADED](state: StateAppData, data: Number ): void;
+	[MutationTypes.SET_LOADED](state: StateAppData, data: Number): void;
 	[MutationTypes.SET_EQUIPMENTS](state: S, payload: { id: number; items: IEquipmentItem[] }): void;
 	[MutationTypes.SET_VIEWINFO](state: S, payload: { id: number; items: IViewInfoItemRes[] }): void;
 	[MutationTypes.ADD_VIEWER_LOADED](state: S, payload: { id: string }): void;
@@ -62,6 +63,7 @@ export type MutationsAppData<S = StateAppData> = {
 	[MutationTypes.SET_DATA](state: StateAppData, data: INodeItemTree[]): void;
 	[MutationTypes.SET_DATA_ROOM](state: StateAppData, data: INodeItemTree[]): void;
 	[MutationTypes.SET_ROOM_REF](state: StateAppData, data: any): void;
+	[MutationTypes.SET_PILOTABLE](state: StateAppData, data: any): void;
 	[MutationTypes.SET_TELECOMMAND_TYPE](state: StateAppData, data: any): void;
 
 };
@@ -121,6 +123,9 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 	},
 	[MutationTypes.SET_ROOM_REF](state: StateAppData, data: any): void {
 		state.roomRef = data;
+	},
+	[MutationTypes.SET_PILOTABLE](state: StateAppData, data: any): void {
+		state.iscontrolable = data;
 	},
 	[MutationTypes.SET_TELECOMMAND_TYPE](state: StateAppData, data: any): void {
 		state.telecommandeType = data;

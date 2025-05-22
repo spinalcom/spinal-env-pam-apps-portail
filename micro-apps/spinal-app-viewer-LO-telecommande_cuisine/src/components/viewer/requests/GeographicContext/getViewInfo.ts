@@ -91,7 +91,7 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   let resultgroupcontext = await spinalAPI.get<{ [key: string]: any[] }>(groupcontext);
 
   const contextGroup = resultgroupcontext.data.find(group => group.name === config.groupContextCat)?.dynamicId;
- 
+
 
   const grpList = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/groupeContext/${Idcommand}/category/${contextGroup}/group_list`);
   let resultgrpList = await spinalAPI.get<{ [key: string]: any[] }>(grpList);
@@ -106,8 +106,8 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   });
 
   let allRoomLists = await Promise.all(roomListPromises);
-  
-  const roomTablette = localStorage.getItem('room_tablette');  
+
+  const roomTablette = localStorage.getItem('room_tablette');
   const parentDynamicId = roomTablette // Dynamic ID de l'open space
 
   // Trouver l'index du matchingGroup
@@ -155,24 +155,24 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
       }))
     }
   );
-  
+
 
   let allWorkPositions: any[][];
 
-  //store.commit(MutationTypes.SET_ROOM_REF, roomInfos);
+  //store.commit(MutationTypes.SET_PILOTABLE, roomInfos);
 
   let rawEquipments: { roomId: number, dynamicId: number, name: string }[] = [];
 
   let sols: number[] = [];
   let equipements: number[] = [];
-
+  let equipementPilotable: any = []
   if (config.show_equipements == "selected") {
     let allSelectedEquipements: any[] = [];
 
     for (const selection of config.equipementSelections) {
       const listEquipmentgroup = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipementsGroup/list`);
       let resultlistEquipmentgroup = await spinalAPI.get<{ [key: string]: any[] }>(listEquipmentgroup);
-      
+
       const DynamicIdContext = resultlistEquipmentgroup.data.find(group => group.name === selection.equipementContext)?.dynamicId;
       if (!DynamicIdContext) continue;
 
@@ -192,6 +192,16 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
       let resultEquipement = await spinalAPI.get<{ [key: string]: any[] }>(Equipement);
 
       allSelectedEquipements.push(...resultEquipement.data);
+
+      if (selection.isControlable) {
+
+        equipementPilotable.push(
+          ...resultEquipement.data.map(result => result.dynamicId)
+        );
+        console.warn('equipement controlage',equipementPilotable);
+
+      }
+
     }
 
     allWorkPositions = allRoomDetails.flatMap((roomDetail: any, index: number) => {
@@ -216,7 +226,7 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
         return isEquipement || isSol;
       });
     });
-    
+
   }
   else if (config.show_equipements == "all") {
     allWorkPositions = allRoomDetails.flatMap((roomDetail: any, index: number) => {
@@ -306,7 +316,7 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   };
 
   store.commit(MutationTypes.SET_ROOM_REF, roomInfos);
-
+  store.commit(MutationTypes.SET_PILOTABLE, equipementPilotable);
   return groupedByBimFileIds;
 
 }

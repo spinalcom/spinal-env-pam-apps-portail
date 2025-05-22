@@ -38,22 +38,29 @@ export const config: IConfig = {
 
 	//affiche tout l'etage si true sinon affiche uniquement la piece / les pieces
 	showAllFloor: true,
-
+	rotation: true,
 	//type d'equipement : all(tout les equipement de la piece) , none(que les sols) , selected(un type selectionné)
 
-	show_equipements: 'all',
+	show_equipements: 'selected',
 	//si selected ( choisir l'equipement voulu)
 	equipementSelections: [
 		{
 			equipementContext: "Gestion des équipements",
 			equipementCat: "Mobilier",
-			equipementsGroup: "Bureaux"
+			equipementsGroup: "Bureaux",
+			isControlable: false
+		},
+		{
+			equipementContext: "Gestion des équipements",
+			equipementCat: "Typologie",
+			equipementsGroup: "Lavabo",
+			isControlable: true
 		}
 	],
 
 	//moyen de selection de télécommande : button (pilotage par bouton d'une ou plusieur piece) , room (pilotage en cliquant sur le sol de la piece) , equipement (pilotage en cliquant sur l'equipment)
 	// multiple (pilotage par bouton et par sol)
-	SelectionType: 'room',
+	SelectionType: 'equipement',
 
 	//les differents type de télécommande
 	commandItem: {
@@ -72,7 +79,8 @@ export const config: IConfig = {
 	// 		}
 	// 	]
 	// }
-	rotation: false,
+
+	
 
 	configCommand: {
 		temperature: {

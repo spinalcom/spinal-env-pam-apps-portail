@@ -1,5 +1,5 @@
 <template>
-  <v-breadcrumbs v-if="building || etage || piece || equipement || show" divider=">">
+  <v-breadcrumbs v-if="etage || piece || equipement || show" divider=">">
     <div class="breadcrumb-item" @click="setPosition(id_building, building, 'building');">
       <v-breadcrumbs-item v-if="building">
         {{ building }}

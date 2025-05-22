@@ -44,5 +44,6 @@ export const state = {
 	loadedinformation: 0 as Number,
 	roomData: [] as any,
 	roomRef: undefined as any,
-	telecommandeType : undefined as any,
+	iscontrolable: undefined as any,
+	telecommandeType: undefined as any,
 };

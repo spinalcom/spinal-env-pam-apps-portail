@@ -186,57 +186,31 @@ export default {
       selectedCat: null,
       currentType: '',
       selectedGrp: [],
-      groupString :[]
+      groupString: []
     };
 
   },
   async mounted() {
 
+
+
     this.getFirstContextList();
 
     this.$emit('inventory-loaded', []);
-    const buildingId = sessionStorage.getItem("idBuilding");
+    await this.initvalue()
 
-    const promises_node = [
-      this.$store.dispatch(ActionTypes.GET_NODE_READ, {
-        buildingId,
-        referenceIds: [this.selectedId]
-      }),
-    ];
 
-    const results = await Promise.all(promises_node);
-
-    this.currentType = results[0].type
-
-    if (this.typedata == "room") {
-      this.prioritie = [
-        {
-          name: 'equipement',
-          color: 'green',
-          value: 0,
-          checked: true,
-        },
-      ]
-    }
-    else {
-      this.prioritie = [
-        {
-          name: 'equipement',
-          color: 'green',
-          value: 0,
-          checked: true,
-        },
-        {
-          name: 'espace',
-          color: 'orange',
-          value: 1,
-          checked: false,
-        },
-      ]
-    }
     // this.workflowlist = await this.getWorkFlowList();
   },
   watch: {
+    async selectedId() {
+
+      await this.initvalue()
+      this.$nextTick(() => {
+        this.GetInventory()
+      });
+
+    },
     value(newVal) {
       this.isDialogOpen = newVal;
     },
@@ -295,10 +269,50 @@ export default {
     }
   },
   methods: {
+    async initvalue() {
+      const buildingId = sessionStorage.getItem("idBuilding");
+
+      const promises_node = [
+        this.$store.dispatch(ActionTypes.GET_NODE_READ, {
+          buildingId,
+          referenceIds: [this.selectedId]
+        }),
+      ];
+
+      const results = await Promise.all(promises_node);
+
+      this.currentType = results[0].type
+
+      if (this.typedata == "room") {
+        this.prioritie = [
+          {
+            name: 'equipement',
+            color: 'green',
+            value: 0,
+            checked: true,
+          },
+        ]
+      }
+      else {
+        this.prioritie = [
+          {
+            name: 'equipement',
+            color: 'green',
+            value: 0,
+            checked: true,
+          },
+          {
+            name: 'espace',
+            color: 'orange',
+            value: 1,
+            checked: false,
+          },
+        ]
+      }
+    },
     selectCategory(cate) {
       this.selectedCategory = cate.name;
       this.selectedCat = cate.name
-      // this.GetInventory();
       this.getGroup(this.selectedContext.dynamicId, cate.dynamicId)
     },
     selectGrp(grp) {
@@ -311,8 +325,8 @@ export default {
 
       // Met à jour le tableau des noms sélectionnés
       this.groupString = this.selectedGrp.map(g => g.name);
-      console.log('les grp',this.groupString);
-      
+      console.log('les grp', this.groupString);
+
     },
     isSelected(grp) {
       return this.selectedGrp.some(g => g.dynamicId === grp.dynamicId);
@@ -428,10 +442,11 @@ export default {
         if (this.typedata === 'room' || this.currentType == "geographicRoom") {
           const inventoryResponse = await this.$store.dispatch(ActionTypes.GET_ROOM_INVENTORY, {
             id: this.selectedId,
-            body: { context: this.selectedContext.name, category: this.selectedCat, group: this.groupString },
+            body: { context: this.selectedContext.name, category: this.selectedCat, groups: this.groupString },
             includeArea: true,
             onlyDynamicId: false,
           });
+          console.warn(this.groupString, ' warn sssssssssssss');
 
           this.$emit('inventory-loaded', inventoryResponse);
 
@@ -442,13 +457,14 @@ export default {
 
           const inventoryResponse = await this.$store.dispatch(ActionTypes.GET_FLOOR_INVENTORY, {
             id: this.selectedId,
-            body: { context: this.selectedContext.name, category: this.selectedCat, group: this.groupString },
+            body: { context: this.selectedContext.name, category: this.selectedCat, groups: this.groupString },
             onlyDynamicId: false,
           });
+          console.warn(this.groupString, ' warn sssssssssssss');
 
           this.$emit('inventory-loaded', inventoryResponse);
 
-          this.loadingStatus = 'end'; 
+          this.loadingStatus = 'end';
         }
 
         else {
@@ -466,7 +482,7 @@ export default {
             try {
               const inventoryResponse = await this.$store.dispatch(ActionTypes.GET_FLOOR_INVENTORY, {
                 id: floorId,
-                body: { context: this.selectedCtx, category: this.selectedCat, group: [] },
+                body: { context: this.selectedContext.name, category: this.selectedCat, groups: this.groupString },
                 includeArea: true,
                 onlyDynamicId: false,
               });

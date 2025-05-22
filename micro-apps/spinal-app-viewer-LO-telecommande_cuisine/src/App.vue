@@ -228,21 +228,53 @@ class App extends Vue {
     };
 
     this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, item);
-   
-   const toto =  !this.config.rotation
-    
+
+    const toto = !this.config.rotation
+
     if (!toto) {
-
+      const viewer = window.parent.viewer
+      viewer.navigation.setRequestTransition(false);
       setTimeout(async () => {
-        const viewCube = await window.parent.viewer.loadExtension('Autodesk.ViewCubeUi');
-        viewCube.displayViewCube(true, true);
-        viewCube.setViewCube('right');
-      }, 3000);
+        await viewer.loadExtension('Autodesk.ViewCubeUi');
 
-      setTimeout(async () => {
-        window.parent.viewer.setNavigationLock(true);
-        await window.parent.viewer.unloadExtension('Autodesk.ViewCubeUi');
-      }, 4000);
+        const nav = viewer.navigation;
+        const target = nav.getTarget(); // Le centre de la scène
+        const up = new THREE.Vector3(1, 0, 0); //orientation
+        const eye = target.clone().add(new THREE.Vector3(0, 0, 1)); // Caméra au-dessus
+
+        nav.setView(eye, target);
+        nav.setCameraUpVector(up);
+
+        viewer.impl.invalidate(true, true, true);
+
+        setTimeout(async () => {
+          viewer.unloadExtension("Autodesk.ViewCubeUi");
+          viewer.setNavigationLock(true);
+        }, 1000);
+      });
+
+      //marche
+      // const viewer = window.parent.viewer
+      // viewer.navigation.setRequestTransition(false);
+      // setTimeout(async () => {
+      //   const a = await viewer.loadExtension('Autodesk.ViewCubeUi')
+      //   a.displayViewCube(true, true)
+      //   a.setViewCube('right');
+      // }, 2000);
+      // setTimeout(async () => {
+      //   const a = await viewer.loadExtension('Autodesk.ViewCubeUi')
+      //   a.displayViewCube(true, true)
+      //   a.setViewCube('top');
+
+      // }, 3000);
+
+      // setTimeout(async () => {
+      //   viewer.unloadExtension("Autodesk.ViewCubeUi");
+      //   viewer.setNavigationLock(true);
+      // }, 4000);
+
+
+
 
     }
     else if (toto == true) {
@@ -289,9 +321,6 @@ class App extends Vue {
     this.watchLocalStorageForFloorId();
     this.watchViewerLoaded();
     this.configTypeTablette()
-
-
-
 
     this.updateTime();
     this.updateDate();
@@ -347,6 +376,7 @@ class App extends Vue {
   }
 
   async findDynamicIdByDbid(data) {
+    console.log('element de dddddddddd');
     const roomRef = this.$store.state.appDataStore.roomRef;
     const selectedbimfileId = data.modelId.bimFileId;
     const selecteddbId = data.dbIds[0];
@@ -375,9 +405,26 @@ class App extends Vue {
       console.warn('Équipement trouvé:', matchEquip);
       this.typeTelecommande = 'equipement'
       this.selectedItem = matchEquip.dynamicId;
+      if (matchEquip.dynamicId) {
+        const isInList = this.$store.state.appDataStore.iscontrolable.includes(matchEquip.dynamicId);
+        console.warn('is in list', isInList);
+
+        if (!isInList) return null;
+
+      }
       this.getTelecommandeType('equipement')
       return matchEquip.dynamicId;
     }
+
+    if (!matchSol && config.SelectionType === 'room' || config.SelectionType === 'multiple') {
+
+      // console.log('avant de retourn un truc ??', matchEquip);
+      this.typeTelecommande = 'room'
+      this.selectedItem = matchEquip.roomId;
+      this.getTelecommandeType('room')
+      return matchEquip.roomId;
+    }
+
 
     console.log('Aucun objet correspondant trouvé.');
     return null;

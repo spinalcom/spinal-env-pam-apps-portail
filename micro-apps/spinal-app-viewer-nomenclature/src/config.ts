@@ -25,7 +25,7 @@
 import { IConfig, ITemporality } from "./interfaces/IConfig";
 
 export const config: IConfig = {
-	contextList: ['Gestion des équipements', 'Gestion des espaces'],
+	// contextList: ['Gestion des équipements', 'Gestion des espaces'],
 	viewButtons: "base",
 	sprites: true,
 	viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },

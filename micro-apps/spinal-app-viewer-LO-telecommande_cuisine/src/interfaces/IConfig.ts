@@ -49,6 +49,7 @@ export interface IConfig {
 		equipementContext: string;
 		equipementCat: string;
 		equipementsGroup: string;
+		isControlable :boolean
 	}[];
 	showAllFloor: boolean;
 	show_equipements: 'all' | 'none' | 'selected';

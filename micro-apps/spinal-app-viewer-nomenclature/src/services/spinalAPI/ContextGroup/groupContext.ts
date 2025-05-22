@@ -45,19 +45,16 @@ import { logTypes } from "micro-apps/spinal-env-pam-websocket-state/src/store/co
 
 export async function getGroupContext(patrimoineId: string, buildingId: string, position_type: any,): Promise<any | null> {
 
+
     const spinalAPI = SpinalAPI.getInstance();
     const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/groupContext/list`);
-    //insérer la selection de groupe
     let result = await spinalAPI.get<IZoneItem[]>(url);
-    // console.warn(result);
-
     let resultCopy = JSON.parse(JSON.stringify(result));
 
     // Filtrez `result.data` et mettez à jour `resultCopy.data` avec les éléments filtrés
     resultCopy.data = resultCopy.data.filter(item =>
         item.type === 'BIMObjectGroupContext' || item.type === 'geographicRoomGroupContext'
     );
-    // console.log(resultCopy);
 
     store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy.data });
 
@@ -94,28 +91,36 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
             if (position_type.type === 'building') {
                 return allLists;
             } else if (position_type.type === 'geographicFloor') {
-                // console.log('ça rentre');
 
                 const roomIds = allLists.map(room => room.dynamicId.toString());
-                let position;
-                if (type === "geographicRoomGroup") {
-                    position = await getRoomPositions(buildingId, roomIds);
-                } else {
-                    position = await getEquipementPositions(buildingId, roomIds);
-                }
+                const chunkedRoomIds = lodash.chunk(roomIds, 250);
+
+                // Récupération des positions en chunks
+                const positionPromises = chunkedRoomIds.map(ids =>
+                    type === "geographicRoomGroup"
+                        ? getRoomPositions(buildingId, ids)
+                        : getEquipementPositions(buildingId, ids)
+                );
+
+                const positionResults = await Promise.allSettled(positionPromises);
+                const position = positionResults.flatMap(result =>
+                    result.status === "fulfilled" ? result.value : []
+                );
+
                 const List_floor = get_element_floor(position);
-
-
                 const roomsOnFloor = getRoomsByFloor(position_type.dynamicId, allLists, List_floor);
 
+                // On récupère uniquement les dynamicIds des rooms de l'étage sélectionné
+                const roomIdsOnFloor = roomsOnFloor.map(room => room.dynamicId.toString());
+                const chunkedRoomIdsOnFloor = lodash.chunk(roomIdsOnFloor, 250);
 
-                // const attribut = await getAttributeListMultiple(buildingId, roomIds);
+                // Requête des attributs uniquement pour les rooms de l’étage
+                const attrPromises = chunkedRoomIdsOnFloor.map(ids =>
+                    getAttributeListMultiple(buildingId, ids)
+                );
 
-                const chunkedRoomIds = lodash.chunk(roomIds, 500);
-                const promises = chunkedRoomIds.map(ids => getAttributeListMultiple(buildingId, ids));
-                const results = await Promise.allSettled(promises);
-
-                const attribut = results.reduce((acc, result) => {
+                const attrResults = await Promise.allSettled(attrPromises);
+                const attribut = attrResults.reduce((acc, result) => {
                     if (result.status === "fulfilled") {
                         acc.push(...result.value);
                     }
@@ -123,42 +128,44 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
                 }, []);
 
                 const nomenclature = createUnifiedNomenclature(attribut);
-                let alldataBimObject = {
+
+                return {
                     data: enrichBIMObjects(roomsOnFloor, attribut),
-                    nomenclature: nomenclature
+                    nomenclature
                 };
+            }
 
-                return alldataBimObject;
-            } else if (position_type.type === "geographicRoom") {
-
-                // console.log('ça rentre dans la 222222222222222222223*');
+            else if (position_type.type === "geographicRoom") {
 
                 const roomIds = allLists.map(room => room.dynamicId.toString());
-                let position;
-                if (type === "geographicRoomGroup") {
-                    position = await getRoomPositions(buildingId, roomIds);
-                } else {
-                    position = await getEquipementPositions(buildingId, roomIds);
-                }
+                const chunkedRoomIds = lodash.chunk(roomIds, 250);
+
+                // Récupération des positions en chunks
+                const positionPromises = chunkedRoomIds.map(ids =>
+                    type === "geographicRoomGroup"
+                        ? getRoomPositions(buildingId, ids)
+                        : getEquipementPositions(buildingId, ids)
+                );
+
+                const positionResults = await Promise.allSettled(positionPromises);
+                const position = positionResults.flatMap(result =>
+                    result.status === "fulfilled" ? result.value : []
+                );
+
                 const List_floor = get_element_floor(position);
-                // console.log(List_floor);
-
-
                 const roomsOnFloor = getElByFloor(position_type.dynamicId, allLists, List_floor);
-                const toto = [{
-                    roomDynamicId: position_type.dynamicId
-                }]
 
-                // console.warn(List_floor, 'dzdzdzdz///////////////////////////////////');
-                // console.warn(roomsOnFloor, 'dzdzdzdz///////////////////////////////////');
-                // console.warn(position_type, 'dzdzdzdz//////////////////////////////////');
-                // const attribut = await getAttributeListMultiple(buildingId, roomIds);
+                // Ici on ne garde que les dynamicId des rooms sur l’étage sélectionné
+                const roomIdsOnFloor = roomsOnFloor.map(room => room.dynamicId.toString());
+                const chunkedRoomIdsOnFloor = lodash.chunk(roomIdsOnFloor, 250);
 
-                const chunkedRoomIds = lodash.chunk(roomIds, 500);
-                const promises = chunkedRoomIds.map(ids => getAttributeListMultiple(buildingId, ids));
-                const results = await Promise.allSettled(promises);
+                // Requête des attributs uniquement pour les rooms de l’étage
+                const attrPromises = chunkedRoomIdsOnFloor.map(ids =>
+                    getAttributeListMultiple(buildingId, ids)
+                );
 
-                const attribut = results.reduce((acc, result) => {
+                const attrResults = await Promise.allSettled(attrPromises);
+                const attribut = attrResults.reduce((acc, result) => {
                     if (result.status === "fulfilled") {
                         acc.push(...result.value);
                     }
@@ -166,14 +173,13 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
                 }, []);
 
                 const nomenclature = createUnifiedNomenclature(attribut);
-                let alldataBimObject = {
+
+                return {
                     data: enrichBIMObjects(roomsOnFloor, attribut),
-                    nomenclature: nomenclature
+                    nomenclature
                 };
-
-                return alldataBimObject;
-
             }
+
             else {
 
                 // console.warn('RESTE', position_type);
@@ -206,7 +212,7 @@ export async function getAttributeListMultiple(buildingId: string, roomIds: stri
     const spinalAPI = SpinalAPI.getInstance();
     const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/node/attribute_list_multiple');
     try {
-        const response = await spinalAPI.post<IRoomPositionRes[]>(url, roomIds); 
+        const response = await spinalAPI.post<IRoomPositionRes[]>(url, roomIds);
         return response.data;
     } catch (error) {
         console.error('Erreur lors de la récupération des positions des pièces:', error);
