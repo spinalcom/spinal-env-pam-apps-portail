@@ -150,7 +150,7 @@ class SpaceSelector extends Vue {
   @Prop({ type: Boolean, required: false, default: true })
   edge!: boolean;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: false, default: 'Sélectionnez un élément' })
   label: string;
 
   localOpen = this.open;

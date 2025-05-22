@@ -156,75 +156,53 @@ class App extends Vue {
   isActive: boolean = false;
   isActive3D: boolean = false;
   DownloadCsv: string = "XLS";
+  query: { app: string; mode: string; name: string; spaceSelectedId: string; spaceSelectedType: string; buildingId: string } = {
+    app: '',
+    mode: 'null',
+    name: '',
+    spaceSelectedId: '',
+    spaceSelectedType: '', // either building , geographicFloor or geographicRoom
+    buildingId: ''
+  };
 
   async mounted() {
     localStorage.setItem("viewer_loaded", 'initialize');
-    
-    EventBus.$on('colorRoom', (dynamicId) => {
+    const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
+    this.updateLocalQuery(currentQuery);
+    console.log('currentQuery', currentQuery);
+    if (!currentQuery.spaceSelectedId) {
       const buildingId = localStorage.getItem("idBuilding");
-      const itemsToColor = [{
-        buildingId: buildingId,
-        color: "#24CBD9",
-        dynamicId: dynamicId,
-        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
-      }]
-
-      const statviewer = localStorage.getItem("viewer_loaded");
-      if (statviewer == "loaded") {
-        this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
-          items: itemsToColor,
+      const building = await this.$store.dispatch(
+        ActionTypes.GET_BOS_BUILDING,
+        {
           buildingId: buildingId,
-        });
+        }
+      );
+      console.log('BUILDING', building);
+      this.$store.state.appDataStore.zoneSelected
+      this.$store.commit(MutationTypes.SET_BUILDING_INFO, building);
+      console.log('BUILDING INFO', this.$store.state.appDataStore.buildingInfo);
+      const item = {
+        buildingId: localStorage.getItem("idBuilding"),
+        dynamicId: building.dynamicId,
+        parents : [],
+        type: "building",
       }
+      
+      this.onActionClick({ button: { onclickEvent: ActionTypes.OPEN_VIEWER }, item: item });
 
-    });
-
-
-    EventBus.$on('descolorRoom', (dynamicId) => {
-      const buildingId = localStorage.getItem("idBuilding");
-
-      const itemsToColor = [{
-        buildingId: buildingId,
-        color: null,
-        dynamicId: dynamicId,
-        floorId: this.$store.state.appDataStore.zoneSelected.dynamicId,
-      }]
-
-      this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
-        items: itemsToColor,
-        buildingId: buildingId,
-      });
-
-    });
-
-    const buildingId = localStorage.getItem("idBuilding");
-    const building = await this.$store.dispatch(
-      ActionTypes.GET_BOS_BUILDING,
-      {
-        buildingId: buildingId,
-      }
-    );
-    console.log('BUILDING', building);
-    this.$store.state.appDataStore.zoneSelected
-    this.$store.commit(MutationTypes.SET_BUILDING_INFO, building);
-    console.log('BUILDING INFO', this.$store.state.appDataStore.buildingInfo);
-    const item = {
-      buildingId: localStorage.getItem("idBuilding"),
-      dynamicId: building.dynamicId,
-      parents : [],
-      type: "building",
     }
-    
-    this.onActionClick({ button: { onclickEvent: ActionTypes.OPEN_VIEWER }, item: item });
-
-    
 
     try {
       this.pageSate = PAGE_STATES.loading;
       this.listenSpritesEvent();
-      // const buildingId = localStorage.getItem("idBuilding");
-      // await this.$store.dispatch(ActionTypes.GET_GROUPS_ITEMS, { config, buildingId });
       this.pageSate = PAGE_STATES.loaded;
+      if (currentQuery.spaceSelectedId) {
+        this.$nextTick(() => {
+          console.log('QUERY AVAILABLE — APPLYING URL PARAMS AFTER DOM READY');
+          this.applyURLParam(currentQuery);
+        });
+      }
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
@@ -243,10 +221,15 @@ class App extends Vue {
   }
 
   public set selectedZone(v: ISpaceSelectorItem) {
+    if (this.query.spaceSelectedId != v.dynamicId.toString()) {
+      this.query.name = v.name
+      this.query.buildingId = v.buildingId
+      this.query.spaceSelectedId = v.dynamicId.toString()
+      this.query.spaceSelectedType = v.type;
+      this.replaceRoute();
+      
+    }
     this.$store.commit(MutationTypes.SET_SELECTED_ZONE, v);
-    // if (v.type.includes("geographic")) {
-    //   this.$store.dispatch(ActionTypes.OPEN_VIEWER, v);
-    // }
   }
 
   public get temporalitySelected(): ISpaceSelectorItem {
@@ -255,6 +238,74 @@ class App extends Vue {
 
   public set temporalitySelected(v: ISpaceSelectorItem) {
     this.$store.commit(MutationTypes.SET_TEMPORALITY, v);
+  }
+
+
+  updateLocalQuery(query){
+    this.query.mode = query.mode
+    this.query.buildingId = query.buildingId
+    this.query.spaceSelectedId = query.spaceSelectedId
+    this.query.spaceSelectedType = query.spaceSelectedType;
+    this.query.name = query.name
+    this.query.app = query.app
+  }
+  applyURLParam(query) {
+
+    if (query.mode == "3d") {
+      this.isActive3D = true
+    } else if (query.mode == "data") {
+      this.isActive = true
+    }
+    if (query.spaceSelectedId) {
+
+      const item = {
+        buildingId: query.buildingId,
+        dynamicId: query.spaceSelectedId,
+        type: query.spaceSelectedType,
+      };
+      const button = {
+        "title": "charger",
+        "icon": "mdi-video-3d",
+        "onclickEvent": "OPEN_VIEWER",
+        "isShownTypes": [
+          "geographicFloor"
+        ]
+      }
+
+
+      this.onActionClick({ button, item })
+
+      const itemToSelect = {
+        "isOpen": false,
+        "loading": false,
+        "dynamicId": parseInt(query.spaceSelectedId),
+        "name": query.name,
+        "buildingId": query.buildingId,
+        type: query.spaceSelectedType
+      }
+      // this.$refs['space-selector'].getButton();
+      // console.warn('REFFS', structuredClone(this.$refs));
+      //console.warn('REFFS', structuredClone(this.$refs['space-selector']));
+      
+      
+      
+      if (this.$refs['space-selector']) {
+        console.log('SETTING SPACE SELECTOR', itemToSelect);
+        this.$refs['space-selector'].select(itemToSelect);
+        this.$store.commit(MutationTypes.SET_LAST_LOADED_ZONE, itemToSelect);
+      }
+
+
+    }
+    this.openSpaceSelector = false
+  }
+  replaceRoute() {
+    console.log('replaceRoute', this.query);
+    
+    window.parent.routerFontion.customReplace(window.parent.router.path, this.query);
+  }
+  changeRoute() {
+    window.parent.routerFontion.customPush(window.parent.router.path, this.query);
   }
 
   toggleActive(value) {

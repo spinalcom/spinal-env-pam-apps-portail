@@ -200,11 +200,11 @@ class App extends Vue {
       this.listenSpritesEvent();
       this.pageSate = PAGE_STATES.loaded;
       if (currentQuery.spaceSelectedId) {
-      this.$nextTick(() => {
-        console.log('QUERY AVAILABLE — APPLYING URL PARAMS AFTER DOM READY');
-        this.applyURLParam(currentQuery);
-      });
-    }
+        this.$nextTick(() => {
+          console.log('QUERY AVAILABLE — APPLYING URL PARAMS AFTER DOM READY');
+          this.applyURLParam(currentQuery);
+        });
+      }
     } catch (error) {
       this.pageSate = PAGE_STATES.error;
     }
@@ -284,7 +284,7 @@ class App extends Vue {
         "dynamicId": parseInt(query.spaceSelectedId),
         "name": query.name,
         "buildingId": query.buildingId,
-        type: query.spaceSelectedType,
+        type: query.spaceSelectedType
       }
       // this.$refs['space-selector'].getButton();
       // console.warn('REFFS', structuredClone(this.$refs));
@@ -295,13 +295,13 @@ class App extends Vue {
       if (this.$refs['space-selector']) {
         console.log('SETTING SPACE SELECTOR', itemToSelect);
         this.$refs['space-selector'].select(itemToSelect);
+        this.$store.commit(MutationTypes.SET_LAST_LOADED_ZONE, itemToSelect);
       }
 
 
     }
     this.openSpaceSelector = false
   }
-
   replaceRoute() {
     console.log('replaceRoute', this.query);
     

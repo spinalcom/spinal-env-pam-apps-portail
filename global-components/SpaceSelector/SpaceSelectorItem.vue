@@ -36,7 +36,7 @@ with this file. If not, see
 
     <div class="color-square" :style="{ 'background-color': color }"></div>
     <v-list-item-content style="margin-left: 21px">
-      <v-list-item-title v-tooltip="item.name">{{ item.name }}
+      <v-list-item-title>{{ item.name }}
       </v-list-item-title>
     </v-list-item-content>
 
