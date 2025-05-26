@@ -59,6 +59,7 @@ export async function getStaticDetails(buildingId: string, roomDynId: number): P
   let result = await spinalAPI.get<IZoneItem[]>(url);
   return result.data;
 }
+
 export async function getNodeRead(buildingId: string, roomDynId: number): Promise<IZoneItem[]> {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/node/${roomDynId}/read`);

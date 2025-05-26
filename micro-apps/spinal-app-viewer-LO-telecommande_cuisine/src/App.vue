@@ -290,7 +290,6 @@ class App extends Vue {
         groupDynId: group.dynamicId,
       });
 
-      console.warn(equipementList, ' equipementListequipementListequipementListequipementListequipementListequipementList');
 
       for (const equipement of equipementList) {
         const referenceIds = [equipement.dynamicId];
@@ -328,7 +327,6 @@ class App extends Vue {
             config: this.config,
           };
 
-          console.warn('Ajout d’un sprite à la position :', item.position);
 
           await this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
             items: item,
@@ -746,7 +744,6 @@ class App extends Vue {
       }
     }
 
-    console.log(result);
 
     // Résultat final avec les dynamicId des groupes
     this.$store.commit(MutationTypes.SET_TELECOMMAND_TYPE, result);

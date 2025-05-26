@@ -22,13 +22,13 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-export function getAPINormalisePath(path: string, buildingId: string = ''): string {
-  let res = path;
-  const orig = process.env.SPINAL_API_URL || "";
-  if(!path.startsWith("/")) path = "/" + path;
+import { SpinalAPI } from 'global-components/requests/SpinalAPI';
 
-  if (!/https?:\/\//.test(path)) {
-    res = `${orig}${orig.endsWith('/') ? '' : '/'}api/v2/building/${buildingId}/BIM/file${path}`;
-  }
-  return res;
+export function getAPINormalisePath(
+  path: string,
+  buildingId: string = ''
+): string {
+  const api = SpinalAPI.getInstance();
+  return api.createUrlWithPlatformId(buildingId, `/BIM/file/${path}`);
 }
+

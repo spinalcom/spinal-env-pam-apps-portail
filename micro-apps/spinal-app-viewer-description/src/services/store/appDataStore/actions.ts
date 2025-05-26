@@ -76,7 +76,7 @@ export const actions = {
 		{ commit }: AugmentedActionContextAppData,
 		{ id, body, includePosition, includeArea, onlyDynamicId }: {
 			id: number;
-			body: { context: string; category: string; group: any};
+			body: { context: string; category: string; groups: any};
 			includePosition?: boolean;
 			includeArea?: boolean;
 			onlyDynamicId?: boolean;
@@ -94,7 +94,7 @@ export const actions = {
 		{ commit }: AugmentedActionContextAppData,
 		{ id, body, includePosition, onlyDynamicId }: {
 			id: number;
-			body: { context: string; category: string; group: [] };
+			body: { context: string; category: string; groups: [] };
 			includePosition?: boolean;
 			onlyDynamicId?: boolean;
 		}
