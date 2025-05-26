@@ -34,11 +34,15 @@ export interface IConfig {
 	equipementContext: string;
 	equipementCat: string;
 	equipementsGroup: string;
-	groupContext: string;
-	groupContextCat: string;
+	roomContext: string;
+	roomCat: string;
+	tabletteContext :string;
+	tabletteCat : string;
+	tabletteGroup: string;
 	tabletteId: Number;
 	profileName: string;
 	idBuilding: string;
+	rotation: boolean;
 	profileNameRoom: string;
 	categorieAttributRoom: string;
 	batiment: { profileNameControlePts: string, profileNameAttribut: string }
@@ -55,9 +59,14 @@ export interface IConfig {
 	show_equipements: 'all' | 'none' | 'selected';
 	SelectionType: 'button' | 'room' | 'equipement' | 'multiple';
 	commandItem: {
-		[key: string]: [string, string, string];
-	};
-	configCommand: any
+		[key: string]: {
+		  context: string;
+		  category: string;
+		  group: string[];
+		}[];
+	  };
+	configCommand: any;
+
 }
 
 export const enum ITemporality {

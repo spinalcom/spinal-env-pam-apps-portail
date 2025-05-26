@@ -33,7 +33,7 @@ import { getMultipleReferenceObjects } from "../../spinalAPI/GeographicContext/g
 import { getBIMObjectInfo } from "../../spinalAPI/BIM/BIMFileContext";
 import { IViewInfoBody, IViewInfoItemRes } from "../../spinalAPI/GeographicContext/getViewInfo";
 import { ActionTypes, ApiIteratorStoreRecordNumberType, ApiIteratorStoreRecordStringType, ApiIteratorStoreType, AugmentedActionContextAppData } from "../../../interfaces/vuexStoreTypes";
-import { getGroupsItems, getAllCategoriesTree } from "../../spinalAPI/GeographicContext/groupsItems";
+import { getGroupsItems, getAllCategoriesTree, getequipementList } from "../../spinalAPI/GeographicContext/groupsItems";
 import SpriteManager from "../../../components/viewer/manager/spriteManager";
 import ViewerManager from "../../../components/viewer/manager/viewerManager";
 import { IConfig } from "../../../interfaces/IConfig";
@@ -159,6 +159,16 @@ export const actions = {
 			throw error;
 		}
 	},
+	async [ActionTypes.GET_EQUIPEMENT_LIST]({ commit }: AugmentedActionContextAppData, { buildingId, contextDynId, categoryDynId, groupDynId }: { buildingId: string; contextDynId: number; categoryDynId: number; groupDynId: number }): Promise<any> {
+		try {
+			// const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
+			const result = await getequipementList(buildingId, contextDynId, categoryDynId, groupDynId);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des objets de référence:', error);
+			throw error;
+		}
+	},
 
 	async [ActionTypes.GET_POSTION_EQUIPEMENT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number }): Promise<any> {
 		// console.log('Début de l\'action GET_REFERENCE_OBJECT_LIST_MULTIPLE',buildingId , referenceIds);
@@ -258,7 +268,7 @@ export const actions = {
 	},
 
 
-	async [ActionTypes.POST_PARENT_LIST_MULTIPLE]({ commit }: AugmentedActionContextAppData,{ buildingId, inputList }: { buildingId: string; inputList: { dynamicId: number; relations: string[] }[] }
+	async [ActionTypes.POST_PARENT_LIST_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, inputList }: { buildingId: string; inputList: { dynamicId: number; relations: string[] }[] }
 	): Promise<any> {
 		const spinalAPI = SpinalAPI.getInstance();
 		try {

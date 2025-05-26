@@ -28,7 +28,7 @@ import { IConfig, EntryPoint, ISource } from "../../../interfaces/IConfig";
 import * as lodash from "lodash";
 
 
-export async function getGroupsItems(config: IConfig, buildingId: string): Promise<Map<string,any>> {
+export async function getGroupsItems(config: IConfig, buildingId: string): Promise<Map<string, any>> {
    let tree;
    if (config.entryPoint.context && !config.entryPoint.category) tree = await getGroupContextTree(buildingId, config.entryPoint.context);
    else tree = await getGroupContextTreeByNames(buildingId, config.entryPoint);
@@ -42,12 +42,12 @@ export async function getGroupsItems(config: IConfig, buildingId: string): Promi
 
 export async function getAllCategoriesTree(buildingId: string, contextName: string) {
    let contexts = await _getContextRequest(buildingId, contextName);
-   if(!contexts) throw new Error(`[regroupment] - No group context found for ${contextName}`);
-   
+   if (!contexts) throw new Error(`[regroupment] - No group context found for ${contextName}`);
+
    contexts = Array.isArray(contexts) ? contexts : [contexts];
    const geoGroupContexts = contexts.filter(el => ["BIMObjectGroupContext", "geographicRoomGroupContext"].indexOf(el.type) !== -1);
    const promises = geoGroupContexts.map(async el => _getTree(el.dynamicId, buildingId));
-   
+
    return Promise.all(promises).then((result) => {
       return result.flat().reduce((obj, context) => {
          const categories = context.children;
@@ -81,17 +81,17 @@ export async function getAllCategoriesTree(buildingId: string, contextName: stri
 
 function _formatGroups(groups, contextId: string, categoryId: string) {
    return groups.map(el => {
-            el.categoryId = categoryId;
-            el.contextId = contextId;
-            return el;
-         })
+      el.categoryId = categoryId;
+      el.contextId = contextId;
+      return el;
+   })
 }
 
 function getItemsInTree(tree) {
    let categories = tree.children || [];
 
    return categories.reduce((list, category) => {
-      const groups = category.children ||[];
+      const groups = category.children || [];
       const items = groups.map(group => group.children || []);
       list.push(...(items.flat()));
       // items.flat().forEach(item => obj[item.dynamicId] = item);
@@ -116,7 +116,7 @@ async function getGroupContextTree(buildingId: string, contextName): Promise<INo
 async function getGroupContextTreeByNames(buildingId: string, entryPoint: EntryPoint) {
    const context = await _getContextRequest(buildingId, entryPoint.context);
    if (!context) throw `No group context found with name ${entryPoint.context}`;
-   
+
    (context as any).children = await getGroupTreeFromCategory(buildingId, context.dynamicId, entryPoint);
    return context;
 }
@@ -141,6 +141,18 @@ async function getGroupTreeFromGroup(buildingId: string, contextId: number, cate
    })
 
    return Promise.all(promises);
+}
+
+
+export async function getequipementList(buildingId: string, contextDynId: number, categoryDynId: number, groupDynId: number): Promise<IZoneItem[]> {
+
+console.warn('lelelelelllelelelelelellele');
+
+   const spinalAPI = SpinalAPI.getInstance();
+   const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/equipementsGroup/${contextDynId}/category/${categoryDynId}/group/${groupDynId}/equipementList`);
+   let result = await spinalAPI.get<any>(url);
+   return result.data;
+   
 }
 
 ////////////////////////////////////////////////
@@ -174,7 +186,7 @@ async function classifyItemsInGroupContext(tree: any) {
 }
 
 async function classifyItemsByGeographicTypes(buildingId: string, items: any[]) {
-   
+
    const { dynamicIds, type, obj } = items.reduce((data, item) => {
       if (typeof item?.dynamicId === "undefined") return data;
       data.type = item.type;
@@ -189,13 +201,13 @@ async function classifyItemsByGeographicTypes(buildingId: string, items: any[]) 
    map.set(type, obj);
    map.set("groupType", type);
 
-   return _classifyGeographicPosition(positions, map, obj);   
+   return _classifyGeographicPosition(positions, map, obj);
 }
 
 ////////////////////////////////////////////////
 
 
-function addToMap(map: Map<string,any>, type: string, item: any) {
+function addToMap(map: Map<string, any>, type: string, item: any) {
    let value = map.get(type);
    if (!value) value = {};
 
@@ -240,11 +252,11 @@ function _createCopyWithoutChildren(objToCopy: any, parent: any) {
 
 /////////////////////////////////////////////////////////////////////////////////
 
-async function _getContextRequest(buildingId: string, contextName?: string)  {
+async function _getContextRequest(buildingId: string, contextName?: string) {
    const spinalAPI = SpinalAPI.getInstance();
    const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/groupContext/list');
    let result = await spinalAPI.get<INodeItem[]>(url);
-   
+
    if (!contextName) return result.data;
 
    return result.data.find((el) => el.name === contextName)
@@ -265,7 +277,7 @@ async function _getCategoriesRequest(contextId: number, buildingId: string, cate
    return result.data.filter((el) => el.name === categoryName);
 }
 
-async function _getGroupsRequest(contextId: number, categoryId: number, buildingId: string, groupName?: string): Promise<(INodeItem & { categoryId: number;  contextId: number})[]> {
+async function _getGroupsRequest(contextId: number, categoryId: number, buildingId: string, groupName?: string): Promise<(INodeItem & { categoryId: number; contextId: number })[]> {
    const spinalAPI = SpinalAPI.getInstance();
    const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/groupeContext/${contextId}/category/${categoryId}/group_list`);
    let result = await spinalAPI.get<INodeItem[]>(url);
@@ -273,11 +285,11 @@ async function _getGroupsRequest(contextId: number, categoryId: number, building
       return result.data.map((el) => {
          el["categoryId"] = categoryId;
          el["contextId"] = contextId;
-         return el as (INodeItem & { categoryId: number;  contextId: number});
+         return el as (INodeItem & { categoryId: number; contextId: number });
       });
    }
 
-   return result.data.reduce((list: (INodeItem & { categoryId: number;  contextId: number})[], el,index, arr) => {
+   return result.data.reduce((list: (INodeItem & { categoryId: number; contextId: number })[], el, index, arr) => {
       if (el.name === groupName) {
          el["categoryId"] = categoryId;
          el["contextId"] = contextId;
@@ -296,9 +308,9 @@ async function _getGroupsItemsRequest(buildingId: string, contextId: number, cat
 
    if (endpoint) {
       const spinalAPI = SpinalAPI.getInstance();
-      const url = spinalAPI.createUrlWithPlatformId(buildingId,endpoint);
+      const url = spinalAPI.createUrlWithPlatformId(buildingId, endpoint);
       let result = await spinalAPI.get<INodeItem[]>(url);
-      return result.data ||[];
+      return result.data || [];
    }
 
    return [];
@@ -306,7 +318,7 @@ async function _getGroupsItemsRequest(buildingId: string, contextId: number, cat
 
 /////////////////////////////////////////////////////////////////////////////////////
 
-function getPositionMultiple(buildingId: string, dynamicIds : number[], type: string, size = 500) {
+function getPositionMultiple(buildingId: string, dynamicIds: number[], type: string, size = 500) {
 
    let apiRoute = "/api/v1/equipment/get_position_multiple";
    if (type === "geographicRoom") apiRoute = "/api/v1/room/get_position_multiple";
@@ -317,14 +329,14 @@ function getPositionMultiple(buildingId: string, dynamicIds : number[], type: st
       return result.reduce((list, { status, value }) => {
          if (status === "fulfilled") list.push(...value);
          return list;
-     }, []) 
+      }, [])
    })
 }
 
-async function getPositionMultipleRequest(buildingId: string, dynamicIds : string[],  apiRoute: string) {
+async function getPositionMultipleRequest(buildingId: string, dynamicIds: string[], apiRoute: string) {
    const spinalAPI = SpinalAPI.getInstance();
    const url = spinalAPI.createUrlWithPlatformId(buildingId, apiRoute);
-   let result = await spinalAPI.post<any>(url,dynamicIds);
+   let result = await spinalAPI.post<any>(url, dynamicIds);
    return result.data || [];
 }
 
@@ -335,14 +347,14 @@ function _classifyGeographicPosition(positions, map, itemsObj) {
 
    for (const { info, dynamicId } of positions) {
       if (!info) continue;
-      
+
       const item = itemsObj[dynamicId];
       const { building, floor, room } = info;
 
       item.buildingId = building.dynamicId;
       item.floorId = floor?.dynamicId;
       item.roomId = room?.dynamicId;
-      
+
       addToObj(buildings, building, item);
       addToObj(floors, floor, item);
       addToObj(rooms, room, item);
@@ -363,7 +375,7 @@ function _classifyGeographicPosition(positions, map, itemsObj) {
       }
    }
 
-   function addToObj(obj, node, itemToAdd ) {
+   function addToObj(obj, node, itemToAdd) {
       if (!node) return;
       if (!obj[node.dynamicId]) {
          node.children = [];

@@ -71,26 +71,16 @@ export async function fetchAdditionalData(config: IConfig, buildingId: string): 
   // récuperer la position de la tablette room floor
   // const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipment/${tabletteId}/get_position`);
   // let result = await spinalAPI.get<{ [key: string]: any[] }>(url);
-  // console.log("bbb", result);
-
-
-  // localStorage.setItem('room_tablette', result.data.info.room.dynamicId);
-  // localStorage.setItem('room_tablette_dbid', result.data.info.room.dbId);
-
-  // localStorage.setItem('floor_tablette_id', result.data.info.floor.dynamicId);
-  // localStorage.setItem('floor_tablette_name', result.data.info.floor.name);
-
-  //partie group context , recuperation des groupes pui comparer 
 
   const GroupContextList = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/groupContext/list`);
   let resultGroupContextList = await spinalAPI.get<{ [key: string]: any[] }>(GroupContextList);
 
-  const Idcommand = resultGroupContextList.data.find(group => group.name === config.groupContext)?.dynamicId;
+  const Idcommand = resultGroupContextList.data.find(group => group.name === config.roomContext)?.dynamicId;
 
   const groupcontext = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/groupeContext/${Idcommand}/category_list`);
   let resultgroupcontext = await spinalAPI.get<{ [key: string]: any[] }>(groupcontext);
 
-  const contextGroup = resultgroupcontext.data.find(group => group.name === config.groupContextCat)?.dynamicId;
+  const contextGroup = resultgroupcontext.data.find(group => group.name === config.roomCat)?.dynamicId;
 
 
   const grpList = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/groupeContext/${Idcommand}/category/${contextGroup}/group_list`);

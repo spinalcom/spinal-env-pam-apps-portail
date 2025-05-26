@@ -1,8 +1,20 @@
 <template>
-  <div style="position: relative;width: 100px;height: 100px;font-size: 50px;display: flex ; justify-content: center;align-items: center;color: #F0715C;">
-    <span  class="mdi mdi-map-marker"></span>
+  <div
+    :style="{
+      position: 'relative',
+      width: '100px',
+      height: '100px',
+      fontSize: '50px',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      color: data.color || '#F0715C',
+    }"
+  >
+    <span class="mdi mdi-map-marker"></span>
   </div>
 </template>
+
 <script>
 
 import {
@@ -24,12 +36,13 @@ export default {
     dynamicStyle: {
       border: "3px solid #F9F9F9",
       boxShadow: "none",
-      background: '#13A9E0'
+      background: this.data.color
     },
     isClicked: false,
   }),
   mounted() {
-   
+
+    console.error(1154, 'data', this.data);
 
     // document.addEventListener('click', this.handleOutsideClick);
 
@@ -45,37 +58,36 @@ export default {
     //     this.isClicked = false;
     //   }
     // },
-  
 
 
-    
-   
+
+
+
   },
 };
 
 </script>
 
 <style lang="scss">
-
-
 #diamond-shield {
-      width: 0;
-      height: 0;
-      border: 50px solid transparent;
-      border-bottom: 20px solid red;
-      position: relative;
-      top: -50px;
-    }
-    #diamond-shield:after {
-      content: '';
-      position: absolute;
-      left: -50px;
-      top: 20px;
-      width: 0;
-      height: 0;
-      border: 50px solid transparent;
-      border-top: 70px solid red;
-    }
+  width: 0;
+  height: 0;
+  border: 50px solid transparent;
+  border-bottom: 20px solid red;
+  position: relative;
+  top: -50px;
+}
+
+#diamond-shield:after {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 20px;
+  width: 0;
+  height: 0;
+  border: 50px solid transparent;
+  border-top: 70px solid red;
+}
 
 
 
@@ -229,7 +241,7 @@ export default {
   transition: 0.2s
 }
 
-.sprite_color:hover{
+.sprite_color:hover {
   transform: scale(1.5);
 }
 

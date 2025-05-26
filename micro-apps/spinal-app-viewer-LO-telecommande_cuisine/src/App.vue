@@ -169,7 +169,180 @@ class App extends Vue {
     ];
     const result = await Promise.all(promises);
     this.setTabletteSprite(result, buildingId)
+    this.setOtherTabletteSprite();
   }
+
+  // setOtherTabletteSprite() {
+  //   //context / categori / group /readstaticdetail multiple /foreach  /XYZ center /ADD_COMPONENT_AS_SPRITES
+
+  //   // const buildingId = localStorage.getItem("idBuilding");
+  //   // const contextCible = this.config.tabletteContext;
+  //   // const categorieCible = this.config.tabletteContext;
+  //   // const groupeCible = this.config.tabletteContext;
+
+  //   // const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
+
+  //   // for (const ctxName of allContexts) {
+  //   //   const context = contextList.find(contextCible === ctxName);
+
+
+
+  //   // const categories = await this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_LIST, {
+  //   //       buildingId,
+  //   //       contextId,
+  //   //     });
+
+
+  //   //find categrory avec la cible
+
+  //   // const groupList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_GROUP_LIST, {
+  //   //       buildingId,
+  //   //       contextId,
+  //   //       categoryDynId: category.dynamicId,
+  //   //     });
+
+
+  //   //find le groupe avec la cible
+  //   // récuperer les 3 dynamicID chercher les equipement
+
+  //   // const equipementList = await this.$store.dispatch(ActionTypes.GET_EQUIPEMENT_LIST, {
+  //   //       buildingId,
+  //   //       contextDynId, 
+  //   //       categoryDynId, 
+  //   //       groupDynId
+  //   //     });
+
+
+  //   // pour chaque equipement
+  //   //
+  //   // let X;
+  //   //   let Y;
+  //   //   let Z;
+
+  //   //   result[0].attributsList.forEach(category => {
+  //   //     category.attributs.forEach(attribute => {
+  //   //       if (attribute.label === "XYZ center") {
+  //   //         let coordinates = attribute.value.split(";");
+  //   //         X = coordinates[0];
+  //   //         Y = coordinates[1];
+  //   //         Z = coordinates[2];
+  //   //       }
+  //   //     });
+  //   //   });
+
+  //   //   const item = {
+  //   //     color: '#ded638',
+  //   //     dynamicId: result[0].dynamicId,
+  //   //     buildingId: buildingId,
+  //   //     dbid: result[0].dbid,
+  //   //     bimFileId: result[0].bimFileId,
+  //   //     name: result[0].name,
+  //   //     position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
+  //   //     data: result[0],
+  //   //     config: this.config
+  //   //   }
+  //   //   
+
+  //   //   this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+  //   //     items: item,
+  //   //     buildingId: buildingId,
+  //   //     component: SpriteComponent,
+  //   //   });
+
+
+
+  // }
+
+  async setOtherTabletteSprite() {
+    const buildingId = localStorage.getItem("idBuilding");
+    const contextCible = this.config.tabletteContext;
+    const categorieCible = this.config.tabletteCat;
+    const groupeCible = this.config.tabletteGroup;
+
+    try {
+      const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
+      const context = contextList.find(c => c.name === contextCible);
+
+
+      if (!context) return;
+
+      const categories = await this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_LIST, {
+        buildingId,
+        contextId: context.dynamicId,
+      });
+
+      const category = categories.find(cat => cat.name === categorieCible);
+      if (!category) return;
+
+      const groupList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_GROUP_LIST, {
+        buildingId,
+        contextId: context.dynamicId,
+        categoryDynId: category.dynamicId,
+      });
+
+      const group = groupList.find(g => g.name === groupeCible);
+      if (!group) return;
+
+      const equipementList = await this.$store.dispatch(ActionTypes.GET_EQUIPEMENT_LIST, {
+        buildingId,
+        contextDynId: context.dynamicId,
+        categoryDynId: category.dynamicId,
+        groupDynId: group.dynamicId,
+      });
+
+      console.warn(equipementList, ' equipementListequipementListequipementListequipementListequipementListequipementList');
+
+      for (const equipement of equipementList) {
+        const referenceIds = [equipement.dynamicId];
+
+        const [result] = await Promise.all([
+          this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
+            buildingId,
+            referenceIds,
+          }),
+        ]);
+
+        let X, Y, Z;
+
+        result?.attributsList?.forEach(category => {
+          category.attributs?.forEach(attribute => {
+            if (attribute.label === "XYZ center") {
+              const [x, y, z] = attribute.value.split(";");
+              X = parseFloat(x);
+              Y = parseFloat(y);
+              Z = parseFloat(z);
+            }
+          });
+        });
+
+        if (X != null && Y != null && Z != null) {
+          const item = {
+            color: '#14202c',
+            dynamicId: equipement.dynamicId,
+            buildingId,
+            dbid: equipement.dbid,
+            bimFileId: equipement.bimFileId,
+            name: equipement.name,
+            position: new THREE.Vector3(X, Y, Z),
+            data: equipement,
+            config: this.config,
+          };
+
+          console.warn('Ajout d’un sprite à la position :', item.position);
+
+          await this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+            items: item,
+            buildingId,
+            component: SpriteComponent,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Erreur dans setOtherTabletteSprite :", error);
+    }
+  }
+
+
 
   watchViewerLoaded() {
     const interval = setInterval(() => {
@@ -238,9 +411,9 @@ class App extends Vue {
         await viewer.loadExtension('Autodesk.ViewCubeUi');
 
         const nav = viewer.navigation;
-        const target = nav.getTarget(); // Le centre de la scène
-        const up = new THREE.Vector3(1, 0, 0); //orientation
-        const eye = target.clone().add(new THREE.Vector3(0, 0, 1)); // Caméra au-dessus
+        const target = nav.getTarget();
+        const up = new THREE.Vector3(1, 0, 0);
+        const eye = target.clone().add(new THREE.Vector3(0, 0, 1));
 
         nav.setView(eye, target);
         nav.setCameraUpVector(up);
@@ -253,7 +426,7 @@ class App extends Vue {
         }, 1000);
       });
 
-      //marche
+      //fonctionne
       // const viewer = window.parent.viewer
       // viewer.navigation.setRequestTransition(false);
       // setTimeout(async () => {
@@ -272,8 +445,6 @@ class App extends Vue {
       //   viewer.unloadExtension("Autodesk.ViewCubeUi");
       //   viewer.setNavigationLock(true);
       // }, 4000);
-
-
 
 
     }
@@ -430,21 +601,99 @@ class App extends Vue {
     return null;
   }
 
+  // async configTypeTablette() {
+  //   console.log('🔧 Démarrage de configTypeTablette');
+
+  //   const buildingId = localStorage.getItem("idBuilding");
+  //   const commandItem = this.config.commandItem;
+
+
+  //   // Étape 1 : Récupération des contextes
+  //   const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
+
+  //   const dynamicContextMap = {}; // ctx => dynamicId
+  //   for (const [cmdKey, cmdValues] of Object.entries(commandItem)) {
+  //     const ctxName = cmdValues[0]; // 'Gestion des espaces'
+  //     const context = contextList.find((ctx) => ctx.name === ctxName);
+  //     if (context) {
+  //       dynamicContextMap[ctxName] = context.dynamicId;
+  //     } else {
+  //       console.warn(`⚠️ Contexte "${ctxName}" non trouvé.`);
+  //     }
+  //   }
+
+  //   // Étape 2 : Récupération des catégories par contexte
+  //   const categoryMap = {}; // ctx => [categories...]
+  //   const categoryPromises = Object.entries(dynamicContextMap).map(async ([ctx, contextId]) => {
+  //     const categories = await this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_LIST, {
+  //       buildingId,
+  //       contextId,
+  //     });
+  //     categoryMap[ctx] = categories;
+  //   });
+
+  //   await Promise.all(categoryPromises);
+
+  //   // Étape 3 : Récupération des groupes par catégorie
+  //   const result = {}; // cmd_key => dynamicId du groupe
+
+  //   for (const [cmdKey, cmdValues] of Object.entries(commandItem)) {
+  //     const [ctxName, catName, grpName] = cmdValues;
+  //     const contextId = dynamicContextMap[ctxName];
+  //     if (!contextId) continue;
+
+  //     const category = categoryMap[ctxName]?.find((cat) => cat.name === catName);
+  //     if (!category) {
+  //       console.warn(`⚠️ Catégorie "${catName}" non trouvée dans le contexte "${ctxName}".`);
+  //       continue;
+  //     }
+
+  //     const groupList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_GROUP_LIST, {
+  //       buildingId,
+  //       contextId,
+  //       categoryDynId: category.dynamicId,
+  //     });
+
+  //     const matchingGroup = groupList.find((grp) => grp.name === grpName);
+
+  //     if (!matchingGroup) {
+  //       console.warn(`⚠️ Groupe "${grpName}" non trouvé dans la catégorie "${catName}".`);
+  //       continue;
+  //     }
+
+  //     result[cmdKey] = matchingGroup.dynamicId;
+  //   }
+
+
+  //   // Résultat final avec les dynamicId des groupes
+  //   // this.dynamicCommandMap = result;
+  //   this.$store.commit(MutationTypes.SET_TELECOMMAND_TYPE, result);
+  // }
+
   async configTypeTablette() {
     console.log('🔧 Démarrage de configTypeTablette');
 
     const buildingId = localStorage.getItem("idBuilding");
     const commandItem = this.config.commandItem;
 
-
     // Étape 1 : Récupération des contextes
     const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
 
     const dynamicContextMap = {}; // ctx => dynamicId
-    for (const [cmdKey, cmdValues] of Object.entries(commandItem)) {
-      const ctxName = cmdValues[0]; // 'Gestion des espaces'
+    const allContexts = new Set();
+
+    // Récupérer tous les noms de contextes à partir de la nouvelle config
+    for (const entries of Object.values(commandItem)) {
+      for (const entry of entries) {
+        allContexts.add(entry.context);
+      }
+    }
+
+    for (const ctxName of allContexts) {
       const context = contextList.find((ctx) => ctx.name === ctxName);
       if (context) {
+        console.warn('CONTEXT TROUVÉ');
+
         dynamicContextMap[ctxName] = context.dynamicId;
       } else {
         console.warn(`⚠️ Contexte "${ctxName}" non trouvé.`);
@@ -464,39 +713,45 @@ class App extends Vue {
     await Promise.all(categoryPromises);
 
     // Étape 3 : Récupération des groupes par catégorie
-    const result = {}; // cmd_key => dynamicId du groupe
+    const result = {}; // cmd_key => [dynamicId...]
 
-    for (const [cmdKey, cmdValues] of Object.entries(commandItem)) {
-      const [ctxName, catName, grpName] = cmdValues;
-      const contextId = dynamicContextMap[ctxName];
-      if (!contextId) continue;
+    for (const [cmdKey, entries] of Object.entries(commandItem)) {
+      result[cmdKey] = [];
 
-      const category = categoryMap[ctxName]?.find((cat) => cat.name === catName);
-      if (!category) {
-        console.warn(`⚠️ Catégorie "${catName}" non trouvée dans le contexte "${ctxName}".`);
-        continue;
+      for (const { context, category, group: groupNames } of entries) {
+        const contextId = dynamicContextMap[context];
+        if (!contextId) continue;
+
+        const categoryObj = categoryMap[context]?.find((cat) => cat.name === category);
+        if (!categoryObj) {
+          console.warn(`⚠️ Catégorie "${category}" non trouvée dans le contexte "${context}".`);
+          continue;
+        }
+
+        const groupList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_GROUP_LIST, {
+          buildingId,
+          contextId,
+          categoryDynId: categoryObj.dynamicId,
+        });
+
+        for (const groupName of groupNames) {
+          const matchingGroup = groupList.find((grp) => grp.name === groupName);
+          if (!matchingGroup) {
+            console.warn(`⚠️ Groupe "${groupName}" non trouvé dans la catégorie "${category}".`);
+            continue;
+          }
+
+          result[cmdKey].push(matchingGroup.dynamicId);
+        }
       }
-
-      const groupList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_GROUP_LIST, {
-        buildingId,
-        contextId,
-        categoryDynId: category.dynamicId,
-      });
-
-      const matchingGroup = groupList.find((grp) => grp.name === grpName);
-
-      if (!matchingGroup) {
-        console.warn(`⚠️ Groupe "${grpName}" non trouvé dans la catégorie "${catName}".`);
-        continue;
-      }
-
-      result[cmdKey] = matchingGroup.dynamicId;
     }
 
+    console.log(result);
+
     // Résultat final avec les dynamicId des groupes
-    // this.dynamicCommandMap = result;
     this.$store.commit(MutationTypes.SET_TELECOMMAND_TYPE, result);
   }
+
 
 
   watchLocalStorageForFloorId() {
@@ -522,7 +777,6 @@ class App extends Vue {
     let Y;
     let Z;
 
-
     result[0].attributsList.forEach(category => {
       category.attributs.forEach(attribute => {
         if (attribute.label === "XYZ center") {
@@ -535,7 +789,7 @@ class App extends Vue {
     });
 
     const item = {
-      color: '#ded638',
+      color: 'orange',
       dynamicId: result[0].dynamicId,
       buildingId: buildingId,
       dbid: result[0].dbid,

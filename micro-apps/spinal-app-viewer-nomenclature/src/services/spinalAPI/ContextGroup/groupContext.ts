@@ -59,7 +59,6 @@ export async function getGroupContext(patrimoineId: string, buildingId: string, 
     store.commit(MutationTypes.SET_USER_SELECTION, { "ctx": resultCopy.data });
 
 
-
     const matchedContext = resultCopy.data.find(context => context.name === store.state.appDataStore.user_selected.ctx);
     let type;
     let List: IZoneItem[] | null = null;

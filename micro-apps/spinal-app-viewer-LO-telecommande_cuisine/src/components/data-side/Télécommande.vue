@@ -285,7 +285,6 @@ export default {
           ],
         });
 
-        console.warn(this.$store.state.appDataStore.telecommandeType);
 
         const groupNodes = groupResult?.[0]?.nodes || [];
         const availableGroupNames = groupNodes.map(g => g.name);
@@ -294,12 +293,13 @@ export default {
 
         const matchingCommandKeys = [];
 
-        for (const [cmdKey, dynamicId] of Object.entries(commandMap)) {
-          const matchedGroup = groupNodes.find(g => g.dynamicId === dynamicId);
-          if (matchedGroup && availableGroupNames.includes(matchedGroup.name)) {
-            matchingCommandKeys.push(cmdKey);
-          }
-        }
+        for (const [cmdKey, dynamicIds] of Object.entries(commandMap)) {
+  const matchedGroup = groupNodes.find(g => dynamicIds.includes(g.dynamicId));
+  if (matchedGroup && availableGroupNames.includes(matchedGroup.name)) {
+    matchingCommandKeys.push(cmdKey);
+  }
+}
+
 
         console.log("✅ Commandes correspondantes aux groupes :", matchingCommandKeys);
         this.matchedCommandKeys = matchingCommandKeys;
@@ -343,7 +343,6 @@ export default {
           ],
         });
 
-        console.warn(this.$store.state.appDataStore.telecommandeType);
 
         const groupNodes = groupResult?.[0]?.nodes || [];
         const availableGroupNames = groupNodes.map(g => g.name);
@@ -354,12 +353,14 @@ export default {
         // On cherche les clés dont le groupe est présent dans la liste
         const matchingCommandKeys = [];
 
-        for (const [cmdKey, dynamicId] of Object.entries(commandMap)) {
-          const matchedGroup = groupNodes.find(g => g.dynamicId === dynamicId);
-          if (matchedGroup && availableGroupNames.includes(matchedGroup.name)) {
-            matchingCommandKeys.push(cmdKey);
-          }
-        }
+        
+
+        for (const [cmdKey, dynamicIds] of Object.entries(commandMap)) {
+  const matchedGroup = groupNodes.find(g => dynamicIds.includes(g.dynamicId));
+  if (matchedGroup && availableGroupNames.includes(matchedGroup.name)) {
+    matchingCommandKeys.push(cmdKey);
+  }
+}
 
         console.log("✅ Commandes correspondantes aux groupes :", matchingCommandKeys);
         this.matchedCommandKeys = matchingCommandKeys;

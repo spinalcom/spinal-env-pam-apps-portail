@@ -68,6 +68,9 @@ with this file. If not, see
       <v-icon v-if="ActiveData">mdi-chevron-double-right</v-icon>
       <v-icon v-else-if="DActive">mdi-chevron-left</v-icon>
       <v-icon v-else>mdi-chevron-right</v-icon>
+      <v-icon v-if="ActiveData">mdi-chevron-double-right</v-icon>
+      <v-icon v-else-if="DActive">mdi-chevron-left</v-icon>
+      <v-icon v-else>mdi-chevron-right</v-icon>
     </button>
     <div class="dataContainer">
       <SpinalTable :sconfig="config" class="entrence" :class="{ 'inactiveTable': DActive, 'displaydataCss': displaydata }"

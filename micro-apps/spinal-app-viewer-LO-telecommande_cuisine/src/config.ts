@@ -31,56 +31,80 @@ export const config: IConfig = {
 
 	//donnée pour le lancement de l'app à mettre dans l'url
 
+	//context cat grp des tablettes pour leur affichage
+	tabletteContext: "Gestion des équipements",
+	tabletteCat: "Scénario Luminaire",
+	tabletteGroup: "Tablette",
 
-	//context et categories du groupe de la tablette
-	groupContext: "Gestion des espaces",
-	groupContextCat: "Télécommande de confort",
+	//context categories groupe de la piece
+	roomContext: "Gestion des espaces",
+	roomCat: "Télécommande de confort",
 
 	//affiche tout l'etage si true sinon affiche uniquement la piece / les pieces
 	showAllFloor: true,
-	rotation: true,
-	//type d'equipement : all(tout les equipement de la piece) , none(que les sols) , selected(un type selectionné)
 
+	// rotation de 90degres
+	rotation: false,
+
+	//type d'equipement : all(tout les equipement de la piece) , none(que les sols) , selected(un type selectionné)
 	show_equipements: 'selected',
+
 	//si selected ( choisir l'equipement voulu)
 	equipementSelections: [
 		{
 			equipementContext: "Gestion des équipements",
 			equipementCat: "Mobilier",
 			equipementsGroup: "Bureaux",
-			isControlable: false
+			isControlable: true
 		},
 		{
 			equipementContext: "Gestion des équipements",
 			equipementCat: "Typologie",
 			equipementsGroup: "Lavabo",
-			isControlable: true
+			isControlable: false
 		}
 	],
 
 	//moyen de selection de télécommande : button (pilotage par bouton d'une ou plusieur piece) , room (pilotage en cliquant sur le sol de la piece) , equipement (pilotage en cliquant sur l'equipment)
 	// multiple (pilotage par bouton et par sol)
-	SelectionType: 'equipement',
+	SelectionType: 'room',
 
 	//les differents type de télécommande
+
+
 	commandItem: {
-		cmd_Light_percent: ['Gestion des espaces', 'CMD_L', 'Type_1'],//commande Light en %
-		cmd_Light_star: ['Gestion des espaces', 'CMD_L', 'Type_2'],//commande Light en * ** *** ****
-		cmd_store_on: ['Gestion des espaces', 'CMD_ST', 'Type_3'],//commande store on
-		cmd_store_off: ['Gestion des espaces', 'CMD_ST', 'Type_4'],//commande store off
+		cmd_Light_percent: [
+			{
+				context: 'Gestion des espaces',
+				category: 'CMD_L',
+				group: ['Type_1']
+			}
+		],
+		cmd_Light_star: [
+			{
+				context: 'Gestion des espaces',
+				category: 'CMD_L',
+				group: ['Type_2']
+			}
+		],
+		cmd_store_on: [
+			{
+				context: 'Gestion des espaces',
+				category: 'CMD_ST',
+				group: ['Type_3']
+			}
+		],
+		cmd_store_off: [
+			{
+				context: 'Gestion des espaces',
+				category: 'CMD_ST',
+				group: ['Type_4']
+			}
+		]
+
 	},
 
-	// commandItem: {
-	// 	Light_percent: [
-	// 		{
-	// 			context: 'Gestion des espaces',
-	// 			category: 'CMD_L',
-	// 			group: ['type 1', 'type2']
-	// 		}
-	// 	]
-	// }
 
-	
 
 	configCommand: {
 		temperature: {
