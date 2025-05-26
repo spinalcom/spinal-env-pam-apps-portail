@@ -47,22 +47,6 @@ with this file. If not, see
       </dataSideApp>
     </div>
 
-    <sprite-component v-if="selectedZone && selectedZone.type === 'geographicFloor'" :data="spriteData"
-      type="geographicFloor" style="
-        position: absolute;
-        z-index: 9;
-        left: calc(55%);
-        top: 50%;
-        width: 35px;
-      "></sprite-component>
-    <sprite-component v-else :data="spriteData" type="geographicBuilding" style="
-        position: absolute;
-        z-index: 9;
-        left: calc(55%);
-        top: 50%;
-        width: 35px;
-      "></sprite-component>
-
     <ticketDetails v-if="detailedTicket" style="z-index: 99" v-model="showDialog" @changeRoute="handleRouteChange"
       @reloadRequested="callReloadOnDataSideApp" :detailed-ticket="detailedTicket" :token="token" :baseURL="baseUrl"
       :config="ticketConfig"></ticketDetails>
@@ -104,11 +88,8 @@ import { Legend } from "./interfaces/ILegend";
 import dataSideApp from "./components/data-side/App.vue";
 import ticketDetails from "./components/data-side/TicketDetailsNew.vue";
 import LegendVue from "./components/data-side/components/LegendVue.vue";
-import SpriteComponent from "./components/data-side/FloorSpriteComponent.vue";
 import { SpinalAPI } from "./services/spinalAPI/SpinalAPI";
-import { log } from "console";
 import { EventBus } from './components/SpaceSelector/eventBus';
-import { convertZonesToISpaceSelectorItems } from './components/SpaceSelector/convertZonesToISpaceSelectorItems';
 const COLORS = ["#FF0000", "#FFA500", "#008000"];
 const buildingId = localStorage.getItem("idBuilding") || "";
 const token = localStorage.getItem("token") || "";
@@ -118,7 +99,6 @@ const token = localStorage.getItem("token") || "";
     SpaceSelector,
     viewerApp,
     dataSideApp,
-    SpriteComponent,
     ticketDetails,
     LegendVue,
   },
@@ -497,7 +477,6 @@ class App extends Vue {
               buildingId: null,
             }
           );
-          console.log(building);
           return [
             {
               name: building.name,
@@ -661,10 +640,12 @@ class App extends Vue {
       buildingId: this.selectedZone.buildingId,
       dynamicId: this.selectedZone.dynamicId,
       buildingTicketNumber: this.buildingTicketNumber,
+      legend: true,
       data: data.filter(
         (d) => d.elementSelected.dynamicId === this.selectedZone.dynamicId
       ),
     };
+    console.log("spriteData", this.spriteData);
   }
 
   public getDataFormatted() {

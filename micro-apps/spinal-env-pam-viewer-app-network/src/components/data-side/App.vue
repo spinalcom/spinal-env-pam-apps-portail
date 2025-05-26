@@ -29,7 +29,7 @@ with this file. If not, see
         $emit('buttonClicked');
         resize();
       }
-        " style="
+      " style="
           z-index: 10;
           position: absolute;
           top: 47.5%;
@@ -52,7 +52,7 @@ with this file. If not, see
         $emit('buttonClicked3D');
         resize();
       }
-        " style="
+      " style="
           z-index: 10;
           position: absolute;
           top: 52.5%;
@@ -224,6 +224,7 @@ class dataSideApp extends Vue {
       //   patrimoineId,
       //   this.selectedZone.dynamicId
       // );
+
       this.groupes = await this.getGroupes(
         buildingId,
         patrimoineId,
@@ -241,6 +242,7 @@ class dataSideApp extends Vue {
         patrimoineId,
         childrenData
       );
+      console.log("luminaireChildren", luminaireChildren);
 
       const Typologies = await this.getElementTypologie();
 

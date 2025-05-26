@@ -1,16 +1,16 @@
 <template>
   <div id="floor-sprite" class="sprite_container_ticket pa-1" :class="{ pentagon: type === 'geographicBuilding' }"
-    :style="{
-      background: `conic-gradient(green ${gradient.firstStep}deg, orange ${gradient.firstStep}deg ${gradient.lastStep}deg, red ${gradient.lastStep}deg)`,
-    }" @click.stop="onClick" @clickExteriorSprite="_isNotSelected()">
+    :style="computedGradient" @click.stop="onClick" @clickExteriorSprite="_isNotSelected()">
     <div :class="{ pentagon: type === 'geographicBuilding' }"
       class="sprite_color_ticket_ticket d-flex flex-grow-1 align-center justify-center" :style="{
         background: '#14202C',
         color: '#FFFFFF',
+        height: '24px',
         'text-align': 'center',
+
         ...dynamicStyle,
       }">
-      {{ data.buildingTicketNumber !== 0 ? data.buildingTicketNumber : floorValue }}
+      {{ buildingTicketNumber }}
     </div>
   </div>
 </template>
@@ -27,10 +27,21 @@ import { EventBus } from "../SpaceSelector/eventBus";
 
 export default {
   props: {
-    data: {},
+    tickets: {
+      type: Array,
+      required: true,
+    },
     type: {
       type: String,
-      default: "geographicFloor" // Default to floor shape
+      default: "geographicBuilding",
+    },
+    buildingTicketNumber: {
+      type: Number,
+      default: 0,
+    },
+    isPriority: {
+      type: Boolean,
+      default: true,
     },
   },
   filters: {
@@ -57,36 +68,32 @@ export default {
   }),
 
   computed: {
-    floorValue() {
-      return this.data?.data?.length || 0;
+    filteredTickets() {
+      return this.tickets.filter(ticket =>
+        ticket.elementSelected?.type === this.type
+      );
     },
-    gradient() {
-      const len = this.data?.data?.length || 1;
-      const low = this.data?.data?.filter((d) => d.priority == 2)?.length || 0;
-      const mid = this.data?.data?.filter((d) => d.priority == 1)?.length || 0;
-      const first = Math.round(360 * (low / len));
-      const last = first + Math.round(360 * (mid / len));
-      return {
-        firstStep: first,
-        lastStep: last,
-      };
+    computedGradient() {
+      return !this.isPriority ? this.getPriorityGradient() : this.getStepGradient();
     },
+
   },
   mounted() {
+    console.log("mounted from floor sprite", this.isPriority);
   },
 
 
   methods: {
     onClick() {
       const emitterHandler = EmitterViewerHandler.getInstance();
-      emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
+      emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.tickets });
       this._isSelected();
       store.dispatch(ActionTypes.SELECT_SPRITES, []);
       store.commit(
         MutationTypes.SET_SELECTED_TICKETS,
-        this.data.data.map((d) => d.dynamicId)
+        this.tickets.map((d) => d.dynamicId)
       );
-      EventBus.$emit("move-tickets-top", [...this.data.data]);
+      EventBus.$emit("move-tickets-top", [...this.tickets]);
     },
     _isSelected() {
       this.dynamicStyle = {
@@ -98,6 +105,85 @@ export default {
         boxShadow: "none",
       };
     },
+    getPriorityGradient() {
+      const relevantTickets = this.filteredTickets;
+      const priorityCounts = this.getPriorityCounts();
+      const len = relevantTickets?.length || 1;
+      const low = priorityCounts[0] || 0;
+      const mid = priorityCounts[1] || 0;
+      const first = Math.round(360 * (low / len));
+      const last = first + Math.round(360 * (mid / len));
+      return {
+        background: `conic-gradient(green ${first}deg, orange ${first}deg ${last}deg, red ${last}deg)`
+      };
+    },
+    getStepGradient() {
+      const relevantTickets = this.filteredTickets;
+      const len = relevantTickets?.length || 1;
+      if (len === 0) return { background: "" };
+
+      const summary = this.getStepSummary();
+      const total = summary.reduce((acc, item) => acc + item.count, 0);
+      let currentAngle = 0;
+
+      const segments = summary.map(step => {
+        const angle = Math.round((step.count / total) * 360);
+        const start = currentAngle;
+        const end = currentAngle + angle;
+        currentAngle = end;
+        return `${step.color} ${start}deg ${end}deg`;
+      });
+
+      return {
+        background: `conic-gradient(${segments.join(", ")})`
+      };
+    },
+
+    getPriorityCounts() {
+      const counts = { 0: 0, 1: 0, 2: 0 };
+
+      this.filteredTickets.forEach(ticket => {
+        const prio = ticket.priority;
+        if (prio in counts) {
+          counts[prio]++;
+        } else {
+          counts[prio] = 1; // fallback in case a new priority value appears
+        }
+      });
+      return counts;
+    },
+    getStepSummary() {
+      const stepMap = new Map();
+
+      this.filteredTickets.forEach(ticket => {
+        const step = ticket.step;
+        if (!step || !step.name) return;
+
+        const key = step.name;
+
+        if (!stepMap.has(key)) {
+          stepMap.set(key, {
+            name: step.name,
+            count: 1,
+            order: step.order || 0,
+            color: step.color || "#000000",
+          });
+        } else {
+          stepMap.get(key).count++;
+        }
+      });
+
+      // Convert map to array and sort by step order
+      return Array.from(stepMap.values()).sort((a, b) => a.order - b.order);
+    }
+
+  },
+  watch: {
+    handler(newVal, oldVal) {
+      console.log(`Type changed from ${oldVal} to ${newVal}`);
+      // Add any additional logic you want to execute when type changes
+    },
+    immediate: true,
   },
 };
 </script>

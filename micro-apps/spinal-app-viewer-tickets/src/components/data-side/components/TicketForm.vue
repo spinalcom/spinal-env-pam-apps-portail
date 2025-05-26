@@ -38,12 +38,15 @@
                 <div v-if="selectedZone.type === 'geographicRoom'" class="form-value locked">{{ selectedZone.name }}
                 </div>
                 <div v-else class="select-wrapper" :class="{ open: dropdownStates.salle }">
-
                     <select class="select-input-add-ticket" v-model="ticket.salle" @focus="dropdownStates.salle = true"
                         @blur="dropdownStates.salle = false" :disabled="selectedZone.type === 'geographicRoom'">
                         <option value="">Sélectionner</option>
                         <option v-for="salle in salles" :key="salle" :value="salle">{{ salle }}</option>
                     </select>
+                    <!-- <div v-if="ticket.salle && listofRooms.find(r => r.name === ticket.salle)"
+                        title="Centrer la vue sur la salle sélectionnée" class="zoom-in-icon"
+                        @click="isolateElement(ticket.salle)">
+                    </div> -->
                     <div class="dropdown-icon"></div>
                 </div>
             </div>
@@ -52,23 +55,19 @@
                     <div class="form-icon-container equipement"></div>
                     <label class="form-input-title">Équipement</label>
                 </div>
-                <!-- <div v-if="selectedObj?.[0]?.type === 'BIMObject'" class="form-value locked">{{ ticket.equipement }}
-                </div> -->
-
-                <div class="select-wrapper" :class="{ open: dropdownStates.equipement }">
-                    <select class="select-input-add-ticket" v-model="ticket.equipement"
-                        @focus="dropdownStates.equipement = true" @blur="dropdownStates.equipement = false">
-                        <option value="">Sélectionner</option>
-                        <option v-for="eq in equipements" :key="eq" :value="eq">{{ eq }}</option>
-                    </select>
-                    <!-- <div class="dropdown-icon"></div> -->
+                <div class="form-value locked"
+                    title="Vous devez sélectionner depuis la 3D l’équipement sur lequel vous voulez déclarer un ticket.">
+                    {{ ticket.equipement || 'Aucun équipement sélectionné' }}
+                    <div title="Cliquez pour désélectionner l'équipement" class="zoom-in-icon"
+                        @click="deselectEquipement">
+                    </div>
+                    <div class="info-icon"
+                        title="Vous devez sélectionner depuis la 3D l’équipement sur lequel vous voulez déclarer un ticket.">
+                    </div>
                 </div>
-                <!-- <select class="select-input-add-ticket" v-model="ticket.equipement"
-                    :disabled="selectedZone.type === 'BIMOBJECT'">
-                    <option value="">Sélectionner</option>
-                    <option v-for="eq in equipements" :key="eq" :value="eq">{{ eq }}</option>
-                </select> -->
+
             </div>
+
         </div>
         <h4 style="margin-bottom: 2px;margin-top: 10px;">Détails de la demande</h4>
         <div style="width: 100%; height: 1px;background-color: #DCE0E5;margin-bottom: 10px;"></div>
@@ -86,6 +85,7 @@
                     </select>
                     <div class="dropdown-icon"></div>
                 </div>
+                <div class="error-message" v-if="errors.workflow">{{ errors.workflow }}</div>
             </div>
             <div class="form-group">
                 <div class="form-input-title-container">
@@ -100,6 +100,7 @@
                     </select>
                     <div class="dropdown-icon"></div>
                 </div>
+                <div class="error-message" v-if="errors.domaine">{{ errors.domaine }}</div>
             </div>
         </div>
         <div class="d-flex flex-row justify-space-between">
@@ -108,12 +109,16 @@
                     <label class="form-input-title">Titre de ticket</label>
                     <input class="form-title-input" type="text" v-model="ticket.titre"
                         placeholder="Ex: Problème de câblage..." />
+                    <div class="error-message" v-if="errors.titre">{{ errors.titre }}</div>
+
                 </div>
 
                 <div class="form-group" style="width: 100%;">
                     <label class="form-input-title">Description</label>
                     <textarea class="form-desc-input" v-model="ticket.description"
                         placeholder="Une description du ticket..."></textarea>
+                    <div class="error-message" v-if="errors.description">{{ errors.description }}</div>
+
                 </div>
             </div>
             <div style="width: 47%;">
@@ -135,25 +140,37 @@
                             </div>
                         </div>
                     </div>
+                    <div class="error-message" v-if="errors.priorite">{{ errors.priorite }}</div>
                 </div>
                 <div class="form-group" style="width: 100%;">
                     <label class="form-input-title">Attachement</label>
-                    <div style="width: 120px;
-                                margin-top: 10px;
-                                font-weight: bold;
-                                height: 40px;
-                                background-color: rgb(20, 32, 44);
-                                color: white;
-                                justify-content: center;
-                                align-items: center;" class="d-flex flex-row">Joindre</div>
-                    <!-- <input class="form-title-input" type="text" 
-                        placeholder="Ex: Problème de câblage..." /> -->
+                    <div class="d-flex flex-row attach-button" @click="$refs.fileInput.click()">Joindre
+                    </div>
+                    <input type="file" ref="fileInput" @change="handleFileUpload" style="display: none;" multiple />
+
                 </div>
+                <div v-if="uploadedFiles.length" class="file-preview-list">
+                    <div v-for="(file, index) in uploadedFiles" :key="file.name" class="file-preview-item">
+                        <span class="file-icon">📎</span>
+                        <span class="file-name" :title="file.name">{{ file.name }}</span>
+                        <span class="remove-file" @click="removeFile(index)">✖</span>
+                    </div>
+                </div>
+
             </div>
 
         </div>
+        <confirm-dialog :value="showConfirmDialog" @input="showConfirmDialog = $event" :type="'ticket'"
+            :headline="'Confirmer la création du ticket'" :text="confirmText" :confirmLabel="'Créer'"
+            @cancel="showConfirmDialog = false" @confirm="confirmAndCreateTicket" />
+
         <!-- <button @click="createTicket">Ajouter Ticket</button> -->
+        <div @click="" class="annuler-button">Annuler</div>
         <div @click="createTicket" class="add-button">Ajouter Ticket</div>
+        <div v-if="showSuccess" class="success-banner">
+            Création du ticket réussie
+            <div class="success-progress"></div>
+        </div>
     </div>
 </template>
 
@@ -161,9 +178,11 @@
 import { Vue, Prop, Watch } from "vue-property-decorator";
 import Component from "vue-class-component";
 import { ActionTypes } from "../../../interfaces/vuexStoreTypes";
+import ConfirmDialog from "./ConfirmDialog.vue";
 
 @Component({
     components: {
+        ConfirmDialog
     },
     name: "TicketForm",
 })
@@ -180,6 +199,10 @@ class TicketForm extends Vue {
     listofRooms: any = [];
     pickedFloor: any = "";
     pickedRoom: any = "";
+    showSuccess: boolean = false;
+    showConfirmDialog: boolean = false;
+    confirmText: string = "";
+
     // isDropdownOpen: boolean = false;
     dropdownStates: { [key: string]: boolean } = {
         etage: false,
@@ -187,6 +210,7 @@ class TicketForm extends Vue {
         workflow: false,
         domain: false,
     };
+
 
     ticket: any = {
         batiment: "",
@@ -202,8 +226,24 @@ class TicketForm extends Vue {
     etages = [];
     salles = ["SÉLECTIONNER UN ÉTAGE AVANT"];
     equipements: Array<any> = [];
+    uploadedFiles: File[] = [];
+    errors: {
+        workflow: string,
+        domaine: string,
+        titre: string,
+        description: string,
+        priorite: string,
+    } = {
+            workflow: "",
+            domaine: "",
+            titre: "",
+            description: "",
+            priorite: "",
+        };
+
 
     mounted() {
+        console.log("mounted from ticket form", this.domainlist);
         this.prefillSelectedZone();
     }
     onPriorityChange(value: string) {
@@ -219,6 +259,39 @@ class TicketForm extends Vue {
             default:
                 return "gray";
         }
+    }
+    handleFileUpload(event: Event) {
+        const target = event.target as HTMLInputElement;
+        if (target.files) {
+            const files = Array.from(target.files);
+            for (const file of files) {
+                if (!this.uploadedFiles.find(f => f.name === file.name)) {
+                    this.uploadedFiles.push(file);
+                }
+            }
+            (this.$refs.fileInput as HTMLInputElement).value = ""; // Reset input
+        }
+    }
+    removeFile(index: number) {
+        this.uploadedFiles.splice(index, 1);
+    }
+    generateTicketCreationText(): string {
+        let message = "";
+        message += `➤ Workflow : <b>${this.ticket.workflow}</b><br>`;
+        message += `➤ Domaine : <b>${this.ticket.domaine}</b><br>`;
+        message += `➤ Titre : <b>${this.ticket.titre}</b><br>`;
+        message += `➤ Description : <i>"${this.ticket.description}"</i><br>`;
+        message += `➤ Priorité : <b>${this.priorities.find(p => p.value === this.ticket.priorite)?.label}</b><br>`;
+
+        if (this.uploadedFiles.length) {
+            message += `➤ ${this.uploadedFiles.length} fichier(s) joint(s)<ul>`;
+            for (const file of this.uploadedFiles) {
+                message += `<li>${file.name}</li>`;
+            }
+            message += "</ul>";
+        }
+
+        return message;
     }
 
 
@@ -294,7 +367,6 @@ class TicketForm extends Vue {
             // const position = await this.$store.dispatch(ActionTypes.EQUIPEMENT_GET_POSITION, {
             // id: obj.dynamicId,
             // });
-            // console.log('position:', position);
 
         } else if (type === 'geographicRoom') {
             // Set salle to the current room name
@@ -317,42 +389,146 @@ class TicketForm extends Vue {
         }
     }
 
+    async isolateElement(salleName: string) {
+        console.log("isolateElement", salleName);
+        if (!salleName) return;
+
+        const room = this.listofRooms.find((room: any) => room.name === salleName);
+        if (room && room.dynamicId) {
+            await this.$store.dispatch(ActionTypes.FIT_TO_VIEW_ITEMS, { dynamicId: room.dynamicId });
+        }
+    }
+    deselectEquipement() {
+        this.ticket.equipement = "";
+    }
 
     async createTicket() {
+        if (!this.validateForm()) return;
+
+        this.confirmText = this.generateTicketCreationText();
+        this.showConfirmDialog = true;
+    }
+    async confirmAndCreateTicket() {
+        this.showConfirmDialog = false;
+
+        // Existing logic here
         const workflowObj = this.workflowlist.find((wf: any) => wf.name === this.ticket.workflow);
         const domaineObj = this.domainlist.find((dom: any) => dom.name === this.ticket.domaine);
 
-        if (workflowObj && domaineObj && this.ticket.titre && this.ticket.description && this.ticket.priorite) {
-            let elementSelected = 0;
-            if (this.ticket.salle !== "") {
-                elementSelected = this.listofRooms.find((room: any) => room.name === this.ticket.salle)?.dynamicId || 0;
-            } else if (this.ticket.etage !== "") {
-                elementSelected = this.listofFloors.find((floor: any) => floor.name === this.ticket.etage)?.dynamicId || 0;
-            } else {
-                elementSelected = this.building.buildingId;
-            }
-            this.ticket.priorite = this.ticket.priorite === "faible" ? 2 : this.ticket.priorite === "moyenne" ? 1 : 0;
-            const data = {
-                workflow: workflowObj.name,
-                process: domaineObj.name,
-                nodeDynamicId: elementSelected,
-                name: this.ticket.titre,
-                priority: this.ticket.priorite || 2,
-                description: this.ticket.description,
-            };
-            const buildingId = localStorage.getItem("idBuilding");
-            const res = await this.$store.dispatch("ADD_TICKET", { buildingId, data });
+        // (same as in your original createTicket)
+        const buildingId = localStorage.getItem("idBuilding");
+        const data = {
+            workflow: workflowObj.name,
+            process: domaineObj.name,
+            nodeDynamicId: this.resolveSelectedNodeId(),
+            name: this.ticket.titre,
+            priority: this.ticket.priorite || 2,
+            description: this.ticket.description,
+        };
 
-            if (res) {
-                this.resetForm();
-                this.$emit("add-ticket", { message: "Ticket ajouté", status: "success", context: "ticket" });
-            } else {
-                this.$emit("add-ticket", { message: "Erreur lors de l'ajout du ticket", status: "error", context: "ticket" });
-            }
+        const res = await this.$store.dispatch("ADD_TICKET", { buildingId, data, file: this.uploadedFiles });
+
+        if (res) {
+            this.resetForm();
+            this.showSuccess = true;
+            setTimeout(() => this.showSuccess = false, 3000);
+            this.$emit("add-ticket", { message: "Ticket ajouté", status: "success", context: "ticket" });
         } else {
-            alert("Merci de remplir tous les champs obligatoires.");
+            this.$emit("add-ticket", { message: "Erreur lors de l'ajout du ticket", status: "error", context: "ticket" });
         }
     }
+    resolveSelectedNodeId() {
+        if (this.ticket.salle !== "") {
+            return this.listofRooms.find((room: any) => room.name === this.ticket.salle)?.dynamicId || 0;
+        } else if (this.ticket.etage !== "") {
+            return this.listofFloors.find((floor: any) => floor.name === this.ticket.etage)?.dynamicId || 0;
+        } else {
+            return this.building.buildingId;
+        }
+    }
+
+
+    // async createTicket() {
+    //     if (!this.validateForm()) return;
+    //     const workflowObj = this.workflowlist.find((wf: any) => wf.name === this.ticket.workflow);
+    //     const domaineObj = this.domainlist.find((dom: any) => dom.name === this.ticket.domaine);
+
+    //     if (
+    //         workflowObj &&
+    //         domaineObj &&
+    //         this.ticket.titre &&
+    //         this.ticket.description &&
+    //         typeof this.ticket.priorite === 'number'
+    //     ) {
+    //         let elementSelected = 0;
+    //         if (this.ticket.salle !== "") {
+    //             elementSelected = this.listofRooms.find((room: any) => room.name === this.ticket.salle)?.dynamicId || 0;
+    //         } else if (this.ticket.etage !== "") {
+    //             elementSelected = this.listofFloors.find((floor: any) => floor.name === this.ticket.etage)?.dynamicId || 0;
+    //         } else {
+    //             elementSelected = this.building.buildingId;
+    //         }
+    //         const data = {
+    //             workflow: workflowObj.name,
+    //             process: domaineObj.name,
+    //             nodeDynamicId: elementSelected,
+    //             name: this.ticket.titre,
+    //             priority: this.ticket.priorite || 2,
+    //             description: this.ticket.description,
+    //         };
+    //         const buildingId = localStorage.getItem("idBuilding");
+    //         const res = await this.$store.dispatch("ADD_TICKET", { buildingId, data, file: this.uploadedFiles, });
+
+    //         if (res) {
+    //             this.resetForm();
+    //             this.showSuccess = true;
+    //             setTimeout(() => {
+    //                 this.showSuccess = false;
+    //             }, 3000);
+    //             this.$emit("add-ticket", { message: "Ticket ajouté", status: "success", context: "ticket" });
+    //         } else {
+    //             this.$emit("add-ticket", { message: "Erreur lors de l'ajout du ticket", status: "error", context: "ticket" });
+    //         }
+    //     } else {
+    //         alert("Merci de remplir tous les champs obligatoires.");
+    //     }
+    // }
+    validateForm() {
+        this.errors = {
+            workflow: "",
+            domaine: "",
+            titre: "",
+            description: "",
+            priorite: "",
+        };
+
+        let isValid = true;
+
+        if (!this.ticket.workflow) {
+            this.errors.workflow = "Ce champ est requis.";
+            isValid = false;
+        }
+        if (!this.ticket.domaine) {
+            this.errors.domaine = "Ce champ est requis.";
+            isValid = false;
+        }
+        if (!this.ticket.titre) {
+            this.errors.titre = "Ce champ est requis.";
+            isValid = false;
+        }
+        if (!this.ticket.description) {
+            this.errors.description = "Ce champ est requis.";
+            isValid = false;
+        }
+        if (this.ticket.priorite === null || this.ticket.priorite === undefined) {
+            this.errors.priorite = "Ce champ est requis.";
+            isValid = false;
+        }
+
+
+        return isValid;
+    }
+
 
     resetForm() {
         this.ticket = {
@@ -366,6 +542,7 @@ class TicketForm extends Vue {
             description: "",
             priorite: 2,
         };
+        this.uploadedFiles = [];
         this.prefillSelectedZone();
     }
 }
@@ -400,11 +577,11 @@ export default TicketForm;
 
 .form-input-title {
     font-weight: normal;
-    font-size: 16px !important;
+    font-size: 14px !important;
 }
 
 .form-icon-container {
-    height: 30px;
+    height: 26px;
     margin-right: 5px;
     background-color: #fff;
     background-size: 100%;
@@ -414,32 +591,32 @@ export default TicketForm;
 
 .form-icon-container.building {
     background-image: url(../assets/form-building.svg);
-    width: 25px;
+    width: 22px;
 }
 
 .form-icon-container.floor {
     background-image: url(../assets/form-floor.svg);
-    width: 25px;
+    width: 22px;
 }
 
 .form-icon-container.room {
     background-image: url(../assets/form-room.svg);
-    width: 28px;
+    width: 25px;
 }
 
 .form-icon-container.equipement {
     background-image: url(../assets/form-eq.svg);
-    width: 20px;
+    width: 17px;
 }
 
 .form-icon-container.workflow {
     background-image: url(../assets/form-workflow.svg);
-    width: 25px;
+    width: 22px;
 }
 
 .form-icon-container.domain {
     background-image: url(../assets/form-domain.svg);
-    width: 25px;
+    width: 22px;
 }
 
 label {
@@ -448,7 +625,7 @@ label {
 
 .form-value.locked {
     color: #14202c78;
-    background-color: #14202c03;
+    background-color: #14202c20;
     border-bottom: 2px solid #14202c;
     border-radius: 0 0 8px 0px;
     align-items: center;
@@ -482,6 +659,44 @@ label {
 
 .select-wrapper.open .dropdown-icon {
     transform: rotate(90deg);
+}
+
+.zoom-in-icon {
+    position: absolute;
+    background-image: url(../assets/remove.svg);
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    right: 55px;
+    width: 22px;
+    height: 22px;
+    transition: transform 0.3s ease;
+    pointer-events: auto;
+}
+
+.zoom-in-icon:hover {
+    right: 54px;
+    width: 24px;
+    height: 24px;
+    cursor: pointer !important;
+}
+
+.info-icon {
+    position: absolute;
+    background-image: url(../assets/info.svg);
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    right: 30px;
+    width: 22px;
+    height: 22px;
+    pointer-events: auto;
+}
+
+.info-icon:hover {
+    right: 29px;
+    width: 24px;
+    height: 24px;
 }
 
 .select-input-add-ticket {
@@ -556,18 +771,67 @@ button:hover {
 }
 
 .add-button {
+    position: absolute;
+    bottom: 20px;
     right: 20px;
+    width: 150px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    background-color: #14202c;
+    color: #fff;
+    cursor: pointer;
+    overflow: hidden;
+    z-index: 1;
+    transition: color 0.3s ease;
+}
+
+.add-button::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 100%;
+    background-color: #1a2a3c;
+    /* darker or slightly different than original */
+    z-index: -1;
+    transition: width 0.4s ease;
+}
+
+.add-button:hover::before {
+    width: 100%;
+}
+
+
+.annuler-button {
+    right: 180px;
     border-radius: 5px;
     position: absolute;
     bottom: 20px;
-    color: #fff;
-    background-color: #14202c;
+    color: #14202c;
+    border: 2px solid #14202c;
+    background-color: #fff;
     justify-content: center;
     align-items: center;
     width: 150px;
     height: 45px;
     display: flex;
     cursor: pointer;
+}
+
+.annuler-button:hover {
+    background-color: #f0f0f0;
+}
+
+.annuler-button:active {
+    background-color: #e0e0e0;
+}
+
+.annuler-button:focus {
+    outline: none;
 }
 
 .custom-radio-wrapper {
@@ -597,5 +861,132 @@ button:hover {
     color: white;
     font-size: 14px;
     line-height: 1;
+}
+
+.attach-button {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    width: 120px;
+    margin-top: 10px;
+    font-weight: bold;
+    height: 40px;
+    background-color: rgb(20, 32, 44);
+    color: white;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    transition: color 0.3s ease;
+}
+
+.attach-button::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.2);
+    /* or another effect */
+    z-index: -1;
+    transition: width 0.4s ease;
+}
+
+.attach-button:hover::before {
+    width: 100%;
+}
+
+
+.file-preview-list {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 5px;
+    background-color: #f7f7f7;
+    border: 1px dashed #ccc;
+    border-radius: 5px;
+}
+
+.file-preview-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border-radius: 3px;
+    padding: 3px 8px;
+    font-size: 12px;
+    color: #14202c;
+    border: 1px solid #ddd;
+}
+
+.file-icon {
+    margin-right: 6px;
+}
+
+.file-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.remove-file {
+    cursor: pointer;
+    color: red;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+.remove-file:hover {
+    /* color: #ff0000; */
+    font-size: 15px;
+}
+
+.error-message {
+    color: red;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.success-banner {
+    color: #14202c;
+    backdrop-filter: blur(2px);
+    background-color: #14202c50;
+    border-radius: 5px;
+    justify-content: center;
+    align-items: center;
+    width: 300px;
+    height: 40px;
+    font-size: 13px;
+    font-weight: bold;
+    display: flex;
+    position: absolute;
+    bottom: 80px;
+    right: 120%;
+    box-shadow: 0 2px 4px #0003;
+    overflow: hidden;
+}
+
+.success-progress {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    height: 3px;
+    background-color: #14202c;
+    animation: progressFill 2.5s linear forwards;
+    width: 100%;
+    border-radius: 0 0 5px 5px;
+}
+
+@keyframes progressFill {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
 }
 </style>

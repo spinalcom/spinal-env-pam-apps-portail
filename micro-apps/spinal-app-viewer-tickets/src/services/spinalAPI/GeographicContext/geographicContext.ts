@@ -107,7 +107,6 @@ export async function getMultipleReferenceObjects(
   buildingId: string,
   referenceIds: number[]
 ): Promise<any> {
-  // console.log('Début de la récupération des objets de référence');
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(
     buildingId,
@@ -115,7 +114,6 @@ export async function getMultipleReferenceObjects(
   );
   try {
     const response = await spinalAPI.post<any>(url, referenceIds);
-    // console.log('Fin de la récupération des objets de référence');
     return response.data;
   } catch (error) {
     console.error(

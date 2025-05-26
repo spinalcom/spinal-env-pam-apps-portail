@@ -2,7 +2,7 @@
   <div v-if="data.data[0].elementSelected.type == 'BIMObject'" class="sprite_container_triangle_wrapper"
     :class="{ 'selected': isSelected }">
     <div class="sprite_container_triangle pa-1" :style="{
-      background: `conic-gradient(green ${gradient2.firstStep}deg, orange ${gradient2.firstStep}deg ${gradient2.lastStep}deg, red ${gradient2.lastStep}deg)`,
+      background: data.legend ? gradient3.conic : `conic-gradient(green ${gradient2.firstStep}deg, orange ${gradient2.firstStep}deg ${gradient2.lastStep}deg, red ${gradient2.lastStep}deg)`,
       clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
     }" @click.stop="onClick()">
       <div class="sprite_color_triangle d-flex align-center justify-center" :style="{
@@ -19,7 +19,7 @@
 
 
   <div v-else class="sprite_container_ticket pa-1" :style="{
-    background: `conic-gradient(green ${gradient.firstStep}deg, orange ${gradient.firstStep}deg ${gradient.lastStep}deg, red ${gradient.lastStep}deg)`,
+    background: data.legend ? gradient3.conic : `conic-gradient(green ${gradient.firstStep}deg, orange ${gradient.firstStep}deg ${gradient.lastStep}deg, red ${gradient.lastStep}deg)`,
   }" @click.stop="onClick()">
     <div class="sprite_color_ticket d-flex align-center justify-center" :style="{
       background: '#14202C',
@@ -66,6 +66,7 @@ export default {
     dynamicStyle: {
       boxShadow: "none",
     },
+    isSelected: false,
   }),
 
   computed: {
@@ -91,6 +92,31 @@ export default {
         lastStep: last,
       };
     },
+    gradient3() {
+      const len = this.data.data.length;
+      if (!len) return { conic: "", steps: [] };
+
+      const anglePerStep = 360 / len;
+      let currentAngle = 0;
+
+      const gradientSteps = this.data.data.map((d, index) => {
+        const color = d.step?.color || "#000"; // default fallback
+        const start = currentAngle;
+        const end = currentAngle + anglePerStep;
+        currentAngle = end;
+        return { color, start, end };
+      });
+
+      const conic = gradientSteps
+        .map(step => `${step.color} ${step.start}deg ${step.end}deg`)
+        .join(", ");
+
+      return {
+        conic: `conic-gradient(${conic})`,
+        steps: gradientSteps,
+      };
+    }
+
   },
 
   mounted() {

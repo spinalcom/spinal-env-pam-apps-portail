@@ -6,7 +6,7 @@
       {{ profile }}
     </div>
     <div class="selected-background"
-      :style="{ transform: `translateX(${selectedIndex * 160}px)`, cursor: not - allowed }"></div>
+      :style="{ transform: `translateX(${selectedIndex * 160}px)`, cursor: 'not-allowed' }"></div>
   </div>
 </template>
 
@@ -34,6 +34,13 @@ export default {
       this.$emit("profileSelected", index === 0); // `true` for "Regrouper", `false` for "Dégrouper"
     },
   },
+  watch: {
+    disabled(newVal) {
+    }
+  },
+  mounted() {
+  }
+
 };
 </script>
 
@@ -56,7 +63,7 @@ export default {
 .profile-item {
   width: 140px;
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
   cursor: pointer;
   z-index: 2;

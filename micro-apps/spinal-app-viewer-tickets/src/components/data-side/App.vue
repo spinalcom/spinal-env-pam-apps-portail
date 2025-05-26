@@ -1,47 +1,23 @@
-<!--
-Copyright 2023 SpinalCom - www.spinalcom.com
-
-This file is part of SpinalCore.
-
-Please read all of the following terms and conditions
-of the Free Software license Agreement ("Agreement")
-carefully.
-
-This Agreement is a legally binding contract between
-the Licensee (as defined below) and SpinalCom that
-sets forth the terms and conditions that govern your
-use of the Program. By installing and/or using the
-Program, you agree to abide by all the terms and
-conditions stated or referenced herein.
-
-If you do not agree to abide by these terms and
-conditions, do not demonstrate your acceptance and do
-not install or use the Program.
-You should have received a copy of the license along
-with this file. If not, see
-<http://resources.spinalcom.com/licenses.pdf>.
--->
-
-
-
 <template>
 
   <v-card elevation="4" class="card-container d-flex align-center justify-center">
     <div class=" dataContainer d-flex flex-column noMargin" style="height: 100%; width: 100%"
       v-if="pageSate === PAGE_STATES.loaded">
 
-      <div v-if="(selectedZone.type === 'building') || (selectedZone.name == 'Bâtiment')"
-        class="profil-selec-container">
+      <div
+        v-if="(!showAddTicket) && ((selectedZone.type === 'building') || (selectedZone.name == 'Bâtiment') || (selectedZone.type === 'geographicFloor'))"
+        class="profil-selec-container"
+        :style="{ bottom: selectedZone.type === 'geographicFloor' ? '140px!important' : '' }">
         <ProfileSelector style="margin-bottom: 10px;" @profileSelected="handleProfileSelected"
           :disabled="isSwitchingSptires" />
       </div>
 
-      <div class="d-flex flex-row justify-space-between" style="align-items: center;">
+      <div v-if="!showAddTicket" class="d-flex flex-row justify-space-between" style="align-items: center;">
 
         <div class="d-flex flex-column justify-space-between" style="align-items: start;">
           <div class="app-title">Liste des tickets</div>
-          <div class="app-description">{{ sortedTickets().length }} demande<span
-              v-if="sortedTickets().length > 1">s</span></div>
+          <div class="app-description">{{ sortedTickets.length }} demande<span v-if="sortedTickets.length > 1">s</span>
+          </div>
         </div>
         <div class="d-flex flex-column justify-space-between" style="align-items: end;">
           <div class="app-title">
@@ -54,16 +30,28 @@ with this file. If not, see
           </div>
           <div class="app-description">sur {{ selectedZone.name }}</div>
         </div>
-
-
-
       </div>
-      <!-- <v-select
-  :items="['Vue Globale', 'Liste', 'Attribut', 'Documentation', 'Tickets', 'Indicateur']"
-  label="Select an option"
-  content-class="custom-dropdown"
-/> -->
-
+      <div v-else class="d-flex flex-row justify-space-between" style="align-items: center; margin-bottom: 10px;">
+        <div class="d-flex flex-column justify-space-between" style="align-items: start;">
+          <div class="app-title">Déclaration des tickets</div>
+        </div>
+      </div>
+      <div v-if="!showAddTicket">
+        <FloorSpriteComponent v-if="selectedZone && selectedZone.type === 'geographicFloor'" :tickets="data"
+          :isPriority="toggleLegend" :buildingTicketNumber="flooritemsnumber" type="geographicFloor" style="
+          position: absolute;
+          z-index: 9;
+          left: calc(-10%);
+          top: 50%;
+          width: 35px;" />
+        <FloorSpriteComponent v-else :tickets="data" :buildingTicketNumber="buildingitemsnumber"
+          :isPriority="toggleLegend" type="geographicBuilding" style="
+          position: absolute;
+          z-index: 9;
+          left: calc(-10%);
+          top: 50%;
+          width: 35px;" />
+      </div>
       <div class="d-flex flex-row justify-space-between" style="align-items: center;">
         <div v-if="selectedProfile === 'Admin'" class="add-ticket-button" @click="toggleAddTicket">
           <div :class="['add-ticket-icon', showAddTicket ? 'list-tick' : 'key-tick']"></div>
@@ -145,7 +133,8 @@ with this file. If not, see
       </div>
       <div v-if="showAddTicket" class="add-ticket-vue" style="height: 87%;">
         <TicketForm :selectedZone="selectedZone" :workflowlist="workflowlist" :domainlist="domainlist"
-          :priorities="priorities" :building="buildingInfo" :selectedObj="selectedObjectFromViewer" />
+          :priorities="priorities" :building="buildingInfo" :selectedObj="selectedObjectFromViewer"
+          :config="ticketConfig" />
       </div>
       <div v-if="!showAddTicket" class="d-flex flex-row justify-space-between filtres-container" style="width: 100%;">
         <div class="d-flex flex-column justify-space-between filtre-half-holder" style="height: 150px;">
@@ -244,7 +233,7 @@ with this file. If not, see
       <!-- <div style="height: 1px; background-color: #14202c20; margin: 10px 0;"></div> -->
       <!-- SAMPLE -->
       <div v-if="!showAddTicket" class="d-flex flex-column flex-fill overflow-y-auto">
-        <TicketTable :data="sortedTickets()" :config="selectedProfile" @locate="locateTicket" @display="showDetails" />
+        <TicketTable :data="sortedTickets" :config="selectedProfile" @locate="locateTicket" @display="showDetails" />
 
       </div>
       <!-- \SAMPLE -->
@@ -254,11 +243,7 @@ with this file. If not, see
             <div v-for="floor in full_floor_tickets_with_positions" :key="floor.dynamicId"
               style="display: flex;justify-content: center;align-items: center;margin-bottom: 10px;" :style="{
                 height: `${Math.min(350 / full_floor_tickets_with_positions.length, 40)}px`,
-                background: `conic-gradient(
-                  green ${gradient(floor.countFloorList).firstStep}deg, 
-                  orange ${gradient(floor.countFloorList).firstStep}deg ${gradient(floor.countFloorList).lastStep}deg, 
-                  red ${gradient(floor.countFloorList).lastStep}deg
-                )`
+                ...computeFloorGradient(floor)
               }">
               <div class="floor-item">
                 <div class="floor-name">{{ floor.floorName }}:</div>
@@ -270,20 +255,13 @@ with this file. If not, see
         </div>
       </div>
       <div class="legend-full-container">
-        <LegendVue :legendItems="legendItems"></LegendVue>
+        <LegendVue v-if="!showAddTicket" :legendItems="legendItems" :stepslist="steps2()" :isPriority="toggleLegend"
+          @togglePriority="handleLegendSelected" />
+
       </div>
       <ticketDetails v-if="detailedTicket" style="z-index: 99" v-model="showDialog" @changeRoute="handleRouteChange"
         @reloadRequested="startReload" :detailed-ticket="detailedTicket" :token="token" :baseURL="baseURL"
         :steps="fullstepList" :config="ticketConfig"></ticketDetails>
-      <!-- <div v-if="(selectedZone.type === 'building') || (selectedZone.name == 'Bâtiment')" class="toggle-full-container">
-        <div class="toggle-container"
-          @click="toggleSprites = !toggleSprites; toggleSprites ? updateSprites(data) : showAllSprites(data)">
-          <div class="toggle-switch">
-            <div class="toggle-circle" :class="{ active: toggleSprites }"></div>
-          </div>
-          <span class="toggle-label">{{ toggleSprites ? 'Regrouper' : 'Détails' }}</span>
-        </div>
-      </div> -->
     </div>
 
     <!-- <div class="centered" v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected">
@@ -315,23 +293,23 @@ import { IConfig } from "../../interfaces/IConfig";
 import { ISpaceSelectorItem } from "global-components";
 import { ActionTypes } from "../../interfaces/vuexStoreTypes";
 import { MutationTypes } from "../../services/store/appDataStore/mutations";
-import { regroupTicketByRoom } from "../../services/store/appDataStore/utils/ticketUtils";
-import { regroupTicketsByFloor, regroupFullTicketsByFloor } from "../../services/store/appDataStore/utils/ticketUtils";
+import { computePriorityGradient, getPriorityColor, resizeWindow } from "../../services/store/appDataStore/utils/UiUtils";
+import { filterTickets, getTicketsWithRank, extractSortedSteps, sortTicketsByPriorityDateRank } from "../../services/store/appDataStore/utils/TicketFilterUtils";
 import { fullstepList } from "../../services/store/appDataStore/utils/ticketUtils";
 import { updateItemCounts } from "../../utils/ticketUtils";
+import updateSprites, { showAllSprites } from "../../services/store/appDataStore/utils/SpritesUtils";
 
 import {
   EmitterViewerHandler,
   VIEWER_AGGREGATE_SELECTION_CHANGED,
 } from "spinal-viewer-event-manager";
 
-import SpriteComponent from "./SpriteComponent.vue";
-import FullFloorSpriteComponent from "./FullFloorSpriteComponent.vue";
 import TicketComponent from "./TicketComponent.vue";
 import TicketTable from "./components/DataTable.vue";
 import StatusFiltre from "./components/StatusFiltre.vue";
 import SpriteCardComponent from "./SpriteCardComponent.vue";
 import FloorSpriteCardComponent from "./FloorSpriteCardComponent.vue";
+import FloorSpriteComponent from "./FloorSpriteComponent.vue";
 import ProfileSelector from "./components/ProfileSelector.vue";
 import { Legend } from "../../interfaces/ILegend";
 import LegendVue from "./components/LegendVue.vue";
@@ -344,8 +322,9 @@ import { Building } from "micro-apps/spinal-app-viewer-space/src/interfaces/API/
 import TicketDetails from "./TicketDetailsNew.vue";
 
 
+
 @Component({
-  components: { TicketComponent, TicketTable, StatusFiltre, SpriteCardComponent, ProfileSelector, LegendVue, TicketForm, TicketDetails },
+  components: { TicketComponent, TicketTable, StatusFiltre, SpriteCardComponent, FloorSpriteComponent, ProfileSelector, LegendVue, TicketForm, TicketDetails },
   filters: {},
 })
 class dataSideApp extends Vue {
@@ -369,7 +348,9 @@ class dataSideApp extends Vue {
   workflowlist: any[];
   domainlist: any[];
   fullstepList: any[] = fullstepList;
-  selectedObjectFromViewer: any;
+  selectedObjectFromViewer: any = null;
+
+
 
 
   reloadInterval: number;
@@ -379,11 +360,13 @@ class dataSideApp extends Vue {
   messageTimeout: ReturnType<typeof setTimeout> | null = null;
   isFirstLoad: boolean = true;
   toggleSprites: boolean = true;
+  toggleLegend: boolean = false;
   detailedTicket = null;
   showDialog = false;
   tickets_with_positions: any[];
   floor_tickets_with_positions: any[];
   full_floor_tickets_with_positions: any[];
+  full_room_tickets_with_positions: any[];
   PAGE_STATES: typeof PAGE_STATES = PAGE_STATES;
   pageSate: PAGE_STATES = PAGE_STATES.loading;
   isBuildingSelected: boolean = true;
@@ -398,6 +381,7 @@ class dataSideApp extends Vue {
   equipementitemsnumber: number = 0;
   modefull: boolean = false
   isSwitchingSptires: boolean = false;
+  getPriorityColor = getPriorityColor;
   priorities = [
     { value: 0, label: "Élevée", selected: true },
     { value: 1, label: "Moyenne", selected: true },
@@ -405,42 +389,19 @@ class dataSideApp extends Vue {
   ];
   showAddTicket: boolean = false;
   legendItems: Legend[] = [];
-  getPriorityColor(priority: number) {
-    switch (priority) {
-      case 0:
-        return "red";
-      case 1:
-        return "orange";
-      case 2:
-        return "green";
-      default:
-        return "gray";
-    }
-  }
-  calculateGradient(countFloorList, priority) {
-    if (!countFloorList || countFloorList.length !== 3) return 0;
-
-    const total = countFloorList.reduce((sum, num) => sum + num, 0);
-    if (total === 0) return 0; // Avoid division by zero
-
-    const percentage = (countFloorList[priority] / total) * 360;
-    return percentage;
-  }
   gradient(countFloorList) {
-    const len = countFloorList.reduce((sum, num) => sum + num, 0) || 1; // Avoid division by zero
-    const low = countFloorList[2] || 0; // Priority 2 (Red)
-    const mid = countFloorList[1] || 0; // Priority 1 (Orange)
-
-    const firstStep = Math.round(360 * (low / len)); // Red section
-    const lastStep = firstStep + Math.round(360 * (mid / len)); // Orange section
-
-    return {
-      firstStep,
-      lastStep,
-    };
+    return computePriorityGradient(countFloorList);
   }
   toggleAddTicket() {
     this.showAddTicket = !this.showAddTicket;
+    if (!this.showAddTicket) {
+      this.callUpdateSprites(this.data, this.toggleLegend);
+      this.reloadData(this.selectedZone.type);
+    } else {
+      this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+      this.$store.dispatch(ActionTypes.REMOVE_CARDS);
+    }
+
   }
   showDetails(ticket) {
     this.detailedTicket = ticket;
@@ -452,11 +413,7 @@ class dataSideApp extends Vue {
 
 
   tickets() {
-    return this.data.map((t) =>
-      this.selectedId == t.elementSelected.dynamicId
-        ? { ...t, rank: 0 }
-        : { ...t, rank: 1 }
-    );
+    return getTicketsWithRank(this.data, this.selectedId);
   }
 
   workflows() {
@@ -470,35 +427,55 @@ class dataSideApp extends Vue {
       this.workflow_filter.includes(t.workflowName)
     );
   }
-
   domains() {
-    return [
-      ...new Set(this.workflowsFilteredTickets().map((t) => t.process.name)),
-    ];
+    return [...new Set(this.filteredTickets.map((t) => t.process.name))];
   }
-  // handleProfileSelected(selectedProfile) {
-  //   // this.selectedProfile = selectedProfile;
-  //   this.toggleSprites = !this.toggleSprites;
-  // }
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
   async handleProfileSelected(isGrouped) {
-    // this.toggleSprites = isGrouped;
-    // if (this.toggleSprites) {
-    //   this.updateSprites(this.data);
-    // } else {
-    //   this.showAllSprites(this.data);
-    // }
-    if (this.isSwitchingSptires) return; // prevent double click
+    if (this.isSwitchingSptires) return;
     this.isSwitchingSptires = true;
     this.toggleSprites = isGrouped;
-
     try {
       if (this.toggleSprites) {
-        await this.updateSprites(this.data);
+        await this.callUpdateSprites(this.data, this.toggleLegend);
       } else {
-        await this.showAllSprites(this.data);
+        await showAllSprites({
+          store: this.$store,
+          buildingId: localStorage.getItem("idBuilding") || "",
+          config: this.config,
+          selectedZone: this.selectedZone,
+          data: this.data,
+          legend: this.toggleLegend,
+          setContext: () => this.resetContext(localStorage.getItem("idBuilding")),
+          setTicketsWithPositions: (items) => { this.tickets_with_positions = items },
+        });
       }
+      await this.delay(1000); // Wait for 1 second
     } finally {
       this.isSwitchingSptires = false;
+    }
+  }
+  async handleLegendSelected(isLegend) {
+    this.toggleLegend = isLegend;
+    try {
+      if (this.toggleSprites) {
+        await this.callUpdateSprites(this.data, this.toggleLegend);
+      } else {
+        await showAllSprites({
+          store: this.$store,
+          buildingId: localStorage.getItem("idBuilding") || "",
+          config: this.config,
+          selectedZone: this.selectedZone,
+          data: this.data,
+          legend: this.toggleLegend,
+          setContext: () => this.resetContext(localStorage.getItem("idBuilding")),
+          setTicketsWithPositions: (items) => { this.tickets_with_positions = items },
+        });
+      }
+    } finally {
+      // this.isSwitchingSptires = false;
     }
   }
 
@@ -511,64 +488,46 @@ class dataSideApp extends Vue {
     );
     return filtered;
   }
-  steps() {
-    return [...new Set(this.domainFilteredTickets().map((t) => t.step.name))];
-  }
   steps2() {
-    const uniqueSteps = new Map();
-    this.domainFilteredTickets().forEach((t) => {
-      if (!uniqueSteps.has(t.step.name)) {
-        uniqueSteps.set(t.step.name, t.step);
-      }
-    });
-
-    // Convert the map values to an array and sort by order
-    return [...uniqueSteps.values()].sort((a, b) => a.order - b.order);
+    return extractSortedSteps(this.domainFilteredTickets());
   }
 
-
-  stepFilteredTickets() {
-    if (this.step_filter.length === 0 || this.data.length === 0)
-      return this.domainFilteredTickets();
-    return this.domainFilteredTickets().filter((d) =>
-      this.step_filter.includes(d.step.name)
+  get filteredTickets() {
+    return filterTickets(
+      this.tickets(),
+      this.workflow_filter,
+      this.domain_filter,
+      this.step_filter
     );
   }
 
   resize() {
-    setTimeout(() => {
-      window.dispatchEvent(new Event("resize"));
-    }, 1);
+    resizeWindow();
   }
 
   changeIcon() {
     this.modefull = !this.modefull
   }
-
-  sortedTickets() {
-    const filteredTickets = this.stepFilteredTickets().filter((ticket) =>
+  get sortedTickets() {
+    const filteredTickets = this.filteredTickets.filter((ticket) =>
       this.priorities.find(
         (priority) => priority.value === ticket.priority && priority.selected
       )
     );
+    const enrichedTickets = filteredTickets.map(ticket => {
+      const lastModifDate = ticket.log_list && ticket.log_list.length > 1
+        ? ticket.log_list[ticket.log_list.length - 1].date
+        : ticket.creationDate;
+      return { ...ticket, lastModifDate };
+    });
     this.$emit("download", filteredTickets);
-    this.$emit("floorData", filteredTickets);
-    return [...filteredTickets].sort(
-      (a, b) =>
-        b.creationDate - a.creationDate ||  // Sort by newest first
-        b.priority - a.priority ||          // Higher priority first
-        a.rank - b.rank
-    );
+    return sortTicketsByPriorityDateRank(enrichedTickets);
   }
+
   callCard(items: any | any[]) {
     this.$store.dispatch(ActionTypes.REMOVE_CARDS);
-    // Ensure items is always an array
     const itemsArray = Array.isArray(items) ? items : [items];
-
-    // Filter out any undefined or null items
     const validItems = itemsArray.filter(item => item != null);
-
-    // Add steps to valid items
     validItems.forEach(item => {
       item.steps = this.steps2();
     });
@@ -606,16 +565,10 @@ class dataSideApp extends Vue {
     });
   }
 
-
-
-
   async mounted() {
-    // console.log("mounted", this.ticketConfig);
     this.selectedProfile = this.config.profilType;
     this.startTimer();
     this.reloadInterval = this.config.reloadInterval || 60000;
-
-
 
     const floors = await this.$store.dispatch(ActionTypes.GET_FLOORS, {
       buildingId: this.buildingInfo.buildingId,
@@ -631,7 +584,7 @@ class dataSideApp extends Vue {
         this.findDynamicIdByDbid(data[0].dbIds[0], data[0]);
 
     });
-    // await this.retriveData("building");
+
     EventBus.$on("call-card", this.locateTicket);
     EventBus.$on("showRecapCard", this.showRecapCard);
     EventBus.$on("show-modal-ticket-details", this.showDetails);
@@ -669,10 +622,7 @@ class dataSideApp extends Vue {
                 }),
               ];
               const result = await Promise.all(promises);
-
-              // console.log('result', result);
               this.selectedObjectFromViewer = result
-              // this.forgeItem(result, buildingId, ref.dbid, obj.bimFileId, data.center)
 
               return result;
             }
@@ -695,10 +645,7 @@ class dataSideApp extends Vue {
 
 
       const result = await Promise.all(promises);
-      // console.log('result', result);
       this.selectedObjectFromViewer = result
-      // this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0], data.center)
-
       return result;
     }
   }
@@ -747,6 +694,51 @@ class dataSideApp extends Vue {
     this.referenceObjects = [...result];
     // this.data_loading += 15
   }
+  computeFloorGradient(floor) {
+    if (!this.toggleLegend) {
+      // PRIORITY mode using countFloorList
+      const counts = floor.countFloorList || [];
+      const total = counts.reduce((acc, val) => acc + val, 0) || 1;
+
+      // Define the color map based on index: 0 = High, 1 = Medium, 2 = Low
+      const colors = ["red", "orange", "green"];
+      let currentAngle = 0;
+
+      const segments = counts.map((count, idx) => {
+        const angle = Math.round((count / total) * 360);
+        const start = currentAngle;
+        const end = currentAngle + angle;
+        currentAngle = end;
+        return `${colors[idx]} ${start}deg ${end}deg`;
+      });
+
+      return {
+        background: `conic-gradient(${segments.join(", ")})`
+      };
+
+    } else {
+      // STEP mode using stepCountFloorList
+      const steps = floor.stepCountFloorList || [];
+      const total = steps.reduce((acc, step) => acc + step.count, 0) || 1;
+      let currentAngle = 0;
+
+      const segments = steps
+        .sort((a, b) => a.order - b.order)
+        .map(step => {
+          const angle = Math.round((step.count / total) * 360);
+          const start = currentAngle;
+          const end = currentAngle + angle;
+          currentAngle = end;
+          return `${step.color} ${start}deg ${end}deg`;
+        });
+
+      return {
+        background: `conic-gradient(${segments.join(", ")})`
+      };
+    }
+  }
+
+
 
 
   async retriveData(type: "building" | "geographicFloor" | "geographicRoom") {
@@ -762,6 +754,10 @@ class dataSideApp extends Vue {
         ];
         const workflow_result = await Promise.all(workflow_promises);
         this.workflowlist = workflow_result[0];
+        this.workflowlist = workflow_result[0].filter(wf =>
+          this.ticketConfig.workflowList.includes(wf.name)
+        );
+
         const process_promises = [
           this.$store.dispatch(ActionTypes.LOAD_PROCESS, {
             buildingId,
@@ -784,13 +780,8 @@ class dataSideApp extends Vue {
             item.priority = 0;
           }
         });
-        // result[0].forEach((item) => {
-        //   if (item.elementSelected.type === "geographicFloor") {
-        //     item.elementSelected["XYZ center"] = "0;0;0";
-        //   }
-        // });
         await this.$store.commit(MutationTypes.SET_DATA, result[0]);
-        this.updateSprites(result[0]);
+        await this.callUpdateSprites(result[0], this.toggleLegend);
         const counts = updateItemCounts(this.data);
         this.buildingitemsnumber = counts.buildingitemsnumber;
         this.flooritemsnumber = counts.flooritemsnumber;
@@ -811,7 +802,7 @@ class dataSideApp extends Vue {
           }
         });
         await this.$store.commit(MutationTypes.SET_DATA, result[0]);
-        this.updateSprites(result[0]);
+        await this.callUpdateSprites(result[0], this.toggleLegend);
         const counts = updateItemCounts(this.data);
         this.buildingitemsnumber = counts.buildingitemsnumber;
         this.flooritemsnumber = counts.flooritemsnumber;
@@ -855,8 +846,6 @@ class dataSideApp extends Vue {
 
 
   startReload() {
-    // this.reloadData("building");  // Call reloadData initially
-    // console.log("startReload");
     this.reloadData(this.selectedZone.type);
     this.startTimer();
   }
@@ -876,8 +865,6 @@ class dataSideApp extends Vue {
   }
   showNoDataChangedMessage() {
     this.noDataChangedMessage = true;
-
-    // Clear any previous timeout to avoid multiple triggers
     if (this.messageTimeout) clearTimeout(this.messageTimeout);
 
     this.messageTimeout = setTimeout(() => {
@@ -933,12 +920,11 @@ class dataSideApp extends Vue {
       } else {
         this.$store.commit(MutationTypes.SET_DATA, []);
         this.$store.commit(MutationTypes.SET_DATA, newData);
-        this.updateSprites(newData);
+        await this.callUpdateSprites(newData, this.toggleLegend);
         // this.resettickets();
         if (!this.isFirstLoad) {
           this.showNoDataChangedMessage();
         }
-        // this.showNoDataChangedMessage();
       }
       this.isFirstLoad = false;
     } catch (err) {
@@ -957,30 +943,6 @@ class dataSideApp extends Vue {
   selectDataView(item) {
     this.$emit("clickOnDataView", item);
   }
-
-  // showDetails(ticket) {
-  //   this.$emit("display", ticket);
-  // }
-  // regroupTicketsByFloor(to_update) {
-  //   const grouped = {};
-
-  //   to_update.forEach((ticket) => {
-  //     const elementSelected = ticket.elementSelected;
-  //     if (elementSelected && elementSelected.type === "geographicFloor") {
-  //       const dynamicId = ticket.dynamicId || "defaultFloorGroup";
-
-  //       if (!grouped[dynamicId]) {
-  //         grouped[dynamicId] = {
-  //           ticketList: [],
-  //         };
-  //       }
-
-  //       grouped[dynamicId].ticketList.push(ticket);
-  //     }
-  //   });
-
-  //   return grouped;
-  // }
   unifyData(list) {
     // Extract buildingId and position from the first element
     const buildingId = list[0]?.buildingId || "";
@@ -1041,7 +1003,6 @@ class dataSideApp extends Vue {
 
     const buildingId = localStorage.getItem("idBuilding");
     this.$store.commit(MutationTypes.SET_SELECTED_TICKETS, [ticket.dynamicId]);
-    console.log("ticket.elementSelected", ticket);
     if (ticket.elementSelected.type === "geographicFloor" || ticket.elementSelected.type === "geographicBuilding") {
     }
     else {
@@ -1051,151 +1012,26 @@ class dataSideApp extends Vue {
       });
     }
 
-    // this.$store.dispatch(ActionTypes.COLOR_ITEMS, {
-    //   ...ticket.elementSelected
-    //   // buildingId,
-    // });
     this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
       String(ticket.elementSelected.dynamicId),
     ]);
     const floor = document.querySelector("#floor-sprite");
     floor?.dispatchEvent(new Event("clickExteriorSprite"));
   }
-  updateSprites(to_update): Promise<void> {
-    return new Promise((resolve) => {
-      const buildingId = localStorage.getItem("idBuilding");
-      this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+  private callUpdateSprites(data: any[], legend: boolean): Promise<void> {
+    const buildingId = localStorage.getItem("idBuilding");
 
-      if (this.config.sprites) {
-        const regrouped_tickets = regroupTicketByRoom(to_update);
-        const floor_tickets = regroupTicketsByFloor(to_update);
-        const floor_full_tickets = regroupFullTicketsByFloor(to_update);
-        const items = [];
-        const floorItems = [];
-        const step = 15;
-        let zPosition = 0;
-
-        if (Object.keys(floor_full_tickets).length > 1) {
-          for (const key of Object.keys(floor_full_tickets)) {
-            items.push({
-              buildingId,
-              dynamicId: key,
-              data: floor_full_tickets[key].ticketList,
-              position: new THREE.Vector3(0, 0, zPosition),
-            });
-            zPosition += step;
-          }
-        } else {
-          for (const key of Object.keys(regrouped_tickets)) {
-            if (regrouped_tickets[key]["XYZ center"]) {
-              const [X, Y, Z] = regrouped_tickets[key]["XYZ center"].split(";");
-              items.push({
-                buildingId,
-                dynamicId: key,
-                data: regrouped_tickets[key].ticketList,
-                position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
-              });
-            } else {
-              items.push({
-                buildingId,
-                dynamicId: key,
-                data: regrouped_tickets[key].ticketList,
-                position: new THREE.Vector3(0, 0, 0),
-              });
-            }
-          }
-
-          for (const key of Object.keys(floor_tickets)) {
-            floorItems.push({
-              buildingId,
-              dynamicId: key,
-              data: floor_tickets[key].ticketList,
-              position: new THREE.Vector3(0, 0, 0),
-            });
-          }
-        }
-
-        this.resetContext(buildingId);
-        this.tickets_with_positions = items;
-        this.floor_tickets_with_positions = floorItems;
-
-        this.full_floor_tickets_with_positions = Object.keys(floor_full_tickets).map((key, index) => ({
-          ...floor_full_tickets[key],
-          position: new THREE.Vector3(0, 0, index * step),
-        }));
-
-        setTimeout(() => {
-          const componentToUse = Object.keys(floor_full_tickets).length > 1
-            ? FullFloorSpriteComponent
-            : SpriteComponent;
-
-          this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-            items: items,
-            buildingId: buildingId,
-            component: componentToUse,
-          });
-
-          resolve();
-        }, 1000);
-      } else {
-        resolve();
-      }
-    });
-  }
-
-  showAllSprites(to_update): Promise<void> {
-    return new Promise((resolve) => {
-      const buildingId = localStorage.getItem("idBuilding");
-      this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-
-      if (this.config.sprites) {
-        const regrouped_tickets = regroupTicketByRoom(to_update);
-        const floor_tickets = regroupTicketsByFloor(to_update);
-        const items = [];
-        const floorItems = [];
-
-        for (const key of Object.keys(regrouped_tickets)) {
-          if (regrouped_tickets[key]["XYZ center"]) {
-            const [X, Y, Z] = regrouped_tickets[key]["XYZ center"].split(";");
-            items.push({
-              buildingId,
-              dynamicId: key,
-              data: regrouped_tickets[key].ticketList,
-              position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
-            });
-          } else {
-            items.push({
-              buildingId,
-              dynamicId: key,
-              data: regrouped_tickets[key].ticketList,
-              position: new THREE.Vector3(0, 0, 0),
-            });
-          }
-        }
-
-        for (const key of Object.keys(floor_tickets)) {
-          floorItems.push({
-            buildingId,
-            dynamicId: key,
-            data: floor_tickets[key].ticketList,
-            position: new THREE.Vector3(0, 0, 0),
-          });
-        }
-
-        this.resetContext(buildingId);
-        this.tickets_with_positions = items;
-
-        setTimeout(() => {
-          this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
-            items: items,
-            buildingId: buildingId,
-            component: SpriteComponent,
-          });
-          resolve(); // ✅ Resolves only after sprite loading dispatch completes
-        }, 1000);
-      } else {
-        resolve(); // Resolve immediately if sprites are disabled
-      }
+    return updateSprites({
+      store: this.$store,
+      buildingId,
+      config: this.config,
+      selectedZone: this.selectedZone,
+      data,
+      legend: legend,
+      setContext: () => this.resetContext(buildingId),
+      setTicketsWithPositions: (items) => { this.tickets_with_positions = items },
+      setFullFloorTicketsWithPositions: (items) => { this.full_floor_tickets_with_positions = items },
+      setFullRoomTicketsWithPositions: (items) => { this.full_room_tickets_with_positions = items },
     });
   }
 
@@ -1205,10 +1041,9 @@ class dataSideApp extends Vue {
     });
     return;
   }
-  applyPriorityFilter() {
+  async applyPriorityFilter() {
     this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-    this.updateSprites(this.sortedTickets());
-    // this.updateSprites(this.stepFilteredTickets());
+    await this.callUpdateSprites(this.sortedTickets, this.toggleLegend);
   }
 
   handleStepFilterUpdate(newSteps) {
@@ -1223,10 +1058,6 @@ class dataSideApp extends Vue {
         return;
       }
 
-      // if (oldVal && newVal.type === oldVal.type) {
-      //   return;
-      // }
-
       this.$store.dispatch(ActionTypes.REMOVE_CARDS);
       this.isBuildingSelected = newVal.type === "building";
       this.retriveData(newVal.type);
@@ -1239,42 +1070,6 @@ class dataSideApp extends Vue {
     this.debouncedHandler(newVal, oldVal);
   }
 
-  // async watchSelectedZone(newVal, oldVal) {
-
-  //   this.$nextTick(() => {
-  //     this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-  //     console.log("selectedZon0e watt", newVal);
-  //     if (!newVal) {
-  //       return;
-  //     }
-
-  //     if (!newVal.dynamicId && !oldVal) {
-  //       console.log("we herrrrrrre");
-  //       this.retriveData("building");
-  //       return;
-  //     }
-  //     if (oldVal && newVal.type === oldVal.type) {
-  //       return;
-  //     }
-
-  //     this.$store.dispatch(ActionTypes.REMOVE_CARDS);
-  //     this.isBuildingSelected = newVal.type === "building";
-  //     console.log("selectedZon0e watt");
-  //     this.retriveData(newVal.type);
-  //   });
-  // }
-
-
-  // watchSelectedZone() {
-  //   this.$store.dispatch(ActionTypes.REMOVE_CARDS);
-  //   console.log("selectedZon0e watttttttttttttttttttttttttch over", this.selectedZone);
-  //   this.selectedZone.type == "building"
-  //     ? (this.isBuildingSelected = true)
-  //     : (this.isBuildingSelected = false);
-  //   this.retriveData(this.selectedZone.type);
-  // }
-
-
   @Watch("data")
   watchData() {
     // this.updateSprites(newData);
@@ -1282,19 +1077,19 @@ class dataSideApp extends Vue {
 
   @Watch("workflow_filter")
   watchWorkflow() {
-    this.updateSprites(this.stepFilteredTickets());
+    this.callUpdateSprites(this.filteredTickets, this.toggleLegend);
   }
-
 
   @Watch("domain_filter")
   watchDomain() {
-    this.updateSprites(this.stepFilteredTickets());
+    this.callUpdateSprites(this.filteredTickets, this.toggleLegend);
   }
 
   @Watch("step_filter")
   watchStep() {
-    this.updateSprites(this.stepFilteredTickets());
+    this.callUpdateSprites(this.filteredTickets, this.toggleLegend);
   }
+
   // @Watch("priorities", { deep: true })
   // watchPriorities() {
 
@@ -1555,10 +1350,18 @@ html .v-application .primary--text {
 
 .profil-selec-container {
   position: absolute;
-  bottom: 160px;
+  bottom: 170px;
   left: -145%;
   z-index: 10;
 }
+
+.legend-selec-container {
+  position: absolute;
+  bottom: 260px;
+  left: -145%;
+  z-index: 10;
+}
+
 
 .legend-full-container {
   position: absolute;
@@ -1571,7 +1374,7 @@ html .v-application .primary--text {
   z-index: 9;
   background-color: transparent;
   position: absolute;
-  top: 53%;
+  top: 55%;
   right: 105%;
   width: 90px;
   max-height: 350px;

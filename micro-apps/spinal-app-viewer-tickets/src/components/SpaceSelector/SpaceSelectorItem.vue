@@ -27,7 +27,7 @@ with this file. If not, see
     'space-selector-list-item-isopen': item.isOpen && item.haveChildren,
     'space-selector-list-item-isSelected': isSelected,
   }" :style="{ 'margin-left': '' + ((item.level - 1) * 20 + 30) + 'px' }" @click.stop="onSelect"
-    @mouseenter="onMouseEnter" @mouseleave="onMouseLeave">
+    :disabled="!loading_viewer" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave">
     <!-- link to parent template -->
     <template v-if="item.level > 0">
       <div class="space-selector-list-item-angle"></div>
@@ -55,6 +55,7 @@ with this file. If not, see
     </v-list-item-content>
 
     <v-list-item-action class="actionsDiv">
+      <v-progress-circular v-if="!loading_viewer" :size="25" color="white" indeterminate></v-progress-circular>
       <v-btn v-if="viewButtonsType === 'advanced'" v-for="(button, index) in spaceSelectorItemButtons" :key="index"
         x-small elevation="0" fab icon style="color: #bfbfbf" dark :loading="item.loading" :title="button.title"
         @click.stop="onActionClick(button)" v-show="display(button)" :disabled="disableBtn(button)">
@@ -80,6 +81,7 @@ import { EventBus } from './eventBus';
 class SpaceSelectorItem extends Vue {
   @Prop({ type: Object, required: true }) item: ISpaceSelectorItem;
   @Prop({ type: Number, required: true }) maxDepth: number;
+  @Prop({ type: Boolean, required: true, default: false }) loading_viewer!: boolean
   @Prop({ type: Object, required: true }) selected: ISpaceSelectorItem;
   @Prop({ type: Array<IButton>, required: false, default: () => [] })
   spaceSelectorItemButtons!: IButton[];

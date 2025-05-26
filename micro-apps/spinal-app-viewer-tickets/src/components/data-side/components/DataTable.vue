@@ -24,13 +24,13 @@
                                 }"></div>
                             </div>
                         </th>
-                        <th style="width: 16%;" @click="changeSort('creationDate')">
+                        <th style="width: 16%;" @click="changeSort('lastModifDate')">
                             <div style="width: 100%; display: flex; flex-direction: row;align-items: center;">
                                 <div>Créé / Modifié le</div>
                                 <div class="sort-icon" :class="{
-                                    'sort-icon-asc': sortKey === 'creationDate' && sortOrder === 'asc',
-                                    'sort-icon-desc': sortKey === 'creationDate' && sortOrder === 'desc',
-                                    'sort-icon-default': sortKey !== 'creationDate'
+                                    'sort-icon-asc': sortKey === 'lastModifDate' && sortOrder === 'asc',
+                                    'sort-icon-desc': sortKey === 'lastModifDate' && sortOrder === 'desc',
+                                    'sort-icon-default': sortKey !== 'lastModifDate'
                                 }"></div>
                             </div>
                         </th>
@@ -73,12 +73,12 @@
                                     #{{ ticket.dynamicId }}</div>
                             </div>
                         </td>
-                        <!-- <td style="width: 16%;">{{ formatDate(ticket.creationDate) }}</td> -->
-                        <td style="width: 16%;">
+                        <td style="width: 16%;">{{ formatDate(ticket.lastModifDate) }}</td>
+                        <!-- <td style="width: 16%;">
                             {{ ticket.log_list && ticket.log_list.length > 1
                                 ? formatDate(ticket.log_list[ticket.log_list.length - 1].date)
                                 : formatDate(ticket.creationDate) }}
-                        </td>
+                        </td> -->
                         <td style="width: 36%;">
                             <div class="d-flex flex-row ">
                                 <div v-if="ticket.elementSelected.type === 'geographicRoom'"
@@ -126,10 +126,11 @@
                             <div class="d-flex flex-row" style="justify-content: space-around;align-items: center;">
                                 <div @click="handleClickOfDetails(ticket)" class="action-button">
                                     <div class="action-icon"></div>
-                                    <div v-if="config !== 'Admin'" cla1ss="action-text">Details</div>
+                                    <!-- <div cla1ss="action-text">Details</div> -->
+                                    <!-- <div v-if="config !== 'Admin'" cla1ss="action-text">Details</div> -->
                                 </div>
-                                <div v-if="config === 'Admin'" @click="handleArchiveTicket(ticket)"
-                                    class="action-button">
+                                <div @click="isolateElement(ticket)" class="action-button"
+                                    title="Centrer la vue sur l’élément associé">
                                     <div class="more-action-icon"></div>
                                 </div>
                             </div>
@@ -139,21 +140,6 @@
                 </tbody>
             </v-simple-table>
         </v-card>
-        <v-dialog class="archive-dialog" v-model="showArchiveDialog" max-width="500px">
-            <v-card>
-                <v-card-title class="headline">Confirmer l'archivage</v-card-title>
-                <v-card-text>
-                    Êtes-vous sûr de vouloir archiver le ticket :
-                    <strong v-if="ticketToArchive">#{{ ticketToArchive.dynamicId }}</strong>
-                    <span v-if="ticketToArchive"> - "{{ ticketToArchive.name }}"</span>
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="blue darken-1" text @click="cancelArchive">Annuler</v-btn>
-                    <v-btn color="red darken-1" text @click="confirmArchive">Archiver</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
     </div>
 </template>
 
@@ -179,7 +165,7 @@ class TicketTable extends Vue {
     selectedTicket: any = null;
 
 
-    showArchiveDialog: boolean = false;
+    // showArchiveDialog: boolean = false;
     ticketToArchive: any = null;
 
 
@@ -226,18 +212,6 @@ class TicketTable extends Vue {
 
         return date.toLocaleDateString("fr-FR", options);
     }
-    // get sortedData() {
-    //     if (!this.sortKey) return this.data;
-
-    //     return [...this.data].sort((a, b) => {
-    //         const valueA = this.getNestedValue(a, this.sortKey);
-    //         const valueB = this.getNestedValue(b, this.sortKey);
-
-    //         if (valueA < valueB) return this.sortOrder === "asc" ? -1 : 1;
-    //         if (valueA > valueB) return this.sortOrder === "asc" ? 1 : -1;
-    //         return 0;
-    //     });
-    // }
     get sortedData() {
         if (!this.sortKey) return this.localData;
 
@@ -353,33 +327,45 @@ class TicketTable extends Vue {
     handleClickOfDetails(ticket: any) {
         this.$emit("display", ticket);
     }
-
-    handleArchiveTicket(ticket: any) {
-        this.ticketToArchive = ticket;
-        this.showArchiveDialog = true;
-    }
-    cancelArchive() {
-        this.showArchiveDialog = false;
-        this.ticketToArchive = null;
-    }
-
-    async confirmArchive() {
-        let buildingId = localStorage.getItem("idBuilding");
-
-        const res = await this.$store.dispatch("ARCHIVE_TICKET", {
-            buildingId, ticketId: this.ticketToArchive.dynamicId, data: {
-                workflowDynamicId: this.ticketToArchive.workflowId,
-                processDynamicId: this.ticketToArchive.process.dynamicId
-            }
-        });
-
-        if (res) {
-        } else {
-            console.error('Failed to archive ticket:', this.ticketToArchive);
+    async isolateElement(ticket: any) {
+        if (!ticket || !ticket.elementSelected || !ticket.elementSelected.dynamicId) return;
+        console.log("isolateElement", ticket.elementSelected.dynamicId);
+        try {
+            await this.$store.dispatch("FIT_TO_VIEW_ITEMS", {
+                dynamicId: ticket.elementSelected.dynamicId
+            });
+        } catch (error) {
+            console.error("Erreur lors du centrage de l’élément :", error);
         }
-        this.showArchiveDialog = false;
-        this.ticketToArchive = null;
     }
+
+
+    handleFitToView(ticket: any) {
+        // this.ticketToArchive = ticket;
+        // this.showArchiveDialog = true;
+    }
+    // cancelArchive() {
+    //     this.showArchiveDialog = false;
+    //     this.ticketToArchive = null;
+    // }
+
+    // async confirmArchive() {
+    //     let buildingId = localStorage.getItem("idBuilding");
+
+    //     const res = await this.$store.dispatch("ARCHIVE_TICKET", {
+    //         buildingId, ticketId: this.ticketToArchive.dynamicId, data: {
+    //             workflowDynamicId: this.ticketToArchive.workflowId,
+    //             processDynamicId: this.ticketToArchive.process.dynamicId
+    //         }
+    //     });
+
+    //     if (res) {
+    //     } else {
+    //         console.error('Failed to archive ticket:', this.ticketToArchive);
+    //     }
+    //     this.showArchiveDialog = false;
+    //     this.ticketToArchive = null;
+    // }
 
     handleClickOfLocate(ticket: any) {
         this.localData.forEach(ticket => {
@@ -592,7 +578,7 @@ th {
     width: 15px;
     height: 15px;
     color: #14202c;
-    background-image: url("../assets/archive.svg");
+    background-image: url(../assets/expand.svg);
     background-size: 100%;
     background-position: center;
     background-repeat: no-repeat;
@@ -784,23 +770,4 @@ th {
     cursor: pointer;
     color: white;
 }
-
-/* .archive
-.btn-confirm {
-    padding: 8px 16px;
-    border-radius: 5px;
-    font-size: 13px;
-    cursor: pointer;
-    border: none;
-} */
-
-/* .btn-cancel {
-    background-color: #ccc;
-    color: #333;
-}
-
-.btn-confirm {
-    background-color: #e84141;
-    color: #fff;
-} */
 </style>

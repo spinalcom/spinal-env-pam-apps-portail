@@ -1,10 +1,14 @@
 <template>
   <div class="sprite_container_ticket pa-1" :style="{
-    background: `conic-gradient(green ${gradient.firstStep}deg, orange ${gradient.firstStep}deg ${gradient.lastStep}deg, red ${gradient.lastStep}deg)`,
+    background: data.legend
+      ? (data.type === 'room' ? gradient3.conic : squareGradient)
+      : fallbackGradient,
+    borderRadius: data.type === 'room' ? '50%' : '0',
   }" @click.stop="onClick()">
     <div class="sprite_color_ticket d-flex align-center justify-center" :style="{
       background: '#14202C',
       color: '#FFFFFF',
+      borderRadius: data.type === 'room' ? '50%' : '0',
       'text-align': 'center',
       ...dynamicStyle,
     }">
@@ -72,6 +76,48 @@ export default {
         lastStep: last,
       };
     },
+    fallbackGradient() {
+      const { firstStep, lastStep } = this.gradient;
+      return `conic-gradient(green ${firstStep}deg, orange ${firstStep}deg ${lastStep}deg, red ${lastStep}deg)`;
+    },
+    gradient3() {
+      const len = this.data.data.length;
+      if (!len) return { conic: "", steps: [] };
+
+      const anglePerStep = 360 / len;
+      let currentAngle = 0;
+
+      const gradientSteps = this.data.data.map((d) => {
+        const color = d.step?.color || "#000"; // fallback to black if color missing
+        const start = currentAngle;
+        const end = currentAngle + anglePerStep;
+        currentAngle = end;
+        return `${color} ${start}deg ${end}deg`;
+      });
+
+      return {
+        conic: `conic-gradient(${gradientSteps.join(", ")})`,
+      };
+    },
+    squareGradient() {
+      const len = this.data.data.length;
+      if (!len) return "";
+
+      const stepPercent = 100 / len;
+      let current = 0;
+
+      const segments = this.data.data.map((d) => {
+        const color = d.step?.color || "#000";
+        const start = current;
+        const end = current + stepPercent;
+        current = end;
+        return `${color} ${start}% ${end}%`;
+      });
+
+      return `linear-gradient(to right, ${segments.join(", ")})`;
+    }
+
+
   },
 
   mounted() {

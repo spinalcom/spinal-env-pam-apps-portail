@@ -651,6 +651,8 @@ export async function getMultipleChildrenRelationContextNode(
   let realresult: any[] = [];
   const spinalAPI = SpinalAPI.getInstance();
   // const apiRoute = `/api/v1/node/children_multiple`;
+  console.log("contextId", contextId);
+  console.log("relations", relations);
   const apiRoute = `/api/v1/context/${contextId}/node/children_multiple`;
 
   // Function to process each chunk of relations
@@ -670,6 +672,8 @@ export async function getMultipleChildrenRelationContextNode(
   let results = await Promise.all(
     lodash.chunk(relations, 200).map((chunk) => processChunk(chunk))
   );
+
+  console.log("results", results);
 
   results = results.flat();
   // Extract next level dynamic IDs and filter for "BIMObject" type nodes
@@ -720,7 +724,7 @@ export async function getMultipleChildrenRelationContextNode(
       });
       listOfObjects.push(newnodesFiltered);
     });
-
+    console.log("wxlskfldgkflgfkglfk");
     nextIds = listOfObjects.map((r) => r.nodes.map((e) => e.dynamicId)).flat();
 
     // Concatenate the new nodes to the existing results

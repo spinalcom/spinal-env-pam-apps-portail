@@ -34,7 +34,6 @@ export let fullstepList: any[] = [];
 export async function loadTickets(): Promise<Array<any>> {
   const stepList = <any[]>[];
   const workflows = await ticketAPI.getWorkflowList();
-  // console.log("workflows", workflows);
   const workflowList = workflows.filter((w) => workflow_list.includes(w.name));
   for (const workflow of workflowList) {
     const processList = await ticketAPI.getProcessList(workflow.dynamicId);
@@ -51,7 +50,6 @@ export async function loadTickets(): Promise<Array<any>> {
     }
   }
 
-  // console.log("stepList", stepList);
   const ticketList = (
     await ticketAPI.getTicketListMultiple(stepList.map((s) => s.dynamicId))
   ).flatMap((result) => result.tickets);
@@ -145,7 +143,6 @@ export async function filterTicketsOnPosition(
   const positionsXYZ = await nodeAPI.Attribute_list_multiple(
     ticketsFiltered.map((t) => t.elementSelected?.dynamicId).filter(Boolean)
   );
-
   return mapTicketAndXYZPosition(ticketsFiltered, positionsXYZ);
 }
 
@@ -166,17 +163,41 @@ function mapTicketAndXYZPosition(ticketTab, XYZTab) {
     const attributesTab = XYZTab.find(
       (a) => a.dynamicId == t.elementSelected.dynamicId
     );
+
     if (attributesTab) {
       for (const cat of attributesTab.categoryAttributes) {
-        if (cat.name == "Spatial") {
-          const attribute = cat.attributs.find(
-            (attr) => attr.label == "XYZ center"
+        if (cat.name === "Spatial" && Array.isArray(cat.attributs)) {
+          // Map XYZ center
+          const xyzAttr = cat.attributs.find(
+            (attr) => attr.label === "XYZ center"
           );
-          if (attribute) t.elementSelected["XYZ center"] = attribute.value;
+          if (xyzAttr && xyzAttr.value) {
+            t.elementSelected["XYZ center"] = xyzAttr.value;
+          }
+
+          // Extract first 4 valid attributes (label + value)
+          const validAttributes = cat.attributs
+            .filter(
+              (attr) =>
+                attr?.label != null &&
+                attr?.value != null &&
+                attr.label !== "" &&
+                attr.value !== ""
+            )
+            .slice(0, 4)
+            .map((attr) => ({
+              label: attr.label,
+              value: attr.value,
+            }));
+
+          t.elementSelected["attributes"] = validAttributes;
           return t;
         }
       }
     }
+
+    // Fallback if no Spatial or valid attributes
+    t.elementSelected["attributes"] = [];
     return t;
   });
 }
@@ -266,6 +287,7 @@ export function regroupFullTicketsByFloor(to_update: any[]) {
           countRoomTickets: 0,
           countObjectTickets: 0,
           countFloorList: [0, 0, 0],
+          stepCountFloorList: [],
         };
       }
 
@@ -286,6 +308,24 @@ export function regroupFullTicketsByFloor(to_update: any[]) {
           returnTab[floorDynamicId].countFloorList[1]++;
         } else if (ticket.priority === 2) {
           returnTab[floorDynamicId].countFloorList[2]++;
+        }
+      }
+      if (ticket.step && typeof ticket.step.name === "string") {
+        const stepList = returnTab[floorDynamicId].stepCountFloorList;
+
+        const existingStep = stepList.find(
+          (s: any) => s.name === ticket.step.name
+        );
+
+        if (existingStep) {
+          existingStep.count++;
+        } else {
+          stepList.push({
+            name: ticket.step.name,
+            count: 1,
+            order: ticket.step.order ?? 0,
+            color: ticket.step.color ?? "#000000",
+          });
         }
       }
     }
@@ -315,6 +355,88 @@ export function regroupFullTicketsByFloor(to_update: any[]) {
 
     returnTab[floorId]["XYZ center"] = { X: 0, Y: 0, Z: zValue };
   }
+  return returnTab;
+}
+export function regroupFullTicketsByRoom(to_update: any[]) {
+  const returnTab: Record<string, any> = {};
+
+  for (const ticket of to_update) {
+    let roomDynamicId: string | null = null;
+    let XYZCenter: any = null;
+    let roomName: string | null = null;
+    let ticketType: "room" | "object" | null = null;
+
+    if (ticket.elementSelected.type === "geographicRoom") {
+      roomDynamicId = ticket.elementSelected.dynamicId;
+      XYZCenter = ticket.elementSelected["XYZ center"];
+      roomName = ticket.elementSelected.name || "Unknown Room";
+      ticketType = "room";
+    } else if (ticket.elementSelected.type === "BIMObject") {
+      if (
+        ticket.elementSelected.position &&
+        ticket.elementSelected.position.room
+      ) {
+        roomDynamicId = ticket.elementSelected.position.room.dynamicId;
+        XYZCenter = ticket.elementSelected.position.room["XYZ center"];
+        roomName = ticket.elementSelected.position.room.name || "Unknown Room";
+        ticketType = "object";
+      }
+    }
+
+    if (roomDynamicId) {
+      if (!returnTab[roomDynamicId]) {
+        returnTab[roomDynamicId] = {
+          dynamicId: roomDynamicId,
+          roomName: roomName,
+          "XYZ center": XYZCenter,
+          ticketList: [],
+          countRoomTickets: 0,
+          countObjectTickets: 0,
+          countRoomList: [0, 0, 0],
+        };
+      }
+
+      returnTab[roomDynamicId].ticketList.push(ticket);
+
+      if (ticketType === "room") {
+        returnTab[roomDynamicId].countRoomTickets++;
+        if (ticket.priority === 0) {
+          returnTab[roomDynamicId].countRoomList[0]++;
+        } else if (ticket.priority === 1) {
+          returnTab[roomDynamicId].countRoomList[1]++;
+        } else if (ticket.priority === 2) {
+          returnTab[roomDynamicId].countRoomList[2]++;
+        }
+      } else if (ticketType === "object") {
+        returnTab[roomDynamicId].countObjectTickets++;
+      }
+    }
+  }
+
+  for (const roomId in returnTab) {
+    let zValue = 0;
+    const ticketList = returnTab[roomId].ticketList;
+
+    const firstRoomTicket = ticketList.find(
+      (ticket: any) => ticket.elementSelected.type === "geographicRoom"
+    );
+
+    if (firstRoomTicket) {
+      const xyz = firstRoomTicket.elementSelected["XYZ center"];
+      if (xyz) {
+        zValue = parseFloat(xyz.split(";")[2]) || 0;
+      }
+    } else if (ticketList.length > 0) {
+      const firstTicket = ticketList[0];
+      const xyz = firstTicket.elementSelected["XYZ center"];
+      if (xyz) {
+        zValue = parseFloat(xyz.split(";")[2]) || 0;
+      }
+    }
+
+    returnTab[roomId]["XYZ center"] = { X: 0, Y: 0, Z: zValue };
+  }
+
   return returnTab;
 }
 export function updateItemCounts(data: any[]) {

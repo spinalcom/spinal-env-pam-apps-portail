@@ -659,12 +659,10 @@ export const actions = {
     { commit }: AugmentedActionContextAppData,
     { buildingId, referenceIds }: { buildingId: string; referenceIds: number }
   ): Promise<any> {
-    // console.log('Début de l\'action GET_REFERENCE_OBJECT_LIST_MULTIPLE',buildingId , referenceIds);
     const spinalAPI = SpinalAPI.getInstance();
     try {
       // const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
       const result = await getStaticDetails(buildingId, referenceIds);
-      // console.log('Récupération de l objet de référence réussie:', result);
       return result;
     } catch (error) {
       console.error(
@@ -682,7 +680,6 @@ export const actions = {
     try {
       // const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
       const result = await getStaticDetailsEquipement(buildingId, referenceIds);
-      // console.log('Récupération de l objet de référence réussie:', result);
       return result;
     } catch (error) {
       console.error(
@@ -696,7 +693,6 @@ export const actions = {
     { commit }: AugmentedActionContextAppData,
     { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }
   ): Promise<any> {
-    // console.log('Début de l\'action GET_REFERENCE_OBJECT_LIST_MULTIPLE',buildingId , referenceIds);
     const spinalAPI = SpinalAPI.getInstance();
     try {
       // const result = await spinalAPI.createIteratorCall(getMultipleReferenceObjects, buildingId, referenceIds);
@@ -704,7 +700,6 @@ export const actions = {
         buildingId,
         referenceIds
       );
-      // console.log('Récupération des objets de référence réussie:', result);
       return result;
     } catch (error) {
       console.error(

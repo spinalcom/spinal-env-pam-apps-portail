@@ -60,13 +60,15 @@ with this file. If not, see
 
           {{ selectedZoneName.toUpperCase() }}
         </p>
+        <v-progress-circular style="margin-right: 10px;" v-if="!viewerLoaded && label == 'ESPACE'" :size="25"
+          color="white" indeterminate></v-progress-circular>
       </div>
       <transition-group id="myDiv" name="staggered-fade" class="card-list spinal-scrollbar"
         :style="[{ 'overflow-y': 'auto' + ' !important' }]" tag="div" v-bind:css="false" v-on:before-enter="beforeEnter"
         v-on:enter="enter">
         <SpaceSelectorItem class="staggered-fade-item" v-for="(item, index) in buildingStructure"
-          :key="`${index}-${item.staticId}-${item.platformId}-${item.patrimoineId}`" :item="item"
-          v-bind:data-index="index" :maxDepth="maxDepth" :label="label" @onSelect="select(item)"
+          :loading_viewer="viewerLoaded" :key="`${index}-${item.staticId}-${item.platformId}-${item.patrimoineId}`"
+          :item="item" v-bind:data-index="index" :maxDepth="maxDepth" :label="label" @onSelect="select(item)"
           :selected="selectedZone" @onOpenClose="expandCollapse(item, index)"
           :spaceSelectorItemButtons="spaceSelectorItemButtons" :viewButtonsType="viewButtonsType"
           @onActionClick="onActionClick"></SpaceSelectorItem>
@@ -114,11 +116,11 @@ class SpaceSelector extends Vue {
   label: string;
 
   selectorHeight = 0;
-
+  viewerLoaded: boolean = true;
   get selectedZoneName() {
 
     if (this.buildingStructure[0]?.type == "building" && this.selectedZone.type == "building") {
-      return this.buildingStructure[0]?.name || "Bâtiment";
+      return this.buildingStructure[0]?.name || "DEI";
     }
     return this.selectedZone?.name || "Sélectionnez une zone";
   }
@@ -127,6 +129,25 @@ class SpaceSelector extends Vue {
 
   buildingStructure: ISpaceSelectorItem[] = [];
 
+  checkViewerStatus() {
+    const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
+
+    if (!currentQuery.app) {
+      this.viewerLoaded = true
+      localStorage.setItem("viewer_loaded", "loaded");
+    } else {
+      // TODO
+      const currentStatus = ["loaded", "initialize"].includes(localStorage.getItem("viewer_loaded") || "");
+      if (this.viewerLoaded !== currentStatus) {
+        this.viewerLoaded = currentStatus;
+
+        if (currentStatus)
+          console.log("loaded viewer???????????????????? event bus");
+
+      }
+    }
+
+  }
   @Watch("selectedZone")
   async onSelectedChange() {
     for (let idx = 0; idx < this.buildingStructure.length; idx++) {
