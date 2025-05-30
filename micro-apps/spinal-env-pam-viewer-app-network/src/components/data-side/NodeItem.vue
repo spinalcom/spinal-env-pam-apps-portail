@@ -92,7 +92,6 @@ with this file. If not, see
 <script lang="ts">
 import { Prop, Vue } from "vue-property-decorator";
 import Component from "vue-class-component";
-import Table from "./Table.vue";
 import TreeTable from "./TreeTable.vue";
 
 import { ActionTypes } from "../../interfaces/vuexStoreTypes";
@@ -100,32 +99,28 @@ import { Watch } from "vue-property-decorator";
 import { log } from "console";
 import NodeVisualization from "./NodeVisualtion.vue";
 import StatCard from "./statistique-components/StatCard.vue";
-// import TypeCard from "./statistique-components/TypeCard.vue";
 import HardwareContext from "./HardwareContext.vue";
 import { IConfig } from "../../interfaces/IConfig";
 
 @Component({
   name: "NodeItem",
   components: {
-    Table,
     NodeVisualization,
     StatCard,
-    // TypeCard,
     HardwareContext,
     TreeTable,
   },
 })
 class NodeItem extends Vue {
-  @Prop() data: any[];
+  @Prop() data: any[]; // Data to display in the node visualization and tables
   @Prop() DActive: boolean;
   @Prop() ActiveData: boolean;
   @Prop() config: IConfig;
   @Prop() hardwareContextData: any[]; // Receive hardware context data
   @Prop() selectedHardwareContext: number; // Receive selected hardware context
-  showDetailsProp: boolean = false;
+  showDetailsProp: boolean = false; // Prop to control the visibility of details in the StatCard and table
   datatoShow: any = [];
-  history: any[] = [];
-  filteredData: any = [];
+  filteredData: any = []; // Filtered data based on status and type
   selectedNodeIndex: number | null = null;
   selectedNodeName: string | null = null;
   dynamicId: number = 0;
@@ -133,6 +128,7 @@ class NodeItem extends Vue {
   statsVisible: boolean = false;
 
   selectedType: string = "all";
+  // Query parameters for routing
   query: {
     app: string;
     mode: string;
@@ -150,13 +146,7 @@ class NodeItem extends Vue {
   isFullViewActive: boolean = false;
   isNormalViewActive: boolean = true;
 
-  selectedHardwareContextName: string = "";
 
-
-  @Watch("showDetailsProp")
-  showPropsChanged() {
-
-  }
   updateSelectedContext(dynamicId: number) {
     this.$emit("updateSelectedHardwareContext", dynamicId);
     this.$store.dispatch(ActionTypes.REMOVE_ALL_LINES);
@@ -174,12 +164,6 @@ class NodeItem extends Vue {
     }
   }
   toggleNode(index: number) {
-    // this.history.push([...this.datatoShow]); // Save current state to history
-    this.history.push({
-      data: [...this.datatoShow],
-      name: this.selectedNodeName,
-      dynamicId: this.dynamicId,
-    });
     this.selectedNodeIndex = index; // Set the selected node index
     this.selectedNodeName = this.datatoShow[index].name;
     this.dynamicId = this.datatoShow[index].dynamicId;
@@ -203,13 +187,6 @@ class NodeItem extends Vue {
   }
   async mounted() {
     this.datatoShow = this.data;
-    for (let i = 0; i < this.hardwareContextData.length; i++) {
-      if (
-        this.hardwareContextData[i].dynamicId === this.selectedHardwareContext
-      ) {
-        this.selectedHardwareContextName = this.hardwareContextData[i].nodes[0];
-      }
-    }
     this.filterData();
   }
   handleNodeClickofCard(node: any) {
@@ -227,13 +204,7 @@ class NodeItem extends Vue {
     );
   }
 
-  @Watch("DActive")
-  onDActiveChanged(newVal: boolean, oldVal: boolean) {
-  }
 
-  @Watch("ActiveData")
-  onActiveDataChanged(newVal: boolean, oldVal: boolean) {
-  }
   get fullDataClass() {
     return {
       "Full-data": !this.DActive && this.ActiveData,
@@ -417,19 +388,6 @@ export default NodeItem;
 
 .stat-card {
   width: 100%;
-  background-color: #f5f5f5;
-  border-radius: 10px;
-  margin-top: 2px;
-  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.1);
-  transition: height 0.5s ease;
-  overflow: hidden;
-  /* Ensures content doesn't overflow when height is 0 */
-  // height: 200px !important; /* Default height */
-  margin-bottom: 10px;
-}
-
-.stat-card2 {
-  width: 0%;
   background-color: #f5f5f5;
   border-radius: 10px;
   margin-top: 2px;

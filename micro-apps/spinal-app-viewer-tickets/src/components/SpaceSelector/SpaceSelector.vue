@@ -50,13 +50,13 @@ with this file. If not, see
       " class="space-selector-header" :style="{ cursor: maxDepth !== -1 ? 'pointer' : 'default' }">
         <span class="legend">{{ label }}</span>
         <p class="space-selector-header-title">
-          <v-icon :style="[
+          <!-- <v-icon :style="[
             { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
             { width: maxDepth !== -1 ? 'auto' : '0 !important' },
             { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
           ]" class="rotate-disabled space-selector-header-title-icon" :class="{ 'rotate-enabled': open }">
             mdi-chevron-down
-          </v-icon>
+          </v-icon> -->
 
           {{ selectedZoneName.toUpperCase() }}
         </p>
@@ -66,12 +66,12 @@ with this file. If not, see
       <transition-group id="myDiv" name="staggered-fade" class="card-list spinal-scrollbar"
         :style="[{ 'overflow-y': 'auto' + ' !important' }]" tag="div" v-bind:css="false" v-on:before-enter="beforeEnter"
         v-on:enter="enter">
-        <SpaceSelectorItem class="staggered-fade-item" v-for="(item, index) in buildingStructure"
-          :loading_viewer="viewerLoaded" :key="`${index}-${item.staticId}-${item.platformId}-${item.patrimoineId}`"
-          :item="item" v-bind:data-index="index" :maxDepth="maxDepth" :label="label" @onSelect="select(item)"
-          :selected="selectedZone" @onOpenClose="expandCollapse(item, index)"
-          :spaceSelectorItemButtons="spaceSelectorItemButtons" :viewButtonsType="viewButtonsType"
-          @onActionClick="onActionClick"></SpaceSelectorItem>
+        <SpaceSelectorItem class="staggered-fade-item" :label="label" :loading_viewer="viewerLoaded"
+          v-for="(item, index) in buildingStructure"
+          :key="`${index}-${item.staticId}-${item.platformId}-${item.patrimoineId}`" :item="item"
+          v-bind:data-index="index" :maxDepth="maxDepth" @onSelect="select(item)" :selected="selectedZone"
+          @onOpenClose="expandCollapse(item, index)" :spaceSelectorItemButtons="spaceSelectorItemButtons"
+          :viewButtonsType="viewButtonsType" @onActionClick="onActionClick"></SpaceSelectorItem>
       </transition-group>
     </v-card>
   </div>

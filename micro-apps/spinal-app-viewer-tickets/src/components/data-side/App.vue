@@ -151,7 +151,8 @@
             <div class="filtre-title">
               Priorité
             </div>
-            <div style="width: 100%; height: 50px; display: flex; flex-direction: row; justify-content: space-between;">
+            <div class="priority-list-container"
+              style="width: 100%; height: 50px; display: flex; flex-direction: row; justify-content: space-between;">
 
               <div v-for="priority in priorities" :key="priority.value" class="d-flex flex-row row-style align-center"
                 style="align-items: center;">
@@ -162,7 +163,7 @@
                   </div>
                   <div class="prio-filtre-text"
                     :style="{ textDecoration: priority.selected ? 'none' : 'line-through', opacity: priority.selected ? '1' : '0.5' }">
-                    {{ priority.label }}
+                    {{ getPriorityLabel(priority.label) }}
                   </div>
                 </div>
               </div>
@@ -178,18 +179,14 @@
             </div>
             <div class="dropdown-holder">
 
-              <v-select color="#14202c" background-color="#fff" style="max-width: calc(100%)" solo flat @click.stop
-                v-model="workflow_filter" label="Tous les workflows" placeholder="Tous les workflows"
-                :items="workflows()" append-icon="mdi-chevron-down" clearable clear-icon="mdi-close-circle-outline"
-                multiple menu-props="offset-y">
+              <v-select class="workflow-label" color="#14202c" background-color="#fff" style="max-width: calc(100%)"
+                solo flat @click.stop v-model="workflow_filter" label="Tous les workflows"
+                placeholder="Tous les workflows" :items="workflows()" append-icon="mdi-chevron-down" clearable
+                clear-icon="mdi-close-circle-outline" multiple menu-props="offset-y">
                 <template v-slot:selection="{ item, index }">
-                  <v-chip @click:close="
-                    domain_filter = workflow_filter.filter((w) => w !== item)
-                    " close :close-icon="'mdi-close-circle'" style="
-                font-size: 11px;
-                height: 24px;
-                max-width: calc(100% - 50px);
-              " v-if="index < 1">
+                  <v-chip @click:close="domain_filter = workflow_filter.filter((w) => w !== item)" close
+                    :close-icon="'mdi-close-circle'"
+                    style="font-size: 11px; height: 24px; max-width: calc(100% - 50px);" v-if="index < 1">
                     <span style="max-width: 90%; overflow: hidden">{{ item }}</span>
                   </v-chip>
 
@@ -232,7 +229,7 @@
       </div>
       <!-- <div style="height: 1px; background-color: #14202c20; margin: 10px 0;"></div> -->
       <!-- SAMPLE -->
-      <div v-if="!showAddTicket" class="d-flex flex-column flex-fill overflow-y-auto">
+      <div v-if="!showAddTicket" class="d-flex flex-column flex-fill overflow-y-auto ticket-table-outer-container">
         <TicketTable :data="sortedTickets" :config="selectedProfile" @locate="locateTicket" @display="showDetails" />
 
       </div>
@@ -262,6 +259,7 @@
       <ticketDetails v-if="detailedTicket" style="z-index: 99" v-model="showDialog" @changeRoute="handleRouteChange"
         @reloadRequested="startReload" :detailed-ticket="detailedTicket" :token="token" :baseURL="baseURL"
         :steps="fullstepList" :config="ticketConfig"></ticketDetails>
+      <FloorCardComponent v-if="showGlobalCard" :data="floorCardData" @close="showGlobalCard = false" />
     </div>
 
     <!-- <div class="centered" v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected">
@@ -308,6 +306,7 @@ import TicketComponent from "./TicketComponent.vue";
 import TicketTable from "./components/DataTable.vue";
 import StatusFiltre from "./components/StatusFiltre.vue";
 import SpriteCardComponent from "./SpriteCardComponent.vue";
+import FloorCardComponent from "./FloorCardComponent.vue";
 import FloorSpriteCardComponent from "./FloorSpriteCardComponent.vue";
 import FloorSpriteComponent from "./FloorSpriteComponent.vue";
 import ProfileSelector from "./components/ProfileSelector.vue";
@@ -324,7 +323,7 @@ import TicketDetails from "./TicketDetailsNew.vue";
 
 
 @Component({
-  components: { TicketComponent, TicketTable, StatusFiltre, SpriteCardComponent, FloorSpriteComponent, ProfileSelector, LegendVue, TicketForm, TicketDetails },
+  components: { TicketComponent, TicketTable, StatusFiltre, SpriteCardComponent, FloorCardComponent, FloorSpriteComponent, ProfileSelector, LegendVue, TicketForm, TicketDetails },
   filters: {},
 })
 class dataSideApp extends Vue {
@@ -381,6 +380,10 @@ class dataSideApp extends Vue {
   equipementitemsnumber: number = 0;
   modefull: boolean = false
   isSwitchingSptires: boolean = false;
+  showGlobalCard: boolean = false;
+  GlobalCardData: any = null;
+  floorCardData: any = null;
+
   getPriorityColor = getPriorityColor;
   priorities = [
     { value: 0, label: "Élevée", selected: true },
@@ -536,7 +539,7 @@ class dataSideApp extends Vue {
       item.baseURL = this.baseURL;
       item.token = this.token;
     });
-
+    console.log("validItems", validItems);
     this.$store.dispatch(ActionTypes.ADD_CARD_COMPONENT, {
       items: validItems,
       buildingId: localStorage.getItem("idBuilding"),
@@ -563,6 +566,30 @@ class dataSideApp extends Vue {
       buildingId: localStorage.getItem("idBuilding"),
       component: FloorSpriteCardComponent,
     });
+  }
+  callFloorCard(items: any | any[]) {
+    this.$store.dispatch(ActionTypes.REMOVE_CARDS);
+    const itemsArray = Array.isArray(items) ? items : [items];
+    const validItems = itemsArray.filter(item => item != null);
+    validItems.forEach(item => {
+      item.steps = this.steps2();
+    });
+
+    validItems.forEach(item => {
+      item.baseURL = this.baseURL;
+      item.token = this.token;
+      item.withoutPosition = true;
+    });
+
+    console.log("validItems", validItems);
+    // this.$store.dispatch(ActionTypes.ADD_CARD_COMPONENT, {
+    //   items: validItems,
+    //   buildingId: localStorage.getItem("idBuilding"),
+    //   component: FloorCardComponent,
+    // });
+    this.showGlobalCard = true;
+    this.floorCardData = validItems;
+    return;
   }
 
   async mounted() {
@@ -875,6 +902,21 @@ class dataSideApp extends Vue {
   get progressGradient() {
     return `conic-gradient(#14202c ${this.progress}%, #e0e0e0 ${this.progress}% 100%)`;
   }
+  getPriorityLabel(label: string) {
+    if (window.innerWidth < 1500) {
+      switch (label) {
+        case 'Élevée':
+          return 'E';
+        case 'Moyenne':
+          return 'M';
+        case 'Faible':
+          return 'F';
+        default:
+          return label;
+      }
+    }
+    return label;
+  }
 
   async reloadData(type: "building" | "geographicFloor" | "geographicRoom") {
     this.$store.dispatch(ActionTypes.REMOVE_CARDS);
@@ -988,7 +1030,6 @@ class dataSideApp extends Vue {
 
     const dynamicIdToFind = ticket.dynamicId;
     const result = findGroupIndexByDynamicId(this.tickets_with_positions, dynamicIdToFind);
-
     if (result !== -1) {
       // Reorder the items in the found group
       const group = this.tickets_with_positions[result];
@@ -996,11 +1037,16 @@ class dataSideApp extends Vue {
       this.callCard(group);
     } else if (result === -1) {
       // Unify and reorder the floor tickets
+      if (ticket.elementSelected.type === "geographicBuilding") {
+        console.log(ticket.elementSelected);
+        this.callFloorCard([ticket]);
+        return;
+      }
+      console.log("Reordering items in group:", ticket);
       const floorItemsCard = this.unifyData(this.floor_tickets_with_positions);
       floorItemsCard.data = reorderItems(floorItemsCard.data, dynamicIdToFind);
       this.callCard(floorItemsCard);
     }
-
     const buildingId = localStorage.getItem("idBuilding");
     this.$store.commit(MutationTypes.SET_SELECTED_TICKETS, [ticket.dynamicId]);
     if (ticket.elementSelected.type === "geographicFloor" || ticket.elementSelected.type === "geographicBuilding") {
@@ -1472,5 +1518,80 @@ html .v-application .primary--text {
   font-weight: bold;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   transition: opacity 0.5s ease-in-out;
+}
+
+.ticket-table-outer-container::-webkit-scrollbar {
+  width: 10px;
+  background: #14202c15 !important;
+}
+
+.ticket-table-outer-container::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background: #14202c !important;
+}
+
+.ticket-table-outer-container::-webkit-scrollbar-track {
+  // -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
+  // box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+}
+
+/****************************       Media queries ********************************** */
+@media (max-width: 1500px) {
+  .workflow-label {
+    font-size: 13px !important;
+  }
+
+  ::v-deep(.v-label) {
+    font-size: 13px !important;
+  }
+
+  ::v-deep(.v-list-item .v-list-item__title) {
+    font-size: 13px !important;
+  }
+
+  .v-list-item__title {
+    font-size: 13px !important;
+  }
+
+  .v-input .v-label {
+    font-size: 13px !important;
+  }
+
+  .priority-list-container {
+    justify-content: flex-start !important;
+    gap: 5px !important;
+  }
+
+  .v-select-list {
+    width: 280px !important;
+  }
+
+  .prio-filtre-text {
+    font-size: 12px !important;
+  }
+
+  .filtre-half-holder {
+    overflow: auto ! important;
+  }
+
+  .status-filtre-container {
+    width: 70px !important;
+  }
+
+  .separator {
+    width: 40px !important;
+  }
+
+  .v-data-table .v-data-table__wrapper table {
+    border-spacing: 0 !important;
+    width: 180% !important;
+  }
+
+  .add-ticket-button {
+    width: 50% !important;
+  }
 }
 </style>

@@ -4,7 +4,7 @@
         <div v-show="value" class="dialog-background" @click="closePopUp"></div>
 
         <!--Dialog box to display the details of the tcket-->
-        <v-card v-if="detailedTicket" elevation="24" v-show="value"
+        <v-card v-if="value && detailedTicket" elevation="24" v-show="value"
             :class="['dialog-box', { 'editing-mode': isEditing }]">
             <div @click="closePopUp()" class="details-card-close">
                 X
@@ -29,7 +29,8 @@
                                         + '...' : detailedTicket.step.name }}
                                 </span>
                             </div>
-                            <div v-if="isEditing" class="edit-icon" title="Cliquez pour ouvrir le dropdown"
+                            <div v-if="isEditing" class="dropdown-icon" :class="{ 'rotate-open': isStepDropdownOpen }"
+                                title="Cliquez pour ouvrir le dropdown"
                                 style="right: -20px; top: -2px;background-color: #14202c; ">
                             </div>
                         </div>
@@ -38,6 +39,7 @@
                                 :key="step.name" class="status-indicator d-flex flex-row"
                                 style="cursor: pointer; padding: 5px;"
                                 :style="{ background: `${step.color}20`, marginTop: '6px', borderRadius: '4px' }"
+                                :class="{ 'selected-step': selectedStepName === step.name }"
                                 @click="selectStepFromDropdown(step.name)">
                                 <div class="status-indicator-point" :style="{ background: step.color }"
                                     style="margin-right: 5px;"></div>
@@ -52,23 +54,27 @@
                         {{ priorityLabel }}
                     </div> -->
                     <div class="step-holder" style="position: relative;">
-                        <div class="details-card-ticket-prio" :class="[priorityClass, { 'editable': isEditing }]"
-                            :style="priorityStyle"
-                            @click="isEditing ? isPriorityDropdownOpen = !isPriorityDropdownOpen : null; isStepDropdownOpen = false"
-                            style="cursor: pointer;">
-                            {{selectedPriority !== null ? allPriorities.find(p => p.value === selectedPriority).label :
-                                priorityLabel}}
+                        <div
+                            @click="isEditing ? isPriorityDropdownOpen = !isPriorityDropdownOpen : null; isStepDropdownOpen = false">
+                            <div class="details-card-ticket-prio" :class="[priorityClass, { 'editable': isEditing }]"
+                                :style="priorityStyle" style="cursor: pointer;">
+                                <!-- {{selectedPriority !== null ? allPriorities.find(p => p.value ===
+                                    selectedPriority).label :
+                                    priorityLabel}} -->
+                                {{ priorityLabel }}
+                            </div>
+                            <div v-if="isEditing" class="dropdown-icon"
+                                :class="{ 'rotate-open': isPriorityDropdownOpen }"
+                                title="Cliquez pour ouvrir le dropdown"
+                                style="right: -18px;top: 0px; background-color: #14202c; ">
+                            </div>
                         </div>
-                        <div v-if="isEditing" class="edit-icon" title="Cliquez pour ouvrir le dropdown"
-                            @click="isEditing ? isPriorityDropdownOpen = !isPriorityDropdownOpen : null"
-                            style="right: -18px;top: 0px; background-color: #14202c; ">
-                        </div>
-
                         <!-- Dropdown -->
                         <div v-if="isEditing && isPriorityDropdownOpen" class="step-dropdown"
                             style="width: 200px; top: 20px;">
                             <div v-for="prio in availablePriorities" :key="prio.value"
                                 @click="selectPriorityFromDropdown(prio.value)" class="status-indicator d-flex flex-row"
+                                :class="{ 'selected-priority': selectedPriority === prio.value }"
                                 style="cursor: pointer; padding: 5px;"
                                 :style="{ backgroundColor: prio.color + '20', marginTop: '6px', borderRadius: '4px' }">
                                 <div class="status-indicator-point" :style="{ background: prio.color }"></div>
@@ -79,7 +85,7 @@
 
                 </div>
                 <div class="details-card-ticket-date"
-                    style="display: flex; flex-direction: column; align-items: flex-end; width: 21%;font-size: 0.75rem;">
+                    style="display: flex; flex-direction: column; align-items: flex-end; width: 21%;font-size: 0.75rem;line-height: 1;">
                     <template v-if="isSameDate">
                         <span>Créé le: <b>{{ dispDateCreation }}</b></span>
                     </template>
@@ -106,11 +112,11 @@
                 <div class="first-step-title">
                     <!-- <p><b>Création</b> ticket</p> -->
                     <div style="width: 60%;position: relative;">
-                        <input type="text" :disabled="!isEditing" v-model="detailedTicket.name" placeholder="Non défini"
+                        <input type="text" :disabled="!isEditing" v-model="editedName" placeholder="Non défini"
                             :class="{ 'editable': isEditing }"
-                            style="width: 90%!important;font-size: 12px;    margin-bottom: 16px;color: #fff;border-color: #fff!important;" />
+                            style="width: 40%!important;font-size: 12px; margin-bottom: 16px; outline: none;color: #fff;" />
                         <div v-if="isEditing" class="edit-icon-b" title="Cliquez sur le texte pour modifier"
-                            style="top: 4px; left: calc(90% - 20px); background-color: #fff;">
+                            style="top: 4px; left: calc(40% - 20px); background-color: #fff;">
                         </div>
                     </div>
                     <!-- <p>{{ dispDateCreation }}</p> -->
@@ -123,7 +129,7 @@
                     de
                     prise en
                     charge par l'équipe de maintenance. -->
-                    <textarea :disabled="!isEditing" v-model="detailedTicket.description" placeholder="Non défini"
+                    <textarea :disabled="!isEditing" v-model="editedDescription" placeholder="Non défini"
                         :class="{ 'editable': isEditing }"
                         style="width: 100%; height: auto; font-size: 12px; resize: none; overflow: auto; text-align: left; line-height: 1.5;border-color: #14202c!important"></textarea>
                     <div v-if="isEditing" class="edit-icon" title="Cliquez sur le texte pour modifier"
@@ -140,8 +146,8 @@
                 class="overflow-y-auto overflow-x-hidden fulldetails-card">
                 <div :style="{ width: isEditing ? '49% !important' : '' }"
                     class="d-flex flex-column steps-container-wrapper">
-                    <div class="custom-scroll" style="width: 100%;overflow: auto;max-height: 80%;min-height: 65%;">
-
+                    <div :class="['custom-scroll', { 'custom-scroll-bg': isEditing }]"
+                        style="width: 100%;overflow: auto;max-height: 80%;min-height: 65%;">
 
                         <div v-for="timeLineItem in TimeLine"
                             :key="timeLineItem.step.staticId + '-' + timeLineItem.date" class="step-container"
@@ -181,16 +187,16 @@
                                                 :style="{ background: timeLineItem.step.color }">
                                             </div>
                                             <span>
-                                                {{ timeLineItem.step.name.length > 25 ?
-                                                    timeLineItem.step.name.substring(0, 25) +
-                                                    '...'
-                                                    :
+                                                {{ timeLineItem.step.name.length > maxStepNameLength ?
+                                                    timeLineItem.step.name.substring(0, maxStepNameLength) + '...' :
                                                     timeLineItem.step.name }}
                                             </span>
+
                                         </div>
                                     </div>
                                     <div style="display: flex;flex-direction: column;align-items: end;">
                                         <div class="step-date-text">{{ getLogDate(timeLineItem) }}</div>
+                                        <!-- <div class="step-date-text">{{ formatAdaptiveDate(timeLineItem.date) }}</div> -->
                                         <div class="step-message-count"
                                             style="position: absolute; font-size: 11px; color: #14202c; margin-top: 20px; cursor: pointer; display: flex; align-items: center; gap: 5px;"
                                             @click="timeLineItem.annotations.length === 0 ? null : toggleStepMessages(timeLineItem.step.staticId + '-' + timeLineItem.date)">
@@ -264,8 +270,8 @@
                     </div>
 
                 </div>
-                <v-divider vertical style="margin: 0px ;margin-left: 6px;margin-right: 10px;" class="hide-devider"
-                    :style="{ backgroundColor: isEditing ? '#FFC107' : '' }">
+                <v-divider v-if="!isSmallScreen" vertical style="margin: 0px ;margin-left: 6px;margin-right: 10px;"
+                    class="hide-devider" :style="{ backgroundColor: isEditing ? '#FFC107' : '' }">
                 </v-divider>
                 <div class="restofdetails-container-wrapper">
 
@@ -307,7 +313,8 @@
                             <div class="details-icon process">
                             </div>
                         </div>
-                        <div class="details-input" style="font-size: 12px; letter-spacing: -0.5px; line-height: 1.2;">
+                        <div class="details-input" :class="isEditing ? 'not-editable' : ''"
+                            style="font-size: 12px; letter-spacing: -0.5px; line-height: 1.2;">
                             {{ detailedTicket.process.name }}
                         </div>
                     </div>
@@ -350,14 +357,13 @@
                         </div> -->
                         <div class="d-flex flex-row align-items-center"
                             style="justify-content: start;align-items: center;">
-                            <span
-                                v-if="images_loaded && detailedTicket.file_list && detailedTicket.file_list.length > 0"
-                                style="font-size: 0.75rem;color: #14202c; margin-right: 3px;">Pièces jointes</span>
+                            <span v-if="hasAttachments"
+                                style="font-size: 0.75rem;color: #14202c; margin-right: 3px;">Pièces
+                                jointes</span>
                             <div class="details-icon attachement">
                             </div>
                         </div>
-                        <carousel-component
-                            v-if="images_loaded && detailedTicket.file_list && detailedTicket.file_list.length > 0"
+                        <carousel-component v-if="hasAttachments || imagesReady" :key="carouselKey"
                             style="width: 100%;height: 100%;" :image_list="images"></carousel-component>
                     </div>
 
@@ -417,36 +423,6 @@
             :headline="'Confirmer les modifications'" :text="generateModificationText()" :confirmLabel="'Confirmer'"
             @cancel="showConfirmDialog = false" @confirm="confirmAndSaveChanges" />
 
-
-        <!-- <v-dialog v-model="showConfirmDialog" max-width="500px">
-            <v-card>
-                <v-card-title>Confirmer les modifications</v-card-title>
-                <v-card-text>
-                    <div v-if="confirmChanges.stepChanged">
-                        ➤ Étape changée vers : <b>{{ selectedStepName }}</b>
-                    </div>
-                    <div v-if="confirmChanges.priorityChanged">
-                        ➤ Priorité changée vers : <b>{{allPriorities.find(p => p.value ===
-                            confirmChanges.newPriority).label
-                            }}</b>
-                    </div>
-
-                    <div v-if="confirmChanges.note">
-                        ➤ Note : <i>"{{ confirmChanges.note }}"</i>
-                    </div>
-                    <div v-if="confirmChanges.files.length">
-                        ➤ {{ confirmChanges.files.length }} fichier(s) joint(s)
-                        <ul>
-                            <li v-for="file in confirmChanges.files" :key="file.name">{{ file.name }}</li>
-                        </ul>
-                    </div>
-                </v-card-text>
-                <v-card-actions>
-                    <v-btn color="grey" text @click="showConfirmDialog = false">Annuler</v-btn>
-                    <v-btn color="green" text @click="confirmAndSaveChanges">Confirmer</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog> -->
         <div v-if="showSuccessAnimation" class="success-animation">
             ✔️ <!-- replace with green Nike SVG or animated check if needed -->
         </div>
@@ -502,6 +478,7 @@ export default {
 
     data: () => ({
         images_loaded: false,
+        carouselKey: 0,
         images: undefined,
         showPDF: false,
         PDFparts: [],
@@ -509,13 +486,15 @@ export default {
         isEditing: false,
         workflows: ["Workflow 1", "Workflow 2", "Workflow 3"],
         processes: ["Process 1", "Process 2", "Process 3"],
-
+        imagesReady: false,
         selectedWorkflow: "",
         selectedProcess: "",
         selectedStep: "",
         selectedStepName: "",
         selectedPriority: null,
         newNote: "",
+        editedName: "",
+        editedDescription: "",
         enrichedAnnotations: [],
         TimeLine: [],
         openedSteps: [],
@@ -527,6 +506,9 @@ export default {
         uploadedFiles: [],
         showConfirmDialog: false,
         showSuccessAnimation: false,
+        maxStepNameLength: 25,
+        useShortDate: false,
+        isSmallScreen: window.innerWidth <= 1000,
         confirmChanges: {
             name: "",
             description: "",
@@ -548,6 +530,10 @@ export default {
         isSameDate() {
             return this.dispDateCreation === this.dispDateModif;
         },
+        hasAttachments() {
+            return this.images_loaded && this.images && this.images.length > 0;
+        },
+
         archiveText() {
             const id = this.ticketToArchive?.dynamicId || '';
             const name = this.ticketToArchive?.name || '';
@@ -647,6 +633,15 @@ export default {
     },
 
     methods: {
+        updateMaxStepNameLength() {
+            this.maxStepNameLength = window.innerWidth < 1600 ? 18 : 25;
+        },
+        updateDateDisplayMode() {
+            this.useShortDate = window.innerWidth < 1500;
+        },
+        updateScreenSize() {
+            this.isSmallScreen = window.innerWidth <= 1000;
+        },
         changeRoute(id, name) {
             const route = {
                 'dynamicId': id,
@@ -656,6 +651,13 @@ export default {
         },
         generateModificationText() {
             let text = '';
+            if (!this.confirmChanges) return "Aucune modification détectée.";
+            if (this.confirmChanges.name && this.confirmChanges.name !== this.detailedTicket.name) {
+                text += `➤ Nom changé vers : <strong>${this.confirmChanges.name}</strong><br>`;
+            }
+            if (this.confirmChanges.description && this.confirmChanges.description !== this.detailedTicket.description) {
+                text += `➤ Description changée vers : <strong>${this.confirmChanges.description}</strong><br>`;
+            }
 
             if (this.confirmChanges.stepChanged) {
                 text += `➤ Étape changée vers : <strong>${this.selectedStepName}</strong><br>`;
@@ -690,6 +692,7 @@ export default {
         },
         closePopUpAndDropdowns() {
             this.closePopUp();
+            this.resetChanges();
             this.isStepDropdownOpen = false;
             this.isPriorityDropdownOpen = false;
         },
@@ -735,6 +738,7 @@ export default {
         },
         closePopUp() {
             this.isEditing = false;
+            this.resetChanges();
             this.$emit("input", false);
         },
         generateOpenedStepsKeys() {
@@ -822,7 +826,7 @@ export default {
         },
         getLogDate(log) {
 
-            if ((log.type !== "next") && (log.type !== "other")) return this.formatDate(log.date);
+            if ((log.type !== "next") && (log.type !== "other")) return this.formatAdaptiveDate(log.date);
             else if (log.type === "next") {
                 return "À venir";
             } else if (log.type === "other") {
@@ -839,6 +843,22 @@ export default {
             const minutes = String(dateObj.getMinutes()).padStart(2, '0');
             return `${day}/${month}/${year} ${hours}:${minutes}`;
         },
+        formatAdaptiveDate(timestamp) {
+            const dateObj = new Date(timestamp);
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const year = dateObj.getFullYear();
+            const hours = String(dateObj.getHours()).padStart(2, '0');
+            const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+
+            if (this.useShortDate) {
+                return `${day}/${month} ${hours}:${minutes}`;
+            } else {
+                return `${day}/${month}/${year} ${hours}:${minutes}`;
+            }
+        },
+
+
 
         downloadPDF() {
             this.showPDF = true;
@@ -904,6 +924,7 @@ export default {
         },
         cancelEdit() {
             this.isEditing = false;
+            this.resetChanges();
         },
         async toggleEdit() {
             if (!this.isEditing) {
@@ -911,6 +932,8 @@ export default {
                 return;
             }
             this.confirmChanges = {
+                name: this.editedName,
+                description: this.editedDescription,
                 stepChanged: this.selectedStepName && this.selectedStepName !== this.detailedTicket.step.name,
                 note: this.newNote,
                 files: [...this.uploadedFiles],
@@ -926,8 +949,8 @@ export default {
 
             // Start saving...
             await this.modifyTicket(
-                this.detailedTicket.name,
-                this.detailedTicket.description,
+                this.editedName,
+                this.editedDescription,
                 this.detailedTicket.priority
             );
 
@@ -956,11 +979,7 @@ export default {
                 });
             }
 
-            // Clear fields
-            this.newNote = "";
-            this.selectedStepName = "";
-            this.uploadedFiles = [];
-            this.selectedPriority = null;
+            this.resetChanges();
 
             // Success animation
             this.showSuccessAnimation = true;
@@ -1034,6 +1053,17 @@ export default {
         removeFile(index) {
             this.uploadedFiles.splice(index, 1);
         },
+        resetChanges() {
+            this.selectedStepName = "";
+            this.selectedPriority = null;
+            this.newNote = "";
+            this.uploadedFiles = [];
+            this.isStepDropdownOpen = false;
+            this.isPriorityDropdownOpen = false;
+            this.editedName = this.detailedTicket.name || "";
+            this.editedDescription = this.detailedTicket.description || "";
+        },
+
         async modifyTicket(name, description, priority) {
             let buildingId = localStorage.getItem("idBuilding");
             if (!name && !description && !priority) {
@@ -1130,12 +1160,23 @@ export default {
     },
 
     async mounted() {
+        if (this.detailedTicket) {
+            this.editedName = this.detailedTicket.name || "";
+            this.editedDescription = this.detailedTicket.description || "";
+        }
         this.enrichedAnnotations = this.matchAnnotationsToSteps(
             this.detailedTicket.annotation_list,
             this.detailedTicket.log_list,
             this.steps
         );
         this.TimeLine = generateTimeline(this.steps, this.detailedTicket.log_list, this.detailedTicket.annotation_list);
+        this.updateMaxStepNameLength();
+        window.addEventListener('resize', this.updateMaxStepNameLength);
+        this.updateDateDisplayMode();
+        window.addEventListener('resize', this.updateDateDisplayMode);
+        window.addEventListener("resize", this.updateScreenSize);
+        this.updateScreenSize();
+
         // this.openedSteps = this.generateOpenedStepsKeys();
 
 
@@ -1169,6 +1210,11 @@ export default {
             ).filter((i) => i);
         this.images_loaded = true;
     },
+    beforeDestroy() {
+        window.removeEventListener('resize', this.updateMaxStepNameLength);
+        window.removeEventListener('resize', this.updateDateDisplayMode);
+        window.removeEventListener("resize", this.updateScreenSize);
+    },
 
     watch: {
 
@@ -1193,14 +1239,18 @@ export default {
         },
         async value(v) {
             if (v) {
+
                 this.enrichedAnnotations = this.matchAnnotationsToSteps(
                     this.detailedTicket.annotation_list,
                     this.detailedTicket.log_list,
                     this.steps
                 );
                 this.TimeLine = generateTimeline(this.steps, this.detailedTicket.log_list, this.detailedTicket.annotation_list,);
-                this.images_loaded = false;
                 this.scrollToLastVisibleStep();
+                this.editedName = this.detailedTicket.name || "";
+                this.editedDescription = this.detailedTicket.description || "";
+
+                this.images_loaded = false;
                 this.images = (
                     await Promise.all(
                         this.detailedTicket.file_list.map(async (file) => {
@@ -1214,6 +1264,8 @@ export default {
                     )
                 ).filter((i) => i);
                 this.images_loaded = true;
+                this.imagesReady = !this.imagesReady;
+                this.carouselKey += 1;
             }
         },
         detailedTicket: {
@@ -1282,12 +1334,14 @@ input {
 div.editable {
     border: 2px solid #14202c;
     border-radius: 5px;
+    font-weight: bold;
 }
 
 .not-editable {
     cursor: not-allowed !important;
     background-color: #14202c50 !important;
     opacity: 0.5;
+    font-weight: bold;
 }
 
 .edit-icon {
@@ -1301,6 +1355,34 @@ div.editable {
     position: absolute;
 }
 
+.dropdown-icon {
+    position: absolute;
+    padding: 5px;
+    border-radius: 5px;
+    width: 20px;
+    height: 20px;
+    background-color: #14202c;
+}
+
+.dropdown-icon::before {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-image: url(./assets/arrow.svg);
+    background-size: 120%;
+    background-repeat: no-repeat;
+    background-position: center;
+    transform: rotate(270deg);
+    transition: transform 0.3s ease-in-out;
+}
+
+.dropdown-icon.rotate-open::before {
+    transform: rotate(90deg);
+}
+
+
+
 .edit-icon-b {
     background-image: url(./assets/edit-b.svg);
     background-position: center;
@@ -1313,7 +1395,9 @@ div.editable {
 }
 
 input.editable {
-    border: 2px solid #1E88E5;
+    border: 2px solid #fff;
+    background-color: #fff;
+    color: #14202c !important;
     padding: 4px;
     margin-top: 4px;
     border-radius: 4px;
@@ -1642,8 +1726,14 @@ textarea.editable {
     border-radius: 4px 4px 0px 0px;
 }
 
+.custom-scroll-bg {
+    opacity: 0.6;
+    background-color: rgba(20, 32, 44, 0.2);
+}
+
 .custom-scroll {
     scrollbar-width: thin;
+    position: relative;
     /* For Firefox */
     scrollbar-color: #14202c transparent;
     /* For Firefox */
@@ -1726,6 +1816,19 @@ textarea.editable {
     border: 1px solid #14202c;
 }
 
+.selected-priority {
+    border: 2px solid #14202c;
+}
+
+.step-dropdown .status-indicator.selected-priority {
+    border: 2px solid #14202c !important;
+}
+
+.step-dropdown .status-indicator.selected-step {
+    border: 2px solid #14202c !important;
+}
+
+
 .file-preview-list {
     margin-top: 6px;
     display: flex;
@@ -1799,25 +1902,48 @@ textarea.editable {
     }
 }
 
-@media (max-width: 1700px) {
-    .step-date-text[data-v-3ac51c] {
-        font-size: 11px;
+
+
+
+@media (max-width: 1600px) {
+    .step-date-text {
+        font-size: 10px;
         font-weight: 600;
     }
 
-    .status-indicator[data-v-3ac51c] {
+    .status-indicator {
         font-size: 10px;
     }
 
-    .status-indicator-point[data-v-3ac51c] {
+    .status-indicator-point {
         width: 8px;
         height: 8px;
     }
+}
 
+@media (max-width: 1000px) {
+    .fulldetails-card {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden !important;
+    }
+
+    .steps-container-wrapper {
+        width: 98%;
+        max-height: 350px;
+    }
+
+    .restofdetails-container-wrapper {
+        width: 98%;
+    }
+
+    .btn-group {
+        width: 70% !important;
+    }
 }
 
 @media (max-width: 900px) {
-    .hide {
+    /* .hide {
         display: none !important;
         visibility: hidden !important;
     }
@@ -1839,7 +1965,7 @@ textarea.editable {
 
     .restofdetails-container-wrapper {
         width: 100%;
-    }
+    } */
 }
 
 

@@ -1,6 +1,6 @@
 <template>
     <div class="ticket-form">
-        <h4 style="margin-bottom: 2px;">Élément sélectionné</h4>
+        <h4 style="margin-bottom: 2px;" class="rebrique">Élément sélectionné</h4>
         <div style="width: 100%; height: 1px;background-color: #DCE0E5;margin-bottom: 10px;"></div>
         <div class="d-flex flex-row justify-space-between">
             <div class="form-group">
@@ -69,7 +69,7 @@
             </div>
 
         </div>
-        <h4 style="margin-bottom: 2px;margin-top: 10px;">Détails de la demande</h4>
+        <h4 style="margin-bottom: 2px;margin-top: 10px;" class="rebrique">Détails de la demande</h4>
         <div style="width: 100%; height: 1px;background-color: #DCE0E5;margin-bottom: 10px;"></div>
         <div class="d-flex flex-row justify-space-between">
             <div class="form-group">
@@ -104,7 +104,7 @@
             </div>
         </div>
         <div class="d-flex flex-row justify-space-between">
-            <div style="width: 47%;">
+            <div class="half-input">
                 <div class="form-group" style="width: 100%;">
                     <label class="form-input-title">Titre de ticket</label>
                     <input class="form-title-input" type="text" v-model="ticket.titre"
@@ -121,7 +121,7 @@
 
                 </div>
             </div>
-            <div style="width: 47%;">
+            <div class="half-input">
                 <div class="form-group" style="width: 100%;">
                     <label class="form-input-title">Priorité</label>
                     <div
@@ -132,7 +132,7 @@
                                 style="border-color: #14202c;">
                                 <span v-if="ticket.priorite === priority.value" class="checkmark">✔</span>
                             </div>
-                            <div class="d-flex flex-row align-center" style="margin-left: 6px;">
+                            <div style="margin-left: 6px;display: flex;flex-direction: row;align-items: center;">
                                 <div class="priority-indicator"
                                     :style="{ background: getPriorityColor(priority.value) }">
                                 </div>
@@ -165,8 +165,16 @@
             @cancel="showConfirmDialog = false" @confirm="confirmAndCreateTicket" />
 
         <!-- <button @click="createTicket">Ajouter Ticket</button> -->
+
         <div @click="" class="annuler-button">Annuler</div>
         <div @click="createTicket" class="add-button">Ajouter Ticket</div>
+
+        <div style="display: flex;flex-direction: row;
+        justify-content: space-between;position: relative;">
+            <div @click="" class="annuler-button">Annuler</div>
+            <div @click="createTicket" class="add-button">Ajouter Ticket</div>
+
+        </div>
         <div v-if="showSuccess" class="success-banner">
             Création du ticket réussie
             <div class="success-progress"></div>
@@ -559,6 +567,8 @@ export default TicketForm;
     margin: auto;
     margin-top: 20px;
     height: 100%;
+    overflow: scroll;
+    position: relative;
 }
 
 .form-group {
@@ -641,6 +651,10 @@ label {
     position: relative;
     display: flex;
     align-items: center;
+}
+
+.half-input {
+    width: 47%;
 }
 
 .select-wrapper .dropdown-icon {
@@ -987,6 +1001,104 @@ button:hover {
 
     to {
         width: 0%;
+    }
+}
+
+
+@media (max-width: 1500px) {
+    .form-group {
+        margin-bottom: 7px;
+    }
+
+    .select-input-add-ticket {
+        height: 35px;
+        font-size: 13px !important;
+    }
+
+    .form-desc-input {
+        height: 100px;
+        font-size: 13px !important;
+    }
+
+    .form-value.locked {
+        height: 35px;
+        font-size: 13px !important;
+    }
+
+    .attach-button {
+        width: 80px;
+        height: 30px;
+        margin-top: 7px;
+        font-size: 12px;
+    }
+
+    .add-button {
+        width: 90px;
+        height: 38px;
+        font-size: 12px;
+    }
+
+    .annuler-button {
+        width: 90px;
+        height: 38px;
+        font-size: 12px;
+        right: 120px;
+    }
+
+    .form-input-title {
+        font-size: 12px !important;
+    }
+
+    .rebrique {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 1000px) {
+    .d-flex.flex-row {
+        flex-direction: column !important;
+        margin-bottom: 10px;
+        /* override row */
+    }
+
+    .form-group {
+        width: 100% !important;
+        /* make form groups take full width */
+        margin-bottom: 15px;
+        /* add spacing between stacked elements */
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .add-button {
+        width: 90px;
+        height: 38px;
+        font-size: 12px;
+        position: relative;
+
+    }
+
+    .annuler-button {
+        width: 90px;
+        height: 38px;
+        font-size: 12px;
+        right: 120px;
+        position: relative;
+    }
+
+    .half-input {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .info-icon {
+        right: 10px !important;
+    }
+
+    .zoom-in-icon {
+        right: 35px !important;
     }
 }
 </style>

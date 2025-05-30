@@ -167,30 +167,29 @@ interface FlattenedNode {
 class TreeTable extends Vue {
   @Prop() data!: any[];
   @Prop() config!: IConfig;
-  // @Prop() changeRoute: Function;
-  flattenedData: FlattenedNode[] = [];
-  flattenedDataBackup: FlattenedNode[] = [];
+  flattenedData: FlattenedNode[] = []; // Flattened data for the tree structure dispayed (might be filtered)
+  flattenedDataBackup: FlattenedNode[] = []; // Backup of the original flattened data for filtering
 
-  expandedNodes: number[] = [];
-  lastClickedNode: FlattenedNode | null = null;
-  lastClickedNodeDynamicId: number = 0;
-  displayNode: number | null = null;
-  searchQuery: string = "";
-  isAscending: boolean = true;
-  payload: IPlayload[] = [];
-  selectedRoom: number | null = null;
+  expandedNodes: number[] = []; // Store the expanded nodes' dynamic IDs so we show its children
+  lastClickedNodeDynamicId: number = 0; // Store the last clicked node's dynamic ID so we can close it
+  displayNode: number | null = null;  // Store the currently displayed node's dynamic ID for highlighting
+  searchQuery: string = ""; // Search query for filtering nodes
+  isAscending: boolean = true; // Sort order for the 'reseau' column
+  payload: IPlayload[] = []; // Payload for zooming into a room
+  selectedRoom: number | null = null; // Store the selected room's dynamic ID for zooming
   statusFilter: string | null = null;  // Store selected status
-  isStatusDropdownOpen: boolean = false;
-  availableStatuses: string[] = [];
+  isStatusDropdownOpen: boolean = false; // Dropdown state for status filter
+  availableStatuses: string[] = []; // Available statuses for filtering
 
   typologieFilter: string | null = null;  // Store selected status
-  isTypologieDropdownOpen: boolean = false;
-  availableTypologies: string[] = [];
+  isTypologieDropdownOpen: boolean = false; // Dropdown state for typologie filter
+  availableTypologies: string[] = []; // Available typologies for filtering
 
   async mounted() {
+    // Initialize the component by adding levels to the display logic (0, 1, 2, etc.)
     this.addLevels(this.data);
-    this.flattenedData = this.flattenData(this.data);
-    this.flattenedDataBackup = [...this.flattenedData];
+    this.flattenedData = this.flattenData(this.data); // initialize flattened data
+    this.flattenedDataBackup = [...this.flattenedData]; // Backup the original flattened data
     EventBus.$on("table-node-click", this.handleNodeClick);
     this.availableStatuses = this.getAvailableStatuses(this.data);
     this.availableTypologies = this.getAvailableTypologies(this.data);
@@ -204,34 +203,7 @@ class TreeTable extends Vue {
       this.sortData();
     }
   }
-
-  onClickNavigate() {
-    // if (this.changeRoute) {
-    //   this.changeRoute(this.data.app.id);
-    // } else {
-    //   console.log("changeRoute method is not passed.");
-    // }
-    const emitterHandler = EmitterViewerHandler.getInstance();
-
-    const descriptionApp = decodeURIComponent("eyJuYW1lIjoiRGVzY3JpcHRpb24iLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6ImRhZGUtYTljYi1lMzc5LTE4ZjBmZGExZTI1IiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTcxMzk1NzkyMTg4NiwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzEzOTU3OTAzOTA5LCJpY29uIjoibWRpLWJvb2staW5mb3JtYXRpb24tdmFyaWFudCIsImRlc2NyaXB0aW9uIjoic3BpbmFsLWVudi1wYW0tdmlld2VyLWFwcC1kZXNjcmlwdGlvbiIsInRhZ3MiOlsiRGVzY3JpcHRpb24iXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtZW52LXBhbS12aWV3ZXItYXBwLWRlc2NyaXB0aW9uIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJyZWZlcmVuY2VzIjp7fSwicGFyZW50Ijp7InBvcnRvZm9saW9JZCI6IjM3ZGUtMDJiOC1lMThiLTE4NTA2NDNiNjhhIiwiYnVpbGRpbmdJZCI6IjY2NzYtM2FhNS1mMTUyLTE4NTA2NzUwZTY3In19");
-
-    const navigateUrl = "la page";
-    const nodeData = this.data;
-
-    const query = {
-      // app: window.parent.router.query.app, // ou une autre valeur selon votre logique
-      app: descriptionApp,
-      buildingId: "6676-3aa5-f152-18506750e67",
-      spaceSelectedId: 32920672,
-      name: "RDC"
-    };
-
-    // console.log("window.parent.router", window.parent.router);
-    // window.parent.routerFontion.customPush(window.parent.router.path, query);
-
-    // window.open(query, "_blank");
-  }
-
+  // Function to sort the data based on numNodes for level 0 nodes
   sortData() {
     // Get level 0 nodes
     const levelZeroNodes = this.flattenedDataBackup.filter(node => node.level === 0);
@@ -273,7 +245,7 @@ class TreeTable extends Vue {
     this.filterNodes();  // Re-apply filtering
     this.isTypologieDropdownOpen = false;  // Close dropdown
   }
-
+  // Function to get available statuses from the data for the filter dropdown
   getAvailableStatuses(data: Node[]): string[] {
     const statuses = new Set<string>();
     function traverse(node: Node) {
@@ -285,6 +257,7 @@ class TreeTable extends Vue {
     data.forEach((item) => traverse(item));
     return ['status', ...statuses];  // Include "All" option
   }
+  // Function to get available typologies from the data for the filter dropdown
   getAvailableTypologies(data: Node[]): string[] {
     const typologies = new Set<string>();
     function traverse(node: Node) {
@@ -296,12 +269,11 @@ class TreeTable extends Vue {
     data.forEach((item) => traverse(item));
     return ['typologie', ...typologies];  // Include "All" option
   }
+  // Function to filter nodes based on search query, status, and typologie
   filterNodes() {
     const query = this.searchQuery.toLowerCase();
-
     const statusFilter = this.statusFilter === 'status' ? null : this.statusFilter;
     const typologieFilter = this.typologieFilter === 'typologie' ? null : this.typologieFilter;
-
 
     // Reset flattenedData to its backup
     this.flattenedData = [...this.flattenedDataBackup];
@@ -335,7 +307,8 @@ class TreeTable extends Vue {
   watch: {
     searchQuery: "filterNodes";
   };
-
+  // Function to add levels to the nodes for display purposes
+  // This function recursively traverses the data and assigns levels and parentDynamicId
   addLevels(data, currentLevel = 0, parentDynamicId = null) {
     data.forEach((item) => {
       item.level = currentLevel;
@@ -347,6 +320,7 @@ class TreeTable extends Vue {
     });
   }
 
+  // Function to flatten the hierarchical data structure into a flat array for easier display with levels
   flattenData(data: Node[]): FlattenedNode[] {
     const result: FlattenedNode[] = [];
     // console.log("Flattening data", data);
@@ -380,6 +354,7 @@ class TreeTable extends Vue {
     return result;
   }
 
+  // Function to handle node click events, which will select the node and show its details and scroll to it and emit event of opening the node in data full view
   handleNodeClick(node: FlattenedNode, type: number) {
     if (type === 0) {
       this.$store.dispatch(ActionTypes.SELECT_SPRITES, [
@@ -408,12 +383,12 @@ class TreeTable extends Vue {
       nodeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    this.lastClickedNode = node;
     this.lastClickedNodeDynamicId = node.dynamicId ?? 0;
     this.displayNode = node.dynamicId;
     this.expandedNodes = this.pathToNode(node.dynamicId);
   }
 
+  // Function to determine if a node should be displayed based on the current filters and expanded nodes
   shouldDisplayNode(node: FlattenedNode): boolean {
     // Always show level 0 nodes
     if (node.level === 0) {
@@ -433,24 +408,12 @@ class TreeTable extends Vue {
         return true;
       }
     }
-
-    // for (const nodeId of Array.isArray(this.expandedNodes)
-    //   ? this.expandedNodes
-    //   : []) {
-    //   if (node.dynamicId === nodeId) {
-    //     return true;
-    //   }
-    // }
-
     //Showing siblings of previous opened nodes
     const isInList = this.expandedNodes.includes(node.parentDynamicId ?? -1);
 
     if (node.level === this.getNodeLevel(this.displayNode) && isInList) {
       return true;
     }
-
-    // console.log("Path to node:", this.expandedNodes);
-
     // Show children of the clicked node and the clicked node itself
     if (this.displayNode !== null) {
       return (
@@ -458,10 +421,10 @@ class TreeTable extends Vue {
         node.parentDynamicId === this.displayNode
       );
     }
-
     // Hide all other nodes if no node is clicked
     return false;
   }
+  // Function to zoom into a room based on its dynamic ID and static ID
   getZoomPoints(dynamimcId: number, staticId: string) {
     if (dynamimcId === this.selectedRoom) {
       this.selectedRoom = null;
@@ -482,16 +445,16 @@ class TreeTable extends Vue {
 
     }
   }
-
+  // Function to get the level of a node based on its dynamicid and chidren
   getNodeLevel(nodeId: number | null): number {
     // Find the level of the node with the given ID
     const node = this.flattenedData.find((n) => n.dynamicId === nodeId);
     return node ? node.level : -1;
   }
+  // Function to get the path to a node when we select it from the 3d viewer to open its tree in the table
   pathToNode(nodeId: number | null): number[] {
     const path: number[] = [];
     let currentNodeId = nodeId;
-
     while (currentNodeId !== null) {
       path.unshift(currentNodeId);
       const node = this.flattenedData.find(
@@ -499,9 +462,9 @@ class TreeTable extends Vue {
       );
       currentNodeId = node ? node.parentDynamicId : null;
     }
-
     return path;
   }
+  // Function to determine if an arrow should be displayed for a node (open or closed)
   shouldDisplayArrow(node: FlattenedNode): boolean {
     for (const nodeId of Array.isArray(this.expandedNodes)
       ? this.expandedNodes
@@ -512,7 +475,7 @@ class TreeTable extends Vue {
     }
     return false;
   }
-
+  // Function to get the image URL for a typology, falling back to a default image if not found
   getImageUrl(typologie: string): string {
     const imageMapping = this.config.imageMapping;
     const defaultImagePath = require("../viewer/assets/typologie-icons/default.png");
@@ -525,6 +488,7 @@ class TreeTable extends Vue {
     );
     return defaultImagePath;
   }
+  // Function to show the details card for a node when clicked in the 3d viewer
   showCard(node: FlattenedNode) {
     // console.log("showCard", node);
     const items = new Array();
@@ -815,7 +779,6 @@ export default TreeTable;
   /* Optional: Add some space between the number and the text */
 }
 
-
 .node-status {
   width: 10%;
   display: flex;
@@ -970,9 +933,6 @@ export default TreeTable;
 .status-icon.rotate-down {
   transform: rotate(0deg);
 }
-
-
-
 
 .rotate-up {
   transform: rotate(180deg);

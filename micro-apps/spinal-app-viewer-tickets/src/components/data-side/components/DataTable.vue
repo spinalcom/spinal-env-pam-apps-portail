@@ -59,7 +59,7 @@
                     </tr>
                 </thead>
 
-                <tbody>
+                <tbody class="ticket-table-body">
                     <tr v-for="(ticket, index) in sortedData" :data-id="ticket.dynamicId" :key="index"
                         @click="handleClickOfLocate(ticket)"
                         :class="{ 'selectedTicket-class': (selectedTicket && selectedTicket.dynamicId == ticket.dynamicId) || ticket.isSelected, 'selected-ticket-item': selectedTicket && selectedTicket.dynamicId == ticket.dynamicId }">
@@ -769,5 +769,11 @@ th {
     border-radius: 5px;
     cursor: pointer;
     color: white;
+}
+
+@media (max-width: 1500px) {
+    .ticket-table-body {
+        font-size: 10px !important;
+    }
 }
 </style>

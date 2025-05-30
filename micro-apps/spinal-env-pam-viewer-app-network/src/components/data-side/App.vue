@@ -79,8 +79,6 @@ with this file. If not, see
       <div :style="{
         height: 'calc(100% )', display: DActive ? 'none' : 'flex',
       }" class="data-container">
-        <!-- <SpinalLoader/>
-      <div class="logo-loader"></div> -->
         <NodeItem :data="myowndata" :DActive="DActive" :ActiveData="ActiveData"
           :hardwareContextData="hardwareContextData" :selectedHardwareContext="selectedHardwareContext"
           @updateSelectedHardwareContext="handleSelectedHardwareContextUpdate" :config="config"
@@ -95,8 +93,6 @@ with this file. If not, see
     </div>
 
     <div class="centered" v-else-if="pageSate === PAGE_STATES.loading">
-      <!-- <SpinalLoader/>
-       <div class="logo-loader"></div> -->
       <v-progress-circular style="margin-bottom: 15px;" :size="70" :width="3" color="#14202c"
         indeterminate></v-progress-circular>
       <p style="margin-top: 10px;">Veuillez patienter pendant le chargement des données !</p>
@@ -133,10 +129,9 @@ import { Console, warn } from "console";
 import HardwareContext from "./HardwareContext.vue";
 import { h } from "vue";
 import { config } from "process";
-import SpinalLoader from "./SpinalLoader.vue";
 
 @Component({
-  components: { NodeItem, HardwareContext, SpriteComponent, SpriteCardComponent, SpinalLoader },
+  components: { NodeItem, HardwareContext, SpriteComponent, SpriteCardComponent },
   filters: {},
 })
 class dataSideApp extends Vue {
@@ -152,10 +147,11 @@ class dataSideApp extends Vue {
   isBuildingSelected: boolean = true;
   retry: Function;
   spriteIds: number[] = [];
-  myowndata: any[];
-  groupes: any[];
+  myowndata: any[]; // holds the Network data that will be displayed in the data side app
+  groupes: any[]; //Bim object groupes from category and context
 
   hardwareContextData: any[] = [];
+  // holds the data of the equipments to show in the 3D space for the sprite component
   equipementsXYZ: {
     name?: string;
     dynamicId: number;
@@ -170,8 +166,8 @@ class dataSideApp extends Vue {
     controlEndpoints?: any[];
     position?: THREE.Vector3;
   }[] = [];
-  selectedHardwareContext: number = 0;
-  mainHardwareContext: number = 0;
+  selectedHardwareContext: number = 0;  // holds the hardware context data that will be used to retrieve the children of the selected context
+  mainHardwareContext: number = 0; // For not showing the elements of other contexts
 
   resize() {
     setTimeout(() => {
@@ -183,6 +179,7 @@ class dataSideApp extends Vue {
     this.isBuildingSelected = true;
     const buildingId = localStorage.getItem("idBuilding");
     const patrimoineId = this.getPatrimoineId();
+    // Recupération des hardware context
     await this.getHardwareContextByRelation(
       buildingId,
       patrimoineId,
@@ -207,42 +204,33 @@ class dataSideApp extends Vue {
       this.pageSate = PAGE_STATES.loading;
       const buildingId = localStorage.getItem("idBuilding");
       const patrimoineId = this.getPatrimoineId();
-      this.resetContext(buildingId);
-      // const contextId = await this.getContextId(buildingId, patrimoineId);
-      // const geographicContext = await this.getGeoContextId(
-      //   buildingId,
-      //   patrimoineId
-      // );
-      // const floorData = await this.getFloorData(
-      //   buildingId,
-      //   patrimoineId,
-      //   contextId
-      // );
-      // const selectedNodeId = this.getSelectedZoneNodeId(floorData);
-      // const hardwareContextId = await this.getHardwareContextByRelation(
-      //   buildingId,
-      //   patrimoineId,
-      //   this.selectedZone.dynamicId
-      // );
 
+      // Resets API store cache to prevent stale data when switching contexts.
+      this.resetContext(buildingId);
+
+      // Retrieve the groups of BIM objects based on the context and category from the configuration
       this.groupes = await this.getGroupes(
         buildingId,
         patrimoineId,
         this.config.typologiesSource.context,
         this.config.typologiesSource.category
       );
+
+
+      // Retrieve the parent automates (children of the selected context)
       const childrenData = await this.getChildrenByRelation(
         buildingId,
         patrimoineId,
         selectedId
       );
 
+      // Retrieve the children based on the parent automates recusively
       const luminaireChildren = await this.getLuminaireChildren(
         buildingId,
         patrimoineId,
         childrenData
       );
-      console.log("luminaireChildren", luminaireChildren);
+
 
       const Typologies = await this.getElementTypologie();
 
@@ -251,6 +239,7 @@ class dataSideApp extends Vue {
       this.equipementsXYZ = this.extractPositions(filteredTypologies);
       const parentRooms = await this.getParentRooms(buildingId, patrimoineId, luminaireChildren);
 
+      // Update the luminaireChildren with the filtered typologies and parent rooms with the herarchy of the nodes
       this.updateLuminaireList(luminaireChildren, filteredTypologies, parentRooms);
       luminaireChildren.forEach((item) => {
         this.addParentToNodes([item]);
@@ -260,12 +249,12 @@ class dataSideApp extends Vue {
       this.myowndata = luminaireChildren;
 
 
+      // Add the position endpoints and controlepoints
       const mergedList = this.mergeAttributesWithHierarchy(
         this.myowndata,
         this.equipementsXYZ
       );
       this.myowndata = mergedList;
-      // console.log("Full data", this.myowndata);
       this.pageSate = PAGE_STATES.loaded;
     } catch (err) {
       console.log(err);
@@ -316,60 +305,6 @@ class dataSideApp extends Vue {
     return patrimoineString ? JSON.parse(patrimoineString).id : null;
   }
 
-  async getContextId(buildingId: string | null, patrimoineId: any) {
-    const contextPromises = [
-      this.$store.dispatch(ActionTypes.GET_CONTEXT, {
-        buildingId,
-        patrimoineId,
-      }),
-    ];
-    const ctxResult = await Promise.all(contextPromises);
-    const filteredCtx = ctxResult
-      .flat()
-      .filter((item: any) => item.type === "networkTreeContext");
-    return filteredCtx[0].dynamicId;
-  }
-  async getGeoContextId(buildingId: string | null, patrimoineId: any) {
-    const contextPromises = [
-      this.$store.dispatch(ActionTypes.GET_CONTEXT, {
-        buildingId,
-        patrimoineId,
-      }),
-    ];
-    const ctxResult = await Promise.all(contextPromises);
-    const filteredCtx = ctxResult
-      .flat()
-      .filter((item: any) => item.type === "geographicContext");
-    return filteredCtx;
-  }
-
-  async getFloorData(
-    buildingId: string | null,
-    patrimoineId: any,
-    contextId: number
-  ) {
-    const floorPromises = [
-      this.$store.dispatch(ActionTypes.GET_CHILDREN, {
-        buildingId,
-        patrimoineId,
-        nodeId: contextId,
-      }),
-    ];
-    let floorResult = await Promise.all(floorPromises);
-    floorResult = floorResult.flat();
-    return floorResult;
-  }
-
-  getSelectedZoneNodeId(floorResult: any[]) {
-    let nodeId = 0;
-    for (let i = 0; i < floorResult.length; i++) {
-      if (floorResult[i].name == this.selectedZone.name) {
-        nodeId = floorResult[i].dynamicId;
-        break;
-      }
-    }
-    return nodeId;
-  }
 
   async getHardwareContextByRelation(
     buildingId: string | null,
@@ -445,17 +380,10 @@ class dataSideApp extends Vue {
     patrimoineId: any,
     selectedNodeId: number
   ) {
+
     this.resetContext(buildingId);
     const relation = "hasNetworkTreeBimObject";
     let automates: any = [];
-    // automates = [
-    //   this.$store.dispatch(ActionTypes.GET_CHILDREN_BY_RELATION, {
-    //     buildingId,
-    //     patrimoineId,
-    //     nodeId: selectedNodeId,
-    //     relation: relation,
-    //   }),
-    // ];
     automates = [
       this.$store.dispatch(ActionTypes.GET_CHILDREN_BY_RELATION_CONTEXT, {
         buildingId,
@@ -504,6 +432,7 @@ class dataSideApp extends Vue {
     patrimoineId: any,
     childrenByRelation: any[]
   ) {
+
     this.resetContext(buildingId);
     let childrenIds = childrenByRelation.map((r) => r.dynamicId).flat();
     let parentsIds = childrenByRelation.map((r) => r.dynamicId).flat();
@@ -511,14 +440,6 @@ class dataSideApp extends Vue {
       dynamicId: r,
       relation: ["hasNetworkTreeBimObject"],
     }));
-    // const luminaireChildren = [
-    //   this.$store.dispatch(ActionTypes.GET_CHILDREN_BY_RELATION_MULTIPLE, {
-    //     buildingId,
-    //     patrimoineId,
-    //     relations: relations,
-    //     size: 200,
-    //   }),
-    // ];
     const luminaireChildren = [
       this.$store.dispatch(ActionTypes.GET_CHILDREN_BY_RELATION_MULTIPLE_CONTEXT, {
         buildingId,
@@ -534,7 +455,6 @@ class dataSideApp extends Vue {
       if (Array.isArray(item.nodes)) {
         item.nodes = item.nodes.filter((node) => node.type === "BIMObject");
       } else {
-        // console.warn("item.nodes is not an array or is undefined", item);
       }
     });
 
@@ -543,7 +463,6 @@ class dataSideApp extends Vue {
       if (Array.isArray(lum.nodes)) {
         childrenIds = this.collectDynamicIds(lum.nodes, childrenIds);
       } else {
-        // console.warn("lum.nodes is not an array or is undefined", lum);
       }
     });
 
@@ -624,20 +543,6 @@ class dataSideApp extends Vue {
     const attributesResult = await Promise.all(attributes);
     return attributesResult[0];
   }
-
-  // async getAttributeList() {
-  //   const buildingId = localStorage.getItem("idBuilding");
-  //   this.resetContext(buildingId);
-  //   const attributes = [
-  //     this.$store.dispatch(ActionTypes.GET_ATTRIBUTE_LIST_MULTIPLE, {
-  //       buildingId: localStorage.getItem("idBuilding"),
-  //       dynamicIds: this.spriteIds,
-  //       size: 200,
-  //     }),
-  //   ];
-  //   const attributesResult = await Promise.all(attributes);
-  //   return attributesResult[0];
-  // }
 
 
 
@@ -754,24 +659,6 @@ class dataSideApp extends Vue {
         }
         // node.self_status = matchingStatus.endpoints[1].value;
       }
-      // Determine parent's status based on children's status
-      // const childrenStatus = node.nodes.map((child) => child.status);
-      // const hasInactiveChild = childrenStatus.includes("inactive");
-      // const hasUnkownChild = childrenStatus.includes("unknown");
-      // const selfStatus =
-      //   node.status === "active" && !hasInactiveChild ? "active" : "inactive";
-      // if (node.self_status == "inactive" || hasInactiveChild) {
-      //   node.status = "inactive";
-      // } else if (node.self_status == "unknown" || hasUnkownChild) {
-      //   node.status = "unknown";
-      // } else {
-      //   node.status = "active";
-      // }
-
-      // Update children's self_status
-      // node.nodes.forEach((child) => {
-      //   child.self_status = selfStatus;
-      // });
     } else {
       // Random Status //TODO: Remove this
       const statuses = [
@@ -813,14 +700,6 @@ class dataSideApp extends Vue {
         } else {
           // node.self_status = "inactive";
         }
-
-        // let value = matchingStatus.endpoints[1].value;
-        // if (value) {
-        //   node.self_status = "active";
-        // } else {
-        //   node.self_status = "inactive";
-        // }
-        // node.self_status = matchingStatus.endpoints[1].value;
       }
       // node.status = node.self_status;
     }

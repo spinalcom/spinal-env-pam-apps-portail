@@ -133,6 +133,8 @@ class App extends Vue {
     buildingId: '',
     type: ''
   };
+
+  loadingdata: boolean = false
   floor: any = null;
   refrech: boolean = false;
   fullBuildingData: any[] = [];
@@ -571,25 +573,18 @@ class App extends Vue {
   //   }
 
   onActionClick({ button, item }) {
+    this.loadingdata = !this.loadingdata
     const data = {
       buildingId: item.buildingId, //important viewer
       // staticId: item.staticId,//can
       // id: item.dynamicId,
       dynamicId: item.dynamicId,//important viewer
+      "isOpen": false,
+      "loading": false,
       // floorId: item.floorId,//can
       // roomId: item.roomId,//can
-      // type: item.type,//can
+      type: item.type,
     };
-    // const data = {
-    //   buildingId: item.buildingId, //important viewer
-    //   // staticId: item.staticId,//can
-    //   // id: item.dynamicId,
-    //   dynamicId: item.dynamicId,//important viewer
-    //   parents: item.parents,
-    //   // floorId: item.floorId,//can
-    //   // roomId: item.roomId,//can
-    //   type: item.type,//can
-    // };
 
     switch (button.onclickEvent) {
       case ActionTypes.OPEN_VIEWER:

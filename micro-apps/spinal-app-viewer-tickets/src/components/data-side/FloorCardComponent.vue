@@ -210,7 +210,7 @@ import { EventBus } from "../SpaceSelector/eventBus";
 export default {
   props: {
     data: {
-      type: Object,
+      type: [Object, Array],
       required: true,
     },
   },
@@ -226,6 +226,7 @@ export default {
   computed: {
     // Check if the data contains multiple elements
     isCarousel() {
+      console.log("isCarousel");
       return Array.isArray(this.data.data) && this.data.data.length > 1;
     },
     isPositionFloor() {
@@ -265,6 +266,7 @@ export default {
     },
     close() {
       this.isopen = false;
+      this.$emit('close');
       // EventBus.$emit("reset-tickets");
     },
     // Navigate to the previous card in the carousel
@@ -311,7 +313,7 @@ export default {
   async mounted() {
     // if (this.data.data.some(item => item.file_list && item.file_list.length > 0)) {
     // }
-    console.log("Mounted SpriteCardComponent with data:", this.data);
+    console.log("Mounted FloorComponent with data:", this.data);
     const images = {};
     for (const item of this.data.data) {
       if (item.file_list && item.file_list.length > 0) {

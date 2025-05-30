@@ -88,7 +88,9 @@ class SpaceSelectorItem extends Vue {
   @Prop({ type: String, required: false }) viewButtonsType!: string;
   @Prop({ type: String, required: false }) label: string;
 
-
+  mounted() {
+    console.log("Yaaaaa 3issa ?", this.item);
+  }
   public get isSelected(): boolean {
     return this.item.dynamicId === this.selected.dynamicId;
   }

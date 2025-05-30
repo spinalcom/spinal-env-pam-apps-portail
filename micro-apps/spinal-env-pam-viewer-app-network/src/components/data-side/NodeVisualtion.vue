@@ -57,18 +57,6 @@ with this file. If not, see
           <label for="toggle-switch" class="toggle-label"></label>
         </div>
       </div>
-      <!-- <div
-      class="full-view-button"
-      @click="toggleFullView"
-      :class="{
-        'half-screen': isFullscreen,
-        'full-screen': !isFullscreen,
-      }"
-    ></div> -->
-      <!-- <div
-      class="chart-buttons-button download-chart-button"
-      @click="downloadPdf"
-    ></div> -->
       <div v-tooltip="{ content: !allOpened ? 'Afficher tout' : 'Fermer tout', placement: 'right' }"
         class="chart-buttons-button" @click="allOpened ? closeAll() : openAll()" :class="{
           'show-all-icon': !allOpened,
@@ -179,6 +167,7 @@ class NodeVisualization extends Vue {
 
   dataImageUrl: string = "";
   isFullscreen: boolean = false;
+
   toggleFullView() {
     this.isFullscreen = !this.isFullscreen;
     this.$emit("toggle-full-view");
@@ -188,13 +177,10 @@ class NodeVisualization extends Vue {
       this.isFullscreen = false;
       this.$emit("toggle-full-view");
     }
-    // this.isFullscreen = false;
-    // this.$emit("toggle-full-view");
   }
   @Watch('isActive')
   onIsActiveChange(newValue: boolean) {
     if (newValue) {
-      // Call the scrollToNode function when isActive becomes true
       this.scrollToNode(this.lastClickedNodeId || this.displayedNodes[0]?.id);
     }
   }
@@ -229,117 +215,7 @@ class NodeVisualization extends Vue {
     this.createChart(this.displayedNodes, this.isVertical);
   }
 
-  async downloadPdf() {
-    const svgContainer = document.querySelector(".svg-container") as HTMLElement;
-
-    if (!svgContainer) {
-      console.error("SVG container not found");
-      return;
-    }
-
-    // Temporarily expand the SVG container to ensure that all content is visible to html2canvas
-    const previousOverflow = svgContainer.style.overflow;
-    const previousHeight = svgContainer.style.height;
-
-    svgContainer.style.overflow = "visible"; // Make sure the entire content is rendered
-    svgContainer.style.height = "auto"; // Set height to auto to render the full content
-
-    // Use html2canvas to capture the full scrollable content
-    const canvas = await html2canvas(svgContainer, {
-      scrollX: 0,
-      scrollY: 0,
-      width: svgContainer.scrollWidth,
-      height: svgContainer.scrollHeight,
-    });
-
-    // Revert the temporary style changes
-    svgContainer.style.overflow = previousOverflow;
-    svgContainer.style.height = previousHeight;
-
-    // Convert the canvas to a data URL (image)
-    const imgData = canvas.toDataURL("image/png");
-
-    // Create a new jsPDF instance
-    const pdf = new jsPDF("p", "mm", "a4"); // Portrait mode, mm units, A4 size
-
-    // Calculate the width and height for the image to fit within A4 page size
-    const imgWidth = 210; // A4 page width in mm
-    const imgHeight = (canvas.height * imgWidth) / canvas.width; // Maintain the aspect ratio
-
-    // Check if the height of the rendered image exceeds the height of one A4 page
-    if (imgHeight > 297) {
-      // If the image height exceeds the A4 page height, scale it down to fit on one page
-      const scale = 297 / imgHeight; // Calculate the scale ratio to fit the page height
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth * scale, imgHeight * scale);
-    } else {
-      // If the image fits within the A4 page, add it without scaling
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-    }
-
-    // Save the PDF
-    pdf.save("svg-content.pdf");
-  }
-
-  printContent() {
-    const content = document.getElementById('svg-container');
-    if (!content) {
-      console.error("SVG container not found");
-      return;
-    }
-    const currentPosition = content.scrollTop;
-    const w = content.offsetWidth;
-    const h = content.offsetHeight;
-
-    // Temporarily set the height to auto for capturing the full content
-    content.style.height = "100%";
-
-    html2canvas(content, {
-      scale: 3, // Adjust the scale for better quality
-      useCORS: true // Optional: helps if you have external assets like images
-    }).then(canvas => {
-      const img = canvas.toDataURL("image/jpeg", 1);
-      const doc = new jsPDF('landscape', 'px', [w, h]);
-      doc.addImage(img, 'JPEG', 0, 0, w, h);
-      doc.addPage();
-      doc.save('sample-file.pdf');
-
-      // Revert the height and scroll position
-      content.style.height = "7000px";
-      content.scrollTop = currentPosition;
-    });
-  }
-  downloadDiv() {
-    // Getting the div which is to be downloaded
-    const svgContainer = document.getElementById("svg-container");
-    let divContents;
-    if (svgContainer) {
-      divContents = svgContainer.innerHTML;
-    } else {
-      console.error("Element with ID 'svg-container' was not found.");
-      return;
-    }
-
-    // Create a new Blob object with the divContents and MIME type as 'text/html'
-    const blob = new Blob([`
-    <html>
-    <head></head>
-    <body>
-      ${divContents}
-    </body>
-    </html>
-  `], { type: 'text/html' });
-
-    // Create a download link
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'svg-container.html'; // File name for the downloaded file
-
-    // Trigger the download by simulating a click
-    link.click();
-
-    // Clean up the object URL after the download
-    URL.revokeObjectURL(link.href);
-  }
+  // Function to download the div as a PDF
   downloadDivAsPDF() {
     // Getting the div which is to be downloaded as PDF
     const svgContainer = document.getElementById("svg-container");
@@ -350,7 +226,6 @@ class NodeVisualization extends Vue {
       console.error("Element with ID 'svg-container' was not found.");
       return;
     }
-
     // Use jsPDF to creade a PDF
     // const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
@@ -366,34 +241,9 @@ class NodeVisualization extends Vue {
       // width: 700, // set width if necessary
     });
   }
-  printDiv() {
-    //Getting the div which is to be printed
-    const svgContainer = document.getElementById("svg-container");
-    let divContents;
-    if (svgContainer) {
-      divContents = svgContainer.innerHTML;
-      // Do something with divContents
-    } else {
-      console.error("Element with ID 'svg-container' was not found.");
-    }
-    //Openning a new window of broser of specific size
-    var a = window.open('', '', 'height=500, width=500');
-    //.write() method is used to include the contents in new window
-    if (!a) {
-      console.warn("Can't get window");
-      return;
-    }
-    a.document.write('<html><head></head>'); //inside <head> you can add your own styling
-    a.document.write('<body>');
-    a.document.write(divContents);
-    a.document.write('</body></html>');
-    a.document.close();
-    //printing the new window
-    a.print();
-  }
 
 
-
+  // Function to change the direction of the graph horizontally or vertically
   changeDirection(event: Event) {
     this.isVertical = (event.target as HTMLInputElement).checked;
     if (this.isVertical) {
@@ -410,6 +260,7 @@ class NodeVisualization extends Vue {
     this.createChart(this.displayedNodes, this.isVertical);
   }
 
+  // Function to create the chart using D3.js
   async createChart(transformDataent: TransformedNode[], isVertical) {
     const svg = d3.select(this.$refs.container).select("svg");
     const width = +svg.attr("width");
@@ -682,6 +533,7 @@ class NodeVisualization extends Vue {
     }
   }
 
+  // Function to transform the data into a format suitable for D3.js
   transformData(
     nodes: Node[],
     parentId: number | null = null,
@@ -734,6 +586,8 @@ class NodeVisualization extends Vue {
 
     return transformedNodes;
   }
+
+  // Function to open all nodes in the graph
   showAllGraph(
     nodes: Node[],
     parentId: number | null = null,
@@ -803,6 +657,7 @@ class NodeVisualization extends Vue {
     return transformedNodes;
   }
 
+  // Adjust the y positions of nodes to ensure they are not too close to the top or left edges
   adjustY(nodes) {
     const idMap = {};
     nodes.forEach((node) => {
@@ -822,6 +677,7 @@ class NodeVisualization extends Vue {
       }
     });
   }
+  // Adjust the x positions of nodes to ensure they are not too close to the left edge
   adjustX(nodes) {
     const idMap = {};
     nodes.forEach((node) => {
@@ -842,6 +698,7 @@ class NodeVisualization extends Vue {
     });
   }
 
+  // Function to transform the data into a format suitable for D3.js (vertical layout positioning)
   transformDataVertical(
     nodes: Node[],
     parentId: number | null = null,
@@ -896,6 +753,7 @@ class NodeVisualization extends Vue {
     return transformedNodes;
   }
 
+  // Function to get the principal nodes (nodes with no parent)
   getPrincipalNodes(transformedData: TransformedNode[]): TransformedNode[] {
     const returneddata = transformedData.filter(
       (node) => node.parentId === null
@@ -908,6 +766,7 @@ class NodeVisualization extends Vue {
     return this.transformedNodesGeneric.find((node) => node.id === id);
   }
 
+  // Function to find a node and its parent by dynamicId for click events outside the component
   findNodeAndParent(nodes, targetDynamicId) {
     // This function will traverse the nodes and return the node and its parent
     let parent = null;
@@ -931,6 +790,7 @@ class NodeVisualization extends Vue {
     return { targetNode, parent };
   }
 
+  // Function to get siblings of a node by dynamicId
   getSiblings(nodes, targetDynamicId) {
     const { targetNode, parent } = this.findNodeAndParent(
       nodes,
@@ -946,6 +806,7 @@ class NodeVisualization extends Vue {
     return parent.nodes.filter((node) => node.dynamicId !== targetDynamicId);
   }
 
+  // Function to handle node click events in the 3djs graph
   onNodeClick(nodeId: number) {
     const node = this.getNodeById(nodeId);
 
@@ -1030,6 +891,8 @@ class NodeVisualization extends Vue {
     this.lastClickedNodeId = nodeId;
     this.createChart(this.displayedNodes, this.isVertical);
   }
+
+  // Function to handle node click events from outside the component
   onNodeClickOut(nodeId: number) {
     // console.log("node by id", this.getNodeById(nodeId));
 
@@ -1091,6 +954,8 @@ class NodeVisualization extends Vue {
 
     this.createChart(this.displayedNodes, this.isVertical);
   }
+
+  // Function to scroll to a specific node in the SVG container
   scrollToNode(nodeId: number) {
     const svgContainer = document.querySelector(".svg-container");
     const nodeElement = d3.select(`[data-node-id='${nodeId}']`).node();
@@ -1114,6 +979,7 @@ class NodeVisualization extends Vue {
       behavior: "smooth", // For smooth scrolling
     });
   }
+  // Function to collapse a node and its descendants when another node is clicked
   collapseNodeAndDescendants(nodeId: number) {
     const children = this.transformedNodesGeneric.filter(
       (n) => n.parentId === nodeId
