@@ -166,11 +166,10 @@
 
         <!-- <button @click="createTicket">Ajouter Ticket</button> -->
 
-        <div @click="" class="annuler-button">Annuler</div>
-        <div @click="createTicket" class="add-button">Ajouter Ticket</div>
+        <div @click="" class="annuler-button d-non">Annuler</div>
+        <div @click="createTicket" class="add-button d-non">Ajouter Ticket</div>
 
-        <div style="display: flex;flex-direction: row;
-        justify-content: space-between;position: relative;">
+        <div class="buttons-phone">
             <div @click="" class="annuler-button">Annuler</div>
             <div @click="createTicket" class="add-button">Ajouter Ticket</div>
 
@@ -819,6 +818,9 @@ button:hover {
     width: 100%;
 }
 
+.buttons-phone {
+    display: none !important;
+}
 
 .annuler-button {
     right: 180px;
@@ -1080,11 +1082,22 @@ button:hover {
 
     }
 
+    .buttons-phone {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        position: relative !important;
+    }
+
+    .d-non {
+        display: none !important;
+    }
+
     .annuler-button {
         width: 90px;
         height: 38px;
         font-size: 12px;
-        right: 120px;
+        right: -140px;
         position: relative;
     }
 

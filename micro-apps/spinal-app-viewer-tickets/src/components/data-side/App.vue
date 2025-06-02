@@ -527,26 +527,7 @@ class dataSideApp extends Vue {
     return sortTicketsByPriorityDateRank(enrichedTickets);
   }
 
-  callCard(items: any | any[]) {
-    this.$store.dispatch(ActionTypes.REMOVE_CARDS);
-    const itemsArray = Array.isArray(items) ? items : [items];
-    const validItems = itemsArray.filter(item => item != null);
-    validItems.forEach(item => {
-      item.steps = this.steps2();
-    });
 
-    validItems.forEach(item => {
-      item.baseURL = this.baseURL;
-      item.token = this.token;
-    });
-    console.log("validItems", validItems);
-    this.$store.dispatch(ActionTypes.ADD_CARD_COMPONENT, {
-      items: validItems,
-      buildingId: localStorage.getItem("idBuilding"),
-      component: SpriteCardComponent,
-    });
-    return;
-  }
   showRecapCard(items: any | any[]) {
     this.$store.dispatch(ActionTypes.REMOVE_CARDS);
 
@@ -567,9 +548,32 @@ class dataSideApp extends Vue {
       component: FloorSpriteCardComponent,
     });
   }
+  callCard(items: any | any[]) {
+    console.log("callCard", items);
+    this.$store.dispatch(ActionTypes.REMOVE_CARDS);
+    const itemsArray = Array.isArray(items) ? items : [items];
+    console.log("itemsArray", itemsArray);
+    const validItems = itemsArray.filter(item => item != null);
+    validItems.forEach(item => {
+      item.steps = this.steps2();
+    });
+
+    validItems.forEach(item => {
+      item.baseURL = this.baseURL;
+      item.token = this.token;
+    });
+    console.log("validItems", validItems);
+    this.$store.dispatch(ActionTypes.ADD_CARD_COMPONENT, {
+      items: validItems,
+      buildingId: localStorage.getItem("idBuilding"),
+      component: SpriteCardComponent,
+    });
+    return;
+  }
   callFloorCard(items: any | any[]) {
     this.$store.dispatch(ActionTypes.REMOVE_CARDS);
     const itemsArray = Array.isArray(items) ? items : [items];
+    console.log("itemsArray", itemsArray);
     const validItems = itemsArray.filter(item => item != null);
     validItems.forEach(item => {
       item.steps = this.steps2();
@@ -1034,17 +1038,32 @@ class dataSideApp extends Vue {
       // Reorder the items in the found group
       const group = this.tickets_with_positions[result];
       group.data = reorderItems(group.data, dynamicIdToFind);
+      console.log("group", group);
       this.callCard(group);
     } else if (result === -1) {
       // Unify and reorder the floor tickets
       if (ticket.elementSelected.type === "geographicBuilding") {
         console.log(ticket.elementSelected);
-        this.callFloorCard([ticket]);
+        console.log("dlfjdfglj", this.sortedTickets);
+        const BuildingTickets = this.sortedTickets.filter(ticket => ticket.elementSelected.type === "geographicBuilding");
+        console.log("BuildingTickets", BuildingTickets);
+        const item = this.unifyData(BuildingTickets);
+        console.log("item", item);
+        // this.callFloorCard(ticket);
         return;
       }
-      console.log("Reordering items in group:", ticket);
+      else if (ticket.elementSelected.type === "geographicFloor") {
+        console.log(ticket.elementSelected);
+        const FloorTickets = this.sortedTickets.filter(ticket2 => ticket2.elementSelected.dynamicId === ticket.elementSelected.dynamicId);
+        console.log("FloorTickets", FloorTickets);
+        const item = this.unifyData(FloorTickets);
+        console.log("item", item);
+        // this.callFloorCard(ticket);
+        return;
+      }
       const floorItemsCard = this.unifyData(this.floor_tickets_with_positions);
       floorItemsCard.data = reorderItems(floorItemsCard.data, dynamicIdToFind);
+      console.log("floorItemsCard", floorItemsCard);
       this.callCard(floorItemsCard);
     }
     const buildingId = localStorage.getItem("idBuilding");

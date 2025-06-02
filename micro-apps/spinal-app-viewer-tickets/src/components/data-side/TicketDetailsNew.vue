@@ -285,8 +285,11 @@
                         <div class="details-input" :class="isEditing ? 'not-editable' : ''"
                             @click="onClickNavigate(detailedTicket.elementSelected.dynamicId, detailedTicket.elementSelected.name)"
                             style="width: 100%; font-size: 12px; padding: 4px 8px; color: grey; display: flex; align-items: center; cursor: pointer;">
-                            <span style="color: rgb(101, 100, 179);">
-                                {{ formattedLocation }}
+                            <span style="color: rgb(101, 100, 179);line-height: 1;">
+
+                                {{ formattedLocation.length > 90 ? formattedLocation.substring(0, 90) + '...' :
+                                formattedLocation }}
+
                             </span>
                         </div>
 
