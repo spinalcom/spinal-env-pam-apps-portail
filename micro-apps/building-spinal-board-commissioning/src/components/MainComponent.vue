@@ -111,12 +111,6 @@ class App extends Vue {
 
 // Methods
 
-  filterData() {
-    this.$store.commit(MutationTypes.SET_LOADING, {
-
-      message: 'Chargement des données',
-    })
-  }
 
 
 updateDataTable(itemsSelected) {
@@ -137,7 +131,6 @@ updateDataTable(itemsSelected) {
       (h: { text: string }) => h.text === header.text
     );
     if (!alreadyExists) {
-      console.log('Adding new header: ', header);
       this.dynamicHeaders.push({ ...header, isNew: true });
     }
   });
@@ -147,7 +140,7 @@ updateDataTable(itemsSelected) {
      data: this.formateditems,
      sources: sources,
    }
- 
+
   this.$store.commit(MutationTypes.SET_FILTER_DATA_CONFIG, finalData);
 
 }
@@ -313,7 +306,7 @@ async getDataItem(newVal: any = this.items) {
     this.formateditems = [];
   }
 
-      this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.stripeData);
+      // this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.stripeData);
       
 }
 
@@ -368,6 +361,9 @@ public get CancelFilter() {
 SetCancelFilter(value: boolean) {
   this.$store.commit(MutationTypes.SET_CANCEL_FILTER, value);
 }
+public get filterData() {
+  return this.$store.state.appDataStore.filterData ;
+}
 
 
 
@@ -394,7 +390,7 @@ SetCancelFilter(value: boolean) {
         { text: 'Groupe', value: 'group', align: 'start' },
         { text: 'Nom', value: 'name', align: 'start' },
       ];
-      this.updateDataTable(this.itemSourcesSelected);
+     this.updateDataTable(this.itemSourcesSelected);
     }else {
       this.getDataItem(newVal);
     }
@@ -415,9 +411,16 @@ SetCancelFilter(value: boolean) {
   async onZoneSelectedChange() {
     this.selectedZone = this.zoneSelected;
     await this.getDataItem();
- await this.updateDataTable(this.itemSourcesSelected);
- console.log('dynamicHeaders: ', this.dynamicHeaders);
+//  this.updateDataTable(this.itemSourcesSelected);
+   this.dynamicHeaders = this.dynamicHeaders;
   }
+
+//  Filter data to update the table
+@Watch('filterData')
+async onFilterDataChange(newVal: any) {
+  this.formateditems = newVal.data;
+}
+
 
 
 }

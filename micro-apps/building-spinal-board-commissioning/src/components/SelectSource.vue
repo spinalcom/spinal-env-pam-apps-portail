@@ -86,7 +86,6 @@ export default {
     },
 
   mounted() {
-        console.log("selected children : ", this.selectedChildren);
   },
 
     methods: {
@@ -159,6 +158,7 @@ export default {
                 }
                 return acc;
             }, []);
+            this.childrenSelected = parent.children.filter(child => this.selectedChildren.has(child.name));
             this.$emit('updateSelectedItems', itemsSelected);
 
 

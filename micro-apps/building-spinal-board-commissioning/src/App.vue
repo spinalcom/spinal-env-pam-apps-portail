@@ -118,7 +118,7 @@ class App extends Vue {
 
     // Methods
     loadData(data) { 
-      console.log('loadData', data);
+     
       this.$store.commit(MutationTypes.SET_DATA, data);
 
     }

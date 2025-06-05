@@ -104,25 +104,7 @@ export default {
 
 
    watch: {
-      // item: {
-      //   handler(newData) {
-      //     console.log('item changed', newData);
-      //     this.itemData = newData;
-      //     const stripLegend = config.bilan.timeline;
-      //     this.selections = {};
-      //     this.selections['filter'] = [];
-      //     const source = config.sources.find((src) => src.id === stripLegend.sourceId);
-      //     const data = this.item.map((el) => {
-      //       if(el.sources) {
-      //         const stripe = el.sources.find((st) => st.name.toLowerCase() === source?.name?.toLowerCase());
-      //         return stripe || null;
-      //       }
-      //       return null;
-      //     }).filter(Boolean);
-          
-      //       this.getStripeData(data);
-      //   }
-      // },
+      
       dataStripe: {
         handler(newData) {
           this.getUniqueColumnValues(newData);
@@ -178,7 +160,7 @@ export default {
       }
       return null; 
     }).filter(Boolean); 
-    this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.stripeData);
+
     const configL = stripLegend.setup.legend;
     const type = stripLegend.setup.type;
      this.seen = new Map();
@@ -264,7 +246,7 @@ getColor(value: any, header: any) {
         duplicate,
         missing
       ];
-      this.$store.commit(MutationTypes.SET_FILTER_DATA, filter);
+      // this.$store.commit(MutationTypes.SET_FILTER_DATA, filter);
 
       return [correct ,warning, duplicate, missing];
     },
@@ -333,7 +315,7 @@ getColor(value: any, header: any) {
       });
 
       this.itemData = this.updateData(replaceSource);
-      this.$store.commit(MutationTypes.SET_STRIPE_DATA, result);
+
       this.$store.commit(MutationTypes.SET_LOADER, false);
     }
   };

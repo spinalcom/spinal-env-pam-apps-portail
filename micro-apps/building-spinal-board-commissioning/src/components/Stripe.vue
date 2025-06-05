@@ -4,7 +4,7 @@
       <div style="display: flex; flex-direction: row; align-items: center; gap: 5px;">
         <v-icon v-if="cancelFilter" @click="SetCancelFilter(false)" style="cursor: pointer; font-size: 20px; color: #14202C;">mdi-cancel</v-icon>
       </div>
-      <div @click="filterReverse(item)" v-for="(item, idx) in headeLegend" :key="idx" :style="{width: `max-content`, height: '100%', zIndex: idx, cursor: 'pointer', position: 'relative'}" >
+      <div @click="filterReverse(item)" v-for="(item, idx) in headeLegend" :key="idx" :style="{width: `max-content`, height: '100%', zIndex: idx, cursor: 'pointer', position: 'relative', userSelect: 'none'}" >
         <div v-if="item.isActive"  class="underline"></div>
         <SmallLegend v-if="item.data.length > 0"  :color="item.color" :text="`${item.name}: ${item.data.length}`" :size="16"  />
       </div>
@@ -67,9 +67,14 @@ export default {
     spaceSelected() {
       return this.$store.state.appDataStore.zoneSelected;
     },
-
+    stripeData() {
+      return this.$store.state.appDataStore.StripeDataList;
+    },
     cancelFilter(){
       return this.$store.state.appDataStore.cancelFilter;
+    },
+    filteredData() {
+      return this.$store.state.appDataStore.filteredDataConfig;
     }
   },
 
@@ -77,16 +82,44 @@ export default {
 watch: {
  data: {
   handler(newData) {
-    console.log("Data changed:", newData);
+
     this.configLegend = newData;
+    this.headeLegend.map((el) => {
+      el.isActive = false;
+    })
+  }
+ },
+
+ stripeData: {
+  handler(newData) {
     this.headeLegend = newData;
-
-
+    // this.headeLegend = newData.map((el) => {
+    //   return {
+    //     name: el.name,
+    //     color: el.color,
+    //     data: el.data,
+    //     percent: 0,
+    //     isActive: false
+    //   }
+    // });
+    // this.configLegend = newData.map((el) => {
+    //   return {
+    //     name: el.name,
+    //     color: el.color,
+    //     data: el.data,
+    //     percent: 0,
+    //     isActive: false
+    //   }
+    // });
   }
  },
 
   spaceSelected: {
     handler(newData) {
+     this.headeLegend.map((el) => {
+        el.isActive = false;
+      });
+      this.$store.commit(MutationTypes.SET_CANCEL_FILTER, false);
       this.stripeList = newData;
     }
   },
@@ -125,7 +158,6 @@ created() {
       this.$store.commit(MutationTypes.SET_LOADER, false);
       this.$store.commit(MutationTypes.SET_CANCEL_FILTER, true);
     }
-    this.$store.commit(MutationTypes.SET_STRIPE_DATA, e.data.filteredData);
     
   }
 };
@@ -193,25 +225,25 @@ filterBysource (dataStore: any[], sourceName: string) {
     if(item.isActive === false) {
       item.isActive = true;
       item.percent = 0;
-      const dataFilter = this.configLegend.filter((el) => el.isActive !== true);
+      const dataFilter = this.configLegend.filter((el) => el.isActive === false );
       const totalDatafilter = dataFilter.flatMap((el) => el.data);
       this.configLegend.forEach((el: { name: string; color: string; data: any[]; percent: number; isActive: boolean }) => {
         if(el.isActive === false) {
           el.percent = parseFloat(((el.data.length / totalDatafilter.length ) * 100).toFixed(2));
         }
       });
-      let updateDataFilter = this.configLegend.filter((el) => el.isActive !== true);
+      let updateDataFilter = this.configLegend.filter((el) => el.isActive === false);
       updateDataFilter = updateDataFilter.flatMap((el) => el.data);
-
       const data = {
         data: updateDataFilter,
         sources: this.$store.state.appDataStore.data.sources,
       }
-      this.$store.commit(MutationTypes.SET_DATA, data); 
+      this.$store.commit(MutationTypes.SET_FILTER_DATA, data);
+      this.$store.commit(MutationTypes.SET_CANCEL_FILTER, true);
     }
     else {
       item.isActive = false;
-       const dataFilter = this.configLegend.filter((el) => el.isActive !== true);
+    const dataFilter = this.configLegend.filter((el) => el.isActive !== true);
       const totalDatafilter = dataFilter.flatMap((el) => el.data);
       this.configLegend.forEach((el: { name: string; color: string; data: any[]; percent: number; isActive: boolean }) => {
         if(el.isActive === false) {
@@ -224,8 +256,45 @@ filterBysource (dataStore: any[], sourceName: string) {
         data: updateDataFilter,
         sources: this.$store.state.appDataStore.data.sources,
       }
-      this.$store.commit(MutationTypes.SET_DATA, data); 
+      this.$store.commit(MutationTypes.SET_FILTER_DATA, data);
+
     }
+    // if(item.isActive === false) {
+    //   item.isActive = true;
+    //   item.percent = 0;
+    //   const dataFilter = this.configLegend.filter((el) => el.isActive !== true);
+    //   const totalDatafilter = dataFilter.flatMap((el) => el.data);
+    //   this.configLegend.forEach((el: { name: string; color: string; data: any[]; percent: number; isActive: boolean }) => {
+    //     if(el.isActive === false) {
+    //       el.percent = parseFloat(((el.data.length / totalDatafilter.length ) * 100).toFixed(2));
+    //     }
+    //   });
+    //   let updateDataFilter = this.configLegend.filter((el) => el.isActive !== true);
+    //   updateDataFilter = updateDataFilter.flatMap((el) => el.data);
+
+    //   const data = {
+    //     data: updateDataFilter,
+    //     sources: this.$store.state.appDataStore.data.sources,
+    //   }
+    //   this.$store.commit(MutationTypes.SET_DATA, data); 
+    // }
+    // else {
+    //   item.isActive = false;
+    //    const dataFilter = this.configLegend.filter((el) => el.isActive !== true);
+    //   const totalDatafilter = dataFilter.flatMap((el) => el.data);
+    //   this.configLegend.forEach((el: { name: string; color: string; data: any[]; percent: number; isActive: boolean }) => {
+    //     if(el.isActive === false) {
+    //       el.percent = parseFloat(((el.data.length / totalDatafilter.length ) * 100).toFixed(2));
+    //     }
+    //   });
+    //   let updateDataFilter = this.configLegend.filter((el) => el.isActive !== true);
+    //   updateDataFilter = updateDataFilter.flatMap((el) => el.data);
+    //   const data = {
+    //     data: updateDataFilter,
+    //     sources: this.$store.state.appDataStore.data.sources,
+    //   }
+    //   this.$store.commit(MutationTypes.SET_CONFIG_LABEL, data); 
+    // }
   },
 
 
@@ -252,7 +321,7 @@ filterBysource (dataStore: any[], sourceName: string) {
       data: dataFilter,
       sources: this.$store.state.appDataStore.data.sources,
      }
-    this.$store.commit(MutationTypes.SET_DATA, dataUpdate);
+    this.$store.commit(MutationTypes.SET_FILTER_DATA, dataUpdate);
     this.$store.commit(MutationTypes.SET_CANCEL_FILTER, true);
     this.$store.commit(MutationTypes.SET_LOADING, {
       completed: 0,
@@ -267,19 +336,19 @@ filterBysource (dataStore: any[], sourceName: string) {
   async SetCancelFilter(value: boolean) {
     this.$store.commit(MutationTypes.SET_CANCEL_FILTER, value);
     this.$store.commit(MutationTypes.SET_LOADER, true);
+    //Loader
     this.$store.commit(MutationTypes.SET_LOADING, {
       completed: 0,
       total: 0,
       percent: 0,
       message: "Réinitialisation des filtres",
     });
-   setTimeout(() => { }, 3000);
     const dataupdate = this.configLegend.flatMap((el) => el.data);
     const data = {
       data: dataupdate,
       sources: this.$store.state.appDataStore.data.sources,
     }
-    this.$store.commit(MutationTypes.SET_DATA, data);
+    this.$store.commit(MutationTypes.SET_FILTER_DATA, data);
     this.configLegend.forEach((el: { name: string; color: string; data: any[]; percent: number; isActive: boolean }) => {
       el.isActive = false;
       el.percent = parseFloat(((el.data.length / dataupdate.length) * 100).toFixed(2));
