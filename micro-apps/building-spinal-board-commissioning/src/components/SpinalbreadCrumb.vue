@@ -158,7 +158,7 @@ export default {
             this.$store.commit(MutationTypes.SET_CATEGORIES_CONTEXT, value);
             this.selected_grp = {}
             this.$store.commit(MutationTypes.SET_GROUP_EQUIP, {});
-
+            this.groupsSelect = [];
 
             const groups = await getGroupList(this.buildingId, this.contexId, this.categoryId);
             this.groupList = groups;

@@ -391,6 +391,11 @@ public get filterData() {
         { text: 'Nom', value: 'name', align: 'start' },
       ];
      this.updateDataTable(this.itemSourcesSelected);
+     this.$store.commit(MutationTypes.SET_DOWNLOAD_DATA, {
+        data: this.formateditems,
+        sources: this.itemSourcesSelected,
+      });
+    
     }else {
       this.getDataItem(newVal);
     }

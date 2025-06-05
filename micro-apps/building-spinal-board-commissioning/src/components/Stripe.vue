@@ -221,6 +221,13 @@ filterBysource (dataStore: any[], sourceName: string) {
    ),
 
    async filterReverse(item: { name: string; color: string; data: any[]; percent: number; isActive: boolean }) {
+    this.$store.commit(MutationTypes.SET_LOADER, true);
+    this.$store.commit(MutationTypes.SET_LOADING, {
+      completed: 0,
+      total: 0,
+      percent: 0,
+      message: "Filtrage des données...",
+    });
     const totalDta = this.configLegend.flatMap((el) => el.data);
     if(item.isActive === false) {
       item.isActive = true;
@@ -228,11 +235,27 @@ filterBysource (dataStore: any[], sourceName: string) {
       const dataFilter = this.configLegend.filter((el) => el.isActive === false );
       const totalDatafilter = dataFilter.flatMap((el) => el.data);
       this.configLegend.forEach((el: { name: string; color: string; data: any[]; percent: number; isActive: boolean }) => {
+        this.$store.commit(MutationTypes.SET_LOADING, {
+            total: totalDta.length,
+            completed: totalDta.length - totalDatafilter.length,
+            percent: parseFloat(((totalDta.length - totalDatafilter.length) / totalDta.length * 100).toFixed(2)),
+        })
         if(el.isActive === false) {
           el.percent = parseFloat(((el.data.length / totalDatafilter.length ) * 100).toFixed(2));
         }
       });
+      this.$store.commit(MutationTypes.SET_LOADING, {
+        completed: totalDta.length - totalDatafilter.length,
+        total: totalDta.length,
+        percent: parseFloat(((totalDta.length - totalDatafilter.length) / totalDta.length * 100).toFixed(2)),
+        message: "Filtrage terminé",
+      });
+      
       let updateDataFilter = this.configLegend.filter((el) => el.isActive === false);
+      this.$store.commit(MutationTypes.SET_LOADING, {
+        total: 0,
+        message: "Mise à jour des données",
+      });
       updateDataFilter = updateDataFilter.flatMap((el) => el.data);
       const data = {
         data: updateDataFilter,
@@ -240,6 +263,7 @@ filterBysource (dataStore: any[], sourceName: string) {
       }
       this.$store.commit(MutationTypes.SET_FILTER_DATA, data);
       this.$store.commit(MutationTypes.SET_CANCEL_FILTER, true);
+      this.$store.commit(MutationTypes.SET_LOADER, false);
     }
     else {
       item.isActive = false;
@@ -257,6 +281,24 @@ filterBysource (dataStore: any[], sourceName: string) {
         sources: this.$store.state.appDataStore.data.sources,
       }
       this.$store.commit(MutationTypes.SET_FILTER_DATA, data);
+      this.$store.commit(MutationTypes.SET_LOADER, false);
+      const isAllInactive = this.configLegend.every((el) => el.isActive === false);
+      if(isAllInactive) {
+        this.$store.commit(MutationTypes.SET_CANCEL_FILTER, false);
+        this.$store.commit(MutationTypes.SET_LOADING, {
+          completed: 0,
+          total: 0,
+          percent: 0,
+          message: "Aucun filtre actif",
+        });
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(true);
+          }, 2000);
+        }).then(() => {
+          this.$store.commit(MutationTypes.SET_LOADER, false);
+        });
+      }
 
     }
     // if(item.isActive === false) {

@@ -44,7 +44,7 @@
         >
         <section v-if="isText" style="width: 100%;">
                 <span>
-                    Filtrer par valeur de la colonne <strong>{{ columnSelected }}</strong>
+                    Filtrer par Regex la colonne <strong>{{ columnSelected }}</strong>
                 </span>
         <div
                 class="filter-value-input"

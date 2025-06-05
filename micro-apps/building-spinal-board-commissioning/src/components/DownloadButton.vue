@@ -40,7 +40,7 @@ export default {
       await this.$nextTick();
 
       // Récupérer les données
-      let dataCommissioning = this.$store.state.appDataStore.DownloadData;
+      let dataCommissioning = this.$store.state.appDataStore.DownloadData ? this.$store.state.appDataStore.DownloadData : this.$store.state.appDataStore.data;
       const data = this.$store.state.appDataStore.data;
 
       let completed = 0;
@@ -90,7 +90,7 @@ export default {
     extractForCSV(obj, sources) {
       const row = {
         dynamicId: obj.dynamicId,
-        name: obj.name,
+        nom: obj.name,
         etage: obj.floor,
         groupe: obj.group,
       };
