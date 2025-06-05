@@ -77,26 +77,34 @@ class ApplicationView extends Vue {
 
   async initApp() {
     // console.log("initApp");
-    this.appSelected = this.getAppInfo();
-    this.appPath = this.getAppPath();
+    const {appId, portofolioId, buildingId} = this.getAppInfo();
+    console.log(appId, portofolioId, buildingId)
+    // this.appPath = this.getAppPath();
+    
+    if (!appId) return;
 
-    if (!this.appSelected) return;
+    await this.$store.dispatch(`appDataStore/selectSpace`, {portofolioId, buildingId});
 
-    await this.$store.dispatch(
-      `appDataStore/selectSpace`,
-      (<any>this.appSelected).parent
-    );
+    console.log("hello from appView")
+    this.appSelected = this.getAppSelected(appId);
+    
+    
     this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, this.appSelected);
+    this.appPath = this.getAppPath();
+    // await this.$store.dispatch(
+    //   `appDataStore/selectSpace`,
+    //   (<any>this.appSelected).parent
+    // );
+    // this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, this.appSelected);
   }
 
   getAppInfo() {
     try {
       const { query } = this.$route;
       const appId: any = query.app;
-      if (!appId) return;
-
-      const application: any = JSON.parse(atob(appId));
-      return application;
+      const portofolioId = localStorage.getItem("idPortofolio")
+      const buildingId = localStorage.getItem("idBuilding")
+      return {appId, portofolioId, buildingId};
     } catch (error) {}
   }
 
@@ -108,6 +116,12 @@ class ApplicationView extends Vue {
       return `/micro-apps/spinal-env-pam-dataview`;
     }
     return `/micro-apps/${this.appSelected.packageName}`;
+  }
+
+  getAppSelected(appId) {
+    const appsDisplayed = this.$store.state.appDataStore.appsDisplayed;
+    console.log("mes application", appsDisplayed)
+    return appsDisplayed.find(app => app.name === appId) 
   }
 
   @Watch("$route")

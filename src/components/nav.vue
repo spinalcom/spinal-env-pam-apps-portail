@@ -209,6 +209,8 @@ export default {
     },
 
     goToApp(item, event) {
+      console.log("item is my app",item)
+
       if (item.isExternalApp) {
         window.open(item.link, "_blank");
         return;
@@ -217,12 +219,14 @@ export default {
       if (event.ctrlKey) {
         let routeData = this.$router.resolve({
           name: "App",
-          query: { app: btoa(JSON.stringify(item)) },
+          query: { app: item.name },
+          // query: { app: btoa(JSON.stringify(item)) },
         });
         window.open(routeData.href, "_blank");
       } else {
+        
         this.$router
-          .push({ name: "App", query: { app: btoa(JSON.stringify(item)) } })
+          .push({ name: "App", query: { app: item.name} })
           .catch((error) => {});
       }
       this.navBarAppMenuShow = false;

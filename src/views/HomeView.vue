@@ -182,13 +182,13 @@ export default Vue.extend({
       if (event.ctrlKey) {
         let routeData = this.$router.resolve({
           name: "App",
-          query: { app: btoa(JSON.stringify(item)) },
+          query: { app: item.name },
         });
         window.open(routeData.href, "_blank");
       } else {
         this.$router.push({
           name: "App",
-          query: { app: btoa(JSON.stringify(item)) },
+          query: { app: item.name},
         });
       }
     },
