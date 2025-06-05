@@ -40,13 +40,14 @@ export default {
       await this.$nextTick();
 
       // Récupérer les données
-      let data = this.$store.state.appDataStore.data;
-      const stripeData = this.$store.state.appDataStore.StripeDataList;
-      let completed = 0;
-      const total = data.length;
-      const resultFinaldata = [];
+      let dataCommissioning = this.$store.state.appDataStore.DownloadData;
+      const data = this.$store.state.appDataStore.data;
 
-      resultFinaldata.push(data.data);
+      let completed = 0;
+      const total = dataCommissioning.data.length;
+      const resultFinaldata = dataCommissioning.data;
+
+      // resultFinaldata.push(data.data);
 
       // Fichier prêt à être télécharger 
       this.$store.commit(MutationTypes.SET_LOADING, {
@@ -90,7 +91,7 @@ export default {
       const row = {
         dynamicId: obj.dynamicId,
         name: obj.name,
-        floor: obj.floor,
+        etage: obj.floor,
         groupe: obj.group,
       };
       for (const source of sources) {

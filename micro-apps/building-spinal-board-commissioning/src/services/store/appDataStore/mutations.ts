@@ -66,6 +66,7 @@ export enum MutationTypes {
   SET_FILTER_DATA_CONFIG = "SET_FILTER_DATA_CONFIG",
   SET_VALUE_REGEX = "SET_VALUE_REGEX",
   SET_CONFIG_LABEL = "SET_CONFIG_LABEL",
+  SET_DOWNLOAD_DATA = "SET_DOWNLOAD_DATA",
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -111,6 +112,7 @@ export type MutationsAppData<S = StateAppData> = {
   [MutationTypes.SET_FILTER_DATA_CONFIG](state: StateAppData, filterDataConfig: any[]): void;
   [MutationTypes.SET_VALUE_REGEX](state: StateAppData, paylod: {regex: string, column: string}): void;
   [MutationTypes.SET_CONFIG_LABEL]( state: StateAppData, configLabel: any[]): void;
+  [MutationTypes.SET_DOWNLOAD_DATA](state: StateAppData, downloadData: any[]): void;
 
 };
 
@@ -253,7 +255,11 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
 
   [MutationTypes.SET_CONFIG_LABEL](state: StateAppData, configLabel: any[]): void {
     state.configLabel = configLabel;
+  },
+  [MutationTypes.SET_DOWNLOAD_DATA](state: StateAppData, downloadData: any[]): void {
+    state.DownloadData = downloadData;
   }
+    
 
 
 

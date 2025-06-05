@@ -419,6 +419,7 @@ public get filterData() {
 @Watch('filterData')
 async onFilterDataChange(newVal: any) {
   this.formateditems = newVal.data;
+  this.$store.commit(MutationTypes.SET_DOWNLOAD_DATA, newVal);
 }
 
 

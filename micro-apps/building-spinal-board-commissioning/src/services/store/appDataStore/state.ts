@@ -82,7 +82,7 @@ export const state = {
   },
 
   configLabel: [] as any[],
-  
+  DownloadData: [] as any[],
   // CancelFilterOn Stripe Component
   cancelFilter: false,
 };
