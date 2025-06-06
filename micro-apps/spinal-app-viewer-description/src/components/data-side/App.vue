@@ -100,8 +100,8 @@
 
 
 
-      <FastLineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
-        :step="labelsChart.length" :tooltipCallbacks="{
+      <FastLineCardComponent :title="''" :labels="labelsChart" :datasets="chartData" :step="labelsChart.length"
+        :tooltipCallbacks="{
           title: (context) => { },
           label: (tooltipItem) =>
             `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
@@ -570,7 +570,7 @@
                       addOrRemove(item.dynamicId, item.name);
                       resize();
                     }"
-                      v-if="cpIdToDraw.includes(item.dynamicId) && !activeChartData.includes(item.dynamicId)">mdi-chart-line</v-icon>
+                      v-if="cpIdToDraw.includes(item.dynamicId) && !activeChartData.includes(item.dynamicId) && controlWithTimeSeries.includes(item.dynamicId)">mdi-chart-line</v-icon>
                     <v-icon @click="() => {
                       addOrRemove(item.dynamicId, item.name);
                     }" v-if="activeChartData.includes(item.dynamicId)">mdi-close</v-icon>
@@ -909,27 +909,30 @@ class dataSideApp extends Vue {
   currentId = 0;
   viewInfo = null
   state = getViewInfoReactive();
+  dynamicItems: any[]
+  controlWithTimeSeries: [] // <- pour les IDs dans les controlEndpoint
+  endpointWithTimeSeries: []
 
-  get dynamicItems(): string[] {
-    let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets', 'Inventaire'];
-    console.log(this.floorstaticDetails, ' les floors');
+  // get dynamicItems(): string[] {
+  //   let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets', 'Inventaire'];
+  //   console.log(this.floorstaticDetails, ' les floors');
 
-    if (this.floorstaticDetails.some(detail =>
-      detail?.controlEndpoint?.some(endpoint => endpoint?.endpoints?.length > 0)
-    )) {
-      items.push('Indicateur');
-    }
-    if (this.formattedData.length) {
-      items.splice(1, 0, 'Liste');
-    }
-    if (this.floorstaticDetails.some(detail =>
-      detail?.endpoints && detail.endpoints.length > 0
-    )) {
-      items.push('Points de mesures');
-    }
+  //   if (this.floorstaticDetails.some(detail =>
+  //     detail?.controlEndpoint?.some(endpoint => endpoint?.endpoints?.length > 0)
+  //   )) {
+  //     items.push('Indicateur');
+  //   }
+  //   if (this.formattedData.length) {
+  //     items.splice(1, 0, 'Liste');
+  //   }
+  //   if (this.floorstaticDetails.some(detail =>
+  //     detail?.endpoints && detail.endpoints.length > 0
+  //   )) {
+  //     items.push('Points de mesures');
+  //   }
 
-    return items;
-  }
+  //   return items;
+  // }
 
   public get selectedZoneType(): ISpaceSelectorItem {
     return this.$store.state.appDataStore.zoneSelected.type;
@@ -949,6 +952,73 @@ class dataSideApp extends Vue {
   get filteredApp(): { name: string; onglet: string; id: string } | null {
     const app = this.appTab.find(app => app.onglet === this.selection);
     return app ? { name: app.name, onglet: app.onglet, id: app.id } : null;
+  }
+
+  async loadDynamicItems() {
+    console.warn(this.floorstaticDetails, ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+
+    let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets', 'Inventaire'];
+
+    if (this.formattedData.length) {
+      items.splice(1, 0, 'Liste');
+    }
+
+    const controlIds = this.floorstaticDetails.flatMap(detail =>
+      detail?.controlEndpoint?.flatMap(cp =>
+        cp?.endpoints?.map(ep => ep.dynamicId) || []
+      ) || []
+    );
+
+    const endpointIds = this.floorstaticDetails.flatMap(detail =>
+      detail?.endpoints?.map(e => e.dynamicId) || []
+    );
+
+    console.log(controlIds, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ???');
+
+
+    const batch = [...new Set([...controlIds, ...endpointIds])];
+
+    console.log(batch);
+
+
+    if (!batch.length) {
+      this.dynamicItems = items;
+      return;
+    }
+    const buildingId = sessionStorage.getItem("idBuilding");
+
+    try {
+      const attributsList = await this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
+        buildingId: buildingId,
+        referenceIds: batch,
+      });
+
+      console.log(attributsList);
+
+      const findIdsWithTimeSeries = (ids) =>
+        ids.filter(id =>
+          attributsList.find(item => item.dynamicId === id)?.categoryAttributes?.some(catAttr =>
+            catAttr?.attributs?.some(attr =>
+              attr?.label === 'timeSeries maxDay'
+            )
+          )
+        );
+      this.controlWithTimeSeries = findIdsWithTimeSeries(controlIds);
+      this.endpointWithTimeSeries = findIdsWithTimeSeries(endpointIds);
+
+      if (this.controlWithTimeSeries.length > 0) {
+        items.push('Indicateur');
+      }
+
+      if (this.endpointWithTimeSeries.length > 0) {
+        items.push('Points de mesures');
+      }
+
+    } catch (error) {
+      console.error('Erreur lors du chargement des attributs', error);
+    }
+
+    this.dynamicItems = items;
   }
 
   handleClick() {
@@ -1810,7 +1880,7 @@ class dataSideApp extends Vue {
 
 
     this.watchData();
-
+    this.loadDynamicItems();
     // if(this.)
     // this.countSpaceInventory()
 
@@ -3044,6 +3114,7 @@ class dataSideApp extends Vue {
   }
 
 
+
   async countSpaceInventory() {
     this.data_loading = 75;
     const buildingId = sessionStorage.getItem("idBuilding");
@@ -3379,6 +3450,11 @@ class dataSideApp extends Vue {
     this.reloadNewChartData();
   }
 
+  @Watch('floorstaticDetails', { immediate: true })
+  onFloorStaticDetailsChanged() {
+    this.loadDynamicItems();
+  }
+
   @Watch('state.viewInfo')
   onViewInfoChanged(newVal: any) {
     this.viewInfo = newVal
@@ -3465,7 +3541,6 @@ class dataSideApp extends Vue {
   editSelection() {
     if (!this.formattedData.length) {
       this.selection = "Vue Globale";
-
     }
   }
 

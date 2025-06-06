@@ -265,6 +265,7 @@ export default {
       return {
         type: 'line',
         id: 'line-chart-id',
+        maintainAspectRatio: false,
         parsing: false, // disabled parsing for better performance -- careful, data must be sorted before feeding it to the chart
         scales: this.calculateScaling(),
         plugins: {
@@ -418,9 +419,10 @@ export default {
 }
 
 .bar-height {
+  flex-grow: 1;
+  flex-shrink: 1;
   height: 100%;
 }
-
 ::v-deep .theme--light.v-input--switch .v-input--switch__thumb,
 .theme--light.v-input--switch .v-input--switch__track {
   color: #607d8b !important;
