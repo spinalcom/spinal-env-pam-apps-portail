@@ -85,7 +85,8 @@
       <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" :closecomp="ActiveData"
         @closeDialog="closeVueDoc" />
     </div>
-    <div v-if="ActiveData && selection == 'Indicateur' || selection ==  'Points de mesures' && labelsChart" class="graphContainer">
+    <div v-if="ActiveData && selection == 'Indicateur' || selection == 'Points de mesures' && labelsChart"
+      class="graphContainer">
 
       <!-- <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
         :step="labelsChart.length" :tooltipCallbacks="{
@@ -3463,76 +3464,56 @@ class dataSideApp extends Vue {
 
   @Watch("floorstaticDetails")
   async watchFloorstaticDetails(newVal, oldVal) {
-    const dynamicIds = newVal[0].controlEndpoint.flatMap(profile =>
-      profile.endpoints.map(endpoint => endpoint.dynamicId)
-    );
 
     const buildingId = sessionStorage.getItem("idBuilding");
+
+    // Récupération des dynamicIds depuis controlEndpoint
+    const dynamicIds = newVal[0]?.controlEndpoint?.flatMap(profile =>
+      profile.endpoints.map(endpoint => endpoint.dynamicId)
+    ) || [];
 
     const attribut = await this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
       buildingId,
       referenceIds: dynamicIds,
     });
 
+
     const attributs = attribut.filter(element => {
-      const saveTimeSeriesValid = element.categoryAttributes.some(category =>
-        category.attributs.some(attr => attr.label === "saveTimeSeries" && attr.value == 1)
-      );
+      const allAttrs = element.categoryAttributes.flatMap(cat => cat.attributs);
+      const save = allAttrs.find(attr => attr.label === "saveTimeSeries");
+      const maxDay = allAttrs.find(attr => attr.label === "timeSeries maxDay");
 
-      if (!saveTimeSeriesValid) return false;
-
-      const timeSeriesAttr = element.categoryAttributes.flatMap(cat => cat.attributs)
-        .find(attr => attr.label === "timeSeries maxDay");
-
-      // Si l’attribut est absent, ou s’il est présent et différent de 0 → OK
-      return !timeSeriesAttr || timeSeriesAttr.value !== '0';
+      return (save && save.value == 1) || (maxDay && maxDay.value !== undefined && maxDay.value !== '0');
     }).map(element => element.dynamicId);
 
-    console.log('salut 01', attributs);
-
     this.cpIdToDraw = attributs;
+    console.log('cpIdToDraw:', this.cpIdToDraw);
 
-    console.warn('je suis le cp to draw', this.cpIdToDraw);
-
-    if (this.selectedZone.type === 'building') {
+    if (this.selectedZone?.type === 'building') {
       this.data_loading += 100;
     }
 
-
-    //partie endpoint 
-    const endpointsDyn = newVal[0].endpoints.flatMap(obj => obj.dynamicId)
-    console.warn(endpointsDyn, ' salut');
+    // Partie endpoints
+    const endpointsDyn = newVal[0]?.endpoints?.map(obj => obj.dynamicId) || [];
+    console.warn('endpointsDyn:', endpointsDyn);
 
     const attributEndpoints = await this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
       buildingId,
       referenceIds: endpointsDyn,
     });
 
-    console.log('salut ,', attributEndpoints);
-
-
     const attributsEnd = attributEndpoints.filter(element => {
-      const saveTimeSeriesValid = element.categoryAttributes.some(category =>
-        category.attributs.some(attr => attr.label === "saveTimeSeries" && attr.value == 1)
-      );
+      const allAttrs = element.categoryAttributes.flatMap(cat => cat.attributs);
+      const save = allAttrs.find(attr => attr.label === "saveTimeSeries");
+      const maxDay = allAttrs.find(attr => attr.label === "timeSeries maxDay");
 
-      console.log('salut 02', saveTimeSeriesValid);
-
-
-      if (!saveTimeSeriesValid) return false;
-
-      const timeSeriesAttr = element.categoryAttributes.flatMap(cat => cat.attributs)
-        .find(attr => attr.label === "timeSeries maxDay");
-
-      // Si l’attribut est absent, ou s’il est présent et différent de 0 → OK
-      return !timeSeriesAttr || timeSeriesAttr.value !== '0';
+      return (save && save.value == 1) || (maxDay && maxDay.value !== undefined && maxDay.value !== '0');
     }).map(element => element.dynamicId);
 
     this.endpointIdToDraw = attributsEnd;
-    console.log('salut hihi', this.endpointIdToDraw);
-
-
+    console.log('endpointIdToDraw:', this.endpointIdToDraw);
   }
+
 
 
   @Watch("dynamicItems")
