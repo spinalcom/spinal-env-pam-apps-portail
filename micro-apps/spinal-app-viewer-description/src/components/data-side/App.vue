@@ -85,7 +85,7 @@
       <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" :closecomp="ActiveData"
         @closeDialog="closeVueDoc" />
     </div>
-    <div v-if="ActiveData && selection == 'Indicateur' && labelsChart" class="graphContainer">
+    <div v-if="ActiveData && selection == 'Indicateur' || selection ==  'Points de mesures' && labelsChart" class="graphContainer">
 
       <!-- <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
         :step="labelsChart.length" :tooltipCallbacks="{
@@ -100,8 +100,8 @@
 
 
 
-      <FastLineCardComponent :title="''" :labels="labelsChart" :datasets="chartData" :step="labelsChart.length"
-        :tooltipCallbacks="{
+      <FastLineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
+        :step="labelsChart.length" :tooltipCallbacks="{
           title: (context) => { },
           label: (tooltipItem) =>
             `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
@@ -544,6 +544,17 @@
               <div class="inventory-item"
                 style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;width: 100%;">
                 <li> {{ item.name }}: {{ item.value }} {{ item.unit || '' }}</li>
+
+                <v-icon @click="() => {
+                  fullData()
+                  addOrRemove(item.dynamicId, item.name);
+                  resize();
+                }"
+                  v-if="endpointIdToDraw.includes(item.dynamicId) && !activeChartData.includes(item.dynamicId)">mdi-chart-line</v-icon>
+                <v-icon @click="() => {
+                  addOrRemove(item.dynamicId, item.name);
+                }" v-if="activeChartData.includes(item.dynamicId)">mdi-close</v-icon>
+
               </div>
             </div>
           </div>
@@ -570,7 +581,7 @@
                       addOrRemove(item.dynamicId, item.name);
                       resize();
                     }"
-                      v-if="cpIdToDraw.includes(item.dynamicId) && !activeChartData.includes(item.dynamicId) && controlWithTimeSeries.includes(item.dynamicId)">mdi-chart-line</v-icon>
+                      v-if="cpIdToDraw.includes(item.dynamicId) && !activeChartData.includes(item.dynamicId)">mdi-chart-line</v-icon>
                     <v-icon @click="() => {
                       addOrRemove(item.dynamicId, item.name);
                     }" v-if="activeChartData.includes(item.dynamicId)">mdi-close</v-icon>
@@ -861,6 +872,7 @@ class dataSideApp extends Vue {
   stockedZone: any = 0;
   referencedType: any = 'building';
   cpIdToDraw: [];
+  endpointIdToDraw: [];
   beginDate: any = null
   endDate: any = null
   dataTable: any = [];
@@ -909,30 +921,28 @@ class dataSideApp extends Vue {
   currentId = 0;
   viewInfo = null
   state = getViewInfoReactive();
-  dynamicItems: any[]
-  controlWithTimeSeries: [] // <- pour les IDs dans les controlEndpoint
-  endpointWithTimeSeries: []
 
-  // get dynamicItems(): string[] {
-  //   let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets', 'Inventaire'];
-  //   console.log(this.floorstaticDetails, ' les floors');
+  get dynamicItems(): string[] {
+    let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets', 'Inventaire'];
+    console.log(this.floorstaticDetails, ' les floors');
 
-  //   if (this.floorstaticDetails.some(detail =>
-  //     detail?.controlEndpoint?.some(endpoint => endpoint?.endpoints?.length > 0)
-  //   )) {
-  //     items.push('Indicateur');
-  //   }
-  //   if (this.formattedData.length) {
-  //     items.splice(1, 0, 'Liste');
-  //   }
-  //   if (this.floorstaticDetails.some(detail =>
-  //     detail?.endpoints && detail.endpoints.length > 0
-  //   )) {
-  //     items.push('Points de mesures');
-  //   }
 
-  //   return items;
-  // }
+    if (this.floorstaticDetails.some(detail =>
+      detail?.controlEndpoint?.some(endpoint => endpoint?.endpoints?.length > 0)
+    )) {
+      items.push('Indicateur');
+    }
+    if (this.formattedData.length) {
+      items.splice(1, 0, 'Liste');
+    }
+    if (this.floorstaticDetails.some(detail =>
+      detail?.endpoints && detail.endpoints.length > 0
+    )) {
+      items.push('Points de mesures');
+    }
+
+    return items;
+  }
 
   public get selectedZoneType(): ISpaceSelectorItem {
     return this.$store.state.appDataStore.zoneSelected.type;
@@ -952,73 +962,6 @@ class dataSideApp extends Vue {
   get filteredApp(): { name: string; onglet: string; id: string } | null {
     const app = this.appTab.find(app => app.onglet === this.selection);
     return app ? { name: app.name, onglet: app.onglet, id: app.id } : null;
-  }
-
-  async loadDynamicItems() {
-    console.warn(this.floorstaticDetails, ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-
-    let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets', 'Inventaire'];
-
-    if (this.formattedData.length) {
-      items.splice(1, 0, 'Liste');
-    }
-
-    const controlIds = this.floorstaticDetails.flatMap(detail =>
-      detail?.controlEndpoint?.flatMap(cp =>
-        cp?.endpoints?.map(ep => ep.dynamicId) || []
-      ) || []
-    );
-
-    const endpointIds = this.floorstaticDetails.flatMap(detail =>
-      detail?.endpoints?.map(e => e.dynamicId) || []
-    );
-
-    console.log(controlIds, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ???');
-
-
-    const batch = [...new Set([...controlIds, ...endpointIds])];
-
-    console.log(batch);
-
-
-    if (!batch.length) {
-      this.dynamicItems = items;
-      return;
-    }
-    const buildingId = sessionStorage.getItem("idBuilding");
-
-    try {
-      const attributsList = await this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
-        buildingId: buildingId,
-        referenceIds: batch,
-      });
-
-      console.log(attributsList);
-
-      const findIdsWithTimeSeries = (ids) =>
-        ids.filter(id =>
-          attributsList.find(item => item.dynamicId === id)?.categoryAttributes?.some(catAttr =>
-            catAttr?.attributs?.some(attr =>
-              attr?.label === 'timeSeries maxDay'
-            )
-          )
-        );
-      this.controlWithTimeSeries = findIdsWithTimeSeries(controlIds);
-      this.endpointWithTimeSeries = findIdsWithTimeSeries(endpointIds);
-
-      if (this.controlWithTimeSeries.length > 0) {
-        items.push('Indicateur');
-      }
-
-      if (this.endpointWithTimeSeries.length > 0) {
-        items.push('Points de mesures');
-      }
-
-    } catch (error) {
-      console.error('Erreur lors du chargement des attributs', error);
-    }
-
-    this.dynamicItems = items;
   }
 
   handleClick() {
@@ -1880,7 +1823,7 @@ class dataSideApp extends Vue {
 
 
     this.watchData();
-    this.loadDynamicItems();
+
     // if(this.)
     // this.countSpaceInventory()
 
@@ -2834,6 +2777,7 @@ class dataSideApp extends Vue {
   }
 
   async addOrRemove(dyn, name) {
+    console.log('super', dyn, name);
 
 
     if (this.activeChartData.includes(dyn)) {
@@ -2868,7 +2812,11 @@ class dataSideApp extends Vue {
 
   async addgraphInfoCp(dyn, name) {
 
-    if (!this.cpIdToDraw.includes(dyn)) return;
+    console.log('super 01', dyn, name, this.endpointIdToDraw, dyn, this.cpIdToDraw.includes(dyn), this.endpointIdToDraw.includes(dyn));
+
+    if (!this.cpIdToDraw.includes(dyn) && !this.endpointIdToDraw.includes(dyn)) return;
+
+    console.log('super 02 passe du passage', dyn, name);
 
     const { begintime, endtime } = this.getBeginAndEndTime();
     const buildingId = sessionStorage.getItem("idBuilding");
@@ -2882,6 +2830,9 @@ class dataSideApp extends Vue {
       end: endtime,
     });
 
+    console.log('super 03 passe du passage', result);
+
+
 
     const actuelleTable = {
       dynamicId: dyn,
@@ -2890,9 +2841,14 @@ class dataSideApp extends Vue {
       unit: "kwh",
       name: "le nom du graph",
     };
+
+
     this.dataTable = [...this.dataTable, actuelleTable];
     this.labelsChart = this.labels(begintime, endtime).map(this.toDate);
     this.chartData = this.chartDataObject(this.dataTable);
+
+    console.log('super 04 passe du passage', this.dataTable, this.labelsChart, this.chartData);
+
   }
 
   getBeginAndEndTime() {
@@ -3112,7 +3068,6 @@ class dataSideApp extends Vue {
     // Tu peux retourner le résultat si besoin
     // return resultCategory.filter(item => item !== null);
   }
-
 
 
   async countSpaceInventory() {
@@ -3450,11 +3405,6 @@ class dataSideApp extends Vue {
     this.reloadNewChartData();
   }
 
-  @Watch('floorstaticDetails', { immediate: true })
-  onFloorStaticDetailsChanged() {
-    this.loadDynamicItems();
-  }
-
   @Watch('state.viewInfo')
   onViewInfoChanged(newVal: any) {
     this.viewInfo = newVal
@@ -3513,34 +3463,83 @@ class dataSideApp extends Vue {
 
   @Watch("floorstaticDetails")
   async watchFloorstaticDetails(newVal, oldVal) {
-    const dynamicIds = newVal[0].controlEndpoint.flatMap(profile => profile.endpoints.map(endpoint => endpoint.dynamicId));
+    const dynamicIds = newVal[0].controlEndpoint.flatMap(profile =>
+      profile.endpoints.map(endpoint => endpoint.dynamicId)
+    );
+
     const buildingId = sessionStorage.getItem("idBuilding");
-    const parentDocPromise = [
-      this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
-        buildingId,
-        referenceIds: dynamicIds,
-      }),
-    ];
-    const attribut = await Promise.all(parentDocPromise);
-    const attributs = attribut[0]
-      .filter(element =>
-        element.categoryAttributes.some(category =>
-          category.attributs.some(attribute => attribute.label === "saveTimeSeries" && attribute.value === 1)
-        )
-      )
-      .map(element => element.dynamicId);
 
-    this.cpIdToDraw = attributs
+    const attribut = await this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
+      buildingId,
+      referenceIds: dynamicIds,
+    });
 
-    if (this.selectedZone.type == 'building') {
-      this.data_loading += 100
+    const attributs = attribut.filter(element => {
+      const saveTimeSeriesValid = element.categoryAttributes.some(category =>
+        category.attributs.some(attr => attr.label === "saveTimeSeries" && attr.value == 1)
+      );
+
+      if (!saveTimeSeriesValid) return false;
+
+      const timeSeriesAttr = element.categoryAttributes.flatMap(cat => cat.attributs)
+        .find(attr => attr.label === "timeSeries maxDay");
+
+      // Si l’attribut est absent, ou s’il est présent et différent de 0 → OK
+      return !timeSeriesAttr || timeSeriesAttr.value !== '0';
+    }).map(element => element.dynamicId);
+
+    console.log('salut 01', attributs);
+
+    this.cpIdToDraw = attributs;
+
+    console.warn('je suis le cp to draw', this.cpIdToDraw);
+
+    if (this.selectedZone.type === 'building') {
+      this.data_loading += 100;
     }
+
+
+    //partie endpoint 
+    const endpointsDyn = newVal[0].endpoints.flatMap(obj => obj.dynamicId)
+    console.warn(endpointsDyn, ' salut');
+
+    const attributEndpoints = await this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
+      buildingId,
+      referenceIds: endpointsDyn,
+    });
+
+    console.log('salut ,', attributEndpoints);
+
+
+    const attributsEnd = attributEndpoints.filter(element => {
+      const saveTimeSeriesValid = element.categoryAttributes.some(category =>
+        category.attributs.some(attr => attr.label === "saveTimeSeries" && attr.value == 1)
+      );
+
+      console.log('salut 02', saveTimeSeriesValid);
+
+
+      if (!saveTimeSeriesValid) return false;
+
+      const timeSeriesAttr = element.categoryAttributes.flatMap(cat => cat.attributs)
+        .find(attr => attr.label === "timeSeries maxDay");
+
+      // Si l’attribut est absent, ou s’il est présent et différent de 0 → OK
+      return !timeSeriesAttr || timeSeriesAttr.value !== '0';
+    }).map(element => element.dynamicId);
+
+    this.endpointIdToDraw = attributsEnd;
+    console.log('salut hihi', this.endpointIdToDraw);
+
+
   }
+
 
   @Watch("dynamicItems")
   editSelection() {
     if (!this.formattedData.length) {
       this.selection = "Vue Globale";
+
     }
   }
 
