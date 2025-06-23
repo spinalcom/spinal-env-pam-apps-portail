@@ -85,7 +85,9 @@
       <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" :closecomp="ActiveData"
         @closeDialog="closeVueDoc" />
     </div>
-    <div v-if="ActiveData && selection == 'Indicateur' || selection == 'Points de mesures' && labelsChart"
+
+    <div
+    v-if="ActiveData && activeChartData.length > 0 && (selection == 'Indicateur' || selection == 'Points de mesures')"
       class="graphContainer">
 
       <!-- <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
@@ -97,9 +99,6 @@
             )} `,
           footer: (data) => { },
         }"></LineCardComponent> -->
-
-
-
 
       <FastLineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
         :step="labelsChart.length" :tooltipCallbacks="{
@@ -513,7 +512,7 @@
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                    }}
+                      }}
                     </li>
                   </div>
                 </div>
@@ -543,8 +542,10 @@
             </div>
             <div v-else class="inventory-container">
               <div class="inventory-item"
-                style="color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;width: 100%;">
-                <li> {{ item.name }}: {{ item.value }} {{ item.unit || '' }}</li>
+                style=" color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;width: 100%;">
+                <li style="    width: calc(100% - 30px);
+    overflow: hidden;
+    text-overflow: ellipsis;"> {{ item.name }}: {{ item.value }} {{ item.unit || '' }}</li>
 
                 <v-icon @click="() => {
                   fullData()
@@ -575,8 +576,11 @@
                   v-for="(item, index2) in floorstaticDetails[0].controlEndpoint[index].endpoints" :key="index2">
                   <div class=" inventory-item"
                     :style="{ width: '100%', color: '#14202c', padding: '16px', borderRadius: '5px', paddingLeft: '6px', boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px' }">
-                    <li> {{ item.name }}: {{ typeof item.value === 'number' ? item.value.toFixed(2) : item.value }} {{
-                      item.unit }} </li>
+                    <li style="    width: calc(100% - 30px);
+    overflow: hidden;
+    text-overflow: ellipsis;"> {{ item.name }}: {{ typeof item.value === 'number' ? item.value.toFixed(2) : item.value
+    }} {{
+                        item.unit }} </li>
                     <v-icon @click="() => {
                       fullData()
                       addOrRemove(item.dynamicId, item.name);
@@ -3501,6 +3505,9 @@ class dataSideApp extends Vue {
       buildingId,
       referenceIds: endpointsDyn,
     });
+
+    console.log(attributEndpoints, 'attributEndpoints');
+
 
     const attributsEnd = attributEndpoints.filter(element => {
       const allAttrs = element.categoryAttributes.flatMap(cat => cat.attributs);
