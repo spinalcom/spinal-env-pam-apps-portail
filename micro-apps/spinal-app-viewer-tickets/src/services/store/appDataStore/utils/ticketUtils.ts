@@ -1,10 +1,10 @@
 import * as ticketAPI from "../../../spinalAPI/Workflow & ticket/ticketContext";
 import * as nodeAPI from "../../../spinalAPI/Attributes/nodeAttributes";
 import * as geoAPI from "../../../spinalAPI/GeographicContext/geographicContext";
-import { ticketConfig } from "../../../../config";
+import { config } from "../../../../config";
 
-const closedSteps = ticketConfig.steps.closed;
-const workflow_list = ticketConfig.workflowList;
+const closedSteps = config.ticketConfig.steps.closed;
+const workflow_list = config.ticketConfig.workflowList;
 
 export async function getWorkflowList(): Promise<any[]> {
   try {
@@ -71,12 +71,15 @@ export async function loadTickets(): Promise<Array<any>> {
     },
     { rooms: [], BIMObjects: [], floors: [], buildings: [] }
   );
+  console.log("detailedTickets_reduced", detailedTickets_reduced);
   const BIMObjects_positions = await geoAPI.equipment_get_position_multiple(
     detailedTickets_reduced.BIMObjects.map((e) => e.elementSelected.dynamicId)
   );
   const rooms_positions = await geoAPI.room_get_position_multiple(
     detailedTickets_reduced.rooms.map((e) => e.elementSelected.dynamicId)
   );
+  console.log("rooms_positions", rooms_positions);
+  console.log("BIMObjects_positions", BIMObjects_positions);
   const floors_positions = detailedTickets_reduced.floors.map((e) => ({
     ...e,
     elementSelected: {
@@ -104,23 +107,6 @@ export async function loadTickets(): Promise<Array<any>> {
   return result;
 }
 
-// export async function filterTicketsOnPosition(
-//   tickets: Array<any>,
-//   buildingId: string,
-//   dynamicId: number
-// ): Promise<Array<any>> {
-//   const ticketsFiltered = tickets.filter((t) => {
-//     const keys = Object.keys(t.elementSelected?.position);
-//     for (const key of keys) {
-//       if (t.elementSelected?.position[key]?.dynamicId == dynamicId) return true;
-//     }
-//   });
-//   const positionsXYZ = await nodeAPI.Attribute_list_multiple(
-//     ticketsFiltered.map((t) => t.elementSelected.dynamicId)
-//   );
-//   return mapTicketAndXYZPosition(ticketsFiltered, positionsXYZ);
-// }
-
 export async function filterTicketsOnPosition(
   tickets: Array<any>,
   buildingId: string,
@@ -140,10 +126,17 @@ export async function filterTicketsOnPosition(
 
   if (ticketsFiltered.length === 0) return []; // Avoid unnecessary API calls
 
-  const positionsXYZ = await nodeAPI.Attribute_list_multiple(
-    ticketsFiltered.map((t) => t.elementSelected?.dynamicId).filter(Boolean)
-  );
-  return mapTicketAndXYZPosition(ticketsFiltered, positionsXYZ);
+  if (config.ticketConfig.targetAttributes) {
+    const positionsXYZ = await nodeAPI.Attribute_list_multiple(
+      ticketsFiltered.map((t) => t.elementSelected?.dynamicId).filter(Boolean)
+    );
+    return mapTicketAndXYZPosition(ticketsFiltered, positionsXYZ);
+  } else {
+    const positionsXYZ = await nodeAPI.Attribute_list_multiple(
+      ticketsFiltered.map((t) => t.dynamicId).filter(Boolean)
+    );
+    return mapTicketAndAtt(ticketsFiltered, positionsXYZ);
+  }
 }
 
 function mapTicketAndPosition(ticketTab, positionTab) {
@@ -158,14 +151,131 @@ function mapTicketAndPosition(ticketTab, positionTab) {
   });
 }
 
+function mapTicketAndAtt(ticketTab, XYZTab) {
+  // Get attribute config for generic "ticket" elements
+  let attributesToGet: string[] = [];
+
+  try {
+    const ticketAttrConfig = config?.ticketConfig?.attributesByType?.ticket;
+    if (ticketAttrConfig && typeof ticketAttrConfig === "object") {
+      for (const category in ticketAttrConfig) {
+        if (
+          Array.isArray(ticketAttrConfig[category]) &&
+          ticketAttrConfig[category].length > 0
+        ) {
+          for (const attrName of ticketAttrConfig[category]) {
+            if (attrName) attributesToGet.push(attrName);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Error parsing ticket attribute config:", err);
+  }
+
+  return ticketTab.map((t) => {
+    const attributesTab = XYZTab.find((a) => a.dynamicId == t.dynamicId);
+    if (attributesTab) {
+      for (const cat of attributesTab.categoryAttributes || []) {
+        if (cat.name === "default" && Array.isArray(cat.attributs)) {
+          // Map XYZ center
+          const xyzAttr = cat.attributs.find(
+            (attr) => attr.label === "XYZ center"
+          );
+          if (xyzAttr && xyzAttr.value) {
+            t.elementSelected["XYZ center"] = xyzAttr.value;
+          }
+
+          let selectedAttributes;
+
+          if (attributesToGet.length > 0) {
+            selectedAttributes = cat.attributs
+              .filter(
+                (attr) =>
+                  attr?.label &&
+                  attr?.value != null &&
+                  attributesToGet.includes(attr.label)
+              )
+              .map((attr) => ({
+                label: attr.label,
+                value: attr.value,
+              }));
+          }
+
+          // Fallback if no configured attributes were found or selectedAttributes is empty
+          if (!selectedAttributes || selectedAttributes.length === 0) {
+            selectedAttributes = cat.attributs
+              .filter(
+                (attr) =>
+                  attr?.label &&
+                  attr?.value != null &&
+                  attr.label !== "" &&
+                  attr.value !== ""
+              )
+              .slice(0, 4)
+              .map((attr) => ({
+                label: attr.label,
+                value: attr.value,
+              }));
+          }
+
+          t.elementSelected["attributes"] = selectedAttributes;
+          return t;
+        }
+      }
+    }
+
+    // If no Spatial or attribute category found
+    t.elementSelected["attributes"] = [];
+    return t;
+  });
+}
+
 function mapTicketAndXYZPosition(ticketTab, XYZTab) {
   return ticketTab.map((t) => {
+    const typeMap = {
+      geographicRoom: "room",
+      geographicBuilding: "building",
+      geographicFloor: "floor",
+      BIMObject: "equipment",
+    };
+
+    const elementType = t.elementSelected?.type;
+    const mappedType = typeMap[elementType];
+
     const attributesTab = XYZTab.find(
       (a) => a.dynamicId == t.elementSelected.dynamicId
     );
 
+    let attributesToGet = [];
+    try {
+      if (
+        mappedType &&
+        config?.ticketConfig?.attributesByType?.[mappedType] &&
+        typeof config.ticketConfig.attributesByType[mappedType] === "object"
+      ) {
+        // Get all category names under this type
+        const categoryObject = config.ticketConfig.attributesByType[mappedType];
+        for (const category in categoryObject) {
+          if (
+            Array.isArray(categoryObject[category]) &&
+            categoryObject[category].length > 0
+          ) {
+            for (const attrName of categoryObject[category]) {
+              if (attrName) attributesToGet.push(attrName);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn(
+        `Error accessing attribute config for type ${mappedType}`,
+        e
+      );
+    }
+
     if (attributesTab) {
-      for (const cat of attributesTab.categoryAttributes) {
+      for (const cat of attributesTab.categoryAttributes || []) {
         if (cat.name === "Spatial" && Array.isArray(cat.attributs)) {
           // Map XYZ center
           const xyzAttr = cat.attributs.find(
@@ -175,22 +285,38 @@ function mapTicketAndXYZPosition(ticketTab, XYZTab) {
             t.elementSelected["XYZ center"] = xyzAttr.value;
           }
 
-          // Extract first 4 valid attributes (label + value)
-          const validAttributes = cat.attributs
-            .filter(
-              (attr) =>
-                attr?.label != null &&
-                attr?.value != null &&
-                attr.label !== "" &&
-                attr.value !== ""
-            )
-            .slice(0, 4)
-            .map((attr) => ({
-              label: attr.label,
-              value: attr.value,
-            }));
+          // Extract attributes using config OR fallback to first 4
+          let selectedAttributes;
 
-          t.elementSelected["attributes"] = validAttributes;
+          if (attributesToGet.length > 0) {
+            selectedAttributes = cat.attributs
+              .filter(
+                (attr) =>
+                  attr?.label &&
+                  attr?.value != null &&
+                  attributesToGet.includes(attr.label)
+              )
+              .map((attr) => ({
+                label: attr.label,
+                value: attr.value,
+              }));
+          } else {
+            selectedAttributes = cat.attributs
+              .filter(
+                (attr) =>
+                  attr?.label &&
+                  attr?.value != null &&
+                  attr.label !== "" &&
+                  attr.value !== ""
+              )
+              .slice(0, 4)
+              .map((attr) => ({
+                label: attr.label,
+                value: attr.value,
+              }));
+          }
+
+          t.elementSelected["attributes"] = selectedAttributes;
           return t;
         }
       }
@@ -334,6 +460,8 @@ export function regroupFullTicketsByFloor(to_update: any[]) {
     let zValue = 0;
     const ticketList = returnTab[floorId].ticketList;
 
+    console.log("Processing floorId:", floorId);
+    console.log("Ticket list for this floor:", ticketList);
     // Find first geographicRoom in ticketList
     const firstRoomTicket = ticketList.find(
       (ticket: any) => ticket.elementSelected.type === "geographicRoom"

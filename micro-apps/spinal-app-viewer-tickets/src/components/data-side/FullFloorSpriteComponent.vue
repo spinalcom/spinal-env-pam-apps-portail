@@ -124,16 +124,28 @@ export default {
   },
   methods: {
     onClick() {
-      const emitterHandler = EmitterViewerHandler.getInstance();
-      emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
-      store.dispatch(ActionTypes.SELECT_SPRITES, [this.data.dynamicId]);
-      store.commit(
-        MutationTypes.SET_SELECTED_TICKETS,
-        this.data.data.map((d) => d.dynamicId)
-      );
-      const floor = document.querySelector("#floor-sprite");
-      floor.dispatchEvent(new Event("clickExteriorSprite"));
-      EventBus.$emit("showRecapCard", this.data.dynamicId);
+      if (this.data.type === "room") {
+        // const emitterHandler = EmitterViewerHandler.getInstance();
+        // emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data.data[0] });
+        this._isSelected();
+        // store.dispatch(ActionTypes.SELECT_SPRITES, []);
+        // store.commit(
+        //  MutationTypes.SET_SELECTED_TICKETS,
+        //  this.tickets.map((d) => d.dynamicId)
+        // );
+        EventBus.$emit("move-tickets-top", [...this.data.data]);
+      } else {
+        const emitterHandler = EmitterViewerHandler.getInstance();
+        emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
+        store.dispatch(ActionTypes.SELECT_SPRITES, [this.data.dynamicId]);
+        store.commit(
+          MutationTypes.SET_SELECTED_TICKETS,
+          this.data.data.map((d) => d.dynamicId)
+        );
+        const floor = document.querySelector("#floor-sprite");
+        floor.dispatchEvent(new Event("clickExteriorSprite"));
+        EventBus.$emit("showRecapCard", this.data.dynamicId);
+      }
     },
     _isSelected() {
       this.dynamicStyle = {

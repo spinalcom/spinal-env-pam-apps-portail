@@ -1,12 +1,6 @@
 <template class="spinal-scrollbar">
     <div>
         <v-card class="table-container spinal-scrollbar">
-            <!--div @click="moveRandomTicketsToTop()">
-            Move tickets up
-        </div>
-        <div @click="resetTickets()" style="margin-top: 10px; cursor: pointer; color: blue;">
-            Reset Tickets
-        </div-->
 
             <v-simple-table>
                 <thead>
@@ -61,8 +55,16 @@
 
                 <tbody class="ticket-table-body">
                     <tr v-for="(ticket, index) in sortedData" :data-id="ticket.dynamicId" :key="index"
-                        @click="handleClickOfLocate(ticket)"
-                        :class="{ 'selectedTicket-class': (selectedTicket && selectedTicket.dynamicId == ticket.dynamicId) || ticket.isSelected, 'selected-ticket-item': selectedTicket && selectedTicket.dynamicId == ticket.dynamicId }">
+                        @click="handleClickOfLocate(ticket)" :class="{
+                            'selected-ticket-item': selectedTicket && ticket.dynamicId === selectedTicket.dynamicId,
+                            'first-selected': selectedIds.length > 0 && ticket.dynamicId === firstVisibleSelectedId,
+                            'last-selected': selectedIds.length > 0 && ticket.dynamicId === lastVisibleSelectedId,
+                            'is-single-selected': selectedIds.length === 1 && ticket.dynamicId === selectedIds[0],
+                            'middle-selected': selectedIds.length > 2 &&
+                                ticket.dynamicId !== firstVisibleSelectedId &&
+                                ticket.dynamicId !== lastVisibleSelectedId &&
+                                selectedIds.includes(ticket.dynamicId)
+                        }">
 
                         <td style="width: 13%;">
                             <div class="d-flex flex-row row-style">
@@ -70,7 +72,7 @@
                                     :style="{ background: getPriorityColor(ticket.priority) }">
                                 </div>
                                 <div :style="{ fontWeight: ticket.step.order === 0 ? 'bold' : 'normal' }">
-                                    #{{ ticket.dynamicId }}</div>
+                                    #{{ ticket.gmaoId }}</div>
                             </div>
                         </td>
                         <td style="width: 16%;">{{ formatDate(ticket.lastModifDate) }}</td>
@@ -154,6 +156,7 @@ import { EventBus } from '../../SpaceSelector/eventBus';
 class TicketTable extends Vue {
     @Prop({ required: true }) data!: Array<any>;
     @Prop({ required: false }) config!: any;
+    @Prop({ required: false }) isGroup!: boolean;
 
     localData: Array<any> = [];
 
@@ -163,7 +166,7 @@ class TicketTable extends Vue {
     isSearchActive: boolean = false; // Search state
     searchQuery: string = ""; // Search query
     selectedTicket: any = null;
-
+    selectedIds: Array<number> = [];
 
     // showArchiveDialog: boolean = false;
     ticketToArchive: any = null;
@@ -195,10 +198,11 @@ class TicketTable extends Vue {
     }
 
     // Formats the creation date
-    formatDate(timestamp: number): string {
+    formatDate(timestamp: number | string): string {
         const date = new Date(timestamp);
-        const currentYear = new Date().getFullYear();
+        if (isNaN(date.getTime())) return "—"; // fallback for invalid dates
 
+        const currentYear = new Date().getFullYear();
         const options: Intl.DateTimeFormatOptions = {
             month: "short",
             day: "numeric",
@@ -240,23 +244,16 @@ class TicketTable extends Vue {
     getNestedValue(object: any, key: string): any {
         return key.split('.').reduce((o, k) => (o || {})[k], object);
     }
-    moveRandomTicketsToTop() {
-        if (this.data.length === 0) return;
-
-        // Shuffle the data array and select the first 5 tickets
-        const shuffledTickets = [...this.data].sort(() => 0.5 - Math.random());
-        const randomTickets = shuffledTickets.slice(0, 5);
-
-        this.moveTicketsToTop(randomTickets);
-    }
 
     moveTicketsToTop(ticketsToMove: Array<any>) {
         this.resetTickets();
-        const selectedIds = ticketsToMove.map(ticket => ticket.dynamicId);
+        this.selectedIds = [];
+        this.selectedIds = ticketsToMove.map(ticket => ticket.dynamicId);
 
         // Separate the tickets to move from the rest
-        const selectedTickets = this.localData.filter(ticket => selectedIds.includes(ticket.dynamicId));
-        const remainingTickets = this.localData.filter(ticket => !selectedIds.includes(ticket.dynamicId));
+        const selectedTickets = this.localData.filter(ticket => this.selectedIds.includes(ticket.dynamicId));
+        const remainingTickets = this.localData.filter(ticket => !this.selectedIds.includes(ticket.dynamicId));
+
 
         // Update localData with selected tickets on top
         this.localData = [...selectedTickets, ...remainingTickets];
@@ -274,6 +271,7 @@ class TicketTable extends Vue {
 
         // Clear the selected tickets
         this.selectedTicket = null;
+        this.selectedIds = [];
         this.localData.forEach(ticket => {
             this.$set(ticket, 'isSelected', false);
         });
@@ -307,17 +305,31 @@ class TicketTable extends Vue {
     }
 
 
-    mounted() {
 
+    get firstVisibleSelectedId() {
+        const first = this.localData.find(ticket => this.selectedIds.includes(ticket.dynamicId));
+        return first ? first.dynamicId : null;
+    }
+
+    get lastVisibleSelectedId() {
+        const reversed = [...this.localData].reverse();
+        const last = reversed.find(ticket => this.selectedIds.includes(ticket.dynamicId));
+        return last ? last.dynamicId : null;
+    }
+
+    mounted() {
+        const ala = this.data.filter(ticket => ticket.elementSelected.type === 'geographicFloor');
+        console.log("Filtered TicketTable mounted", ala);
         EventBus.$on("move-tickets-top", this.moveTicketsToTop);
+        EventBus.$on("move-tickets-to-selected", this.moveTicketsToSelectedTicket);
         EventBus.$on("reset-tickets", this.resetTickets);
         EventBus.$on("next-card-table", this.nextCardTable);
         EventBus.$on("prev-card-table", this.prevCardTable);
         this.localData = [...this.data];
-        console.log("mounted", this.localData);
     }
     beforeDestroy() {
         EventBus.$off("move-tickets-top", this.moveTicketsToTop);
+        EventBus.$off("move-tickets-to-selected", this.moveTicketsToSelectedTicket);
         EventBus.$on("reset-tickets", this.resetTickets);
         EventBus.$off("next-card-table", this.nextCardTable);
         EventBus.$off("prev-card-table", this.prevCardTable);
@@ -329,7 +341,6 @@ class TicketTable extends Vue {
     }
     async isolateElement(ticket: any) {
         if (!ticket || !ticket.elementSelected || !ticket.elementSelected.dynamicId) return;
-        console.log("isolateElement", ticket.elementSelected.dynamicId);
         try {
             await this.$store.dispatch("FIT_TO_VIEW_ITEMS", {
                 dynamicId: ticket.elementSelected.dynamicId
@@ -339,39 +350,90 @@ class TicketTable extends Vue {
         }
     }
 
+    // moveTicketsToSelectedTicket(ticketsToMove: Array<any>) {
+    //     this.resetTickets();
+    //     this.selectedIds = [];
+    //     this.selectedIds = ticketsToMove.map(ticket => ticket.dynamicId);
 
-    handleFitToView(ticket: any) {
-        // this.ticketToArchive = ticket;
-        // this.showArchiveDialog = true;
+    // }
+    moveTicketsToSelectedTicket(ticketsToMove: Array<any>) {
+
+        if (!this.selectedTicket) return;
+        if (this.selectedIds.includes(this.selectedTicket.dynamicId)) {
+            this.nextCardTable(this.selectedTicket);
+            // this.$emit("locate", ticket);
+            return;
+        }
+
+        const selectedTicketId = this.selectedTicket.dynamicId;
+        const moveIds = ticketsToMove.map(t => t.dynamicId);
+
+        // Clear all selections
+        this.localData.forEach(ticket => {
+            this.$set(ticket, 'isSelected', false);
+        });
+
+        // Find index of the selected ticket
+        const selectedIndex = this.localData.findIndex(t => t.dynamicId === selectedTicketId);
+        if (selectedIndex === -1) return;
+
+        // Remove ticketsToMove from current localData
+        const remainingTickets = this.localData.filter(t => !moveIds.includes(t.dynamicId));
+
+        // Mark ticketsToMove as selected
+        // Mark ticketsToMove as selected
+        const movedTickets = ticketsToMove.map(t => {
+            let lastModifDate = t.lastModifDate;
+
+            // Recalculate if missing or invalid
+            if (!lastModifDate || isNaN(new Date(lastModifDate).getTime())) {
+                if (t.log_list && t.log_list.length > 1) {
+                    lastModifDate = t.log_list[t.log_list.length - 1].date;
+                } else {
+                    lastModifDate = t.creationDate;
+                }
+            }
+
+            return {
+                ...t,
+                isSelected: true,
+                lastModifDate: lastModifDate, // Make sure it's a number
+            };
+        });
+
+        // Insert movedTickets just after selectedTicket
+        const newData = [
+            ...remainingTickets.slice(0, selectedIndex),
+            ...movedTickets,
+            ...remainingTickets.slice(selectedIndex),
+        ]
+
+        // Update state
+        this.localData = newData;
+        this.selectedIds = moveIds;
+
+        // Emit or handle anything else if needed
     }
-    // cancelArchive() {
-    //     this.showArchiveDialog = false;
-    //     this.ticketToArchive = null;
-    // }
-
-    // async confirmArchive() {
-    //     let buildingId = localStorage.getItem("idBuilding");
-
-    //     const res = await this.$store.dispatch("ARCHIVE_TICKET", {
-    //         buildingId, ticketId: this.ticketToArchive.dynamicId, data: {
-    //             workflowDynamicId: this.ticketToArchive.workflowId,
-    //             processDynamicId: this.ticketToArchive.process.dynamicId
-    //         }
-    //     });
-
-    //     if (res) {
-    //     } else {
-    //         console.error('Failed to archive ticket:', this.ticketToArchive);
-    //     }
-    //     this.showArchiveDialog = false;
-    //     this.ticketToArchive = null;
-    // }
 
     handleClickOfLocate(ticket: any) {
+        if (this.selectedIds.includes(ticket.dynamicId)) {
+            this.nextCardTable(ticket);
+            this.$emit("locate", ticket);
+            return;
+        }
         this.localData.forEach(ticket => {
             this.$set(ticket, 'isSelected', false);
         });
         this.selectedTicket = ticket;
+        if (ticket.elementSelected.type === 'geographicFloor' || ticket.elementSelected.type === 'geographicBuilding') {
+            if (!this.isGroup) {
+                this.selectedIds = [ticket.dynamicId];
+            }
+
+        }
+        // if (!this.selectedIds.includes(ticket.dynamicId)) {
+        //     this.selectedIds = [ticket.dynamicId];
+        // }
         this.$emit("locate", ticket);
     }
     @Watch('data', { immediate: true, deep: true })
@@ -642,44 +704,40 @@ th {
     margin-top: 0.5px;
 }
 
-.parent:has(> .selectedTicket-class:nth-child(1)):not(:has(> .selectedTicket-class:nth-child(2))) {
-    /* only one child — JS might be cleaner here */
-
+.first-selected {
     box-shadow:
-        inset 1px 0 0 0 blue,
+        inset 0 1px 0 0 #3390ff,
+        inset 1px 0 0 0 #3390ff,
+        inset -1px 0 0 0 #3390ff !important;
+}
+
+.last-selected[data-v-d18163] {
+    box-shadow:
+        inset 0 -1px 0 0 #3390ff,
+        /* bottom */
+        inset 1px 0 0 0 #3390ff,
         /* left */
-        inset -1px 0 0 0 blue,
-        /* right */
-        inset 0 1px 0 0 blue,
-        /* top */
-        inset 0 -1px 0 0 blue;
-    /* bottom */
+        inset -1px 0 0 0 #3390ff !important;
+    /* right */
 }
 
-
-/* Remove bottom border when the next item is also selected */
-.selectedTicket-class:has(+ .selectedTicket-class) {
-    /* box-shadow: inset 0px 0px 0px 0px blue; */
-    box-shadow: inset 1px 0 0 0 #3390FF, inset -1px 0 0 0 #3390FF;
-    /* Keeps only the top border */
-}
-
-.selectedTicket-class:first-child {
-    /* This is the first in a group of selected items */
+.middle-selected[data-v-d18163] {
     box-shadow:
-        inset 1px 0 0 0 #3390FF,
-        inset -1px 0 0 0 #3390FF,
-        inset 0 1px 0 0 #3390FF;
+        inset 1px 0 0 0 #3390ff,
+        inset -1px 0 0 0 #3390ff !important;
 }
 
+.is-single-selected[data-v-d18163] {
+    box-shadow:
+        inset 0 1px 0 0 #3390ff,
+        /* top */
+        inset 0 -1px 0 0 #3390ff,
+        /* bottom */
+        inset 1px 0 0 0 #3390ff,
+        /* left */
+        inset -1px 0 0 0 #3390ff !important;
 
-/* Ensure the last selected item in a sequence has a bottom border */
-.selectedTicket-class:not(:has(+ .selectedTicket-class)) {
-    box-shadow: inset 0px -1px 0 1px #3390FF, inset 0 0px 0 0px #3390FF;
-}
-
-.selectedTicket-class.is-single {
-    box-shadow: inset 1px 0 0 0 #3390FF, inset -1px 0 0 0 #3390FF, inset 0 1px 0 0 #3390FF, inset 0 -1px 0 0 #3390FF;
+    /* right */
 }
 
 .selected-ticket-item {

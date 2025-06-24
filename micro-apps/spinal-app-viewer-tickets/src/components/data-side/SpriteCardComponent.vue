@@ -38,8 +38,8 @@
                 :
                 data.data[currentIndex].name }}</div>
 
-              <div class="sprite-card-descrption"> {{ data.data[currentIndex].process.name.length > 60 ?
-                data.data[currentIndex].process.name.substring(0, 60) + '...' :
+              <div class="sprite-card-descrption"> {{ data.data[currentIndex].process.name.length > 30 ?
+                data.data[currentIndex].process.name.substring(0, 30) + '...' :
                 data.data[currentIndex].process.name }}</div>
             </div>
             <div class="d-flex flex-row row-style" style="width: 30%;overflow: hidden;">
@@ -244,7 +244,6 @@ export default {
     // Navigate to the next card in the carousel
     getCardStyle() {
       // const currentItem = this.data.data[this.currentIndex];
-      console.log("currentItem", this.data.withoutPosition);
       if (this.data.withoutPosition) {
         return {
           position: 'absolute',
@@ -311,7 +310,6 @@ export default {
   async mounted() {
     // if (this.data.data.some(item => item.file_list && item.file_list.length > 0)) {
     // }
-    console.log("Mounted SpriteCardComponent with data:", this.data);
     const images = {};
     for (const item of this.data.data) {
       if (item.file_list && item.file_list.length > 0) {

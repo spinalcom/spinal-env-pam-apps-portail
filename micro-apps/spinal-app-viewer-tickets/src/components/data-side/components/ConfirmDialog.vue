@@ -82,7 +82,6 @@ export default {
 
     },
     mounted() {
-        console.log("Dialog type:", this.type);
     }
 };
 </script>

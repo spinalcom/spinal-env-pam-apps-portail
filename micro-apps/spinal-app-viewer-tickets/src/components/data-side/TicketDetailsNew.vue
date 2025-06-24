@@ -16,10 +16,10 @@
                 </div>
                 <div class="d-flex flex-row" style="width: 50%;height: 100%; justify-content: space-around;">
                     <div class="step-holder">
-                        <div class="d-flex flex-row align-items-center" :class="{ 'editable': isEditing }"
+                        <div class="d-flex flex-row align-items-center"
                             @click="isStepDropdownOpen = !isStepDropdownOpen; isPriorityDropdownOpen = false"
                             style="cursor: pointer;position: relative;">
-                            <div class="status-indicator d-flex flex-row"
+                            <!-- <div class="status-indicator d-flex flex-row"
                                 style="justify-content: space-around; padding: 0px 5px;"
                                 :style="{ background: `${detailedTicket.step.color}20` }">
                                 <div class="status-indicator-point" :style="{ background: detailedTicket.step.color }">
@@ -28,16 +28,29 @@
                                     {{ detailedTicket.step.name.length > 25 ? detailedTicket.step.name.substring(0, 25)
                                         + '...' : detailedTicket.step.name }}
                                 </span>
+                            </div> -->
+                            <div class="status-indicator d-flex flex-row"
+                                style="justify-content: space-around; padding: 0px 5px;" :style="{
+                                    background: `${currentStep.color}20`,
+                                    border: isStepModified ? '2px solid #facc15' : '2px solid #14202c',
+                                    borderRadius: '5px'
+                                }">
+                                <div class="status-indicator-point" :style="{ background: currentStep.color }"></div>
+                                <span>
+                                    {{ currentStep.name.length > 25 ? currentStep.name.substring(0, 25) + '...' :
+                                        currentStep.name }}
+                                </span>
                             </div>
+
+
                             <div v-if="isEditing" class="dropdown-icon" :class="{ 'rotate-open': isStepDropdownOpen }"
                                 title="Cliquez pour ouvrir le dropdown"
-                                style="right: -20px; top: -2px;background-color: #14202c; ">
+                                style="right: -19px;top: 0px;background-color: #14202c; ">
                             </div>
                         </div>
                         <div v-if="isStepDropdownOpen && isEditing" class="step-dropdown">
-                            <div v-for="step in steps.filter(s => s.name !== detailedTicket.step.name && !archivedStepNames.includes(s.name))"
-                                :key="step.name" class="status-indicator d-flex flex-row"
-                                style="cursor: pointer; padding: 5px;"
+                            <div v-for="step in availableSteps" :key="step.name"
+                                class="status-indicator d-flex flex-row" style="cursor: pointer; padding: 5px;"
                                 :style="{ background: `${step.color}20`, marginTop: '6px', borderRadius: '4px' }"
                                 :class="{ 'selected-step': selectedStepName === step.name }"
                                 @click="selectStepFromDropdown(step.name)">
@@ -50,17 +63,11 @@
                         </div>
 
                     </div>
-                    <!-- <div :class="['details-card-ticket-prio', priorityClass]" :style="priorityStyle">
-                        {{ priorityLabel }}
-                    </div> -->
                     <div class="step-holder" style="position: relative;">
                         <div
                             @click="isEditing ? isPriorityDropdownOpen = !isPriorityDropdownOpen : null; isStepDropdownOpen = false">
                             <div class="details-card-ticket-prio" :class="[priorityClass, { 'editable': isEditing }]"
-                                :style="priorityStyle" style="cursor: pointer;">
-                                <!-- {{selectedPriority !== null ? allPriorities.find(p => p.value ===
-                                    selectedPriority).label :
-                                    priorityLabel}} -->
+                                :style="[priorityStyle, isPriorityModified ? { border: '2px solid #facc15' } : { border: '2px solid #14202c' }]">
                                 {{ priorityLabel }}
                             </div>
                             <div v-if="isEditing" class="dropdown-icon"
@@ -288,7 +295,7 @@
                             <span style="color: rgb(101, 100, 179);line-height: 1;">
 
                                 {{ formattedLocation.length > 90 ? formattedLocation.substring(0, 90) + '...' :
-                                formattedLocation }}
+                                    formattedLocation }}
 
                             </span>
                         </div>
@@ -403,6 +410,10 @@
                     FERMER
                 </v-btn> -->
             </v-card-actions>
+            <div v-if="showSuccessAnimation" class="success-banner">
+                Modification du ticket réussie
+                <div class="success-progress"></div>
+            </div>
         </v-card>
         <!-- <v-dialog class="archive-dialog" v-model="showArchiveDialog" max-width="500px">
             <v-card>
@@ -425,11 +436,6 @@
         <confirm-dialog :value="showConfirmDialog" @input="showConfirmDialog = $event" :type="'modify'"
             :headline="'Confirmer les modifications'" :text="generateModificationText()" :confirmLabel="'Confirmer'"
             @cancel="showConfirmDialog = false" @confirm="confirmAndSaveChanges" />
-
-        <div v-if="showSuccessAnimation" class="success-animation">
-            ✔️ <!-- replace with green Nike SVG or animated check if needed -->
-        </div>
-        <!-- <div v-show="value" class="dialog-background" @click="closePopUpAndDropdowns"></div> -->
 
 
     </div>
@@ -494,6 +500,7 @@ export default {
         selectedProcess: "",
         selectedStep: "",
         selectedStepName: "",
+        selectedStepObject: null,
         selectedPriority: null,
         newNote: "",
         editedName: "",
@@ -522,6 +529,9 @@ export default {
     }),
 
     computed: {
+        currentStep() {
+            return this.selectedStepObject || this.detailedTicket.step;
+        },
         dispDateCreation() {
             return displayDate(this.detailedTicket.creationDate);
         },
@@ -579,22 +589,38 @@ export default {
             return url;
         },
         priorityLabel() {
-            const labels = ['Priorité Élevé', 'Priorité Moyenne', 'Priorité Faible'];
-            return labels[this.detailedTicket.priority] || 'Priorité Inconnue';
+            const priority = this.selectedPriority !== null
+                ? this.selectedPriority
+                : this.detailedTicket.priority;
+
+            const match = this.allPriorities.find(p => p.value === priority);
+            return match?.label || 'Priorité Inconnue';
         },
         priorityClass() {
+            const priority = this.selectedPriority !== null
+                ? this.selectedPriority
+                : this.detailedTicket.priority;
+
             return {
-                'low-priority': this.detailedTicket.priority === 2,
-                'medium-priority': this.detailedTicket.priority === 1,
-                'high-priority': this.detailedTicket.priority === 0,
+                'low-priority': priority === 2,
+                'medium-priority': priority === 1,
+                'high-priority': priority === 0,
             };
         },
         priorityStyle() {
-            const colors = ['#FF000020', '#FFA50020', '#00800020'];
+            const priority = this.selectedPriority !== null
+                ? this.selectedPriority
+                : this.detailedTicket.priority;
+
+            const match = this.allPriorities.find(p => p.value === priority);
             return {
-                backgroundColor: `${colors[this.detailedTicket.priority]}`,
+                backgroundColor: match ? `${match.color}20` : '#ccc',
             };
         },
+        isPriorityModified() {
+            return this.selectedPriority !== null && this.selectedPriority !== this.detailedTicket.priority;
+        },
+
         allPriorities() {
             return [
                 { value: 0, label: 'Priorité Élevé', color: '#FF0000' },
@@ -603,15 +629,39 @@ export default {
             ];
         },
         availablePriorities() {
-            return this.allPriorities.filter(p => p.value !== this.detailedTicket.priority);
+            const currentPriority = this.selectedPriority !== null
+                ? this.selectedPriority
+                : this.detailedTicket.priority;
+
+            return this.allPriorities.filter(p => p.value !== currentPriority);
         },
+        // availableSteps() {
+        //     const currentStepName = this.isEditing && this.selectedStepName
+        //         ? this.selectedStepName
+        //         : this.detailedTicket.step.name;
+
+        //     return this.steps.filter(
+        //         s => s.name !== currentStepName && !this.archivedStepNames.includes(s.name)
+        //     );
+        // },
+        availableSteps() {
+            const currentName = this.selectedStepObject?.name || this.detailedTicket.step.name;
+            return this.steps.filter(
+                s => s.name !== currentName && !this.archivedStepNames.includes(s.name)
+            );
+        },
+        isStepModified() {
+            return this.selectedStepObject?.name && this.selectedStepObject.name !== this.detailedTicket.step.name;
+        },
+        // availablePriorities() {
+        //     return this.allPriorities.filter(p => p.value !== this.detailedTicket.priority);
+        // },
         refusedStepNames() {
             // return false;
-            return this.config?.steps?.refused.flat() || [];
+            return Array.isArray(this.config?.steps?.refused) ? this.config.steps.refused.flat() : [];
         },
         archivedStepNames() {
-            // return false;
-            return this.config?.steps?.archived.flat() || [];
+            return Array.isArray(this.config?.steps?.archived) ? this.config.steps.archived.flat() : [];
         },
         formattedLocation() {
             const el = this.detailedTicket.elementSelected;
@@ -685,12 +735,32 @@ export default {
 
             return text || "Aucune modification détectée.";
         },
+        // selectStepFromDropdown(stepName) {
+        //     this.selectedStepName = stepName;
+        //     this.isStepDropdownOpen = false;
+        // },
         selectStepFromDropdown(stepName) {
-            this.selectedStepName = stepName;
+            const selected = this.steps.find(step => step.name === stepName);
+            if (selected) {
+                this.selectedStepName = stepName;
+                this.selectedStepObject = selected;  // store full object
+            }
             this.isStepDropdownOpen = false;
         },
-        selectPriorityFromDropdown(priorityorder) {
-            this.selectedPriority = priorityorder;
+        // selectPriorityFromDropdown(priorityorder) {
+        //     this.selectedPriority = priorityorder;
+        //     this.isPriorityDropdownOpen = false;
+        // },
+        selectPriorityFromDropdown(priorityValue) {
+            const currentPriority = this.detailedTicket.priority;
+
+            // Swap logic: if already selected something, use that
+            const newPriority = priorityValue;
+
+            // Temporarily save current displayed priority so we can swap it into available list
+            this.selectedPriority = newPriority;
+
+            // Close the dropdown
             this.isPriorityDropdownOpen = false;
         },
         closePopUpAndDropdowns() {
@@ -951,10 +1021,11 @@ export default {
             const buildingId = localStorage.getItem("idBuilding");
 
             // Start saving...
+            const newPriority = this.selectedPriority !== null ? this.selectedPriority : this.detailedTicket.priority;
             await this.modifyTicket(
                 this.editedName,
                 this.editedDescription,
-                this.detailedTicket.priority
+                newPriority
             );
 
             if (this.selectedStepName && this.selectedStepName !== this.detailedTicket.step.name) {
@@ -963,13 +1034,6 @@ export default {
 
             if (this.newNote && this.newNote.trim() !== "") {
                 await this.addNote(this.newNote);
-            }
-            if (this.selectedPriority !== null && this.selectedPriority !== this.detailedTicket.priority) {
-                await this.modifyTicket(
-                    this.detailedTicket.name,
-                    this.detailedTicket.description,
-                    this.selectedPriority !== null ? this.selectedPriority : this.detailedTicket.priority
-                );
             }
 
             for (const file of this.uploadedFiles) {
@@ -992,7 +1056,7 @@ export default {
                 this.isEditing = false;
                 this.$emit("reloadRequested");
                 this.$emit("input", false); // Close popup
-            }, 2000);
+            }, 3000);
         },
         countMessagesForStep(stepName) {
             return this.enrichedAnnotations.filter(a => a.stepName === stepName).length;
@@ -1902,6 +1966,50 @@ textarea.editable {
 
     100% {
         transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.success-banner {
+    color: #14202c;
+    backdrop-filter: blur(2px);
+    background-color: #14202c50;
+    border-radius: 5px;
+    justify-content: center;
+    align-items: center;
+    width: 300px;
+    height: 40px;
+    font-size: 13px;
+    font-weight: bold;
+    display: flex;
+    position: absolute;
+    bottom: 60px;
+    right: calc(50% - 150px);
+    box-shadow: 0 2px 4px #0003;
+    overflow: hidden;
+}
+
+.success-progress {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    height: 3px;
+    background-color: #14202c;
+    animation: progressFill 3s linear forwards;
+    width: 100%;
+    border-radius: 0 0 5px 5px;
+}
+
+.status-indicator {
+    transition: border 0.2s ease-in-out;
+}
+
+@keyframes progressFill {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
     }
 }
 

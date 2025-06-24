@@ -38,8 +38,8 @@
                 :
                 data.data[currentIndex].name }}</div>
 
-              <div class="sprite-card-descrption"> {{ data.data[currentIndex].process.name.length > 60 ?
-                data.data[currentIndex].process.name.substring(0, 60) + '...' :
+              <div class="sprite-card-descrption"> {{ data.data[currentIndex].process.name.length > 30 ?
+                data.data[currentIndex].process.name.substring(0, 30) + '...' :
                 data.data[currentIndex].process.name }}</div>
             </div>
             <div class="d-flex flex-row row-style" style="width: 30%;overflow: hidden;">
@@ -226,7 +226,6 @@ export default {
   computed: {
     // Check if the data contains multiple elements
     isCarousel() {
-      console.log("isCarousel");
       return Array.isArray(this.data.data) && this.data.data.length > 1;
     },
     isPositionFloor() {
@@ -245,14 +244,31 @@ export default {
     // Navigate to the next card in the carousel
     getCardStyle() {
       // const currentItem = this.data.data[this.currentIndex];
-      console.log("currentItem", this.data.withoutPosition);
       if (this.data.withoutPosition) {
-        return {
-          position: 'absolute',
-          top: '20%',
-          left: '10%',
-          zIndex: '9999',
-        };
+        if (this.data.type === "geographicBuilding") {
+          return {
+            position: 'absolute',
+            top: '48%',
+            left: '-400px',
+            zIndex: '9999',
+          };
+        } else if (this.data.type === "geographicFloor") {
+          if (this.data.selectedZone === "geographicFloor") {
+            return {
+              position: 'absolute',
+              top: '48%',
+              left: '-400px',
+              zIndex: '9999',
+            };
+          } else if (this.data.selectedZone === "building") {
+            return {
+              position: 'absolute',
+              top: '50%',
+              left: '-480px',
+              zIndex: '9999',
+            };
+          };
+        }
       } else {
         return {
           zIndex: '9999',
@@ -313,7 +329,16 @@ export default {
   async mounted() {
     // if (this.data.data.some(item => item.file_list && item.file_list.length > 0)) {
     // }
-    console.log("Mounted FloorComponent with data:", this.data);
+    if (this.data.selectedDynamicId) {
+      const index = this.data.data.findIndex(item => item.dynamicId === this.data.selectedDynamicId);
+      if (index !== -1) {
+        this.currentIndex = index;
+      } else {
+        this.currentIndex = 0; // fallback
+      }
+    } else if (this.data.data.length === 1) {
+      this.selectedCard = this.data.data[0];
+    }
     const images = {};
     for (const item of this.data.data) {
       if (item.file_list && item.file_list.length > 0) {
@@ -328,9 +353,6 @@ export default {
     }
     this.images = images;
 
-    if (this.data.data.length === 1) {
-      this.selectedCard = this.data.data[0];
-    }
   },
 
 

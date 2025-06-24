@@ -33,9 +33,9 @@ export interface IConfig {
   };
   sprites: boolean;
   statusClignote: boolean;
-  temporality: ITemporality[];
+  // temporality: ITemporality[];
   source: ISource | ISource[];
-  imageMapping: { [key: string]: string };
+  imageMapping?: { [key: string]: string };
   typologiesSource: { context: string; category: string };
 }
 

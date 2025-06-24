@@ -55,10 +55,10 @@ with this file. If not, see
           </div>
         </div>
       </div>
-      <div class="temporality">
+      <!-- <div class="temporality">
         <space-selector :edge="false" ref="space-selector2" :open.sync="openTemporalitySelector"
           :GetChildrenFct="onTemporalitySelectOpen" :maxDepth="0" v-model="temporalitySelected" label="TEMPORALITÉ" />
-      </div>
+      </div> -->
 
       <div class="space">
         <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="2"
@@ -128,6 +128,17 @@ interface IItemDatatmp {
   platformId: string;
   id: Set<number>;
 }
+const imageMapping = {
+  Default: require("./components/viewer/assets/typologie-icons/default.png"),
+  Luminaire: require("./components/viewer/assets/typologie-icons/luminaire.png"),
+  Store: require("./components/viewer/assets/typologie-icons/store.png"),
+  Automate: require("./components/viewer/assets/typologie-icons/automate.png"),
+  Multicapteurs: require("./components/viewer/assets/typologie-icons/multicapteurs.png"),
+  "Ventilo-Convecteur": require("./components/viewer/assets/typologie-icons/ventilo-convecteur.png"),
+  "Contact feuillure": require("./components/viewer/assets/typologie-icons/contact-feuillure.png"),
+  "Position de travail": require("./components/viewer/assets/typologie-icons/position-travail.png"),
+};
+
 
 @Component({
   components: {
@@ -144,7 +155,11 @@ class App extends Vue {
   $store: Store;
   openSpaceSelector: boolean = false;
   openTemporalitySelector: boolean = false;
-  config: IConfig = config;
+  config: IConfig = {
+    ...config,
+    imageMapping
+  };
+
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
 
   dataTable: IZoneItem[] = [];

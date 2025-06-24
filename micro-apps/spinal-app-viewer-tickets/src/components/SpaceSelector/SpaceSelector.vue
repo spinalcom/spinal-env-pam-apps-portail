@@ -50,14 +50,13 @@ with this file. If not, see
       " class="space-selector-header" :style="{ cursor: maxDepth !== -1 ? 'pointer' : 'default' }">
         <span class="legend">{{ label }}</span>
         <p class="space-selector-header-title">
-          <!-- <v-icon :style="[
+          <v-icon :style="[
             { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
             { width: maxDepth !== -1 ? 'auto' : '0 !important' },
             { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
           ]" class="rotate-disabled space-selector-header-title-icon" :class="{ 'rotate-enabled': open }">
             mdi-chevron-down
-          </v-icon> -->
-
+          </v-icon>
           {{ selectedZoneName.toUpperCase() }}
         </p>
         <v-progress-circular style="margin-right: 10px;" v-if="!viewerLoaded && label == 'ESPACE'" :size="25"
@@ -141,8 +140,8 @@ class SpaceSelector extends Vue {
       if (this.viewerLoaded !== currentStatus) {
         this.viewerLoaded = currentStatus;
 
-        if (currentStatus)
-          console.log("loaded viewer???????????????????? event bus");
+        // if (currentStatus)
+        //   console.log("loaded viewer???????????????????? event bus");
 
       }
     }
@@ -202,10 +201,18 @@ class SpaceSelector extends Vue {
       this.isFill = "hidden";
     }
   }
+  intervalId: number | undefined;
 
   async mounted() {
     const children = await this.GetChildrenFct();
     this.buildingStructure = convertZonesToISpaceSelectorItems(children);
+
+    if (this.buildingStructure.length === 1) {
+      await this.expandCollapse(this.buildingStructure[0], 0);
+    }
+    this.onSelectedChange();
+    this.checkViewerStatus();
+    this.intervalId = window.setInterval(this.checkViewerStatus, 1000);
   }
 
   // on click the right button open / close

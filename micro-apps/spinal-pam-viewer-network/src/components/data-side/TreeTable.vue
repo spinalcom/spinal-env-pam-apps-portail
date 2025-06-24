@@ -479,7 +479,7 @@ class TreeTable extends Vue {
   getImageUrl(typologie: string): string {
     const imageMapping = this.config.imageMapping;
     const defaultImagePath = require("../viewer/assets/typologie-icons/default.png");
-    if (imageMapping.hasOwnProperty(typologie)) {
+    if (imageMapping?.hasOwnProperty(typologie)) {
       return imageMapping[typologie];
     }
     // If not found in mapping, return default

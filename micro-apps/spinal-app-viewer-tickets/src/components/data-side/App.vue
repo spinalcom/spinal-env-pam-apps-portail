@@ -12,7 +12,53 @@
           :disabled="isSwitchingSptires" />
       </div>
 
-      <div v-if="!showAddTicket" class="d-flex flex-row justify-space-between" style="align-items: center;">
+      <div class="d-flex flex-row justify-space-between" style="align-items: center; color: #14202c;">
+        <div v-if="!showAddTicket" class="d-flex flex-row justify-space-between" style="">
+          <div class="reload-container d-flex flex-column justify-space-between"
+            style="width: 50px;height: 50px;margin-top: 0px;margin-right: 10px;">
+            <div class="reload-btn" @click="startReload" :style="{ background: progressGradient }">
+              <div class="reload-btn-inner">
+                <v-icon>mdi-refresh</v-icon>
+              </div>
+            </div>
+            <div v-if="noDataChangedMessage" class="no-data-message">
+              Nouveaux tickets reçus
+            </div>
+          </div>
+          <div class="d-flex flex-row" style="align-items: center;margin-top: -4px;">
+            <div class="d-flex flex-column"
+              style="height: 55px;font-size: 2rem;font-weight: 600;align-items: center;justify-content: center;margin-right: 5px;">
+              {{ sortedTickets.length }}</div>
+            <div class="d-flex flex-column justify-space-between" style="align-items: end;margin-top: 2px;">
+              <div style="font-size: 1rem;font-weight: 600;margin-bottom: 3px;">Demande<span
+                  v-if="sortedTickets.length > 1">s</span>
+              </div>
+              <div style="font-size: 0.7rem;color: grey;">En cours</div>
+            </div>
+          </div>
+
+        </div>
+        <div v-else class="d-flex flex-row justify-space-between" style="width: 40%;">
+          <div class="d-flex flex-row" style="align-items: center;">
+
+            <div class="d-flex flex-column justify-space-between" style="align-items: start;">
+              <div style="font-size: 1.2rem;font-weight: 600;margin-bottom: 3px;">Déclaration des tickets</div>
+              <!-- <div>En cours</div> -->
+            </div>
+          </div>
+
+        </div>
+        <div v-if="selectedProfile === 'Admin'" class="add-ticket-button" @click="toggleAddTicket">
+          <div :class="['add-ticket-icon', showAddTicket ? 'list-tick' : 'key-tick']"></div>
+
+          <div class="add-ticket-text-holder">
+            <div class="add-ticket-text-bold">{{ showAddTicket ? "Voir la liste des" : "Déclaration d’un" }}</div>
+            <div class="add-ticket-text-bold">TICKET DE MAINTENANCE</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- <div v-if="!showAddTicket" class="d-flex flex-row justify-space-between" style="align-items: center;">
 
         <div class="d-flex flex-column justify-space-between" style="align-items: start;">
           <div class="app-title">Liste des tickets</div>
@@ -24,18 +70,18 @@
             <template v-if="selectedZone.type === 'building' || selectedZone.name === 'Bâtiment'">
               {{ buildingitemsnumber }} Ticket<span v-if="buildingitemsnumber > 1">s</span>
             </template>
-            <template v-else>
+<template v-else>
               {{ flooritemsnumber }} Ticket<span v-if="flooritemsnumber > 1">s</span>
             </template>
-          </div>
-          <div class="app-description">sur {{ selectedZone.name }}</div>
-        </div>
-      </div>
-      <div v-else class="d-flex flex-row justify-space-between" style="align-items: center; margin-bottom: 10px;">
-        <div class="d-flex flex-column justify-space-between" style="align-items: start;">
-          <div class="app-title">Déclaration des tickets</div>
-        </div>
-      </div>
+</div>
+<div class="app-description">sur {{ selectedZone.name }}</div>
+</div>
+</div>
+<div v-else class="d-flex flex-row justify-space-between" style="align-items: center; margin-bottom: 10px;">
+  <div class="d-flex flex-column justify-space-between" style="align-items: start;">
+    <div class="app-title">Déclaration des tickets</div>
+  </div>
+</div> -->
       <div v-if="!showAddTicket">
         <FloorSpriteComponent v-if="selectedZone && selectedZone.type === 'geographicFloor'" :tickets="data"
           :isPriority="toggleLegend" :buildingTicketNumber="flooritemsnumber" type="geographicFloor" style="
@@ -51,28 +97,6 @@
           left: calc(-10%);
           top: 50%;
           width: 35px;" />
-      </div>
-      <div class="d-flex flex-row justify-space-between" style="align-items: center;">
-        <div v-if="selectedProfile === 'Admin'" class="add-ticket-button" @click="toggleAddTicket">
-          <div :class="['add-ticket-icon', showAddTicket ? 'list-tick' : 'key-tick']"></div>
-
-          <div class="add-ticket-text-holder">
-            <div class="add-ticket-text-bold">{{ showAddTicket ? "Voir la liste des" : "Déclaration d’un" }}</div>
-            <div class="add-ticket-text-bold">TICKET DE MAINTENANCE</div>
-          </div>
-        </div>
-        <div v-else style="height: 10px;width: 10px;opacity: 0;"></div>
-
-        <div class="reload-container">
-          <div class="reload-btn" @click="startReload" :style="{ background: progressGradient }">
-            <div class="reload-btn-inner">
-              <v-icon>mdi-refresh</v-icon>
-            </div>
-          </div>
-          <div v-if="noDataChangedMessage" class="no-data-message">
-            Nouveaux tickets reçus
-          </div>
-        </div>
       </div>
 
       <div class="hide" @click="() => {
@@ -230,7 +254,8 @@
       <!-- <div style="height: 1px; background-color: #14202c20; margin: 10px 0;"></div> -->
       <!-- SAMPLE -->
       <div v-if="!showAddTicket" class="d-flex flex-column flex-fill overflow-y-auto ticket-table-outer-container">
-        <TicketTable :data="sortedTickets" :config="selectedProfile" @locate="locateTicket" @display="showDetails" />
+        <TicketTable :data="sortedTickets" :config="selectedProfile" :isGroup="toggleSprites" @locate="locateTicket"
+          @display="showDetails" />
 
       </div>
       <!-- \SAMPLE -->
@@ -242,7 +267,7 @@
                 height: `${Math.min(350 / full_floor_tickets_with_positions.length, 40)}px`,
                 ...computeFloorGradient(floor)
               }">
-              <div class="floor-item">
+              <div class="floor-item" @click="DegroupredCard(floor)">
                 <div class="floor-name">{{ floor.floorName }}:</div>
                 <div class="floor-ticket-count">{{ floor.countFloorTickets }}</div>
               </div>
@@ -259,7 +284,8 @@
       <ticketDetails v-if="detailedTicket" style="z-index: 99" v-model="showDialog" @changeRoute="handleRouteChange"
         @reloadRequested="startReload" :detailed-ticket="detailedTicket" :token="token" :baseURL="baseURL"
         :steps="fullstepList" :config="ticketConfig"></ticketDetails>
-      <FloorCardComponent v-if="showGlobalCard" :data="floorCardData" @close="showGlobalCard = false" />
+      <FloorCardComponent v-if="showGlobalCard" :key="floorCardKey" :data="floorCardData"
+        @close="showGlobalCard = false" />
     </div>
 
     <!-- <div class="centered" v-else-if="pageSate === PAGE_STATES.loaded && isBuildingSelected">
@@ -314,7 +340,6 @@ import { Legend } from "../../interfaces/ILegend";
 import LegendVue from "./components/LegendVue.vue";
 import { on } from "events";
 import { EventBus } from "../SpaceSelector/eventBus";
-import { Console } from "console";
 import TicketForm from "./components/TicketForm.vue";
 import { debounce } from "lodash";
 import { Building } from "micro-apps/spinal-app-viewer-space/src/interfaces/API/Geographic Context/DTO/Request";
@@ -383,6 +408,7 @@ class dataSideApp extends Vue {
   showGlobalCard: boolean = false;
   GlobalCardData: any = null;
   floorCardData: any = null;
+  floorCardKey: number = Date.now();
 
   getPriorityColor = getPriorityColor;
   priorities = [
@@ -403,6 +429,7 @@ class dataSideApp extends Vue {
     } else {
       this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
       this.$store.dispatch(ActionTypes.REMOVE_CARDS);
+      this.showGlobalCard = false;
     }
 
   }
@@ -438,18 +465,22 @@ class dataSideApp extends Vue {
   }
   async handleProfileSelected(isGrouped) {
     if (this.isSwitchingSptires) return;
+    EventBus.$emit("reset-tickets");
+    this.$store.dispatch(ActionTypes.REMOVE_CARDS);
+    this.showGlobalCard = false;
     this.isSwitchingSptires = true;
     this.toggleSprites = isGrouped;
+
     try {
       if (this.toggleSprites) {
-        await this.callUpdateSprites(this.data, this.toggleLegend);
+        await this.callUpdateSprites(this.sortedTickets, this.toggleLegend);
       } else {
         await showAllSprites({
           store: this.$store,
           buildingId: localStorage.getItem("idBuilding") || "",
           config: this.config,
           selectedZone: this.selectedZone,
-          data: this.data,
+          data: this.sortedTickets,
           legend: this.toggleLegend,
           setContext: () => this.resetContext(localStorage.getItem("idBuilding")),
           setTicketsWithPositions: (items) => { this.tickets_with_positions = items },
@@ -464,14 +495,14 @@ class dataSideApp extends Vue {
     this.toggleLegend = isLegend;
     try {
       if (this.toggleSprites) {
-        await this.callUpdateSprites(this.data, this.toggleLegend);
+        await this.callUpdateSprites(this.sortedTickets, this.toggleLegend);
       } else {
         await showAllSprites({
           store: this.$store,
           buildingId: localStorage.getItem("idBuilding") || "",
           config: this.config,
           selectedZone: this.selectedZone,
-          data: this.data,
+          data: this.sortedTickets,
           legend: this.toggleLegend,
           setContext: () => this.resetContext(localStorage.getItem("idBuilding")),
           setTicketsWithPositions: (items) => { this.tickets_with_positions = items },
@@ -530,7 +561,7 @@ class dataSideApp extends Vue {
 
   showRecapCard(items: any | any[]) {
     this.$store.dispatch(ActionTypes.REMOVE_CARDS);
-
+    this.showGlobalCard = false;
     const item = this.full_floor_tickets_with_positions.find(
       (floorItem) => floorItem.dynamicId === Number(items)
     );
@@ -549,10 +580,9 @@ class dataSideApp extends Vue {
     });
   }
   callCard(items: any | any[]) {
-    console.log("callCard", items);
+    this.showGlobalCard = false;
     this.$store.dispatch(ActionTypes.REMOVE_CARDS);
     const itemsArray = Array.isArray(items) ? items : [items];
-    console.log("itemsArray", itemsArray);
     const validItems = itemsArray.filter(item => item != null);
     validItems.forEach(item => {
       item.steps = this.steps2();
@@ -562,7 +592,6 @@ class dataSideApp extends Vue {
       item.baseURL = this.baseURL;
       item.token = this.token;
     });
-    console.log("validItems", validItems);
     this.$store.dispatch(ActionTypes.ADD_CARD_COMPONENT, {
       items: validItems,
       buildingId: localStorage.getItem("idBuilding"),
@@ -570,31 +599,107 @@ class dataSideApp extends Vue {
     });
     return;
   }
-  callFloorCard(items: any | any[]) {
+  callFloorCard(items: any | any[], type: "geographicFloor" | "geographicBuilding", clickedDynamicId?: number) {
+    this.$store.dispatch(ActionTypes.REMOVE_CARDS);
+    this.showGlobalCard = false;
+
+    const itemsArray = Array.isArray(items) ? items : [items];
+
+    let allTickets: any[] = [];
+
+    if (type === "geographicFloor") {
+      // For floor cards, flatten deeply
+      allTickets = itemsArray.flatMap(item => {
+        if (Array.isArray(item.data)) {
+          return item.data.flatMap(subItem => subItem.data || subItem);
+        } else if (item.data) {
+          return item.data;
+        } else {
+          return item;
+        }
+      }).filter(Boolean);
+    } else if (type === "geographicBuilding") {
+      // For building cards, just collect tickets directly (no deep flattening)
+      allTickets = itemsArray.flatMap(item => item.data || item).filter(Boolean);
+    }
+
+    const validItem = {
+      data: allTickets,
+      steps: this.steps2(),
+      baseURL: this.baseURL,
+      token: this.token,
+      buildingId: itemsArray[0]?.buildingId || '',
+      dynamicId: itemsArray[0]?.dynamicId || '',
+      position: itemsArray[0]?.position || { x: 0, y: 0, z: 0 },
+      withoutPosition: true,
+      type: type,
+      selectedDynamicId: clickedDynamicId, // Pass the clicked ticket id!
+      selectedZone: this.selectedZone.type,
+    };
+    this.floorCardData = { ...validItem };
+    this.floorCardKey = Date.now();
+    this.$nextTick(() => {
+      this.showGlobalCard = true;
+    });
+  }
+
+  callBuildingCard(items: any | any[], type: "geographicFloor" | "geographicBuilding") {
     this.$store.dispatch(ActionTypes.REMOVE_CARDS);
     const itemsArray = Array.isArray(items) ? items : [items];
-    console.log("itemsArray", itemsArray);
-    const validItems = itemsArray.filter(item => item != null);
-    validItems.forEach(item => {
-      item.steps = this.steps2();
-    });
 
-    validItems.forEach(item => {
-      item.baseURL = this.baseURL;
-      item.token = this.token;
-      item.withoutPosition = true;
-    });
+    const allTickets = itemsArray.flatMap(item => {
+      if (Array.isArray(item.data)) {
+        return item.data.flatMap(subItem => subItem.data || subItem);
+      } else if (item.data) {
+        return item.data;
+      } else {
+        return item;
+      }
+    }).filter(Boolean);
 
-    console.log("validItems", validItems);
-    // this.$store.dispatch(ActionTypes.ADD_CARD_COMPONENT, {
-    //   items: validItems,
-    //   buildingId: localStorage.getItem("idBuilding"),
-    //   component: FloorCardComponent,
-    // });
-    this.showGlobalCard = true;
-    this.floorCardData = validItems;
-    return;
+    const validItem = {
+      data: allTickets,
+      steps: this.steps2(),
+      baseURL: this.baseURL,
+      token: this.token,
+      buildingId: itemsArray[0]?.buildingId || '',
+      dynamicId: itemsArray[0]?.dynamicId || '',
+      position: itemsArray[0]?.position || { x: 0, y: 0, z: 0 },
+      withoutPosition: true,
+      type: type,
+      selectedZone: this.selectedZone.type,
+    };
+    this.floorCardData = { ...validItem };
+    this.floorCardKey = Date.now();
+    this.showGlobalCard = false;
+    this.$nextTick(() => {
+      this.showGlobalCard = true;
+    });
   }
+
+  DegroupredCard(floor) {
+    this.$store.dispatch(ActionTypes.REMOVE_CARDS);
+    this.showGlobalCard = false;
+    const buildingId = localStorage.getItem("idBuilding");
+    const dynamicId = floor.dynamicId;
+    const position = floor.position || { x: 0, y: 0, z: 0 };
+    const filteredTickets = this.sortedTickets.filter(ticket => ticket.elementSelected.dynamicId === floor.dynamicId);
+    const validItem = {
+      data: filteredTickets,
+      steps: this.steps2(),
+      baseURL: this.baseURL,
+      token: this.token,
+      buildingId,
+      dynamicId,
+      position,
+      withoutPosition: true,
+      type: "geographicFloor",
+    };
+    EventBus.$emit("move-tickets-to-selected", filteredTickets);
+    this.callFloorCard([validItem], "geographicFloor", dynamicId);
+  }
+
+
 
   async mounted() {
     this.selectedProfile = this.config.profilType;
@@ -606,7 +711,7 @@ class dataSideApp extends Vue {
       patrimoineId: this.buildingInfo.patrimoineId,
     });
     this.buildingInfo.floors = floors;
-    this.getDataDynamicIdtab();
+    // this.getDataDynamicIdtab();
 
     const emitterHandler = EmitterViewerHandler.getInstance();
     emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
@@ -773,6 +878,8 @@ class dataSideApp extends Vue {
 
 
   async retriveData(type: "building" | "geographicFloor" | "geographicRoom") {
+    this.$store.dispatch(ActionTypes.REMOVE_CARDS);
+    this.showGlobalCard = false;
     try {
       this.pageSate = PAGE_STATES.loading;
       const buildingId = localStorage.getItem("idBuilding");
@@ -924,14 +1031,15 @@ class dataSideApp extends Vue {
 
   async reloadData(type: "building" | "geographicFloor" | "geographicRoom") {
     this.$store.dispatch(ActionTypes.REMOVE_CARDS);
+    this.showGlobalCard = false;
     try {
       const buildingId = localStorage.getItem("idBuilding");
       let newData = [];
       if (type === "building") {
         const promises = [
-          this.$store.dispatch(ActionTypes.LOAD_TICKETS, {
+          this.$store.dispatch(ActionTypes.FILTER_TICKETS, {
             buildingId,
-            config: this.config,
+            dynamicId: 0,
           }),
         ];
         const result = await Promise.all(promises);
@@ -1008,6 +1116,29 @@ class dataSideApp extends Vue {
       data
     };
   }
+  GlobalListData(list) {
+    // Extract buildingId and position from the first element
+    const buildingId = list[0]?.buildingId || "";
+    const position = list[0]?.position || { x: 0, y: 0, z: 0 };
+    const dynamicId = list[0]?.dynamicId || 0;
+    const baseURL = this.baseURL;
+    const token = this.token;
+
+    // Extract all data items into a single list
+    const data = list.reduce((accumulator, current) => {
+      return accumulator.concat(current.data || []);
+    }, []);
+
+    // Return the unified object
+    return {
+      buildingId,
+      position,
+      dynamicId, // Set the dynamicId to 4444
+      data: list,
+      baseURL,
+      token
+    };
+  }
 
   locateTicket(ticket) {
     function findGroupIndexByDynamicId(groups, dynamicId) {
@@ -1038,32 +1169,32 @@ class dataSideApp extends Vue {
       // Reorder the items in the found group
       const group = this.tickets_with_positions[result];
       group.data = reorderItems(group.data, dynamicIdToFind);
-      console.log("group", group);
+      if (group.data.length < 10) {
+        EventBus.$emit("move-tickets-to-selected", group.data);
+      }
       this.callCard(group);
     } else if (result === -1) {
       // Unify and reorder the floor tickets
       if (ticket.elementSelected.type === "geographicBuilding") {
-        console.log(ticket.elementSelected);
-        console.log("dlfjdfglj", this.sortedTickets);
         const BuildingTickets = this.sortedTickets.filter(ticket => ticket.elementSelected.type === "geographicBuilding");
-        console.log("BuildingTickets", BuildingTickets);
-        const item = this.unifyData(BuildingTickets);
-        console.log("item", item);
-        // this.callFloorCard(ticket);
+        const item = this.GlobalListData(BuildingTickets);
+        if (item.data.length < 10) {
+          EventBus.$emit("move-tickets-to-selected", item.data);
+        }
+        this.callBuildingCard(item, "geographicBuilding");
         return;
       }
       else if (ticket.elementSelected.type === "geographicFloor") {
-        console.log(ticket.elementSelected);
         const FloorTickets = this.sortedTickets.filter(ticket2 => ticket2.elementSelected.dynamicId === ticket.elementSelected.dynamicId);
-        console.log("FloorTickets", FloorTickets);
-        const item = this.unifyData(FloorTickets);
-        console.log("item", item);
-        // this.callFloorCard(ticket);
+        const item = this.GlobalListData(FloorTickets);
+        if (item.data.length < 10) {
+          EventBus.$emit("move-tickets-to-selected", item.data);
+        }
+        this.callFloorCard(item, "geographicFloor", dynamicIdToFind);
         return;
       }
       const floorItemsCard = this.unifyData(this.floor_tickets_with_positions);
       floorItemsCard.data = reorderItems(floorItemsCard.data, dynamicIdToFind);
-      console.log("floorItemsCard", floorItemsCard);
       this.callCard(floorItemsCard);
     }
     const buildingId = localStorage.getItem("idBuilding");
@@ -1108,7 +1239,20 @@ class dataSideApp extends Vue {
   }
   async applyPriorityFilter() {
     this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
-    await this.callUpdateSprites(this.sortedTickets, this.toggleLegend);
+    if (this.toggleSprites) {
+      await this.callUpdateSprites(this.sortedTickets, this.toggleLegend);
+    } else {
+      await showAllSprites({
+        store: this.$store,
+        buildingId: localStorage.getItem("idBuilding") || "",
+        config: this.config,
+        selectedZone: this.selectedZone,
+        data: this.sortedTickets,
+        legend: this.toggleLegend,
+        setContext: () => this.resetContext(localStorage.getItem("idBuilding")),
+        setTicketsWithPositions: (items) => { this.tickets_with_positions = items },
+      });
+    }
   }
 
   handleStepFilterUpdate(newSteps) {
@@ -1124,6 +1268,7 @@ class dataSideApp extends Vue {
       }
 
       this.$store.dispatch(ActionTypes.REMOVE_CARDS);
+      this.showGlobalCard = false;
       this.isBuildingSelected = newVal.type === "building";
       this.retriveData(newVal.type);
     });
@@ -1142,17 +1287,58 @@ class dataSideApp extends Vue {
 
   @Watch("workflow_filter")
   watchWorkflow() {
-    this.callUpdateSprites(this.filteredTickets, this.toggleLegend);
+
+    // this.callUpdateSprites(this.filteredTickets, this.toggleLegend);
+    if (this.toggleSprites) {
+      this.callUpdateSprites(this.filteredTickets, this.toggleLegend);
+    } else {
+      showAllSprites({
+        store: this.$store,
+        buildingId: localStorage.getItem("idBuilding") || "",
+        config: this.config,
+        selectedZone: this.selectedZone,
+        data: this.filteredTickets,
+        legend: this.toggleLegend,
+        setContext: () => this.resetContext(localStorage.getItem("idBuilding")),
+        setTicketsWithPositions: (items) => { this.tickets_with_positions = items },
+      });
+    }
   }
 
   @Watch("domain_filter")
   watchDomain() {
-    this.callUpdateSprites(this.filteredTickets, this.toggleLegend);
+    if (this.toggleSprites) {
+      this.callUpdateSprites(this.filteredTickets, this.toggleLegend);
+    } else {
+      showAllSprites({
+        store: this.$store,
+        buildingId: localStorage.getItem("idBuilding") || "",
+        config: this.config,
+        selectedZone: this.selectedZone,
+        data: this.filteredTickets,
+        legend: this.toggleLegend,
+        setContext: () => this.resetContext(localStorage.getItem("idBuilding")),
+        setTicketsWithPositions: (items) => { this.tickets_with_positions = items },
+      });
+    }
   }
 
   @Watch("step_filter")
   watchStep() {
-    this.callUpdateSprites(this.filteredTickets, this.toggleLegend);
+    if (this.toggleSprites) {
+      this.callUpdateSprites(this.filteredTickets, this.toggleLegend);
+    } else {
+      showAllSprites({
+        store: this.$store,
+        buildingId: localStorage.getItem("idBuilding") || "",
+        config: this.config,
+        selectedZone: this.selectedZone,
+        data: this.filteredTickets,
+        legend: this.toggleLegend,
+        setContext: () => this.resetContext(localStorage.getItem("idBuilding")),
+        setTicketsWithPositions: (items) => { this.tickets_with_positions = items },
+      });
+    }
   }
 
   // @Watch("priorities", { deep: true })
@@ -1243,7 +1429,6 @@ export default dataSideApp;
   align-items: center;
   width: 35%;
   max-height: 60px;
-  margin-top: 10px;
   padding: 8px;
   display: flex;
 }
@@ -1526,8 +1711,8 @@ html .v-application .primary--text {
 
 .no-data-message {
   position: absolute;
-  top: 70px;
-  left: 75%;
+  top: 35px;
+  left: 45%;
   transform: translateX(-50%);
   background: orange;
   color: white;

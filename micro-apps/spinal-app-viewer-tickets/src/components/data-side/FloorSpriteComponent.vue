@@ -65,6 +65,7 @@ export default {
     dynamicStyle: {
       boxShadow: "none",
     },
+    Selected: false,
   }),
 
   computed: {
@@ -79,28 +80,37 @@ export default {
 
   },
   mounted() {
-    console.log("mounted from floor sprite", this.isPriority);
+    EventBus.$on("clear-sprite-selection", () => {
+      this._isNotSelected();
+    });
   },
 
 
   methods: {
     onClick() {
-      const emitterHandler = EmitterViewerHandler.getInstance();
-      emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.tickets });
-      this._isSelected();
-      store.dispatch(ActionTypes.SELECT_SPRITES, []);
-      store.commit(
-        MutationTypes.SET_SELECTED_TICKETS,
-        this.tickets.map((d) => d.dynamicId)
-      );
-      EventBus.$emit("move-tickets-top", [...this.tickets]);
+      if (this.type === 'geographicBuilding') {
+        const filteredBuildingTickets = this.tickets.filter(ticket => ticket.elementSelected?.type === 'geographicBuilding');
+        EventBus.$emit("move-tickets-top", filteredBuildingTickets);
+        this._isSelected();
+        store.dispatch(ActionTypes.SELECT_SPRITES, []);
+        return;
+      } else if (this.type === 'geographicFloor') {
+        const filteredRoomTickets = this.tickets.filter(ticket => ticket.elementSelected?.type === 'geographicFloor');
+        EventBus.$emit("move-tickets-top", filteredRoomTickets);
+        this._isSelected();
+        store.dispatch(ActionTypes.SELECT_SPRITES, []);
+        return;
+      }
     },
     _isSelected() {
+      this.selected = true;
       this.dynamicStyle = {
         boxShadow: "0px 0px 10px 2px #00A2FF",
       };
     },
+
     _isNotSelected() {
+      this.selected = false;
       this.dynamicStyle = {
         boxShadow: "none",
       };
@@ -180,7 +190,6 @@ export default {
   },
   watch: {
     handler(newVal, oldVal) {
-      console.log(`Type changed from ${oldVal} to ${newVal}`);
       // Add any additional logic you want to execute when type changes
     },
     immediate: true,

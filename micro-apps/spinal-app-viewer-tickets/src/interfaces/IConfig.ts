@@ -22,8 +22,6 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { ActionTypes } from "./vuexStoreTypes";
-
 export enum ProfilType {
   Admin = "Admin",
   Controller = "Controller",
@@ -39,15 +37,42 @@ export interface IConfig {
   };
   sprites: boolean;
   reloadInterval?: number;
-  temporality: ITemporality[];
-  // workflowList: String[];
+  // temporality: ITemporality[];
   profilType: ProfilType;
+  ticketConfig: ITicketConfig;
 }
 
-export const enum ITemporality {
-  currentValue = "Valeur courante",
-  day = "journée",
-  week = "Semaine",
-  month = "Mois",
-  year = "Année",
+export interface ITicketConfig {
+  buildingName: string;
+  steps: {
+    closed: string[];
+    refused: string[];
+    archived: string[];
+  };
+  workflowList: string[];
+  application: {
+    name: string;
+    id: string;
+    icon: string;
+    description: string;
+    onglet: string;
+  }[];
+  targetAttributes: boolean;
+  attributesByType: {
+    equipment: {
+      [category: string]: string[];
+    };
+    room: Record<string, any>;
+    floor: Record<string, any>;
+    building: Record<string, any>;
+    ticket: Record<string, any>;
+  };
 }
+
+// export const enum ITemporality {
+//   currentValue = "Valeur courante",
+//   day = "journée",
+//   week = "Semaine",
+//   month = "Mois",
+//   year = "Année",
+// }

@@ -45,8 +45,6 @@ import {
   addTicketDoc,
   createTicket,
   archiveTicket,
-  nextStepTicket,
-  previousStepTicket,
   moveToStepTicket,
   addNoteTicket,
   modify_ticket,
@@ -430,42 +428,6 @@ export const actions = {
       return result;
     } catch (error) {
       console.error("Erreur lors de la création du ticket:", error);
-      throw error;
-    }
-  },
-  async [ActionTypes.NEXT_STEP_TICKET](
-    { commit }: AugmentedActionContextAppData,
-    {
-      buildingId,
-      ticketId,
-      data,
-    }: { buildingId: string; ticketId: any; data: any }
-  ): Promise<any> {
-    const spinalAPI = SpinalAPI.getInstance();
-    try {
-      const result = await nextStepTicket(buildingId, ticketId, data);
-
-      return result;
-    } catch (error) {
-      console.error("Erreur lors du changement d'etape du ticket:", error);
-      throw error;
-    }
-  },
-  async [ActionTypes.PREVIOUS_STEP_TICKET](
-    { commit }: AugmentedActionContextAppData,
-    {
-      buildingId,
-      ticketId,
-      data,
-    }: { buildingId: string; ticketId: any; data: any }
-  ): Promise<any> {
-    const spinalAPI = SpinalAPI.getInstance();
-    try {
-      const result = await previousStepTicket(buildingId, ticketId, data);
-
-      return result;
-    } catch (error) {
-      console.error("Erreur lors du changement d'etape du ticket:", error);
       throw error;
     }
   },

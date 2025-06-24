@@ -37,7 +37,7 @@ with this file. If not, see
     <div class="dataBody">
       <viewerApp :class="{ 'active3D': isActive3D }" class="viewerContainer"></viewerApp>
       <dataSideApp ref="dataSideApp" class="appContainer" :DActive="isActive3D" :ActiveData="isActive"
-        :refrech="refrech" :config="config" :ticketConfig="ticketConfig" :baseURL="baseUrl" :token="token"
+        :refrech="refrech" :config="config" :ticketConfig="config.ticketConfig" :baseURL="baseUrl" :token="token"
         :selectedZone="selectedZone" :data="displayedData" @changeRoute="changeApp"
         @updateBuildingTickets="updateBuildingTicketNumber" :selectedId="selectedId" :buildingInfo="buildingInfo"
         @clickOnDataView="onDataViewClicked" @display="showDetails" @download="downloadList"
@@ -49,7 +49,8 @@ with this file. If not, see
 
     <ticketDetails v-if="detailedTicket" style="z-index: 99" v-model="showDialog" @changeRoute="handleRouteChange"
       @reloadRequested="callReloadOnDataSideApp" :detailed-ticket="detailedTicket" :token="token" :baseURL="baseUrl"
-      :config="ticketConfig"></ticketDetails>
+      :config="config.ticketConfig"></ticketDetails>
+
   </v-app>
 
   <v-container class="loading" v-else-if="pageSate === PAGE_STATES.loading" fluid>
@@ -76,7 +77,7 @@ import type {
 import viewerApp from "../../../global-components/viewer/viewer.vue";
 import { ViewerButtons } from "./components/SpaceSelector/spaceSelectorButtons";
 import { config } from "./config";
-import { ticketConfig } from "./config";
+// import { ticketConfig } from "./config";
 import { IConfig } from "./interfaces/IConfig";
 import { PAGE_STATES } from "./interfaces/pageStates";
 import {
@@ -112,7 +113,7 @@ class App extends Vue {
   buildingInfo: any = {};
   buildingTicketNumber: number = 0;
   config: IConfig = config;
-  ticketConfig: Object = ticketConfig;
+  ticketConfig: Object = config.ticketConfig;
   spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
   reloadInterval: number;
   dataTable: IZoneItem[] = [];
@@ -160,13 +161,14 @@ class App extends Vue {
   }
 
   async mounted() {
+    const buildingId = localStorage.getItem("idBuilding");
+    const hasInitializedViewer = localStorage.getItem(`hasInitializedViewer_${buildingId}`);
 
     const promises = [
       this.$store.dispatch(ActionTypes.GET_BOS_BUILDING, { buildingId })
     ];
 
     const [building] = await Promise.all(promises);
-    console.log("building", building);
 
 
     if (building) {
@@ -219,20 +221,26 @@ class App extends Vue {
 
     });
 
-    const item = {
-      buildingId: localStorage.getItem("idBuilding"),
-      dynamicId: 0,
-      parents: [],
-      type: "building",
-      patrimoineId: "0",
+    if (!hasInitializedViewer) {
+      // console.warn("Viewer not initialized, fetching reference objects...");
+      const item = {
+        buildingId: buildingId,
+        dynamicId: 0,
+        parents: [],
+        type: "building",
+        patrimoineId: "0",
+      };
+      const newitem = await this.$store.dispatch(ActionTypes.GET_BUILDING_REFERENCE_OBJECTS, {
+        buildingId: buildingId,
+        patrimoineId: 0,
+      });
+      newitem.buildingId = item.buildingId;
+      newitem.type = item.type;
+
+      this.onActionClick({ button: { onclickEvent: ActionTypes.OPEN_VIEWER }, item: newitem });
+
+      localStorage.setItem(`hasInitializedViewer_${buildingId}`, "true");
     }
-    const newitem = await this.$store.dispatch(ActionTypes.GET_BUILDING_REFERENCE_OBJECTS, {
-      buildingId: buildingId,
-      patrimoineId: 0,
-    })
-    newitem.buildingId = item.buildingId;
-    newitem.type = item.type;
-    this.onActionClick({ button: { onclickEvent: ActionTypes.OPEN_VIEWER }, item: newitem });
 
     // this.setSelectedZoneBuilding();
 
@@ -293,6 +301,7 @@ class App extends Vue {
       const item = {
         buildingId: query.buildingId,
         dynamicId: query.spaceSelectedId,
+        name: query.name,
       };
       const button = {
         "title": "charger",
@@ -579,6 +588,7 @@ class App extends Vue {
       // staticId: item.staticId,//can
       // id: item.dynamicId,
       dynamicId: item.dynamicId,//important viewer
+      name: item.name,
       "isOpen": false,
       "loading": false,
       // floorId: item.floorId,//can
@@ -640,7 +650,6 @@ class App extends Vue {
         (d) => d.elementSelected.dynamicId === this.selectedZone.dynamicId
       ),
     };
-    console.log("spriteData", this.spriteData);
   }
 
   public getDataFormatted() {

@@ -22,7 +22,8 @@ with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
 <template>
-  <v-list-item class="space-selector-list-item card-hover" :class="{
+  <v-list-item tabindex="-1" class="space-selector-list-item card-hover" :class="{
+
     ['space-selector-list-item-level-' + item.level]: true,
     'space-selector-list-item-isopen': item.isOpen && item.haveChildren,
     'space-selector-list-item-isSelected': isSelected,
@@ -89,7 +90,6 @@ class SpaceSelectorItem extends Vue {
   @Prop({ type: String, required: false }) label: string;
 
   mounted() {
-    console.log("Yaaaaa 3issa ?", this.item);
   }
   public get isSelected(): boolean {
     return this.item.dynamicId === this.selected.dynamicId;

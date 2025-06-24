@@ -250,7 +250,6 @@ class TicketForm extends Vue {
 
 
     mounted() {
-        console.log("mounted from ticket form", this.domainlist);
         this.prefillSelectedZone();
     }
     onPriorityChange(value: string) {
@@ -397,7 +396,6 @@ class TicketForm extends Vue {
     }
 
     async isolateElement(salleName: string) {
-        console.log("isolateElement", salleName);
         if (!salleName) return;
 
         const room = this.listofRooms.find((room: any) => room.name === salleName);
@@ -566,7 +564,7 @@ export default TicketForm;
     margin: auto;
     margin-top: 20px;
     height: 100%;
-    overflow: scroll;
+    overflow: auto;
     position: relative;
 }
 
@@ -680,7 +678,7 @@ label {
     background-size: 100%;
     background-repeat: no-repeat;
     background-position: center;
-    right: 55px;
+    right: 35px;
     width: 22px;
     height: 22px;
     transition: transform 0.3s ease;
@@ -688,7 +686,7 @@ label {
 }
 
 .zoom-in-icon:hover {
-    right: 54px;
+    right: 38px;
     width: 24px;
     height: 24px;
     cursor: pointer !important;
@@ -700,14 +698,14 @@ label {
     background-size: 100%;
     background-repeat: no-repeat;
     background-position: center;
-    right: 30px;
+    right: 10px;
     width: 22px;
     height: 22px;
     pointer-events: auto;
 }
 
 .info-icon:hover {
-    right: 29px;
+    right: 14px;
     width: 24px;
     height: 24px;
 }
