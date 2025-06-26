@@ -158,7 +158,7 @@
       <div v-if="showAddTicket" class="add-ticket-vue" style="height: 87%;">
         <TicketForm :selectedZone="selectedZone" :workflowlist="workflowlist" :domainlist="domainlist"
           :priorities="priorities" :building="buildingInfo" :selectedObj="selectedObjectFromViewer"
-          :config="ticketConfig" />
+          :config="ticketConfig" @annumerticket="toggleAddTicket" />
       </div>
       <div v-if="!showAddTicket" class="d-flex flex-row justify-space-between filtres-container" style="width: 100%;">
         <div class="d-flex flex-column justify-space-between filtre-half-holder" style="height: 150px;">
@@ -254,8 +254,8 @@
       <!-- <div style="height: 1px; background-color: #14202c20; margin: 10px 0;"></div> -->
       <!-- SAMPLE -->
       <div v-if="!showAddTicket" class="d-flex flex-column flex-fill overflow-y-auto ticket-table-outer-container">
-        <TicketTable :data="sortedTickets" :config="selectedProfile" :isGroup="toggleSprites" @locate="locateTicket"
-          @display="showDetails" />
+        <TicketTable :data="sortedTickets" :config="selectedProfile" :selectedZone="selectedZone"
+          :isGroup="toggleSprites" @locate="locateTicket" @display="showDetails" />
 
       </div>
       <!-- \SAMPLE -->

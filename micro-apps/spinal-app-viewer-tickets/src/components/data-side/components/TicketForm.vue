@@ -166,11 +166,11 @@
 
         <!-- <button @click="createTicket">Ajouter Ticket</button> -->
 
-        <div @click="" class="annuler-button d-non">Annuler</div>
+        <div @click="annuler" class="annuler-button d-non">Annuler</div>
         <div @click="createTicket" class="add-button d-non">Ajouter un Ticket</div>
 
         <div class="buttons-phone">
-            <div @click="" class="annuler-button">Annuler</div>
+            <div @click="annuler" class="annuler-button">Annuler</div>
             <div @click="createTicket" class="add-button">Ajouter un Ticket</div>
 
         </div>
@@ -405,6 +405,10 @@ class TicketForm extends Vue {
     }
     deselectEquipement() {
         this.ticket.equipement = "";
+    }
+
+    annuler() {
+        this.$emit('annumerticket');
     }
 
     async createTicket() {

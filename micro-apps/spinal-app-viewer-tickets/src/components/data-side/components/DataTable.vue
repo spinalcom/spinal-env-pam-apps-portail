@@ -188,6 +188,7 @@ class TicketTable extends Vue {
     @Prop({ required: true }) data!: Array<any>;
     @Prop({ required: false }) config!: any;
     @Prop({ required: false }) isGroup!: boolean;
+    @Prop({ required: false }) selectedZone!: any;
 
     localData: Array<any> = [];
 
@@ -492,34 +493,37 @@ class TicketTable extends Vue {
         this.$nextTick(() => {
             const allSelected = Array.from(this.$el.querySelectorAll('.selected-ticket-item'));
             console.log("allSelected", allSelected);
-            if (allSelected.length === 1) {
-                if (
-                    newTicket &&
-                    newTicket.elementSelected &&
-                    (
-                        (['geographicRoom', 'geographicFloor', 'BIMObject'].includes(newTicket.elementSelected.type)) &&
-                        this.isGroup === true
-                    )
-                ) {
-                    console.log('hey');
-                    const firstSelected = this.$el.querySelectorAll('.first-selected');
-                    const middleSelected = this.$el.querySelectorAll('.middle-selected');
-                    const lastSelected = this.$el.querySelectorAll('.last-selected');
-                    const singleSelected = this.$el.querySelectorAll('.is-single-selected');
-                    console.log("TicketTable onSelectedTicketChange", singleSelected);
-                    console.log("TicketTable handleClickOfLocate", newTicket);
-                    firstSelected.forEach(el => el.classList.remove('first-selected'));
-                    middleSelected.forEach(el => el.classList.remove('middle-selected'));
-                    lastSelected.forEach(el => el.classList.remove('last-selected'));
-                    singleSelected.forEach(el => el.classList.remove('is-single-selected'));
-                    console.log("isGrouped", allSelected[0], "selectedIds", this.selectedIds);
+
+            if (this.selectedZone && (this.selectedZone.type === 'geographicBuilding' || this.selectedZone.type === 'building')) {
+                if (allSelected.length === 1) {
+                    if (
+                        newTicket &&
+                        newTicket.elementSelected &&
+                        (
+                            (['geographicRoom', 'geographicFloor', 'BIMObject'].includes(newTicket.elementSelected.type)) &&
+                            this.isGroup === true
+                        )
+                    ) {
+                        console.log('hey');
+                        const firstSelected = this.$el.querySelectorAll('.first-selected');
+                        const middleSelected = this.$el.querySelectorAll('.middle-selected');
+                        const lastSelected = this.$el.querySelectorAll('.last-selected');
+                        const singleSelected = this.$el.querySelectorAll('.is-single-selected');
+                        console.log("TicketTable onSelectedTicketChange", singleSelected);
+                        console.log("TicketTable handleClickOfLocate", newTicket);
+                        firstSelected.forEach(el => el.classList.remove('first-selected'));
+                        middleSelected.forEach(el => el.classList.remove('middle-selected'));
+                        lastSelected.forEach(el => el.classList.remove('last-selected'));
+                        singleSelected.forEach(el => el.classList.remove('is-single-selected'));
+                        console.log("isGrouped", allSelected[0], "selectedIds", this.selectedIds);
+
+                    }
+                    if (newTicket && newTicket.elementSelected && newTicket.elementSelected.type === 'geographicFloor') {
+                        console.log('hey2');
+                        console.log("isGrouped", allSelected[0], "selectedIds", this.selectedIds);
+                    }
 
                 }
-                if (newTicket && newTicket.elementSelected && newTicket.elementSelected.type === 'geographicFloor') {
-                    console.log('hey2');
-                    console.log("isGrouped", allSelected[0], "selectedIds", this.selectedIds);
-                }
-
             }
 
             allSelected.forEach(el => el.classList.remove('is-single'));
@@ -546,8 +550,7 @@ class TicketTable extends Vue {
                 if (
                     newTicket &&
                     newTicket.elementSelected &&
-                    newTicket.elementSelected.type === 'geographicFloor' &&
-                    this.isGroup === false
+                    newTicket.elementSelected.type === 'geographicFloor'
                 ) {
                     const firstSelected = this.$el.querySelectorAll('.first-selected');
                     const middleSelected = this.$el.querySelectorAll('.middle-selected');
