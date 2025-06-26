@@ -426,10 +426,10 @@ class TicketTable extends Vue {
         });
         this.selectedTicket = ticket;
         if (ticket.elementSelected.type === 'geographicFloor' || ticket.elementSelected.type === 'geographicBuilding') {
-            if (!this.isGroup) {
-                this.selectedIds = [ticket.dynamicId];
-            }
-
+            // if (!this.isGroup) {
+            //     this.selectedIds = [ticket.dynamicId];
+            // }
+            console.log("TicketTable handleClickOfLocate", ticket);
         }
         // if (!this.selectedIds.includes(ticket.dynamicId)) {
         //     this.selectedIds = [ticket.dynamicId];
@@ -466,11 +466,13 @@ class TicketTable extends Vue {
         this.$nextTick(() => {
             // First remove all `.is-single` classes
             const allSelected = Array.from(this.$el.querySelectorAll('.selectedTicket-class'));
+            console.log("allSelected", allSelected);
             allSelected.forEach(el => el.classList.remove('is-single'));
 
             // Then, if there's exactly one selected, mark it
             if (allSelected.length === 1) {
                 allSelected[0].classList.add('is-single');
+
             }
 
             // Keep your scroll logic

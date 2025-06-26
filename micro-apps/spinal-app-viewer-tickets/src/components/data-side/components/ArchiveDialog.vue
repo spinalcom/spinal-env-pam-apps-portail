@@ -6,7 +6,7 @@
             </div>
             <div class="custom-modal-body">
                 Êtes-vous sûr de vouloir archiver le ticket :
-                <strong v-if="ticket">#{{ ticket.dynamicId }}</strong>
+                <strong v-if="ticket">#{{ ticket.gmaoId }}</strong>
                 <span v-if="ticket"> - "{{ ticket.name }}"</span>
             </div>
             <div style="width: 100%;">

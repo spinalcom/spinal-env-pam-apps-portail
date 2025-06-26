@@ -71,15 +71,12 @@ export async function loadTickets(): Promise<Array<any>> {
     },
     { rooms: [], BIMObjects: [], floors: [], buildings: [] }
   );
-  console.log("detailedTickets_reduced", detailedTickets_reduced);
   const BIMObjects_positions = await geoAPI.equipment_get_position_multiple(
     detailedTickets_reduced.BIMObjects.map((e) => e.elementSelected.dynamicId)
   );
   const rooms_positions = await geoAPI.room_get_position_multiple(
     detailedTickets_reduced.rooms.map((e) => e.elementSelected.dynamicId)
   );
-  console.log("rooms_positions", rooms_positions);
-  console.log("BIMObjects_positions", BIMObjects_positions);
   const floors_positions = detailedTickets_reduced.floors.map((e) => ({
     ...e,
     elementSelected: {
@@ -104,6 +101,7 @@ export async function loadTickets(): Promise<Array<any>> {
     ...floors_positions,
     ...buildings_positions,
   ];
+  console.log("result", result);
   return result;
 }
 
@@ -130,6 +128,7 @@ export async function filterTicketsOnPosition(
     const positionsXYZ = await nodeAPI.Attribute_list_multiple(
       ticketsFiltered.map((t) => t.elementSelected?.dynamicId).filter(Boolean)
     );
+    console.log("positionsXYZ", positionsXYZ);
     return mapTicketAndXYZPosition(ticketsFiltered, positionsXYZ);
   } else {
     const positionsXYZ = await nodeAPI.Attribute_list_multiple(
@@ -172,7 +171,8 @@ function mapTicketAndAtt(ticketTab, XYZTab) {
   } catch (err) {
     console.warn("Error parsing ticket attribute config:", err);
   }
-
+  const attributesTab = XYZTab.find((a) => a.dynamicId == t.dynamicId);
+  console.log("attributesTab", attributesTab);
   return ticketTab.map((t) => {
     const attributesTab = XYZTab.find((a) => a.dynamicId == t.dynamicId);
     if (attributesTab) {
@@ -185,7 +185,7 @@ function mapTicketAndAtt(ticketTab, XYZTab) {
           if (xyzAttr && xyzAttr.value) {
             t.elementSelected["XYZ center"] = xyzAttr.value;
           }
-
+          // Extract attributes using config OR fallback to first
           let selectedAttributes;
 
           if (attributesToGet.length > 0) {
@@ -459,9 +459,6 @@ export function regroupFullTicketsByFloor(to_update: any[]) {
   for (const floorId in returnTab) {
     let zValue = 0;
     const ticketList = returnTab[floorId].ticketList;
-
-    console.log("Processing floorId:", floorId);
-    console.log("Ticket list for this floor:", ticketList);
     // Find first geographicRoom in ticketList
     const firstRoomTicket = ticketList.find(
       (ticket: any) => ticket.elementSelected.type === "geographicRoom"

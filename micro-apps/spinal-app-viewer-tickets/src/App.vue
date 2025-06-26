@@ -259,6 +259,7 @@ class App extends Vue {
       // this.query.app = "eyJuYW1lIjoiVGlja2V0cyIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiYmE5YS0wYzY4LTIzNmUtMTk0ODk4NjMwMTgiLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzM3NDc0MDcyNjQ0LCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3Mzc0NzQwNjAzMTIsImljb24iOiJtZGktdGlja2V0IiwiZGVzY3JpcHRpb24iOiIiLCJ0YWdzIjpbXSwiY2F0ZWdvcnlOYW1lIjoiIiwiZ3JvdXBOYW1lIjoiIiwiaGFzVmlld2VyIjpmYWxzZSwicGFja2FnZU5hbWUiOiJzcGluYWwtYXBwLXZpZXdlci10aWNrZXRzIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJkb2N1bWVudGF0aW9uTGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiMzdkZS0wMmI4LWUxOGItMTg1MDY0M2I2OGEiLCJidWlsZGluZ0lkIjoiMzU4My0zNWQzLWEzM2QtMTkyMWYwZDRiNGIifX0"
       // window.parent.router.query.app = this.query.app
       const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
+      console.log("currentQuery", currentQuery);
       this.applyURLParam(currentQuery);
     });
 
@@ -282,7 +283,7 @@ class App extends Vue {
     }
   }
 
-  applyURLParam(query) {
+  async applyURLParam(query) {
     this.refrech = true;
     this.query.mode = query.mode
     this.query.buildingId = query.buildingId
@@ -297,6 +298,7 @@ class App extends Vue {
     }
 
     if (query.spaceSelectedId) {
+      console.log("applyURLParam", query);
 
       const item = {
         buildingId: query.buildingId,
@@ -326,6 +328,26 @@ class App extends Vue {
       if (this.$refs['space-selector']) {
         this.$refs['space-selector'].select(itemToSelect);
       }
+    }
+    else {
+      const item = {
+        buildingId: buildingId,
+        dynamicId: 0,
+        parents: [],
+        type: "building",
+        patrimoineId: "0",
+      };
+      const newitem = await this.$store.dispatch(ActionTypes.GET_BUILDING_REFERENCE_OBJECTS, {
+        buildingId: buildingId,
+        patrimoineId: 0,
+      });
+      newitem.buildingId = item.buildingId;
+      newitem.type = item.type;
+
+      this.onActionClick({ button: { onclickEvent: ActionTypes.OPEN_VIEWER }, item: newitem });
+
+      localStorage.setItem(`hasInitializedViewer_${buildingId}`, "true");
+
     }
     this.openSpaceSelector = false;
 

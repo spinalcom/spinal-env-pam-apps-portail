@@ -1,19 +1,21 @@
 <template>
-  <div id="floor-sprite" class="sprite_container_ticket pa-1" :class="{ pentagon: type === 'geographicBuilding' }"
-    :style="computedGradient" @click.stop="onClick" @clickExteriorSprite="_isNotSelected()">
-    <div :class="{ pentagon: type === 'geographicBuilding' }"
-      class="sprite_color_ticket_ticket d-flex flex-grow-1 align-center justify-center" :style="{
-        background: '#14202C',
-        color: '#FFFFFF',
-        height: '24px',
-        'text-align': 'center',
+  <div :style="dynamicStyle">
+    <div id="floor-sprite" class="sprite_container_ticket pa-1" :class="{ pentagon: type === 'geographicBuilding' }"
+      :style="computedGradient" @click.stop="onClick" @clickExteriorSprite="_isNotSelected()">
 
-        ...dynamicStyle,
-      }">
-      {{ buildingTicketNumber }}
+      <div :class="{ pentagon: type === 'geographicBuilding' }"
+        class="sprite_color_ticket_ticket d-flex flex-grow-1 align-center justify-center" :style="{
+          background: '#14202C',
+          color: '#fff',
+          height: '24px',
+          'text-align': 'center',
+        }">
+        {{ buildingTicketNumber }}
+      </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import {
@@ -104,15 +106,21 @@ export default {
     },
     _isSelected() {
       this.selected = true;
+      // this.dynamicStyle = {
+      //   boxShadow: "0px 0px 10px 2px #00A2FF",
+      // };
       this.dynamicStyle = {
-        boxShadow: "0px 0px 10px 2px #00A2FF",
+        filter: "drop-shadow(0px 0px 10px #00A2FF)"
       };
     },
 
     _isNotSelected() {
       this.selected = false;
+      // this.dynamicStyle = {
+      //   boxShadow: "none",
+      // };
       this.dynamicStyle = {
-        boxShadow: "none",
+        filter: "none"
       };
     },
     getPriorityGradient() {

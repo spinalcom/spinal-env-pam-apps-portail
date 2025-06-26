@@ -46,10 +46,10 @@
               <div class="priority-indicator" style="width: 9px!important;"
                 :style="{ background: getPriorityColor(data.data[currentIndex].priority) }">
               </div>
-              <div style="color: #14202c; width: 80%;" :title="data.data[currentIndex].dynamicId">#{{
-                data.data[currentIndex].dynamicId.length > 9 ?
-                  data.data[currentIndex].dynamicId.substring(0, 7) + '...' :
-                  data.data[currentIndex].dynamicId }}
+              <div style="color: #14202c; width: 80%;" :title="data.data[currentIndex].gmaoId">#{{
+                data.data[currentIndex].gmaoId.length > 9 ?
+                  data.data[currentIndex].gmaoId.substring(0, 7) + '...' :
+                  data.data[currentIndex].gmaoId }}
               </div>
             </div>
           </div>
@@ -142,9 +142,9 @@
                 :style="{ background: getPriorityColor(selectedCard.priority) }">
               </div>
               <div style="color: #14202c; width: 80%;" :title="data.data[currentIndex].dynamicId">#{{
-                data.data[currentIndex].dynamicId.length > 9 ?
-                  data.data[currentIndex].dynamicId.substring(0, 7) + '...' :
-                  data.data[currentIndex].dynamicId }}</div>
+                data.data[currentIndex].gmaoId.length > 9 ?
+                  data.data[currentIndex].gmaoId.substring(0, 7) + '...' :
+                  data.data[currentIndex].gmaoId }}</div>
             </div>
           </div>
           <div class="card-body">

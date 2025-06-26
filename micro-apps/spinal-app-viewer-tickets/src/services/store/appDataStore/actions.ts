@@ -390,6 +390,10 @@ export const actions = {
     let ticketsToFilter = await dispatch(ActionTypes.LOAD_TICKETS, {
       buildingId,
     });
+    console.log(
+      "ticketsToFilter eyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+      ticketsToFilter
+    );
     return filterTicketsOnPosition(ticketsToFilter, buildingId, dynamicId);
   },
 

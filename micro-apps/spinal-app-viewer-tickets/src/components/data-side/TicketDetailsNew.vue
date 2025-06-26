@@ -12,7 +12,7 @@
             <v-card-title style="height: 35px;justify-content: space-between;padding: 0px!important;"
                 class="bold px-4 d-flex flex-row align-items-center">
                 <div class="overflow-hidden d-flex" style="width: 20%;flex-direction: row;line-height: 1.2;">
-                    <div class="details-card-ticket-id">Ticket n°: <b>{{ detailedTicket.dynamicId }}</b></div>
+                    <div class="details-card-ticket-id">Ticket n°: <b>#{{ detailedTicket.gmaoId }}</b></div>
                 </div>
                 <div class="d-flex flex-row" style="width: 50%;height: 100%; justify-content: space-around;">
                     <div class="step-holder">
