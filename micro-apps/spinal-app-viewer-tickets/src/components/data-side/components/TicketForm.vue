@@ -106,7 +106,7 @@
         <div class="d-flex flex-row justify-space-between">
             <div class="half-input">
                 <div class="form-group" style="width: 100%;">
-                    <label class="form-input-title">Titre de ticket</label>
+                    <label class="form-input-title">Titre du ticket</label>
                     <input class="form-title-input" type="text" v-model="ticket.titre"
                         placeholder="Ex: Problème de câblage..." />
                     <div class="error-message" v-if="errors.titre">{{ errors.titre }}</div>
@@ -167,11 +167,11 @@
         <!-- <button @click="createTicket">Ajouter Ticket</button> -->
 
         <div @click="" class="annuler-button d-non">Annuler</div>
-        <div @click="createTicket" class="add-button d-non">Ajouter Ticket</div>
+        <div @click="createTicket" class="add-button d-non">Ajouter un Ticket</div>
 
         <div class="buttons-phone">
             <div @click="" class="annuler-button">Annuler</div>
-            <div @click="createTicket" class="add-button">Ajouter Ticket</div>
+            <div @click="createTicket" class="add-button">Ajouter un Ticket</div>
 
         </div>
         <div v-if="showSuccess" class="success-banner">
@@ -784,7 +784,7 @@ button:hover {
 .add-button {
     position: absolute;
     bottom: 20px;
-    right: 20px;
+    right: 0px;
     width: 150px;
     height: 45px;
     display: flex;
@@ -821,7 +821,7 @@ button:hover {
 }
 
 .annuler-button {
-    right: 180px;
+    right: 160px;
     border-radius: 5px;
     position: absolute;
     bottom: 20px;

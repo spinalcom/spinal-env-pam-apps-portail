@@ -968,7 +968,7 @@ class dataSideApp extends Vue {
           number: this.roomitemsnumber,
         },
         {
-          title: "Equipement",
+          title: "Équipement",
           color: "#14202c",
           type: "triangle",
           number: this.equipementitemsnumber,

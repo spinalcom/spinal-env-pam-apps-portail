@@ -68,11 +68,42 @@
 
                         <td style="width: 13%;">
                             <div class="d-flex flex-row row-style">
-                                <div class="priority-indicator"
+                                <div class="d-flex flex-row ">
+                                    <div v-if="ticket.elementSelected.type === 'geographicRoom'"
+                                        :style="{ background: getPriorityColor(ticket.priority) }"
+                                        style="margin-right:5px; width: 14px;height: 14px;border-radius: 50%;align-items: center;justify-content: center;"
+                                        class="d-flex flex-row">
+                                        <!-- <div style="background-color: #fff; width: 8px;height: 8px;border-radius: 50%;">
+                                        </div> -->
+                                    </div>
+                                    <div v-else-if="ticket.elementSelected.type === 'geographicFloor'"
+                                        :style="{ background: getPriorityColor(ticket.priority) }"
+                                        style="margin-right:5px; width: 14px;height: 14px;align-items: center;justify-content: center;"
+                                        class="d-flex flex-row">
+                                        <!-- <div style="background-color: #fff; width: 8px;height: 8px;"></div> -->
+                                    </div>
+                                    <div v-else-if="ticket.elementSelected.type === 'geographicBuilding'"
+                                        :style="{ background: getPriorityColor(ticket.priority) }"
+                                        style="margin-right:5px; width: 14px;height: 14px;align-items: center;justify-content: center;"
+                                        class="pentagon-border-table">
+                                        <!-- <div 
+                                        style="background-color: #fff; width: 8px;height: 8px;"
+                                            class="pentagon-himself-table"></div> -->
+                                    </div>
+                                    <div v-else class="triangle-outer"
+                                        :style="{ background: getPriorityColor(ticket.priority) }">
+                                        <!-- <div class="triangle-inner"></div> -->
+                                    </div>
+                                    <div class="" :style="{ fontWeight: ticket.step.order === 0 ? 'bold' : 'normal' }">
+                                        #{{ ticket.gmaoId.length > 25 ? ticket.gmaoId.substring(0, 25) + '...' :
+                                            ticket.gmaoId }}</div>
+                                </div>
+
+                                <!-- <div class="priority-indicator"
                                     :style="{ background: getPriorityColor(ticket.priority) }">
                                 </div>
                                 <div :style="{ fontWeight: ticket.step.order === 0 ? 'bold' : 'normal' }">
-                                    #{{ ticket.gmaoId }}</div>
+                                    #{{ ticket.gmaoId }}</div> -->
                             </div>
                         </td>
                         <td style="width: 16%;">{{ formatDate(ticket.lastModifDate) }}</td>
@@ -83,7 +114,7 @@
                         </td> -->
                         <td style="width: 36%;">
                             <div class="d-flex flex-row ">
-                                <div v-if="ticket.elementSelected.type === 'geographicRoom'"
+                                <!-- <div v-if="ticket.elementSelected.type === 'geographicRoom'"
                                     :style="{ background: getPriorityColor(ticket.priority) }"
                                     style="margin-right:5px; width: 12px;height: 12px;border-radius: 50%;align-items: center;justify-content: center;"
                                     class="d-flex flex-row">
@@ -106,7 +137,7 @@
                                 <div v-else class="triangle-outer"
                                     :style="{ background: getPriorityColor(ticket.priority) }">
                                     <div class="triangle-inner"></div>
-                                </div>
+                                </div> -->
                                 <div class="ticket-name-data" style="margin-bottom: 3px;"
                                     :style="{ fontWeight: ticket.step.order === 0 ? 'bold' : 'normal' }">
                                     {{ ticket.name.length > 25 ? ticket.name.substring(0, 25) + '...' :
@@ -425,12 +456,7 @@ class TicketTable extends Vue {
             this.$set(ticket, 'isSelected', false);
         });
         this.selectedTicket = ticket;
-        if (ticket.elementSelected.type === 'geographicFloor' || ticket.elementSelected.type === 'geographicBuilding') {
-            // if (!this.isGroup) {
-            //     this.selectedIds = [ticket.dynamicId];
-            // }
-            console.log("TicketTable handleClickOfLocate", ticket);
-        }
+
         // if (!this.selectedIds.includes(ticket.dynamicId)) {
         //     this.selectedIds = [ticket.dynamicId];
         // }
@@ -464,24 +490,73 @@ class TicketTable extends Vue {
     @Watch('selectedTicket', { immediate: true })
     onSelectedTicketChange(newTicket) {
         this.$nextTick(() => {
-            // First remove all `.is-single` classes
-            const allSelected = Array.from(this.$el.querySelectorAll('.selectedTicket-class'));
+            const allSelected = Array.from(this.$el.querySelectorAll('.selected-ticket-item'));
             console.log("allSelected", allSelected);
-            allSelected.forEach(el => el.classList.remove('is-single'));
-
-            // Then, if there's exactly one selected, mark it
             if (allSelected.length === 1) {
-                allSelected[0].classList.add('is-single');
+                if (
+                    newTicket &&
+                    newTicket.elementSelected &&
+                    (
+                        (['geographicRoom', 'geographicFloor', 'BIMObject'].includes(newTicket.elementSelected.type)) &&
+                        this.isGroup === true
+                    )
+                ) {
+                    console.log('hey');
+                    const firstSelected = this.$el.querySelectorAll('.first-selected');
+                    const middleSelected = this.$el.querySelectorAll('.middle-selected');
+                    const lastSelected = this.$el.querySelectorAll('.last-selected');
+                    const singleSelected = this.$el.querySelectorAll('.is-single-selected');
+                    console.log("TicketTable onSelectedTicketChange", singleSelected);
+                    console.log("TicketTable handleClickOfLocate", newTicket);
+                    firstSelected.forEach(el => el.classList.remove('first-selected'));
+                    middleSelected.forEach(el => el.classList.remove('middle-selected'));
+                    lastSelected.forEach(el => el.classList.remove('last-selected'));
+                    singleSelected.forEach(el => el.classList.remove('is-single-selected'));
+                    console.log("isGrouped", allSelected[0], "selectedIds", this.selectedIds);
+
+                }
+                if (newTicket && newTicket.elementSelected && newTicket.elementSelected.type === 'geographicFloor') {
+                    console.log('hey2');
+                    console.log("isGrouped", allSelected[0], "selectedIds", this.selectedIds);
+                }
 
             }
 
-            // Keep your scroll logic
+            allSelected.forEach(el => el.classList.remove('is-single'));
+
             if (newTicket) {
                 const selectedRow = this.$el.querySelector(
                     `tr[data-id="${newTicket.dynamicId}"]`
                 );
                 if (selectedRow) {
                     selectedRow.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            }
+            if (allSelected.length === 1) {
+                if (newTicket && newTicket.elementSelected && newTicket.elementSelected.type === 'geographicBuilding') {
+                    const firstSelected = this.$el.querySelectorAll('.first-selected');
+                    const middleSelected = this.$el.querySelectorAll('.middle-selected');
+                    const lastSelected = this.$el.querySelectorAll('.last-selected');
+                    const singleSelected = this.$el.querySelectorAll('.is-single-selected');
+                    firstSelected.forEach(el => el.classList.remove('first-selected'));
+                    middleSelected.forEach(el => el.classList.remove('middle-selected'));
+                    lastSelected.forEach(el => el.classList.remove('last-selected'));
+                    singleSelected.forEach(el => el.classList.remove('is-single-selected'));
+                }
+                if (
+                    newTicket &&
+                    newTicket.elementSelected &&
+                    newTicket.elementSelected.type === 'geographicFloor' &&
+                    this.isGroup === false
+                ) {
+                    const firstSelected = this.$el.querySelectorAll('.first-selected');
+                    const middleSelected = this.$el.querySelectorAll('.middle-selected');
+                    const lastSelected = this.$el.querySelectorAll('.last-selected');
+                    const singleSelected = this.$el.querySelectorAll('.is-single-selected');
+                    firstSelected.forEach(el => el.classList.remove('first-selected'));
+                    middleSelected.forEach(el => el.classList.remove('middle-selected'));
+                    lastSelected.forEach(el => el.classList.remove('last-selected'));
+                    singleSelected.forEach(el => el.classList.remove('is-single-selected'));
                 }
             }
         });
@@ -751,8 +826,8 @@ th {
 
 .triangle-outer {
     clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-    width: 12px;
-    height: 11px;
+    width: 14px;
+    height: 13px;
     display: flex;
     justify-content: center;
     align-items: center;

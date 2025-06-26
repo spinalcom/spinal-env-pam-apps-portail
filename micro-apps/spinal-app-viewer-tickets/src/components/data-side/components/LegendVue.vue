@@ -1,7 +1,7 @@
 <template>
     <div class="legend-container">
         <div class="d-flex flex-row" style="justify-content: space-between;width: 100%; align-items: center;">
-            <p class="legend-text">Legend</p>
+            <p class="legend-text">Légende</p>
             <div class="d-flex flex-row align-center" style="gap: 10px;">
                 <p class="legend-text">{{ !isPriority ? 'Par Priorité' : 'Par Étape' }}</p>
                 <v-switch class="switch" v-model="localPriority" @change="emitToggle" color="#14202c" inset dense
@@ -32,7 +32,7 @@
             </div>
             <span class="legend-text">
                 Ticket sur <span class="legend-title">{{ item.title }}</span> (<span class="legend-title">{{ item.number
-                }}</span>)
+                    }}</span>)
             </span>
         </div>
     </div>
