@@ -1,3 +1,4 @@
+
 const express = require('express');
 const path = require('path');
 const bodyParser = require("body-parser");
@@ -10,7 +11,7 @@ const fs = require("fs");
 const { default: axios } = require('axios');
 
 
-dotenv.config({ path: path.resolve(__dirname, ".env") });
+dotenv.config({ path: path.resolve(__dirname, ".env"), override: true });
 const port = process.env.PORT || 1234;
 const vue_dir = path.resolve(__dirname, './dist');
 const app = express();
@@ -32,10 +33,9 @@ app.get("/", (req, res) => {
 });
 
 app.get("/login", async (req, res) => {
+    let token = getToken(req);
 
-    let token = req.cookies.token;
     if (!token && req.query.ref) token = await getTokentoKenByRef(req.query.ref);
-
 
     if (!token) {
         return res.redirect(spinal_api_url + "/login");
@@ -51,15 +51,18 @@ app.get("/login", async (req, res) => {
     return res.sendFile(path.resolve(vue_dir, 'index.html'));
 });
 
-app.use("/*", (req, res) => {
+app.use("*", (req, res) => {
     res.sendFile(path.resolve(vue_dir, 'index.html'))
 });
 
 
-if (process.env.PROTOCOL === "http") {
+const protocol = process.env.PROTOCOL;
+
+
+if (protocol === "http") {
     app.listen(port, () => console.log(`app listening at http://localhost:${port} ....`));
     return;
-} else if (process.env.PROTOCOL === "https") {
+} else if (protocol === "https") {
     const sslOptions = {
         key: fs.readFileSync(process.env.SSL_KEY),
         cert: fs.readFileSync(process.env.SSL_CERT)
@@ -78,4 +81,26 @@ function getTokentoKenByRef(ref) {
     }).catch(err => {
         return null;
     });
+}
+
+
+function getToken(req) {
+    let token = req.cookies.token
+
+    if (token) return token;
+
+    const header = req.headers.authorization || req.headers.Authorization;
+    if (header) {
+        const [, t] = header.split(" ");
+        if (t) return t;
+    }
+
+    token = req.body.token || req.query.token || req.headers["x-access-token"]
+    if (token) return token;
+
+    const refUrl = req.get("referer")
+    if (refUrl) {
+        token = new URL(refUrl).searchParams.get("token");
+        return token;
+    }
 }
