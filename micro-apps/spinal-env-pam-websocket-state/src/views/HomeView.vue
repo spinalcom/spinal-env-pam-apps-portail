@@ -25,13 +25,11 @@ with this file. If not, see
 <template>
   <div class="div_container">
     <div class="header">
-      <select-component
-        ref="select-component"
-        :isMobile="isMobile"
-        :portofolios="portofolios"
-        @selected="selectBuilding"
-      ></select-component>
+      <select-component ref="select-component" :isMobile="isMobile" :portofolios="portofolios"
+        @selected="selectBuilding"></select-component>
     </div>
+
+
 
     <div v-if="page === pages.normal && selectedBuilding" class="normalState">
       <div class="stateCard" elevation="4">
@@ -45,157 +43,79 @@ with this file. If not, see
             <div class="subtitle-text">
               <v-icon :color="stateColor" size="x-large">{{
                 buildingIcon
-              }}</v-icon>
-              <div :style="{color: stateColor, marginLeft: '10px'}">{{
+                }}</v-icon>
+              <div :style="{ color: stateColor, marginLeft: '10px' }">{{
                 buildingState
-              }}</div>
+                }}</div>
             </div>
           </div>
         </v-card>
 
         <v-card class="statistics">
           <div class="stateDiv">
-            <state-component
-              color="green"
-              icon="mdi-account-badge"
-              :count="clients.numberOfClientConnected"
-              title="Client(s) connecté(s)"
-              subtitle="En temps réel"
-            ></state-component>
+            <state-component color="green" icon="mdi-account-badge" :count="clients.numberOfClientConnected"
+              title="Client(s) connecté(s)" subtitle="En temps réel"></state-component>
           </div>
 
           <div class="stateDiv">
-            <state-component
-              color="orange"
-              icon="mdi-file-sign"
-              :count="getSubscriptionCount"
-              :title="'Souscription(s)'"
-              :subtitle="subtitle"
-            ></state-component>
+            <state-component color="orange" icon="mdi-file-sign" :count="getSubscriptionCount"
+              :title="'Souscription(s)'" :subtitle="subtitle"></state-component>
           </div>
 
           <div class="stateDiv">
-            <state-component
-              color="red"
-              icon="mdi-bell-alert"
-              :count="getAlertCount"
-              title="Alerte(s)"
-              :subtitle="subtitle"
-            ></state-component>
+            <state-component color="red" icon="mdi-bell-alert" :count="getAlertCount" title="Alerte(s)"
+              :subtitle="subtitle"></state-component>
           </div>
         </v-card>
       </div>
 
       <v-card class="tableCard" elevation="4">
         <div class="tableheader">
-          <div
-            class="_title text-caption charlevoix"
-            v-text="'Liste des evenements'"
-          ></div>
+          <div class="_title text-caption charlevoix" v-text="'Liste des evenements'"></div>
 
           <div class="filters">
             <div class="selectFilters">
-              <v-select
-                dense
-                v-model="date"
-                :items="dates"
-                label="Filtrer par date"
-                item-text="title"
-                outlined
-                hide-details
-              ></v-select>
+              <v-select dense v-model="date" :items="dates" label="Filtrer par date" item-text="title" outlined
+                hide-details></v-select>
             </div>
 
             <div class="checkboxFilters">
               <div class="_title">Filtrer par type : </div>
               <div class="checkboxes">
-                <v-checkbox
-                  v-model="filterByType"
-                  class="check"
-                  dense
-                  label="Alerte"
-                  color="red"
-                  value="alert"
-                  hide-details
-                ></v-checkbox>
+                <v-checkbox v-model="filterByType" class="check" dense label="Alerte" color="red" value="alert"
+                  hide-details></v-checkbox>
 
-                <v-checkbox
-                  v-model="filterByType"
-                  class="check"
-                  dense
-                  label="Souscription"
-                  color="orange"
-                  value="receive"
-                  hide-details
-                ></v-checkbox>
+                <v-checkbox v-model="filterByType" class="check" dense label="Souscription" color="orange"
+                  value="receive" hide-details></v-checkbox>
 
-                <v-checkbox
-                  v-model="filterByType"
-                  class="check"
-                  dense
-                  label="Envoi de données"
-                  color="green"
-                  value="send"
-                  hide-details
-                ></v-checkbox>
+                <v-checkbox v-model="filterByType" class="check" dense label="Envoi de données" color="green"
+                  value="send" hide-details></v-checkbox>
 
-                <v-checkbox
-                  v-model="filterByType"
-                  class="check"
-                  dense
-                  label="Connexion"
-                  color="#43A047"
-                  value="connected"
-                  hide-details
-                ></v-checkbox>
+                <v-checkbox v-model="filterByType" class="check" dense label="Connexion" color="#43A047"
+                  value="connected" hide-details></v-checkbox>
 
-                <v-checkbox
-                  v-model="filterByType"
-                  class="check"
-                  dense
-                  label="Deconnexion"
-                  color="#E53935"
-                  value="disconnected"
-                  hide-details
-                ></v-checkbox>
+                <v-checkbox v-model="filterByType" class="check" dense label="Deconnexion" color="#E53935"
+                  value="disconnected" hide-details></v-checkbox>
 
-                <v-checkbox
-                  v-model="filterByType"
-                  class="check"
-                  dense
-                  label="Redemarrage"
-                  color="green"
-                  value="restart"
-                  hide-details
-                ></v-checkbox>
+                <v-checkbox v-model="filterByType" class="check" dense label="Redemarrage" color="green" value="restart"
+                  hide-details></v-checkbox>
               </div>
             </div>
           </div>
         </div>
 
         <div class="tableContent">
-          <v-data-table
-            sort-by="date"
-            :sort-desc="true"
-            style="background: transparent"
-            :loading="loadingTableData"
-            loadingText="Chargement... veuillez patienter"
-            no-data-text="Aucune donnée à afficher"
-            :height="tableHeight"
-            fixed-header
-            :headers="headers"
-            :items="tableData"
-            :items-per-page="15"
-            :footer-props="{
+          <v-data-table sort-by="date" :sort-desc="true" style="background: transparent" :loading="loadingTableData"
+            loadingText="Chargement... veuillez patienter" no-data-text="Aucune donnée à afficher" :height="tableHeight"
+            fixed-header :headers="headers" :items="tableData" :items-per-page="15" :footer-props="{
               prevIcon: 'mdi-menu-left',
               nextIcon: 'mdi-menu-right',
               itemsPerPageText: '',
               showCurrentPage: true,
               itemsPerPageOptions: [5, 10, 15, -1],
               pageText: '',
-            }"
-          >
-            <template v-slot:item="{item}">
+            }">
+            <template v-slot:item="{ item }">
               <tr class="tableRow">
                 <td>{{ item.date | date }}</td>
                 <td>{{ getAction(item) | action }}</td>
@@ -232,16 +152,8 @@ with this file. If not, see
       </div> -->
     </div>
 
-    <div
-      class="loading"
-      v-else-if="page === pages.loading || page === pages.error"
-    >
-      <v-progress-circular
-        v-if="page === pages.loading"
-        :size="70"
-        color="primary"
-        indeterminate
-      ></v-progress-circular>
+    <div class="loading" v-else-if="page === pages.loading || page === pages.error">
+      <v-progress-circular v-if="page === pages.loading" :size="70" color="primary" indeterminate></v-progress-circular>
 
       <v-icon>mdi-error</v-icon>
     </div>
@@ -251,11 +163,11 @@ with this file. If not, see
 <script lang="ts">
 import Vue from 'vue';
 import TableComponent from '../components/tableComponent.vue';
-import {mapActions, mapState} from 'vuex';
-import {logTypes} from '../store/constants';
+import { mapActions, mapState } from 'vuex';
+import { logTypes } from '../store/constants';
 import SelectComponent from '../components/select.vue';
 import StateComponent from '../components/stateComponent.vue';
-import {correspondance_actions} from '../store/websocket_constants';
+import { correspondance_actions } from '../store/websocket_constants';
 import moment from 'moment';
 moment.locale('fr');
 
@@ -272,10 +184,10 @@ export default Vue.extend({
       loading: 2,
     });
     this.dates = [
-      {title: "Aujourd'hui", value: 0, key: 'toDay'},
-      {title: 'Hier', value: 1, key: 'yesterday'},
-      {title: '7 derniers jours', value: 2, key: 'week'},
-      {title: 'Une année', value: 3, key: 'year'},
+      { title: "Aujourd'hui", value: 0, key: 'toDay' },
+      { title: 'Hier', value: 1, key: 'yesterday' },
+      { title: '7 derniers jours', value: 2, key: 'week' },
+      { title: 'Une année', value: 3, key: 'year' },
       // {title: 'Personnaliser', value: 4},
     ];
     // windowInnerHeight - (headerHeight + stateHeight + filterHeight + tableHeader + (tableFooter - padding))
@@ -297,10 +209,10 @@ export default Vue.extend({
 
       tableHeight: window.innerHeight - this.otherSize,
       headers: [
-        {text: 'Date', sortable: true, value: 'date'},
-        {text: 'Action', sortable: true, value: 'action'},
-        {text: "Nom de l'application", sortable: true, value: 'targetName'},
-        {text: 'Nom du noeud', sortable: true, value: 'nodeName'},
+        { text: 'Date', sortable: true, value: 'date' },
+        { text: 'Action', sortable: true, value: 'action' },
+        { text: "Nom de l'application", sortable: true, value: 'targetName' },
+        { text: 'Nom du noeud', sortable: true, value: 'nodeName' },
       ],
       subtitle: '',
     };
@@ -542,6 +454,7 @@ export default Vue.extend({
         background: transparent !important;
         display: flex;
         align-items: center;
+
         .icon-box {
           height: 30px;
           width: 30px;
@@ -554,6 +467,7 @@ export default Vue.extend({
           width: 100%;
           display: flex;
           flex-flow: column;
+
           .title-text {
             letter-spacing: 2px;
             font-size: 1.3em;
@@ -563,6 +477,7 @@ export default Vue.extend({
             white-space: nowrap;
             text-overflow: ellipsis;
           }
+
           .subtitle-text {
             letter-spacing: 2px;
             white-space: nowrap;
@@ -582,6 +497,7 @@ export default Vue.extend({
       .statistics {
         height: 100%;
         justify-content: space-around;
+
         .stateDiv {
           height: 100%;
         }
@@ -634,6 +550,7 @@ export default Vue.extend({
               display: flex;
               align-items: center;
               flex-wrap: wrap;
+
               .check {
                 margin-right: 20px;
               }

@@ -32,6 +32,15 @@ export function routerInit(vue: any) {
   vue.use(VueRouter);
 }
 
+const getLoginRedirect = () => {
+  // let url = process.env.SPINAL_API_URL;
+  // url = url?.endsWith('/') ? url.substring(0, url.length - 1) : url;
+  // return url + '/login';
+  const url = location.hostname;
+  return url + "/login";
+}
+
+
 const routes: Array<RouteConfig> = [
   {
     path: '/',
@@ -39,9 +48,13 @@ const routes: Array<RouteConfig> = [
     name: '_Home',
   },
   {
-    path: '/login',
-    name: 'Login',
+    path: '/admin',
+    name: 'AdminLogin',
     component: LoginView,
+  },
+  {
+    name: "Login",
+    path: '/login'
   },
   {
     path: '/app',
@@ -64,15 +77,34 @@ const routes: Array<RouteConfig> = [
 
 const router = new VueRouter({
   mode: 'history',
-  // base: process.env.BASE_URL,
   routes,
 });
 
+
 router.beforeEach(async (to, from, next) => {
   const auth = await isAuthenticate();
-  if (to.name === 'Login' && auth) return next({ name: 'Home' });
-  if (!auth && to.name !== 'Login') return next({ name: 'Login' });
+  const isConnectionPage = ['Login', 'AdminLogin'].includes(to.name);
+
+  if (!auth && !isConnectionPage) return next({ name: 'Login' });
+  if (isConnectionPage && auth) return next({ name: "Home" });
+
+  if (to.name === 'Login' && !auth) {
+    // location.href = getLoginRedirect();
+    location.href = location.origin + '/login';
+    return;
+  }
+
   return next();
 });
 
+router.customPush = function (path, query) {
+  this.push({ path, query });
+};
+
+router.customReplace = function (path, query) {
+  this.replace({ path, query });
+};
+
+
+window.routerFontion = router;
 export { router };

@@ -30,12 +30,8 @@ with this file. If not, see
       </div>
 
       <div class="select">
-        <select-component
-          ref="select-component"
-          :isMobile="isMobile"
-          @selected="changeApps"
-          :portofolios="portofolios"
-        ></select-component>
+        <select-component ref="select-component" :isMobile="isMobile" @selected="changeApps"
+          :portofolios="portofolios"></select-component>
       </div>
     </div>
 
@@ -44,27 +40,29 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import {mapActions, mapState} from 'vuex';
-import NavBar from '../components/nav.vue';
-import SelectComponent from '../components/select.vue';
+import { mapActions, mapState } from "vuex";
+import NavBar from "../components/nav.vue";
+import SelectComponent from "../components/select.vue";
+import { generateBuildingUrl } from "../requests/building";
 
 export default {
   components: {
     NavBar,
     SelectComponent,
   },
+
   async mounted() {
     await this.init();
   },
+
   methods: {
-    ...mapActions('appDataStore', [
-      'getPortofolios',
-      'getApps',
-      'getBos',
-      'getUserInfo',
-      'selectSpace',
-      'getFavoriteApps',
-      'getBuildingInfo',
+    ...mapActions("appDataStore", [
+      "getPortofolios",
+      "getApps",
+      "getBos",
+      "getUserInfo",
+      "selectSpace",
+      "getFavoriteApps",
     ]),
 
     init() {
@@ -76,46 +74,29 @@ export default {
     },
 
     closeSelect() {
-      const ref = this.$refs['select-component'];
+      const ref = this.$refs["select-component"];
       if (ref) ref.close();
     },
 
-    async changeApps(data) {
-      if (!data.buildingId) return this.selectSpace(data);
-      const buildingInfo = await this.getBuildingInfo(data);
+    changeApps(data) {
+      if (!data.buildingId) {
+        this.selectSpace(data);
+        return;
+      }
 
-      const d = {
-        from: 'PAM',
-        data: {
-          token: localStorage.getItem('token'),
-          userInfo: this.userInfo,
-        },
-      };
+      this.goToBuildingDetail(data.buildingId);
+    },
 
-      const t = window.open(
-        `${buildingInfo.bosUrl}?data=${btoa(JSON.stringify(d))}`,
-        '_blank'
-      );
-
-      // setTimeout(() => {
-      //   t?.postMessage(
-      //     {
-      //       from: 'PAM',
-      //       data: {
-      //         token: localStorage.getItem('token'),
-      //         userInfo: this.userInfo,
-      //       },
-      //     },
-      //     '*'
-      //   );
-      // }, 100);
+    async goToBuildingDetail(buildingId) {
+      const { url } = await generateBuildingUrl(buildingId);
+      if (url) window.open(url, "_blank");
     },
   },
   computed: {
-    ...mapState('appDataStore', ['appsDisplayed', 'userInfo', 'portofolios']),
+    ...mapState("appDataStore", ["appsDisplayed", "userInfo", "portofolios"]),
     isMobile() {
       const breakpoint = this.$vuetify.breakpoint.name;
-      if (['xs', 'sm'].indexOf(breakpoint) !== -1) return true;
+      if (["xs", "sm"].indexOf(breakpoint) !== -1) return true;
       return false;
     },
   },

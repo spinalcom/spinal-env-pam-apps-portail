@@ -29,30 +29,25 @@ with this file. If not, see
     </div>
 
     <v-card class="myCard" elevation="4">
-      <Home
-        :headers="headers"
-        :apis="apis"
-        @upload="uploadFile"
-        @delete="deleteItems"
-      />
+      <Home :headers="headers" :apis="apis" @upload="uploadFile" @delete="deleteItems" />
     </v-card>
   </v-container>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import {Component, Watch} from 'vue-property-decorator';
-import Select from '../components/select.vue';
+import { Component, Watch } from 'vue-property-decorator';
+// import Select from '../components/select.vue';
 import Home from '../components/Home.vue';
 import categories from '../store/categories';
-import {Action, Getter, State} from 'vuex-class';
-import {IApiRoute} from '../interfaces';
+import { Action, Getter, State } from 'vuex-class';
+import { IApiRoute } from '../interfaces';
 
-type updateFunc = (param: {id: string; data: IApiRoute}) => Promise<void>;
+type updateFunc = (param: { id: string; data: IApiRoute }) => Promise<void>;
 
 @Component({
   components: {
-    Select,
+    // Select,
     Home,
   },
 })
@@ -76,9 +71,9 @@ class TableComponent extends Vue {
   @Action uploadPortofolioSwaggerFile!: (data: FormData) => Promise<void>;
 
   headers = [
-    {text: 'Nom', value: 'name'},
-    {text: 'Scope', value: 'scope'},
-    {text: 'Methodes', value: 'method'},
+    { text: 'Nom', value: 'name' },
+    { text: 'Scope', value: 'scope' },
+    { text: 'Methodes', value: 'method' },
   ];
 
   apis: any[] = [];
@@ -122,7 +117,7 @@ class TableComponent extends Vue {
     });
   }
 
-  selectCategory(item: {name: string; id: string}) {
+  selectCategory(item: { name: string; id: string }) {
     this.categorySelected = item;
     this.apis = this.portofolioApisGet;
 
@@ -152,7 +147,7 @@ class TableComponent extends Vue {
       cancelButtonText: 'Annuler',
       buttonsStyling: false,
       icon: 'warning',
-    }).then(async ({isConfirmed}) => {
+    }).then(async ({ isConfirmed }) => {
       if (!isConfirmed) return;
 
       const isSuccess = await this.removeCallback(items);
@@ -218,6 +213,7 @@ export default TableComponent;
 
 <style lang="scss">
 $header-height: 70px;
+
 ._container {
   width: 100vw;
   height: 100vh;

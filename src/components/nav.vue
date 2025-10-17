@@ -62,7 +62,7 @@ with this file. If not, see
               </div>
               <div class="navPickerApp-mainMenu-content-buttonContainer">
                 <button v-for="btn in mainbuttons"
-                        :key="btn.name"
+                        
                         class="navPickerApp-mainMenu-content-buttonContainer-button"
                         :tabindex="mainMenuTabIndexComputed"
                         @click="btn.action">
@@ -119,7 +119,7 @@ with this file. If not, see
               </button>
 
               <button v-for="app in appsDisplayed"
-                      :key="app.name"
+                      
                       class="navPickerApp-appMenu-content-app"
                       :tabindex="appMenuTabIndexComputed"
                       @click="goToApp(app, $event)">
@@ -209,6 +209,8 @@ export default {
     },
 
     goToApp(item, event) {
+      console.log("item is my app",item)
+
       if (item.isExternalApp) {
         window.open(item.link, "_blank");
         return;
@@ -217,12 +219,14 @@ export default {
       if (event.ctrlKey) {
         let routeData = this.$router.resolve({
           name: "App",
-          query: { app: btoa(JSON.stringify(item)) },
+          query: { app: item.name },
+          // query: { app: btoa(JSON.stringify(item)) },
         });
         window.open(routeData.href, "_blank");
       } else {
+        
         this.$router
-          .push({ name: "App", query: { app: btoa(JSON.stringify(item)) } })
+          .push({ name: "App", query: { app: item.name} })
           .catch((error) => {});
       }
       this.navBarAppMenuShow = false;

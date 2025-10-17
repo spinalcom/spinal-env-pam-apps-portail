@@ -26,6 +26,8 @@ import axios from 'axios';
 
 export const SERVER_BASE_URL = process.env.SPINAL_API_URL;
 
+
+
 export function initAxios() {
   // const host = "http://localhost:8065";
   // axios.create({ baseURL: `${serverHost}` });

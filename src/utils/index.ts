@@ -36,3 +36,38 @@ export function saveToLocalStorage(data: any) {
 export function clearLocalStorage() {
     localStorage.clear();
 }
+
+export function deleteAllCookies() {
+    document.cookie.split(';').forEach(cookie => {
+        const eqPos = cookie.indexOf('=');
+        const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
+        document.cookie = name + `=;expires=${new Date(0)}`;
+    });
+}
+
+
+export function getCookieValue(name) {
+    if (!name) return null;
+
+    var re = new RegExp(name + "=([^;]+)");
+    var value = re.exec(document.cookie);
+    return (value != null) ? unescape(value[1]) : null;
+}
+
+export function setCookie(cname, cvalue, expiresDate) {
+    let d = new Date();
+    if (!expiresDate) expiresDate = d.getTime() + (24 * 60 * 60 * 1000);
+
+    d.setTime(expiresDate);
+    let expires = "expires=" + d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+// function delete_cookie(name, path, domain) {
+//     if (get_cookie(name)) {
+//         document.cookie = name + "=" +
+//             ((path) ? ";path=" + path : "") +
+//             ((domain) ? ";domain=" + domain : "") +
+//             ";expires=Thu, 01 Jan 1970 00:00:01 GMT";
+//     }
+// }

@@ -29,20 +29,11 @@ with this file. If not, see
     <!-- </div> -->
 
     <!-- <iframe viewer  -->
-    <ViewerIFrame
-      v-if="showViewer"
-      class="iframeViewerContainer"
-      :inDrag="inDrag"
-      v-on:update:inDrag="inDrag = $event"
-    ></ViewerIFrame>
+    <!-- <ViewerIFrame v-if="showViewer" class="iframeViewerContainer" :inDrag="inDrag" v-on:update:inDrag="inDrag = $event">
+    </ViewerIFrame> -->
 
     <!-- <iframe  -->
-    <iframe
-      v-if="appPath"
-      class="iframeContainer"
-      :class="{'disabled-event': inDrag}"
-      :src="appPath"
-    ></iframe>
+    <iframe v-if="appPath" class="iframeContainer" :class="{ 'disabled-event': inDrag }" :src="appPath"></iframe>
 
     <div v-else class="iframeContainer notFoundDiv">
       <h1 class="code">404</h1>
@@ -52,11 +43,12 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import NavBar from '../components/nav.vue';
-import {SET_SELECTED_APP} from '../store/appDataStore';
-import {Vue, Component, Watch} from 'vue-property-decorator';
-import ViewerIFrame from './ViewerIframe.vue';
-import {IApp} from 'micro-apps/spinal-env-pam-apps-manager/src/types/interfaces';
+import NavBar from "../components/nav.vue";
+import { getAppById } from "../requests/userData";
+import { SET_SELECTED_APP } from "../store/appDataStore";
+import { Vue, Component, Watch } from "vue-property-decorator";
+import ViewerIFrame from "./ViewerIframe.vue";
+import { IApp } from "micro-apps/spinal-env-pam-apps-manager/src/types/interfaces";
 @Component({
   components: {
     NavBar,
@@ -70,32 +62,41 @@ class ApplicationView extends Vue {
   inDrag = false;
 
   async mounted() {
+    window.router = this.$route;
     await this.initApp();
   }
 
   async initApp() {
-    console.log('initApp');
-    this.appSelected = this.getAppInfo();
-    this.appPath = this.getAppPath();
+    // console.log("initApp");
+    const { appId, portofolioId, buildingId } = this.getAppInfo();
+    console.log(appId, portofolioId, buildingId)
+    // this.appPath = this.getAppPath();
 
-    if (!this.appSelected) return;
+    if (!appId) return;
 
-    await this.$store.dispatch(
-      `appDataStore/selectSpace`,
-      (<any>this.appSelected).parent
-    );
+    await this.$store.dispatch(`appDataStore/selectSpace`, { portofolioId, buildingId });
+
+    console.log("hello from appView")
+    this.appSelected = this.getAppSelected(appId);
+
+
     this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, this.appSelected);
+    this.appPath = this.getAppPath();
+    // await this.$store.dispatch(
+    //   `appDataStore/selectSpace`,
+    //   (<any>this.appSelected).parent
+    // );
+    // this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, this.appSelected);
   }
 
   getAppInfo() {
     try {
-      const {query} = this.$route;
+      const { query } = this.$route;
       const appId: any = query.app;
-      if (!appId) return;
-
-      const application: any = JSON.parse(atob(appId));
-      return application;
-    } catch (error) {}
+      const portofolioId = localStorage.getItem("idPortofolio")
+      const buildingId = localStorage.getItem("idBuilding")
+      return { appId, portofolioId, buildingId };
+    } catch (error) { }
   }
 
   getAppPath() {
@@ -108,14 +109,20 @@ class ApplicationView extends Vue {
     return `/micro-apps/${this.appSelected.packageName}`;
   }
 
-  @Watch('$route')
+  getAppSelected(appId) {
+    const appsDisplayed = this.$store.state.appDataStore.appsDisplayed;
+    console.log("mes application", appsDisplayed)
+    return appsDisplayed.find(app => app.name === appId)
+  }
+
+  @Watch("$route")
   watchRoute() {
     this.initApp();
   }
 
   get isMobile() {
     const breakpoint = this.$vuetify.breakpoint.name;
-    if (['xs', 'sm'].indexOf(breakpoint) !== -1) return true;
+    if (["xs", "sm"].indexOf(breakpoint) !== -1) return true;
     return false;
   }
 }
@@ -128,7 +135,7 @@ export default ApplicationView;
   width: 100%;
   height: 100%;
   padding: 0px !important;
-  // padding: 5px !important;
+  // padding: 0px !important;
   display: flex;
 
   .navbar {
@@ -148,16 +155,19 @@ export default ApplicationView;
     width: 100%;
     height: 100%;
   }
+
   .iframeContainer {
     width: 100%;
     height: 100%;
   }
-  .iframeViewerContainer + .iframeContainer {
+
+  .iframeViewerContainer+.iframeContainer {
     position: absolute;
     right: 0;
     width: 33%;
     height: 100%;
   }
+
   .disabled-event {
     pointer-events: none;
   }
@@ -167,6 +177,7 @@ export default ApplicationView;
     align-items: center;
     justify-content: center;
     flex-direction: column;
+
     .code {
       font-size: 5em;
     }

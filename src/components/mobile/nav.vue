@@ -36,9 +36,9 @@ with this file. If not, see
           </button>
         </div>
 
-        <div class="navPickerApp-companyLogo">
+        <!-- <div class="navPickerApp-companyLogo">
           <img :src="logoSvg" />
-        </div>
+        </div> -->
 
       </div>
     </div>
@@ -83,7 +83,7 @@ with this file. If not, see
         </v-list-item>
 
         <v-list-item v-for="item in apps"
-                     :key="item.id"
+                     
                      link
                      @click="goToApp(item, $event)">
           <v-list-item-icon>
@@ -115,7 +115,7 @@ with this file. If not, see
 </template>
 
 <script>
-const logo = require("../../../assets/img/favicon.png");
+// const logo = require("../../../assets/img/favicon.png");
 export default {
   props: {
     logoSvg: {},
@@ -125,7 +125,7 @@ export default {
   data: () => ({
     drawer: false,
     group: null,
-    logo,
+    // logo,
   }),
 
   methods: {
@@ -152,7 +152,7 @@ export default {
 <style lang="scss" scoped>
 .mobile-nav-container {
   position: absolute;
-  width: 450px !important;
+  width: 60px !important;
   height: 60px !important;
   top: 5px;
   left: 0px;

@@ -116,6 +116,7 @@ export default Vue.extend({
     this.debounceFilter = lodash.debounce(this.filterCategories, 400);
   },
   async mounted() {
+
     if (this.groups.length === 0) this.formatData(this.appsFormatted);
 
     this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, undefined);
@@ -181,13 +182,13 @@ export default Vue.extend({
       if (event.ctrlKey) {
         let routeData = this.$router.resolve({
           name: "App",
-          query: { app: btoa(JSON.stringify(item)) },
+          query: { app: item.name },
         });
         window.open(routeData.href, "_blank");
       } else {
         this.$router.push({
           name: "App",
-          query: { app: btoa(JSON.stringify(item)) },
+          query: { app: item.name},
         });
       }
     },

@@ -24,23 +24,16 @@ with this file. If not, see
 
 <template>
   <div class="headerSelect" v-if="portofolios">
-    <space-selector
-      ref="space-selector"
-      :open.sync="openSpaceSelector"
-      :maxDepth="1"
-      :GetChildrenFct="onSpaceSelectOpen"
-      @input="getSelectedItem"
-      :value="selectedZone"
-      :isMobile="isMobile"
-    >
+    <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="1"
+      :GetChildrenFct="onSpaceSelectOpen" @input="getSelectedItem" :value="selectedZone" :isMobile="isMobile">
     </space-selector>
   </div>
 </template>
 
 <script>
-import {SELECT_PORTOFOLIO} from '../store/appDataStore';
-import {mapState} from 'vuex';
-import {SpaceSelector} from '../../global-components';
+import { SELECT_PORTOFOLIO } from '../store/appDataStore';
+import { mapState } from 'vuex';
+import { SpaceSelector } from '../../global-components';
 
 export default {
   components: {
@@ -72,73 +65,112 @@ export default {
       },
     };
   },
-  // mounted() {
-  //   this.selected = this.default.id;
-  // },
+  mounted() {
+    // this.selected = this.default.id;
+  },
   methods: {
     selectedChanged(val) {
       // console.log(val);
     },
 
     async onSpaceSelectOpen(item) {
-      if (item) {
-        if (item.type === this.TYPES.portofolio) {
-          return (item.categories || []).map((building) => {
-            return {
-              name: building.name,
-              id: building.id,
-              categories: [],
-              staticId: building.id,
-              dynamicId: 0,
-              type: this.TYPES.building,
-            };
-          });
-        }
-        return [];
-        // console.log(item.buildings);
-        // return item.buildings.map((building) => {});
-      }
-
-      return this.portofolios.map((portofolio) => {
-        return {
+      if (!item) {
+        return this.portofolios.map((portofolio) => ({
           name: portofolio.name,
           categories: portofolio.buildings,
           staticId: portofolio.id,
           dynamicId: 0,
           type: this.TYPES.portofolio,
-        };
-      });
+        })
+        )
+      }
+
+      if (item.type === this.TYPES.portofolio) {
+        return (item.categories || []).map((building) => {
+          return {
+            name: building.name,
+            id: building.id,
+            categories: [],
+            staticId: building.id,
+            dynamicId: 0,
+            type: this.TYPES.building,
+          };
+        });
+      }
+
+      return [];
+
+
+
     },
 
     getSelectedItem(item) {
+      this.$store.commit(`appDataStore/${SELECT_PORTOFOLIO}`, item);
+      this.selectedZone = item;
       let portofolioId;
       let buildingId;
-      if (item.type === this.TYPES.portofolio) {
-        localStorage.setItem(
-          'patrimoine',
-          JSON.stringify({
-            id: item.staticId,
-            name: item.name,
-            buildings: item.categories,
-          })
-        );
-        portofolioId = item.staticId;
-      } else if (item.type === this.TYPES.building) {
-        localStorage.setItem('idBuilding', item.staticId);
-        portofolioId = item.parents[0];
-        buildingId = item.staticId;
-      }
-      this.$emit('selected', {portofolioId, buildingId});
+      const realItem = this.getInfos(item);
 
-      if (!buildingId) {
-        this.$store.commit(`appDataStore/${SELECT_PORTOFOLIO}`, item);
-        this.selectedZone = item;
+      // if select a portofolio
+      if (realItem.type === this.TYPES.portofolio) {
+
+        const value = JSON.stringify({ id: realItem.staticId, name: realItem.name, buildings: realItem.categories });
+        portofolioId = realItem.staticId;
+
+        this.saveItemInLocalStorage('patrimoine', value);
+        this.saveItemInLocalStorage("idPortofolio", portofolioId) // save portofolio id
+
+        // remove building id
+        localStorage.removeItem('idBuilding');
+        sessionStorage.removeItem('idBuilding');
+      } else if (realItem.type === this.TYPES.building) {
+        // if select a building
+        portofolioId = realItem.parents[0];
+        buildingId = realItem.staticId;
+
+        // save buildingId
+        localStorage.setItem('idBuilding', buildingId);
+        sessionStorage.setItem('idBuilding', buildingId);
+        this.saveItemInLocalStorage("idPortofolio", portofolioId) // save portofolio id
       }
+
+
+
+      this.$emit('selected', { portofolioId, buildingId });
+    },
+
+    saveItemInLocalStorage(key, value) {
+      localStorage.setItem(key, value);
     },
 
     close() {
       this.openSpaceSelector = false;
     },
+
+    getInfos(item) {
+      return this.portofolios.reduce((temp, portofolio) => {
+        if (portofolio.id === item.staticId) {
+          temp = {
+            name: portofolio.name,
+            type: this.TYPES.portofolio,
+            staticId: portofolio.id,
+            categories: portofolio.buildings
+          }
+        } else {
+          const found = portofolio.buildings.find(el => el.id === item.staticId);
+          if (found) {
+            temp = {
+              type: this.TYPES.building,
+              staticId: found.id,
+              name: found.name,
+              parents: [portofolio.id]
+            }
+          }
+        }
+
+        return temp;
+      }, undefined);
+    }
   },
   computed: {
     ...mapState('appDataStore', ['selectedPortofolio']),
@@ -177,8 +209,10 @@ export default {
 
 <style lang="scss">
 .headerSelect {
-  width: 100%;
+  width: 40%;
+  position: absolute;
   height: 70px;
+  right: 0px;
   // display: flex;
   // align-items: center;
   // border-radius: 10px;
@@ -193,11 +227,11 @@ export default {
 </style>
 
 <style>
-.theme--light.v-text-field > .v-input__control > .v-input__slot:before {
+.theme--light.v-text-field>.v-input__control>.v-input__slot:before {
   border: none !important;
 }
 
-.v-text-field > .v-input__control > .v-input__slot:after {
+.v-text-field>.v-input__control>.v-input__slot:after {
   border: none !important;
 }
 

@@ -32,7 +32,9 @@ const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
 
 
 export function addAppToFavorite(appIds, { portofolioId, buildingId }) {
+
     let endpoint = `${portofolioId}/${buildingId || ""}`;
+
     return axios.post(`${baseURL}/add_app_to_favoris/${endpoint}`, { appIds }).then((result) => {
         return result.data;
     }).catch((err) => {
@@ -61,6 +63,7 @@ export function getPortofolios(profileId: string | null) {
     if (!profileId) throw new Error("no profileId found");
 
     return axios.get(`${baseURL}/user_profile/get_authorized_portofolio/${profileId}`).then((result) => {
+        console.log('getPortofolios', result.data);
         return result.data;
     })
 }

@@ -29,12 +29,14 @@ import {
   registerAuthPlatformRequest,
   updateAuthPlatformRequest,
   deleteAuthPlatformRequest,
+  updateAuthPlatformTokenRequest
 } from "../requests";
 
 Vue.use(Vuex);
 
 const SET_AUTH_PLATFORM_INFO = "SET_AUTH_PLATFORM_INFO";
 const DELETE_AUTH_PLATFORM_INFO = "DELETE_AUTH_PLATFORM_INFO";
+const UPDATE_AUTH_PLATFORM_TOKEN = "UPDATE_AUTH_PLATFORM_TOKEN";
 
 export default new Vuex.Store({
   state: {
@@ -49,6 +51,11 @@ export default new Vuex.Store({
     [DELETE_AUTH_PLATFORM_INFO](state: any, { removed }: any) {
       if (removed) state.authPlatformInfo = undefined;
     },
+    [UPDATE_AUTH_PLATFORM_TOKEN](state: any, { token }: any) {
+      if (state.authPlatformInfo) {
+        state.authPlatformInfo.tokenPamToAdmin = token;
+      }
+    }
   },
   actions: {
     async getAuthPlatformInfo({ commit }: any) {
@@ -80,5 +87,13 @@ export default new Vuex.Store({
         return response.data;
       }
     },
-  },
+
+    async updateAuthPlatformToken({ commit }: any) {
+      const response = await updateAuthPlatformTokenRequest();
+      if (response.data) {
+        commit(UPDATE_AUTH_PLATFORM_TOKEN, response.data);
+        return response.data;
+      }
+    },
+  }
 });

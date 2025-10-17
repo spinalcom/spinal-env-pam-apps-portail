@@ -29,13 +29,7 @@ with this file. If not, see
     </div>
 
     <v-card class="cardContent" elevation="4">
-      <v-tabs
-        class="tabsHeader"
-        v-model="tab"
-        background-color="transparent"
-        color="primary"
-        grow
-      >
+      <v-tabs class="tabsHeader" v-model="tab" background-color="transparent" color="primary" grow>
         <v-tab v-for="item in tabItems" :key="item">
           {{ item }}
         </v-tab>
@@ -43,23 +37,13 @@ with this file. If not, see
 
       <v-tabs-items v-model="tab" class="tabsItems">
         <v-tab-item>
-          <app-list-component
-            :apps="portofolioApps"
-            @create="createApp"
-            @upload="uploadApp"
-            @edit="editApp"
-            @delete="deleteApp"
-          />
+          <app-list-component :apps="portofolioApps" @create="createApp" @upload="uploadApp" @edit="editApp"
+            @delete="deleteApp" />
         </v-tab-item>
 
         <v-tab-item>
-          <app-list-component
-            :apps="adminApps"
-            @create="createApp"
-            @upload="uploadApp"
-            @edit="editApp"
-            @delete="deleteApp"
-          />
+          <app-list-component :apps="adminApps" @create="createApp" @upload="uploadApp" @edit="editApp"
+            @delete="deleteApp" />
         </v-tab-item>
       </v-tabs-items>
 
@@ -76,20 +60,20 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import {IApp} from '../types/interfaces';
-import {Component, Prop, Vue, Watch} from 'vue-property-decorator';
+import { IApp } from '../types/interfaces';
+import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import AppListComponent from '../components/appList.vue';
-import Select from '../components/select.vue';
+// import Select from '../components/select.vue';
 import categories from '../store/data';
 
 @Component({
   components: {
     AppListComponent,
-    Select,
+    // Select,
   },
 })
 class HomeView extends Vue {
-  @Prop() categorySelected!: {name: string; id: string};
+  @Prop() categorySelected!: { name: string; id: string };
   @Prop() portofolioApps!: IApp[];
   @Prop() adminApps!: IApp[];
   // @Prop() apps!: IApp[];
@@ -102,7 +86,7 @@ class HomeView extends Vue {
   tabItems: string[] = Object.values(this.tabsObject);
   tab = this.tabsObject.portofolio;
 
-  selectCategory(item: {name: string; id: string}) {
+  selectCategory(item: { name: string; id: string }) {
     this.$emit('select', item);
   }
 
@@ -168,9 +152,7 @@ $card-background: #f8f9f9;
 
   .cardContent {
     width: 98%;
-    height: calc(
-      100% - #{$header-height+ $header-margin + $header-margin + 10px}
-    );
+    height: calc(100% - #{$header-height+ $header-margin + $header-margin + 10px});
     margin: auto;
     background: transparent !important;
     border-radius: 10px;
