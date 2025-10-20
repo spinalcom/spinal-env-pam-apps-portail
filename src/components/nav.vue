@@ -26,30 +26,22 @@ with this file. If not, see
 
   <div>
 
-    <mobile-nav style="width: 100%; height: 100%;"
-                v-show="isMobile"
-                :logoSvg="logoSvg"
-                :userInfo="userInfo"
-                :apps="appsDisplayed"
-                @logout="logOut"
-                @home="goToHome"
-                @goToApp="({item, event}) => goToApp(item, event)"></mobile-nav>
+    <mobile-nav style="width: 100%; height: 100%;" v-show="isMobile" :logoSvg="logoSvg" :userInfo="userInfo"
+      :apps="appsDisplayed" @logout="logOut" @home="goToHome"
+      @goToApp="({ item, event }) => goToApp(item, event)"></mobile-nav>
 
     <nav v-show="!isMobile">
       <div class="navPickerApp">
         <div class="navPickerApp-container">
           <div class="navPickerApp-mainMenu">
-            <button class="navPickerApp-mainMenu-button"
-                    :class="{
+            <button class="navPickerApp-mainMenu-button" :class="{
               actived: navBarMainMenuShow,
-            }"
-                    @click="clickMainMenu()">
+            }" @click="clickMainMenu()">
               <span></span>
               <span></span>
               <span></span>
             </button>
-            <div class="navPickerApp-mainMenu-content"
-                 :class="{
+            <div class="navPickerApp-mainMenu-content" :class="{
               actived: navBarMainMenuShow,
             }">
               <div class="navPickerApp-mainMenu-content-profil">
@@ -61,16 +53,11 @@ with this file. If not, see
                 </div>
               </div>
               <div class="navPickerApp-mainMenu-content-buttonContainer">
-                <button v-for="btn in mainbuttons"
-                        
-                        class="navPickerApp-mainMenu-content-buttonContainer-button"
-                        :tabindex="mainMenuTabIndexComputed"
-                        @click="btn.action">
-                  <div
-                       class="navPickerApp-mainMenu-content-buttonContainer-button-icon">
+                <button v-for="btn in mainbuttons" class="navPickerApp-mainMenu-content-buttonContainer-button"
+                  :tabindex="mainMenuTabIndexComputed" @click="btn.action">
+                  <div class="navPickerApp-mainMenu-content-buttonContainer-button-icon">
                   </div>
-                  <div
-                       class="navPickerApp-mainMenu-content-buttonContainer-button-title">
+                  <div class="navPickerApp-mainMenu-content-buttonContainer-button-title">
                     {{ btn.name }}
                   </div>
                 </button>
@@ -82,9 +69,7 @@ with this file. If not, see
             <img :src="logoSvg" />
           </div>
           <div class="navPickerApp-appMenu">
-            <button class="navPickerApp-appMenu-button"
-                    @click="clickAppMenu()"
-                    :class="{
+            <button class="navPickerApp-appMenu-button" @click="clickAppMenu()" :class="{
               actived: navBarAppMenuShow,
             }">
               <div class="buttonLabel">application</div>
@@ -92,7 +77,7 @@ with this file. If not, see
                 <!-- <span class="material-icons">
                 {{ localAppSelected.icon || 'location_city' }}
               </span> -->
-                <v-icon>{{localAppSelected.icon || 'mdi-domain'}}</v-icon>
+                <v-icon>{{ localAppSelected.icon || 'mdi-domain' }}</v-icon>
 
               </div>
               <div class="navPickerApp-appMenu-title">
@@ -100,13 +85,10 @@ with this file. If not, see
               </div>
             </button>
 
-            <div class="navPickerApp-appMenu-content"
-                 :class="{
+            <div class="navPickerApp-appMenu-content" :class="{
               actived: navBarAppMenuShow,
             }">
-              <button class="navPickerApp-appMenu-content-app"
-                      :tabindex="appMenuTabIndexComputed"
-                      @click="goToHome">
+              <button class="navPickerApp-appMenu-content-app" :tabindex="appMenuTabIndexComputed" @click="goToHome">
                 <div class="navPickerApp-appMenu-content-app-iconContainer">
                   <!-- <v-icon>{{homeApp.icon || 'mdi-domain'}}</v-icon> -->
                   <span class="material-icons">
@@ -118,13 +100,10 @@ with this file. If not, see
                 </div>
               </button>
 
-              <button v-for="app in appsDisplayed"
-                      
-                      class="navPickerApp-appMenu-content-app"
-                      :tabindex="appMenuTabIndexComputed"
-                      @click="goToApp(app, $event)">
+              <button v-for="app in appsDisplayed" class="navPickerApp-appMenu-content-app"
+                :tabindex="appMenuTabIndexComputed" @click="goToApp(app, $event)">
                 <div class="navPickerApp-appMenu-content-app-iconContainer">
-                  <v-icon>{{app.icon || 'mdi-domain'}}</v-icon>
+                  <v-icon>{{ app.icon || 'mdi-domain' }}</v-icon>
                   <!-- <span class="material-icons">
                   {{ app.icon || 'location_city' }}
                 </span> -->
@@ -180,7 +159,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions("logingStore", ["clearLocalStorage"]),
+    ...mapActions("logingStore", ["clearLocalStorage", 'clearAllCookies']),
     ...mapActions("appDataStore", ["getApps", "getUserInfo", "getPortofolios"]),
 
     clickMainMenu() {
@@ -195,7 +174,8 @@ export default {
 
     logOut() {
       this.clearLocalStorage();
-      this.$router.push({ name: "Login" });
+      this.clearAllCookies();
+      this.$router.push({ name: 'Login' });
     },
 
     goToHome(event) {
@@ -203,13 +183,13 @@ export default {
         let routeData = this.$router.resolve({ name: "Home" });
         window.open(routeData.href, "_blank");
       } else {
-        this.$router.push({ name: "Home" }).catch(() => {});
+        this.$router.push({ name: "Home" }).catch(() => { });
       }
       this.navBarAppMenuShow = false;
     },
 
     goToApp(item, event) {
-      console.log("item is my app",item)
+      console.log("item is my app", item)
 
       if (item.isExternalApp) {
         window.open(item.link, "_blank");
@@ -224,10 +204,10 @@ export default {
         });
         window.open(routeData.href, "_blank");
       } else {
-        
+
         this.$router
-          .push({ name: "App", query: { app: item.name} })
-          .catch((error) => {});
+          .push({ name: "App", query: { app: item.name } })
+          .catch((error) => { });
       }
       this.navBarAppMenuShow = false;
     },

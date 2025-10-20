@@ -33,14 +33,16 @@ app.get("/", (req, res) => {
 });
 
 app.get("/login", async (req, res) => {
-    let token = getToken(req);
 
-    if (!token && req.query.ref) token = await getTokentoKenByRef(req.query.ref);
+    let token = null;
+
+    if (req.query.ref) token = await getTokentoKenByRef(req.query.ref);
+
+    if (!token) token = getToken(req);
 
     if (!token) {
         return res.redirect(spinal_api_url + "/login");
     }
-
 
     // Check if the token is valid
     const { error } = await checkTokenValidity(spinal_api_url, token);
