@@ -25,7 +25,8 @@ with this file. If not, see
 <template>
   <div class="headerSelect" v-if="portofolios">
     <space-selector ref="space-selector" :open.sync="openSpaceSelector" :maxDepth="1"
-      :GetChildrenFct="onSpaceSelectOpen" @input="getSelectedItem" :value="selectedZone" :isMobile="isMobile">
+      :GetChildrenFct="onSpaceSelectOpen" @input="getSelectedItem" :value="selectedZone" :isMobile="isMobile"
+      @openInNew="openInNew">
     </space-selector>
   </div>
 </template>
@@ -69,6 +70,11 @@ export default {
     // this.selected = this.default.id;
   },
   methods: {
+
+    openInNew(item) {
+      this.$emit('openInNew', item);
+    },
+
     selectedChanged(val) {
       // console.log(val);
     },

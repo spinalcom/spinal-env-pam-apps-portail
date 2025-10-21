@@ -61,6 +61,7 @@ with this file. If not, see
           </p>
           <v-progress-circular style="margin-right: 10px;" v-if="!viewerLoaded && label == 'ESPACE'" :size="25"
             color="white" indeterminate></v-progress-circular>
+
         </div>
         <transition-group id="myDiv" name="staggered-fade" class="card-list spinal-scrollbar"
           :style="[{ 'overflow-y': 'auto' + ' !important' }]" tag="div" v-bind:css="false"
@@ -70,7 +71,8 @@ with this file. If not, see
             :key="`${index}-${item.dynamicId}-${item.platformId}-${item.patrimoineId}`" :item="item"
             v-bind:data-index="index" :maxDepth="maxDepth" @onSelect="select(item)" :selected="selectedZone"
             @onOpenClose="expandCollapse(item, index)" :spaceSelectorItemButtons="spaceSelectorItemButtons"
-            :viewButtonsType="viewButtonsType" @onActionClick="onActionClick"></SpaceSelectorItem>
+            :viewButtonsType="viewButtonsType" @onActionClick="onActionClick" @openInNew="openInNew">
+          </SpaceSelectorItem>
         </transition-group>
       </v-card>
     </div>
@@ -260,6 +262,11 @@ class SpaceSelector extends Vue {
     this.pickDate = true;
   }
 
+  public openInNew(item: ISpaceSelectorItem) {
+    this.select(item);
+    this.$emit('openInNew', item);
+  }
+
   private myDiv!: HTMLDivElement;
   checkingOverflow() {
     const myDiv = document.getElementById('myDiv');
@@ -300,7 +307,7 @@ class SpaceSelector extends Vue {
       const currentStatus = ["loaded", "initialize"].includes(
         sessionStorage.getItem("viewer_loaded") || localStorage.getItem("viewer_loaded") || ""
       );
-      
+
       if (this.viewerLoaded !== currentStatus) {
         this.viewerLoaded = currentStatus;
 

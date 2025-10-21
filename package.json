@@ -29,6 +29,7 @@
     "fs": "0.0.1-security",
     "http-server": "^14.1.1",
     "javascript-color-gradient": "^2.4.4",
+    "maplibre-gl": "^5.9.0",
     "moment": "^2.29.4",
     "q": "^1.5.1",
     "uuid": "^9.0.1",

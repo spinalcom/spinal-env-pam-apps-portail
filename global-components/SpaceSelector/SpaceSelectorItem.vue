@@ -54,6 +54,10 @@ with this file. If not, see
         :disabled="item.loading" @click.stop="onOpenClose" v-show="item.level != maxDepth">
         <v-icon dark> {{ icon }} </v-icon>
       </v-btn>
+
+      <v-btn dark v-if="checkIfItsABuilding(item.type)" @click.stop="openInNew">
+        <v-icon>mdi-open-in-new</v-icon>
+      </v-btn>
     </v-list-item-action>
   </v-list-item>
 </template>
@@ -88,7 +92,11 @@ class SpaceSelectorItem extends Vue {
 
     return this.item.color as string
   }
-  
+
+  public openInNew() {
+    this.$emit('openInNew', this.item);
+  }
+
 
   public get icon(): string {
     return this.item?.isOpen ? 'mdi-chevron-down' : 'mdi-chevron-up';
@@ -123,9 +131,9 @@ class SpaceSelectorItem extends Vue {
     this.$emit('onSelect');
   }
 
-  onMouseEnter() {    
+  onMouseEnter() {
     const dynamicId = this.item.dynamicId;
-    if (dynamicId && this.label == 'ESPACE' && this.item.type != "geographicFloor" &&  this.item.type != "building") {
+    if (dynamicId && this.label == 'ESPACE' && this.item.type != "geographicFloor" && this.item.type != "building") {
 
       EventBus.$emit('colorRoom', dynamicId);
     }
@@ -152,6 +160,11 @@ class SpaceSelectorItem extends Vue {
 
   drawParentLink(depth: number) {
     return !this.item.drawLink.includes(depth);
+  }
+
+
+  checkIfItsABuilding(type: string) {
+    return type.toLowerCase() !== "portofolio" && type.toLowerCase() !== "administration";
   }
 
 

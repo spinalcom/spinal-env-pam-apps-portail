@@ -31,7 +31,7 @@ with this file. If not, see
 
       <div class="select">
         <select-component ref="select-component" :isMobile="isMobile" @selected="changeApps"
-          :portofolios="portofolios"></select-component>
+          @openInNew="goToBuildingDetail" :portofolios="portofolios"></select-component>
       </div>
     </div>
 
@@ -84,12 +84,23 @@ export default {
         return;
       }
 
-      this.goToBuildingDetail(data.buildingId);
+      // this.goToBuildingDetail(data.buildingId); // generate building url;
     },
 
-    async goToBuildingDetail(buildingId) {
-      const { url } = await generateBuildingUrl(buildingId);
-      if (url) window.open(url, "_blank");
+    async goToBuildingDetail(item) {
+      try {
+        const buildingId = item?.buildingId;
+        if (!buildingId) {
+          alert("No building associated with this item");
+          return;
+        }
+
+        const { url } = await generateBuildingUrl(buildingId);
+        if (url) window.open(url, "_blank");
+      } catch (error) {
+        alert("Error while generating building url");
+      }
+
     },
   },
   computed: {

@@ -56,33 +56,14 @@ export default {
 <template>
   <div class="context-menu-container">
     <v-fab-transition v-for="itm in buttons" :key="itm.label">
-      <v-speed-dial
-        v-model="itm.opened"
-        direction="top"
-        :open-on-hover="false"
-        transition="slide-y-reverse-transition"
-      >
+      <v-speed-dial v-model="itm.opened" direction="top" :open-on-hover="false" transition="slide-y-reverse-transition">
         <template v-slot:activator>
-          <v-btn
-            v-model="itm.opened"
-            v-tooltip="itm.opened ? itm.label : 'close'"
-            small
-            dark
-            fab
-          >
+          <v-btn v-model="itm.opened" v-tooltip="itm.opened ? itm.label : 'close'" small dark fab>
             <v-icon v-if="itm.opened"> mdi-close </v-icon>
             <v-icon v-else> {{ itm.icon }} </v-icon>
           </v-btn>
         </template>
-        <v-btn
-          v-for="btn in itm.children"
-          :key="btn.label"
-          dark
-          small
-          fab
-          v-tooltip="btn.label"
-          @click="onClick(btn)"
-        >
+        <v-btn v-for="btn in itm.children" :key="btn.label" dark small fab v-tooltip="btn.label" @click="onClick(btn)">
           <v-icon>{{ btn.icon }} </v-icon>
         </v-btn>
       </v-speed-dial>
@@ -101,7 +82,8 @@ export default {
   display: flex;
   flex-direction: row-reverse;
 }
-.context-menu-container > * {
+
+.context-menu-container>* {
   margin: 8px;
 }
 </style>

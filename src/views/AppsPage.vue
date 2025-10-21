@@ -1,0 +1,237 @@
+<template>
+
+    <v-container class="appContainer" fluid>
+        <div class="my_header">
+            <div class="description">
+                <p>Consultez toutes les données de vos bâtiments connectés.</p>
+                <p>
+                    Vous pouvez garder en favoris une visualisation en cliquant sur
+                    <v-btn outlined small disabled class="favorisBtn">
+                        <v-icon>mdi-star</v-icon>
+                    </v-btn>
+                </p>
+            </div>
+
+            <v-row class="search">
+                <v-col cols="8" class="searchCol">
+                    <v-text-field solo flat placeholder="rechercher" prepend-inner-icon="mdi-magnify"
+                        v-model="filtersData.search">
+                    </v-text-field>
+                </v-col>
+                <v-col cols="4">
+                    <v-select solo flat v-model="filtersData.category" append-icon=""
+                        prepend-inner-icon="mdi-chevron-down" :items="selects" item-text="name" item-value="value"
+                        label="Select" persistent-hint return-object single-line></v-select>
+                </v-col>
+            </v-row>
+        </div>
+
+        <v-layout class="apps-container">
+            <v-flex style="overflow: auto">
+                <GridComponent :groups="groups" :categories="categoriesDisplayed" :isMobile="isMobile"
+                    :favoriteApps="favoriteApps" @goToApp="goToApp" @exploreApp="exploreApp"
+                    @addAppToFavoris="addAppToFavoris" />
+            </v-flex>
+        </v-layout>
+    </v-container>
+</template>
+
+<script lang="ts">
+import Vue from "vue";
+import GridComponent from "../components/gridComponent.vue";
+import { SET_SELECTED_APP } from "../store/appDataStore";
+import { mapState, mapActions } from "vuex";
+import lodash from "lodash";
+
+export default Vue.extend({
+    name: "AppsPage",
+    components: {
+        GridComponent,
+    },
+    props: {
+        isMobile: {},
+    },
+    data() {
+
+        this.defaultCategory = {
+            name: "Toutes les categories",
+            value: "",
+        };
+
+        return {
+            items: [],
+            filtersData: {
+                category: this.defaultCategory,
+                search: "",
+            },
+            groups: [],
+            categories: [],
+            categoriesDisplayed: [],
+            selects: [],
+        }
+    },
+    created() {
+        this.debounceFilter = lodash.debounce(this.filterCategories, 400);
+    },
+    async mounted() {
+
+        if (this.groups.length === 0) this.formatData(this.appsFormatted);
+
+        this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, undefined);
+    },
+    methods: {
+        ...mapActions("appDataStore", ["addToFavoriteApps", "deleteFavoriteApps"]),
+
+        formatData(info) {
+            if (!info) return;
+            const { groups, data } = info;
+            this.groups = groups;
+            this.categories = data;
+            this.filterCategories();
+            this.selects = [
+                this.defaultCategory,
+                ...data.map((el) => {
+                    el.name = el.name || el.name;
+                    el.value = el.id || el.name;
+                    return el;
+                }),
+            ];
+        },
+
+        filterCategories() {
+            this.categoriesDisplayed = this.categories.reduce((liste, item) => {
+                const categoryName = this.filtersData.category.value;
+                if (categoryName && categoryName !== item.value) return liste;
+                const searchData = this.filtersData.search.toLowerCase();
+                let appsItem = !searchData ? item : this.filterApps(searchData, item);
+
+                liste.push(appsItem);
+                return liste;
+            }, []);
+        },
+
+        filterApps(searchText, item) {
+            let obj = {};
+            for (const key in item) {
+                if (Object.hasOwnProperty.call(item, key)) {
+                    const value = item[key];
+                    obj[key] =
+                        typeof value === "string"
+                            ? value
+                            : value.filter(
+                                (el) =>
+                                    el.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                                    el.tags.find((tag) =>
+                                        tag.toLowerCase().includes(searchText.toLowerCase())
+                                    )
+                            );
+                }
+            }
+
+            return obj;
+        },
+
+        goToApp({ item, event }) {
+            if (item.isExternalApp) {
+                window.open(item.link, "_blank");
+                return;
+            }
+
+            if (event.ctrlKey) {
+                let routeData = this.$router.resolve({
+                    name: "App",
+                    query: { app: item.name },
+                });
+                window.open(routeData.href, "_blank");
+            } else {
+                this.$router.push({
+                    name: "App",
+                    query: { app: item.name },
+                });
+            }
+        },
+
+        exploreApp(item) { },
+
+        addAppToFavoris({ item, isFavorite }) {
+            const ids = [item.id];
+            if (isFavorite) return this.deleteFavoriteApps(ids);
+            this.addToFavoriteApps(ids);
+        },
+    },
+    computed: {
+        ...mapState("appDataStore", ["appsFormatted", "favoriteApps", "spaceSelected"]),
+    },
+    watch: {
+        // favoriteApps() {
+        //   this.favoriteApps.forEach((el) => {
+        //     this.favoriteAppsObj[el.id] = el;
+        //   });
+        // },
+
+        appsFormatted({ data, groups }) {
+            this.formatData({ data, groups });
+        },
+
+        "filtersData.category": function () {
+            this.filterCategories();
+        },
+
+        "filtersData.search": function () {
+            this.debounceFilter();
+        },
+    },
+});
+</script>
+
+<style lang="scss" scoped>
+$md-screen: 960px;
+
+.appContainer {
+    width: 100%;
+    height: 100%;
+    padding: 0px;
+
+    .my_header {
+        @media (max-width: $md-screen) {
+            width: 100%;
+        }
+
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+        height: 150px;
+
+        .description {
+            margin-bottom: 20px;
+
+            p {
+                margin-bottom: 0px;
+            }
+        }
+
+        .search {
+            .searchCol {
+                padding-right: 0px;
+            }
+        }
+    }
+
+    .favorisBtn {
+        min-width: unset !important;
+        width: 35px;
+        height: 35px !important;
+        border-radius: 10px;
+
+        i {
+            font-size: 15px;
+        }
+    }
+
+    .apps-container {
+        width: 100%;
+        height: calc(100% - 210px);
+        background: transparent;
+    }
+}
+</style>

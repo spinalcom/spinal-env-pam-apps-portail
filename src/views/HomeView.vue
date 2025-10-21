@@ -22,257 +22,150 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="appContainer"
-               fluid>
-    <div class="my_header">
-      <div class="description">
-        <p>Consultez toutes les données de vos bâtiments connectés.</p>
-        <p>
-          Vous pouvez garder en favoris une visualisation en cliquant sur
-          <v-btn outlined
-                 small
-                 disabled
-                 class="favorisBtn">
-            <!-- <v-icon>mdi-cards-diamond</v-icon> -->
-            <v-icon>mdi-star</v-icon>
-          </v-btn>
-        </p>
-      </div>
+  <ApplicationPage :isMobile="isMobile" v-if="isAdministration" />
 
-      <v-row class="search">
-        <v-col cols="8"
-               class="searchCol">
-          <v-text-field solo
-                        flat
-                        placeholder="rechercher"
-                        prepend-inner-icon="mdi-magnify"
-                        v-model="filtersData.search">
-          </v-text-field>
-        </v-col>
-        <v-col cols="4">
-          <v-select solo
-                    flat
-                    v-model="filtersData.category"
-                    append-icon=""
-                    prepend-inner-icon="mdi-chevron-down"
-                    :items="selects"
-                    item-text="name"
-                    item-value="value"
-                    label="Select"
-                    persistent-hint
-                    return-object
-                    single-line></v-select>
-        </v-col>
-      </v-row>
+  <div v-else-if="isPortofolio" class="appContainer">
+
+    <v-tabs v-model="tabs" grow>
+      <v-tab>
+        <v-icon left>mdi-map-marker-radius</v-icon>
+        Maps
+      </v-tab>
+
+      <v-tab>
+        <v-icon left>mdi-apps</v-icon>
+        Applications
+      </v-tab>
+    </v-tabs>
+
+    <v-tabs-items v-model="tabs">
+
+      <v-tab-item>
+        <MapComponent :markers="markers" />
+      </v-tab-item>
+
+      <v-tab-item>
+        <ApplicationPage :isMobile="isMobile" />
+      </v-tab-item>
+
+    </v-tabs-items>
+
+  </div>
+
+  <!-- 
+    <div v-else class="appContainer">
+    <v-card class="detail pa-5 mb-6" rounded="xl" elevation="1">
+
+      <ValueCard icon="mdi-plus" title="hello" value="10000" />
+
+    </v-card>
+
+    <div class="map">
+      <MapComponent :markers="markers" />
     </div>
 
-    <v-layout class="apps-container">
-      <v-flex style="overflow: auto">
-        <GridComponent :groups="groups"
-                       :categories="categoriesDisplayed"
-                       :isMobile="isMobile"
-                       :favoriteApps="favoriteApps"
-                       @goToApp="goToApp"
-                       @exploreApp="exploreApp"
-                       @addAppToFavoris="addAppToFavoris" />
-      </v-flex>
-    </v-layout>
-  </v-container>
+  </div> -->
+
 </template>
 
 <script>
 import Vue from "vue";
-// import { groups, categories } from "./data";
-import GridComponent from "../components/gridComponent.vue";
-import * as lodash from "lodash";
-import { mapActions, mapState } from "vuex";
-import { SET_SELECTED_APP } from "../store/appDataStore";
-
+import ApplicationPage from "./AppsPage.vue";
+import { mapState, mapActions } from "vuex";
+import MapComponent from "../components/map.vue";
+import ValueCard from '../components/value_card.vue'
 export default Vue.extend({
   name: "Home",
   components: {
-    GridComponent,
+    ApplicationPage,
+    MapComponent,
+    ValueCard
   },
   props: {
     isMobile: {},
   },
+
   data() {
-    this.defaultCategory = {
-      name: "Toutes les categories",
-      value: "",
-    };
+
     return {
-      filtersData: {
-        category: this.defaultCategory,
-        search: "",
-      },
-      groups: [],
-      categories: [],
-      categoriesDisplayed: [],
-      selects: [],
+      tabs: null,
     };
   },
-  created() {
-    this.debounceFilter = lodash.debounce(this.filterCategories, 400);
-  },
-  async mounted() {
 
-    if (this.groups.length === 0) this.formatData(this.appsFormatted);
-
-    this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, undefined);
-  },
   methods: {
-    ...mapActions("appDataStore", ["addToFavoriteApps", "deleteFavoriteApps"]),
 
-    formatData(info) {
-      if (!info) return;
-      const { groups, data } = info;
-      this.groups = groups;
-      this.categories = data;
-      this.filterCategories();
-      this.selects = [
-        this.defaultCategory,
-        ...data.map((el) => {
-          el.name = el.name || el.name;
-          el.value = el.id || el.name;
-          return el;
-        }),
-      ];
-    },
-
-    filterCategories() {
-      this.categoriesDisplayed = this.categories.reduce((liste, item) => {
-        const categoryName = this.filtersData.category.value;
-        if (categoryName && categoryName !== item.value) return liste;
-        const searchData = this.filtersData.search.toLowerCase();
-        let appsItem = !searchData ? item : this.filterApps(searchData, item);
-
-        liste.push(appsItem);
-        return liste;
-      }, []);
-    },
-
-    filterApps(searchText, item) {
-      let obj = {};
-      for (const key in item) {
-        if (Object.hasOwnProperty.call(item, key)) {
-          const value = item[key];
-          obj[key] =
-            typeof value === "string"
-              ? value
-              : value.filter(
-                  (el) =>
-                    el.name.toLowerCase().includes(searchText.toLowerCase()) ||
-                    el.tags.find((tag) =>
-                      tag.toLowerCase().includes(searchText.toLowerCase())
-                    )
-                );
-        }
-      }
-
-      return obj;
-    },
-
-    goToApp({ item, event }) {
-      if (item.isExternalApp) {
-        window.open(item.link, "_blank");
-        return;
-      }
-
-      if (event.ctrlKey) {
-        let routeData = this.$router.resolve({
-          name: "App",
-          query: { app: item.name },
-        });
-        window.open(routeData.href, "_blank");
-      } else {
-        this.$router.push({
-          name: "App",
-          query: { app: item.name},
-        });
-      }
-    },
-
-    exploreApp(item) {},
-
-    addAppToFavoris({ item, isFavorite }) {
-      const ids = [item.id];
-      if (isFavorite) return this.deleteFavoriteApps(ids);
-      this.addToFavoriteApps(ids);
-    },
   },
   computed: {
-    ...mapState("appDataStore", ["appsFormatted", "favoriteApps"]),
+    ...mapState("appDataStore", ["spaceSelected"]),
+    isAdministration() {
+      return this.spaceSelected && this.spaceSelected.type.toLowerCase() === "administration";
+    },
+    isPortofolio() {
+      return this.spaceSelected && this.spaceSelected.type.toLowerCase() === "portofolio";
+    },
+
+    markers() {
+      const buildings = this.isPortofolio ? this.spaceSelected.buildings : [this.spaceSelected];
+
+      return buildings.map((building) => ({
+        lat: building?.location?.lat,
+        lng: building?.location?.lng,
+      }));
+
+
+    }
   },
   watch: {
-    // favoriteApps() {
-    //   this.favoriteApps.forEach((el) => {
-    //     this.favoriteAppsObj[el.id] = el;
-    //   });
-    // },
-    appsFormatted({ data, groups }) {
-      this.formatData({ data, groups });
-    },
-
-    "filtersData.category": function () {
-      this.filterCategories();
-    },
-
-    "filtersData.search": function () {
-      this.debounceFilter();
-    },
+    spaceSelected() {
+      const type = this.spaceSelected.type;
+      console.log("type", this.spaceSelected);
+      // switch (type.toLowerCase()) {
+      //   case "administration":
+      //     this.items = [this.tabsItems.Application];
+      //     break;
+      //   case "portofolio":
+      //     console.log("portofolio", this.spaceSelected);
+      //     break;
+      //   default:
+      //     this.items = [this.tabsItems.Maps];
+      //     break;
+      // }
+    }
   },
 });
 </script>
 
-<style lang="scss">
-$md-screen: 960px;
-
+<style scoped>
 .appContainer {
   width: 100%;
   height: 100%;
-  padding: 0px;
+}
 
-  .my_header {
-    @media (max-width: $md-screen) {
-      width: 100%;
-    }
-    width: 50%;
-    display: flex;
-    flex-direction: column;
-    height: 150px;
+.appContainer .detail {
+  width: 100%;
+  height: 100px;
+}
 
-    .description {
-      margin-bottom: 20px;
-
-      p {
-        margin-bottom: 0px;
-      }
-    }
-
-    .search {
-      .searchCol {
-        padding-right: 0px;
-      }
-    }
-  }
-
-  .favorisBtn {
-    min-width: unset !important;
-    width: 35px;
-    height: 35px !important;
-    border-radius: 10px;
-
-    i {
-      font-size: 15px;
-    }
-  }
-
-  .apps-container {
-    width: 100%;
-    height: calc(100% - 210px);
-    background: transparent;
-  }
+.appContainer .map {
+  width: 100%;
+  height: calc(100% - 100px);
 }
 </style>
 
+<style lang="scss">
+.theme--light.v-tabs-items {
+  width: 100%;
+  height: calc(100% - 70px);
+  background-color: transparent;
+}
+
+.v-window-item.v-window-item--active {
+  width: 100%;
+  height: 100%;
+}
+
+.v-window__container {
+  width: 100%;
+  height: 100%;
+}
+</style>

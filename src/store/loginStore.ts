@@ -56,7 +56,7 @@ export const logingStore = {
         },
 
         storeCookie({ state }: any, vueCookieInstance: any) {
-            this.clearAllCookies(); // to avoid duplicates
+            deleteAllCookies(); // to avoid duplicates
             saveToLocalStorage(state.data);
         },
 

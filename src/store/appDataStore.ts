@@ -45,9 +45,7 @@ const names = {
   // "adminApps": "Administration"
 };
 
-function classifyByCategory(
-  apps: any[]
-): { name: string; id: string; apps: any[] }[] {
+function classifyByCategory(apps: any[]): { name: string; id: string; apps: any[] }[] {
   const obj: { [key: string]: any } = {};
   apps.forEach((data) => {
     const categoryId = data.categoryName.toLowerCase();
@@ -107,7 +105,7 @@ export const appDataStore = {
   state: {
     selectedPortofolio: undefined,
     portofolios: undefined,
-    spaceSelected: "",
+    spaceSelected: undefined,
     appSelected: undefined,
     appsDisplayed: [],
     pamApps: [],
@@ -219,13 +217,13 @@ export const appDataStore = {
           };
           return el;
         });
-        state.spaceSelected = data.portofolioId;
+        state.spaceSelected = portofolio;
       } else if (portofolio && data.buildingId) {
         const building = portofolio.buildings.find(
           (el) => el.id === data.buildingId
         );
         if (building) {
-          state.spaceSelected = data.buildingId;
+          state.spaceSelected = building;
           apps = building.apps.map((el) => {
             el.parent = {
               portofolioId: data.portofolioId,
