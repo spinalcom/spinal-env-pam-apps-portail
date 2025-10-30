@@ -43,7 +43,7 @@ with this file. If not, see
 import { mapActions, mapState } from "vuex";
 import NavBar from "../components/nav.vue";
 import SelectComponent from "../components/select.vue";
-import { generateBuildingUrl } from "../requests/building";
+import { goToBosConfigPortail } from "../requests/building";
 
 export default {
   components: {
@@ -88,19 +88,7 @@ export default {
     },
 
     async goToBuildingDetail(item) {
-      try {
-        const buildingId = item?.buildingId;
-        if (!buildingId) {
-          alert("No building associated with this item");
-          return;
-        }
-
-        const { url } = await generateBuildingUrl(buildingId);
-        if (url) window.open(url, "_blank");
-      } catch (error) {
-        alert("Error while generating building url");
-      }
-
+      goToBosConfigPortail(item.buildingId);
     },
   },
   computed: {

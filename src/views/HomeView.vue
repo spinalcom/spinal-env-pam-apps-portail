@@ -41,7 +41,8 @@ with this file. If not, see
     <v-tabs-items v-model="tabs">
 
       <v-tab-item>
-        <MapComponent :markers="markers" />
+        <!-- <MapComponent :markers="markers" /> -->
+        <PortofolioView :portofolioSelected="spaceSelected" @openBosConfig="goToBosConfig" />
       </v-tab-item>
 
       <v-tab-item>
@@ -72,13 +73,17 @@ with this file. If not, see
 import Vue from "vue";
 import ApplicationPage from "./AppsPage.vue";
 import { mapState, mapActions } from "vuex";
-import MapComponent from "../components/map.vue";
+// import MapComponent from "../components/map.vue";
 import ValueCard from '../components/value_card.vue'
+import PortofolioView from "../components/PortofolioView.vue";
+import { goToBosConfigPortail } from "../requests/building";
+
 export default Vue.extend({
   name: "Home",
   components: {
     ApplicationPage,
-    MapComponent,
+    // MapComponent,
+    PortofolioView,
     ValueCard
   },
   props: {
@@ -94,12 +99,16 @@ export default Vue.extend({
 
   methods: {
 
+    goToBosConfig({ buildingId }) {
+      goToBosConfigPortail(buildingId);
+    }
   },
   computed: {
     ...mapState("appDataStore", ["spaceSelected"]),
     isAdministration() {
       return this.spaceSelected && this.spaceSelected.type.toLowerCase() === "administration";
     },
+
     isPortofolio() {
       return this.spaceSelected && this.spaceSelected.type.toLowerCase() === "portofolio";
     },
@@ -111,9 +120,8 @@ export default Vue.extend({
         lat: building?.location?.lat,
         lng: building?.location?.lng,
       }));
+    },
 
-
-    }
   },
   watch: {
     spaceSelected() {

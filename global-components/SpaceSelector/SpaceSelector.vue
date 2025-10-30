@@ -263,7 +263,7 @@ class SpaceSelector extends Vue {
   }
 
   public openInNew(item: ISpaceSelectorItem) {
-    this.select(item);
+    // this.select(item);
     this.$emit('openInNew', item);
   }
 

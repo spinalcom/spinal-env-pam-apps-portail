@@ -25,12 +25,7 @@ with this file. If not, see
 <template>
   <div class="_container">
     <div class="header">
-      <v-btn
-        class="button"
-        color="#14202c"
-        @click="save"
-        :disabled="disableBtn"
-      >
+      <v-btn class="button" color="#14202c" @click="save" :disabled="disableBtn">
         <v-icon class="btnIcon"> mdi-content-save-outline </v-icon>
 
         Enregister
@@ -52,64 +47,35 @@ with this file. If not, see
           <div class="form">
             <v-row no-gutters>
               <v-col cols="12">
-                <v-text-field
-                  dense
-                  hide-details
-                  label="Name"
-                  v-model.trim="building.name"
-                  outlined
-                ></v-text-field>
+                <v-text-field dense hide-details label="Name" v-model.trim="building.name" outlined></v-text-field>
               </v-col>
 
               <v-col cols="12">
-                <v-text-field
-                  dense
-                  hide-details
-                  label="Alias"
-                  v-model.trim="building.aliasName"
-                  outlined
-                ></v-text-field>
+                <v-text-field dense hide-details label="Alias" v-model.trim="building.aliasName"
+                  outlined></v-text-field>
               </v-col>
 
               <v-col cols="12">
-                <v-text-field
-                  dense
-                  hide-details
-                  label="BOS Url"
-                  v-model.trim="building.bosUrl"
-                  outlined
-                ></v-text-field>
+                <v-text-field dense hide-details label="BOS Url" v-model.trim="building.bosUrl" outlined></v-text-field>
               </v-col>
 
               <v-col cols="12">
-                <v-text-field
-                  dense
-                  hide-details
-                  label="API Url"
-                  v-model.trim="building.apiUrl"
-                  outlined
-                ></v-text-field>
+                <v-text-field dense hide-details label="API Url" v-model.trim="building.apiUrl" outlined></v-text-field>
               </v-col>
 
               <v-col cols="12" class="placesCol">
-                <places
-                  ref="places"
-                  class="addressInput"
-                  v-model="building.address"
-                  placeholder="Address"
-                >
+                <places ref="places" class="addressInput" v-model="building.address" placeholder="Address">
                 </places>
               </v-col>
 
               <v-col cols="12">
-                <v-textarea
-                  dense
-                  outlined
-                  v-model.trim="building.description"
-                  no-resize
-                  rows="3"
-                  label="Description"
-                ></v-textarea>
+                <v-textarea dense outlined v-model.trim="building.tokenToUse" no-resize rows="3"
+                  label="Token à utiliser"></v-textarea>
+              </v-col>
+
+              <v-col cols="12">
+                <v-textarea dense outlined v-model.trim="building.description" no-resize rows="3"
+                  label="Description"></v-textarea>
               </v-col>
             </v-row>
           </div>
@@ -263,10 +229,10 @@ with this file. If not, see
 import Vue from 'vue';
 import Places from 'vue-places';
 
-import {Component, Prop} from 'vue-property-decorator';
-import {IApiRoute} from '../../interfaces/IApiRoute';
-import {IApp} from '../../interfaces/IApp';
-import {IBuilding, IPortofolio} from '../../interfaces/IBuilding';
+import { Component, Prop } from 'vue-property-decorator';
+import { IApiRoute } from '../../interfaces/IApiRoute';
+import { IApp } from '../../interfaces/IApp';
+import { IBuilding, IPortofolio } from '../../interfaces/IBuilding';
 
 @Component({
   components: {
@@ -288,8 +254,8 @@ class AddBuilding extends Vue {
   apisSearched: IApiRoute[] = [];
   apiSearchText: string = '';
 
-  appHeaders = [{text: 'Nom', value: 'name'}];
-  apiHeaders = [{text: 'Route', value: 'route'}];
+  appHeaders = [{ text: 'Nom', value: 'name' }];
+  apiHeaders = [{ text: 'Route', value: 'route' }];
 
   async mounted() {
     await this.init();
@@ -313,6 +279,7 @@ class AddBuilding extends Vue {
       address: '',
       // concerned_user: "",
       description: '',
+      tokenToUse: '',
       location: {},
       appIds: [],
       apiIds: [],
@@ -370,17 +337,17 @@ class AddBuilding extends Vue {
     };
   }
 
-  _getListToRemove(liste1: any[], obj: {[key: string]: string}) {
-    return liste1.reduce((liste, {id}) => {
+  _getListToRemove(liste1: any[], obj: { [key: string]: string }) {
+    return liste1.reduce((liste, { id }) => {
       if (!obj[id]) liste.push(id);
 
       return liste;
     }, []);
   }
 
-  _formatIds(liste): {ids: string[]; obj: {[key: string]: string}} {
+  _formatIds(liste): { ids: string[]; obj: { [key: string]: string } } {
     const obj = {};
-    const ids = liste.map(({id}) => {
+    const ids = liste.map(({ id }) => {
       obj[id] = id;
       return id;
     });
@@ -417,7 +384,7 @@ class AddBuilding extends Vue {
     }
 
     this.appsSearched = this.$store.state.appsStore.buildingsApps.filter(
-      ({name}) => name.toLocaleLowerCase().includes(val)
+      ({ name }) => name.toLocaleLowerCase().includes(val)
     );
   }
 
@@ -432,7 +399,7 @@ class AddBuilding extends Vue {
     }
 
     this.apisSearched = this.$store.state.appsStore.buildingsApis.filter(
-      ({route}) => route.toLocaleLowerCase().includes(val)
+      ({ route }) => route.toLocaleLowerCase().includes(val)
     );
   }
 
@@ -461,6 +428,7 @@ $form-header: 70px;
     display: flex;
     justify-content: flex-end;
     align-items: center;
+
     .button {
       color: #fff;
       margin-right: 10px;
@@ -478,10 +446,12 @@ $form-header: 70px;
     padding: 10px;
     border-radius: 15px;
     margin: auto;
+
     .backDiv {
       width: 100%;
       height: $backDiv-height;
       display: flex;
+
       h2 {
         margin-left: 20px;
       }
@@ -499,12 +469,15 @@ $form-header: 70px;
         width: 60%;
         height: 35%;
         margin-top: 10px;
+
         .v-input {
           margin: 12px 0;
         }
+
         .placesCol {
           // padding: 0 12px;
           margin: 10px 0;
+
           .addressInput {
             height: 40px;
             // margin-bottom: 20px;
@@ -545,6 +518,7 @@ $form-header: 70px;
       .v-stepper__content {
         min-height: 30px;
         max-height: 600px;
+
         .tableDiv {
           width: 100%;
           height: calc(550px - #{$toolbar-height});
