@@ -360,14 +360,15 @@ class AddBuilding extends Vue {
 
   _getCreationData() {
     return {
-      name: this.building.name,
-      aliasName: this.building.aliasName,
-      bosUrl: this.building.bosUrl,
-      apiUrl: this.building.apiUrl,
-      address: this.building.address,
-      // concerned_user: "",
-      description: this.building.description,
-      location: this.building.location,
+      // name: this.building.name,
+      // aliasName: this.building.aliasName,
+      // bosUrl: this.building.bosUrl,
+      // apiUrl: this.building.apiUrl,
+      // address: this.building.address,
+      // tokenToUse: this.building.tokenToUse,
+      // description: this.building.description,
+      // location: this.building.location,
+      ...this.building,
       appIds: this.building.appIds.map((el) => el.id),
       apiIds: this.building.apiIds.map((el) => el.id),
     };
