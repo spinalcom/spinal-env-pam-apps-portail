@@ -7,6 +7,8 @@
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { spinalEventEmitter } from './eventEmitter';
+import { layersSources } from "./layers";
+import { url } from 'inspector';
 
 const DEFAULT_COLOR = '#888' // fallback si pas de color
 
@@ -30,8 +32,6 @@ export default {
         }
     },
     mounted() {
-
-
         // init map
         this.map = new maplibregl.Map({
             container: this.$refs.el,
@@ -39,9 +39,12 @@ export default {
             center: this.center,
             zoom: this.zoom
         })
-        this.map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }))
-        setTimeout(() => this.map && this.map.resize(), 0)
 
+        // add controls to the map
+        this.map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }))
+        // setTimeout(() => this.map && this.map.resize(), 0)
+
+        // on load
         this.map.on('load', () => {
             this._mapLoaded = true
             this._addBuildingsLayer()
@@ -88,51 +91,42 @@ export default {
                 )
         },
 
-        _addBuildingsLayer() {
-            const features = this._buildFeatures(this.buildings)
+        _resetLayerSource() {
+            const layersSourceIds = ['unclustered', 'cluster-count', 'clusters'];
+            for (const source of layersSourceIds) {
+                const layer = this.map.getLayer(source);
+                if (layer) this.map.removeLayer(source);
+            }
 
-                // reset layers/sources si rechargement
-                ;['unclustered', 'cluster-count', 'clusters'].forEach(id => {
-                    if (this.map.getLayer(id)) this.map.removeLayer(id)
-                })
             if (this.map.getSource('bats')) this.map.removeSource('bats')
+        },
 
+        _addLayers(layerInfo) {
+            this.map.addLayer(layerInfo);
+        },
+
+        _addBatsSource(features) {
             this.map.addSource('bats', {
                 type: 'geojson',
                 data: { type: 'FeatureCollection', features },
                 cluster: true,
                 clusterRadius: 50,
                 clusterMaxZoom: 12
-            })
+            });
+        },
 
-            // clusters
-            this.map.addLayer({
-                id: 'clusters', type: 'circle', source: 'bats',
-                filter: ['has', 'point_count'],
-                paint: {
-                    'circle-radius': ['step', ['get', 'point_count'], 14, 20, 18, 100, 24],
-                    'circle-stroke-width': 2,
-                    'circle-stroke-color': '#222',
-                    'circle-color': '#ddd'
-                }
-            })
-            this.map.addLayer({
-                id: 'cluster-count', type: 'symbol', source: 'bats',
-                filter: ['has', 'point_count'],
-                layout: { 'text-field': ['get', 'point_count_abbreviated'], 'text-size': 12 }
-            })
+        _addBuildingsLayer() {
+            const features = this._buildFeatures(this.buildings);
 
-            // points non cluster -> couleur du building
-            this.map.addLayer({
-                id: 'unclustered', type: 'circle', source: 'bats',
-                filter: ['!', ['has', 'point_count']],
-                paint: {
-                    'circle-radius': 7,
-                    'circle-stroke-width': 2,
-                    'circle-stroke-color': '#222',
-                    'circle-color': ['coalesce', ['get', 'color'], DEFAULT_COLOR]
-                }
-            })
+            // reset layers/sources si rechargement
+            this._resetLayerSource();
+            this._addBatsSource(features);
+
+            for (const key in layersSources) {
+                const layerDef = layersSources[key];
+                this._addLayers(layerDef);
+            }
+
 
             // auto-zoom (optionnel)
             if (features.length) {
@@ -146,17 +140,15 @@ export default {
 
         _wireInteractions() {
             // curseur pointeur sur points/clusters
-            const hover = (on) => { this.map.getCanvas().style.cursor = on ? 'pointer' : '' }
-                ;['unclustered', 'clusters'].forEach(id => {
-                    this.map.on('mouseenter', id, () => hover(true))
-                    this.map.on('mouseleave', id, () => hover(false))
-                })
+            const hover = (on) => { this.map.getCanvas().style.cursor = on ? 'pointer' : '' };
+            this.map.on('mouseenter', layersSources.unclustered.id, () => hover(true));
+            this.map.on('mouseleave', layersSources.cluster.id, () => hover(false));
 
             // clic sur cluster -> zoom d'expansion
-            this.map.on('click', 'clusters', (e) => {
-                const features = this.map.queryRenderedFeatures(e.point, { layers: ['clusters'] })
+            this.map.on('click', layersSources.cluster.id, (e) => {
+                const features = this.map.queryRenderedFeatures(e.point, { layers: [layersSources.cluster.id] })
                 const clusterId = features[0].properties.cluster_id
-                const src = this.map.getSource('bats')
+                const src = this.map.getSource(layersSources.cluster.source)
                 src.getClusterExpansionZoom(clusterId, (err, zoom) => {
                     if (err) return
                     const [lng, lat] = features[0].geometry.coordinates
@@ -165,7 +157,7 @@ export default {
             })
 
             // clic sur pastille -> ouvre la card popup
-            this.map.on('click', 'unclustered', (e) => {
+            this.map.on('click', layersSources.unclustered.id, (e) => {
                 const feat = e.features && e.features[0]
                 if (!feat) return
                 const coords = feat.geometry.coordinates.slice()
@@ -248,7 +240,10 @@ export default {
 
             if (closeBtn) {
                 closeBtn.addEventListener('click', () => {
-                    if (this.popup) { this.popup.remove(); this.popup = null }
+                    if (this.popup) {
+                        this.$emit('closedPopup');
+                        this.popup.remove(); this.popup = null
+                    }
                 })
             }
 

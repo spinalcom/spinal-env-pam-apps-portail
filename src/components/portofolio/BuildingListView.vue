@@ -26,25 +26,26 @@ with this file. If not, see
   <div class="_container">
     <div class="content">
 
-      <v-select style="padding-left: 200px;padding-right: 200px;font-weight: bold;font-size: 20px;"
-        label="Selectionner un indicateur" v-model="SelectedCP" :items="tabInfo"></v-select>
+      <!-- <v-select style="padding-left: 200px;padding-right: 200px;font-weight: bold;font-size: 20px;"
+        label="Selectionner un indicateur" v-model="SelectedCP" :items="tabInfo"></v-select> -->
 
-      <v-list rounded :expand="true" v-if="buildings && buildings.length > 0">
-        <!-- <div v-for="portofolio in portofolios" :key="portofolio.id" :value="true"
+
+      <!-- <v-list rounded v-if="buildings && buildings.length > 0"> -->
+      <!-- <div v-for="portofolio in portofolios" :key="portofolio.id" :value="true"
           v-if="myportfolio === portofolio.name"> -->
 
-        <v-list-item-content>
-          <div class="building-content" v-for="building in buildings" :key="building.id">
-            <BuildingCard :SelectedCP="SelectedCP" :dataCP="dataCP" :data="building" @viewOnMap="viewOnMap"
-              @clickParent="clickParent" />
-          </div>
+      <!-- <v-list-item-content> -->
+      <div class="building-content" v-for="building in buildings" :key="building.id">
+        <BuildingCard :SelectedCP="SelectedCP" :dataCP="dataCP" :data="building" @viewOnMap="viewOnMap"
+          @clickParent="clickParent" :isSelected="building.id === buildingSelected" />
+      </div>
 
-          <div class="empty" v-if="!buildings || buildings.length === 0">
-            Aucun bâtiment dans ce portefeuille
-          </div>
-        </v-list-item-content>
-        <!-- </div> -->
-      </v-list>
+      <div class="empty" v-if="!buildings || buildings.length === 0">
+        Aucun bâtiment dans ce portefeuille
+      </div>
+      <!-- </v-list-item-content> -->
+      <!-- </div> -->
+      <!-- </v-list> -->
 
       <!-- <div v-else class="emptyPortofolio">
         Aucun Portefeuille à afficher
@@ -72,6 +73,7 @@ class BuildingListView extends Vue {
   @Prop() buildings!: IBuilding[];
   @Prop() tabInfo: [];
   @Prop() dataCP: [];
+  @Prop() buildingSelected!: String | null;
 
 
   searchText: string = "";
@@ -141,14 +143,13 @@ export default BuildingListView;
 <style lang="scss" scoped>
 ._container {
   // width: 98%;
-  height: calc(100%);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  height: 100%;
+  // display: flex;
+  // flex-direction: column;
+  // justify-content: center;
+  // align-items: center;
 
   .header {
-
     height: 70px;
     background: #14202c;
     padding: 0 10px;
@@ -183,7 +184,8 @@ export default BuildingListView;
 
   .content {
     // width: 97%;
-    height: calc(100% - 90px);
+    // height: calc(100% - 90px);
+    height: 100%;
     padding: 20px 0;
     background: #f1f5f5;
     border-radius: 10px;

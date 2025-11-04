@@ -39,7 +39,7 @@ export function getBuildingDynamicId(buildingId: string) {
 }
 
 
-export function getBuildingControlEndpointsList(building: { name: string; dynamicId: string; buildingId: string }, profileName: string) {
+export function getBuildingControlEndpointsList(building: { name: string; cpProfileName?: string; dynamicId: string; buildingId: string }) {
 
     if (buildingIdToControlEndpoints[building.buildingId]) {
         return Promise.resolve(buildingIdToControlEndpoints[building.buildingId]);
@@ -48,7 +48,7 @@ export function getBuildingControlEndpointsList(building: { name: string; dynami
     return axios.get(`${host}/api/v2/building/${building.buildingId}/node/${building.dynamicId}/control_endpoint_list`)
         .then((result) => {
             const { data: controlList } = result;
-            const profile = controlList.find(el => el.profileName === profileName);
+            const profile = controlList.find(el => el.profileName === building.cpProfileName) || controlList[0];
             if (profile && profile.endpoints.length > 0) {
                 const result = {
                     buildingId: building.buildingId,

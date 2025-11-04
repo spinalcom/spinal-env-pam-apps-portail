@@ -23,7 +23,7 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card @click="clickOnCard(data)" class="card-container">
+  <v-card @click="clickOnCard(data)" class="card-container" :class="{ 'selected': isSelected }">
     <div class="name_div" :title="`${data.name} : ${data.address}`">
 
       <div class="color" :style="{ 'background': data.color }"></div>
@@ -37,7 +37,7 @@ with this file. If not, see
           {{ getFloorsArea }} <span class="unit">m<sup>2</sup></span>
         </div>
         <div class="description">
-          {{ data.description || "no description" }}
+          {{ data.description || "Aucune description" }}
         </div>
       </div>
       <div class="right numbers">
@@ -45,15 +45,15 @@ with this file. If not, see
       </div>
 
     </div>
-    <div style="transform: translateY(30px);margin-left: 10px;" class="buttons">
+    <!-- <div style="transform: translateY(30px);margin-left: 10px;" class="buttons">
       {{ getGoodData }}
-    </div>
+    </div> -->
 
   </v-card>
 </template>
 
 <script>
-import { io } from "socket.io-client";
+// import { io } from "socket.io-client";
 
 export default {
   name: "BuildingCard",
@@ -66,7 +66,13 @@ export default {
     },
     SelectedCP: {
       required: false,
-    }
+    },
+
+    isSelected: {
+      required: false,
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -74,9 +80,9 @@ export default {
     };
   },
   mounted() {
-    const socket = io(this.data.apiUrl, { transports: ["websocket"] });
-    socket.on("connect", () => (this.isConnected = true));
-    socket.on("disconnect", () => (this.isConnected = false));
+    // const socket = io(this.data.apiUrl, { transports: ["websocket"] });
+    // socket.on("connect", () => (this.isConnected = true));
+    // socket.on("disconnect", () => (this.isConnected = false));
   },
   methods: {
     clickOnCard(data) {
@@ -146,6 +152,10 @@ export default {
   padding: 5px;
   margin: auto;
   margin-bottom: 15px;
+}
+
+.card-container.selected {
+  border: 2px solid #1976d2;
 }
 
 .card-container .name_div {

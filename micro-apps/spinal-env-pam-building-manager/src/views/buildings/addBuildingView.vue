@@ -69,6 +69,11 @@ with this file. If not, see
               </v-col>
 
               <v-col cols="12">
+                <v-text-field dense hide-details label="Profil d'indicateur" v-model.trim="building.cpProfileName"
+                  outlined></v-text-field>
+              </v-col>
+
+              <v-col cols="12">
                 <v-textarea dense outlined v-model.trim="building.tokenToUse" no-resize rows="3"
                   label="Token à utiliser"></v-textarea>
               </v-col>
@@ -280,6 +285,7 @@ class AddBuilding extends Vue {
       // concerned_user: "",
       description: '',
       tokenToUse: '',
+      cpProfileName: '',
       location: {},
       appIds: [],
       apiIds: [],

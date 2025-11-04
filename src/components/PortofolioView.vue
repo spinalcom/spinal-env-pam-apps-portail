@@ -3,13 +3,14 @@
         <div class="mapContainer">
             <!-- <Map :buildings="buildings" /> -->
             <map-bats @clickedVignette="clickedVignette" ref="mapBats" :buildings="buildings"
-                @openBosConfig="openBosConfig" :infobuilding="informationBuilding" :center="[2.4, 46.6]" :zoom="2"
+                @openBosConfig="openBosConfig" @closedPopup="closedPopup" :infobuilding="informationBuilding"
+                :center="[2.4, 46.6]" :zoom="2"
                 :style-url="'https://api.maptiler.com/maps/basic-v2/style.json?key=uVQyEUqWhEnCvtHBaPOK'" />
         </div>
 
         <div class="listContainer">
             <BuildingListView :dataCP="controlPointsByBuilding" @selectedCP="selectedCP" :tabInfo="itemsCP"
-                @elementClique="onBuildingClicked" :buildings="buildings" />
+                @elementClique="onBuildingClicked" :buildings="buildings" :buildingSelected="buildingSelected" />
 
         </div>
     </div>
@@ -38,6 +39,7 @@ class PortofolioView extends Vue {
     buildingReads: any[] = []
     informationBuilding: any = null;
     itemsCP: any = [];
+    buildingSelected: String | null = null;
 
 
     controlPointsByBuilding: any = [];
@@ -54,7 +56,8 @@ class PortofolioView extends Vue {
 
 
     async fetchAllBuildingsInfo() {
-        const { itemCPName, controlPointsByBuilding } = await this._getBuildingsControlEndpointsList("KPI USI");
+        // const { itemCPName, controlPointsByBuilding } = await this._getBuildingsControlEndpointsList("KPI USI");
+        const { itemCPName, controlPointsByBuilding } = await this._getBuildingsControlEndpointsList();
 
         this.itemsCP = itemCPName;
         this.controlPointsByBuilding = controlPointsByBuilding;
@@ -66,6 +69,7 @@ class PortofolioView extends Vue {
 
     async onBuildingClicked(building) {
         (this.$refs as any).mapBats?.focusOn(building, { zoom: 14 })
+        this.buildingSelected = building.id;
         this.informationBuilding = await this._fetchBuildingReads(building);
     }
 
@@ -73,7 +77,13 @@ class PortofolioView extends Vue {
     }
 
     async clickedVignette(item) {
+        this.buildingSelected = item.id;
         this.informationBuilding = await this._fetchBuildingReads(item);
+    }
+
+    closedPopup() {
+        this.buildingSelected = null;
+        this.informationBuilding = null;
     }
 
     @Watch('portofolioSelected.buildings', { immediate: true, deep: true })
@@ -98,9 +108,9 @@ class PortofolioView extends Vue {
         })
     }
 
-    async _getBuildingsControlEndpointsList(controlPointProfileName: string) {
+    async _getBuildingsControlEndpointsList() {
         const buildings = await this._getBuildingsDynamicIds();
-        const promises = buildings.map(building => getBuildingControlEndpointsList(building, controlPointProfileName));
+        const promises = buildings.map(building => getBuildingControlEndpointsList(building));
         return Promise.all(promises).then((result) => {
             return result.reduce((obj: any, item) => {
                 if (item) {
@@ -131,22 +141,23 @@ export default PortofolioView;
 <style scoped lang="scss">
 .list_container {
     width: 100%;
-    // height: 100%;
-    flex-direction: row;
     display: flex;
+    height: 100%;
+    flex-direction: row;
 
     .mapContainer {
         // height: 100%;
         padding: 0px !important;
         overflow: hidden;
-        flex: 0 0 50vw;
+        flex: 0 0 50%;
     }
 
     .listContainer {
         // height: 100%;
         padding: 0px !important;
         overflow: hidden;
-        flex: 0 0 50vw;
+        flex: 0 0 50%;
+        height: 100%;
     }
 }
 </style>
