@@ -24,18 +24,16 @@ with this file. If not, see
 
 <template>
   <v-app class="appContainer">
-    <v-main>
-      <HomeView />
-    </v-main>
+    <HomeView />
   </v-app>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import HomeView from './views/HomeView.vue';
+import Vue from "vue";
+import HomeView from "./views/HomeView.vue";
 
 export default Vue.extend({
-  name: 'App',
+  name: "App",
   components: {
     HomeView,
   },
@@ -46,10 +44,10 @@ export default Vue.extend({
 });
 </script>
 
-<style>
+<style lang="scss">
 .appContainer {
-  width: 100vw;
-  height: 100vh;
-  background: linear-gradient(121deg, #f8fafa, #d6e2e6) !important;
+  width: 100%;
+  height: 100%;
+  background: #e1eaec !important;
 }
 </style>

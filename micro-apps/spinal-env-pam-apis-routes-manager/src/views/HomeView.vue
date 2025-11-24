@@ -23,31 +23,35 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="_container" fluid>
+  <div class="_container">
     <div class="header">
-      <!-- <Select @selected="selectCategory" /> -->
+      <Select @selected="selectCategory" />
     </div>
 
-    <v-card class="myCard" elevation="4">
-      <Home :headers="headers" :apis="apis" @upload="uploadFile" @delete="deleteItems" />
+    <v-card class="myCard">
+      <Home :headers="headers"
+            :apis="apis"
+            @upload="uploadFile"
+            @delete="deleteItems" />
     </v-card>
-  </v-container>
+  </div>
 </template>
 
+
 <script lang="ts">
-import Vue from 'vue';
-import { Component, Watch } from 'vue-property-decorator';
-// import Select from '../components/select.vue';
-import Home from '../components/Home.vue';
-import categories from '../store/categories';
-import { Action, Getter, State } from 'vuex-class';
-import { IApiRoute } from '../interfaces';
+import Vue from "vue";
+import { Component, Watch } from "vue-property-decorator";
+import Select from "../components/select.vue";
+import Home from "../components/Home.vue";
+import categories from "../store/categories";
+import { Action, Getter, State } from "vuex-class";
+import { IApiRoute } from "@/interfaces";
 
 type updateFunc = (param: { id: string; data: IApiRoute }) => Promise<void>;
 
 @Component({
   components: {
-    // Select,
+    Select,
     Home,
   },
 })
@@ -58,11 +62,11 @@ class TableComponent extends Vue {
   @Getter bosApisGet!: any;
   @Getter portofolioApisGet!: any;
 
-  // @Action createBosApiRoute!: (api: IApiRoute) => Promise<void>;
-  // @Action updateBosApiRoute!: updateFunc;
-  // @Action getAllBosApiRoute!: () => Promise<void>;
-  // @Action deleteBosApiRoute!: (id: string) => Promise<void>;
-  // @Action uploadBosSwaggerFile!: (data: FormData) => Promise<void>;
+  @Action createBosApiRoute!: (api: IApiRoute) => Promise<void>;
+  @Action updateBosApiRoute!: updateFunc;
+  @Action getAllBosApiRoute!: () => Promise<void>;
+  @Action deleteBosApiRoute!: (id: string) => Promise<void>;
+  @Action uploadBosSwaggerFile!: (data: FormData) => Promise<void>;
 
   @Action createPortofolioApiRoute!: (api: IApiRoute) => Promise<void>;
   @Action updatePortofolioApiRoute!: updateFunc;
@@ -71,37 +75,35 @@ class TableComponent extends Vue {
   @Action uploadPortofolioSwaggerFile!: (data: FormData) => Promise<void>;
 
   headers = [
-    { text: 'Nom', value: 'name' },
-    { text: 'Scope', value: 'scope' },
-    { text: 'Methodes', value: 'method' },
+    { text: "Nom", value: "name" },
+    { text: "Scope", value: "scope" },
+    { text: "Methodes", value: "method" },
   ];
 
   apis: any[] = [];
   categorySelected: any;
 
   async mounted() {
-    // await Promise.all([
-    //   this.getAllBosApiRoute(),
-    this.getAllPortofolioApiRoute(),
-      // ]);
+    await Promise.all([
+      this.getAllBosApiRoute(),
+      this.getAllPortofolioApiRoute(),
+    ]);
 
-      this.selectCategory(categories.portofolio);
+    this.selectCategory(categories.building);
   }
 
   async uploadFile(formData: FormData) {
     let isSuccess;
     try {
-      await this.uploadPortofolioSwaggerFile(formData);
+      switch (this.categorySelected.id) {
+        case categories.building.id:
+          await this.uploadBosSwaggerFile(formData);
+          break;
 
-      // switch (this.categorySelected.id) {
-      //   case categories.building.id:
-      //     await this.uploadBosSwaggerFile(formData);
-      //     break;
-
-      //   case categories.portofolio.id:
-      //     await this.uploadPortofolioSwaggerFile(formData);
-      //     break;
-      // }
+        case categories.portofolio.id:
+          await this.uploadPortofolioSwaggerFile(formData);
+          break;
+      }
       isSuccess = true;
     } catch (error) {
       isSuccess = false;
@@ -109,44 +111,42 @@ class TableComponent extends Vue {
 
     this.$swal({
       toast: true,
-      position: 'bottom-end',
+      position: "bottom-end",
       showConfirmButton: false,
       timer: 3000,
-      icon: isSuccess ? 'success' : 'error',
-      text: isSuccess ? 'fichier ajouté' : "oups, une erreur s'est produite !",
+      icon: isSuccess ? "success" : "error",
+      text: isSuccess ? "fichier ajouté" : "oups, une erreur s'est produite !",
     });
   }
 
   selectCategory(item: { name: string; id: string }) {
     this.categorySelected = item;
-    this.apis = this.portofolioApisGet;
+    switch (item.id) {
+      case categories.building.id:
+        this.apis = this.bosApisGet;
+        break;
 
-    // switch (item.id) {
-    //   case categories.building.id:
-    //     this.apis = this.bosApisGet;
-    //     break;
+      case categories.portofolio.id:
+        this.apis = this.portofolioApisGet;
+        break;
 
-    //   case categories.portofolio.id:
-    //     this.apis = this.portofolioApisGet;
-    //     break;
-
-    //   default:
-    //     break;
-    // }
+      default:
+        break;
+    }
   }
 
   async deleteItems(items: IApiRoute[]) {
     return this.$swal({
-      title: 'Supprimer',
+      title: "Supprimer",
       text: `Êtes-vous sûre de vouloir supprimer ${items.length} routes ?`,
-      type: 'warning',
+      type: "warning",
       showCancelButton: true,
-      confirmButtonClass: 'successBtn',
-      cancelButtonClass: 'errorBtn',
-      confirmButtonText: 'Oui',
-      cancelButtonText: 'Annuler',
+      confirmButtonClass: "successBtn",
+      cancelButtonClass: "errorBtn",
+      confirmButtonText: "Oui",
+      cancelButtonText: "Annuler",
       buttonsStyling: false,
-      icon: 'warning',
+      icon: "warning",
     }).then(async ({ isConfirmed }) => {
       if (!isConfirmed) return;
 
@@ -154,12 +154,12 @@ class TableComponent extends Vue {
 
       this.$swal({
         toast: true,
-        position: 'bottom-end',
+        position: "bottom-end",
         showConfirmButton: false,
         timer: 3000,
-        icon: isSuccess ? 'success' : 'error',
+        icon: isSuccess ? "success" : "error",
         text: isSuccess
-          ? 'api(s) supprimée(s)'
+          ? "api(s) supprimée(s)"
           : "oups, une erreur s'est produite !",
       });
     });
@@ -189,16 +189,16 @@ class TableComponent extends Vue {
     return isSuccess;
   }
 
-  // @Watch('bosApis')
-  // watchBosApis() {
-  //   if (
-  //     this.categorySelected &&
-  //     this.categorySelected.id === categories.building.id
-  //   )
-  //     this.apis = this.bosApisGet;
-  // }
+  @Watch("bosApis")
+  watchBosApis() {
+    if (
+      this.categorySelected &&
+      this.categorySelected.id === categories.building.id
+    )
+      this.apis = this.bosApisGet;
+  }
 
-  @Watch('portofolioApis')
+  @Watch("portofolioApis")
   watchPortofolioApis() {
     if (
       this.categorySelected &&
@@ -213,21 +213,19 @@ export default TableComponent;
 
 <style lang="scss">
 $header-height: 70px;
-
 ._container {
   width: 100vw;
   height: 100vh;
-  // margin-top: $header-height;
 
   .header {
     height: $header-height;
+    margin-bottom: 10px;
   }
 
   .myCard {
-    width: 100%;
-    height: calc(100vh - #{$header-height + 20px});
-    // background: #f5f3f3;
-    background: transparent !important;
+    width: 97%;
+    height: calc(100vh - 90px);
+    background: #f5f3f3;
     border-radius: 10px !important;
     margin: auto;
   }

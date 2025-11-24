@@ -23,8 +23,7 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="tableContainer"
-       v-if="items">
+  <div class="tableContainer">
     <div class="my_title"
          v-if="title">
       {{title}}
@@ -35,8 +34,7 @@ with this file. If not, see
                   :headers="headers"
                   id="table"
                   :items="items"
-                  item-key="name"
-                  no-data-text="Aucune donnée à afficher">
+                  item-key="name">
 
       <template v-slot:header="{ props : { headers } }">
         <thead>

@@ -49,7 +49,7 @@ app.get("/login", async (req, res) => {
     if (error) return res.redirect(spinal_api_url + "/login");
 
 
-    res.cookie("token", token);
+    res.cookie("token", token, { sameSite: "Lax", maxAge: 24 * 60 * 60 * 1000, path: '/' });
     return res.sendFile(path.resolve(vue_dir, 'index.html'));
 });
 

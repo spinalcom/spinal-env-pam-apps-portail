@@ -34,8 +34,7 @@ with this file. If not, see
                   :headers="headers"
                   id="table"
                   :items="items"
-                  item-key="name"
-                  no-data-text="Aucune donnée à afficher">
+                  item-key="name">
 
       <template v-slot:header="{ props : { headers } }">
         <thead>

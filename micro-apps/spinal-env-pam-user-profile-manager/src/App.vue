@@ -23,7 +23,7 @@ with this file. If not, see
 -->
 
 <template>
-  <v-app class="appContainer">
+  <v-app>
     <v-main>
       <HomeComponent />
     </v-main>
@@ -46,12 +46,3 @@ export default Vue.extend({
   }),
 });
 </script>
-
-
-<style>
-.appContainer {
-  width: 99vw;
-  height: 100vh;
-  background: linear-gradient(121deg, #f8fafa, #d6e2e6) !important;
-}
-</style>

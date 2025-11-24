@@ -78,7 +78,8 @@ export async function goToBosConfigPortail(buildingId: string) {
         const { url } = await generateBuildingUrl(buildingId);
         if (url) window.open(url, "_blank");
     } catch (error) {
-        alert("Error while generating building url");
+        const message = error instanceof Error ? error.message : "";
+        alert(`Error while generating building url du to  ${message}`);
     }
 }
 

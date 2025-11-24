@@ -23,12 +23,18 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card class="creationContainer" elevation="4">
+  <v-card class="creationContainer">
     <div class="header">
       <div class="leftDiv">
         <div class="back">
-          <v-btn rounded outlined color="#14202c" dark @click="goBack">
-            <v-icon left> mdi-arrow-left-thin </v-icon>
+          <v-btn rounded
+                 outlined
+                 color="#14202c"
+                 dark
+                 @click="goBack">
+            <v-icon left>
+              mdi-arrow-left-thin
+            </v-icon>
             Retour
           </v-btn>
         </div>
@@ -38,26 +44,23 @@ with this file. If not, see
           <p>Sélectionnez son périmètre ci-dessous :</p>
         </div>
         <div class="searchDiv">
-          <v-text-field
-            solo
-            outlined
-            dense
-            flat
-            label="nom du profil"
-            hide-details="auto"
-            v-model.trim="profileName"
-          ></v-text-field>
+          <v-text-field solo
+                        outlined
+                        flat
+                        label="nom du profil"
+                        hide-details="auto"
+                        v-model.trim="profileName"></v-text-field>
         </div>
       </div>
 
       <div class="rightDiv">
-        <v-btn
-          class="button"
-          color="#14202c"
-          @click="saveProfile"
-          :disabled="disableSaveButton"
-        >
-          <v-icon class="btnIcon"> mdi-content-save-outline </v-icon>
+        <v-btn class="button"
+               color="#14202c"
+               @click="saveProfile"
+               :disabled="disableSaveButton">
+          <v-icon class="btnIcon">
+            mdi-content-save-outline
+          </v-icon>
 
           Enregister le profil
         </v-btn>
@@ -65,46 +68,29 @@ with this file. If not, see
     </div>
 
     <div class="profileContent">
-      <!-- <TabsComponent v-if="portofoliosCopy && portofoliosCopy.length > 0"
-                     :portofolios="portofoliosCopy"
+      <TabsComponent :portofolios="portofoliosCopy"
                      @selectPortofolio="selectPortofolio"
                      :portofolioSelected="portofolioSelected"
                      :profileSelected="profileSelected"
-                     :edit="edit" /> -->
-
-      <steppers-component
-        :buildingPortofolios="buildingPortofolios"
-        :appsPortofolios="appsPortofolios"
-        :edit="edit"
-        :profileSelected="profileSelected"
-      ></steppers-component>
-
-      <div
-        class="emptyPortofolio"
-        v-if="!portofolios || portofolios.length === 0"
-      >
-        Aucun portefolio à afficher
-      </div>
+                     :edit="edit" />
     </div>
   </v-card>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import {Component, Prop, Watch} from 'vue-property-decorator';
+import Vue from "vue";
+import { Component, Prop, Watch } from "vue-property-decorator";
 
-import {State} from 'vuex-class';
-import TreeViewComponent from './treeView.vue';
-import PortofolioList from './portofolioList.vue';
-// import TabsComponent from './tabsComponent.vue';
-import SteppersComponent from './stepsComponent.vue';
+import { State } from "vuex-class";
+import TreeViewComponent from "./treeView.vue";
+import PortofolioList from "./portofolioList.vue";
+import TabsComponent from "./tabsComponent.vue";
 
 @Component({
   components: {
     TreeViewComponent,
     PortofolioList,
-    SteppersComponent,
-    // TabsComponent,
+    TabsComponent,
   },
 })
 class CreationComponent extends Vue {
@@ -112,27 +98,24 @@ class CreationComponent extends Vue {
   @Prop() profileSelected!: any;
 
   tabsObject = Object.freeze({
-    Applications: 'Applications de Portefolios',
-    Batiments: 'Applications de Batiments',
+    Applications: "Applications de Portefolios",
+    Batiments: "Applications de Batiments",
   });
 
-  profileName = '';
+  profileName = "";
 
   headers: any = [
     {
       text: "Nom de l'application",
       sortable: false,
-      value: 'name',
+      value: "name",
     },
   ];
 
   @State portofolios!: any;
 
   portofolioSelected: any = null;
-  // portofoliosCopy: any = null;
-
-  buildingPortofolios: any = null;
-  appsPortofolios: any = null;
+  portofoliosCopy: any = null;
 
   tabItems: string[] = Object.values(this.tabsObject);
 
@@ -148,41 +131,46 @@ class CreationComponent extends Vue {
   }
 
   goBack() {
-    this.$emit('goBack');
+    this.$emit("goBack");
   }
 
   saveProfile() {
     if (!this.edit) {
       const data = this._getProfileCreationData();
-
-      return this.$emit('create', data);
-      return;
+      return this.$emit("create", data);
     }
 
-    const data = this._getDiffBetweenProfile();
-
-    this.$emit('edit', {
+    this.$emit("edit", {
       profileId: this.profileSelected.id,
-      data,
+      data: this._getDiffBetweenProfile(),
     });
   }
 
   _initProfile() {
-    this.profileName = !this.edit ? '' : this.profileSelected.name;
-    this.buildingPortofolios = this.createCopy(this.portofolios, 'buildings');
-    this.appsPortofolios = this.createCopy(this.portofolios, 'apps');
+    this.profileName = !this.edit ? "" : this.profileSelected.name;
+    this.portofoliosCopy = this.createCopy(this.portofolios);
   }
 
-  createCopy(liste: any, type: 'apps' | 'buildings') {
+  createCopy(liste: any) {
     if (!liste) return [];
     return liste.map((el: any) => {
-      const copy = {selected: false, name: el.name, id: el.id};
-      copy[type] = (el[type] || []).map((app: any) =>
-        this._addSelectedAttr(app)
-      );
-
+      const copy = this._addSelectedAttr(el);
+      copy.apps = copy.apps.map((app: any) => this._addSelectedAttr(app));
+      if (copy.buildings) copy.buildings = this.createCopy(copy.buildings);
       return copy;
     });
+  }
+
+  getItemToSelect(parentId: string, isBuilding = false) {
+    if (!this.edit) return [];
+
+    if (!isBuilding) {
+      const found = this.profileSelected.authorized.find(
+        (el: any) => el.id === parentId
+      );
+
+      return found ? found.apps : [];
+    }
   }
 
   get getPortofolioBuilding() {
@@ -195,7 +183,7 @@ class CreationComponent extends Vue {
     return false;
   }
 
-  @Watch('portofolios')
+  @Watch("portofolios")
   watchPortofolios() {
     this._initProfile();
   }
@@ -205,7 +193,7 @@ class CreationComponent extends Vue {
   //   this._initBos(newValue);
   // }
 
-  @Watch('edit')
+  @Watch("edit")
   watchEditMode(newValue: boolean) {
     this._initProfile();
   }
@@ -216,40 +204,32 @@ class CreationComponent extends Vue {
 
     for (const portofolio of toCreate.authorize) {
       const appsIds = portofolio.appsIds;
-      const buildingIds = portofolio.buildingIds;
+      const objData = obj[portofolio.portofolioId]?.apps || {};
 
-      const appsObjData = obj[portofolio.portofolioId]?.apps || {};
-      const buildingsObjData = obj[portofolio.portofolioId]?.buildings || {};
-
-      portofolio.unauthorizeAppsIds = this._getIdsToUnauthorize(
+      portofolio.unauthorizeAppsIds = this._getAppsToUnauthorize(
         appsIds,
-        appsObjData
+        objData
       );
 
-      portofolio.unauthorizeBuildingIds = this._getIdsToUnauthorize(
-        buildingIds,
-        buildingsObjData
-      );
+      for (const building of portofolio.building) {
+        const buildingAppsIds = building.appsIds;
+        const buildingObjData =
+          obj[portofolio.portofolioId]?.buildings[building.buildingId] || {};
 
-      // for (const building of portofolio.building) {
-      //   const buildingAppsIds = building.appsIds;
-      //   const buildingObjData =
-      //     obj[portofolio.portofolioId]?.buildings[building.buildingId] || {};
-
-      //   building.unauthorizeAppsIds = this._getAppsToUnauthorize(
-      //     buildingAppsIds,
-      //     buildingObjData
-      //   );
-      // }
+        building.unauthorizeAppsIds = this._getAppsToUnauthorize(
+          buildingAppsIds,
+          buildingObjData
+        );
+      }
     }
 
     return toCreate;
   }
 
-  _getIdsToUnauthorize(ids: any, obj: any) {
+  _getAppsToUnauthorize(apps: any, obj: any) {
     if (Object.keys(obj).length === 0) return [];
-    for (const id of ids) {
-      delete obj[id];
+    for (const app of apps) {
+      delete obj[app];
     }
 
     return Object.keys(obj);
@@ -262,43 +242,28 @@ class CreationComponent extends Vue {
   }
 
   _getProfileCreationData() {
-    const data: any = {
-      name: this.profileName,
-      authorize: [],
-    };
-    for (let i = 0; i < this.portofolios.length; i++) {
-      const obj = {
-        portofolioId: this.portofolios[i].id,
-        appsIds: this._getSelected(this.appsPortofolios[i].apps),
-        buildingIds: this._getSelected(this.buildingPortofolios[i].buildings),
-      };
+    return this.portofoliosCopy.reduce(
+      (liste: any, item: any) => {
+        const obj = this._formatData(item);
+        liste.authorize.push(obj);
 
-      data.authorize.push(obj);
-    }
-
-    return data;
-    // return this.portofoliosCopy.reduce(
-    //   (liste: any, item: any) => {
-    //     const obj = this._formatData(item);
-    //     liste.authorize.push(obj);
-    //     return liste;
-    //   },
-    //   {name: this.profileName, authorize: []}
-    // );
+        return liste;
+      },
+      { name: this.profileName, authorize: [] }
+    );
   }
 
-  _formatData(item: any, idAttr = 'portofolioId') {
+  _formatData(item: any, idAttr = "portofolioId") {
     const obj: any = {
       [idAttr]: item.id,
       appsIds: this._getSelected(item.apps),
-      buildingIds: this._getSelected(item.buildings),
     };
 
-    // if (item.buildings) {
-    //   obj.building = item.buildings.map((el: any) =>
-    //     this._formatData(el, 'buildingId')
-    //   );
-    // }
+    if (item.buildings) {
+      obj.building = item.buildings.map((el: any) =>
+        this._formatData(el, "buildingId")
+      );
+    }
 
     return obj;
   }
@@ -311,27 +276,28 @@ class CreationComponent extends Vue {
   }
 
   _convertProfileToObj(profile: any) {
+    console.log(profile);
     const obj: any = {};
-    for (const {id, apps, buildings} of profile.authorized) {
+    for (const { id, apps, buildings } of profile.authorized) {
       obj[id] = {};
-      obj[id]['apps'] = this._convertlistToObj(apps);
-      obj[id]['buildings'] = this._convertlistToObj(buildings);
+      obj[id]["apps"] = this._convertAppsToObj(apps);
+      obj[id]["buildings"] = this._convertBuildings(buildings);
     }
 
     return obj;
   }
 
-  // _convertBuildings(buildings: any) {
-  //   const obj: {[key: string]: any} = {};
-  //   for (const {id, apps} of buildings) {
-  //     obj[id] = this._convertAppsToObj(apps);
-  //   }
+  _convertBuildings(buildings: any) {
+    const obj: { [key: string]: any } = {};
+    for (const { id, apps } of buildings) {
+      obj[id] = this._convertAppsToObj(apps);
+    }
 
-  //   return obj;
-  // }
+    return obj;
+  }
 
-  _convertlistToObj(apps: any) {
-    const obj: {[key: string]: any} = {};
+  _convertAppsToObj(apps: any) {
+    const obj: { [key: string]: any } = {};
 
     for (const item of apps) {
       obj[item.id] = item;
@@ -346,15 +312,15 @@ export default CreationComponent;
 
 <style lang="scss" scoped>
 $header-margin-top: 70px;
-$header-height: 170px;
+$header-height: 190px;
 $header-margin-bottom: 10px;
 
 .creationContainer {
   width: 100%;
   height: calc(100% - #{$header-margin-top});
   margin-top: $header-margin-top !important;
+  background: #f9f9f9;
   padding: 15px;
-  background: transparent !important;
 
   .header {
     height: $header-height !important;
@@ -362,39 +328,21 @@ $header-margin-bottom: 10px;
     justify-content: space-between;
     margin-bottom: $header-margin-bottom;
     .leftDiv {
-      width: 45%;
-      height: 100%;
+      width: 35%;
 
       .back {
         height: 40px;
         margin-bottom: 5px;
-        display: flex;
-        align-items: center;
       }
       ._title {
-        height: 25px;
-        vertical-align: middle;
         text-transform: uppercase;
-        font-size: 1em;
-        margin-bottom: 10px;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
+        font-size: 0.9em;
+        margin-bottom: 15px;
       }
 
       .description {
-        height: 50px;
         font-size: 0.8em;
         line-height: 5px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-
-      .searchDiv {
-        height: calc(100% - 140px);
-        display: flex;
-        align-items: center;
       }
     }
 
@@ -416,15 +364,68 @@ $header-margin-bottom: 10px;
   .profileContent {
     width: 100%;
     height: calc(100% - #{$header-height + $header-margin-bottom});
+    // display: flex;
+    // justify-content: space-between;
 
-    .emptyPortofolio {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      font-size: 1.6em;
-      align-items: center;
-      justify-content: center;
-    }
+    // .portofolioList {
+    //   width: 20%;
+    //   height: 100%;
+    //   border-right: 1px solid grey;
+    // }
+
+    // .content {
+    //   width: 79%;
+    //   height: 100%;
+    //   .empty {
+    //     width: 100%;
+    //     height: 100%;
+    //     display: flex;
+    //     align-items: center;
+    //     justify-content: center;
+    //     font-size: 1.6em;
+    //   }
+
+    //   .tabs {
+    //     width: 100%;
+    //     height: 100%;
+
+    //     .tabsHeader {
+    //       width: 100%;
+    //       height: 50px;
+    //     }
+
+    //     .tabsItems {
+    //       width: 100%;
+    //       height: calc(100% - 50px);
+    //       overflow: auto;
+
+    //       // .v-window__container {
+    //       //   height: 100% !important;
+    //       //   background: yellow;
+    //       // }
+
+    //       .buildingTabsDiv {
+    //         width: 100%;
+    //         height: 100%;
+    //         .empty {
+    //           width: 100%;
+    //           height: 100%;
+    //         }
+    //         .buildingTabItems {
+    //           width: 100%;
+    //           height: 100%;
+    //         }
+    //         .buildingTabs {
+    //           width: 100%;
+    //           height: 50px;
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+
+    // display: flex;
+    // justify-content: space-between;
   }
 }
 </style>

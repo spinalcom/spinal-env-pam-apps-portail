@@ -23,14 +23,22 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="_container" fluid>
-    <RegisterForm v-if="page === pages.creation" :showError="showError" @submit="registerAuthPlateform" />
+  <v-container class="_container"
+               fluid>
+    <RegisterForm v-if="page === pages.creation"
+                  :showError="showError"
+                  @submit="registerAuthPlateform" />
 
-    <PlateformeInfo v-else-if="page === pages.info" @delete="deletePlatform" @update="updatePlatform"
-      @updateToken="updatePlatformToken" :data="authPlatformInfo" />
+    <PlateformeInfo v-else-if="page === pages.info"
+                    @delete="deletePlatform"
+                    @update="updatePlatform"
+                    :data="authPlatformInfo" />
 
-    <div class="loading" v-else-if="page === pages.loading">
-      <v-progress-circular :size="70" color="primary" indeterminate></v-progress-circular>
+    <div class="loading"
+         v-else-if="page === pages.loading">
+      <v-progress-circular :size="70"
+                           color="primary"
+                           indeterminate></v-progress-circular>
     </div>
   </v-container>
 </template>
@@ -71,7 +79,6 @@ export default Vue.extend({
       "_registerAuthPlatform",
       "updateAuthPlatform",
       "deleteAuthPlatform",
-      "updateAuthPlatformToken"
     ]),
     async registerAuthPlateform(data: any) {
       let isSuccess;
@@ -147,36 +154,12 @@ export default Vue.extend({
         timer: 3000,
         icon: isSuccess ? "success" : "error",
         text: isSuccess
-          ? "les données ont été mises à jour !"
-          : "oups, une erreur s'est produite ! Veuillez vérifier que le token est valide et réessayer.",
-      });
-
-      this.page = this.pages.info;
-    },
-
-    async updatePlatformToken() {
-      let isSuccess;
-      try {
-        this.page = this.pages.loading;
-        await this.updateAuthPlatformToken();
-        isSuccess = true;
-      } catch (error) {
-        isSuccess = false;
-      }
-
-      this.$swal({
-        toast: true,
-        position: "bottom-end",
-        showConfirmButton: false,
-        timer: 3000,
-        icon: isSuccess ? "success" : "error",
-        text: isSuccess
-          ? "Le token a été mis à jour !"
+          ? "Mis à jour envoyée"
           : "oups, une erreur s'est produite !",
       });
 
       this.page = this.pages.info;
-    }
+    },
   },
   computed: {
     ...mapState(["authPlatformInfo"]),
@@ -213,7 +196,7 @@ export default Vue.extend({
   width: 60px !important;
   height: 40px;
   border: 1px solid green;
-  color: green !important;
+  color: green;
   border-radius: 5px;
   margin: 5px;
 }
@@ -222,7 +205,7 @@ export default Vue.extend({
   width: 75px !important;
   height: 40px;
   border: 1px solid #ff5252;
-  color: #ff5252 !important;
+  color: #ff5252;
   border-radius: 5px;
   margin: 5px;
 }

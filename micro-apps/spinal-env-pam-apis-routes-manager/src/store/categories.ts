@@ -23,12 +23,12 @@
  */
 
 export default Object.freeze({
-    portofolio: {
-        id: "portofolio",
-        name: "API du Patrimoine"
-    },
     building: {
         id: "building",
-        name: "API du bâtiment"
+        name: "Apis du batiment"
+    },
+    portofolio: {
+        id: "portofolio",
+        name: "Apis du Patrimoine"
     }
 })

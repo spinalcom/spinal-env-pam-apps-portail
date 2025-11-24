@@ -23,12 +23,18 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card class="creationContainer" elevation="4">
+  <v-card class="creationContainer">
     <div class="header">
       <div class="leftDiv">
         <div class="back">
-          <v-btn rounded outlined color="#14202c" dark @click="goBack">
-            <v-icon left> mdi-arrow-left-thin </v-icon>
+          <v-btn rounded
+                 outlined
+                 color="#14202c"
+                 dark
+                 @click="goBack">
+            <v-icon left>
+              mdi-arrow-left-thin
+            </v-icon>
             Retour
           </v-btn>
         </div>
@@ -38,26 +44,23 @@ with this file. If not, see
           <p>Sélectionnez son périmètre ci-dessous :</p>
         </div>
         <div class="searchDiv">
-          <v-text-field
-            solo
-            outlined
-            dense
-            flat
-            label="nom du profil"
-            hide-details="auto"
-            v-model.trim="profileName"
-          ></v-text-field>
+          <v-text-field solo
+                        outlined
+                        flat
+                        label="nom du profil"
+                        hide-details="auto"
+                        v-model.trim="profileName"></v-text-field>
         </div>
       </div>
 
       <div class="rightDiv">
-        <v-btn
-          class="button"
-          color="#14202c"
-          @click="saveProfile"
-          :disabled="disableSaveButton"
-        >
-          <v-icon class="btnIcon"> mdi-content-save-outline </v-icon>
+        <v-btn class="button"
+               color="#14202c"
+               @click="saveProfile"
+               :disabled="disableSaveButton">
+          <v-icon class="btnIcon">
+            mdi-content-save-outline
+          </v-icon>
 
           Enregister le profil
         </v-btn>
@@ -65,68 +68,69 @@ with this file. If not, see
     </div>
 
     <div class="profileContent">
-      <steppers-component
-        :buildingPortofolios="buildingPortofolios"
-        :apisPortofolios="apisPortofolios"
-        :edit="edit"
-        :profileSelected="profileSelected"
-      ></steppers-component>
-
-      <div
-        class="emptyPortofolio"
-        v-if="!portofolios || portofolios.length === 0"
-      >
-        Aucun portefolio à afficher
-      </div>
+      <TabsComponent :portofolios="portofoliosCopy"
+                     @selectPortofolio="selectPortofolio"
+                     :portofolioSelected="portofolioSelected"
+                     :profileSelected="profileSelected"
+                     :edit="edit" />
     </div>
   </v-card>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import {Component, Prop, Watch} from 'vue-property-decorator';
+import Vue from "vue";
+import { Component, Prop, Watch } from "vue-property-decorator";
 // import DoubleTableComponent from "./tableComponent.vue";
 // import SimpleTableComponent from "./simpleTable.vue";
-import {State} from 'vuex-class';
-import TreeViewComponent from './treeView.vue';
-import PortofolioList from './portofolioList.vue';
-// import TabsComponent from "./tabsComponent.vue";
-import SteppersComponent from './stepsComponent.vue';
+import { State } from "vuex-class";
+import TreeViewComponent from "./treeView.vue";
+import PortofolioList from "./portofolioList.vue";
+import TabsComponent from "./tabsComponent.vue";
+
+interface IDataTypes {
+  id: string;
+  apps: string[];
+  apis: string[];
+  buildings?: IDataTypes[];
+}
 
 @Component({
   components: {
     // DoubleTableComponent,
     TreeViewComponent,
     PortofolioList,
-    SteppersComponent,
     // SimpleTableComponent,
-    // TabsComponent,
+    TabsComponent,
   },
 })
 class CreationComponent extends Vue {
   @Prop() edit!: boolean;
   @Prop() profileSelected!: any;
-  @State portofolios!: any;
 
   tabsObject = Object.freeze({
-    Applications: 'Apis de Portefolios',
-    Batiments: 'Batiments',
+    Applications: "Apis de Portefolios",
+    Batiments: "Batiments",
   });
 
-  profileName = '';
+  profileName = "";
 
   headers: any = [
     {
-      text: 'Route',
+      text: "Route",
       sortable: false,
-      value: 'route',
+      value: "route",
     },
   ];
 
-  portofolioSelected: any = null;
+  @State portofolios!: any;
 
-  buildingPortofolios: any = null;
-  apisPortofolios: any = null;
+  portofolioSelected: any = null;
+  portofoliosCopy: any = null;
+
+  tabItems: string[] = Object.values(this.tabsObject);
+
+  tab = this.tabsObject.Applications;
+  buildingTab = null;
 
   mounted() {
     this._initProfile();
@@ -137,53 +141,55 @@ class CreationComponent extends Vue {
   }
 
   goBack() {
-    this.$emit('goBack');
+    this.$emit("goBack");
   }
 
   saveProfile() {
     if (!this.edit) {
       const data = this._getProfileCreationData();
-      return this.$emit('create', data);
+      return this.$emit("create", data);
     }
 
-    const data = this._getDiffBetweenProfile();
-    this.$emit('edit', {
+    this.$emit("edit", {
       profileId: this.profileSelected.id,
-      data,
+      data: this._getDiffBetweenProfile(),
     });
   }
 
   _initProfile() {
-    this.profileName = !this.edit ? '' : this.profileSelected.name;
-    this.buildingPortofolios = this.createCopy(this.portofolios, 'buildings');
-    this.apisPortofolios = this.createCopy(this.portofolios, 'apis');
+    this.profileName = !this.edit ? "" : this.profileSelected.name;
+    this.portofoliosCopy = this.createCopy(this.portofolios);
   }
 
-  createCopy(liste: any, type: 'apis' | 'buildings') {
+  createCopy(liste: any) {
     if (!liste) return [];
     return liste.map((el: any) => {
-      const copy = {selected: false, name: el.name, id: el.id};
-
-      copy[type] =
-        type === 'buildings'
-          ? this.getBuildingList(el[type])
-          : this._formatApis(el[type]);
-
+      const copy = this._addSelectedAttr(el);
+      copy.apis = this._formatApis(copy.apis);
+      if (copy.buildings) copy.buildings = this.createCopy(copy.buildings);
       return copy;
     });
   }
 
-  getBuildingList(list = []) {
-    return list.map((app: any) => this._addSelectedAttr(app));
+  getItemToSelect(parentId: string, isBuilding = false) {
+    if (!this.edit) return [];
+
+    if (!isBuilding) {
+      const found = this.profileSelected.authorized.find(
+        (el: any) => el.id === parentId
+      );
+
+      return found ? found.apis : [];
+    }
   }
 
   get getPortofolioBuilding() {
     return this.portofolioSelected.buildings.map((el: any) => el.name);
   }
 
-  // get getBuildingApis() {
-  //   return this.portofolioSelected.buildings[this.buildingTab]?.apis || [];
-  // }
+  get getBuildingApis() {
+    return this.portofolioSelected.buildings[this.buildingTab]?.apis || [];
+  }
 
   get disableSaveButton() {
     if (this.profileName.length === 0) return true;
@@ -191,7 +197,7 @@ class CreationComponent extends Vue {
     return false;
   }
 
-  @Watch('portofolios')
+  @Watch("portofolios")
   watchPortofolios() {
     this._initProfile();
   }
@@ -201,7 +207,7 @@ class CreationComponent extends Vue {
   //   this._initBos(newValue);
   // }
 
-  @Watch('edit')
+  @Watch("edit")
   watchEditMode(newValue: boolean) {
     this._initProfile();
   }
@@ -212,40 +218,32 @@ class CreationComponent extends Vue {
 
     for (const portofolio of toCreate.authorize) {
       const apisIds = portofolio.apisIds;
-      const buildingIds = portofolio.buildingIds;
+      const objData = obj[portofolio.portofolioId].apis || {};
 
-      const apisObjData = obj[portofolio.portofolioId].apis || {};
-      const buildingsObjData = obj[portofolio.portofolioId]?.buildings || {};
-
-      portofolio.unauthorizeApisIds = this._getIdsToUnauthorize(
+      portofolio.unauthorizeApisIds = this._getApisToUnauthorize(
         apisIds,
-        apisObjData
+        objData
       );
 
-      portofolio.unauthorizeBuildingIds = this._getIdsToUnauthorize(
-        buildingIds,
-        buildingsObjData
-      );
+      for (const building of portofolio.building) {
+        const buildingApisIds = building.apisIds;
+        const buildingObjData =
+          obj[portofolio.portofolioId].buildings[building.buildingId] || {};
 
-      // for (const building of portofolio.building) {
-      //   const buildingApisIds = building.apisIds;
-      //   const buildingObjData =
-      //     obj[portofolio.portofolioId].buildings[building.buildingId] || {};
-
-      //   building.unauthorizeApisIds = this._getApisToUnauthorize(
-      //     buildingApisIds,
-      //     buildingObjData
-      //   );
-      // }
+        building.unauthorizeApisIds = this._getApisToUnauthorize(
+          buildingApisIds,
+          buildingObjData
+        );
+      }
     }
 
     return toCreate;
   }
 
-  _getIdsToUnauthorize(ids: any, obj: any) {
+  _getApisToUnauthorize(apis: any, obj: any) {
     if (Object.keys(obj).length === 0) return [];
-    for (const id of ids) {
-      delete obj[id];
+    for (const api of apis) {
+      delete obj[api];
     }
 
     return Object.keys(obj);
@@ -265,7 +263,6 @@ class CreationComponent extends Vue {
       liste.push({
         selected: false,
         name: item.tag,
-        id: item.tag,
         children: [copy],
       });
 
@@ -280,55 +277,33 @@ class CreationComponent extends Vue {
   }
 
   _getProfileCreationData() {
-    const data: any = {
-      name: this.profileName,
-      authorize: [],
-    };
-    for (let i = 0; i < this.portofolios.length; i++) {
-      const obj = {
-        portofolioId: this.portofolios[i].id,
-        apisIds: this._getApisSelected(this.apisPortofolios[i].apis),
-        buildingIds: this._getSelected(this.buildingPortofolios[i].buildings),
-      };
+    return this.portofoliosCopy.reduce(
+      (liste: any, item: any) => {
+        const obj = this._formatData(item);
+        liste.authorize.push(obj);
 
-      data.authorize.push(obj);
+        return liste;
+      },
+      { name: this.profileName, authorize: [] }
+    );
+  }
+
+  _formatData(item: any, idAttr = "portofolioId") {
+    const obj: any = {
+      [idAttr]: item.id,
+      apisIds: this._getSelected(item.apis),
+    };
+
+    if (item.buildings) {
+      obj.building = item.buildings.map((el: any) =>
+        this._formatData(el, "buildingId")
+      );
     }
 
-    return data;
-    // return this.portofoliosCopy.reduce(
-    //   (liste: any, item: any) => {
-    //     const obj = this._formatData(item);
-    //     liste.authorize.push(obj);
-    //     return liste;
-    //   },
-    //   {name: this.profileName, authorize: []}
-    // );
+    return obj;
   }
-
-  // _formatData(item: any, idAttr = 'portofolioId') {
-  //   const obj: any = {
-  //     [idAttr]: item.id,
-  //     apisIds: this._getSelected(item.apis),
-  //   };
-
-  //   if (item.buildings) {
-  //     obj.building = item.buildings.map((el: any) =>
-  //       this._formatData(el, 'buildingId')
-  //     );
-  //   }
-
-  //   return obj;
-  // }
 
   _getSelected(arr: any) {
-    return arr.reduce((liste: any[], item: any) => {
-      if (item.selected) liste.push(item.id);
-
-      return liste;
-    }, []);
-  }
-
-  _getApisSelected(arr: any) {
     return arr.reduce((liste: any[], item: any) => {
       if (item.selected) liste.push(...item.children.map((el: any) => el.id));
       else
@@ -342,26 +317,29 @@ class CreationComponent extends Vue {
     }, []);
   }
 
-  _getBuildingSelected(arr) {
-    return arr.reduce((liste: any[], item: any) => {
-      if (item.selected) liste.push(item.id);
-      return liste;
-    }, []);
-  }
-
   _convertProfileToObj(profile: any) {
+    console.log(profile);
     const obj: any = {};
-    for (const {id, apis, buildings} of profile.authorized) {
+    for (const { id, apis, buildings } of profile.authorized) {
       obj[id] = {};
-      obj[id]['apis'] = this._convertlistToObj(apis);
-      obj[id]['buildings'] = this._convertlistToObj(buildings);
+      obj[id]["apis"] = this._convertApisToObj(apis);
+      obj[id]["buildings"] = this._convertBuildings(buildings);
     }
 
     return obj;
   }
 
-  _convertlistToObj(apis: any) {
-    const obj: {[key: string]: any} = {};
+  _convertBuildings(buildings: any) {
+    const obj: { [key: string]: any } = {};
+    for (const { id, apis } of buildings) {
+      obj[id] = this._convertApisToObj(apis);
+    }
+
+    return obj;
+  }
+
+  _convertApisToObj(apis: any) {
+    const obj: { [key: string]: any } = {};
 
     for (const item of apis) {
       obj[item.id] = item;
@@ -376,15 +354,15 @@ export default CreationComponent;
 
 <style lang="scss" scoped>
 $header-margin-top: 70px;
-$header-height: 170px;
+$header-height: 190px;
 $header-margin-bottom: 10px;
 
 .creationContainer {
   width: 100%;
   height: calc(100% - #{$header-margin-top});
   margin-top: $header-margin-top !important;
+  background: #f9f9f9;
   padding: 15px;
-  background: transparent !important;
 
   .header {
     height: $header-height !important;
@@ -392,39 +370,21 @@ $header-margin-bottom: 10px;
     justify-content: space-between;
     margin-bottom: $header-margin-bottom;
     .leftDiv {
-      width: 45%;
-      height: 100%;
+      width: 35%;
 
       .back {
         height: 40px;
         margin-bottom: 5px;
-        display: flex;
-        align-items: center;
       }
       ._title {
-        height: 25px;
-        vertical-align: middle;
         text-transform: uppercase;
-        font-size: 1em;
-        margin-bottom: 10px;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
+        font-size: 0.9em;
+        margin-bottom: 15px;
       }
 
       .description {
-        height: 50px;
         font-size: 0.8em;
         line-height: 5px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-
-      .searchDiv {
-        height: calc(100% - 140px);
-        display: flex;
-        align-items: center;
       }
     }
 
@@ -446,15 +406,68 @@ $header-margin-bottom: 10px;
   .profileContent {
     width: 100%;
     height: calc(100% - #{$header-height + $header-margin-bottom});
+    // display: flex;
+    // justify-content: space-between;
 
-    .emptyPortofolio {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      font-size: 1.6em;
-      align-items: center;
-      justify-content: center;
-    }
+    // .portofolioList {
+    //   width: 20%;
+    //   height: 100%;
+    //   border-right: 1px solid grey;
+    // }
+
+    // .content {
+    //   width: 79%;
+    //   height: 100%;
+    //   .empty {
+    //     width: 100%;
+    //     height: 100%;
+    //     display: flex;
+    //     align-items: center;
+    //     justify-content: center;
+    //     font-size: 1.6em;
+    //   }
+
+    //   .tabs {
+    //     width: 100%;
+    //     height: 100%;
+
+    //     .tabsHeader {
+    //       width: 100%;
+    //       height: 50px;
+    //     }
+
+    //     .tabsItems {
+    //       width: 100%;
+    //       height: calc(100% - 50px);
+    //       overflow: auto;
+
+    //       // .v-window__container {
+    //       //   height: 100% !important;
+    //       //   background: yellow;
+    //       // }
+
+    //       .buildingTabsDiv {
+    //         width: 100%;
+    //         height: 100%;
+    //         .empty {
+    //           width: 100%;
+    //           height: 100%;
+    //         }
+    //         .buildingTabItems {
+    //           width: 100%;
+    //           height: 100%;
+    //         }
+    //         .buildingTabs {
+    //           width: 100%;
+    //           height: 50px;
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+
+    // display: flex;
+    // justify-content: space-between;
   }
 }
 </style>

@@ -21,7 +21,6 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-import "@mdi/font/css/materialdesignicons.css";
 
 import Vue from "vue";
 import App from "./App.vue";
@@ -39,9 +38,9 @@ Vue.use(VueSweetalert2, {
   cancelButtonColor: "#ff7674",
 });
 
-import "../../../assets/css/basic/reset.css";
-import "../../../assets/css/basic/main.css";
-import "../../../assets/css/component/navPickerApp.css";
+import "./assets/css/basic/reset.css";
+import "./assets/css/basic/main.css";
+import "./assets/css/component/navPickerApp.css";
 import "material-design-icons-iconfont";
 
 Vue.config.productionTip = false;

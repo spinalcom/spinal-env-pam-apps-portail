@@ -24,9 +24,10 @@ with this file. If not, see
 
 <template>
   <div class="card-container">
-    <v-card class="card" elevation="4">
+    <v-card class="card">
       <div class="icon">
-        <v-icon size="100px" color="success">mdi-checkbox-marked-circle-outline</v-icon>
+        <v-icon size="100px"
+                color="success">mdi-checkbox-marked-circle-outline</v-icon>
 
         <div class="message">
           Une plateforme d'authentification a dejà été enregistée
@@ -37,30 +38,32 @@ with this file. If not, see
         <!-- <ListItem :title="'Nom de la plateforme d\'authentification'"
                   :subTitle="data.bosName" /> -->
 
-        <ListItem :title="'URL de la plateforme d\'authentification'" :subTitle="data.urlAdmin" />
+        <ListItem :title="'URL de la plateforme d\'authentification'"
+                  :subTitle="data.urlAdmin" />
 
-        <!-- <ListItem :title="'Clé d\'enregistrement'"
-                  :subTitle="data.registerKey" /> -->
+        <ListItem :title="'Clé d\'enregistrement'"
+                  :subTitle="data.registerKey" />
 
-        <ListItem :title="'Token de la plateforme d\'authentification'" :subTitle="data.tokenPamToAdmin">
-          <template v-slot:action>
-            <v-btn outlined x-small fab color="green" @click="updateToken" title="update token">
-              <v-icon>mdi-cached</v-icon>
-            </v-btn>
-          </template>
-        </ListItem>
+        <ListItem :title="'Token de la plateforme d\'authentification'"
+                  :subTitle="data.tokenPamToAdmin" />
       </div>
 
       <v-card-actions>
         <v-row>
           <v-col cols="6">
-            <v-btn block color="error" @click="deletePlatform" text>
+            <v-btn block
+                   color="error"
+                   @click="deletePlatform"
+                   text>
               <span style="white-space: normal">Supprimer La plateforme</span>
             </v-btn>
           </v-col>
 
           <v-col cols="6">
-            <v-btn block color="success" @click="updatePlatform" text>
+            <v-btn block
+                   color="success"
+                   @click="updatePlatform"
+                   text>
               <span style="white-space: normal">Mettre à jour les données</span>
             </v-btn>
           </v-col>
@@ -84,14 +87,9 @@ export default {
     updatePlatform() {
       this.$emit("update");
     },
-
-    updateToken() {
-      this.$emit("updateToken");
-    },
   },
 };
 </script>
-
 <style scoped lang="scss">
 .card-container {
   width: 100%;
@@ -102,14 +100,8 @@ export default {
 }
 
 .card-container .card {
-  width: 100%;
-  max-width: 700px;
+  width: 50%;
   padding: 15px;
-
-  @media (max-width: 960px) {
-    max-width: 600px;
-  }
-
   .icon {
     width: 100%;
     height: 150px;
@@ -120,12 +112,7 @@ export default {
     margin-bottom: 10px;
 
     .message {
-      width: 100%;
       font-size: 1em !important;
-      text-align: center;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
       color: #2e7d32;
     }
   }
