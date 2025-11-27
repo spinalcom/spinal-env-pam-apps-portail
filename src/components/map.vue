@@ -21,7 +21,7 @@ export default {
             // I have a key from MapTiler, you can use your own style or key
             style: 'https://api.maptiler.com/maps/basic-v2/style.json?key=hpivTiT82TMaSJNq4mMG',
             center: [0, 0], // starting position [lng, lat]
-            zoom: 0 // starting zoom
+            zoom: 5 // starting zoom
         });
 
         this.addMarkers(map);

@@ -168,7 +168,7 @@ class SpaceSelector extends Vue {
       this.buildingStructure[0]?.type == 'building' &&
       this.selectedZone.type == 'building'
     ) {
-      return this.buildingStructure[0]?.name || 'Bâtiments';
+      return this.buildingStructure[0]?.parentName || 'Bâtiments';
     }
     return this.selectedZone?.name || 'Sélectionnez une zone';
   }

@@ -84,7 +84,7 @@ export default {
         return;
       }
 
-      // this.goToBuildingDetail(data.buildingId); // generate building url;
+      this.goToBuildingDetail(data); // generate building url;
     },
 
     async goToBuildingDetail(item) {

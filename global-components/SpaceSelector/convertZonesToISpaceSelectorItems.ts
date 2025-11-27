@@ -42,13 +42,15 @@ export function convertZonesToISpaceSelectorItems(arr: TGeoItem[], parent?: ISpa
       patrimoineId = parent?.patrimoineId || '';
       buildingId = parent?.buildingId || '';
     }
+    console.log(parent)
     return createISpaceselectorItem(
       item,
       buildingId,
       patrimoineId,
       level,
       parents,
-      drawLink
+      drawLink,
+      parent?.name
     );
   });
   if (res.length > 0) {
@@ -66,7 +68,8 @@ export function createISpaceselectorItem(
   patrimoineId: string,
   level: number,
   parents: string[],
-  drawLink: number[]
+  drawLink: number[],
+  parentName?: string
 ): ISpaceSelectorItem {
   return {
     ...item,
@@ -85,5 +88,6 @@ export function createISpaceselectorItem(
     isLastInGrp: false,
     drawLink,
     haveChildren: false,
+    parentName
   };
 }

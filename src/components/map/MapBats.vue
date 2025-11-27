@@ -18,7 +18,7 @@ export default {
         infobuilding: { type: Object, default: null },
         buildings: { type: Array, default: () => [] },
         center: { type: Array, default: () => [2.4, 46.6] }, // [lng, lat]
-        zoom: { type: Number, default: 5 },
+        zoom: { type: Number, default:5 },
         // ⚠️ Dans le parent, passe :style-url="styleUrl" (kebab-case)
         styleUrl: { type: String, default: 'https://api.maptiler.com/maps/streets/style.json?key=uVQyEUqWhEnCvtHBaPOK' }
     },

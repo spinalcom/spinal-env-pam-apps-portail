@@ -55,9 +55,9 @@ with this file. If not, see
         <v-icon dark> {{ icon }} </v-icon>
       </v-btn>
 
-      <v-btn dark v-if="checkIfItsABuilding(item.type)" @click.stop="openInNew">
+    <!--  <v-btn dark v-if="checkIfItsABuilding(item.type)" @click.stop="openInNew">
         <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
+      </v-btn> -->
     </v-list-item-action>
   </v-list-item>
 </template>
