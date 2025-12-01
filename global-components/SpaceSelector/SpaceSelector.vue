@@ -124,7 +124,6 @@ import SpaceSelectorItem from './SpaceSelectorItem.vue';
 import { convertZonesToISpaceSelectorItems } from './convertZonesToISpaceSelectorItems';
 import { EventBus } from './eventBus';
 import moment from 'moment';
-import { log } from 'console';
 
 @Component({
   components: {
@@ -164,12 +163,14 @@ class SpaceSelector extends Vue {
   timeEnd: string = '';
 
   get selectedZoneName() {
-    if (
-      this.buildingStructure[0]?.type == 'building' &&
-      this.selectedZone.type == 'building'
-    ) {
-      return this.buildingStructure[0]?.parentName || 'Bâtiments';
+    if (this.buildingStructure[0]?.type == 'building' && this.selectedZone.type == 'building') {
+      return this.buildingStructure[0]?.name || 'Bâtiments';
     }
+
+    if (this.selectedZone.type === 'building') {
+      return this.selectedZone.parentName || 'Sélectionnez une zone';
+    }
+
     return this.selectedZone?.name || 'Sélectionnez une zone';
   }
 

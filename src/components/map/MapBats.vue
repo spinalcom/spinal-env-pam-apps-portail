@@ -1,5 +1,4 @@
 <template>
-    <!-- conteneur de la carte -->
     <div ref="el" style="height:100vh;border-radius:12px;overflow:hidden;"></div>
 </template>
 
@@ -18,7 +17,7 @@ export default {
         infobuilding: { type: Object, default: null },
         buildings: { type: Array, default: () => [] },
         center: { type: Array, default: () => [2.4, 46.6] }, // [lng, lat]
-        zoom: { type: Number, default:5 },
+        zoom: { type: Number, default: 14 },
         // ⚠️ Dans le parent, passe :style-url="styleUrl" (kebab-case)
         styleUrl: { type: String, default: 'https://api.maptiler.com/maps/streets/style.json?key=uVQyEUqWhEnCvtHBaPOK' }
     },
@@ -49,6 +48,11 @@ export default {
             this._mapLoaded = true
             this._addBuildingsLayer()
             this._wireInteractions()
+
+            if (this.buildings.length === 1) {
+                // si un seul bâtiment, on y zoom direct
+                this.focusOn(this.buildings[0], { zoom: 12 })
+            }
 
             // si un focus a été demandé avant le load
             if (this._pendingFocus) {

@@ -4,7 +4,7 @@
             <!-- <Map :buildings="buildings" /> -->
             <map-bats @clickedVignette="clickedVignette" ref="mapBats" :buildings="buildings"
                 @openBosConfig="openBosConfig" @closedPopup="closedPopup" :infobuilding="informationBuilding"
-                :center="[2.4, 46.6]" :zoom="2"
+                :center="[2.4, 46.6]" :zoom="14"
                 :style-url="'https://api.maptiler.com/maps/basic-v2/style.json?key=uVQyEUqWhEnCvtHBaPOK'" />
         </div>
 
