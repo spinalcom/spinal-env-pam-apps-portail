@@ -45,7 +45,7 @@ export function getAllUserProfilesRequest() {
 }
 
 export function createUserProfileRequest(data: any) {
-    return http.post("/user_profile/create_profile", data);
+    return http.post("/user_profile/create_profile?isCompatibleWithBosC=true", data);
 }
 
 export function getUserProfileRequest(profileId: string) {
@@ -60,7 +60,7 @@ export function deleteUserProfileRequest(profileId: string) {
 
 
 export function editUserProfileRequest(profileId: string, newData: any) {
-    return http.put(`/user_profile/edit_profile/${profileId}`, newData);
+    return http.put(`/user_profile/edit_profile/${profileId}?isCompatibleWithBosC=true`, newData);
 }
 
 export function getAllPortofoliosRequest() {

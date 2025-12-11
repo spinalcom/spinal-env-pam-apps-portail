@@ -229,7 +229,7 @@ export default {
               color:#fff; font-weight:600; cursor:pointer;
               box-shadow:0 2px 0 rgba(0,0,0,.15);
             ">
-            Ouvrir l’espace
+            Accéder au bâtiment
           </button>
         </div>
 
