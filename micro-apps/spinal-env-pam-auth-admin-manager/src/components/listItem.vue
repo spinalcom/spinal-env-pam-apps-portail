@@ -24,15 +24,16 @@ with this file. If not, see
 
 <template>
   <div class="itemContent">
-    <div class="title"
-         :title="title">
+    <div class="title" :title="title">
       {{ title }}
     </div>
-    :
-    <div class="subTitle"
-         :title="subTitle">
+
+    <div class="subTitle" :title="subTitle">
       {{ subTitle }}
     </div>
+
+    <slot name="action"></slot>
+
   </div>
 </template>
 
@@ -48,6 +49,7 @@ export default {
   height: 50px;
   align-items: center;
   justify-content: space-between;
+
   .title,
   .subTitle {
     width: calc(50% - 10px);
@@ -56,6 +58,7 @@ export default {
     display: block;
     overflow: hidden;
   }
+
   .title {
     font-size: 0.9em !important;
   }
